@@ -7,6 +7,7 @@
 // Invariants (checked by validate()):
 // - Faces [0, n_internal_faces) are internal; boundary faces follow, grouped
 //   contiguously by patch in patch order.
+// - Patch names are unique.
 // - Internal faces: owner[f] < neighbour[f].
 // - Face nodes are ordered so the right-hand normal points out of owner[f]
 //   (into neighbour[f] for internal faces, out of the domain on boundaries).
@@ -66,9 +67,10 @@ struct PolyMesh {
 // Throws kutta::Error describing the first violated invariant.
 void validate(const PolyMesh& mesh);
 
-// Exact geometric quantities, double precision. Polyhedral cells and faces are
-// decomposed around their (area / volume weighted) centroids, as in OpenFOAM, so
-// warped faces and concave-free polyhedra are handled consistently.
+// Double-precision center-fan geometry. Face centroids use signed areas
+// projected onto the resultant normal; cell moments use signed tetrahedra.
+// Planar simple polygons have exact area moments. Warped-face centroids
+// follow this decomposition rather than an exact curved-surface definition.
 struct MeshGeometry {
   std::vector<Vec3d> face_centroid;  // per face
   std::vector<Vec3d> face_area;      // area-weighted normal, points out of owner
