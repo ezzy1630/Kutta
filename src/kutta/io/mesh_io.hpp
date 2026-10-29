@@ -19,6 +19,19 @@ namespace kutta {
 PolyMesh read_fluent_msh(const std::filesystem::path& path,
                          double extrude_2d = 1.0);
 
+// Optional source metadata for periodic coupling; face ids are Kutta ids after
+// reordering/extrusion. read_fluent_msh() returns only this result's mesh.
+struct PeriodicFacePair {
+  Index face = -1, shadow = -1;
+  int zone = -1, shadow_zone = -1;
+};
+struct FluentMeshData {
+  PolyMesh mesh;
+  std::vector<PeriodicFacePair> periodic_faces;
+};
+FluentMeshData read_fluent_msh_with_metadata(const std::filesystem::path& path,
+                                             double extrude_2d = 1.0);
+
 // Fluent Common Fluids Format HDF5 mesh (.msh.h5, or the mesh inside .cas.h5).
 PolyMesh read_fluent_cff(const std::filesystem::path& path,
                          double extrude_2d = 1.0);
