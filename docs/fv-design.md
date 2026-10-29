@@ -36,8 +36,8 @@ One exception: the Rhie–Chow coefficient `d_f` depends on `a_P`, which include
 | Mass flux | Rhie–Chow momentum-based: J_f = ρ_f ū_f·S + d_f [(p0+∇p0·r0) − (p1+∇p1·r1)], with d_f from face-averaged V/a_P |
 | Diffusion | Over-relaxed non-orthogonal correction. The implicit part is Γ |S|²/(S·d) (φ1−φ0); the explicit part is Γ ∇φ_f·(S − d |S|²/(S·d)) |
 | Warped-face gradient correction | Undocumented in Fluent. Measure the sensitivity on poly meshes before chasing it |
-| Turbulence | Fluent SST (research A1): SST-2003m structure with 1994 γ, production limiter 10, k zero-flux wall BC, blended ω_wall and blended wall-cell P_k (A2). Make the S/Ω limiter and "limiter on ω production" switches configurable and default them from the forensics results |
-| Wall distance | Exact distance to the nearest wall face, computed on the host in double with a BVH, stored as float. Fluent's method is undocumented; compare against y+ fields saved by Fluent |
+| Turbulence | Fluent SST: research A1, with the corrections established in `fluent-sst-forensics.md` §7. SST-2003m structure with 1994 γ; μt limiter on **strain S** (established); production limiter 10 (not exercised by any data yet, so keep "limiter on ω production" switchable); k has a zero-gradient wall BC; **ω is fixed in wall cells** (not at wall faces) from Eq. 4-423 with β_i = 0.072 and κ = 0.4187; y⁺ uses the centroid-to-wall-face-plane normal distance; blended wall-cell P_k (A2, not yet verified) |
+| Wall distance | Exact distance from the cell centroid to the nearest wall surface, computed on the host in double with a BVH, stored as float. This matches `SV_WALL_DIST` (established) and feeds F1/F2. Wall functions use each wall face's own normal distance |
 
 ## Device data layout (SoA, all float unless noted)
 
