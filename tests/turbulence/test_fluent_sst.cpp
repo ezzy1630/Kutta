@@ -189,7 +189,7 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
   MESSAGE("SKIP: SST saved-field verification requires HDF5");
 #else
   using namespace sst_test;
-  const std::filesystem::path root = "/Users/ezzy/.Others/Kutta/validation/fluent_examples/mixing_elbow";
+  const std::filesystem::path root = KUTTA_SOURCE_DIR "/validation/fluent_examples/mixing_elbow";
   const auto case_path = root/"mixing_elbow.cas.h5", data_path = root/"mixing_elbow.dat.h5";
   if (!std::filesystem::exists(case_path) || !std::filesystem::exists(data_path)) {
     MESSAGE("SKIP: external Fluent mixing_elbow .cas.h5/.dat.h5 pair is absent"); return;

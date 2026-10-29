@@ -10,7 +10,7 @@ using namespace kutta::fluent;
 namespace {
 std::filesystem::path examples() {
   auto env = std::getenv("KUTTA_FLUENT_EXAMPLES");
-  return env ? env : "/Users/ezzy/.Others/Kutta/validation/fluent_examples";
+  return env ? env : KUTTA_SOURCE_DIR "/validation/fluent_examples";
 }
 bool available(const std::filesystem::path &path) {
   if (std::filesystem::exists(path))

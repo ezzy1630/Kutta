@@ -72,7 +72,7 @@ TEST_CASE("Inspect labels active relaxation equations and issue classes") {
 }
 TEST_CASE("Inspect real static mixer displays resolved expressions instead of saved snapshots") {
   auto root = std::getenv("KUTTA_FLUENT_EXAMPLES");
-  auto path = std::filesystem::path(root ? root : "/Users/ezzy/.Others/Kutta/validation/fluent_examples") /
+  auto path = std::filesystem::path(root ? root : KUTTA_SOURCE_DIR "/validation/fluent_examples") /
       "static_mixer/Static_Mixer_Parameters_legacy_text.cas";
   if (!std::filesystem::exists(path)) {
     MESSAGE("optional real-file inspect fixture absent: ", path.string());

@@ -218,10 +218,10 @@ TEST_CASE("Plot3D formatted 3D and single k-plane") {
   CHECK(m.patches[4].name == "front");
 }
 TEST_CASE(
-    "NASA TMR real formatted grids in main checkout (optional external "
+    "NASA TMR real formatted grids (optional external "
     "fixtures)") {
   const std::filesystem::path root =
-      "/Users/ezzy/.Others/Kutta/validation/data/nasa_tmr";
+      KUTTA_SOURCE_DIR "/validation/data/nasa_tmr";
   if (!std::filesystem::exists(root)) {
     MESSAGE("SKIP: external NASA TMR fixtures unavailable");
     return;

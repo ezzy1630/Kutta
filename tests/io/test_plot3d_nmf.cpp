@@ -34,7 +34,7 @@ void boundary_checks(const PolyMesh& m) {
 }
 }  // namespace
 TEST_CASE("NASA NMF ranges supply exact BC patches and stitch the NACA wake") {
-  const std::filesystem::path root = "/Users/ezzy/.Others/Kutta/validation/data/nasa_tmr";
+  const std::filesystem::path root = KUTTA_SOURCE_DIR "/validation/data/nasa_tmr";
   if (!std::filesystem::exists(root)) {
     MESSAGE("SKIP: external NASA TMR fixtures unavailable");
     return;

@@ -93,7 +93,7 @@ void same_mesh(const PolyMesh& a, const PolyMesh& b) {
 
 TEST_CASE("real Fluent external mesh acceptance") {
   const std::filesystem::path root =
-      "/Users/ezzy/.Others/Kutta/validation/fluent_examples";
+      KUTTA_SOURCE_DIR "/validation/fluent_examples";
   if (!std::filesystem::exists(root)) {
     MESSAGE("SKIP: external Fluent examples directory is absent");
     return;
