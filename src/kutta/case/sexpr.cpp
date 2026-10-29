@@ -1,3 +1,4 @@
+#include "kutta/core/parse.hpp"
 #include "kutta/case/sexpr.hpp"
 #include <cctype>
 #include <charconv>
@@ -205,20 +206,18 @@ class Parser {
     if (ir.ec == std::errc::result_out_of_range &&
         numeric.find_first_not_of("-0123456789") == numeric.npos)
       fail("integer outside supported range");
-    double d = 0;
-    auto dr = std::from_chars(numeric.data(), numeric.data() + numeric.size(), d);
-    if (dr.ec == std::errc{} && dr.ptr == numeric.data() + numeric.size() && !numeric.empty() &&
-        std::isfinite(d)) {
+    if (const auto d = parse_double(numeric); d && std::isfinite(*d)) {
       x.kind = SExpr::Kind::real;
-      x.real = d;
+      x.real = *d;
       return x;
     }
     const bool number_like =
         !numeric.empty() && (std::isdigit(static_cast<unsigned char>(numeric[0])) ||
                              (numeric[0] == '-' && numeric.size() > 1 &&
                               std::isdigit(static_cast<unsigned char>(numeric[1]))));
-    if (number_like &&
-        (ir.ec == std::errc::result_out_of_range || dr.ec == std::errc::result_out_of_range))
+    // Pure numeric syntax that still failed to parse can only be out of range
+    // (e.g. 1e999); symbols such as `2d-model` contain other characters.
+    if (number_like && numeric.find_first_not_of("-0123456789.eE") == numeric.npos)
       fail("number outside supported range");
     return SExpr::symbol(std::string(token));
   }
