@@ -325,9 +325,9 @@ void model_flag_support(FluentCase &c) {
     auto flag = boolean(c.variables.value(key));
     if (!flag)
       continue;
-    c.viscous.unsupported_options.emplace(key, *flag);
     if (!*flag)
       continue;
+    c.viscous.unsupported_options.emplace(key, *flag);
     const bool inactive = c.viscous.model == ViscousModel::laminar ||
         (key.starts_with("ke-") ? !epsilon_model(c) : epsilon_model(c));
     c.issues.push_back({"rp/" + key, inactive
