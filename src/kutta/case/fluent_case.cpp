@@ -693,8 +693,13 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
     v.kind = K::integer;
     neutral.emplace(std::move(key), v);
   };
+  if (type == ZoneType::fluid) {
+    zero("motion-spec");
+    zero("mrf-relative-to-thread");
+  }
   if (type == ZoneType::wall)
-    zero("method?");
+    for (auto key : {"method?", "shear-bc", "rough-bc"})
+      zero(key);
   if (type == ZoneType::velocity_inlet) {
     zero("coordinate-system");
     zero("omega-swirl");
@@ -717,15 +722,14 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
           it == neutral.end() ? "unsupported: switch is not in this zone type's allowlist"
                               : "unsupported: expected neutral value " + to_string(it->second)});
   }
-  // These numeric selectors must be checked even when their typed value was read.
-  for (auto key : {"coordinate-system", "omega-swirl", "gen-nrbc-spec", "p-backflow-spec",
-                   "p-backflow-spec-gen", "press-spec-gen"}) {
-    if (!raw.interpreted.contains(key) || !neutral.contains(key))
+  // Reading an integer is not evidence that its selector is supported.
+  for (const auto &[key, expected] : neutral) {
+    if (expected.kind != K::integer || !raw.interpreted.contains(key))
       continue;
     auto v = raw.value(key);
-    if (!v || v->number() != 0.0)
+    if (!v || v->number() != expected.number())
       c.issues.push_back({"zone/" + std::to_string(id) + "/" + key,
-                         "unsupported: expected neutral value 0"});
+                         "unsupported: expected neutral value " + to_string(expected)});
   }
 }
 void thread(FluentCase &c, const SExpr &e) {

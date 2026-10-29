@@ -487,3 +487,12 @@ TEST_CASE("Force reports with empty name selections cannot claim resolved zones"
   CHECK_FALSE(c.reports[0].zone_ids);
   CHECK(issue_at(c, "report/empty/zones"));
 }
+
+TEST_CASE("Reading a zone selector does not silently accept unknown behavior") {
+  for (auto [type, key] : {std::pair{"fluid", "motion-spec"}, {"fluid", "mrf-relative-to-thread"},
+                           {"wall", "shear-bc"}, {"wall", "rough-bc"}}) {
+    auto c = synthetic(config(false, false, true), "(39 (8 " + std::string(type) +
+        " body 1) ((" + key + " . 999)))");
+    CHECK(issue_at(c, "zone/8/" + std::string(key)));
+  }
+}
