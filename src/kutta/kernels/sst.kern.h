@@ -93,11 +93,10 @@ KUTTA_KERNEL void sst_wall(int i,
     KIn(float) dy, KIn(float) rho, KIn(float) mu, KIn(float) k, KIn(float) omega,
     KOut(float) tau, KOut(float) shear_x, KOut(float) shear_y, KOut(float) shear_z,
     KOut(float) u_star, KOut(float) u_tau, KOut(float) y_plus, KOut(float) y_plus_utau,
-    KOut(float) fixed_omega, KOut(float) face_omega, KOut(float) production,
-    KOut(float) shear_coefficient, float k_floor, float omega_floor) {
+    KOut(float) production, KOut(float) shear_coefficient, float k_floor, float omega_floor) {
   tau[i] = 0.0f; shear_x[i] = 0.0f; shear_y[i] = 0.0f; shear_z[i] = 0.0f;
   u_star[i] = 0.0f; u_tau[i] = 0.0f; y_plus[i] = 0.0f; y_plus_utau[i] = 0.0f;
-  fixed_omega[i] = 0.0f; face_omega[i] = 0.0f; production[i] = 0.0f;
+  production[i] = 0.0f;
   shear_coefficient[i] = 0.0f;
   if (!wall[i]) return;
   int f = n_internal + i, c = owner[f];
@@ -124,6 +123,24 @@ KUTTA_KERNEL void sst_wall(int i,
     kvec3 shear = (-coefficient) * tangent;
     shear_x[i] = shear.x; shear_y[i] = shear.y; shear_z[i] = shear.z;
   }
+  float p_lam = (r * ke / w) * (stress / m) * (stress / m);
+  // Analytic log-law derivative 1/(kappa*y+), TG 4-421; clamp in u+ is
+  // for its VALUE (4-416). The y+ -> 0 production limit is zero.
+  float p_log = yp > 0.0f ? (stress*stress / m) / (0.4187f * yp) : 0.0f;
+  float hi = kmax(p_lam, p_log), lo = kmin(p_lam, p_log);
+  production[i] = hi > 0.0f ? lo / (1.0f + lo / hi) : 0.0f;
+}
+
+// Separate from stress/production to stay within Metal's 31 buffer bindings
+// (including scalar arguments and the generated launch-size argument).
+KUTTA_KERNEL void sst_wall_omega(int i,
+    KIn(int) owner, KIn(int) wall, int n_internal,
+    KIn(float) dy, KIn(float) rho, KIn(float) mu, KIn(float) u_star,
+    KOut(float) fixed_omega, KOut(float) face_omega) {
+  fixed_omega[i] = 0.0f; face_omega[i] = 0.0f;
+  if (!wall[i]) return;
+  int c = owner[n_internal+i];
+  float m = mu[c], r = rho[c], d = dy[i], us = u_star[i];
   // Dimensional branches avoid the removable u*^2/y+^2 singularity.
   float w_lam = 2.0f * (m / r) / (0.072f * d*d);
   float w_log = us / (0.3f * 0.4187f * d);
@@ -132,12 +149,6 @@ KUTTA_KERNEL void sst_wall(int i,
   // Use documented constants (C_calib=1, twice the log branch), not a fit
   // tuned to this fixture. Only gradients/reconstruction consume this value.
   face_omega[i] = sst_power_blend(3.0f*w_lam, 2.0f*w_log, 1.3f);
-  float p_lam = (r * ke / w) * (stress / m) * (stress / m);
-  // Analytic log-law derivative 1/(kappa*y+), TG 4-421; clamp in u+ is
-  // for its VALUE (4-416). The y+ -> 0 production limit is zero.
-  float p_log = yp > 0.0f ? (stress*stress / m) / (0.4187f * yp) : 0.0f;
-  float hi = kmax(p_lam, p_log), lo = kmin(p_lam, p_log);
-  production[i] = hi > 0.0f ? lo / (1.0f + lo / hi) : 0.0f;
 }
 
 KUTTA_KERNEL void sst_wall_cells(int i,

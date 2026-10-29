@@ -4,7 +4,8 @@
 once, then call `update(inputs)` each outer iteration. Inputs borrow device SoA
 buffers, including unlimited gradients of velocity, k and omega. The extra scalar
 gradients are necessary for F1 and cross diffusion. Updates allocate nothing,
-download nothing, and use seven deterministic gather/pointwise kernels.
+download nothing, and use eight deterministic gather/pointwise kernels (wall omega is separate to stay
+within Metal's buffer-binding limit).
 
 Sources and sinks are **per volume**, with `S = source - sink * phi`. Add
 `V * source` to the transport RHS and `V * sink` to its diagonal. Destruction and

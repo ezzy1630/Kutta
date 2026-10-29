@@ -113,8 +113,10 @@ void SstModel::update(const SstInputs& in) {
       mesh_.wall_normal_distance, in.density, in.viscosity, in.k, in.omega,
       f.wall_tau, f.wall_shear.x, f.wall_shear.y, f.wall_shear.z,
       f.wall_u_star, f.wall_u_tau, f.wall_y_plus, f.wall_y_plus_utau,
-      wall_cell_omega_, f.wall_face_omega, face_production_, f.wall_shear_coefficient,
-      o.k_floor, o.omega_floor);
+      face_production_, f.wall_shear_coefficient, o.k_floor, o.omega_floor);
+  kern::sst_wall_omega(d, nb, mesh_.owner, wall_mask_, mesh_.n_internal_faces,
+      mesh_.wall_normal_distance, in.density, in.viscosity, f.wall_u_star,
+      wall_cell_omega_, f.wall_face_omega);
   kern::sst_wall_cells(d, nc, mesh_.cell_face_offsets, mesh_.cell_faces, wall_mask_,
       mesh_.wall_normal_distance, wall_cell_omega_, face_production_, mesh_.n_internal_faces,
       f.fixed_omega_mask, f.selected_wall_face, f.fixed_omega, f.wall_production);
