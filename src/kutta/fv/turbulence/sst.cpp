@@ -82,7 +82,8 @@ SstModel::SstModel(Device& dev, const DeviceMesh& mesh, SstOptions options)
   f.wall_tau = boundary(); f.wall_u_star = boundary(); f.wall_u_tau = boundary();
   f.wall_y_plus = boundary(); f.wall_y_plus_utau = boundary();
   f.wall_shear = {boundary(), boundary(), boundary()};
-  face_omega_ = boundary(); face_production_ = boundary();
+  f.wall_shear_coefficient = boundary(); f.wall_face_omega = boundary();
+  wall_cell_omega_ = boundary(); face_production_ = boundary();
 }
 
 void SstModel::update(const SstInputs& in) {
@@ -112,9 +113,10 @@ void SstModel::update(const SstInputs& in) {
       mesh_.wall_normal_distance, in.density, in.viscosity, in.k, in.omega,
       f.wall_tau, f.wall_shear.x, f.wall_shear.y, f.wall_shear.z,
       f.wall_u_star, f.wall_u_tau, f.wall_y_plus, f.wall_y_plus_utau,
-      face_omega_, face_production_, o.k_floor, o.omega_floor);
+      wall_cell_omega_, f.wall_face_omega, face_production_, f.wall_shear_coefficient,
+      o.k_floor, o.omega_floor);
   kern::sst_wall_cells(d, nc, mesh_.cell_face_offsets, mesh_.cell_faces, wall_mask_,
-      mesh_.wall_normal_distance, face_omega_, face_production_, mesh_.n_internal_faces,
+      mesh_.wall_normal_distance, wall_cell_omega_, face_production_, mesh_.n_internal_faces,
       f.fixed_omega_mask, f.selected_wall_face, f.fixed_omega, f.wall_production);
   const int production_mode = o.kato_launder ? 1 : (o.vorticity_production ? 2 : 0);
   kern::sst_sources(d, nc, in.density, in.viscosity, in.k, in.omega,

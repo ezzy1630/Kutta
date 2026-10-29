@@ -355,3 +355,57 @@ TEST_CASE("SST F1 cross branch and transport match an independent double oracle"
     }
   }
 }
+
+TEST_CASE("SST implicit wall shear, reconstruction omega and structural zero k flux") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m = box(*dev); State s(*dev,m);
+    m.patches.front().kind = PatchKind::Symmetry;
+    SstOptions o;
+    SstModel model(*dev,m,o); const auto& f = model.fields();
+    for (float ke : {0.f,1.f}) for (float speed : {0.f,1e-12f,1e-6f,10.f}) {
+      dev->fill(s.k,ke); dev->fill(s.mu,1e-5f);
+      // Relative normal motion must not enter the tangential implicit law.
+      s.velocity = constant_vector(*dev,1,{speed+2,3,0});
+      s.wall_velocity = constant_vector(*dev,m.n_boundary_faces(),{2,2,0});
+      model.update(s.inputs());
+      auto coeff = dev->download(f.wall_shear_coefficient), tau = dev->download(f.wall_tau);
+      auto face_w = dev->download(f.wall_face_omega), face_k = dev->download(f.face_diffusivity_k);
+      auto fw_diff = dev->download(f.face_diffusivity_omega), cell_k = dev->download(f.diffusivity_k);
+      auto sx = dev->download(f.wall_shear.x), sy = dev->download(f.wall_shear.y), sz = dev->download(f.wall_shear.z);
+      auto ax = dev->download(m.area.x), ay = dev->download(m.area.y), az = dev->download(m.area.z);
+      const auto actual_u = dev->download(s.velocity.x)[0]-2.;
+      for (const auto& patch : m.patches) for (Index face = patch.start; face < patch.start+patch.size; ++face) {
+        const auto b = face-m.n_internal_faces;
+        if (patch.kind != PatchKind::Wall) {
+          CHECK(coeff[b] == 0); CHECK(face_w[b] == 0);
+          CHECK(near(face_k[face],cell_k[0]));
+          continue;
+        }
+        CHECK(face_k[face] == 0); CHECK(near(fw_diff[face],1e-5));
+        const Vec3d normal{ax[face],ay[face],az[face]}, relative{actual_u,1,0};
+        const auto tangent = relative-normal*(dot(relative,normal)/dot(normal,normal));
+        const auto u = norm(tangent), d = .5, nu = 1e-5;
+        const auto us = std::sqrt(nu*u/d+.3*std::max(double(ke),double(o.k_floor)));
+        const auto yp = us*d/nu, log_up = std::log(9.793*std::max(yp,.2))/.4187;
+        const auto expected = std::pow(std::pow(nu/d,4)+std::pow(us/log_up,4),.25);
+        CHECK(near(coeff[b],expected)); CHECK(std::isfinite(coeff[b])); CHECK(coeff[b] > 0);
+        CHECK(near(tau[b],expected*u));
+        const Vec3d implicit_force = tangent*(-coeff[b]*norm(normal));
+        const Vec3d explicit_force{sx[b]*norm(normal),sy[b]*norm(normal),sz[b]*norm(normal)};
+        CHECK(norm(implicit_force-explicit_force) <= 1e-6*std::max(norm(implicit_force),1e-25));
+        const auto expected_face_w = std::pow(std::pow(6*nu/(.072*d*d),1.3)+
+          std::pow(2*us/(.3*.4187*d),1.3),1/1.3);
+        CHECK(near(face_w[b],expected_face_w));
+      }
+    }
+    // Exact zero tangential speed in both the viscous and k-driven log regimes.
+    for (float ke : {0.f,1.f}) {
+      dev->fill(s.k,ke); s.velocity = constant_vector(*dev,1,{2,2,0});
+      model.update(s.inputs()); auto zero = dev->download(f.wall_shear_coefficient);
+      dev->fill(s.velocity.z,1e-6f); model.update(s.inputs());
+      auto small = dev->download(f.wall_shear_coefficient);
+      CHECK(near(zero[2],small[2],1e-4)); CHECK(zero[2] > 0);
+      if (ke == 0) CHECK(near(zero[2],1e-5/.5));
+    }
+  }
+}

@@ -7,11 +7,15 @@
 //   sst.update({velocity, {grad_u, grad_v, grad_w}, rho, mu, k, omega,
 //               grad_k, grad_omega, wall_velocity});
 //   const auto& t = sst.fields();
-//   // Momentum: t.mu_t, t.wall_shear (stress on fluid, boundary-face indexing).
+//   // Momentum: t.mu_t; wall-function stress REPLACES wall-face viscous flux.
+//   // Freeze C=t.wall_shear_coefficient; implicitly apply area*C*(I-n*n^T)
+//   // to cell velocity, with area*C*(I-n*n^T)*U_wall on the RHS.
+//   // t.wall_shear is the equivalent explicit stress on the fluid.
+//   // Use t.wall_face_omega for wall gradient/reconstruction values.
 //   // Transport: add V*source to RHS and V*sink to diagonal; source - sink*phi.
-//   // Use t.face_diffusivity_{k,omega}; enforce zero normal k flux on walls.
+//   // Use t.face_diffusivity_{k,omega}; wall k diffusivity is zero.
 //   // Replace omega rows where t.fixed_omega_mask != 0 by identity with
-//   // RHS t.fixed_omega. Do not impose omega as a wall-face Dirichlet value.
+//   // RHS t.fixed_omega. wall_face_omega is NOT a transport Dirichlet BC.
 //
 // Fields remain on device; update allocates nothing and never downloads data.
 
@@ -79,6 +83,15 @@ struct SstFields {
   // All wall diagnostics use boundary-face indexing; non-wall entries are zero.
   Buffer<float> wall_tau, wall_u_star, wall_u_tau, wall_y_plus, wall_y_plus_utau;
   DeviceVec3 wall_shear;  // Pa, antiparallel to relative tangential velocity
+  // C = tau_w/|U_t|, with its finite analytic limit at |U_t|=0. See the
+  // implicit momentum contract above; lag C, not the tangential cell velocity.
+  Buffer<float> wall_shear_coefficient;
+  // Gradient/reconstruction ONLY: blend(6*nu/(.072*dy^2),
+  // 2*u_star/(.3*.4187*dy), 1.3). Forensics 3.5 suggests this form but does
+  // not establish its role; fixed constants miss saved face SV_O by ~0.42%.
+  // Independent of input gradients; a bootstrap update can supply the first
+  // reconstruction, then refresh from the current nonlinear iterate.
+  Buffer<float> wall_face_omega;
 
   // Diagnostics and cell diffusivities, also useful to the transport assembler.
   Buffer<float> strain, vorticity, f1, f2, cdkw;
@@ -101,7 +114,7 @@ class SstModel {
   SstOptions options_;
   SstFields fields_;
   Buffer<std::int32_t> wall_mask_;
-  Buffer<float> face_omega_, face_production_;
+  Buffer<float> wall_cell_omega_, face_production_;
 };
 
 }  // namespace kutta

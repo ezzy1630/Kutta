@@ -91,6 +91,7 @@ inline std::vector<std::vector<float>> snapshot(Device& d, const SstFields& f) {
     d.download(f.omega_source), d.download(f.omega_sink),
     d.download(f.face_diffusivity_k), d.download(f.face_diffusivity_omega),
     d.download(f.fixed_omega), d.download(f.wall_production),
+    d.download(f.wall_shear_coefficient), d.download(f.wall_face_omega),
     d.download(f.wall_tau), d.download(f.wall_u_star), d.download(f.wall_u_tau),
     d.download(f.wall_y_plus), d.download(f.wall_y_plus_utau),
     d.download(f.wall_shear.x), d.download(f.wall_shear.y), d.download(f.wall_shear.z),

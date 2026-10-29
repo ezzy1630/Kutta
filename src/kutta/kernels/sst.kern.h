@@ -93,11 +93,12 @@ KUTTA_KERNEL void sst_wall(int i,
     KIn(float) dy, KIn(float) rho, KIn(float) mu, KIn(float) k, KIn(float) omega,
     KOut(float) tau, KOut(float) shear_x, KOut(float) shear_y, KOut(float) shear_z,
     KOut(float) u_star, KOut(float) u_tau, KOut(float) y_plus, KOut(float) y_plus_utau,
-    KOut(float) fixed_omega, KOut(float) production,
-    float k_floor, float omega_floor) {
+    KOut(float) fixed_omega, KOut(float) face_omega, KOut(float) production,
+    KOut(float) shear_coefficient, float k_floor, float omega_floor) {
   tau[i] = 0.0f; shear_x[i] = 0.0f; shear_y[i] = 0.0f; shear_z[i] = 0.0f;
   u_star[i] = 0.0f; u_tau[i] = 0.0f; y_plus[i] = 0.0f; y_plus_utau[i] = 0.0f;
-  fixed_omega[i] = 0.0f; production[i] = 0.0f;
+  fixed_omega[i] = 0.0f; face_omega[i] = 0.0f; production[i] = 0.0f;
+  shear_coefficient[i] = 0.0f;
   if (!wall[i]) return;
   int f = n_internal + i, c = owner[f];
   float r = rho[c], m = mu[c], d = dy[i], ke = kmax(k[c], k_floor);
@@ -113,18 +114,24 @@ KUTTA_KERNEL void sst_wall(int i,
   float ratio = kmin(yp, log_up) / kmax(yp, log_up);
   float blend = kpow(1.0f + ratio*ratio*ratio*ratio, 0.25f);
   // Equivalent to rho*u*U/u+, but defined at U=k=0 and at y+ -> 0.
-  float stress = (yp <= log_up ? m * speed / d : r * us * speed / log_up) * blend;
+  float coefficient = (yp <= log_up ? m / d : r * us / log_up) * blend;
+  float stress = coefficient * speed;
+  shear_coefficient[i] = coefficient;
   float ut = ksqrt(stress / r);
   tau[i] = stress; u_star[i] = us; u_tau[i] = ut;
   y_plus[i] = yp; y_plus_utau[i] = (r / m) * ut * d;
   if (speed > 0.0f) {
-    kvec3 shear = (-stress / speed) * tangent;
+    kvec3 shear = (-coefficient) * tangent;
     shear_x[i] = shear.x; shear_y[i] = shear.y; shear_z[i] = shear.z;
   }
   // Dimensional branches avoid the removable u*^2/y+^2 singularity.
   float w_lam = 2.0f * (m / r) / (0.072f * d*d);
   float w_log = us / (0.3f * 0.4187f * d);
   fixed_omega[i] = sst_power_blend(w_lam, w_log, 1.3f);
+  // Forensics 3.5: likely face form, exact definition/role inconclusive.
+  // Use documented constants (C_calib=1, twice the log branch), not a fit
+  // tuned to this fixture. Only gradients/reconstruction consume this value.
+  face_omega[i] = sst_power_blend(3.0f*w_lam, 2.0f*w_log, 1.3f);
   float p_lam = (r * ke / w) * (stress / m) * (stress / m);
   // Analytic log-law derivative 1/(kappa*y+), TG 4-421; clamp in u+ is
   // for its VALUE (4-416). The y+ -> 0 production limit is zero.
@@ -205,9 +212,9 @@ KUTTA_KERNEL void sst_face_diffusion(int i,
     face_k[i] = a * gamma_k[c] + (1.0f - a) * gamma_k[n];
     face_w[i] = a * gamma_w[c] + (1.0f - a) * gamma_w[n];
   } else {
-    // mu_t vanishes on a smooth wall. The assembler still enforces zero k
-    // flux and fixes wall-cell omega; other boundary coefficients extrapolate.
-    face_k[i] = wall[i-n_internal] ? mu[c] : gamma_k[c];
+    // Make zero k flux structural. Omega rows in wall cells are fixed;
+    // its wall-face molecular coefficient is not a Dirichlet BC.
+    face_k[i] = wall[i-n_internal] ? 0.0f : gamma_k[c];
     face_w[i] = wall[i-n_internal] ? mu[c] : gamma_w[c];
   }
 }

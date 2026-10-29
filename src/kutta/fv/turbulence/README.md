@@ -16,7 +16,7 @@ transport term to `|D_omega| <= cross_diffusion_clip*rho*beta*omega^2`, with
 source fields. It does not clip F1's CDkw. Disabling it retains signed transport;
 a representational saturation of ratios at +/-1e38 still prevents float overflow
 in CDkw diagnostics and implicit sink coefficients at tiny omega.
-The caller enforces zero normal k flux on walls and replaces wall-cell omega
+Wall-face k diffusivity is exactly zero; the caller replaces wall-cell omega
 rows by identity using `fixed_omega_mask` and `fixed_omega`. The model does not
 modify the caller's k/omega buffers. Its documented floors apply when evaluating
 coefficients (`k_floor=1e-14`, `omega_floor=1e-20`, matching Fluent min-limit
@@ -24,15 +24,31 @@ rpvars); the transport solver must enforce positivity after solving too.
 
 `wall_shear` is stress **on the fluid**, antiparallel to relative tangential
 velocity. Multiply it by face area to compare with `SV_WALL_SHEAR` (force/face).
+The wall-function stress **replaces the wall-face viscous flux**.
+`wall_shear_coefficient = tau_w/|U_t|` is evaluated without dividing by speed,
+so it stays finite and positive at zero speed. Freeze this coefficient for each
+momentum solve; add `area*C*(I-n*n^T)` to the cell's momentum block and
+`area*C*(I-n*n^T)*U_wall` to its RHS. This acts on tangential velocity; applying
+`area*C` indiscriminately to all three diagonal entries would damp normal motion.
 `wall_tau` is its positive scalar magnitude. `wall_u_tau = sqrt(tau/rho)` is
 the friction velocity, distinct from `wall_u_star` of TG 4-418.
 
 Cell diffusivities blend **inverse** sigmas with F1. Internal face diffusivities
 linearly interpolate the complete cell coefficients with `DeviceMesh::weight`.
-Smooth walls use molecular viscosity; other boundaries extrapolate the owner
-coefficient. Transport boundary conditions still belong to the assembler.
+Smooth walls use zero k diffusivity and molecular omega diffusivity; other
+boundaries extrapolate the owner coefficient. Transport boundary conditions still belong to the assembler.
 For several wall faces in one cell, select the smallest normal distance, breaking
 ties by face id. Fluent's rule for this case remains unknown.
+
+`wall_face_omega` is a **gradient/reconstruction value**, distinct from
+`fixed_omega` (the wall-cell row constraint). Following the likely form in
+forensics §3.5, use a power blend of `6*nu/(.072*dy^2)` and
+`2*u_star/(.3*.4187*dy)`, exponent 1.3. These are the documented fixed constants,
+not the free fitted constants; the reported ~0.42% offset is retained. Its role
+in Fluent remains inconclusive. It must not become a transport Dirichlet BC.
+The value depends on velocity/k and wall geometry, not gradients: a preliminary
+update can bootstrap the first omega reconstruction, then refresh it from each
+nonlinear iterate. Non-wall entries are zero and must use their actual BC values.
 
 ## Formula sources
 
@@ -53,6 +69,7 @@ The local [numerics report](../../../../docs/research/fluent-numerics-and-files.
 | u-star, blended u-plus, stress, both y-plus definitions | TG 4-413..418; forensics §3.1–3.3, §7 |
 | Harmonic wall production blend | TG 4-420..422 (analytic log-law derivative `1/(kappa*y+)`) |
 | Fixed wall-cell omega, power blend | TG 4-423..426; forensics §3.4, §7 |
+| Wall-face reconstruction omega, fixed-constant choice | Forensics §3.5; likely form, role inconclusive |
 | Wall k zero flux | TG §4.18.3; forensics §3.6 |
 
 SST constants: a1=.31, beta-star=.09, beta1/2=.075/.0828,
@@ -123,8 +140,7 @@ by Lane F.
 - Tabulated wall omega: throws explicitly because its table is unpublished.
   Curvature and compressibility switches also throw; their required physics
   is outside this incompressible interface.
-- Low-Re mode, multiple-wall-face rule, wall-limiter exemption, wall-face omega
-  definition and u-star limiter:
+- Low-Re mode, multiple-wall-face rule, wall-limiter exemption and u-star limiter:
   not established by this fixture. The optional cross-diffusion clip above is an explicit inference.
 - Fluent's exact LSQ/WFGC and `kw-sst-strain? #t` semantics remain unknown.
   The explicit strain/vorticity enum does not pretend to decode that flag.
