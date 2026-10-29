@@ -255,6 +255,10 @@ TEST_CASE("Real mixing elbow typed settings match verified CFF values") {
   CHECK(c.reference.density == 1.225);
   CHECK(c.reference.viscosity == 1.7894e-5);
   CHECK_FALSE(c.viscous.wall_omega);
+  CHECK(c.cell_zones[0].relative_to_zone == -1);
+  CHECK(std::none_of(c.issues.begin(), c.issues.end(), [](auto &i) {
+    return i.path == "zone/87/mrf-relative-to-thread";
+  }));
 }
 TEST_CASE("Real elbow1 authoritative k epsilon and velocity components") {
   auto path = examples() / "file_session/elbow1.cas.h5";

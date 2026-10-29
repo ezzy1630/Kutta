@@ -688,25 +688,26 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
   }
   if (type == ZoneType::interior)
     flags("is-not-a-rans-les-interface", true);
-  auto zero = [&](std::string key) {
+  auto selector = [&](std::string key, int value = 0) {
     SExpr v;
     v.kind = K::integer;
+    v.integer = value;
     neutral.emplace(std::move(key), v);
   };
   if (type == ZoneType::fluid) {
-    zero("motion-spec");
-    zero("mrf-relative-to-thread");
+    selector("motion-spec");
+    selector("mrf-relative-to-thread", -1);
   }
   if (type == ZoneType::wall)
     for (auto key : {"method?", "shear-bc", "rough-bc"})
-      zero(key);
+      selector(key);
   if (type == ZoneType::velocity_inlet) {
-    zero("coordinate-system");
-    zero("omega-swirl");
+    selector("coordinate-system");
+    selector("omega-swirl");
   }
   if (type == ZoneType::pressure_outlet)
     for (auto key : {"gen-nrbc-spec", "p-backflow-spec", "p-backflow-spec-gen", "press-spec-gen"})
-      zero(key);
+      selector(key);
   for (const auto &key : raw.unparsed_names()) {
     const auto *v = raw.value(key);
     auto it = neutral.find(key);
