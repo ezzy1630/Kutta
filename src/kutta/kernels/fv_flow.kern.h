@@ -1,6 +1,7 @@
 #include "kutta/kernels/prelude.h"
 
-// Boundary kind: wall=0, velocity inlet=1, pressure outlet=2, symmetry=3.
+// Boundary kind: wall=0, inlet=1, prescribed-backflow outlet=2, symmetry=3,
+// pressure outlet with normal backflow=4.
 KUTTA_KERNEL void fv_velocity_boundary(int i,KIn(int) owner,KIn(int) kind,
     KIn(float) sx,KIn(float) sy,KIn(float) sz,
     KIn(float) rx,KIn(float) ry,KIn(float) rz,
@@ -10,16 +11,20 @@ KUTTA_KERNEL void fv_velocity_boundary(int i,KIn(int) owner,KIn(int) kind,
     KIn(float) wx,KIn(float) wy,KIn(float) wz,
     KIn(float) prescribed_u,KIn(float) prescribed_v,KIn(float) prescribed_w,
     KIn(float) flux,KOut(float) bu,KOut(float) bv,KOut(float) bw,
-    KOut(int) scalar_kind,int internal) {
+    KOut(int) scalar_kind,int internal,float rho) {
   int f=i+internal,p=owner[f],type=kind[i];
   float x=prescribed_u[i],y=prescribed_v[i],z=prescribed_w[i];
   float a2=sx[f]*sx[f]+sy[f]*sy[f]+sz[f]*sz[f];
   scalar_kind[i]=0;
-  if(type==2 && flux[f]>=0.0f) {
+  if((type==2 || type==4) && flux[f]>=0.0f) {
     x=u[p]+ux[p]*rx[f]+uy[p]*ry[f]+uz[p]*rz[f];
     y=v[p]+vx[p]*rx[f]+vy[p]*ry[f]+vz[p]*rz[f];
     z=w[p]+wx[p]*rx[f]+wy[p]*ry[f]+wz[p]*rz[f];
     scalar_kind[i]=1;
+  }
+  if(type==4 && flux[f]<0.0f) {
+    float area=ksqrt(a2),speed=flux[f]/(rho*area);
+    x=speed*(sx[f]/area);y=speed*(sy[f]/area);z=speed*(sz[f]/area);
   }
   if(type==3) {
     float along=(rx[f]*sx[f]+ry[f]*sy[f]+rz[f]*sz[f])/a2;
@@ -45,7 +50,7 @@ KUTTA_KERNEL void fv_pressure_boundary(int i,KIn(int) owner,KIn(int) kind,
     float along=(x*sx[f]+y*sy[f]+z*sz[f])/(sx[f]*sx[f]+sy[f]*sy[f]+sz[f]*sz[f]);
     x-=along*sx[f];y-=along*sy[f];z-=along*sz[f];
   }
-  boundary[i]=kind[i]==2?prescribed[i]:p[c]+gx[c]*x+gy[c]*y+gz[c]*z;
+  boundary[i]=(kind[i]==2 || kind[i]==4)?prescribed[i]:p[c]+gx[c]*x+gy[c]*y+gz[c]*z;
 }
 
 KUTTA_KERNEL void fv_pressure_faces(int i,KIn(int) owner,KIn(int) neighbour,
@@ -77,14 +82,24 @@ KUTTA_KERNEL void fv_momentum_source(int i,KIn(int) offsets,KIn(int) faces,
 
 // Correct the momentum-weighted interpolation point to the actual face.
 // This preserves affine fields even with unequal cell diagonals and skewness.
-KUTTA_KERNEL void fv_momentum_faces(int i,KIn(int) owner,KIn(int) neighbour,
+KUTTA_KERNEL void fv_momentum_faces(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) kind,
     KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
     KIn(float) u,KIn(float) v,KIn(float) w,
     KIn(float) ux,KIn(float) uy,KIn(float) uz,KIn(float) vx,KIn(float) vy,KIn(float) vz,
     KIn(float) wx,KIn(float) wy,KIn(float) wz,KIn(float) diagonal,
     KIn(float) bu,KIn(float) bv,KIn(float) bw,
     KOut(float) fu,KOut(float) fv,KOut(float) fw,int internal) {
-  if(i>=internal) {int b=i-internal;fu[i]=bu[b];fv[i]=bv[b];fw[i]=bw[b];return;}
+  if(i>=internal) {
+    int b=i-internal,p=owner[i];
+    if(kind[b]==2 || kind[b]==4) {
+      // Pressure fixes outlet flux through momentum, not through a prescribed
+      // backflow velocity. Backflow data belongs to advected momentum only.
+      fu[i]=u[p]+ux[p]*px[i]+uy[p]*py[i]+uz[p]*pz[i];
+      fv[i]=v[p]+vx[p]*px[i]+vy[p]*py[i]+vz[p]*pz[i];
+      fw[i]=w[p]+wx[p]*px[i]+wy[p]*py[i]+wz[p]*pz[i];
+    } else {fu[i]=bu[b];fv[i]=bv[b];fw[i]=bw[b];}
+    return;
+  }
   int p=owner[i],n=neighbour[i];float weight=diagonal[p]/(diagonal[p]+diagonal[n]);
   float rx=weight*px[i]+(1.0f-weight)*nx[i];
   float ry=weight*py[i]+(1.0f-weight)*ny[i];
@@ -150,11 +165,16 @@ KUTTA_KERNEL void fv_correct_flux(int i,KIn(int) owner,KIn(int) neighbour,
   flux[i]+=coefficient[i]*(pc-pn);
 }
 
-KUTTA_KERNEL void fv_correct_velocity(int i,KIn(float) volume,KIn(float) inverse,
+KUTTA_KERNEL void fv_correct_velocity(int i,KIn(float) volume,KIn(float) inverse,KIn(float) diagonal,
     KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) correction,
     KOut(float) u,KOut(float) v,KOut(float) w,KOut(float) p,float alpha) {
   float d=volume[i]*inverse[i];
-  u[i]-=d*gx[i];v[i]-=d*gy[i];w[i]-=d*gz[i];p[i]+=alpha*correction[i];
+  u[i]-=d*gx[i];v[i]-=d*gy[i];w[i]-=d*gz[i];
+  // Majumdar's physical coefficient can exceed the SIMPLEC correction
+  // coefficient when pseudo time dominates. Bound the pressure update by
+  // their local ratio to avoid overshooting that pressure-smoothing mode.
+  float pressure_alpha=kmin(alpha,0.7f*diagonal[i]*inverse[i]);
+  p[i]+=pressure_alpha*correction[i];
 }
 
 KUTTA_KERNEL void fv_monitor_cell(int i,KIn(int) offsets,KIn(int) faces,

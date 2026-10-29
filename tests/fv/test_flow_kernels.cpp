@@ -18,10 +18,11 @@ TEST_CASE("FV momentum face interpolation is affine exact with unequal diagonals
   KUTTA_FOR_EACH_BACKEND(dev) {
     auto m=upload_mesh(*dev,mesh,g);
     auto q=dev->upload<float>(cell),bc=dev->upload<float>(boundary),ap=dev->upload<float>(diagonal);
+    auto kind=dev->alloc<Index>(m.n_boundary_faces());dev->fill(kind,0);
     auto gradient=fv::vector_field(*dev,mesh.n_cells);
     dev->fill(gradient.x,.3f);dev->fill(gradient.y,-.2f);dev->fill(gradient.z,.1f);
     auto face=fv::vector_field(*dev,mesh.n_faces());
-    kern::fv_momentum_faces(*dev,m.n_faces,m.owner,m.neighbour,
+    kern::fv_momentum_faces(*dev,m.n_faces,m.owner,m.neighbour,kind,
       m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
       m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
       q,q,q,gradient.x,gradient.y,gradient.z,gradient.x,gradient.y,gradient.z,

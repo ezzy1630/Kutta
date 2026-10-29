@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 #include <span>
 #include <variant>
 
@@ -11,7 +12,9 @@ namespace kutta::fv {
 using VelocityProfile=std::variant<Vec3d,std::function<Vec3d(Vec3d)>>;
 struct Wall { Vec3d velocity{}; };
 struct VelocityInlet { VelocityProfile velocity=Vec3d{}; };
-struct PressureOutlet { double pressure=0; VelocityProfile backflow_velocity=Vec3d{}; };
+struct NormalBackflow {};
+using BackflowProfile=std::variant<NormalBackflow,Vec3d,std::function<Vec3d(Vec3d)>>;
+struct PressureOutlet { double pressure=0; BackflowProfile backflow_velocity=NormalBackflow{}; };
 struct Symmetry {};
 using BoundaryCondition=std::variant<Wall,VelocityInlet,PressureOutlet,Symmetry>;
 struct PatchCondition { std::string patch; BoundaryCondition condition; };
@@ -34,6 +37,7 @@ struct SolverSettings {
 struct ResidualValue { double raw=0,scaled=0; };
 struct IterationReport {
   int iteration=0;
+  std::optional<int> residual_iteration;
   ResidualValue u,v,w,continuity;
   double corrected_mass_imbalance=0;
   double maximum_velocity=0, pseudo_time_step=0;

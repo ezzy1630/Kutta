@@ -21,6 +21,10 @@ TEST_CASE("FV SIMPLEC preserves rest and uniform inlet outlet flow") {
       SteadySolver solver(*dev,mesh,conditions);
       solver.initialize([through](Vec3d){return Vec3d{double(through),0,0};},[](Vec3d){return 0.;});
       solver.iterate(5);auto report=solver.monitor();
+      CHECK(report.residual_iteration==5);
+      solver.iterate(1);
+      CHECK(solver.report().iteration==6);CHECK(solver.report().residual_iteration==5);
+      CHECK(solver.monitor().residual_iteration==6);
       auto u=dev->download(solver.velocity().x),v=dev->download(solver.velocity().y),p=dev->download(solver.pressure());
       for(auto x:u) CHECK(x==doctest::Approx(through).epsilon(1e-5));
       for(auto x:v) CHECK(std::abs(x)<1e-6);
@@ -61,5 +65,24 @@ TEST_CASE("FV SIMPLEC develops planar Couette flow with moving and slip walls") 
     CHECK(shifted.pressure.y-force.pressure.y==doctest::Approx(-.2).epsilon(1e-6));
     CHECK(std::abs(shifted.coefficient({0,1,0},{1,1,.1,0})-
                    force.coefficient({0,1,0},{1,1,.1,0}))<1e-6);
+  }
+}
+
+TEST_CASE("FV pressure outlet defaults to flux-consistent normal backflow") {
+  auto mesh=make_box_hex(4,3,1,{0,0,0},{1,1,.1});
+  std::vector<PatchCondition> conditions;
+  for(const auto& p:mesh.patches) {
+    if(p.name=="xmin") conditions.push_back({p.name,VelocityInlet{Vec3d{-1,0,0}}});
+    else if(p.name=="xmax") conditions.push_back({p.name,PressureOutlet{}});
+    else conditions.push_back({p.name,Symmetry{}});
+  }
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    SolverSettings settings;settings.density=2;
+    SteadySolver solver(*dev,mesh,conditions,settings);
+    solver.initialize([](Vec3d){return Vec3d{-1,0,0};},[](Vec3d){return 0.;});
+    solver.iterate(10);
+    for(auto u:dev->download(solver.velocity().x)) CHECK(u==doctest::Approx(-1).epsilon(1e-6));
+    CHECK(dev->max_abs(solver.velocity().y,mesh.n_cells)<1e-6);
+    CHECK(dev->max_abs(solver.pressure(),mesh.n_cells)<1e-6);
   }
 }

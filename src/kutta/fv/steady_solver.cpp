@@ -14,7 +14,8 @@
 namespace kutta::fv {
 using namespace detail;
 namespace {
-Vec3d evaluate(const VelocityProfile& profile,Vec3d point) {
+template<class Profile>
+Vec3d evaluate(const Profile& profile,Vec3d point) {
   if(const auto* uniform=std::get_if<Vec3d>(&profile)) return *uniform;
   return std::get<std::function<Vec3d(Vec3d)>>(profile)(point);
 }
@@ -105,7 +106,9 @@ struct SteadySolver::Impl {
       if(const auto* wall=std::get_if<Wall>(&bc)) {kinds[b]=0;velocities[b]=wall->velocity;}
       if(const auto* inlet=std::get_if<VelocityInlet>(&bc)) {kinds[b]=1;velocities[b]=evaluate(inlet->velocity,geom.face_centroid[f]);}
       if(const auto* out=std::get_if<PressureOutlet>(&bc)) {
-        kinds[b]=2;velocities[b]=evaluate(out->backflow_velocity,geom.face_centroid[f]);
+        const bool normal=std::holds_alternative<NormalBackflow>(out->backflow_velocity);
+        kinds[b]=normal?4:2;
+        velocities[b]=normal?Vec3d{}:evaluate(out->backflow_velocity,geom.face_centroid[f]);
         KUTTA_REQUIRE(std::isfinite(out->pressure),"FV nonfinite outlet pressure");
         pressures[b]=float(out->pressure);pmin=std::min(pmin,out->pressure);pmax=std::max(pmax,out->pressure);
       }
@@ -123,7 +126,7 @@ struct SteadySolver::Impl {
       double ap=0;
       for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
         auto f=cf.faces[j];auto other=f<mesh.n_internal_faces?(host.owner[f]==c?host.neighbour[f]:host.owner[f]):-1;
-        if(other<0 && kinds[f-mesh.n_internal_faces]!=2) continue;
+        if(other<0 && kinds[f-mesh.n_internal_faces]!=2 && kinds[f-mesh.n_internal_faces]!=4) continue;
         auto d=(other>=0?geom.cell_centroid[other]:geom.face_centroid[f])-geom.cell_centroid[c];
         double a=dot(geom.face_area[f],geom.face_area[f])/std::abs(dot(geom.face_area[f],d));
         ap+=a;
@@ -155,7 +158,7 @@ struct SteadySolver::Impl {
       mesh.area.x,mesh.area.y,mesh.area.z,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
       prescribed_velocity.x,prescribed_velocity.y,prescribed_velocity.z,mass,
-      boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,scalar_kind,mesh.n_internal_faces);
+      boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,scalar_kind,mesh.n_internal_faces,float(settings.density));
   }
   void update_pressure() {
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
@@ -173,7 +176,7 @@ struct SteadySolver::Impl {
   void update_flux() {
     vector_gradient(dev,mesh,stencil,velocity,boundary_velocity,momentum[0]->grad,momentum[1]->grad,momentum[2]->grad);
     const auto& gu=momentum[0]->grad;const auto& gv=momentum[1]->grad;const auto& gw=momentum[2]->grad;
-    kern::fv_momentum_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+    kern::fv_momentum_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
@@ -219,7 +222,7 @@ struct SteadySolver::Impl {
       grad_correction.x,grad_correction.y,grad_correction.z,correction_boundary,
       boundary_pressure,mesh.n_internal_faces);
     gradient(dev,mesh,stencil,correction,boundary_pressure,grad_correction);
-    kern::fv_correct_velocity(dev,mesh.n_cells,mesh.volume,momentum[0]->consistent_inverse,
+    kern::fv_correct_velocity(dev,mesh.n_cells,mesh.volume,momentum[0]->consistent_inverse,momentum[0]->diagonal,
       grad_correction.x,grad_correction.y,grad_correction.z,correction,
       velocity.x,velocity.y,velocity.z,pressure,float(settings.pressure_relaxation));
     ++report.iteration;
@@ -257,6 +260,7 @@ struct SteadySolver::Impl {
     report.continuity={raw,scaled(raw,continuity_scale)};
     report.maximum_velocity=dev.max_abs(speed,mesh.n_cells);update_time(report.maximum_velocity);
     report.pseudo_time_step=time_step;
+    report.residual_iteration=report.iteration;
     return report;
   }
 };

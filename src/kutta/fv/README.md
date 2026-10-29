@@ -36,8 +36,11 @@ retains the scalar gradient entrypoint as an independent oracle.
 `SteadySolver` owns an RCM-renumbered mesh and exposes `iterate(n)`, Device
 velocity/pressure/mass-flux fields, and host geometry for initialization and
 post-processing. Supply exactly one explicit condition per patch. Velocity
-inlets and pressure-outlet backflow accept uniform values or host profiles;
-moving-wall normal motion is projected away. Symmetry removes normal velocity
+inlets and pressure-outlet backflow accept uniform values or host profiles.
+Default outlet backflow is normal to the boundary, with its speed obtained from
+the computed mass flux and density. Backflow data controls advected momentum;
+the outlet flux predictor continues to use the momentum solution. Moving-wall
+normal motion is projected away. Symmetry removes normal velocity
 and extrapolates tangentially. Pressure outlets impose gauge static pressure.
 Wall force is pressure relative to the requested reference, minus the viscous
 traction on the fluid, integrated using Device double/compensated reductions.
@@ -45,6 +48,9 @@ traction on the fluid, integrated using Device double/compensated reductions.
 The SIMPLEC correction uses the relaxed/pseudo-time consistent inverse
 `1/(aP_relaxed + sum(offdiag))`. Rhie–Chow uses `V/aP_physical` without
 relaxation or pseudo-time, and momentum-diagonal-weighted face velocities.
+The pressure update is capped at `0.7*aP_physical*consistent_inverse` when
+pseudo time makes the correction coefficient smaller than the Rhie–Chow
+coefficient. This damps pressure overshoot without changing the steady equations.
 Pressure face values use the second-order reconstruction in the design spec.
 Momentum-weighted face velocities include an affine-exact correction from the
 weighted cell interpolation point to the actual face centroid. Symmetry
@@ -64,6 +70,9 @@ the supplied scale. Speed is refreshed at monitor intervals. A fixed positive
 time step overrides this. The flow loop has no field downloads. The first five
 steps collect continuity normalization; subsequent reductions occur only at
 the configured monitor interval or an explicit `monitor()`/`forces()` call.
+`report().iteration` is the completed outer count; `residual_iteration` names
+the residual snapshot and is empty before the first monitor. A caller can
+therefore distinguish current iteration statistics from cached residuals.
 
 Momentum residuals are steady equation L1 defects, reassembled from the current
 state, scaled by `sum(aP_physical*|velocity|)`. Continuity is the provisional
