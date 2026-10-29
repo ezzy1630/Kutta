@@ -102,14 +102,7 @@ by Lane F.
 
 ## Integration dependency and unverified behavior
 
-**Geometry dependency:** the saved-field test explicitly ports `cff.py`'s
-face-pyramid centroids. The current production `compute_geometry()` instead
-integrates warped-face tetrahedral moments: wall-normal distances differ by
-.0138% median / .1065% p95 / .6088% max. Feeding that geometry into this same
-model gives wall-omega max error **1.187%**, and shear-magnitude max **.607%**,
-failing the forensic thresholds. The mesh/geometry lane must expose/use the
-Fluent centroid convention when constructing `DeviceMesh`; no header layout
-change is required. This test adapter does not repair production geometry.
+**Geometry dependency (resolved):** wall distances, y+ and wall omega match Fluent only with the face-pyramid centroid convention. Production `compute_geometry()` now uses that convention, and the saved-field test runs on production geometry: wall-omega max error 2.9e-4. With the previous warped-face tetrahedral moments the max error was 1.187%.
 
 - Production limiter activity and whether it caps omega production: never
   active here (max production/cap .3595). Switches and synthetic tests exist.

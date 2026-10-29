@@ -127,37 +127,6 @@ std::vector<Vec3d> xyz(const std::vector<double>& x, const std::vector<double>& 
   return out;
 }
 
-// Fluent forensics cff.py's geometry convention: project each warped polygon
-// onto its resultant normal, then integrate face pyramids. Kutta's current
-// compute_geometry() uses tetrahedral first moments of the warped fan instead.
-// That changes wall normal distances enough to fail the forensic tolerances.
-// Keep this fixture adapter explicit; production geometry is another lane's
-// contract, and MUST adopt the Fluent convention before end-to-end agreement.
-MeshGeometry forensic_geometry(const PolyMesh& m, const MeshGeometry& kutta_geometry) {
-  auto g = kutta_geometry;
-  std::vector<Vec3d> estimate(m.n_cells), moment(m.n_cells);
-  std::vector<Index> count(m.n_cells);
-  for (Index f = 0; f < m.n_faces(); ++f) {
-    auto add = [&](Index c) { estimate[c] = estimate[c]+g.face_centroid[f]; ++count[c]; };
-    add(m.owner[f]); if (f < m.n_internal_faces()) add(m.neighbour[f]);
-  }
-  for (Index c = 0; c < m.n_cells; ++c) estimate[c] = estimate[c]/count[c];
-  std::fill(g.cell_volume.begin(),g.cell_volume.end(),0);
-  for (Index f = 0; f < m.n_faces(); ++f) {
-    auto add = [&](Index c, double sign) {
-      const auto volume = sign*dot(g.face_centroid[f]-estimate[c],g.face_area[f])/3;
-      g.cell_volume[c] += volume;
-      moment[c] = moment[c]+(g.face_centroid[f]*.75+estimate[c]*.25)*volume;
-    };
-    add(m.owner[f],1); if (f < m.n_internal_faces()) add(m.neighbour[f],-1);
-  }
-  for (Index c = 0; c < m.n_cells; ++c) {
-    KUTTA_REQUIRE(g.cell_volume[c] > 0,"SST fixture: invalid forensic volume");
-    g.cell_centroid[c] = moment[c]/g.cell_volume[c];
-  }
-  return g;
-}
-
 // tools/forensics/grad.py: inverse-distance-SQUARED LSQ. Boundary values are
 // saved SV_* at face centroids. Solve the 3x3 normal equations in double with
 // partial pivoting; upload component-row SoA floats to the actual SST kernels.
@@ -225,8 +194,9 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
     MESSAGE("SKIP: external Fluent mixing_elbow .cas.h5/.dat.h5 pair is absent"); return;
   }
   auto poly = read_fluent_cff(case_path);
-  const auto production_geometry = compute_geometry(poly);
-  auto geometry = forensic_geometry(poly,production_geometry);
+  // Production geometry must itself follow Fluent's face-pyramid convention;
+  // the wall-omega/y+ tolerances below fail by ~1% otherwise.
+  const auto geometry = compute_geometry(poly);
   REQUIRE(poly.n_cells == 17822); REQUIRE(poly.n_faces() == 91581);
   H5 cas(H5Fopen(case_path.c_str(),H5F_ACC_RDONLY,H5P_DEFAULT),H5Fclose);
   H5 dat(H5Fopen(data_path.c_str(),H5F_ACC_RDONLY,H5P_DEFAULT),H5Fclose);
@@ -255,14 +225,6 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
   for (const auto& p : poly.patches) if (p.kind == PatchKind::Wall)
     for (Index f = p.start; f < p.start+p.size; ++f) is_wall[f-poly.n_internal_faces()] = true;
   REQUIRE(std::count(is_wall.begin(),is_wall.end(),true) == 2436);
-  std::vector<double> distance_sensitivity;
-  for (std::size_t b = 0; b < nb; ++b) if (is_wall[b]) {
-    auto f = Index(b)+poly.n_internal_faces(), c = poly.owner[f];
-    const auto d_ref = dot(geometry.face_centroid[f]-geometry.cell_centroid[c],geometry.face_area[f]);
-    const auto d_kutta = dot(production_geometry.face_centroid[f]-production_geometry.cell_centroid[c],production_geometry.face_area[f]);
-    distance_sensitivity.push_back(std::abs(d_kutta/d_ref-1));
-  }
-  report("INTEGRATION GAP: current vs forensic wall-normal distance",distance_sensitivity);
   std::vector<bool> limited(poly.n_cells);
   for (Index c = 0; c < poly.n_cells; ++c) limited[c] = saved_mut[c]*w[c]/(rho[c]*k[c]) < 1-1e-9;
   REQUIRE(std::count(limited.begin(),limited.end(),true) == 6756);
