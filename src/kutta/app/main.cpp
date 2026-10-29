@@ -109,7 +109,8 @@ void numerics_summary(const FluentCase &c) {
   std::cout << "\nControls: pseudo=";
   value(c.numerics.pseudo.formulation);
   std::cout << " dt-method=";
-  value(c.numerics.pseudo.coupled_method);
+  value(c.numerics.coupling == Coupling::coupled ? c.numerics.pseudo.coupled_method
+                                                 : c.numerics.pseudo.segregated_method);
   std::cout << " scale=";
   value(c.numerics.pseudo.scale_factor);
   std::cout << " CFL=";

@@ -477,3 +477,13 @@ TEST_CASE("Active pseudo relaxation requires turbulence factors") {
   CHECK(issue_at(c, "rp/k/pseudo-relax"));
   CHECK_FALSE(issue_at(c, "rp/pressure/relax"));
 }
+
+TEST_CASE("Force reports with empty name selections cannot claim resolved zones") {
+  auto c = synthetic(config(false, false, true) + R"scm(
+    (monitor/report-definitions (((name . "empty")
+      (report-definition force-force (surface-names) (force-vector 1 0 0) (scaled? . #f)))))
+  )scm");
+  REQUIRE(c.reports.size() == 1);
+  CHECK_FALSE(c.reports[0].zone_ids);
+  CHECK(issue_at(c, "report/empty/zones"));
+}

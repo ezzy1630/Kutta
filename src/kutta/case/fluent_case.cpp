@@ -996,7 +996,8 @@ void reports(FluentCase &c) {
       c.issues.push_back({"report/" + report.name + "/zones",
                          "unverified: ID-only report; surface IDs are not thread IDs"});
     if (report.kind != ReportDefinition::Kind::other) {
-      if (!report.zone_ids && !report.zone_names && !report.surface_ids && !report.reported_zone_ids)
+      if (!report.zone_ids && (!report.zone_names || report.zone_names->empty()) &&
+          !report.surface_ids && !report.reported_zone_ids)
         c.issues.push_back({"report/" + report.name + "/zones", "unparsed force zones"});
       if (!report.direction && report.kind != ReportDefinition::Kind::moment)
         c.issues.push_back({"report/" + report.name + "/direction", "unparsed force direction"});
