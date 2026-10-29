@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "../backend_helpers.hpp"
 #include "kernels.hpp"
 #include "kutta/linalg/csr.hpp"

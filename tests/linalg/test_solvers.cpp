@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 
 #include "../backend_helpers.hpp"
 #include "kutta/linalg/amg.hpp"
