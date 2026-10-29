@@ -4,7 +4,9 @@
 // extruded one cell thick, and the two extrusion faces become Symmetry patches
 // named "front" and "back".
 
+#include <array>
 #include <filesystem>
+#include <functional>
 #include <span>
 #include <string>
 #include <vector>
@@ -14,20 +16,27 @@
 namespace kutta {
 
 // Fluent legacy mesh/case (.msh, .cas), ASCII or binary sections; 2D or 3D.
-PolyMesh read_fluent_msh(const std::filesystem::path& path, double extrude_2d = 1.0);
+PolyMesh read_fluent_msh(const std::filesystem::path& path,
+                         double extrude_2d = 1.0);
 
 // Fluent Common Fluids Format HDF5 mesh (.msh.h5, or the mesh inside .cas.h5).
-PolyMesh read_fluent_cff(const std::filesystem::path& path, double extrude_2d = 1.0);
+PolyMesh read_fluent_cff(const std::filesystem::path& path,
+                         double extrude_2d = 1.0);
 
-// Plot3D multi-block structured grid (NASA TMR format), whole or 2D (one k-plane).
-PolyMesh read_plot3d(const std::filesystem::path& path, double extrude_2d = 1.0);
+// Formatted ASCII Plot3D multi-block grid, 2D or 3D (one k-plane is extruded).
+// Gunzip .gz inputs before calling (no zlib dependency). Block boundaries are
+// blockN_imin/imax/jmin/jmax[/kmin/kmax]; no interface stitching is inferred.
+// Case setup must split partial TMR boundaries by face-centroid predicate, e.g.
+// jmin at x=0 for the flat plate, using split_patch().
+PolyMesh read_plot3d(const std::filesystem::path& path,
+                     double extrude_2d = 1.0);
 
 // Dispatch on file extension.
 PolyMesh read_mesh(const std::filesystem::path& path);
 
 struct CellField {
   std::string name;
-  int components = 1;       // 1 (scalar) or 3 (vector, interleaved xyz)
+  int components = 1;              // 1 (scalar) or 3 (vector, interleaved xyz)
   std::span<const double> values;  // n_cells * components
 };
 
@@ -38,5 +47,29 @@ void write_vtu(const std::filesystem::path& path, const PolyMesh& mesh,
 // Structured hex box [lo, hi] with nx*ny*nz cells. Patches, in order:
 // xmin, xmax, ymin, ymax, zmin, zmax (all PatchKind::Wall; callers re-tag).
 PolyMesh make_box_hex(int nx, int ny, int nz, Vec3d lo, Vec3d hi);
+
+// Conforming Freudenthal split: six tets per hex, sharing the 000->111
+// diagonal.
+PolyMesh make_box_tet(int nx, int ny, int nz, Vec3d lo, Vec3d hi);
+
+// Planar xy mesh. Directed edges leave owner on the left. neighbour and
+// edge_patch have one entry per edge: -1 denotes boundary / internal
+// respectively. patches carry metadata only; extrusion fills their start/size
+// ranges.
+struct PlanarMesh {
+  std::vector<Vec3d> points;
+  std::vector<std::array<Index, 2>> edges;
+  std::vector<Index> owner, neighbour, edge_patch;
+  Index n_cells = 0;
+  std::vector<Patch> patches;
+  std::vector<CellZone> cell_zones;
+};
+PolyMesh extrude_2d(const PlanarMesh& mesh, double thickness = 1.0);
+
+// Move matching faces into a new patch immediately after the original. The
+// original retains nonmatches. Metadata is inherited; returns the new patch id.
+// Face ids change; rebuild any face-indexed fields after splitting.
+Index split_patch(PolyMesh& mesh, Index patch, const std::string& name,
+                  const std::function<bool(Vec3d)>& predicate);
 
 }  // namespace kutta
