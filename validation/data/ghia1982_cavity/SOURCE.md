@@ -13,6 +13,8 @@
 | `raw/2dLBM_verticalGhia.dau`, `raw/2dLBM_horizGhia.dau` (Re=1000 only, with 129-grid index) | https://raw.githubusercontent.com/enstrophy/2dLBM/500979cd382d3e353ab03592f5360e8748635267/{verticalGhia,horizGhia}.dau | GPL-2.0 |
 | `raw/psiboil_Ghia-u.dat`, `raw/psiboil_Ghia-v.dat` (grid index + all 7 Re) | https://raw.githubusercontent.com/Niceno/PSI-BOIL/ddc9e283d75429c43f496ca90d87dbc529b38289/Benchmarks/Lid/Ghia-{u,v}.dat | no license stated |
 
+`gist_ivan-pi_ghiau.txt` and `psiboil_Ghia-{u,v}.dat` have no license, so they are not committed; fetch them from the pinned URLs above.
+
 The tabulated *values* are factual data from a 1982 journal paper. The raw transcription files carry their repositories' licenses.
 
 ## Derived files

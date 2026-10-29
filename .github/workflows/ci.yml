@@ -1,0 +1,65 @@
+name: ci
+
+# Compile checks for every backend plus the CPU-oracle test suite. Hosted runners
+# have no NVIDIA GPU (and macOS runners may have no Metal device), so the test
+# that requires every compiled-in GPU backend to be present is excluded here;
+# it runs on real hardware.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GPU_PRESENCE_TEST: "compiled GPU backends*"
+
+jobs:
+  linux-cuda:
+    runs-on: ubuntu-24.04
+    container: nvidia/cuda:13.0.2-devel-ubuntu24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: apt-get update -qq && apt-get install -y -qq cmake ninja-build python3 libhdf5-dev zlib1g-dev git
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DKUTTA_ENABLE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="75-real;86-real;89-real;120"
+      - name: Build
+        run: cmake --build build
+      - name: Test (CPU oracle)
+        run: ./build/kutta-tests --test-case-exclude="$GPU_PRESENCE_TEST"
+
+  windows-cuda:
+    runs-on: windows-2022  # pinned: windows-latest maps to Visual Studio 2026
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: Jimver/cuda-toolkit@v0.2.36
+        with:
+          cuda: "13.0.2"
+          method: network
+          sub-packages: '["nvcc", "cudart", "crt", "nvvm", "visual_studio_integration"]'
+          use-github-cache: true
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DKUTTA_ENABLE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="75-real;86-real;89-real;120"
+      - name: Build
+        run: cmake --build build
+      - name: Test (CPU oracle)
+        shell: bash
+        run: ./build/kutta-tests.exe --test-case-exclude="$GPU_PRESENCE_TEST"
+
+  macos-metal:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: brew install ninja hdf5
+      - name: Configure
+        run: cmake -S . -B build -G Ninja
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: ./build/kutta-tests --test-case-exclude="$GPU_PRESENCE_TEST"
