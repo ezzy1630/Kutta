@@ -60,6 +60,15 @@ TEST_CASE("Real mixing elbow data fields match mesh zones") {
   }
 }
 
+TEST_CASE("Real mismatched case data pairs fail primary field coverage") {
+  auto case_path = examples() / "mixing_elbow/mixing_elbow.cas.h5";
+  auto data_path = examples() / "file_session/elbow1.dat.h5";
+  if (!available(case_path) || !available(data_path))
+    return;
+  auto c = read_case(case_path);
+  CHECK_THROWS_WITH(read_data(data_path, c),
+                    doctest::Contains("does not cover expected fluid cell IDs"));
+}
 TEST_CASE("Real elbow1 data fields match mesh zones") {
   auto path = examples() / "file_session/elbow1.cas.h5";
   if (!available(path))

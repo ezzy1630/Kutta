@@ -46,5 +46,7 @@ struct FluentData {
 };
 // Requires metadata from the SAME case: validates each field interval against
 // the union of its cell/face zones, including gaps, rather than assuming ID==index.
+// Present P/U/V/W fields must cover every fluid-cell zone. Counts and ranges
+// cannot prove identity when unrelated meshes share the same topology sizes.
 FluentData read_data(const std::filesystem::path &, const FluentCase &matching_case);
 } // namespace kutta::fluent

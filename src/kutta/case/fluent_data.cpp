@@ -109,6 +109,40 @@ std::map<std::string, Field> fields(hid_t f, const std::string &base,
   }
   return out;
 }
+void complete_primary_fields(const FluentData &out, const FluentCase &c) {
+  for (auto field_name : {"SV_P", "SV_U", "SV_V", "SV_W"}) {
+    auto field = out.cell_fields.find(field_name);
+    if (field == out.cell_fields.end())
+      continue;
+    for (const auto &range : c.mesh.cell_zones) {
+      if (!c.cell_zones.empty()) {
+        auto zone = std::find_if(c.cell_zones.begin(), c.cell_zones.end(),
+                                 [&](auto &z) { return z.id == range.zone_id; });
+        if (zone == c.cell_zones.end())
+          throw std::runtime_error("case topology has no matching cell-zone settings");
+        if (zone->type != ZoneType::fluid)
+          continue;
+      }
+      auto next = range.first;
+      bool covered = false;
+      for (const auto &chunk : field->second.sections) {
+        if (chunk.last < next)
+          continue;
+        if (chunk.first > next)
+          break;
+        if (chunk.last >= range.last) {
+          covered = true;
+          break;
+        }
+        next = chunk.last + 1;
+      }
+      if (!covered)
+        throw std::runtime_error("primary field " + std::string(field_name) +
+                                 " does not cover expected fluid cell IDs in zone " +
+                                 std::to_string(range.zone_id));
+    }
+  }
+}
 void read_residuals(hid_t f, FluentData &out) {
   const std::string root = "/results/residuals/phase-1";
   if (!h5::exists(f, root)) {
@@ -177,6 +211,7 @@ FluentData read_data(const std::filesystem::path &path, const FluentCase &c) {
       out.issues.push_back({"results/1/" + p, "unparsed additional phase"});
   out.cell_fields = fields(f, phase + "/cells", c.mesh.cell_zones);
   out.face_fields = fields(f, phase + "/faces", c.mesh.face_zones);
+  complete_primary_fields(out, c);
   read_residuals(f, out);
   return out;
 #else
