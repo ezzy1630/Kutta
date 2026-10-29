@@ -2,6 +2,7 @@
 #include "kutta/case/hdf5.hpp"
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace kutta::fluent {
 std::span<const double> FieldSection::at(std::uint64_t id) const {
@@ -87,6 +88,12 @@ std::map<std::string, Field> fields(hid_t f, const std::string &base,
       if (dims.empty() || dims[0] != s.last - s.first + 1 || (dims.size() == 2 && dims[1] == 0))
         throw std::runtime_error("field shape disagrees with ID interval: " + path);
       s.components = dims.size() == 2 ? static_cast<std::size_t>(dims[1]) : 1;
+      if (name == "SV_WALL_SHEAR" && s.components != 3)
+        throw std::runtime_error("wall shear must have three row-major components");
+      for (auto scalar : {"SV_P", "SV_U", "SV_V", "SV_W", "SV_K", "SV_O", "SV_D", "SV_MU_T",
+                          "SV_DENSITY", "SV_WALL_YPLUS", "SV_FLUX"})
+        if (name == scalar && s.components != 1)
+          throw std::runtime_error("scalar field has multiple components: " + name);
       if (!field.sections.empty() && s.components != field.sections.front().components)
         throw std::runtime_error("inconsistent field component count");
       field.sections.push_back(std::move(s));
@@ -96,6 +103,8 @@ std::map<std::string, Field> fields(hid_t f, const std::string &base,
     for (std::size_t i = 1; i < field.sections.size(); ++i)
       if (field.sections[i - 1].last >= field.sections[i].first)
         throw std::runtime_error("overlapping field chunks: " + name);
+    if (field.sections.empty())
+      throw std::runtime_error("field group has no chunks: " + name);
     out.emplace(name, std::move(field));
   }
   return out;
@@ -136,7 +145,7 @@ void read_residuals(hid_t f, FluentData &out) {
 FluentData read_data(const std::filesystem::path &path, const FluentCase &c) {
 #ifdef KUTTA_HAS_HDF5
   if (c.mesh.cell_zones.empty() || c.mesh.face_zones.empty())
-    throw std::runtime_error("data reader needs matching CFF case topology metadata");
+    throw std::runtime_error("data reader needs matching case topology metadata");
   auto f = h5::open(path);
   FluentData out;
   out.mesh = c.mesh;

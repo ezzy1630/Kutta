@@ -1,8 +1,10 @@
 #include "kutta/case/fluent_case.hpp"
 #include "kutta/case/hdf5.hpp"
 #include <algorithm>
+#include <cctype>
 #include <charconv>
 #include <fstream>
+#include <limits>
 #include <sstream>
 
 namespace kutta::fluent {
@@ -172,7 +174,9 @@ FluentCase legacy(const std::filesystem::path &path) {
     auto e = parse_sexpr(s.substr(begin, p - begin));
     if (section == 37)
       sections["Rampant Variables"].push_back(std::move(e));
-    else if (section == 38 || section == 64)
+    else if (section == 38)
+      sections["Cortex Variables"].push_back(std::move(e));
+    else if (section == 64)
       sections["Domain Variables"].push_back(std::move(e));
     else if (section == 39)
       sections["Thread Variables"].push_back(std::move(e));

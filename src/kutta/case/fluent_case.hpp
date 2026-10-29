@@ -183,10 +183,11 @@ struct FluentCase {
   std::vector<ReportDefinition> reports;
   MeshMetadata mesh;
   RawSettings variables, config;
+  std::map<std::int64_t, RawSettings> domains;
   std::map<std::string, std::vector<SExpr>> raw_sections;
   std::vector<SettingIssue> issues;
 };
-// Parse already-isolated sections (37 rpvars; 38/64 domains; 39 threads).
+// Parse already-isolated sections (37 rpvars; 38 Cortex; 64 domains; 39 threads).
 FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,
                         std::optional<std::string> version = {},
                         std::optional<std::string> origin = {});

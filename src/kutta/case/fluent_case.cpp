@@ -192,10 +192,13 @@ public:
       const auto &part = (*parts)[begin + i];
       if (part.number())
         component.elements.push_back(part);
-      else if (part.kind == K::list)
-        component.elements.insert(component.elements.end(), part.elements.begin(),
-                                  part.elements.end());
-      else
+      else if (part.kind == K::list) {
+        if (!part.elements.empty() && part.elements[0].atom_text())
+          component.elements.push_back(part);
+        else
+          component.elements.insert(component.elements.end(), part.elements.begin(),
+                                    part.elements.end());
+      } else
         component.elements.push_back(part);
       components.alist.elements.push_back(std::move(component));
     }
@@ -626,13 +629,25 @@ FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,
   materials(c);
   reference(c);
   reports(c);
-  for (auto &[name, forms] : c.raw_sections)
-    if (name == "Domain Variables")
-      for (auto &form : forms)
-        if (form.elements.size() > 1 &&
-            (!form.elements[1].elements.empty() || form.elements[1].kind != K::list))
-          c.issues.push_back(
-              {"Domain Variables", "unparsed domain overrides retained in raw_sections"});
+  if (auto domains = c.raw_sections.find("Domain Variables"); domains != c.raw_sections.end()) {
+    for (auto &form : domains->second) {
+      if (form.elements.size() != 2 || form.elements[1].kind != K::list)
+        throw std::runtime_error("malformed domain variables");
+      for (auto &domain : form.elements[1].elements) {
+        if (domain.elements.empty() || domain.elements[0].kind != K::integer ||
+            domain.elements[0].integer <= 0)
+          throw std::runtime_error("invalid domain ID");
+        RawSettings raw;
+        raw.alist.elements.assign(domain.elements.begin() + 1, domain.elements.end());
+        auto id = domain.elements[0].integer;
+        if (!c.domains.emplace(id, std::move(raw)).second)
+          throw std::runtime_error("duplicate domain ID");
+        c.issues.push_back(
+            {"domain/" + std::to_string(id),
+             "unparsed domain-specific variables retained by name; not applied globally"});
+      }
+    }
+  }
   if (auto ts = c.raw_sections.find("Thread Variables"); ts != c.raw_sections.end())
     for (auto &e : ts->second)
       thread(c, e);

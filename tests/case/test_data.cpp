@@ -97,7 +97,7 @@ TEST_CASE("Data chunks use Fluent IDs not ordinal positions and vectors are row 
   CHECK(d.residuals.at("continuity").rows[1][3] == 8);
 }
 TEST_CASE("Data rejects invalid ranges shapes overlaps and external links") {
-  for (int mode = 0; mode < 7; ++mode) {
+  for (int mode = 0; mode < 8; ++mode) {
     INFO("malformed fixture mode ", mode);
     Fixture f;
     f.base();
@@ -110,8 +110,10 @@ TEST_CASE("Data rejects invalid ranges shapes overlaps and external links") {
       f.numbers(cell + "1", {1}, {1}, 101, 101);
       f.numbers(cell + "2", {2}, {1}, 101, 101);
     }
-    if (mode == 3)
+    if (mode == 3) {
+      f.numbers(cell + "1", {1, 2, 3}, {3}, 101, 103);
       f.numbers("/results/1/phase-1/faces/SV_WALL_SHEAR/1", std::vector<double>(10), {10}, 12, 21);
+    }
     if (mode == 4)
       f.numbers(cell + "1", {1}, {1}, 101, {});
     if (mode == 5)
@@ -122,8 +124,15 @@ TEST_CASE("Data rejects invalid ranges shapes overlaps and external links") {
       f.numbers(cell + "1", {1}, {1}, 101, 101);
       f.numbers(cell + "2", {2, 3}, {1, 2}, 102, 102);
     }
+    if (mode == 7) {
+      f.numbers(cell + "1", {1, 2, 3}, {3}, 101, 103);
+      f.numbers("/results/1/phase-1/faces/SV_WALL_SHEAR/1", {1, 2, 3, 4}, {2, 2}, 11, 12);
+    }
     f.flush();
-    CHECK_THROWS(read_data(f.path, matching()));
+    const char *errors[] = {"outside matching", "shape disagrees", "overlapping field",
+                            "outside matching", "missing/zero ID", "non-local HDF5 link",
+                            "scalar field",     "wall shear"};
+    CHECK_THROWS_WITH(read_data(f.path, matching()), doctest::Contains(errors[mode]));
   }
 }
 #endif

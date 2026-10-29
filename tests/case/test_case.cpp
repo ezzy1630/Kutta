@@ -293,6 +293,10 @@ TEST_CASE("Static mixer typed settings agree across CFF ASCII and binary legacy"
   CHECK(a.mesh.face_zones == c.mesh.face_zones);
   CHECK(b.mesh.face_zones == c.mesh.face_zones);
   CHECK(b.mesh.cell_zones == c.mesh.cell_zones);
+  CHECK(a.raw_sections.at("Cortex Variables")[0].elements[0].integer == 38);
+  REQUIRE(a.domains.contains(3));
+  REQUIRE(a.domains.at(3).value("pb-qmom/n-pb-qmom"));
+  CHECK(a.domains.at(3).value("pb-qmom/n-pb-qmom")->integer == 6);
 }
 #else
 TEST_CASE("No HDF5 build reports unsupported files clearly") {
