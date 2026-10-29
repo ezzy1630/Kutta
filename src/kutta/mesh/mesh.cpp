@@ -46,7 +46,10 @@ void structure(const PolyMesh& m) {
           label + "internal face requires 0 <= owner < neighbour < n_cells");
   }
   Index next = m.n_internal_faces();
+  std::set<std::string> patch_names;
   for (const auto& p : m.patches) {
+    KUTTA_REQUIRE(patch_names.insert(p.name).second,
+                  "duplicate patch name: " + p.name);
     KUTTA_REQUIRE(
         p.start == next && p.size >= 0 && p.size <= m.n_faces() - next,
         "patch '" + p.name +
@@ -78,17 +81,23 @@ MeshGeometry geometry(const PolyMesh& m) {
     Vec3d moment{};
     double area = 0;
     const auto ns = nodes(m, f);
+    for (std::size_t j = 0; j < ns.size(); ++j)
+      g.face_area[f] = g.face_area[f] +
+          cross(m.points[ns[j]] - center,
+                m.points[ns[(j + 1) % ns.size()]] - center) * 0.5;
+    const auto magnitude = norm(g.face_area[f]);
+    KUTTA_REQUIRE(magnitude > 0 && std::isfinite(magnitude),
+                  "face " + std::to_string(f) + " has zero/invalid area");
+    const auto normal = g.face_area[f] / magnitude;
     for (std::size_t j = 0; j < ns.size(); ++j) {
       auto a = m.points[ns[j]] - center,
            b = m.points[ns[(j + 1) % ns.size()]] - center;
-      auto av = cross(a, b) * 0.5;
-      double w = norm(av);
-      g.face_area[f] = g.face_area[f] + av;
+      const auto w = dot(cross(a, b) * 0.5, normal);
       area += w;
       moment = moment + (a + b) * (w / 3);
     }
-    KUTTA_REQUIRE(area > 0 && norm(g.face_area[f]) > 0 && std::isfinite(area),
-                  "face " + std::to_string(f) + " has zero/invalid area");
+    KUTTA_REQUIRE(area > 0 && std::isfinite(area),
+                  "face " + std::to_string(f) + " has invalid projected area");
     g.face_centroid[f] = center + moment / area;
     auto add = [&](Index c) {
       if (!count[c]) anchor[c] = center;

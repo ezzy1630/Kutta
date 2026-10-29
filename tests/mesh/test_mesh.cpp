@@ -96,11 +96,9 @@ TEST_CASE("prism, polygonal prism and warped face geometry") {
   // quad.
   auto f = m.patches[5].start;
   CHECK(norm(g.face_centroid[f] - face_center(m, f)) > 1e-5);
-  const auto a = std::sqrt(1.04), b = std::sqrt(1.2);
-  CHECK(g.face_centroid[f].x == doctest::Approx((a + 2 * b) / (3 * (a + b))));
-  CHECK(g.face_centroid[f].y == doctest::Approx((a + 2 * b) / (3 * (a + b))));
-  CHECK(g.face_centroid[f].z ==
-        doctest::Approx((a * 31. / 30 + b * 7. / 6) / (a + b)));
+  CHECK(g.face_centroid[f].x == doctest::Approx(41. / 81));
+  CHECK(g.face_centroid[f].y == doctest::Approx(41. / 81));
+  CHECK(g.face_centroid[f].z == doctest::Approx(893. / 810));
   CHECK(g.cell_centroid[0].z == doctest::Approx((14.62 / 24) / 1.1));
 }
 TEST_CASE("validation rejects malformed topology and winding") {
@@ -120,6 +118,11 @@ TEST_CASE("validation rejects malformed topology and winding") {
     m.neighbour[0] = m.owner[0];
     CHECK_THROWS_WITH_AS(validate(m), doctest::Contains("owner < neighbour"),
                          Error);
+  }
+  SUBCASE("duplicate patch name") {
+    auto m = good;
+    m.patches[1].name = m.patches[0].name;
+    CHECK_THROWS_WITH_AS(validate(m), doctest::Contains("duplicate patch name"), Error);
   }
   SUBCASE("patch gap") {
     auto m = good;
@@ -170,6 +173,20 @@ TEST_CASE("gather adjacency and RCM preserve topology, zones and geometry") {
   for (Index f = 0; f < m.n_faces(); ++f) {
     auto src = p.faces_new_to_old[f];
     CHECK(norm(after.face_centroid[f] - g.face_centroid[src]) < 1e-12);
+    const auto sign = p.cells_new_to_old[m.owner[f]] == old.owner[src] ? 1 : -1;
+    CHECK(norm(after.face_area[f] - g.face_area[src] * sign) < 1e-12);
+  }
+  REQUIRE(m.patches.size() == old.patches.size());
+  for (std::size_t i = 0; i < m.patches.size(); ++i) {
+    const auto& patch = m.patches[i];
+    const auto& original = old.patches[i];
+    CHECK(patch.name == original.name);
+    CHECK(patch.kind == original.kind);
+    CHECK(patch.size == original.size);
+    for (Index f = patch.start; f < patch.start + patch.size; ++f) {
+      CHECK(p.faces_new_to_old[f] >= original.start);
+      CHECK(p.faces_new_to_old[f] < original.start + original.size);
+    }
   }
   for (std::size_t i = 0; i < m.cell_zones[0].cells.size(); ++i)
     CHECK(p.cells_new_to_old[m.cell_zones[0].cells[i]] ==
@@ -247,4 +264,20 @@ TEST_CASE("oversized box dimensions fail before arithmetic overflows") {
   auto n = std::numeric_limits<int>::max();
   CHECK_THROWS_AS(make_box_hex(n, n, n, {0, 0, 0}, {1, 1, 1}), Error);
   CHECK_THROWS_AS(make_box_tet(n, n, n, {0, 0, 0}, {1, 1, 1}), Error);
+}
+
+TEST_CASE("signed face moments handle a dart quad outside the vertex-average kernel") {
+  std::vector<Vec3d> points{{-1, 0, 0}, {0, 1.5, 0}, {1, 0, 0}, {0, 3, 0},
+                            {-1, 0, 1}, {0, 1.5, 1}, {1, 0, 1}, {0, 3, 1}};
+  auto m = pack(points, 1,
+                {{{3, 2, 1, 0}, 0, -1, 0}, {{4, 5, 6, 7}, 0, -1, 0},
+                 {{0, 1, 5, 4}, 0, -1, 0}, {{1, 2, 6, 5}, 0, -1, 0},
+                 {{2, 3, 7, 6}, 0, -1, 0}, {{3, 0, 4, 7}, 0, -1, 0}},
+                {{"shell", PatchKind::Wall}});
+  auto g = compute_geometry(m);
+  for (Index f : {0, 1}) {
+    CHECK(g.face_centroid[f].x == doctest::Approx(0));
+    CHECK(g.face_centroid[f].y == doctest::Approx(1.5));
+  }
+  CHECK(g.cell_volume[0] == doctest::Approx(1.5));
 }

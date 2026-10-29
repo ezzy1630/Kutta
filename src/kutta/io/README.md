@@ -1,6 +1,6 @@
 # Mesh import and topology
 
-`mesh.hpp` is unchanged. The I/O additions and `mesh/topology.hpp` provide the
+The I/O additions and `mesh/topology.hpp` provide the
 construction and gather operations without changing the solver's face-based
 mesh contract. All geometry is computed in double precision on the host.
 
@@ -8,18 +8,19 @@ mesh contract. All geometry is computed in double precision on the host.
 
 Faces use a triangle fan about the arithmetic mean of their vertices. The area
 vector is the sum of the triangle area vectors; the face centroid is weighted by
-triangle area magnitude. Cell volume and first moments are integrated by signed
+signed triangle area projected onto the resultant face normal. Cell volume and first moments are integrated by signed
 pyramids (tetrahedra) from a local estimated center to those same triangles.
 Local coordinate differences avoid unnecessarily losing precision on translated
 meshes. This is an original implementation of the geometric decomposition, not
 copied from OpenFOAM or another GPL source.
 
 `validate()` checks CSR sizes/ranges, finite coordinates, valid distinct face
-nodes, owner/neighbour ordering, complete contiguous patch coverage, cell-zone
+nodes, owner/neighbour ordering, unique patch names, complete contiguous patch coverage, cell-zone
 indices, positive volumes, outward winding, area closure, and paired oriented
 cell edges. Closure tolerance is `1e-10 * sum(magnitude(face area))` per cell.
-Faces and cells are expected to be simple and star-shaped about their estimated
-centers; arbitrary self-intersecting geometry is not supported.
+Planar simple faces may be concave; warped-face moments follow the center-fan
+decomposition. Validation additionally requires each face normal to point away
+from its cell centroid. Arbitrary self-intersecting geometry is not supported.
 
 ```cpp
 auto faces = kutta::build_cell_faces(mesh);
