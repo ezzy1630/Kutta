@@ -26,6 +26,13 @@ policy is centralized in `transport.hpp`. All operator work remains on Device;
 only the linear solver and explicitly requested monitors synchronize with the
 host.
 
+The flow driver shares one uploaded CSR matrix workspace across its sequential
+equations. Each assembly overwrites the values and keeps each component's RHS
+and reconstruction separately. A standalone `TransportEquation` owns its own
+workspace unless given a shared matrix with the identical stencil pattern.
+Velocity gradients gather all three components in one kernel; scalar transport
+retains the scalar gradient entrypoint as an independent oracle.
+
 `SteadySolver` owns an RCM-renumbered mesh and exposes `iterate(n)`, Device
 velocity/pressure/mass-flux fields, and host geometry for initialization and
 post-processing. Supply exactly one explicit condition per patch. Velocity

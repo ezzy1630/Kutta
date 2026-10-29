@@ -22,15 +22,22 @@ inline constexpr SolverKind transport_solver_kind=SolverKind::BicgstabJacobi;
 inline constexpr SolverKind pressure_solver_kind=SolverKind::AmgPcg;
 
 class TransportEquation {
+  std::shared_ptr<CsrMatrix> matrix_storage_;
  public:
   TransportEquation(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
-                    const PolyMesh& host, const MeshGeometry& geometry);
+                    const PolyMesh& host, const MeshGeometry& geometry,
+                    std::shared_ptr<CsrMatrix> shared_matrix={});
   void assemble(const Buffer<float>& field, const Buffer<float>& face_values,
                 const Buffer<Index>& boundary_kind, const Buffer<float>& mass_flux,
                 const Buffer<float>& diffusivity, const Buffer<float>& source,
                 const TransportSettings& settings);
+  // grad must already contain the LSQ reconstruction of field/face_values.
+  void assemble_reconstructed(const Buffer<float>& field,const Buffer<float>& face_values,
+                const Buffer<Index>& boundary_kind,const Buffer<float>& mass_flux,
+                const Buffer<float>& diffusivity,const Buffer<float>& source,
+                const TransportSettings& settings);
   SolveStats solve(Buffer<float>& field, const SolveControl& control);
-  CsrMatrix matrix;
+  CsrMatrix& matrix;
   Buffer<float> rhs, diagonal, consistent_inverse;
   DeviceVec3 grad;
   Buffer<float> limiter, face_correction;

@@ -40,7 +40,7 @@ struct SteadySolver::Impl {
   Buffer<Index> boundary_kind,scalar_kind;
   DeviceVec3 grad_p;
   std::unique_ptr<TransportEquation> momentum[3];
-  CsrMatrix pressure_matrix;
+  std::shared_ptr<CsrMatrix> pressure_matrix;
   std::unique_ptr<LinearSolver> pressure_solver;
   Buffer<float> pressure_rhs,correction,correction_boundary,coefficient,face_pressure,pressure_jump;
   DeviceVec3 grad_correction;
@@ -115,8 +115,8 @@ struct SteadySolver::Impl {
     pressure_speed=.1*std::sqrt((pmax-pmin)/settings.density);
     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
     upload_vectors(dev,prescribed_velocity,velocities);
-    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom);
-    pressure_matrix=upload(dev,stencil.pattern);
+    pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
+    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
     CsrMatrixHost initial{stencil.pattern,std::vector<double>(stencil.pattern.nnz(),0)};
     const auto cf=build_cell_faces(host);
     for(Index c=0;c<n;++c) {
@@ -171,9 +171,7 @@ struct SteadySolver::Impl {
       pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,face_pressure,pressure_jump,mesh.n_internal_faces);
   }
   void update_flux() {
-    gradient(dev,mesh,stencil,velocity.x,boundary_velocity.x,momentum[0]->grad);
-    gradient(dev,mesh,stencil,velocity.y,boundary_velocity.y,momentum[1]->grad);
-    gradient(dev,mesh,stencil,velocity.z,boundary_velocity.z,momentum[2]->grad);
+    vector_gradient(dev,mesh,stencil,velocity,boundary_velocity,momentum[0]->grad,momentum[1]->grad,momentum[2]->grad);
     const auto& gu=momentum[0]->grad;const auto& gv=momentum[1]->grad;const auto& gw=momentum[2]->grad;
     kern::fv_momentum_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
@@ -200,17 +198,18 @@ struct SteadySolver::Impl {
     Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
     const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
     const Buffer<float>* src[]{&source.x,&source.y,&source.z};
+    vector_gradient(dev,mesh,stencil,velocity,boundary_velocity,momentum[0]->grad,momentum[1]->grad,momentum[2]->grad);
     for(int k=0;k<3;++k) {
-      momentum[k]->assemble(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport);
+      momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport);
       report.momentum[k]=momentum[k]->solve(*q[k],settings.momentum_linear);
     }
     update_boundaries();update_flux();
     kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
     kern::fv_pressure_assemble(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
-      stencil.adjacent,stencil.matrix_entry,pressure_matrix.diag,coefficient,mass,
-      pressure_matrix.val,pressure_rhs,reference);
-    pressure_solver->refresh(dev,pressure_matrix);dev.fill(correction,0);
-    report.pressure=pressure_solver->solve(dev,pressure_matrix,correction,pressure_rhs,settings.pressure_linear);
+      stencil.adjacent,stencil.matrix_entry,pressure_matrix->diag,coefficient,mass,
+      pressure_matrix->val,pressure_rhs,reference);
+    pressure_solver->refresh(dev,*pressure_matrix);dev.fill(correction,0);
+    report.pressure=pressure_solver->solve(dev,*pressure_matrix,correction,pressure_rhs,settings.pressure_linear);
     kern::fv_correct_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,correction,coefficient,mass,mesh.n_internal_faces);
     // Pressure correction has homogeneous Neumann on fixed-velocity boundaries
     // and homogeneous Dirichlet at pressure outlets.
@@ -236,9 +235,10 @@ struct SteadySolver::Impl {
     transport.convection=settings.convection;transport.limit=settings.limit;
     transport.density=float(settings.density);transport.pseudo_time_step=time_step;
     transport.relaxation=float(settings.momentum_relaxation);
-    momentum[0]->assemble(velocity.x,boundary_velocity.x,scalar_kind,mass,viscosity,source.x,transport);
-    momentum[1]->assemble(velocity.y,boundary_velocity.y,scalar_kind,mass,viscosity,source.y,transport);
-    momentum[2]->assemble(velocity.z,boundary_velocity.z,scalar_kind,mass,viscosity,source.z,transport);
+    vector_gradient(dev,mesh,stencil,velocity,boundary_velocity,momentum[0]->grad,momentum[1]->grad,momentum[2]->grad);
+    momentum[0]->assemble_reconstructed(velocity.x,boundary_velocity.x,scalar_kind,mass,viscosity,source.x,transport);
+    momentum[1]->assemble_reconstructed(velocity.y,boundary_velocity.y,scalar_kind,mass,viscosity,source.y,transport);
+    momentum[2]->assemble_reconstructed(velocity.z,boundary_velocity.z,scalar_kind,mass,viscosity,source.z,transport);
     residual(dev,momentum[0]->matrix,velocity.x,momentum[0]->rhs,residual_u);
     residual(dev,momentum[1]->matrix,velocity.y,momentum[1]->rhs,residual_v);
     residual(dev,momentum[2]->matrix,velocity.z,momentum[2]->rhs,residual_w);
@@ -297,9 +297,7 @@ ForceReport SteadySolver::forces(std::span<const std::string> patches,double ref
     }
   }
   s.update_boundaries();s.update_pressure();
-  gradient(s.dev,s.mesh,s.stencil,s.velocity.x,s.boundary_velocity.x,s.momentum[0]->grad);
-  gradient(s.dev,s.mesh,s.stencil,s.velocity.y,s.boundary_velocity.y,s.momentum[1]->grad);
-  gradient(s.dev,s.mesh,s.stencil,s.velocity.z,s.boundary_velocity.z,s.momentum[2]->grad);
+  vector_gradient(s.dev,s.mesh,s.stencil,s.velocity,s.boundary_velocity,s.momentum[0]->grad,s.momentum[1]->grad,s.momentum[2]->grad);
   auto mask=s.dev.upload<float>(selected);
   auto pressure=vector_field(s.dev,selected.size()),viscous=vector_field(s.dev,selected.size());
   const auto& m=s.mesh;const auto& gu=s.momentum[0]->grad;const auto& gv=s.momentum[1]->grad;const auto& gw=s.momentum[2]->grad;

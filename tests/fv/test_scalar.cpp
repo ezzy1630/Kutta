@@ -93,3 +93,16 @@ TEST_CASE("FV transport kernels preserve an affine solution on skew tetrahedra")
     else for(std::size_t i=0;i<got.size();++i) CHECK(got[i]==doctest::Approx(baseline[i]).epsilon(1e-6));
   }
 }
+
+TEST_CASE("FV equations share one uploaded CSR pattern and value workspace") {
+  auto mesh=make_box_hex(2,2,2,{0,0,0},{1,1,1});auto g=compute_geometry(mesh);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=upload_mesh(*dev,mesh,g);auto s=fv::make_stencil(*dev,mesh,g);
+    auto shared=std::make_shared<CsrMatrix>(upload(*dev,s.pattern));
+    fv::TransportEquation a(*dev,m,s,mesh,g,shared),b(*dev,m,s,mesh,g,shared);
+    CHECK(a.matrix.row_ptr.handle()==b.matrix.row_ptr.handle());
+    CHECK(a.matrix.col.handle()==b.matrix.col.handle());
+    CHECK(a.matrix.diag.handle()==b.matrix.diag.handle());
+    CHECK(a.matrix.val.handle()==b.matrix.val.handle());
+  }
+}

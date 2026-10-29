@@ -87,4 +87,16 @@ void limit_gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
   kern::fv_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,s.face_delta.z,
     cell,boundary,g.x,g.y,g.z,limiter);
 }
+
+void vector_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
+    const DeviceVec3& cell,const DeviceVec3& bc,DeviceVec3& u,DeviceVec3& v,DeviceVec3& w) {
+  bool sizes=true;
+  for(const auto* field:{&cell.x,&cell.y,&cell.z,&u.x,&u.y,&u.z,&v.x,&v.y,&v.z,&w.x,&w.y,&w.z})
+    sizes=sizes && field->size()==std::size_t(m.n_cells);
+  for(const auto* field:{&bc.x,&bc.y,&bc.z}) sizes=sizes && field->size()==std::size_t(m.n_boundary_faces());
+  KUTTA_REQUIRE(sizes,"FV vector gradient size mismatch");
+  kern::fv_vector_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,
+    s.lsq_delta.x,s.lsq_delta.y,s.lsq_delta.z,s.lsq_inverse,
+    cell.x,cell.y,cell.z,bc.x,bc.y,bc.z,u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,m.n_cells);
+}
 }  // namespace kutta::fv

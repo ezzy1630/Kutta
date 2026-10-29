@@ -81,3 +81,27 @@ TEST_CASE("FV least squares is linear exact on real Fluent polyhedra") {
   MESSAGE("SKIP: HDF5 is unavailable");
 #endif
 }
+
+TEST_CASE("FV fused velocity gradients equal scalar gradient kernels") {
+  auto mesh=make_box_tet(3,3,3,{0,0,0},{1,1,1});auto g=compute_geometry(mesh);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=upload_mesh(*dev,mesh,g);auto s=fv::make_stencil(*dev,mesh,g);
+    auto q=fv::vector_field(*dev,m.n_cells),bc=fv::vector_field(*dev,m.n_boundary_faces());
+    std::vector<float> cell,face;
+    for(auto p:g.cell_centroid) cell.push_back(float(p.x*p.x-.3*p.y+std::sin(p.z)));
+    for(Index f=m.n_internal_faces;f<m.n_faces;++f) {
+      auto p=g.face_centroid[f];face.push_back(float(p.x*p.x-.3*p.y+std::sin(p.z)));
+    }
+    dev->upload<float>(q.x,cell);dev->upload<float>(bc.x,face);
+    dev->fill(q.y,2);dev->fill(bc.y,2);dev->fill(q.z,-3);dev->fill(bc.z,-3);
+    auto u=fv::vector_field(*dev,m.n_cells),v=fv::vector_field(*dev,m.n_cells),w=fv::vector_field(*dev,m.n_cells);
+    auto reference=fv::vector_field(*dev,m.n_cells);
+    fv::vector_gradient(*dev,m,s,q,bc,u,v,w);
+    fv::gradient(*dev,m,s,q.x,bc.x,reference);
+    CHECK(dev->download(u.x)==dev->download(reference.x));
+    CHECK(dev->download(u.y)==dev->download(reference.y));
+    CHECK(dev->download(u.z)==dev->download(reference.z));
+    CHECK(dev->max_abs(v.x,m.n_cells)==0);CHECK(dev->max_abs(v.y,m.n_cells)==0);CHECK(dev->max_abs(v.z,m.n_cells)==0);
+    CHECK(dev->max_abs(w.x,m.n_cells)==0);CHECK(dev->max_abs(w.y,m.n_cells)==0);CHECK(dev->max_abs(w.z,m.n_cells)==0);
+  }
+}

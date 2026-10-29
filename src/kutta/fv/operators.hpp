@@ -23,6 +23,9 @@ Stencil make_stencil(Device& dev, const PolyMesh& mesh, const MeshGeometry& geom
 // LSQ uses inverse-distance-squared weights and includes boundary faces.
 void gradient(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
               const Buffer<float>& cell, const Buffer<float>& boundary, DeviceVec3& result);
+void vector_gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
+                     const DeviceVec3& cell,const DeviceVec3& boundary,
+                     DeviceVec3& u,DeviceVec3& v,DeviceVec3& w);
 void limit_gradient(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
                     const Buffer<float>& cell, const Buffer<float>& boundary,
                     const DeviceVec3& gradient, Buffer<float>& limiter);

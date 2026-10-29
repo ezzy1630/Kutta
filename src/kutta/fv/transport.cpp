@@ -7,11 +7,14 @@
 namespace kutta::fv {
 
 TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stencil& s,
-                                     const PolyMesh&,const MeshGeometry&)
-    :matrix(upload(dev,s.pattern)),rhs(dev.alloc<float>(m.n_cells)),
+                                     const PolyMesh&,const MeshGeometry&,
+                                     std::shared_ptr<CsrMatrix> shared_matrix)
+    :matrix_storage_(shared_matrix?std::move(shared_matrix):std::make_shared<CsrMatrix>(upload(dev,s.pattern))),
+     matrix(*matrix_storage_),rhs(dev.alloc<float>(m.n_cells)),
      diagonal(dev.alloc<float>(m.n_cells)),consistent_inverse(dev.alloc<float>(m.n_cells)),
      grad(vector_field(dev,m.n_cells)),limiter(dev.alloc<float>(m.n_cells)),
      face_correction(dev.alloc<float>(m.n_faces)),dev_(dev),mesh_(m),stencil_(s) {
+  KUTTA_REQUIRE(matrix.n_rows==m.n_cells && matrix.nnz==s.pattern.nnz(),"FV shared matrix pattern dimensions mismatch");
   // Jacobi/BiCGStab setup needs only a valid pattern and diagonal. Values are
   // refreshed from the assembled device matrix before every solve.
   CsrMatrixHost initial{s.pattern,std::vector<double>(s.pattern.nnz(),0)};
@@ -22,13 +25,19 @@ TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stenc
 void TransportEquation::assemble(const Buffer<float>& field,const Buffer<float>& bc,
     const Buffer<Index>& kind,const Buffer<float>& flux,const Buffer<float>& mu,
     const Buffer<float>& source,const TransportSettings& settings) {
+  gradient(dev_,mesh_,stencil_,field,bc,grad);
+  assemble_reconstructed(field,bc,kind,flux,mu,source,settings);
+}
+
+void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const Buffer<float>& bc,
+    const Buffer<Index>& kind,const Buffer<float>& flux,const Buffer<float>& mu,
+    const Buffer<float>& source,const TransportSettings& settings) {
   const auto& m=mesh_; const auto& s=stencil_; auto& dev=dev_;
   KUTTA_REQUIRE(field.size()==std::size_t(m.n_cells) && source.size()==field.size() &&
     bc.size()==std::size_t(m.n_boundary_faces()) && kind.size()==bc.size() &&
     flux.size()==std::size_t(m.n_faces) && mu.size()==flux.size(),"FV transport field size mismatch");
   KUTTA_REQUIRE(settings.density>0 && settings.pseudo_time_step>=0 && settings.relaxation>0 &&
     settings.relaxation<=1,"FV invalid transport relaxation");
-  gradient(dev,m,s,field,bc,grad);
   if(settings.limit) limit_gradient(dev,m,s,field,bc,grad,limiter); else dev.fill(limiter,1);
   kern::fv_transport_faces(dev,m.n_faces,m.owner,m.neighbour,m.weight,
     m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
