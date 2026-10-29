@@ -59,5 +59,7 @@ TEST_CASE("FV SIMPLEC develops planar Couette flow with moving and slip walls") 
     CHECK(force.coefficient({1,0,0},{1,1,.1,0})==doctest::Approx(-2).epsilon(2e-4));
     auto shifted=solver.forces(top,2);
     CHECK(shifted.pressure.y-force.pressure.y==doctest::Approx(-.2).epsilon(1e-6));
+    CHECK(std::abs(shifted.coefficient({0,1,0},{1,1,.1,0})-
+                   force.coefficient({0,1,0},{1,1,.1,0}))<1e-6);
   }
 }

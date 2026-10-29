@@ -36,11 +36,16 @@ KUTTA_KERNEL void fv_velocity_boundary(int i,KIn(int) owner,KIn(int) kind,
 }
 
 KUTTA_KERNEL void fv_pressure_boundary(int i,KIn(int) owner,KIn(int) kind,
-    KIn(float) rx,KIn(float) ry,KIn(float) rz,KIn(float) p,
+    KIn(float) sx,KIn(float) sy,KIn(float) sz,KIn(float) rx,KIn(float) ry,KIn(float) rz,KIn(float) p,
     KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) prescribed,
     KOut(float) boundary,int internal) {
   int f=i+internal,c=owner[f];
-  boundary[i]=kind[i]==2?prescribed[i]:p[c]+gx[c]*rx[f]+gy[c]*ry[f]+gz[c]*rz[f];
+  float x=rx[f],y=ry[f],z=rz[f];
+  if(kind[i]==3) {
+    float along=(x*sx[f]+y*sy[f]+z*sz[f])/(sx[f]*sx[f]+sy[f]*sy[f]+sz[f]*sz[f]);
+    x-=along*sx[f];y-=along*sy[f];z-=along*sz[f];
+  }
+  boundary[i]=kind[i]==2?prescribed[i]:p[c]+gx[c]*x+gy[c]*y+gz[c]*z;
 }
 
 KUTTA_KERNEL void fv_pressure_faces(int i,KIn(int) owner,KIn(int) neighbour,
@@ -70,6 +75,28 @@ KUTTA_KERNEL void fv_momentum_source(int i,KIn(int) offsets,KIn(int) faces,
   su[i]=body_u[i]-x/volume[i];sv[i]=body_v[i]-y/volume[i];sw[i]=body_w[i]-z/volume[i];
 }
 
+// Correct the momentum-weighted interpolation point to the actual face.
+// This preserves affine fields even with unequal cell diagonals and skewness.
+KUTTA_KERNEL void fv_momentum_faces(int i,KIn(int) owner,KIn(int) neighbour,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) u,KIn(float) v,KIn(float) w,
+    KIn(float) ux,KIn(float) uy,KIn(float) uz,KIn(float) vx,KIn(float) vy,KIn(float) vz,
+    KIn(float) wx,KIn(float) wy,KIn(float) wz,KIn(float) diagonal,
+    KIn(float) bu,KIn(float) bv,KIn(float) bw,
+    KOut(float) fu,KOut(float) fv,KOut(float) fw,int internal) {
+  if(i>=internal) {int b=i-internal;fu[i]=bu[b];fv[i]=bv[b];fw[i]=bw[b];return;}
+  int p=owner[i],n=neighbour[i];float weight=diagonal[p]/(diagonal[p]+diagonal[n]);
+  float rx=weight*px[i]+(1.0f-weight)*nx[i];
+  float ry=weight*py[i]+(1.0f-weight)*ny[i];
+  float rz=weight*pz[i]+(1.0f-weight)*nz[i];
+  fu[i]=weight*u[p]+(1.0f-weight)*u[n]
+    +0.5f*((ux[p]+ux[n])*rx+(uy[p]+uy[n])*ry+(uz[p]+uz[n])*rz);
+  fv[i]=weight*v[p]+(1.0f-weight)*v[n]
+    +0.5f*((vx[p]+vx[n])*rx+(vy[p]+vy[n])*ry+(vz[p]+vz[n])*rz);
+  fw[i]=weight*w[p]+(1.0f-weight)*w[n]
+    +0.5f*((wx[p]+wx[n])*rx+(wy[p]+wy[n])*ry+(wz[p]+wz[n])*rz);
+}
+
 // The physical (unrelaxed, no pseudo-time) momentum diagonal is used in the
 // Rhie–Chow term. Thus its converged pressure smoothing is independent of
 // relaxation and pseudo time (Majumdar consistency). SIMPLEC uses its own
@@ -78,25 +105,19 @@ KUTTA_KERNEL void fv_rhie_chow(int i,KIn(int) owner,KIn(int) neighbour,
     KIn(int) kind,KIn(float) sx,KIn(float) sy,KIn(float) sz,
     KIn(float) diffusion,KIn(float) volume,KIn(float) diagonal,
     KIn(float) inverse,KIn(float) u,KIn(float) v,KIn(float) w,
-    KIn(float) pressure_jump,KIn(float) boundary_u,KIn(float) boundary_v,KIn(float) boundary_w,
+    KIn(float) pressure_jump,
     KOut(float) flux,KOut(float) coefficient,int internal,float rho) {
   int c=owner[i];
-  float a=diagonal[c],x=u[c],y=v[c],z=w[c];
+  float a=diagonal[c],x=u[i],y=v[i],z=w[i];
   float rc=volume[c]/kmax(a,1.0e-20f),dc=volume[c]*inverse[c];
   float jump=pressure_jump[i];
   if(i<internal) {
     int n=neighbour[i];float an=diagonal[n];
-    float weight=a/(a+an);
-    x=weight*x+(1.0f-weight)*u[n];
-    y=weight*y+(1.0f-weight)*v[n];
-    z=weight*z+(1.0f-weight)*w[n];
     rc=0.5f*(rc+volume[n]/kmax(an,1.0e-20f));
     dc=0.5f*(dc+volume[n]*inverse[n]);
-
   } else {
     int b=i-internal;
     if(kind[b]==0 || kind[b]==3) {flux[i]=0.0f;coefficient[i]=0.0f;return;}
-    x=boundary_u[b];y=boundary_v[b];z=boundary_w[b];
     if(kind[b]==1) {
       flux[i]=rho*(x*sx[i]+y*sy[i]+z*sz[i]);coefficient[i]=0.0f;return;
     }

@@ -42,6 +42,8 @@ struct IterationReport {
 struct ReferenceValues { double density=1,velocity=1,area=1,pressure=0; };
 struct ForceReport {
   Vec3d pressure,viscous;
+  Vec3d area_vector;
+  double reference_pressure=0;
   Vec3d force() const;
   double coefficient(Vec3d direction,const ReferenceValues& reference) const;
 };

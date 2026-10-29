@@ -35,7 +35,7 @@ struct SteadySolver::Impl {
   SolverSettings settings;
   DeviceMesh mesh;
   Stencil stencil;
-  DeviceVec3 velocity,body,boundary_velocity,prescribed_velocity,source;
+  DeviceVec3 velocity,body,boundary_velocity,prescribed_velocity,source,face_velocity;
   Buffer<float> pressure,mass,viscosity,boundary_pressure,prescribed_pressure;
   Buffer<Index> boundary_kind,scalar_kind;
   DeviceVec3 grad_p;
@@ -86,7 +86,7 @@ struct SteadySolver::Impl {
     KUTTA_REQUIRE(stack.size()==std::size_t(host.n_cells),"FV disconnected domains require separate solvers");
     mesh=upload_mesh(dev,host,geom);stencil=make_stencil(dev,host,geom);
     const auto n=mesh.n_cells,nf=mesh.n_faces,nb=mesh.n_boundary_faces();
-    velocity=vector_field(dev,n);body=vector_field(dev,n);source=vector_field(dev,n);
+    velocity=vector_field(dev,n);face_velocity=vector_field(dev,nf);body=vector_field(dev,n);source=vector_field(dev,n);
     boundary_velocity=vector_field(dev,nb);prescribed_velocity=vector_field(dev,nb);
     grad_p=vector_field(dev,n);grad_correction=vector_field(dev,n);absolute_residual=vector_field(dev,n);
     pressure=dev.alloc<float>(n);dev.fill(pressure,0);
@@ -159,11 +159,11 @@ struct SteadySolver::Impl {
   }
   void update_pressure() {
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
-      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
+      mesh.area.x,mesh.area.y,mesh.area.z,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
       prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
     gradient(dev,mesh,stencil,pressure,boundary_pressure,grad_p);
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
-      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
+      mesh.area.x,mesh.area.y,mesh.area.z,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
       prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
     kern::fv_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
@@ -171,10 +171,20 @@ struct SteadySolver::Impl {
       pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,face_pressure,pressure_jump,mesh.n_internal_faces);
   }
   void update_flux() {
+    gradient(dev,mesh,stencil,velocity.x,boundary_velocity.x,momentum[0]->grad);
+    gradient(dev,mesh,stencil,velocity.y,boundary_velocity.y,momentum[1]->grad);
+    gradient(dev,mesh,stencil,velocity.z,boundary_velocity.z,momentum[2]->grad);
+    const auto& gu=momentum[0]->grad;const auto& gv=momentum[1]->grad;const auto& gw=momentum[2]->grad;
+    kern::fv_momentum_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+      mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+      velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+      momentum[0]->diagonal,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
+      face_velocity.x,face_velocity.y,face_velocity.z,mesh.n_internal_faces);
     kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,
-      momentum[0]->diagonal,momentum[0]->consistent_inverse,velocity.x,velocity.y,velocity.z,
-      pressure_jump,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
+      momentum[0]->diagonal,momentum[0]->consistent_inverse,face_velocity.x,face_velocity.y,face_velocity.z,
+      pressure_jump,
       mass,coefficient,mesh.n_internal_faces,float(settings.density));
   }
 
@@ -206,7 +216,7 @@ struct SteadySolver::Impl {
     // and homogeneous Dirichlet at pressure outlets.
     dev.fill(grad_correction.x,0);dev.fill(grad_correction.y,0);dev.fill(grad_correction.z,0);
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
-      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,correction,
+      mesh.area.x,mesh.area.y,mesh.area.z,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,correction,
       grad_correction.x,grad_correction.y,grad_correction.z,correction_boundary,
       boundary_pressure,mesh.n_internal_faces);
     gradient(dev,mesh,stencil,correction,boundary_pressure,grad_correction);
@@ -277,10 +287,14 @@ ForceReport SteadySolver::forces(std::span<const std::string> patches,double ref
   std::set<std::string> selected_names(patches.begin(),patches.end());
   KUTTA_REQUIRE(selected_names.size()==patches.size(),"FV duplicate force patch");
   std::vector<float> selected(s.mesh.n_boundary_faces(),0);
+  Vec3d area;
   for(const auto& name:selected_names) {
     auto it=std::find_if(s.host.patches.begin(),s.host.patches.end(),[&](const Patch& p){return p.name==name;});
     KUTTA_REQUIRE(it!=s.host.patches.end() && it->kind==PatchKind::Wall,"FV force patch must name a wall: "+name);
-    for(Index f=it->start;f<it->start+it->size;++f) selected[f-s.mesh.n_internal_faces]=1;
+    for(Index f=it->start;f<it->start+it->size;++f) {
+      selected[f-s.mesh.n_internal_faces]=1;
+      area=area+s.geom.face_area[f];
+    }
   }
   s.update_boundaries();s.update_pressure();
   gradient(s.dev,s.mesh,s.stencil,s.velocity.x,s.boundary_velocity.x,s.momentum[0]->grad);
@@ -297,7 +311,7 @@ ForceReport SteadySolver::forces(std::span<const std::string> patches,double ref
     s.boundary_velocity.x,s.boundary_velocity.y,s.boundary_velocity.z,viscous.x,viscous.y,viscous.z,
     m.n_internal_faces,float(s.settings.viscosity));
   return {{s.dev.sum(pressure.x,selected.size()),s.dev.sum(pressure.y,selected.size()),s.dev.sum(pressure.z,selected.size())},
-    {s.dev.sum(viscous.x,selected.size()),s.dev.sum(viscous.y,selected.size()),s.dev.sum(viscous.z,selected.size())}};
+    {s.dev.sum(viscous.x,selected.size()),s.dev.sum(viscous.y,selected.size()),s.dev.sum(viscous.z,selected.size())},area,reference_pressure};
 }
 const PolyMesh& SteadySolver::mesh() const {return impl_->host;}
 const MeshGeometry& SteadySolver::geometry() const {return impl_->geom;}
@@ -309,6 +323,7 @@ const IterationReport& SteadySolver::report() const {return impl_->report;}
 Vec3d ForceReport::force() const {return pressure+viscous;}
 double ForceReport::coefficient(Vec3d direction,const ReferenceValues& ref) const {
   KUTTA_REQUIRE(ref.density>0 && ref.velocity>0 && ref.area>0,"FV positive force references required");
-  return dot(force(),direction)/(.5*ref.density*ref.velocity*ref.velocity*ref.area);
+  const auto adjusted=force()+area_vector*(reference_pressure-ref.pressure);
+  return dot(adjusted,direction)/(.5*ref.density*ref.velocity*ref.velocity*ref.area);
 }
 }  // namespace kutta::fv

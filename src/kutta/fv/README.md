@@ -39,6 +39,9 @@ The SIMPLEC correction uses the relaxed/pseudo-time consistent inverse
 `1/(aP_relaxed + sum(offdiag))`. Rhie–Chow uses `V/aP_physical` without
 relaxation or pseudo-time, and momentum-diagonal-weighted face velocities.
 Pressure face values use the second-order reconstruction in the design spec.
+Momentum-weighted face velocities include an affine-exact correction from the
+weighted cell interpolation point to the actual face centroid. Symmetry
+pressure extrapolation uses only the tangential centroid-to-face displacement.
 The undocumented Fluent high-order Rhie–Chow correction and warped-face
 gradient correction are not implemented or claimed as matched.
 
