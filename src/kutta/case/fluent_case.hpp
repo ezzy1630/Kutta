@@ -8,8 +8,10 @@
 namespace kutta::fluent {
 // Missing optionals are never Fluent defaults. issues records absent/unsupported
 // required values; all source entries, including duplicate metadata, remain raw.
+enum class IssueClass { unsupported, informational };
 struct SettingIssue {
   std::string path, reason;
+  IssueClass classification = IssueClass::unsupported;
   bool operator==(const SettingIssue &) const = default;
 };
 struct RawSettings {
@@ -81,10 +83,11 @@ struct Turbulence {
   std::optional<double> production_factor, curvature_factor, omega_floor;
   std::optional<WallOmega> wall_omega;
   std::map<std::string, double> coefficients;
+  std::map<std::string, bool> unsupported_options;
   bool operator==(const Turbulence &) const = default;
 };
 struct Numerics {
-  std::optional<Scheme> pressure, momentum, k, omega;
+  std::optional<Scheme> pressure, momentum, k, omega, epsilon;
   std::optional<Gradient> gradient;
   std::optional<Limiter> limiter;
   std::optional<bool> limiting, limit_to_face, limiter_filter, warped_face_correction,
@@ -172,7 +175,8 @@ struct MeshMetadata {
 struct FluentCase {
   std::optional<std::string> solver_version, origin;
   std::optional<int> dimension;
-  std::optional<bool> double_precision, unsteady, pressure_based;
+  std::optional<bool> double_precision, unsteady, pressure_based, energy, gravity;
+  std::array<std::optional<double>, 3> gravity_vector;
   Turbulence viscous;
   Numerics numerics;
   std::optional<double> operating_pressure;

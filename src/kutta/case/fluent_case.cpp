@@ -227,6 +227,109 @@ ZoneType zone_type(std::string_view s) {
     return ZoneType::interior;
   return ZoneType::other;
 }
+bool epsilon_model(const FluentCase &c) {
+  return c.viscous.model == ViscousModel::ke_standard || c.viscous.model == ViscousModel::ke_rng ||
+         c.viscous.model == ViscousModel::ke_realizable;
+}
+// The table describes the supported physical problem, not Fluent's defaults.
+// New flags are rejected even when a writer introduces them in a future version.
+void config_support(FluentCase &c) {
+  std::map<std::string, SExpr> expected;
+  auto add = [&](std::string_view keys, bool value) {
+    std::istringstream words{std::string(keys)};
+    for (std::string key; words >> key;) {
+      SExpr v;
+      v.kind = K::boolean;
+      v.boolean = value;
+      expected.emplace(key, v);
+    }
+  };
+  add("rp-seg? rp-3d? rp-visc?", true);
+  add("rp-acoustics? rp-optics? rp-atm? rp-axi? rp-des? rp-dpm-cache? rp-dpm-cache-serial? "
+      "rp-unsteady? rp-dual-time? rp-amg? rp-hvac? rp-inviscid? rp-kklw? rp-les? "
+      "rp-structure? rp-structure-damping? rp-structure-linear? rp-structure-nonlinear? "
+      "rp-structure-time? rp-lsf? rp-net? rp-react? rp-sa? rp-sas? rp-sge? rp-spe? "
+      "rp-spe-part? rp-potential? rp-lithium? rp-dual-potential? rp-electrolysis? "
+      "rp-electro-chem? rp-spe-site? rp-spe-surf? rp-trans-one-eqn? rp-trans-sst? "
+      "rp-absorbing-media? rp-v2f? sg-cylindrical? sg-disco? sg-montecarlo? sg-bee-gees? "
+      "sg-crev? sg-dpm? sg-dqmom-iem? sg-dtrm? sg-dynmesh? sg-overset? sg-ecfm? sg-geqn? "
+      "sg-hg? sg-inert? sg-ignite? sg-network? sg-pcb? sg-node-udm? sg-noniterative? "
+      "sg-nox? sg-melt? sg-micro-mix? sg-mphase? sg-p1? rp-sootspecies? sg-par-premix? "
+      "sg-pb? sg-pdf? sg-pdf-transport? sg-premixed? sg-pull? sg-rosseland? sg-rsm? "
+      "sg-s2s? sg-soot? sg-sox? sg-spark? sg-swirl? sg-twotemp? sg-udm? sg-uds? "
+      "sg-addon? sg-addon-loaded? sg-vfr? sg-solar? sg-wetsteam? sg-moistair? sg-wallfilm? "
+      "rp-spe-surf-rc? rp-watercontent? sg-vbm? rp-ablation?", false);
+  expected.emplace("rp-transition-model", SExpr::symbol("none"));
+  // These describe precision, execution, initialization or registered storage;
+  // neither boolean value changes the selected physical equations.
+  const std::set<std::string> metadata = {"rp-double?", "rp-graphics?", "rp-host?", "rp-thread?",
+      "hyb-init?", "dpm-cache?", "rp-wallfilm?"};
+  const bool turbulent = c.viscous.model && c.viscous.model != ViscousModel::laminar;
+  for (auto key : {"rp-turb?", "rp-trb-scl?"}) {
+    SExpr v;
+    v.kind = K::boolean;
+    v.boolean = turbulent;
+    expected.emplace(key, v);
+  }
+  for (auto key : {"rp-lam?", "rp-ke?", "rp-kw?"}) {
+    SExpr v;
+    v.kind = K::boolean;
+    v.boolean = std::string_view(key) == "rp-lam?" ? c.viscous.model == ViscousModel::laminar
+        : (std::string_view(key) == "rp-ke?" ? epsilon_model(c)
+          : c.viscous.model == ViscousModel::kw_sst || c.viscous.model == ViscousModel::kw_bsl ||
+            c.viscous.model == ViscousModel::kw_standard);
+    expected.emplace(key, v);
+  }
+  for (const auto &e : c.config.alist.elements) {
+    if (e.elements.empty() || !e.elements[0].atom_text()) {
+      c.issues.push_back({"case-config", "unsupported malformed flag"});
+      continue;
+    }
+    const std::string key(*e.elements[0].atom_text());
+    auto value = entry_value(e);
+    if (key == "rf-energy?")
+      continue; // Classified after the active materials are known.
+    if (metadata.contains(key) && boolean(value)) {
+      c.config.interpreted.insert(key);
+      continue;
+    }
+    auto it = expected.find(key);
+    if (value && it != expected.end() && *value == it->second)
+      c.config.interpreted.insert(key);
+    else
+      c.issues.push_back({"case-config/" + key, it == expected.end()
+          ? "unsupported: flag is not in the supported configuration allowlist"
+          : "unsupported: expected " + to_string(it->second)});
+  }
+}
+void property_support(FluentCase &c) {
+  bool constant = !c.cell_zones.empty();
+  for (auto &z : c.cell_zones) {
+    if (z.type != ZoneType::fluid) {
+      constant = false;
+      continue;
+    }
+    auto m = std::find_if(c.materials.begin(), c.materials.end(),
+                           [&](auto &m) { return z.material == m.name; });
+    const bool ok = m != c.materials.end() && m->density && m->viscosity &&
+        m->density->kind == ScalarValue::Kind::constant && m->density->constant &&
+        m->viscosity->kind == ScalarValue::Kind::constant && m->viscosity->constant;
+    constant = constant && ok;
+    if (!ok)
+      c.issues.push_back({"zone/" + std::to_string(z.id) + "/material",
+                         "unsupported: requires constant density and viscosity"});
+  }
+  if (c.energy == true)
+    c.issues.push_back({"case-config/rf-energy?", constant
+        ? "energy ignored (decoupled): constant density and viscosity"
+        : "unsupported: energy coupling cannot be excluded without constant density and viscosity",
+        constant ? IssueClass::informational : IssueClass::unsupported});
+  if (c.gravity == true)
+    c.issues.push_back({"rp/gravity?", constant
+        ? "gravity enabled; constant density has no buoyancy coupling"
+        : "unsupported: gravity with nonconstant or unverified density",
+        constant ? IssueClass::informational : IssueClass::unsupported});
+}
 void model(FluentCase &c) {
   auto &r = c.variables;
   Extractor x(c, r, "rp/");
@@ -238,6 +341,11 @@ void model(FluentCase &c) {
   c.unsteady = cfg.flag("rp-unsteady?");
   c.pressure_based = cfg.flag("rp-seg?");
   auto lam = cfg.flag("rp-lam?"), ke = cfg.flag("rp-ke?"), kw = cfg.flag("rp-kw?");
+  c.energy = cfg.flag("rf-energy?");
+  c.gravity = x.flag("gravity?");
+  c.gravity_vector = {x.num("gravity/x", c.gravity == true),
+                      x.num("gravity/y", c.gravity == true),
+                      x.num("gravity/z", c.gravity == true)};
   auto &t = c.viscous;
   if (lam && *lam && ke && !*ke && kw && !*kw)
     t.model = ViscousModel::laminar;
@@ -258,8 +366,21 @@ void model(FluentCase &c) {
   if (!t.model)
     c.issues.push_back(
         {"viscous-model", "unparsed: absent, conflicting or unsupported case-config/model flags"});
-  const bool epsilon = t.model == ViscousModel::ke_standard || t.model == ViscousModel::ke_rng ||
-                       t.model == ViscousModel::ke_realizable;
+  config_support(c);
+  const bool epsilon = epsilon_model(c);
+  if (t.model && t.model != ViscousModel::laminar && t.model != ViscousModel::kw_sst)
+    c.issues.push_back({"viscous-model", "unsupported model: " + std::string(name(*t.model))});
+  for (auto key : {"ke-easm-on?", "kw-geko-on?", "kw-easm-on?", "kw-wj-bsl-earsm-on?"})
+    if (auto v = x.flag(key, false); v == true)
+      c.issues.push_back({"rp/" + std::string(key), "unsupported model option"});
+  if (epsilon) {
+    for (auto key : {"ke-standard-wall-fn?", "ke-non-equilibrium-wall-fn?", "ke-enhanced-wall-treatment?",
+                     "ke-scalable-wall-fn?", "ke-mblend-wall?", "ke-two-layer?", "ke-easm-on?"})
+      if (auto v = x.flag(key, false))
+        t.unsupported_options.emplace(key, *v);
+  }
+  if (t.model == ViscousModel::laminar)
+    return;
   t.production_limiter =
       x.flag(epsilon ? "ke-production-limiter?" : "kw-not-trans-sst-production-limiter?");
   t.production_factor = x.num(epsilon ? "ke-pk-factor" : "sst-pk-factor");
@@ -287,6 +408,10 @@ void model(FluentCase &c) {
         "sst-sig-k1",   "sst-sig-k2",        "sst-sig-w1", "sst-sig-w2",       "sst-kappa"})
     if (auto v = x.num(key, false))
       t.coefficients.emplace(key, *v);
+  for (const auto &key : r.unparsed_names())
+    if ((key.starts_with("kw-") || key.starts_with("ke-") || key.starts_with("sst-")) &&
+        boolean(r.value(key)) == true)
+      c.issues.push_back({"rp/" + key, "unsupported: active model flag is not in the model allowlist"});
 }
 void numerics(FluentCase &c) {
   Extractor x(c, c.variables, "rp/");
@@ -298,14 +423,23 @@ void numerics(FluentCase &c) {
                                                  Scheme::second_pressure,
                                                  Scheme::body_force_weighted, Scheme::presto});
   n.momentum = x.enumeration("mom/scheme", convection);
-  n.k = x.enumeration("k/scheme", convection);
-  n.omega = x.enumeration("omega/scheme", convection);
+  const bool turbulent = c.viscous.model != ViscousModel::laminar;
+  if (turbulent) {
+    n.k = x.enumeration("k/scheme", convection);
+    if (epsilon_model(c))
+      n.epsilon = x.enumeration("epsilon/scheme", convection);
+    else
+      n.omega = x.enumeration("omega/scheme", convection);
+  }
   n.coupling = x.enumeration(
       "flow/scheme", {Coupling::simple, Coupling::simplec, Coupling::piso, Coupling::coupled});
   auto cell = x.flag("recon/cell-lsq?"), node = x.flag("recon/node-lsq?");
   if (cell && node)
     n.gradient = *cell ? Gradient::least_squares_cell
                        : (*node ? Gradient::green_gauss_node : Gradient::green_gauss_cell);
+  if (n.gradient == Gradient::green_gauss_node)
+    c.issues.push_back({"rp/recon/node-lsq?",
+        "unverified mapping: recon/node-lsq? to Green-Gauss node-based"});
   n.limiter = x.enumeration("recon/lim/type", {Limiter::standard});
   n.limiting = x.flag("recon/limit?");
   n.limit_to_face = x.flag("recon/lim/dx-to-face?");
@@ -327,7 +461,13 @@ void numerics(FluentCase &c) {
   n.pseudo.automatic_time_step = x.num("pseudo-auto-time-step");
   n.pseudo.length_scale_method = x.code("pseudo/autotime-lscale-option");
   n.courant = x.num("pressure-coupled/courant-number");
-  for (auto eq : {"pressure", "mom", "k", "omega", "density", "body-force", "turb-viscosity"}) {
+  std::vector<std::string> equations = {"pressure", "mom", "density", "body-force"};
+  if (turbulent) {
+    equations.push_back("k");
+    equations.push_back(epsilon_model(c) ? "epsilon" : "omega");
+    equations.push_back("turb-viscosity");
+  }
+  for (const auto &eq : equations) {
     auto key = std::string(eq) + "/relax";
     if (auto v = x.num(key))
       n.relaxation.emplace(eq, *v);
@@ -660,6 +800,7 @@ FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,
   for (auto &z : c.boundaries)
     if (!ids.insert(z.id).second)
       throw std::runtime_error("duplicate thread ID");
+  property_support(c);
   // File writers reorder alists; typed records use identity order, raw sections retain source
   // order.
   std::sort(c.boundaries.begin(), c.boundaries.end(), [](auto &a, auto &b) { return a.id < b.id; });

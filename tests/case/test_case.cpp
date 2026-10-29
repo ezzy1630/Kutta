@@ -223,6 +223,12 @@ TEST_CASE("Real mixing elbow typed settings match verified CFF values") {
   if (!available(path))
     return;
   auto c = read_case(path);
+  REQUIRE(c.energy == true);
+  CHECK(c.variables.value("rf-energy?")->boolean == false);
+  CHECK(std::any_of(c.issues.begin(), c.issues.end(), [](auto &i) {
+    return i.path == "case-config/rf-energy?" && i.classification == IssueClass::informational &&
+           i.reason.starts_with("energy ignored (decoupled)");
+  }));
   CHECK(c.solver_version == "22.2");
   CHECK(c.dimension == 3);
   CHECK(c.viscous.model == ViscousModel::kw_sst);
@@ -263,6 +269,9 @@ TEST_CASE("Real elbow1 authoritative k epsilon and velocity components") {
   CHECK(c.mesh.faces == 44500);
   CHECK(c.numerics.coupling == Coupling::simple);
   CHECK(c.numerics.momentum == Scheme::first_upwind);
+  CHECK(c.numerics.epsilon == Scheme::first_upwind);
+  CHECK_FALSE(c.numerics.omega);
+  CHECK(c.numerics.relaxation.contains("epsilon"));
   CHECK(boundary(c, 6).velocity[1]->constant == 1.2);
   CHECK(*boundary(c, 7).velocity[0]->constant == doctest::Approx(0.40000001));
   CHECK(c.cell_zones[0].material == "water");
@@ -304,3 +313,56 @@ TEST_CASE("No HDF5 build reports unsupported files clearly") {
                     doctest::Contains("HDF5 support is not built"));
 }
 #endif
+
+namespace {
+bool issue_at(const FluentCase &c, std::string_view path) {
+  return std::any_of(c.issues.begin(), c.issues.end(), [&](auto &i) { return i.path == path; });
+}
+}
+TEST_CASE("Case support is an allowlist for authoritative physics flags") {
+  for (auto key : {"rp-trans-sst?", "rp-sas?", "rp-des?", "rp-les?", "rp-axi?",
+                   "rp-inviscid?", "sg-swirl?", "sg-mphase?", "sg-dynmesh?", "future-model?"}) {
+    auto rp = config(false, true);
+    rp.insert(rp.size() - 3, " (" + std::string(key) + " . #t)");
+    auto c = synthetic(rp + "(kw-sst-on? #t) (kw-bsl-on? #f) (kw-std-on? #f)");
+    INFO(key);
+    CHECK(issue_at(c, "case-config/" + std::string(key)));
+  }
+  for (auto [key, val] : {std::pair{"rp-3d?", "#f"}, {"rp-visc?", "#f"},
+                           {"rp-unsteady?", "#t"}, {"rp-seg?", "#f"}}) {
+    auto c = synthetic("(case-config ((" + std::string(key) + " . " + val + "))) ");
+    CHECK(issue_at(c, "case-config/" + std::string(key)));
+  }
+  auto c = synthetic(config(false, true) + "(kw-sst-on? #t) (kw-bsl-on? #f) (kw-std-on? #f) (ke-easm-on? #t) (gravity? #t) (gravity/x 0) (gravity/y -9.81) (gravity/z 0)");
+  CHECK(issue_at(c, "rp/ke-easm-on?"));
+  CHECK(issue_at(c, "rp/gravity?"));
+}
+TEST_CASE("Unsupported k epsilon retains its active equation schemes") {
+  auto c = synthetic(config(true, false) + "(rng-ke-on? #f) (realizable-epsilon? #f) (epsilon/scheme 0) (epsilon/relax 0.8) (epsilon/pseudo-relax 0.75)");
+  CHECK(issue_at(c, "viscous-model"));
+  CHECK(c.variables.interpreted.contains("epsilon/scheme"));
+  CHECK(c.variables.interpreted.contains("epsilon/relax"));
+  CHECK(c.variables.interpreted.contains("epsilon/pseudo-relax"));
+  CHECK_FALSE(issue_at(c, "rp/omega/scheme"));
+}
+TEST_CASE("Node reconstruction mapping remains explicitly unverified") {
+  auto c = synthetic(config(false, false, true) + "(recon/cell-lsq? #f) (recon/node-lsq? #t)");
+  CHECK(issue_at(c, "rp/recon/node-lsq?"));
+}
+
+TEST_CASE("Energy and gravity require proven constant flow properties") {
+  for (bool constant : {false, true}) {
+    auto rp = config(false, false, true);
+    rp.insert(rp.size() - 3, " (rf-energy? . #t)");
+    rp += "(gravity? #t) (gravity/x 0) (gravity/y -9.81) (gravity/z 0) (materials ((water fluid (density (";
+    rp += constant ? "constant . 998" : "ideal-gas";
+    rp += ")) (viscosity (constant . 0.001)))))";
+    auto c = synthetic(rp, "(39 (2 fluid fluid 1) ((material . water)))");
+    CHECK(c.gravity_vector[1] == -9.81);
+    for (auto path : {"case-config/rf-energy?", "rp/gravity?"}) {
+      auto i = std::find_if(c.issues.begin(), c.issues.end(), [&](auto &i) { return i.path == path; });
+      REQUIRE(i != c.issues.end());
+      CHECK(i->classification == (constant ? IssueClass::informational : IssueClass::unsupported));
+    }
+  }
+}
