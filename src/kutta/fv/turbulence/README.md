@@ -4,8 +4,8 @@
 once, then call `update(inputs)` each outer iteration. Inputs borrow device SoA
 buffers, including unlimited gradients of velocity, k and omega. The extra scalar
 gradients are necessary for F1 and cross diffusion. Updates allocate nothing,
-download nothing, and use eight deterministic gather/pointwise kernels (wall omega is separate to stay
-within Metal's buffer-binding limit).
+download nothing, and use eight deterministic gather/pointwise kernels (wall
+omega is separate to stay within Metal's buffer-binding limit).
 
 Sources and sinks are **per volume**, with `S = source - sink * phi`. Add
 `V * source` to the transport RHS and `V * sink` to its diagonal. Destruction and
@@ -37,7 +37,8 @@ the friction velocity, distinct from `wall_u_star` of TG 4-418.
 Cell diffusivities blend **inverse** sigmas with F1. Internal face diffusivities
 linearly interpolate the complete cell coefficients with `DeviceMesh::weight`.
 Smooth walls use zero k diffusivity and molecular omega diffusivity; other
-boundaries extrapolate the owner coefficient. Transport boundary conditions still belong to the assembler.
+boundaries extrapolate the owner coefficient. Transport boundary conditions
+still belong to the assembler.
 For several wall faces in one cell, select the smallest normal distance, breaking
 ties by face id. Fluent's rule for this case remains unknown.
 
@@ -101,31 +102,41 @@ faces, Fluent 22.2. Relative absolute errors below use prediction/saved - 1:
 | Quantity | Median | p95 | Maximum | Asserted limits (median / p95 / max) |
 | --- | --- | --- | --- | --- |
 | mu_t inactive identity, zero gradient | 3.73e-8 | 1.06e-7 | 1.85e-7 | 2e-7 / 3e-7 / 5e-7 |
-| mu_t, 6,756 limited cells, own LSQ | .04597 | .14284 | .30976 | .055 / .16 / 2 |
+| mu_t, 6,756 limited cells, own LSQ | .04597 | .14284 | .30976 | .055 / .16 / .32 |
+| mu_t, 11,066 inactive cells, own LSQ | 4.10e-8 | .03942 | .26827 | 5e-7 / .05 / unasserted |
+| Wall-face reconstruction omega (chosen fixed constants) | .004187 | .004282 | .004319 | .0043 / .0044 / .0045 |
 | Wall-cell omega | 5.81e-6 | 4.25e-5 | 2.932e-4 | 1e-5 / 5e-5 / 3.2e-4 |
 | y-plus (u-star) | 5.03e-6 | 2.014e-4 | .001759 | 1e-5 / 2.5e-4 / .002 |
-| y-plus (u-tau from our shear) | 4.72e-6 | 1.855e-4 | .001982 | 1.5e-5 / 2.5e-4 / .0021 |
-| Wall shear force magnitude | 9.36e-6 | 3.702e-4 | .003961 | 1.5e-5 / 4e-4 / .004 |
+| y-plus (u-tau from our shear) | 4.76e-6 | 1.855e-4 | .001982 | 1.5e-5 / 2.5e-4 / .0021 |
+| Wall shear force magnitude | 9.44e-6 | 3.702e-4 | .003961 | 1.5e-5 / 4e-4 / .004 |
 
-Inverse-square LSQ includes saved boundary values at face centroids. Limiter
+Inverse-square LSQ uses the model's `wall_face_omega` at walls and saved boundary
+values elsewhere. Compared with the saved-wall-SV_O reconstruction, omega
+gradients and CDkw change in all 2,436 wall cells (gradient relative-change p95
+.005943, max .006273 over all cells), while mu_t changes by exactly zero and no
+limiter classifications change on either backend. F2 and mu_t do not depend on
+the omega gradient. No tolerance was relaxed (limited mu_t maximum tightened
+from 2 to .32); the ~0.42% face-omega offset is measured separately. Limiter
 classification agrees in 90.30% of cells. In the 2,555 discriminating cells,
 median strain/F2 limiter ratio is .999075; the rotation hypothesis gives .240746.
 The finite LSQ scatter is explicitly allowed by forensics §2, not evidence of
 1% transport/force agreement. Full shear-vector error has max .005435 due to
 additional saved directional scatter (max `1+cos` = 1.12e-5); forensics reports
 only its median direction cosine, not a full-vector error bound. Kernel vectors
-agree with the independent double wall-law oracle to 3.35e-7 maximum relative
+agree with the independent double wall-law oracle to 2.98e-7 maximum relative
 error. Analytic limits, all switches, blends, diffusion, wall selection, repeat
 determinism and all output fields are compared on CPU and Metal (1e-5 relative
 backend tolerance).
 
-Repository-wide `ctest --test-dir build --output-on-failure` currently passes
-69/70 cases. The unchanged `real Fluent external mesh acceptance` inventory
-test rejects the extra external `LICENSE-ansys-example-data` file; no expected
-fixture is missing. Excluding that one case passes the remaining 69. A separate
-`KUTTA_ENABLE_HDF5=OFF` build passes the SST unit cases and prints the explicit
-saved-field skip. Neither the inventory test nor external fixtures are owned
-by Lane F.
+Repository-wide `cmake -S . -B build -G Ninja && cmake --build build &&
+./build/kutta-tests` passes all **85/85 test cases**, including the compiled-GPU
+availability gate (CPU and Apple M4 Pro Metal both run). SST coverage is 14 cases
+plus that GPU gate: signed physical clipping on/off, the original overflow probe,
+zero/floored inputs, low-Re/production switches, a double-precision F1
+cross-diffusion-branch and transport oracle, implicit wall stress at zero speed,
+wall-face reconstruction omega, structural zero k flux, and backend determinism.
+The oracle distinguishes Menter's .856 multiplier from Fluent's rounded 1/1.168.
+No CUDA runtime or converged-flow claim follows from these checks.
 
 ## Integration dependency and unverified behavior
 
@@ -142,7 +153,8 @@ by Lane F.
   Curvature and compressibility switches also throw; their required physics
   is outside this incompressible interface.
 - Low-Re mode, multiple-wall-face rule, wall-limiter exemption and u-star limiter:
-  not established by this fixture. The optional cross-diffusion clip above is an explicit inference.
+  not established by this fixture. The optional cross-diffusion clip above is
+  an explicit inference.
 - Fluent's exact LSQ/WFGC and `kw-sst-strain? #t` semantics remain unknown.
   The explicit strain/vorticity enum does not pretend to decode that flag.
 - No converged flow solve, force-integral acceptance, CUDA runtime or performance

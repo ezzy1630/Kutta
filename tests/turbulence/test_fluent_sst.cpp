@@ -127,8 +127,9 @@ std::vector<Vec3d> xyz(const std::vector<double>& x, const std::vector<double>& 
   return out;
 }
 
-// tools/forensics/grad.py: inverse-distance-SQUARED LSQ. Boundary values are
-// saved SV_* at face centroids. Solve the 3x3 normal equations in double with
+// tools/forensics/grad.py: inverse-distance-SQUARED LSQ. Values are at face
+// centroids (model omega on walls, saved SV_* elsewhere).
+// Solve the 3x3 normal equations in double with
 // partial pivoting; upload component-row SoA floats to the actual SST kernels.
 // This does not reproduce Fluent's undocumented WFGC / Gram-Schmidt weights.
 std::vector<std::vector<Vec3d>> gradient(const PolyMesh& m, const MeshGeometry& g,
@@ -248,6 +249,21 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
     report("mu_t inactive identity",identity);
 
     s.gu = vector(*dev,grad[0]); s.gv = vector(*dev,grad[1]); s.gw = vector(*dev,grad[2]);
+    // Preserve the old saved-SV_O reconstruction as a comparison only. The
+    // production-style path below replaces every wall value with the model's
+    // reconstruction omega; it never uses saved wall SV_O for its gradients.
+    model.update(s.inputs());
+    const auto saved_face_mut = dev->download(model.fields().mu_t);
+    const auto saved_face_f2 = dev->download(model.fields().f2);
+    const auto saved_face_cdkw = dev->download(model.fields().cdkw);
+    const auto model_face_w = dev->download(model.fields().wall_face_omega);
+    auto model_bo = bo;
+    std::vector<double> gradient_change;
+    for (std::size_t b = 0; b < nb; ++b) if (is_wall[b]) model_bo[b] = model_face_w[b];
+    const auto model_go = gradient(poly,geometry,{w},{model_bo});
+    for (Index c = 0; c < poly.n_cells; ++c) if (norm(go[0][c]) > 0)
+      gradient_change.push_back(norm(model_go[0][c]-go[0][c])/norm(go[0][c]));
+    s.go = vector(*dev,model_go[0]);
     model.update(s.inputs()); const auto& f = model.fields();
     auto mut = dev->download(f.mu_t), strain = dev->download(f.strain), vort = dev->download(f.vorticity);
     auto f2 = dev->download(f.f2), wall_w = dev->download(f.fixed_omega);
@@ -256,11 +272,13 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
     auto sy = dev->download(f.wall_shear.y), sz = dev->download(f.wall_shear.z);
     auto selected = dev->download(f.selected_wall_face);
     std::vector<double> active_errors, free_errors, discriminating_s, discriminating_o;
-    int agreement = 0;
-    double max_production_ratio = 0;
+    int agreement = 0, limiter_changes = 0, cdkw_changes = 0;
+    double max_mut_change = 0, max_production_ratio = 0;
     for (Index c = 0; c < poly.n_cells; ++c) {
       (limited[c] ? active_errors : free_errors).push_back(std::abs(mut[c]/saved_mut[c]-1));
       agreement += (strain[c]*f2[c] > .31*w[c]) == limited[c];
+      limiter_changes += (strain[c]*f2[c] > .31*w[c]) != (strain[c]*saved_face_f2[c] > .31*w[c]);
+      max_mut_change = std::max(max_mut_change,std::abs(double(mut[c])/saved_face_mut[c]-1));
       const auto exact_xf2 = rho[c]*.31*k[c]/saved_mut[c];
       if (limited[c] && std::abs(strain[c]-vort[c])/std::max(strain[c],vort[c]) > .2) {
         discriminating_s.push_back(strain[c]*f2[c]/exact_xf2);
@@ -268,6 +286,13 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
       }
       max_production_ratio = std::max(max_production_ratio,saved_mut[c]*strain[c]*strain[c]/(10*rho[c]*.09*k[c]*w[c]));
     }
+    const auto model_cdkw = dev->download(f.cdkw);
+    for (Index c = 0; c < poly.n_cells; ++c) cdkw_changes += model_cdkw[c] != saved_face_cdkw[c];
+    REQUIRE(cdkw_changes > 2000); // the reconstructed omega gradient really changed
+    CHECK(max_mut_change == 0); CHECK(limiter_changes == 0);
+    report("omega gradient change vs saved wall SV_O",gradient_change);
+    std::cout << "  model wall omega: max mu_t change=" << max_mut_change
+      << " limiter changes=" << limiter_changes << " CDkw changes=" << cdkw_changes << '\n';
     report("mu_t limited, inverse-square LSQ",active_errors);
     report("mu_t inactive, inverse-square LSQ",free_errors);
     std::cout << "  limiter agreement=" << double(agreement)/poly.n_cells
@@ -276,7 +301,7 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
       << " max production/cap=" << max_production_ratio << '\n';
     // Forensics §2: median 4.6%, p95 14.3% in limited cells; this tolerance
     // explicitly includes reconstruction scatter, not claimed SST model error.
-    check_errors(active_errors,.055,.16,2.0);
+    check_errors(active_errors,.055,.16,.32);
     CHECK(quantile(free_errors,.5) < 5e-7); CHECK(quantile(free_errors,.95) < .05);
     CHECK(double(agreement)/poly.n_cells > .895);
     REQUIRE(discriminating_s.size() > 2500);
@@ -284,6 +309,8 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
     CHECK(quantile(discriminating_o,.5) < .35);
     CHECK(max_production_ratio < 1); // inactive in this fixture; not evidence of its form
 
+    const auto face_k_diffusion = dev->download(f.face_diffusivity_k);
+    std::vector<double> face_omega_errors;
     std::vector<double> omega_errors, yp_errors, ypu_errors, shear_errors, shear_vector_errors, wall_k_errors;
     std::vector<double> shear_oracle_errors, direction_errors;
     for (std::size_t b = 0; b < nb; ++b) if (is_wall[b]) {
@@ -293,6 +320,8 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
       Vec3d force{raw_shear[3*src],raw_shear[3*src+1],raw_shear[3*src+2]};
       const auto area = norm(geometry.face_area[face_id]);
       REQUIRE(std::isfinite(norm(force))); REQUIRE(norm(force) > 0);
+      face_omega_errors.push_back(std::abs(model_face_w[b]/bo[b]-1));
+      CHECK(face_k_diffusion[face_id] == 0);
       omega_errors.push_back(std::abs(wall_w[c]/w[c]-1));
       yp_errors.push_back(std::abs(yp[b]/raw_yp[src]-1));
       ypu_errors.push_back(std::abs(ypu[b]/raw_ypu[src]-1));
@@ -314,6 +343,9 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
       direction_errors.push_back(1+dot(force,tangent)/(norm(force)*speed));
       wall_k_errors.push_back(std::abs(bk[b]/k[c]-1));
     }
+    report("wall-face reconstruction omega",face_omega_errors);
+    // Fixed constants retain the ~0.42% systematic offset in forensics 3.5.
+    check_errors(face_omega_errors,.0043,.0044,.0045);
     report("wall-cell omega",omega_errors); report("wall y+ (u*)",yp_errors);
     report("wall y+ (u_tau)",ypu_errors); report("wall shear force magnitude",shear_errors);
     report("wall shear force vector",shear_vector_errors);

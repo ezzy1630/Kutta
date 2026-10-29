@@ -6,9 +6,12 @@ A local, GPU-native CFD solver for car aerodynamics. Its first goal is to reprod
 
 - device runtime: CPU reference, Metal, CUDA;
 - mesh I/O: Fluent `.msh` / `.cas` / `.cas.h5`, NASA Plot3D, VTU;
-- linear solvers, including aggregation AMG.
+- linear solvers, including aggregation AMG;
+- Fluent-style SST constitutive kernels and smooth-wall closure, verified against
+  the saved mixing-elbow fields on CPU and Metal.
 
-The flow solver and the SST model are in progress. No accuracy or speed claims are made until they are measured; see the gates in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+The flow solver is in progress; the SST transport/momentum assembly is not yet
+integrated. No accuracy or speed claims are made until they are measured; see the gates in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Build
 
@@ -18,6 +21,14 @@ cmake -S . -B build -G Ninja && cmake --build build && ./build/kutta-tests
 
 - **CUDA:** add `-DKUTTA_ENABLE_CUDA=ON` (CUDA 13.0, RTX 20-series and newer, driver R580+).
 - **HDF5:** Fluent HDF5 import needs HDF5 1.10.2 or newer.
+
+The suite currently has **85 test cases** (all passing on CPU/Metal, including
+the external Fluent fixture). The SST defaults include a switchable signed
+cross-diffusion cap at `1e6*rho*beta*omega^2`, inferred from Fluent's rpvar name,
+and `k_floor=1e-14`. Wall output includes a finite implicit shear coefficient
+that **replaces** the wall-face viscous flux, plus a separately documented
+wall-face omega value for gradient/reconstruction. See the
+[SST model contract and measured errors](src/kutta/fv/turbulence/README.md).
 
 ## Docs
 

@@ -291,6 +291,27 @@ TEST_CASE("SST floor cross-diffusion overflow probe remains finite") {
           }
         }
     }
+    // Exercise nonzero production at floors with every limiter setting too.
+    dev->fill(s.gu.y,1e4f); dev->fill(s.velocity.x,10);
+    for (bool walls : {false,true}) {
+      for (auto& patch : m.patches) patch.kind = walls ? PatchKind::Wall : PatchKind::Symmetry;
+      for (bool low_re : {false,true}) for (bool limiter : {false,true})
+        for (bool limit_w : {false,true}) {
+          o = {}; o.low_re = low_re; o.production_limiter = limiter; o.limit_omega_production = limit_w;
+          SstModel producing(*dev,m,o);
+          dev->fill(s.k,0); dev->fill(s.omega,0); producing.update(s.inputs());
+          const auto zeros = snapshot(*dev,producing.fields());
+          CHECK(first(*dev,s.k) == 0); CHECK(first(*dev,s.omega) == 0);
+          dev->fill(s.k,o.k_floor); dev->fill(s.omega,o.omega_floor); producing.update(s.inputs());
+          CHECK(snapshot(*dev,producing.fields()) == zeros);
+          for (float ke : {0.f,o.k_floor}) for (float w : {0.f,o.omega_floor,2.f}) {
+            dev->fill(s.k,ke); dev->fill(s.omega,w);
+            producing.update(s.inputs());
+            for (const auto& array : snapshot(*dev,producing.fields()))
+              for (float value : array) CHECK(std::isfinite(value));
+          }
+        }
+    }
     // Wall production and fixed omega must also tolerate zero/floored inputs.
     for (auto& patch : m.patches) patch.kind = PatchKind::Wall;
     for (float ke : {0.f,o.k_floor}) for (float w : {0.f,o.omega_floor}) {
