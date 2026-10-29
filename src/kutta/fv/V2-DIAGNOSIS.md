@@ -47,6 +47,14 @@ introduced. Root cause is unresolved. A useful next investigation is the local
 momentum/diffusion truncation error by tet orientation, separating smooth pressure
 error from cell-shape oscillations; this is a hypothesis, not a diagnosis.
 
+The final rerun at `5e527dc` adds a pressure-update cap for pseudo-time stability,
+which changes the convergence path only. CPU and Metal again agree: hex velocity
+and pressure orders are 1.91521 and 1.82043; tet orders are 1.98241 and 0.942386.
+The finest runs take 860 and 520 iterations respectively. Finest tet interior
+pressure L2 is 0.0670728, full-domain L2 is 0.0689337, and maximum error is 0.212136
+at the symmetry-related wall cell (0.015625, 0.484375, 0.96875). The tetrahedral
+failure is unchanged by this convergence-path adjustment.
+
 Reproduce the retained diagnostics with:
 
 ```sh

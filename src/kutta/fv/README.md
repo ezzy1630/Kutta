@@ -45,6 +45,26 @@ and extrapolates tangentially. Pressure outlets impose gauge static pressure.
 Wall force is pressure relative to the requested reference, minus the viscous
 traction on the fluid, integrated using Device double/compensated reductions.
 
+```cpp
+auto dev = kutta::Device::create(kutta::Backend::Metal);
+auto mesh = kutta::make_box_hex(129, 129, 1, {0, 0, 0}, {1, 1, 1./129});
+std::vector<kutta::fv::PatchCondition> bc;
+for (const auto& patch : mesh.patches) {
+  if (patch.name == "zmin" || patch.name == "zmax")
+    bc.push_back({patch.name, kutta::fv::Symmetry{}});
+  else
+    bc.push_back({patch.name, kutta::fv::Wall{{patch.name == "ymax" ? 1. : 0., 0, 0}}});
+}
+kutta::fv::SolverSettings settings;
+settings.viscosity = 1./100; // unit lid speed and cavity length
+kutta::fv::SteadySolver solver(*dev, std::move(mesh), std::move(bc), settings);
+solver.iterate(100);
+auto residuals = solver.monitor();
+```
+
+The device must outlive the solver. Initial fields default to zero; `initialize()`
+and `set_source()` evaluate supplied host functions once on cell centroids.
+
 The SIMPLEC correction uses the relaxed/pseudo-time consistent inverse
 `1/(aP_relaxed + sum(offdiag))`. Rhie–Chow uses `V/aP_physical` without
 relaxation or pseudo-time, and momentum-diagonal-weighted face velocities.
