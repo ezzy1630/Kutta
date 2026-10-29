@@ -49,6 +49,21 @@ else()
   target_compile_options(kutta PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+# ---- Optional Fluent CFF reader (HDF5 C API) ---------------------------------
+option(KUTTA_ENABLE_HDF5 "Enable Fluent CFF mesh import when HDF5 is available" ON)
+set(KUTTA_HAS_HDF5 OFF)
+if(KUTTA_ENABLE_HDF5)
+  # FindHDF5's C component runs C probes, even though Kutta is C++.
+  enable_language(C)
+  find_package(HDF5 QUIET COMPONENTS C)
+  if(HDF5_FOUND)
+    set(KUTTA_HAS_HDF5 ON)
+    target_link_libraries(kutta PUBLIC HDF5::HDF5)
+  endif()
+endif()
+target_compile_definitions(kutta PUBLIC KUTTA_HAS_HDF5=$<BOOL:${KUTTA_HAS_HDF5}>)
+message(STATUS "Kutta HDF5 mesh reader: ${KUTTA_HAS_HDF5}")
+
 if(KUTTA_ENABLE_METAL)
   enable_language(OBJCXX)
   file(GLOB KUTTA_METAL_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/kutta/runtime/metal/*.mm)
