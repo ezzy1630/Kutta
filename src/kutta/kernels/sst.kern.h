@@ -30,6 +30,13 @@ KUTTA_FN float sst_power_blend(float a, float b, float p) {
   return hi == 0.0f ? 0.0f : hi * kpow(1.0f + kpow(lo / hi, p), 1.0f / p);
 }
 
+// Representational saturation only: unbounded CDkw at tiny omega must not
+// leak inf into F1 (0*inf) or transport, even with the physical clip disabled.
+// 1e38 leaves headroom for source/sink additions; ordinary states are unchanged.
+KUTTA_FN float sst_finite_ratio(float numerator, float denominator) {
+  return kmax(-1e38f, kmin(numerator / denominator, 1e38f));
+}
+
 KUTTA_KERNEL void sst_rates(int i,
     KIn(float) ux, KIn(float) uy, KIn(float) uz,
     KIn(float) vx, KIn(float) vy, KIn(float) vz,
@@ -49,7 +56,8 @@ KUTTA_KERNEL void sst_blending(int i,
     KOut(float) f1, KOut(float) f2, KOut(float) cdkw,
     float cd_floor, float k_floor, float omega_floor) {
   float ke = kmax(k[i], k_floor), w = kmax(omega[i], omega_floor), y = distance[i];
-  float cd = 2.0f * rho[i] * (kx[i]*ox[i] + ky[i]*oy[i] + kz[i]*oz[i]) / (1.168f * w);
+  float cd = sst_finite_ratio(2.0f * rho[i] *
+      (kx[i]*ox[i] + ky[i]*oy[i] + kz[i]*oz[i]), 1.168f * w);
   float a = ksqrt(ke) / (0.09f * w * y);
   float b = 500.0f * (mu[i] / rho[i]) / (y*y*w);
   float c = 4.0f * rho[i] * ke / (1.168f * kmax(cd, cd_floor) * y*y);
@@ -153,7 +161,8 @@ KUTTA_KERNEL void sst_sources(int i,
     KOut(float) k_source, KOut(float) k_sink,
     KOut(float) omega_source, KOut(float) omega_sink, KOut(float) production_k,
     int low_re, int gamma_2003, int production_mode, int limiter,
-    int limit_omega, int wall_override, float clip, float k_floor, float omega_floor) {
+    int limit_omega, int wall_override, float clip,
+    int limit_cross, float cross_clip, float k_floor, float omega_floor) {
   float r = rho[i], ke = kmax(k[i], k_floor), w = kmax(omega[i], omega_floor);
   float ret = (r / mu[i]) * (ke / w);
   float beta_star = sst_beta_star(ret, low_re);
@@ -170,12 +179,19 @@ KUTTA_KERNEL void sst_sources(int i,
   if (low_re) gamma *= 1.0f - (8.0f/9.0f) / (1.0f + ret/2.95f);
   float pw = mut[i] > 0.0f ? gamma * r * (pw_k / mut[i]) : gamma * r * rate2;
   float cross = (1.0f - f1[i]) * cdkw[i];
+  if (limit_cross) {
+    // Inferred from sst-limit-cross-diff-to-n-times-w-destruct. Apply to BOTH
+    // signs of D_omega AFTER blending. Multiply w last to avoid w*w underflow
+    // at the default floor (also on GPUs that flush subnormal values).
+    float bound = (cross_clip * r * sst_beta(f1[i]) * w) * w;
+    cross = kmax(-bound, kmin(cross, bound));
+  }
   k_source[i] = pk;
   k_sink[i] = r * beta_star * w;
   // Patankar linearization: negative CDkw becomes an implicit sink;
   // positive CDkw stays on the RHS. Both coefficients remain nonnegative.
   omega_source[i] = pw + kmax(cross, 0.0f);
-  omega_sink[i] = r * sst_beta(f1[i]) * w + kmax(-cross, 0.0f) / w;
+  omega_sink[i] = r * sst_beta(f1[i]) * w + sst_finite_ratio(kmax(-cross, 0.0f), w);
   production_k[i] = pk;
 }
 

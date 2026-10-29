@@ -11,6 +11,7 @@ void positive(float value, const char* name) {
 }
 void validate(const SstOptions& o) {
   positive(o.production_clip, "production clip factor");
+  positive(o.cross_diffusion_clip, "cross diffusion clip factor");
   positive(o.cdkw_floor, "CDkw floor");
   positive(o.omega_floor, "omega floor");
   positive(o.k_floor, "k floor");
@@ -121,7 +122,7 @@ void SstModel::update(const SstInputs& in) {
       f.k_source, f.k_sink, f.omega_source, f.omega_sink, f.production_k,
       o.low_re, o.gamma_set == SstGammaSet::Menter2003, production_mode,
       o.production_limiter, o.limit_omega_production, o.wall_production,
-      o.production_clip, o.k_floor, o.omega_floor);
+      o.production_clip, o.limit_cross_diffusion, o.cross_diffusion_clip, o.k_floor, o.omega_floor);
   kern::sst_face_diffusion(d, nf, mesh_.owner, mesh_.neighbour, mesh_.weight, wall_mask_,
       in.viscosity, f.diffusivity_k, f.diffusivity_omega, mesh_.n_internal_faces,
       f.face_diffusivity_k, f.face_diffusivity_omega);

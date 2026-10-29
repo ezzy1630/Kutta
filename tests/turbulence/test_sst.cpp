@@ -257,7 +257,101 @@ TEST_CASE("SST unsupported and invalid options fail explicitly") {
   o = {}; o.compressibility = true; CHECK_THROWS_AS(SstModel(*d,m,o),Error);
   o = {}; o.kato_launder = true; o.vorticity_production = true; CHECK_THROWS_AS(SstModel(*d,m,o),Error);
   o = {}; o.cdkw_floor = 0; CHECK_THROWS_AS(SstModel(*d,m,o),Error);
+  o = {}; o.cross_diffusion_clip = 0; CHECK_THROWS_AS(SstModel(*d,m,o),Error);
   o = {}; o.production_clip = std::numeric_limits<float>::quiet_NaN(); CHECK_THROWS_AS(SstModel(*d,m,o),Error);
   State s(*d,m); SstModel model(*d,m);
   s.k = filled(*d,2,1); CHECK_THROWS_AS(model.update(s.inputs()),Error);
+}
+
+TEST_CASE("SST floor cross-diffusion overflow probe remains finite") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m = box(*dev); State s(*dev,m);
+    // No wall constraint: represents a layer-2 transport cell.
+    for (auto& patch : m.patches) patch.kind = PatchKind::Symmetry;
+    SstOptions o;
+    CHECK(o.k_floor == 1e-14f); CHECK(o.omega_floor == 1e-20f);
+    for (bool clip : {false,true}) for (bool low_re : {false,true}) {
+      o.limit_cross_diffusion = clip; o.low_re = low_re;
+      SstModel model(*dev,m,o);
+      for (float ke : {0.f,o.k_floor,1.f}) for (float w : {0.f,o.omega_floor,2.f})
+        for (float sign : {-1.f,1.f}) {
+          INFO("clip=" << clip << " low_re=" << low_re << " k=" << ke << " omega=" << w << " sign=" << sign);
+          dev->fill(s.k,ke); dev->fill(s.omega,w);
+          dev->fill(s.gk.x,1e5f); dev->fill(s.go.x,sign*1e14f);
+          model.update(s.inputs());
+          for (const auto& array : snapshot(*dev,model.fields()))
+            for (float value : array) CHECK(std::isfinite(value));
+          if (clip) {
+            const double we = std::max(w,o.omega_floor);
+            const double beta = .075*first(*dev,model.fields().f1)+.0828*(1-first(*dev,model.fields().f1));
+            const double bound = o.cross_diffusion_clip*beta*we*we;
+            const double cross = std::min((1-first(*dev,model.fields().f1))*std::abs(first(*dev,model.fields().cdkw)),bound);
+            if (sign > 0) CHECK(near(first(*dev,model.fields().omega_source)/bound,cross/bound));
+            else CHECK(near(first(*dev,model.fields().omega_sink),beta*we+cross/we));
+          }
+        }
+    }
+    // Wall production and fixed omega must also tolerate zero/floored inputs.
+    for (auto& patch : m.patches) patch.kind = PatchKind::Wall;
+    for (float ke : {0.f,o.k_floor}) for (float w : {0.f,o.omega_floor}) {
+      dev->fill(s.k,ke); dev->fill(s.omega,w); dev->fill(s.velocity.x,10);
+      SstModel wall(*dev,m); wall.update(s.inputs());
+      for (const auto& array : snapshot(*dev,wall.fields()))
+        for (float value : array) CHECK(std::isfinite(value));
+    }
+  }
+}
+
+TEST_CASE("SST signed cross-diffusion clip scales with omega destruction") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m = box(*dev); State s(*dev,m);
+    for (auto& p : m.patches) p.kind = PatchKind::Symmetry;
+    dev->fill(m.wall_distance,2); dev->fill(s.k,.1f);
+    dev->fill(s.gk.x,1); dev->fill(s.go.x,1);
+    SstOptions o; o.cross_diffusion_clip = .25f;
+    for (bool clip : {false,true}) for (float sign : {-1.f,1.f}) {
+      o.limit_cross_diffusion = clip; dev->fill(s.go.x,sign);
+      SstModel model(*dev,m,o); model.update(s.inputs()); const auto& f = model.fields();
+      const double f1 = first(*dev,f.f1), beta = .075*f1+.0828*(1-f1);
+      const double raw = (1-f1)*sign/1.168;
+      const double cross = clip ? std::clamp(raw,-o.cross_diffusion_clip*beta*4,o.cross_diffusion_clip*beta*4) : raw;
+      CHECK(near(first(*dev,f.cdkw),sign/1.168)); // F1 diagnostic is not physically clipped
+      CHECK(near(first(*dev,f.omega_source),std::max(cross,0.)));
+      CHECK(near(first(*dev,f.omega_sink),beta*2+std::max(-cross,0.)/2));
+    }
+  }
+}
+
+TEST_CASE("SST F1 cross branch and transport match an independent double oracle") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m = box(*dev); State s(*dev,m);
+    for (auto& p : m.patches) p.kind = PatchKind::Symmetry;
+    // Menter 1994 multiplier sigma_w2=.856; Fluent stores its rounded divisor
+    // 1.168. Use the exact Fluent reciprocal for tight transport comparisons,
+    // and separately bound the small rounding difference against Menter.
+    const double sigma_w2 = 1/1.168, r = 1.3, mu = .002, ke = .1, w = 2, y = .5, rate = 3;
+    dev->fill(s.rho,float(r)); dev->fill(s.mu,float(mu)); dev->fill(s.k,float(ke));
+    dev->fill(s.omega,float(w)); dev->fill(m.wall_distance,float(y)); dev->fill(s.gu.y,float(rate));
+    dev->fill(s.gk.x,1);
+    SstOptions o; o.wall_production = false;
+    for (double dot : {2.,4.,8.,-4.}) {
+      dev->fill(s.go.x,float(dot));
+      SstModel model(*dev,m,o); model.update(s.inputs()); const auto& f = model.fields();
+      const auto cd = 2*r*sigma_w2*dot/w;
+      const auto a = std::max(std::sqrt(ke)/(.09*w*y),500*mu/(r*y*y*w));
+      const auto c = 4*r*sigma_w2*ke/(std::max(cd,double(o.cdkw_floor))*y*y);
+      if (dot > 0) REQUIRE(c < a); // exercise the previously untested F1 branch
+      const auto f1 = std::tanh(std::pow(std::min(a,c),4));
+      const auto f2 = std::tanh(std::pow(std::max(2*std::sqrt(ke)/(.09*w*y),500*mu/(r*y*y*w)),2));
+      const auto mt = r*.31*ke/std::max(.31*w,rate*f2);
+      const auto pk = std::min(mt*rate*rate,10*r*.09*ke*w);
+      const auto beta = .075*f1+.0828*(1-f1), cross = (1-f1)*cd;
+      CHECK(near(first(*dev,f.f1),f1)); CHECK(near(first(*dev,f.f2),f2));
+      CHECK(near(first(*dev,f.cdkw),cd)); CHECK(near(first(*dev,f.cdkw),2*r*.856*dot/w,3e-4));
+      CHECK(near(first(*dev,f.mu_t),mt));
+      CHECK(near(first(*dev,f.k_source),pk)); CHECK(near(first(*dev,f.k_sink),r*.09*w));
+      CHECK(near(first(*dev,f.omega_source),gamma1994(f1)*r*pk/mt+std::max(cross,0.)));
+      CHECK(near(first(*dev,f.omega_sink),r*beta*w+std::max(-cross,0.)/w));
+    }
+  }
 }

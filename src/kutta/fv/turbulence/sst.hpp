@@ -37,8 +37,12 @@ struct SstOptions {
   SstWallOmega wall_omega = SstWallOmega::Correlation;  // Tabulated throws
   bool wall_production = true;  // TG 4-419..422, not verified from saved fields
   float cdkw_floor = 1e-10f;   // floor for F1 ONLY; transport CDkw keeps its sign
+  // Inferred from Fluent's sst-limit-cross-diff-to-n-times-w-destruct rpvar;
+  // clip the signed transport D_omega to +/- n*rho*beta*omega^2, not F1's CDkw.
+  bool limit_cross_diffusion = true;
+  float cross_diffusion_clip = 1e6f;
   float omega_floor = 1e-20f;
-  float k_floor = 1e-20f;
+  float k_floor = 1e-14f;
   float max_viscosity_ratio = 1e5f;
 };
 

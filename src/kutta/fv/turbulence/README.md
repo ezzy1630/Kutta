@@ -9,10 +9,18 @@ download nothing, and use seven deterministic gather/pointwise kernels.
 Sources and sinks are **per volume**, with `S = source - sink * phi`. Add
 `V * source` to the transport RHS and `V * sink` to its diagonal. Destruction and
 negative cross diffusion are implicit; positive cross diffusion is explicit.
+By default `limit_cross_diffusion=true` clips **both signs** of the blended
+transport term to `|D_omega| <= cross_diffusion_clip*rho*beta*omega^2`, with
+`cross_diffusion_clip=1e6`. This formula is inferred from the case rpvar
+`sst-limit-cross-diff-to-n-times-w-destruct 1000000.`, not established by saved
+source fields. It does not clip F1's CDkw. Disabling it retains signed transport;
+a representational saturation of ratios at +/-1e38 still prevents float overflow
+in CDkw diagnostics and implicit sink coefficients at tiny omega.
 The caller enforces zero normal k flux on walls and replaces wall-cell omega
 rows by identity using `fixed_omega_mask` and `fixed_omega`. The model does not
 modify the caller's k/omega buffers. Its documented floors apply when evaluating
-coefficients; the transport solver must enforce positivity after solving too.
+coefficients (`k_floor=1e-14`, `omega_floor=1e-20`, matching Fluent min-limit
+rpvars); the transport solver must enforce positivity after solving too.
 
 `wall_shear` is stress **on the fluid**, antiparallel to relative tangential
 velocity. Multiply it by face area to compare with `SV_WALL_SHEAR` (force/face).
@@ -36,6 +44,7 @@ The local [numerics report](../../../../docs/research/fluent-numerics-and-files.
 | --- | --- |
 | Strain `sqrt(2 Sij Sij)` and rotation `sqrt(2 Wij Wij)` | TG §4.4.1; forensics §1–2 |
 | F1 and signed CDkw; floor only inside F1 | TG 4-107..109, 4-117 |
+| Signed transport cross-diffusion clip | Inferred from `sst-limit-cross-diff-to-n-times-w-destruct` rpvar |
 | F2; strain-limited mu_t; viscosity ratio cap | TG 4-118..120; forensics §2, §6–7 |
 | Inverse sigma blending, Gamma = mu + mu_t/sigma | TG 4-103..106 |
 | Gk = mu_t S², optional S*Omega or Omega²; production cap | TG 4-81, 4-460..461; numerics §A1 option table |
@@ -115,8 +124,8 @@ by Lane F.
   Curvature and compressibility switches also throw; their required physics
   is outside this incompressible interface.
 - Low-Re mode, multiple-wall-face rule, wall-limiter exemption, wall-face omega
-  definition, undocumented cross-diffusion clipping and u-star limiter:
-  not established by this fixture. No undocumented clip/limiter is applied.
+  definition and u-star limiter:
+  not established by this fixture. The optional cross-diffusion clip above is an explicit inference.
 - Fluent's exact LSQ/WFGC and `kw-sst-strain? #t` semantics remain unknown.
   The explicit strain/vorticity enum does not pretend to decode that flag.
 - No converged flow solve, force-integral acceptance, CUDA runtime or performance
