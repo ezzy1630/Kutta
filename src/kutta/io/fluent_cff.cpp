@@ -1,7 +1,9 @@
 #include "kutta/io/fluent_detail.hpp"
 #if KUTTA_HAS_HDF5
 #include <hdf5.h>
+#include <zlib.h>
 
+#include <cstring>
 #include <set>
 #include <sstream>
 
@@ -64,12 +66,90 @@ std::size_t count(hid_t dataset) {
                 "CFF: dataset exceeds mesh capacity");
   return static_cast<std::size_t>(n);
 }
+// Older Fluent writers deflate only the valid rows of the final chunk.
+// HDF5 2.2 rejects these (HDFGroup/hdf5#6691). On a failed ordinary read,
+// accept only a complete deflate stream with exactly the full chunk size or
+// the valid final-row size. Never pad missing mesh data or modify the file.
+template <class T>
+void read_legacy_chunks(hid_t d, hid_t memory_type, std::vector<T>& out) {
+  H5 space(H5Dget_space(d), H5Sclose, "legacy chunk space");
+  auto rank = H5Sget_simple_extent_ndims(space);
+  KUTTA_REQUIRE(rank == 1 || rank == 2, "CFF: unsupported legacy chunk rank");
+  hsize_t dims[2]{1, 1}, chunk[2]{1, 1};
+  check(H5Sget_simple_extent_dims(space, dims, nullptr), "chunk dimensions");
+  H5 props(H5Dget_create_plist(d), H5Pclose, "chunk properties");
+  KUTTA_REQUIRE(H5Pget_layout(props) == H5D_CHUNKED &&
+                    H5Pget_chunk(props, rank, chunk) == rank && chunk[0] > 0 &&
+                    (rank == 1 || chunk[1] == dims[1]),
+                "CFF: unsupported legacy chunk layout");
+  KUTTA_REQUIRE(H5Pget_nfilters(props) == 1 &&
+                    H5Pget_filter2(props, 0, nullptr, nullptr, nullptr, 0,
+                                   nullptr, nullptr) == H5Z_FILTER_DEFLATE,
+                "CFF: unsupported legacy chunk filters");
+  H5 stored_type(H5Dget_type(d), H5Tclose, "chunk numeric type");
+  auto width = H5Tget_size(stored_type);
+  KUTTA_REQUIRE((H5Tget_class(stored_type) == H5T_INTEGER ||
+                 H5Tget_class(stored_type) == H5T_FLOAT) &&
+                    width > 0 && width <= 8 && dims[1] > 0 &&
+                    chunk[0] <= static_cast<hsize_t>(
+                                    std::numeric_limits<Index>::max()) / dims[1],
+                "CFF: invalid legacy numeric chunk");
+  auto elements = static_cast<std::size_t>(chunk[0] * dims[1]);
+  auto full_bytes = elements * width;
+  for (hsize_t row = 0; row < dims[0]; row += chunk[0]) {
+    hsize_t offset[2]{row, 0}, stored_bytes = 0;
+    check(H5Dget_chunk_storage_size(d, offset, &stored_bytes), "chunk size");
+    KUTTA_REQUIRE(stored_bytes > 0 && stored_bytes <= compressBound(full_bytes),
+                  "CFF: invalid legacy compressed chunk size");
+    std::vector<unsigned char> compressed(
+        static_cast<std::size_t>(stored_bytes));
+    std::uint32_t mask = 0;
+#if H5_VERSION_GE(2, 0, 0)
+    auto buffer_size = compressed.size();
+    check(H5Dread_chunk2(d, H5P_DEFAULT, offset, &mask, compressed.data(),
+                         &buffer_size), "raw legacy chunk");
+    KUTTA_REQUIRE(buffer_size == compressed.size(), "CFF: changed chunk size");
+#else
+    check(H5Dread_chunk(d, H5P_DEFAULT, offset, &mask, compressed.data()),
+          "raw legacy chunk");
+#endif
+    KUTTA_REQUIRE(mask == 0, "CFF: legacy deflate filter was skipped");
+    // H5Tconvert operates in place and needs room for either numeric type.
+    std::vector<unsigned char> decoded(elements * std::max(width, sizeof(T)));
+    auto decoded_bytes = static_cast<uLongf>(full_bytes);
+    auto consumed = static_cast<uLong>(compressed.size());
+    auto status = uncompress2(decoded.data(), &decoded_bytes, compressed.data(),
+                              &consumed);
+    auto valid = static_cast<std::size_t>(
+        std::min(chunk[0], dims[0] - row) * dims[1]);
+    KUTTA_REQUIRE(status == Z_OK && consumed == compressed.size() &&
+                      (decoded_bytes == full_bytes ||
+                       decoded_bytes == valid * width),
+                  "CFF: invalid/truncated legacy deflate chunk");
+    check(H5Tconvert(stored_type, memory_type, valid, decoded.data(), nullptr,
+                     H5P_DEFAULT), "legacy numeric conversion");
+    std::memcpy(out.data() + static_cast<std::size_t>(row * dims[1]),
+                decoded.data(), valid * sizeof(T));
+  }
+}
 template <class T>
 std::vector<T> read(hid_t file, const std::string& path, hid_t type) {
   H5 d(H5Dopen2(file, path.c_str(), H5P_DEFAULT), H5Dclose, path);
   std::vector<T> out(count(d));
-  if (!out.empty())
-    check(H5Dread(d, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, out.data()), path);
+  if (!out.empty()) {
+    herr_t status = 0;
+    H5E_BEGIN_TRY {
+      status = H5Dread(d, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, out.data());
+    }
+    H5E_END_TRY;
+    if (status < 0) {
+      try {
+        read_legacy_chunks(d, type, out);
+      } catch (const Error& error) {
+        throw Error("CFF: cannot read " + path + ": " + error.what());
+      }
+    }
+  }
   return out;
 }
 std::vector<std::int64_t> ints(hid_t file, const std::string& path) {

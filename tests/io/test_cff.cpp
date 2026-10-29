@@ -6,6 +6,9 @@
 #include "test_support.hpp"
 #if KUTTA_HAS_HDF5
 #include <hdf5.h>
+#include <zlib.h>
+
+#include <bit>
 
 #include <numeric>
 using namespace kutta;
@@ -359,6 +362,65 @@ TEST_CASE("CFF cell type sections use ranges, with complete coverage and count c
   REQUIRE(H5Fclose(f) >= 0);
 }
 
+TEST_CASE("CFF legacy deflate partial chunks preserve numeric conversion and reject corruption") {
+  MeshTemp temp;
+  auto path = temp.path("partial.msh.h5");
+  auto original = make_box_hex(2, 1, 1, {0, 0, 0}, {2, 1, 1});
+  synthetic(path, original, false);
+  auto f = H5Fopen(path.string().c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+  REQUIRE(f >= 0);
+  const std::string coords = "/meshes/1/nodes/coords/1";
+  REQUIRE(H5Ldelete(f, coords.c_str(), H5P_DEFAULT) >= 0);
+  hsize_t dims[2]{6, 3}, chunk[2]{4, 3};
+  auto space = H5Screate_simple(2, dims, nullptr);
+  auto props = H5Pcreate(H5P_DATASET_CREATE);
+  REQUIRE(H5Pset_chunk(props, 2, chunk) >= 0);
+  REQUIRE(H5Pset_deflate(props, 1) >= 0);
+  auto d = H5Dcreate2(f, coords.c_str(), H5T_IEEE_F64BE, space, H5P_DEFAULT,
+                     props, H5P_DEFAULT);
+  REQUIRE(d >= 0);
+  attr(f, coords, "minId", 7);
+  attr(f, coords, "maxId", 12);
+  bool corrupt = false, short_data = false;
+  SUBCASE("valid short final chunk") {}
+  SUBCASE("corrupt deflate stream") { corrupt = true; }
+#if H5_VERSION_GE(2, 2, 0)
+  // Older HDF5 accepts undersized streams itself; this exercises our fallback
+  // on versions that reject them and must never manufacture missing values.
+  SUBCASE("complete stream with missing numeric values") { short_data = true; }
+#endif
+  for (hsize_t row : {0, 4}) {
+    std::vector<unsigned char> bytes;
+    for (hsize_t i = row; i < std::min(row + 4, dims[0]); ++i) {
+      auto point = original.points[6 + i];
+      for (auto x : {point.x, point.y, point.z}) {
+        auto word = std::bit_cast<std::uint64_t>(x);
+        for (int j = 7; j >= 0; --j) bytes.push_back((word >> (8 * j)) & 255);
+      }
+    }
+    if (short_data && row == 4) bytes.resize(bytes.size() - sizeof(double));
+    auto length = compressBound(bytes.size());
+    std::vector<unsigned char> compressed(length);
+    REQUIRE(compress2(compressed.data(), &length, bytes.data(), bytes.size(), 1) == Z_OK);
+    if (corrupt && row == 4) compressed[length - 1] ^= 255;
+    hsize_t offset[2]{row, 0};
+    REQUIRE(H5Dwrite_chunk(d, H5P_DEFAULT, 0, offset, length, compressed.data()) >= 0);
+  }
+  H5Dclose(d);
+  H5Pclose(props);
+  H5Sclose(space);
+  REQUIRE(H5Fclose(f) >= 0);
+  if (corrupt || short_data) {
+    H5E_BEGIN_TRY { CHECK_THROWS_AS(read_mesh(path), Error); }
+    H5E_END_TRY;
+  } else {
+    auto mesh = read_mesh(path);
+    CHECK(mesh.n_points() == original.n_points());
+    CHECK(compute_geometry(mesh).cell_volume[1] == doctest::Approx(1));
+    for (std::size_t i = 0; i < mesh.points.size(); ++i)
+      CHECK(norm(mesh.points[i] - original.points[i]) == 0);
+  }
+}
 #else
 TEST_CASE("CFF disabled build explains missing HDF5") {
   CHECK_THROWS_WITH_AS(kutta::read_fluent_cff("absent.msh.h5"),
