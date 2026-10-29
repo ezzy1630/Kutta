@@ -1,0 +1,63 @@
+#include <iostream>
+#include "../backend_helpers.hpp"
+#include "kutta/fv/steady_solver.hpp"
+#include "kutta/io/mesh_io.hpp"
+
+using namespace kutta;
+using namespace kutta::fv;
+
+TEST_CASE("FV SIMPLEC preserves rest and uniform inlet outlet flow") {
+  for(int through:{0,1,-1}) {
+    auto mesh=make_box_hex(8,4,1,{0,0,0},{1,1,.1});
+    std::vector<PatchCondition> conditions;
+    for(const auto& p:mesh.patches) {
+      if(through && p.name=="xmin") conditions.push_back({p.name,VelocityInlet{Vec3d{double(through),0,0}}});
+      else if(through && p.name=="xmax") conditions.push_back({p.name,PressureOutlet{0,Vec3d{double(through),0,0}}});
+      else if(through || p.name=="zmin" || p.name=="zmax") conditions.push_back({p.name,Symmetry{}});
+      else conditions.push_back({p.name,Wall{}});
+    }
+    std::vector<float> baseline;
+    KUTTA_FOR_EACH_BACKEND(dev) {
+      SteadySolver solver(*dev,mesh,conditions);
+      solver.initialize([through](Vec3d){return Vec3d{double(through),0,0};},[](Vec3d){return 0.;});
+      solver.iterate(5);auto report=solver.monitor();
+      auto u=dev->download(solver.velocity().x),v=dev->download(solver.velocity().y),p=dev->download(solver.pressure());
+      for(auto x:u) CHECK(x==doctest::Approx(through).epsilon(1e-5));
+      for(auto x:v) CHECK(std::abs(x)<1e-6);
+      for(auto x:p) CHECK(std::abs(x)<1e-6);
+      CHECK(report.continuity.raw<1e-6);
+      if(baseline.empty()) baseline=u;else CHECK(u==baseline);
+    }
+  }
+}
+
+TEST_CASE("FV SIMPLEC develops planar Couette flow with moving and slip walls") {
+  auto mesh=make_box_hex(4,12,1,{0,0,0},{1,1,.1});
+  std::vector<PatchCondition> boundaries;
+  for(auto& p:mesh.patches) {
+    if(p.name=="ymax") boundaries.push_back({p.name,Wall{{1,4,0}}});
+    else if(p.name=="ymin") boundaries.push_back({p.name,Wall{}});
+    else if(p.name=="xmin" || p.name=="xmax") boundaries.push_back({p.name,VelocityInlet{
+      std::function<Vec3d(Vec3d)>([](Vec3d p){return Vec3d{p.y,0,0};})}});
+    else boundaries.push_back({p.name,Symmetry{}});
+  }
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    SolverSettings settings;settings.viscosity=1;settings.pseudo_time_scale=5;
+    SteadySolver solver(*dev,mesh,boundaries,settings);
+    for(int k=0;k<20;++k) solver.iterate(20);
+    auto u=dev->download(solver.velocity().x),v=dev->download(solver.velocity().y);
+    double error=0;
+    for(Index c=0;c<mesh.n_cells;++c) error=std::max(error,std::abs(u[c]-solver.geometry().cell_centroid[c].y));
+    std::cout<<"FV_COUETTE backend="<<backend_name(dev->backend())<<" max_error="<<error
+      <<" residual="<<solver.report().u.scaled<<std::endl;
+    CHECK(error<2e-4);
+    CHECK(dev->max_abs(solver.velocity().y,v.size())<2e-4);
+    const std::vector<std::string> top{"ymax"};
+    auto force=solver.forces(top);
+    CHECK(force.viscous.x==doctest::Approx(-.1).epsilon(2e-4));
+    CHECK(std::abs(force.pressure.x)<1e-6);
+    CHECK(force.coefficient({1,0,0},{1,1,.1,0})==doctest::Approx(-2).epsilon(2e-4));
+    auto shifted=solver.forces(top,2);
+    CHECK(shifted.pressure.y-force.pressure.y==doctest::Approx(-.2).epsilon(1e-6));
+  }
+}
