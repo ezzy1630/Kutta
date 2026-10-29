@@ -22,8 +22,18 @@ cmake -S . -B build -G Ninja && cmake --build build && ./build/kutta-tests
 - **CUDA:** add `-DKUTTA_ENABLE_CUDA=ON` (CUDA 13.0, RTX 20-series and newer, driver R580+).
 - **HDF5:** Fluent HDF5 import needs HDF5 1.10.2 or newer.
 
-The suite currently has **85 test cases** (all passing on CPU/Metal, including
-the external Fluent fixture). The SST defaults include a switchable signed
+For quick local checks (and CI), exclude the `slow` doctest suite:
+
+```sh
+./build/kutta-tests --test-suite-exclude=slow
+```
+
+The build command above runs **all** tests, including the V1/V2 refinement
+studies and V3/V4 cavity validation. Slow gates can intentionally remain red
+when a measured accuracy target is unmet; see the current
+[verification results](src/kutta/fv/VERIFICATION.md).
+
+The SST defaults include a switchable signed
 cross-diffusion cap at `1e6*rho*beta*omega^2`, inferred from Fluent's rpvar name,
 and `k_floor=1e-14`. Wall output includes a finite implicit shear coefficient
 that **replaces** the wall-face viscous flux, plus a separately documented

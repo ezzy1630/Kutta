@@ -3,7 +3,7 @@ name: ci
 # Compile checks for every backend plus the CPU-oracle test suite. Hosted runners
 # have no NVIDIA GPU (and macOS runners may have no Metal device), so the test
 # that requires every compiled-in GPU backend to be present is excluded here;
-# it runs on real hardware.
+# it runs on real hardware. Slow numerical verification is run explicitly.
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: cmake --build build
       - name: Test (CPU oracle)
-        run: ./build/kutta-tests --test-case-exclude="$GPU_PRESENCE_TEST"
+        run: ./build/kutta-tests --test-suite-exclude=slow --test-case-exclude="$GPU_PRESENCE_TEST"
 
   windows-cuda:
     runs-on: windows-2022  # pinned: windows-latest maps to Visual Studio 2026
@@ -51,7 +51,7 @@ jobs:
         run: cmake --build build
       - name: Test (CPU oracle)
         shell: bash
-        run: ./build/kutta-tests.exe --test-case-exclude="$GPU_PRESENCE_TEST"
+        run: ./build/kutta-tests.exe --test-suite-exclude=slow --test-case-exclude="$GPU_PRESENCE_TEST"
 
   macos-metal:
     runs-on: macos-15
@@ -64,4 +64,4 @@ jobs:
       - name: Build
         run: cmake --build build
       - name: Test
-        run: ./build/kutta-tests --test-case-exclude="$GPU_PRESENCE_TEST"
+        run: ./build/kutta-tests --test-suite-exclude=slow --test-case-exclude="$GPU_PRESENCE_TEST"

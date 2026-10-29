@@ -50,7 +50,7 @@ double manufactured(Device& dev,int n,bool tet,fv::ConvectionScheme scheme,doubl
 }
 }
 
-TEST_CASE("FV V1 manufactured scalar diffusion and upwind refinement") {
+TEST_CASE("FV V1 manufactured scalar diffusion and upwind refinement" * doctest::test_suite("slow")) {
   KUTTA_FOR_EACH_BACKEND(dev) for(bool tet:{false,true}) {
     for(int mode=0;mode<3;++mode) {
       const auto scheme=mode==1?fv::ConvectionScheme::FirstOrderUpwind:fv::ConvectionScheme::SecondOrderUpwind;

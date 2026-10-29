@@ -35,7 +35,7 @@ TEST_CASE("FV SIMPLEC preserves rest and uniform inlet outlet flow") {
   }
 }
 
-TEST_CASE("FV SIMPLEC develops planar Couette flow with moving and slip walls") {
+TEST_CASE("FV SIMPLEC develops planar Couette flow with moving and slip walls" * doctest::test_suite("slow")) {
   auto mesh=make_box_hex(4,12,1,{0,0,0},{1,1,.1});
   std::vector<PatchCondition> boundaries;
   for(auto& p:mesh.patches) {
