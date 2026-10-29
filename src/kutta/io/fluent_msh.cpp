@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string_view>
 
+#include "kutta/core/parse.hpp"
 #include "kutta/io/fluent_detail.hpp"
 
 namespace kutta {
@@ -77,14 +78,10 @@ class Parser {
     auto s = token();
     for (auto& c : s)
       if (c == 'D' || c == 'd') c = 'E';
-    // from_chars intentionally rejects a leading '+'. Fluent accepts it.
-    auto begin = s.data() + (s.starts_with('+') ? 1 : 0);
-    double value = 0;
-    auto [p, e] = std::from_chars(begin, s.data() + s.size(), value);
-    KUTTA_REQUIRE(
-        e == std::errc{} && p == s.data() + s.size() && std::isfinite(value),
-        "Fluent: invalid coordinate '" + s + "'");
-    return value;
+    // parse_double rejects a leading '+' (like from_chars). Fluent accepts it.
+    const auto value = parse_double(std::string_view(s).substr(s.starts_with('+') ? 1 : 0));
+    KUTTA_REQUIRE(value && std::isfinite(*value), "Fluent: invalid coordinate '" + s + "'");
+    return *value;
   }
   std::vector<std::string> header() {
     expect('(');
