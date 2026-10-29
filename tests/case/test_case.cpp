@@ -213,7 +213,7 @@ TEST_CASE("Real legacy cases parse without HDF5") {
     auto c = read_case(path);
     CHECK(c.viscous.model == ViscousModel::kw_sst);
     CHECK(c.numerics.coupling == Coupling::coupled);
-    CHECK(boundary(c, 17).velocity_magnitude->constant == 2);
+    CHECK(boundary(c, 17).velocity_magnitude->resolved == 1);
     CHECK(c.reports.size() == 2);
   }
 }
@@ -248,6 +248,7 @@ TEST_CASE("Real mixing elbow typed settings match verified CFF values") {
   CHECK(boundary(c, 30).turbulence.at("turb-hydraulic-diam").kind == ScalarValue::Kind::expression);
   CHECK(boundary(c, 30).turbulence.at("turb-hydraulic-diam").binding == "1 [in]");
   CHECK_FALSE(boundary(c, 30).turbulence.at("turb-hydraulic-diam").constant);
+  CHECK(boundary(c, 30).turbulence.at("turb-hydraulic-diam").resolved == doctest::Approx(0.0254));
   CHECK(boundary(c, 32).gauge_pressure->constant == 0);
   CHECK(c.operating_pressure == 101325);
   CHECK(c.reference.density == 1.225);
@@ -291,7 +292,7 @@ TEST_CASE("Static mixer typed settings agree across CFF ASCII and binary legacy"
   CHECK(c.reports.size() == 2);
   CHECK(boundary(c, 17).velocity_magnitude->kind == ScalarValue::Kind::parameter);
   CHECK(boundary(c, 17).velocity_magnitude->binding == "real-1");
-  CHECK(boundary(c, 17).velocity_magnitude->constant == 2);
+  CHECK(boundary(c, 17).velocity_magnitude->resolved == 1);
   same_settings(c, a);
   same_settings(c, b);
   // Writer provenance differs; all typed physical/control values and ID intervals must match.
@@ -410,4 +411,33 @@ TEST_CASE("Inlet singular vector override detects conflicting scalar components"
   )scm");
   CHECK(boundary(c, 4).velocity[0]->constant == 3);
   CHECK(issue_at(c, "zone/4/velocity-component"));
+}
+TEST_CASE("Parameter bindings never use their inactive saved constants") {
+  auto c = synthetic(config(false, false, true) + R"scm(
+    (named-expressions (((name . "speed") (parameterid . "real-1") (definition . "1 [m/s]"))
+                        ((name . "dynamic") (parameterid . "real-2") (definition . "sin(t) [m/s]"))))
+  )scm", R"scm(
+    (39 (4 velocity-inlet in 1) ((velocity-spec . 2) (vmag (parameter . real-1) (constant . 2))))
+    (39 (5 velocity-inlet other 1) ((velocity-spec . 2) (vmag (parameter . real-2) (constant . 99))))
+  )scm");
+  CHECK_FALSE(boundary(c, 4).velocity_magnitude->constant);
+  CHECK(boundary(c, 4).velocity_magnitude->resolved == 1);
+  CHECK(boundary(c, 4).velocity_magnitude->expression_name == "speed");
+  CHECK_FALSE(boundary(c, 5).velocity_magnitude->constant);
+  CHECK_FALSE(issue_at(c, "zone/4/vmag"));
+  CHECK(issue_at(c, "zone/5/vmag"));
+}
+TEST_CASE("Only complete constant expressions with recognized units resolve") {
+  for (auto expression : {"2 [m/s]", "2 [m]", "2 [Pa]", "2 [kg/m^3]", "2 [rad/s]", "2 [in]", "2 [mm]"}) {
+    auto c = synthetic(config(false, false, true), "(39 (4 velocity-inlet in 1) ((velocity-spec . 2) (vmag (expression . \"" + std::string(expression) + "\"))))");
+    CHECK_FALSE(boundary(c, 4).velocity_magnitude->constant);
+    CHECK_FALSE(issue_at(c, "zone/4/vmag"));
+    const auto expected = std::string_view(expression).ends_with("[in]") ? 0.0508
+        : (std::string_view(expression).ends_with("[mm]") ? 0.002 : 2.0);
+    CHECK(boundary(c, 4).velocity_magnitude->resolved == doctest::Approx(expected));
+  }
+  for (auto expression : {"sin(t)", "1 [furlong]", "1 [m] + 2 [m]", "1 [m] trailing", "1e999 [m]"}) {
+    auto c = synthetic(config(false, false, true), "(39 (4 velocity-inlet in 1) ((velocity-spec . 2) (vmag (expression . \"" + std::string(expression) + "\"))))");
+    CHECK(issue_at(c, "zone/4/vmag"));
+  }
 }

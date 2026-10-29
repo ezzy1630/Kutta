@@ -1,5 +1,6 @@
 #include "kutta/case/fluent_case.hpp"
 #include "kutta/case/hdf5.hpp"
+#include "kutta/core/parse.hpp"
 #include <algorithm>
 #include <charconv>
 #include <cmath>
@@ -48,6 +49,73 @@ std::optional<std::string> text(const SExpr *x) {
     if (auto s = x->atom_text())
       return std::string(*s);
   return {};
+}
+std::string_view trim(std::string_view s) {
+  const auto first = s.find_first_not_of(" \t\r\n");
+  if (first == s.npos)
+    return {};
+  return s.substr(first, s.find_last_not_of(" \t\r\n") - first + 1);
+}
+std::optional<double> constant_expression(std::string_view definition) {
+  definition = trim(definition);
+  auto open = definition.find('[');
+  if (open == definition.npos || definition.back() != ']')
+    return {};
+  auto numeric = trim(definition.substr(0, open));
+  if (numeric.starts_with('+'))
+    numeric.remove_prefix(1);
+  auto number = parse_double(numeric);
+  if (!number || !std::isfinite(*number))
+    return {};
+  const auto unit = trim(definition.substr(open + 1, definition.size() - open - 2));
+  double scale = 1;
+  if (unit == "in")
+    scale = 0.0254;
+  else if (unit == "mm")
+    scale = 0.001;
+  else if (unit != "m/s" && unit != "m" && unit != "Pa" && unit != "kg/m^3" && unit != "rad/s")
+    return {};
+  auto value = *number * scale;
+  return std::isfinite(value) ? std::optional<double>{value} : std::nullopt;
+}
+void expressions(FluentCase &c) {
+  auto list = c.variables.value("named-expressions");
+  if (!list)
+    return;
+  if (list->kind != K::list || list->tail) {
+    c.issues.push_back({"rp/named-expressions", "unsupported: malformed expression list"});
+    return;
+  }
+  for (const auto &item : list->elements) {
+    NamedExpression e;
+    e.name = text(alist_value(item, "name")).value_or("");
+    e.parameter_id = text(alist_value(item, "parameterid")).value_or("");
+    e.definition = text(alist_value(item, "definition")).value_or("");
+    c.named_expressions.push_back(std::move(e));
+  }
+  c.variables.interpreted.insert("named-expressions");
+}
+bool resolve_expression(const FluentCase &c, ScalarValue &v) {
+  if (v.kind != ScalarValue::Kind::parameter && v.kind != ScalarValue::Kind::expression)
+    return false;
+  const NamedExpression *match = nullptr;
+  bool ambiguous = false;
+  for (const auto &e : c.named_expressions)
+    if ((v.kind == ScalarValue::Kind::parameter && e.parameter_id == v.binding) || e.name == v.binding) {
+      ambiguous = ambiguous || match != nullptr;
+      match = &e;
+    }
+  if (ambiguous)
+    return false;
+  if (match) {
+    v.expression_name = match->name;
+    v.definition = match->definition;
+  } else if (v.kind == ScalarValue::Kind::expression)
+    v.definition = v.binding;
+  else
+    return false;
+  v.resolved = constant_expression(v.definition);
+  return v.resolved.has_value();
 }
 class Extractor {
   FluentCase &c;
@@ -116,7 +184,10 @@ public:
       result.kind =
           *selector == "expression" ? ScalarValue::Kind::expression : ScalarValue::Kind::unparsed;
       result.binding = text(r.value(std::string(key) + "-expr")).value_or(*selector);
-      accepted(key, false, true);
+      const bool resolved = resolve_expression(c, result);
+      accepted(key, resolved, true);
+      if (!resolved)
+        c.issues.back().reason = "unresolved expression: " + result.binding;
       return result;
     }
     if (auto n = number(v)) {
@@ -147,11 +218,6 @@ public:
     if (tag == "parameter") {
       result.kind = ScalarValue::Kind::parameter;
       result.binding = text(mv).value_or(to_string(*method));
-      for (std::size_t i = 2; i < entry->elements.size(); ++i) {
-        auto &branch = entry->elements[i];
-        if (!branch.elements.empty() && branch.elements[0].atom_text() == "constant")
-          result.constant = number(entry_value(branch));
-      }
     } else if (tag == "expression") {
       result.kind = ScalarValue::Kind::expression;
       result.binding = text(mv).value_or(to_string(*method));
@@ -159,8 +225,10 @@ public:
       result.kind = ScalarValue::Kind::profile;
       result.binding = to_string(*method);
     }
-    accepted(key, false, required);
-    c.issues.back().reason = "unparsed for solve: " + to_string(*method);
+    const bool resolved = resolve_expression(c, result);
+    accepted(key, resolved, required);
+    if (!resolved)
+      c.issues.back().reason = "unresolved expression/profile for solve: " + to_string(*method);
     return result;
   }
   ScalarVector vector(std::array<std::string, 3> keys, bool required = true) {
@@ -208,7 +276,7 @@ public:
     target = sub.vector({"0", "1", "2"});
     bool constant = true;
     for (auto &component : target)
-      constant = constant && component && component->kind == ScalarValue::Kind::constant;
+      constant = constant && component && (component->constant || component->resolved);
     accepted(key, constant, true);
     if (compare) {
       bool conflict = false;
@@ -329,8 +397,8 @@ void property_support(FluentCase &c) {
     auto m = std::find_if(c.materials.begin(), c.materials.end(),
                            [&](auto &m) { return z.material == m.name; });
     const bool ok = m != c.materials.end() && m->density && m->viscosity &&
-        m->density->kind == ScalarValue::Kind::constant && m->density->constant &&
-        m->viscosity->kind == ScalarValue::Kind::constant && m->viscosity->constant;
+        (m->density->constant || m->density->resolved) &&
+        (m->viscosity->constant || m->viscosity->resolved);
     constant = constant && ok;
     if (!ok)
       c.issues.push_back({"zone/" + std::to_string(z.id) + "/material",
@@ -517,9 +585,9 @@ void materials(FluentCase &c) {
     m.density = x.scalar("density");
     m.viscosity = x.scalar("viscosity", m.type == "fluid");
     if (m.density)
-      m.nonconstant_density = m.density->kind != ScalarValue::Kind::constant;
+      m.nonconstant_density = !m.density->constant && !m.density->resolved;
     if (m.viscosity)
-      m.nonconstant_viscosity = m.viscosity->kind != ScalarValue::Kind::constant;
+      m.nonconstant_viscosity = !m.viscosity->constant && !m.viscosity->resolved;
     c.materials.push_back(std::move(m));
   }
 }
@@ -899,6 +967,7 @@ FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,
     c.config.alist = *config;
     c.variables.interpreted.insert("case-config");
   }
+  expressions(c);
   model(c);
   numerics(c);
   materials(c);

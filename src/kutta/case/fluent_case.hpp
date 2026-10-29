@@ -70,9 +70,10 @@ enum class WallMotion { stationary, translating, rotating };
 struct ScalarValue {
   enum class Kind { constant, parameter, expression, profile, unparsed };
   Kind kind = Kind::unparsed;
-  // A parameter's saved constant is a snapshot, not permission to drop its binding.
+  // Literal constants and resolved expression values have distinct provenance.
   std::optional<double> constant;
-  std::string binding;
+  std::string binding, expression_name, definition;
+  std::optional<double> resolved;
   bool operator==(const ScalarValue &) const = default;
 };
 using ScalarVector = std::array<std::optional<ScalarValue>, 3>;
@@ -172,6 +173,9 @@ struct MeshMetadata {
   std::optional<std::uint64_t> cells, faces, nodes;
   std::vector<ZoneRange> cell_zones, face_zones;
 };
+struct NamedExpression {
+  std::string name, parameter_id, definition;
+};
 struct FluentCase {
   std::optional<std::string> solver_version, origin;
   std::optional<int> dimension;
@@ -182,6 +186,7 @@ struct FluentCase {
   std::optional<double> operating_pressure;
   ReferenceValues reference;
   std::vector<Material> materials;
+  std::vector<NamedExpression> named_expressions;
   std::vector<BoundaryZone> boundaries;
   std::vector<CellZone> cell_zones;
   std::vector<ReportDefinition> reports;
