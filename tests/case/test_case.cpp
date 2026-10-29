@@ -217,7 +217,7 @@ TEST_CASE("Real legacy cases parse without HDF5") {
     CHECK(c.reports.size() == 2);
   }
 }
-#ifdef KUTTA_HAS_HDF5
+#if KUTTA_HAS_HDF5
 TEST_CASE("Real mixing elbow typed settings match verified CFF values") {
   auto path = examples() / "mixing_elbow/mixing_elbow.cas.h5";
   if (!available(path))

@@ -43,7 +43,7 @@ std::vector<ZoneFieldView> FluentData::zone_field(FieldLocation location, std::i
   }
   return views;
 }
-#ifdef KUTTA_HAS_HDF5
+#if KUTTA_HAS_HDF5
 namespace {
 std::uint64_t required_id(hid_t f, const std::string &path, const char *name) {
   auto n = h5::attribute(f, path, name);
@@ -177,7 +177,7 @@ void read_residuals(hid_t f, FluentData &out) {
 } // namespace
 #endif
 FluentData read_data(const std::filesystem::path &path, const FluentCase &c) {
-#ifdef KUTTA_HAS_HDF5
+#if KUTTA_HAS_HDF5
   if (c.mesh.cell_zones.empty() || c.mesh.face_zones.empty())
     throw std::runtime_error("data reader needs matching case topology metadata");
   auto f = h5::open(path);

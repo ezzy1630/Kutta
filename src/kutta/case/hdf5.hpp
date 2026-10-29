@@ -1,6 +1,6 @@
 #pragma once
 // Private HDF5 boundary shared by the case and data readers.
-#ifdef KUTTA_HAS_HDF5
+#if KUTTA_HAS_HDF5
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>

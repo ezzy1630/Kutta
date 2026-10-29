@@ -218,7 +218,7 @@ FluentCase legacy(const std::filesystem::path &path) {
   result.mesh = std::move(metadata);
   return result;
 }
-#ifdef KUTTA_HAS_HDF5
+#if KUTTA_HAS_HDF5
 std::vector<std::string> split_names(std::string s) {
   std::vector<std::string> result;
   std::size_t p = 0;
@@ -301,7 +301,7 @@ FluentCase cff(const std::filesystem::path &path) {
 } // namespace
 FluentCase read_case(const std::filesystem::path &path) {
   if (path.extension() == ".h5") {
-#ifdef KUTTA_HAS_HDF5
+#if KUTTA_HAS_HDF5
     return cff(path);
 #else
     throw std::runtime_error(

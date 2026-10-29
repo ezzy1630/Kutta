@@ -1,6 +1,6 @@
 #include "kutta/case/fluent_data.hpp"
 #include <doctest/doctest.h>
-#ifdef KUTTA_HAS_HDF5
+#if KUTTA_HAS_HDF5
 #include "kutta/case/hdf5.hpp"
 #include <chrono>
 #include <random>

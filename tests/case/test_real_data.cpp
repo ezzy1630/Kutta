@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <doctest/doctest.h>
 using namespace kutta::fluent;
-#ifdef KUTTA_HAS_HDF5
+#if KUTTA_HAS_HDF5
 namespace {
 std::filesystem::path examples() {
   auto env = std::getenv("KUTTA_FLUENT_EXAMPLES");

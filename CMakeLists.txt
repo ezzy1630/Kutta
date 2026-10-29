@@ -44,11 +44,6 @@ add_library(kutta
   ${KUTTA_GEN_DIR}/kernels_host.cpp
   ${KUTTA_GEN_DIR}/kernels_cpu.cpp)
 target_include_directories(kutta PUBLIC ${CMAKE_SOURCE_DIR}/src ${KUTTA_GEN_DIR})
-find_package(HDF5 QUIET COMPONENTS C)
-if(HDF5_FOUND)
-  target_link_libraries(kutta PUBLIC HDF5::HDF5)
-  target_compile_definitions(kutta PUBLIC KUTTA_HAS_HDF5=1)
-endif()
 if(MSVC)
   target_compile_options(kutta PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4;/permissive->)
 else()
