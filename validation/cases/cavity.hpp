@@ -74,7 +74,7 @@ inline CavityResult cavity(Device& dev,PolyMesh mesh,int reynolds,int maximum_it
     else boundaries.push_back({patch.name,fv::Wall{{patch.name=="ymax" || patch.name.find("moving")!=std::string::npos?1.:0.,0,0}}});
   }
   fv::SolverSettings settings;settings.viscosity=1./reynolds;
-  settings.pseudo_time_scale=5;settings.pressure_relaxation=.3;settings.monitor_interval=100;
+  settings.pseudo_time_scale=5;settings.momentum_relaxation=1;settings.pressure_relaxation=1;settings.monitor_interval=100;
   fv::SteadySolver solver(dev,std::move(mesh),boundaries,settings);
   CavityResult result;std::vector<float> old_u,old_v;
   for(int iteration=0;iteration<maximum_iterations;iteration+=100) {
