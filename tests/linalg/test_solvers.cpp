@@ -529,3 +529,21 @@ TEST_CASE("CPU and Metal solves have identical iteration counts residuals and so
     }
   }
 }
+
+TEST_CASE("Neumann PCG avoids duplicate fine projection and unused final preconditioning") {
+  for (auto backend : Device::available()) {
+    InstrumentedDevice dev(backend);
+    const auto a = poisson(8, 8, 1, 1, false, true);
+    auto matrix = upload(dev, a);
+    auto solver = make_solver(SolverKind::AmgPcg, dev, a, {.nullspace = NullSpace::Constant});
+    std::vector<float> forcing(a.pattern.n_rows);
+    forcing.front() = 1; forcing.back() = -1;
+    auto b = dev.upload<float>(forcing), x = dev.alloc<float>(b.size());
+    dev.fill(x, 0); dev.reductions = 0;
+    const auto stats = solver->solve(dev, matrix, x, b, {0, 0, 1});
+    CHECK(stats.iterations == 1);
+    CHECK_FALSE(stats.converged);
+    INFO("Neumann reductions=" << dev.reductions);
+    CHECK(dev.reductions <= 15);
+  }
+}

@@ -127,11 +127,18 @@ Measured reduction/allocation regressions, before -> after:
 | --- | ---: | ---: |
 | 64^3 random pressure, solve reductions (K2 -> default V5) | 726 / 10 iterations | 50 / 15 iterations |
 | 128^3 random pressure, solve reductions (K2 -> default V5) | 1308 / 10 iterations | 68 / 21 iterations |
-| Ordinary outer PCG iteration, excluding setup/final checks | ~73 at 64^3 with K | 3 with V |
+| Ordinary pinned-pressure PCG iteration, excluding setup/final checks | ~73 at 64^3 with K | 3 with V |
 | BiCGStab, four full iterations | 32 reductions | 28 reductions |
 | Jacobi, seventeen sweeps | 21 reductions | 7 reductions |
+| Neumann AMG-PCG, one 8x8 iteration including all checks | 21 reductions | 15 reductions |
 | Divergence regression, PCG final residual | 7.49e6 from initial 1.41 | 1.41; original x restored after one update |
 | Upwind wind 5/20/100, increasing order | 1 level, complexity 1.000 | 6 levels at 64^3, both directions |
+
+The three-reduction ordinary iteration count is for NullSpace::None. Constant
+projection adds level-dependent sum reductions. Fine corrections are projected
+only once at the Krylov boundary, and PCG does not build an unused direction
+when max_iter has been reached. A device-resident compensated sum consumed by
+the shift kernel would be needed to remove the remaining projection round-trips.
 
 Device currently exposes only scalar sum/dot/max_abs reductions. Calling dot
 twice cannot fuse host round-trips. Recommended additive API:
@@ -171,7 +178,7 @@ Measured CPU and Metal evidence
 ------------------------------
 
 Apple M4 Pro, 24 GiB, macOS 26.6.2 (25G83), AppleClang 21.0.0.21000101,
-Release. Final implementation/benchmark source:
+Release. Repeated timing/benchmark source:
 `47a6987828369a98f6c1544b172a23595b085a51` on t3/aggregation-amg-solver.
 The original baseline is `11f1533`; allocation baseline was instrumented at
 `af06309` before workspace/factory changes. Raw records, sample numbers,
@@ -284,14 +291,15 @@ higher-precision solution storage would require a deliberate contract change.
 Verification
 ------------
 
-All **33 tests / 1,254,449 assertions pass on CPU and Metal**. A separate
+All **34 tests / 1,254,455 assertions pass on CPU and Metal**. A separate
 CPU Debug AddressSanitizer + UndefinedBehaviorSanitizer build passes all
-33 tests / 627,202 assertions, including the debug nullspace consistency checks.
+34 tests / 627,205 assertions, including the debug nullspace consistency checks.
 Metal compilation/runtime is verified here. CUDA is not available on this
 machine and remains unverified.
 
 New regressions failed before the fixes: directional strength/isolated-row
-coarsening, reduction/allocation budgets, rounded Neumann projection, negative
+coarsening, reduction/allocation budgets, rounded Neumann projection, duplicate
+projection/final-direction work, negative
 AMG diagonals and divergence recovery. Refresh now changes coefficients by
 non-power-of-two factors plus a cell-dependent reaction, comparing the reused
 hierarchy with a fresh setup. Actual coarse matrices and actual P maps are

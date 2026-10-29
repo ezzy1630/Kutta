@@ -194,12 +194,13 @@ class Krylov final : public LinearSolver {
         // stagnant replacements indicate a float precision floor.
         restarts = stats.final_residual >= 0.9 * last_verified ? restarts + 1 : 0;
         last_verified = stats.final_residual;
-        if (restarts >= 12) break;
+        if (restarts >= 12 || stats.iterations == c.max_iter) break;
         apply(dev, a, r_, z_);
         rho = dev.dot(r_, z_, n_);
         dev.copy(p_, z_);
         continue;
       }
+      if (stats.iterations == c.max_iter) break;
       apply(dev, a, r_, z_);
       const double next = dev.dot(r_, z_, n_);
       // One-term flexible CG for the nonlinear K-cycle. Fixed V/Jacobi

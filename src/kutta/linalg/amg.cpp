@@ -255,7 +255,9 @@ class Aggregation final : public linalg_detail::Preconditioner {
       kern::amg_prolong(dev, a.n_rows, l.transfer.aggregate, c.x, x);
       smooth(dev, l, a, b, x, options_.post_sweeps);
     }
-    if (nullspace_) linalg_detail::project(dev, x);
+    // Krylov::apply projects the fine correction once; recursive corrections
+    // still need their own coarse-level projection.
+    if (nullspace_ && index != 0) linalg_detail::project(dev, x);
   }
 
   // Two recursive preconditioned Krylov steps on a coarse equation. Its
