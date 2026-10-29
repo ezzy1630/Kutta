@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include "kernels.hpp"
+#include "kutta/core/parse.hpp"
 #include "kutta/linalg/amg.hpp"
 #include "../tests/linalg/matrices.hpp"
 #include "../tests/linalg/instrumented_device.hpp"
@@ -126,9 +127,9 @@ int main(int argc, char** argv) {
       else if (arg == "--max-iter") max_iter = positive(value);
       else if (arg == "--backend") selected_backend = value;
       else if (arg == "--tolerance") {
-        const auto [end, error] = std::from_chars(value.data(), value.data() + value.size(), tolerance);
-        KUTTA_REQUIRE(error == std::errc{} && end == value.data() + value.size() &&
-                          std::isfinite(tolerance) && tolerance > 0, "benchmark: invalid tolerance");
+        const auto parsed = kutta::parse_double(value);
+        KUTTA_REQUIRE(parsed && std::isfinite(*parsed) && *parsed > 0, "benchmark: invalid tolerance");
+        tolerance = *parsed;
       }
       else if (arg == "--wind") wind = positive(value);
       else if (arg == "--ordering") ordering = positive(value);
