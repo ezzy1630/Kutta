@@ -34,3 +34,27 @@ KUTTA_KERNEL void amg_galerkin(int i, KIn(int) offsets, KIn(int) entries,
   }
   coarse[i] = sum;
 }
+
+// Memory-saving alternative, timed by bench_galerkin. One thread owns a
+// coarse row and gathers directly through its member rows; no fine-nnz map.
+KUTTA_KERNEL void amg_galerkin_rows(int i, KIn(int) coarse_rows, KIn(int) coarse_cols,
+                                   KIn(int) offsets, KIn(int) members, KIn(int) rows,
+                                   KIn(int) cols, KIn(int) aggregate, KIn(float) fine,
+                                   KOut(float) coarse) {
+  for (int entry = coarse_rows[i]; entry < coarse_rows[i + 1]; ++entry) {
+    float sum = 0.0f;
+    float error = 0.0f;
+    for (int m = offsets[i]; m < offsets[i + 1]; ++m) {
+      int row = members[m];
+      for (int j = rows[row]; j < rows[row + 1]; ++j) {
+        if (aggregate[cols[j]] == coarse_cols[entry]) {
+          float term = fine[j] - error;
+          float next = sum + term;
+          error = (next - sum) - term;
+          sum = next;
+        }
+      }
+    }
+    coarse[entry] = sum;
+  }
+}

@@ -8,6 +8,7 @@
 #include "kernels.hpp"
 #include "kutta/linalg/amg.hpp"
 #include "../tests/linalg/matrices.hpp"
+#include "../tests/linalg/instrumented_device.hpp"
 
 namespace {
 using Clock = std::chrono::steady_clock;
@@ -30,30 +31,44 @@ std::string json_string(std::string_view input) {
   }
   return result + '"';
 }
-void run(kutta::Device& dev, int size, double anisotropy, const kutta::AmgOptions& options,
-         int max_iter) {
+void run(kutta::test_linalg::InstrumentedDevice& dev, int size, double anisotropy, const kutta::AmgOptions& options,
+         int max_iter, double wind = 0, int ordering = 0, double tolerance = 1e-6) {
   using namespace kutta;
   using namespace kutta::test_linalg;
   KUTTA_REQUIRE(size >= 2 && std::int64_t(size) * size <=
                     std::numeric_limits<Index>::max() / size / 7,
                 "benchmark: cube side is outside the 32-bit CSR range");
-  auto a = poisson(size, size, size, anisotropy);
+  auto a = poisson(size, size, size, anisotropy, false, false, wind);
+  std::vector<Index> order(a.pattern.n_rows);
+  std::iota(order.begin(), order.end(), 0);
+  if (ordering != 0) {
+    if (ordering == 1) std::reverse(order.begin(), order.end());
+    else std::sort(order.begin(), order.end(), [](Index i, Index j) {
+      return std::pair{hash(i), i} < std::pair{hash(j), j};
+    });
+    a = permute(a, order);
+  }
   auto matrix = upload(dev, a);
   auto original_values = dev.upload<float>(std::vector<float>(a.val.begin(), a.val.end()));
   std::vector<float> b(a.pattern.n_rows);
   // Deterministic forcing, independent of A and of the selected solver. Unlike
   // an A*random-x RHS, this retains the low modes AMG is intended to remove.
   for (Index i = 0; i < a.pattern.n_rows; ++i)
-    b[i] = float(int(hash(i + 53) % 2001) - 1000) / 1024.0f;
+    b[i] = float(int(hash(order[i] + 53) % 2001) - 1000) / 1024.0f;
   auto db = dev.upload<float>(b);
   auto x = dev.alloc<float>(b.size());
-  for (auto kind : {SolverKind::PcgJacobi, SolverKind::AmgPcg}) {
+  for (auto kind : {wind == 0 ? SolverKind::PcgJacobi : SolverKind::BicgstabJacobi,
+                    wind == 0 ? SolverKind::AmgPcg : SolverKind::AmgBicgstab}) {
+    const auto outside_bytes = dev.live_bytes;
+    dev.peak_bytes = outside_bytes;
     dev.synchronize();
     auto start = Clock::now();
-    auto solver = kind == SolverKind::AmgPcg ? make_amg_solver(kind, dev, a, options) :
+    auto solver = (kind == SolverKind::AmgPcg || kind == SolverKind::AmgBicgstab) ? make_amg_solver(kind, dev, a, options) :
                                              make_solver(kind, dev, a);
     dev.synchronize();
     double setup = seconds(start);
+    const auto solver_bytes = dev.live_bytes - outside_bytes;
+    const auto setup_peak_bytes = dev.peak_bytes - outside_bytes;
     // The same pattern with scaled values models a new outer iteration.
     // Restore before solving so the forcing and matrix are identical.
     kern::scale_copy(dev, matrix.nnz, matrix.val, original_values, 1.25f);
@@ -62,21 +77,30 @@ void run(kutta::Device& dev, int size, double anisotropy, const kutta::AmgOption
     double refresh = seconds(start);
     dev.copy(matrix.val, original_values); solver->refresh(dev, matrix);
     dev.fill(x, 0); dev.synchronize(); start = Clock::now();
-    auto stats = solver->solve(dev, matrix, x, db, {1e-6, 1e-12, max_iter});
+    dev.reductions = 0;
+    auto stats = solver->solve(dev, matrix, x, db, {tolerance, 1e-12, max_iter});
     dev.synchronize(); double solve = seconds(start);
-    const char* name = kind == SolverKind::PcgJacobi ? "PcgJacobi" : "AmgPcg";
+    const char* name = kind == SolverKind::PcgJacobi ? "PcgJacobi" :
+        kind == SolverKind::AmgPcg ? "AmgPcg" :
+        kind == SolverKind::BicgstabJacobi ? "BicgstabJacobi" : "AmgBicgstab";
     std::cout << std::setprecision(9) << "backend=" << backend_name(dev.backend())
               << " device=" << dev.name() << " n=" << size << " anisotropy=" << anisotropy
               << " solver=" << name << " setup_s=" << setup << " refresh_s=" << refresh
               << " iterations=" << stats.iterations << " solve_s=" << solve
               << " relative_residual=" << stats.final_residual / stats.initial_residual
-              << " converged=" << stats.converged << " " << solver->describe() << '\n';
+              << " reductions=" << dev.reductions << " bytes_per_row=" << double(solver_bytes) / a.pattern.n_rows
+              << " setup_peak_bytes_per_row=" << double(setup_peak_bytes) / a.pattern.n_rows
+              << " wind=" << wind << " ordering=" << ordering << " converged=" << stats.converged << " " << solver->describe() << '\n';
     std::cout << "{\"benchmark\":\"linalg\",\"backend\":" << json_string(backend_name(dev.backend()))
               << ",\"device\":" << json_string(dev.name()) << ",\"n\":" << size
               << ",\"rows\":" << a.pattern.n_rows << ",\"nnz\":" << a.pattern.nnz()
+              << ",\"wind\":" << wind << ",\"ordering\":" << ordering
+              << ",\"reductions\":" << dev.reductions
+              << ",\"solver_bytes\":" << solver_bytes << ",\"setup_peak_bytes\":" << setup_peak_bytes
               << ",\"anisotropy\":" << anisotropy << ",\"solver\":" << json_string(name)
               << ",\"description\":" << json_string(solver->describe())
-              << ",\"rel_tol\":1e-6,\"setup_s\":" << setup << ",\"refresh_s\":" << refresh
+              << ",\"source_commit\":" << json_string(KUTTA_BENCH_COMMIT)
+              << ",\"rel_tol\":" << tolerance << ",\"setup_s\":" << setup << ",\"refresh_s\":" << refresh
               << ",\"iterations\":" << stats.iterations << ",\"solve_s\":" << solve
               << ",\"initial_residual\":" << stats.initial_residual
               << ",\"final_residual\":" << stats.final_residual
@@ -89,6 +113,9 @@ int main(int argc, char** argv) {
   try {
     int small = 64, large = 128, anisotropic = 64, max_iter = 2000;
     kutta::AmgOptions options;
+    int wind = 0, ordering = 0;
+    double tolerance = 1e-6;
+    std::string_view selected_backend = "all";
     for (int i = 1; i < argc; ++i) {
       std::string_view arg = argv[i];
       KUTTA_REQUIRE(i + 1 < argc, "benchmark: option needs a value");
@@ -97,6 +124,15 @@ int main(int argc, char** argv) {
       else if (arg == "--large") large = positive(value);
       else if (arg == "--anisotropic") anisotropic = positive(value);
       else if (arg == "--max-iter") max_iter = positive(value);
+      else if (arg == "--backend") selected_backend = value;
+      else if (arg == "--tolerance") {
+        const auto [end, error] = std::from_chars(value.data(), value.data() + value.size(), tolerance);
+        KUTTA_REQUIRE(error == std::errc{} && end == value.data() + value.size() &&
+                          std::isfinite(tolerance) && tolerance > 0, "benchmark: invalid tolerance");
+      }
+      else if (arg == "--wind") wind = positive(value);
+      else if (arg == "--ordering") ordering = positive(value);
+      else if (arg == "--sweeps") options.pre_sweeps = options.post_sweeps = positive(value);
       else if (arg == "--passes") options.aggregation_passes = positive(value);
       else if (arg == "--cycle") {
         KUTTA_REQUIRE(value == "v" || value == "k", "benchmark: cycle must be v or k");
@@ -104,10 +140,12 @@ int main(int argc, char** argv) {
       } else throw kutta::Error("benchmark: unknown option");
     }
     for (auto backend : kutta::Device::available()) {
-      auto dev = kutta::Device::create(backend);
-      run(*dev, small, 1, options, max_iter);
-      if (large != small) run(*dev, large, 1, options, max_iter);
-      run(*dev, anisotropic, 1000, options, max_iter);
+      if (selected_backend != "all" && selected_backend != kutta::backend_name(backend)) continue;
+      kutta::test_linalg::InstrumentedDevice dev(backend);
+      run(dev, small, 1, options, max_iter, wind, ordering, tolerance);
+      if (large != small) run(dev, large, 1, options, max_iter, wind, ordering, tolerance);
+      if (wind == 0) run(dev, anisotropic, 1000, options, max_iter, 0, 0, tolerance);
+
     }
   } catch (const std::exception& e) { std::cerr << e.what() << '\n'; return 1; }
 }

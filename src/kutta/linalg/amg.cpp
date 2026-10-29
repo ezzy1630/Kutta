@@ -307,7 +307,8 @@ std::unique_ptr<LinearSolver> make_amg_solver(SolverKind kind, Device& dev,
     const CsrMatrixHost& a, const AmgOptions& options) {
   KUTTA_REQUIRE(kind == SolverKind::AmgPcg || kind == SolverKind::AmgBicgstab,
                 "AMG: expected an AMG solver kind");
-  KUTTA_REQUIRE(options.pre_sweeps > 0 && options.post_sweeps > 0 &&
+  KUTTA_REQUIRE((options.cycle == AmgCycle::V || options.cycle == AmgCycle::K) &&
+                    options.pre_sweeps > 0 && options.post_sweeps > 0 &&
                     options.coarse_sweeps > 0 && options.coarse_rows >= 1 &&
                     options.max_levels >= 1 && options.aggregation_passes >= 1 &&
                     options.aggregation_passes <= 8 &&
@@ -328,7 +329,7 @@ std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const Cs
 }
 
 std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const CsrMatrixHost& a,
-                                          const SolverOptions& options) {
+                                           const SolverOptions& options) {
   switch (kind) {
     case SolverKind::AmgPcg:
     case SolverKind::AmgBicgstab: {

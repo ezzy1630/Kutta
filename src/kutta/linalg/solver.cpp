@@ -74,7 +74,8 @@ class Krylov final : public LinearSolver {
          std::unique_ptr<Preconditioner> p, NullSpace nullspace)
       : kind_(kind), device_(&dev), n_(a.pattern.n_rows), nnz_(a.pattern.nnz()),
         nullspace_(nullspace == NullSpace::Constant), preconditioner_(std::move(p)),
-        r_(dev.alloc<float>(n_)), z_(dev.alloc<float>(n_)), p_(dev.alloc<float>(kind == SolverKind::Jacobi ? 0 : n_)),
+        r_(dev.alloc<float>(n_)), z_(dev.alloc<float>(n_)),
+        p_(dev.alloc<float>(kind == SolverKind::Jacobi ? 0 : n_)),
         q_(dev.alloc<float>(kind == SolverKind::Jacobi ? 0 : n_)),
         shadow_(dev.alloc<float>(bicg(kind) ? n_ : 0)), s_(dev.alloc<float>(bicg(kind) ? n_ : 0)),
         t_(dev.alloc<float>(bicg(kind) ? n_ : 0)), zs_(dev.alloc<float>(bicg(kind) ? n_ : 0)),
@@ -91,12 +92,14 @@ class Krylov final : public LinearSolver {
     KUTTA_REQUIRE(x.size() == std::size_t(n_) && b.size() == x.size() &&
                       x.handle() != b.handle(), "solve: vector size or alias mismatch");
     KUTTA_REQUIRE(c.max_iter >= 0 && std::isfinite(c.rel_tol) && c.rel_tol >= 0 &&
-                      std::isfinite(c.abs_tol) && c.abs_tol >= 0 && c.residual_check_interval > 0, "solve: invalid control");
-    KUTTA_REQUIRE(std::isfinite(norm(dev, b)) && std::isfinite(norm(dev, x)),
+                      std::isfinite(c.abs_tol) && c.abs_tol >= 0 && c.residual_check_interval > 0,
+                  "solve: invalid control");
+    const double bnorm = norm(dev, b);
+    KUTTA_REQUIRE(std::isfinite(bnorm) && std::isfinite(norm(dev, x)),
                   "solve: nonfinite input vector");
     if (nullspace_ && n_ != 0) {
       KUTTA_REQUIRE(std::abs(dev.sum(b, n_)) <=
-                        1e-6 * std::sqrt(double(n_)) * norm(dev, b),
+                        1e-6 * std::sqrt(double(n_)) * bnorm,
                     "solve: incompatible RHS for constant Neumann nullspace");
       project(dev, x);
     }
@@ -114,10 +117,9 @@ class Krylov final : public LinearSolver {
         apply(dev, a, r_, z_);
         kern::axpy(dev, n_, x, z_, 2.0f / 3.0f);
         ++stats.iterations;
-        residual(dev, a, x, b, r_);
         if (stats.iterations % c.residual_check_interval == 0 || stats.iterations == c.max_iter) {
           if (verified(dev, a, x, b, target, stats) || diverged(stats)) break;
-        }
+        } else residual(dev, a, x, b, r_);
       }
     } else if (kind_ == SolverKind::PcgJacobi || kind_ == SolverKind::AmgPcg) {
       pcg(dev, a, x, b, c, target, stats);

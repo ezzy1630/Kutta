@@ -1,5 +1,7 @@
 #include <iostream>
 #include <limits>
+#include <map>
+#include "kernels.hpp"
 
 #include "../backend_helpers.hpp"
 #include "kutta/linalg/amg.hpp"
@@ -355,40 +357,42 @@ TEST_CASE("Jacobi batches residual reductions and BiCGStab checks s only once") 
 }
 
 TEST_CASE("assembled random Neumann pressure uses the caller nullspace contract") {
-  auto a = poisson(12, 10, 4, 1, true, true);
-  // FV assembly sums float off-diagonals, introducing harmless row-sum noise.
-  for (Index i = 0; i < a.pattern.n_rows; ++i) {
-    float d = 0;
-    for (Index j = a.pattern.row_ptr[i]; j < a.pattern.row_ptr[i + 1]; ++j)
-      if (a.pattern.col[j] != i) d -= static_cast<float>(a.val[j]);
-    a.val[a.pattern.diag[i]] = d;
-  }
-  KUTTA_FOR_EACH_BACKEND(dev) {
-    auto matrix = upload(*dev, a);
-    auto b = dev->alloc<float>(a.pattern.n_rows), x = dev->alloc<float>(a.pattern.n_rows);
-    dev->fill(b, 0); dev->fill(x, 4);
-    for (auto kind : {SolverKind::PcgJacobi, SolverKind::AmgPcg}) {
-      auto solver = make_solver(kind, *dev, a, {.nullspace = NullSpace::Constant});
-      CHECK(solver->describe().find("nullspace") != std::string::npos);
-      auto stats = solver->solve(*dev, matrix, x, b, {1e-5, 1e-7, 300});
-      CHECK(stats.converged);
-      CHECK(std::abs(dev->sum(x, x.size())) < 1e-5);
-      std::vector<float> forcing(a.pattern.n_rows);
-      forcing.front() = 1; forcing.back() = -1;
-      dev->upload<float>(b, forcing);
-      stats = solver->solve(*dev, matrix, x, b, {1e-5, 1e-7, 300});
-      CHECK(stats.converged);
-      const auto reference = reference_cg(a, forcing, true);
-      const auto got = dev->download(x);
-      double error = 0, scale = 0;
-      for (std::size_t i = 0; i < got.size(); ++i) {
-        error += std::pow(got[i] - reference[i], 2); scale += reference[i] * reference[i];
-      }
-      CHECK(std::sqrt(error / scale) < 2e-4);
-      CHECK(std::abs(dev->sum(x, x.size())) < 1e-5);
-      dev->fill(b, 1);
-      CHECK_THROWS_AS(solver->solve(*dev, matrix, x, b, {}), Error);
+  for (bool float_diagonal : {false, true}) {
+    auto a = poisson(12, 10, 4, 1, true, true);
+    // FV assembly sums float off-diagonals, introducing harmless row-sum noise.
+    if (float_diagonal) for (Index i = 0; i < a.pattern.n_rows; ++i) {
+      float d = 0;
+      for (Index j = a.pattern.row_ptr[i]; j < a.pattern.row_ptr[i + 1]; ++j)
+        if (a.pattern.col[j] != i) d -= static_cast<float>(a.val[j]);
+      a.val[a.pattern.diag[i]] = d;
+    }
+    KUTTA_FOR_EACH_BACKEND(dev) {
+      auto matrix = upload(*dev, a);
+      auto b = dev->alloc<float>(a.pattern.n_rows), x = dev->alloc<float>(a.pattern.n_rows);
       dev->fill(b, 0); dev->fill(x, 4);
+      for (auto kind : {SolverKind::PcgJacobi, SolverKind::AmgPcg}) {
+        auto solver = make_solver(kind, *dev, a, {.nullspace = NullSpace::Constant});
+        CHECK(solver->describe().find("nullspace") != std::string::npos);
+        auto stats = solver->solve(*dev, matrix, x, b, {1e-5, 1e-7, 300});
+        CHECK(stats.converged);
+        CHECK(std::abs(dev->sum(x, x.size())) < 1e-5);
+        std::vector<float> forcing(a.pattern.n_rows);
+        forcing.front() = 1; forcing.back() = -1;
+        dev->upload<float>(b, forcing);
+        stats = solver->solve(*dev, matrix, x, b, {1e-5, 1e-7, 300});
+        CHECK(stats.converged);
+        const auto reference = reference_cg(a, forcing, true);
+        const auto got = dev->download(x);
+        double error = 0, scale = 0;
+        for (std::size_t i = 0; i < got.size(); ++i) {
+          error += std::pow(got[i] - reference[i], 2); scale += reference[i] * reference[i];
+        }
+        CHECK(std::sqrt(error / scale) < 2e-4);
+        CHECK(std::abs(dev->sum(x, x.size())) < 1e-5);
+        dev->fill(b, 1);
+        CHECK_THROWS_AS(solver->solve(*dev, matrix, x, b, {}), Error);
+        dev->fill(b, 0); dev->fill(x, 4);
+      }
     }
   }
 }
@@ -399,6 +403,11 @@ TEST_CASE("AMG rejects negative diagonals and Krylov restores its best verified 
     for (Index i = 0; i < a.pattern.n_rows; i += 7)
       for (Index j = a.pattern.row_ptr[i]; j < a.pattern.row_ptr[i + 1]; ++j) a.val[j] = -a.val[j];
     CHECK_THROWS_WITH_AS(make_solver(SolverKind::AmgBicgstab, *dev, a),
+                         doctest::Contains("AMG: requires positive diagonals"), Error);
+    auto positive = poisson(16, 12, 4, 1, false, false, 20);
+    auto amg = make_solver(SolverKind::AmgBicgstab, *dev, positive);
+    auto changed = upload(*dev, a);
+    CHECK_THROWS_WITH_AS(amg->refresh(*dev, changed),
                          doctest::Contains("AMG: requires positive diagonals"), Error);
     auto matrix = upload(*dev, a);
     auto solver = make_solver(SolverKind::BicgstabJacobi, *dev, a);
@@ -421,6 +430,102 @@ TEST_CASE("AMG rejects negative diagonals and Krylov restores its best verified 
       CHECK(stats.final_residual <= stats.initial_residual);
       CHECK(dev->download(x) == std::vector<float>{0, 0});
       CHECK(stats.iterations == 1);
+    }
+  }
+}
+
+TEST_CASE("actual hierarchy Galerkin values match independent double PtAP before and after refresh") {
+  for (auto backend : Device::available()) {
+    InstrumentedDevice dev(backend);
+    auto a = poisson(12, 10, 6, 1, true);
+    auto matrix = upload(dev, a);
+    auto solver = make_solver(SolverKind::AmgPcg, dev, a);
+    auto b = dev.upload<float>(random_solution(a.pattern.n_rows));
+    auto x = dev.alloc<float>(b.size());
+    for (int refresh = 0; refresh < 2; ++refresh) {
+      if (refresh) {
+        for (Index i = 0; i < a.pattern.n_rows; ++i)
+          for (Index j = a.pattern.row_ptr[i]; j < a.pattern.row_ptr[i + 1]; ++j)
+            a.val[j] = static_cast<float>(a.val[j] * (1.13 + 0.01 * (hash(i + a.pattern.col[j]) % 7)));
+        // Keep SPD by adding a positive reaction larger than the perturbation.
+        for (auto diagonal : a.pattern.diag) a.val[diagonal] += 10;
+        auto changed = upload(dev, a); dev.copy(matrix.val, changed.val);
+        const auto downloads = dev.downloads;
+        solver->refresh(dev, matrix);
+        CHECK(dev.downloads == downloads);
+      }
+      std::map<std::size_t, CsrMatrixHost> operators;
+      std::map<std::size_t, std::vector<Index>> aggregates;
+      dev.after_launch = [&](KernelId id, std::size_t n, std::span<const KernelArg> args) {
+        if (id == KernelId::csr_residual && !operators.contains(n)) {
+          auto& op = operators[n]; op.pattern.n_rows = static_cast<Index>(n);
+          op.pattern.row_ptr = dev.read<Index>(*args[0].buffer);
+          op.pattern.col = dev.read<Index>(*args[1].buffer);
+          const auto values = dev.read<float>(*args[2].buffer);
+          op.val.assign(values.begin(), values.end());
+        }
+        if (id == KernelId::amg_prolong && !aggregates.contains(n))
+          aggregates[n] = dev.read<Index>(*args[0].buffer);
+      };
+      dev.fill(x, 0);
+      solver->solve(dev, matrix, x, b, {0, 0, 1});
+      dev.after_launch = {};
+      REQUIRE(operators.size() >= 3);
+      for (auto fine = operators.rbegin(); fine != operators.rend(); ++fine) {
+        const auto coarse = std::next(fine);
+        if (coarse == operators.rend()) break;
+        const auto& op = fine->second;
+        const auto& cp = coarse->second;
+        REQUIRE(aggregates.contains(fine->first));
+        const auto& map = aggregates.at(fine->first);
+        // Independent row/column assembly in double: do not use the device
+        // entry map or the implementation's accumulation order as the oracle.
+        std::map<std::pair<Index, Index>, double> expected, magnitude;
+        for (Index i = 0; i < op.pattern.n_rows; ++i) {
+          if (map[i] < 0) continue;
+          for (Index j = op.pattern.row_ptr[i]; j < op.pattern.row_ptr[i + 1]; ++j) {
+            const Index col = map[op.pattern.col[j]];
+            if (col < 0) continue;
+            const auto key = std::pair{map[i], col};
+            expected[key] += op.val[j]; magnitude[key] += std::abs(op.val[j]);
+          }
+        }
+        CHECK(expected.size() == cp.val.size());
+        for (Index i = 0; i < cp.pattern.n_rows; ++i)
+          for (Index j = cp.pattern.row_ptr[i]; j < cp.pattern.row_ptr[i + 1]; ++j) {
+            const auto key = std::pair{i, cp.pattern.col[j]};
+            REQUIRE(expected.contains(key));
+            CHECK(std::abs(cp.val[j] - expected.at(key)) <= 2e-7 * magnitude.at(key));
+          }
+      }
+    }
+  }
+}
+
+TEST_CASE("CPU and Metal solves have identical iteration counts residuals and solutions") {
+  auto cpu = Device::create(Backend::Cpu);
+  for (const auto& a : {poisson(4, 3), poisson(5, 4, 3),
+                        poisson(5, 4, 1, 1, false, false, 20)}) {
+    for (auto kind : {SolverKind::PcgJacobi, SolverKind::AmgPcg,
+                      SolverKind::BicgstabJacobi, SolverKind::AmgBicgstab}) {
+      if (a.val[a.pattern.diag[0]] > 20 &&
+          (kind == SolverKind::PcgJacobi || kind == SolverKind::AmgPcg)) continue;
+      auto run = [&](Device& dev) {
+        auto matrix = upload(dev, a); auto solver = make_solver(kind, dev, a);
+        auto b = dev.upload<float>(rhs(a, random_solution(a.pattern.n_rows)));
+        auto x = dev.alloc<float>(b.size()); dev.fill(x, 0);
+        auto stats = solver->solve(dev, matrix, x, b, {1e-5, 0, 200});
+        CHECK(stats.converged);
+        return std::pair{stats, dev.download(x)};
+      };
+      const auto reference = run(*cpu);
+      KUTTA_FOR_EACH_BACKEND(dev) {
+        const auto result = run(*dev);
+        CHECK(result.first.iterations == reference.first.iterations);
+        CHECK(result.first.initial_residual == reference.first.initial_residual);
+        CHECK(result.first.final_residual == reference.first.final_residual);
+        CHECK(result.second == reference.second);
+      }
     }
   }
 }
