@@ -103,7 +103,8 @@ TEST_CASE("real Fluent external mesh acceptance") {
   std::set<std::string> expected = data_files, found;
   for (const auto& e : examples) expected.insert(e.file);
   for (const auto& entry : std::filesystem::recursive_directory_iterator(root))
-    if (entry.is_regular_file() && entry.path().filename() != "SOURCE.md")
+    if (entry.is_regular_file() && entry.path().extension() != ".md" &&
+        !entry.path().filename().string().starts_with("LICENSE"))
       found.insert(entry.path().lexically_relative(root).generic_string());
   REQUIRE(found == expected);
 
