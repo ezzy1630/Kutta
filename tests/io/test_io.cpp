@@ -417,3 +417,59 @@ TEST_CASE("VTU mixed fast cells and polyhedra use correct face offsets") {
     CHECK(faceoffsets[i] == -1);
   }
 }
+
+TEST_CASE("legacy uniform binary cells have a trailer without a payload") {
+  MeshTemp temp;
+  for (int section : {2012, 3012}) {
+    auto text = mesh_text(fixture("hex3d.msh"));
+    const std::string cells = "(12 (14 1 1 1 4))";
+    auto start = text.find(cells);
+    REQUIRE(start != std::string::npos);
+    text.replace(start, cells.size(),
+                 "(" + std::to_string(section) +
+                     " (14 1 1 1 4)\nEnd of Binary Section " +
+                     std::to_string(section) + ")");
+    auto path = temp.path("uniform.cas");
+    mesh_text(path, text);
+    auto m = read_mesh(path);
+    CHECK(compute_geometry(m).cell_volume[0] == doctest::Approx(1));
+  }
+}
+
+TEST_CASE("legacy settings skip balanced lists and escaped quoted parentheses") {
+  MeshTemp temp;
+  auto text = mesh_text(fixture("hex3d.msh"));
+  text += R"settings(
+(37 ((nested (list () ())) (label "(unbalanced \" quote") (more 1)))
+(38 ((label "closing ) and opening ( parentheses") (nested (() ()))))
+(45 (99 wall "unused (zone) name")())
+)settings";
+  auto path = temp.path("settings.cas");
+  mesh_text(path, text);
+  auto m = read_mesh(path);
+  CHECK(compute_geometry(m).cell_volume[0] == doctest::Approx(1));
+  mesh_text(path, text + "(37 ((truncated \"string)");
+  CHECK_THROWS_AS(read_mesh(path), Error);
+  // Never scan unknown binary payloads looking for parentheses/terminators.
+  mesh_text(path, text + "(2999 (1 2)(arbitrary bytes))");
+  CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("unsupported binary"),
+                       Error);
+}
+
+TEST_CASE("binary node flags skip exact counts even with parentheses in raw bytes") {
+  MeshTemp temp;
+  for (int section : {2041, 3041}) {
+    auto text = mesh_text(fixture("hex3d.msh"));
+    text += "(" + std::to_string(section) + " (1 2)(";
+    binary_word(text, 0x29222828, 4, true);
+    binary_word(text, 0xffffffff, 4, true);
+    auto truncated = text.substr(0, text.size() - 1);
+    text += ") End of Binary Section " + std::to_string(section) + ")";
+    auto path = temp.path("flags.cas");
+    mesh_text(path, text);
+    CHECK(compute_geometry(read_mesh(path)).cell_volume[0] == doctest::Approx(1));
+    mesh_text(path, truncated);
+    CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("truncated binary"),
+                         Error);
+  }
+}

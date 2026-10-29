@@ -119,6 +119,11 @@ class Parser {
     }
     return v;
   }
+  void skip_binary(std::uint64_t count, unsigned width) {
+    KUTTA_REQUIRE(count <= (bytes_.size() - pos_) / width,
+                  "Fluent: truncated binary payload");
+    pos_ += static_cast<std::size_t>(count) * width;
+  }
   Index binary_index() {
     auto v = binary(4);
     KUTTA_REQUIRE(
@@ -135,8 +140,8 @@ class Parser {
         "Fluent: non-finite binary coordinate (check machine byte order)");
     return v;
   }
-  void finish(bool binary_section, int section) {
-    expect(')');
+  void finish(bool binary_section, int section, bool body = true) {
+    if (body) expect(')');
     if (binary_section) {
       KUTTA_REQUIRE(token() == "End" && token() == "of" &&
                         token() == "Binary" && token() == "Section",
@@ -196,6 +201,19 @@ detail::FluentRaw parse(std::string bytes) {
     KUTTA_REQUIRE(code != 58 && code != 59 && code != 61,
                   "Fluent: adapted/hanging-node/nonconformal meshes are not "
                   "supported; export a conformal active-cell mesh");
+    if (code == 41 && binary) {
+      // Node flags: two hexadecimal endpoint ids, one 32-bit flag per node
+      // in either precision. Flags are not connectivity and may use all bits.
+      auto h = p.header();
+      KUTTA_REQUIRE(h.size() == 2, "Fluent: malformed node flags header");
+      auto first = Parser::integer(h[0]), last = Parser::integer(h[1]);
+      KUTTA_REQUIRE(first > 0 && last >= first,
+                    "Fluent: invalid node flags range");
+      p.expect('(');
+      p.skip_binary(static_cast<std::uint64_t>(last) - first + 1, 4);
+      p.finish(true, section);
+      continue;
+    }
     if (code != 10 && code != 12 && code != 13 && code != 18) {
       KUTTA_REQUIRE(!binary, "Fluent: unsupported binary section " +
                                  std::to_string(section));
@@ -262,10 +280,9 @@ detail::FluentRaw parse(std::string bytes) {
           cell_types[v[0]] = v[3];
         }
       }
-      if (body)
-        p.finish(binary, section);
-      else
-        p.expect(')');
+      // Uniform cells have no payload, but binary writers still emit the
+      // section trailer. Do not scan raw binary bytes for parentheses.
+      p.finish(binary, section, body);
     } else if (code == 13) {
       KUTTA_REQUIRE(v.size() >= 5, "Fluent: face zone requires face type");
       p.expect('(');
