@@ -186,11 +186,17 @@ int main(int argc,char** argv) {
       auto dev=kutta::Device::create(backend);
       std::cout<<"FV device="<<dev->name()<<std::endl;
       auto mesh=fluent.empty()?kutta::make_box_hex(nx,ny,1,{0,0,0},{1,1,1}):kutta::read_fluent_msh(fluent);
+      std::vector<double> grid_x,grid_y;
       if(!fluent.empty()) {
         std::set<long long> x,y;
         for(auto p:kutta::compute_geometry(mesh).cell_centroid) {x.insert(std::llround(p.x*1e10));y.insert(std::llround(p.y*1e10));}
         nx=int(x.size());ny=int(y.size());
         KUTTA_REQUIRE(nx*ny==mesh.n_cells,"Fluent comparison expects a rectangular extruded grid");
+        std::map<long long,double> nodes_x,nodes_y;
+        for(auto p:mesh.points) {nodes_x.emplace(std::llround(p.x*1e10),p.x);nodes_y.emplace(std::llround(p.y*1e10),p.y);}
+        for(auto [key,value]:nodes_x) {static_cast<void>(key);grid_x.push_back(value);}
+        for(auto [key,value]:nodes_y) {static_cast<void>(key);grid_y.push_back(value);}
+        KUTTA_REQUIRE(grid_x.size()==std::size_t(nx+1) && grid_y.size()==std::size_t(ny+1),"Fluent grid lines are not rectangular");
       }
       auto result=kutta::validation::cavity(*dev,std::move(mesh),reynolds,iterations);
       kutta::validation::compare_cavity(result,data,reynolds,backend,fluent.empty()?std::to_string(nx)+"x"+std::to_string(ny):fluent.string());
@@ -204,6 +210,13 @@ int main(int argc,char** argv) {
         std::cout<<"FV_V4_MATCH backend="<<kutta::backend_name(backend)<<" Re="<<reynolds<<" resolution="<<nx<<"x"<<ny
           <<" u_max="<<profile_difference(result.u,uniform.u)<<" v_max="<<profile_difference(result.v,uniform.v)<<std::endl;
         success=success && uniform.converged;save_profiles(uniform,stem+"-uniform");
+        auto matched_mesh=kutta::make_box_hex(nx,ny,1,{0,0,0},{1,1,1});
+        for(auto& p:matched_mesh.points) {p.x=grid_x[std::llround(p.x*nx)];p.y=grid_y[std::llround(p.y*ny)];}
+        auto matched=kutta::validation::cavity(*dev,std::move(matched_mesh),reynolds,iterations);
+        std::cout<<"FV_V4_MATCHED_GRID backend="<<kutta::backend_name(backend)<<" Re="<<reynolds
+          <<" u_max="<<profile_difference(result.u,matched.u)<<" v_max="<<profile_difference(result.v,matched.v)
+          <<" converged="<<matched.converged<<std::endl;
+        success=success && matched.converged;save_profiles(matched,stem+"-matched-grid");
       }
     }
     KUTTA_REQUIRE(ran,"Requested FV backend is unavailable");
