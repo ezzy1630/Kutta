@@ -2,6 +2,11 @@
 
 Research date: 2026-10-29. Target: Ansys Fluent 2026 R1, steady incompressible RANS k-ω SST, FSAE external aero, same mesh, |ΔCL|, |ΔCD| ≲ 1–2 %.
 
+> **Corrections from saved Fluent fields** (`fluent-sst-forensics.md`, established on the mixing-elbow case). These override the text below:
+> - A1: `kw-sst-strain? #f` means the μt limiter uses strain S.
+> - A2: ω is imposed as a fixed value in wall cells, using β_i = 0.072 and κ = 0.4187. Δy is the normal distance to the wall face plane.
+> - B6: `SV_WALL_SHEAR` is a force per face (not a stress), antiparallel to the near-wall velocity. In residual arrays, column 1 is the normalisation. SST data files also carry `SV_WALL_DIST` and `SV_WALL_YPLUS_UTAU`.
+
 **Evidence tags**
 
 - **[D]** Documented. A source is given, usually the 2026 R1 Theory Guide (TG) or User's Guide (UG).
