@@ -184,6 +184,13 @@ TEST_CASE("Plot3D formatted 2D multiblock, extrusion and boundary splitting") {
   auto g = compute_geometry(m);
   CHECK(std::accumulate(g.cell_volume.begin(), g.cell_volume.end(), 0.) ==
         doctest::Approx(3));
+  REQUIRE(m.patches.size() == 10);
+  const std::vector<std::string> names{
+      "block1_imin", "block1_imax", "block1_jmin", "block1_jmax", "front", "back",
+      "block2_imin", "block2_imax", "block2_jmin", "block2_jmax"};
+  for (std::size_t i = 0; i < names.size(); ++i) CHECK(m.patches[i].name == names[i]);
+  CHECK(m.patches[4].size == 3);
+  CHECK(m.patches[5].size == 3);
   CHECK(m.patches[0].name == "block1_imin");
   CHECK(m.patches[2].name == "block1_jmin");
   auto id = split_patch(m, 2, "plate", [](Vec3d p) { return p.x >= 1; });
@@ -472,4 +479,13 @@ TEST_CASE("binary node flags skip exact counts even with parentheses in raw byte
     CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("truncated binary"),
                          Error);
   }
+}
+
+TEST_CASE("Plot3D multi-block 2D dimensions on one line without an extension hint") {
+  MeshTemp temp;
+  auto path = temp.path("two.xyz");
+  mesh_text(path, "2\n2 2 2 2\n0 1 0 1\n0 0 1 1\n2 3 2 3\n0 0 1 1\n");
+  auto m = read_plot3d(path);
+  CHECK(m.n_cells == 2);
+  CHECK(m.patches.size() == 10);
 }

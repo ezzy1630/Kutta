@@ -53,14 +53,36 @@ single-block dimension headers are supported. Gzip, binary Plot3D, iblank and
 function files are unsupported: callers must **gunzip** compressed grids first.
 Plot3D adds no zlib dependency.
 
-Each block has `blockN_imin`, `blockN_imax`, `blockN_jmin`, `blockN_jmax` boundary
-patches (and `kmin`/`kmax` for 3D). Extruded caps are named `front`/`back`.
-Blocks are independent; no interfaces are inferred or stitched from coincident
-coordinates. Case setup must apply block connectivity when needed.
+`read_plot3d(grid_path, thickness)` automatically loads a sibling `<stem>.nmf`
+when present. `read_plot3d(grid_path, nmf_path, thickness)` selects an explicit
+map; an empty explicit path disables discovery. A present but invalid map fails
+instead of falling back to unclassified block boundaries.
 
-NASA TMR boundaries can cover only part of a block side. The flat-plate wall,
-for example, starts at x=0. Split the relevant patch before building any
-face-indexed fields:
+The [NASA neutral map format](https://turbmodels.larc.nasa.gov/nmf_documentation.html)
+uses one-based inclusive **point** ranges. Both range reversal and one-to-one
+`Swap` orientation are supported. Declared interface points must coincide within
+`1e-12 * max(1, |point1|, |point2|)`; only those points are merged. Paired faces
+become internal faces with ordered owners/neighbours and outward winding.
+Every boundary face must have exactly one BC or interface assignment. Invalid
+indices, mismatched dimensions/ranges, overlaps, gaps and unsupported topology
+(`patched`, collapsed/pole, `unprocessed`) fail with map path/line context.
+Comments, quoted or bare case-insensitive type names, and the trailing backslashes
+in TMR maps are accepted. Custom BC names retain `PatchKind::Other`.
+
+Ordinary 3D maps use the grid's dimensions. Extruded maps may use either
+`ni × nj × 2` or the TMR span-first layout `2 × ni × nj` (map i/j/k become
+mesh z/x/y). If both shapes coincide, the ordinary layout takes precedence.
+BC patches are named `<type>_block<B>_f<F>_<S1>-<E1>_<S2>-<E2>` with lowercase
+and hyphens normalized to underscores; `source_type` retains the original type.
+Wall, symmetry, farfield, inflow and back-pressure types carry `PatchKind` hints;
+case setup still assigns the solver's actual boundary condition. All extruded
+blocks share one `front` and one `back` patch, retaining the map's symmetry type.
+Mapped caps must be symmetry boundaries with consistent source types.
+
+Without a map, each block has independent `blockN_imin`, `blockN_imax`,
+`blockN_jmin`, `blockN_jmax` patches (also `kmin`/`kmax` for 3D). Coincident
+coordinates alone do not imply connectivity. Extruded caps still share one
+`front`/`back` pair. `split_patch()` remains available for other partial boundaries:
 
 ```cpp
 auto plate = kutta::split_patch(mesh, jmin_patch, "plate",
@@ -199,7 +221,9 @@ field components and escaping. No ParaView or binary/base64 dependency is needed
 
 Run `cmake -S . -B build -G Ninja && cmake --build build && ./build/kutta-tests`.
 Repeat with `-DKUTTA_ENABLE_HDF5=OFF` in another build directory to check the
-stub. Optional NASA tests read the coarsest available formatted flat-plate and
-bump grids directly from
+stub. Optional NASA tests read all seven available uncompressed flat-plate,
+bump and NACA0012 grids directly from
 `/Users/ezzy/.Others/Kutta/validation/data/nasa_tmr/*/grids/`; they report a skip
-when that external directory is absent. No large validation files are copied.
+when that external directory is absent. They check every NMF patch name/type/size,
+stitched point/internal-face counts, absence of coincident boundary faces, and
+global boundary area closure. No large validation files are copied.

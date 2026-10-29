@@ -37,11 +37,15 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path,
                          double extrude_2d = 1.0);
 
 // Formatted ASCII Plot3D multi-block grid, 2D or 3D (one k-plane is extruded).
-// Gunzip .gz inputs before calling (no zlib dependency). Block boundaries are
-// blockN_imin/imax/jmin/jmax[/kmin/kmax]; no interface stitching is inferred.
-// Case setup must split partial TMR boundaries by face-centroid predicate, e.g.
-// jmin at x=0 for the flat plate, using split_patch().
+// Gunzip .gz inputs before calling. Auto-loads a sibling <stem>.nmf when
+// present, applying its BC ranges and one-to-one connections. Without a map,
+// blockN_imin/imax/jmin/jmax[/kmin/kmax] remain independent boundaries.
+// Extruded blocks share one front and one back Symmetry patch.
 PolyMesh read_plot3d(const std::filesystem::path& path,
+                     double extrude_2d = 1.0);
+// An empty explicit map path disables auto-discovery.
+PolyMesh read_plot3d(const std::filesystem::path& path,
+                     const std::filesystem::path& nmf_path,
                      double extrude_2d = 1.0);
 
 // Dispatch on file extension.

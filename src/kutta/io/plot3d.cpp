@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "kutta/io/mesh_io.hpp"
-#include "kutta/mesh/detail.hpp"
+#include "kutta/io/plot3d_detail.hpp"
 
 namespace kutta {
 namespace {
@@ -17,6 +17,13 @@ std::vector<int> integers(const std::string& line) {
 }
 }  // namespace
 PolyMesh read_plot3d(const std::filesystem::path& path, double thickness) {
+  auto nmf = path;
+  nmf.replace_extension(".nmf");
+  return read_plot3d(
+      path, std::filesystem::exists(nmf) ? nmf : std::filesystem::path{}, thickness);
+}
+PolyMesh read_plot3d(const std::filesystem::path& path,
+                     const std::filesystem::path& nmf, double thickness) {
   auto extension = path.extension().string();
   std::transform(
       extension.begin(), extension.end(), extension.begin(),
@@ -43,7 +50,10 @@ PolyMesh read_plot3d(const std::filesystem::path& path, double thickness) {
                     "Plot3D: missing dimensions");
     } while (integers(dims).empty());
     auto row = integers(dims);
-    nd = extension == ".p2dfmt" ? 2 : (row.size() == 2 ? 2 : 3);
+    const auto n = static_cast<std::size_t>(blocks);
+    if (row.size() == 2 * n) nd = 2;
+    else if (row.size() == 3 * n) nd = 3;
+    else nd = extension == ".p2dfmt" || row.size() == 2 ? 2 : 3;
     remainder = dims + "\n";
   } else {
     KUTTA_REQUIRE(header.size() == 2 || header.size() == 3,
@@ -78,6 +88,7 @@ PolyMesh read_plot3d(const std::filesystem::path& path, double thickness) {
   std::vector<detail::Face> all_faces;
   std::vector<Patch> all_patches;
   Index all_cells = 0;
+  std::vector<detail::Plot3dBlock> layouts;
   for (int block = 0; block < blocks; ++block) {
     auto [ni, nj, nk] = sizes[block];
     auto np = static_cast<std::size_t>(ni) * nj * nk;
@@ -157,8 +168,16 @@ PolyMesh read_plot3d(const std::filesystem::path& path, double thickness) {
     };
     auto m = detail::from_cells(std::move(points), cells, std::move(patches),
                                 classify);
-    auto po = detail::index(all_points.size()),
-         pa = detail::index(all_patches.size());
+    auto po = detail::index(all_points.size());
+    detail::index(all_points.size() + m.points.size());
+    layouts.push_back({{ni, nj, nk}, po, planar});
+    std::vector<Index> patch_ids;
+    for (const auto& patch : m.patches) {
+      auto found = std::find_if(all_patches.begin(), all_patches.end(),
+                               [&](const Patch& p) { return p.name == patch.name; });
+      patch_ids.push_back(static_cast<Index>(found - all_patches.begin()));
+      if (found == all_patches.end()) all_patches.push_back(patch);
+    }
     all_points.insert(all_points.end(), m.points.begin(), m.points.end());
     for (Index f = 0; f < m.n_faces(); ++f) {
       auto ns = detail::nodes(m, f);
@@ -172,18 +191,19 @@ PolyMesh read_plot3d(const std::filesystem::path& path, double thickness) {
         for (Index p = 0; p < detail::index(m.patches.size()); ++p)
           if (f >= m.patches[p].start &&
               f < m.patches[p].start + m.patches[p].size) {
-            face.patch = p + pa;
+            face.patch = patch_ids[p];
             break;
           }
       all_faces.push_back(std::move(face));
     }
     all_cells = detail::index(static_cast<std::size_t>(all_cells) + m.n_cells);
-    all_patches.insert(all_patches.end(), m.patches.begin(), m.patches.end());
   }
   std::string extra;
   KUTTA_REQUIRE(!(data >> extra),
                 "Plot3D: unexpected trailing data (iblank/function files are "
                 "unsupported)");
+  if (!nmf.empty())
+    detail::apply_neutral_map(nmf, layouts, all_points, all_faces, all_patches);
   auto m = detail::pack(std::move(all_points), all_cells, std::move(all_faces),
                         std::move(all_patches));
   validate(m);
