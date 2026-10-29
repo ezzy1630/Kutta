@@ -37,8 +37,9 @@ TEST_CASE("Scheme rejects malformed or excessive input without stack overflow") 
     }
   }
   std::string large = "(";
-  for (int i = 0; i < 100000; ++i)
+  for (int i = 0; i < 300000; ++i)
     large += "(key . 1) ";
   large += ')';
-  CHECK(parse_sexpr(large).elements.size() == 100000);
+  REQUIRE(large.size() > 2 * 1024 * 1024);
+  CHECK(parse_sexpr(large).elements.size() == 300000);
 }
