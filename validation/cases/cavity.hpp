@@ -12,8 +12,10 @@
 
 namespace kutta::validation {
 using Profile=std::vector<std::pair<double,double>>;
+struct PrimaryVortex { double psi=0,omega=0,x=0,y=0; };
 struct CavityResult {
   Profile u,v;
+  PrimaryVortex vortex;
   fv::IterationReport report;
   double update=0;
   bool converged=false;
@@ -66,7 +68,48 @@ inline double reference_error(const Profile& profile,const std::filesystem::path
   return error;
 }
 
-inline CavityResult cavity(Device& dev,PolyMesh mesh,int reynolds,int maximum_iterations=6000) {
+// Uniform-grid diagnostic only. Integrate psi_y=u from the stationary bottom
+// wall using trapezoids; locate its minimum with a local quadratic including
+// the mixed derivative. Vorticity is -curl(u), the sign used by Erturk Table 1.
+inline PrimaryVortex primary_vortex(const MeshGeometry& g,const std::vector<float>& u,
+                                    const std::vector<float>& v,int n) {
+  KUTTA_REQUIRE(n>=5 && u.size()==std::size_t(n*n),"Vortex diagnostic needs a uniform square grid");
+  const double h=1./n;
+  std::vector<double> a(n*n),b(n*n),psi(n*n),omega(n*n);
+  for(std::size_t c=0;c<u.size();++c) {
+    const auto p=g.cell_centroid[c];
+    const int i=int(p.x*n),j=int(p.y*n);
+    KUTTA_REQUIRE(i>=0 && i<n && j>=0 && j<n &&
+      std::abs(p.x-(i+.5)*h)<1e-10 && std::abs(p.y-(j+.5)*h)<1e-10,
+      "Vortex diagnostic received a nonuniform mesh");
+    a[j*n+i]=u[c];b[j*n+i]=v[c];
+  }
+  for(int i=0;i<n;++i) {
+    psi[i]=h*a[i]/4;
+    for(int j=1;j<n;++j) psi[j*n+i]=psi[(j-1)*n+i]+h*(a[(j-1)*n+i]+a[j*n+i])/2;
+  }
+  int best=n+1;
+  for(int j=1;j<n-1;++j) for(int i=1;i<n-1;++i) {
+    const int c=j*n+i;
+    omega[c]=(a[c+n]-a[c-n]-b[c+1]+b[c-1])/(2*h);
+    if(psi[c]<psi[best]) best=c;
+  }
+  const int i=best%n,j=best/n;
+  KUTTA_REQUIRE(i>1 && i<n-2 && j>1 && j<n-2,"Primary vortex is not interior");
+  const double gx=(psi[best+1]-psi[best-1])/(2*h),gy=(psi[best+n]-psi[best-n])/(2*h);
+  const double xx=(psi[best+1]-2*psi[best]+psi[best-1])/(h*h);
+  const double yy=(psi[best+n]-2*psi[best]+psi[best-n])/(h*h);
+  const double xy=(psi[best+n+1]-psi[best+n-1]-psi[best-n+1]+psi[best-n-1])/(4*h*h);
+  const double det=xx*yy-xy*xy;
+  KUTTA_REQUIRE(xx>0 && det>0,"Primary vortex minimum has no positive Hessian");
+  const double dx=(xy*gy-yy*gx)/det,dy=(xy*gx-xx*gy)/det;
+  const double w=omega[best]+dx*(omega[best+1]-omega[best-1])/(2*h)
+    +dy*(omega[best+n]-omega[best-n])/(2*h);
+  return {-(psi[best]+(gx*dx+gy*dy)/2),w,(i+.5)*h+dx,(j+.5)*h+dy};
+}
+
+inline CavityResult cavity(Device& dev,PolyMesh mesh,int reynolds,int maximum_iterations=6000,
+                           int vortex_grid=0,double update_tolerance=2e-5) {
   std::vector<fv::PatchCondition> boundaries;
   for(const auto& patch:mesh.patches) {
     if(patch.kind==PatchKind::Symmetry || patch.name=="zmin" || patch.name=="zmax")
@@ -92,9 +135,10 @@ inline CavityResult cavity(Device& dev,PolyMesh mesh,int reynolds,int maximum_it
       <<" rc="<<result.report.continuity.scaled<<" mass="<<result.report.corrected_mass_imbalance
       <<" update="<<result.update<<std::endl;
     const bool steady=std::max(result.report.u.scaled,result.report.v.scaled)<5e-7 &&
-      result.update<2e-5 && result.report.corrected_mass_imbalance<1e-5;
+      result.update<update_tolerance && result.report.corrected_mass_imbalance<1e-5;
     if(steady || iteration+100>=maximum_iterations) {
       result.converged=steady;
+      if(vortex_grid) result.vortex=primary_vortex(solver.geometry(),u,v,vortex_grid);
       result.u=centerline(solver.geometry(),u,true);result.v=centerline(solver.geometry(),v,false);
       break;
     }
