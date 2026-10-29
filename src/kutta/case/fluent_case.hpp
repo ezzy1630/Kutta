@@ -128,7 +128,7 @@ struct BoundaryZone {
   std::optional<TurbulenceSpec> turbulence_spec;
   std::map<std::string, ScalarValue> turbulence;
   std::optional<WallMotion> wall_motion;
-  std::optional<bool> relative_motion, specified_shear, prevent_reverse_flow;
+  std::optional<bool> relative_motion, specified_shear, prevent_reverse_flow, wall_components;
   std::optional<int> frame_of_reference, backflow_pressure_spec, shear_bc, rough_bc;
   std::optional<ScalarValue> angular_velocity, roughness_height, roughness_constant;
   ScalarVector axis_origin, axis_direction, shear;

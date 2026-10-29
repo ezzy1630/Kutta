@@ -2,6 +2,7 @@
 #include "kutta/case/hdf5.hpp"
 #include <algorithm>
 #include <charconv>
+#include <cmath>
 #include <fstream>
 #include <limits>
 #include <sstream>
@@ -165,7 +166,7 @@ public:
   ScalarVector vector(std::array<std::string, 3> keys, bool required = true) {
     return {scalar(keys[0], required), scalar(keys[1], required), scalar(keys[2], required)};
   }
-  void vector_override(std::string_view key, ScalarVector &target) {
+  void vector_override(std::string_view key, ScalarVector &target, bool compare = false) {
     auto e = r.entry(key);
     if (!e)
       return;
@@ -180,6 +181,7 @@ public:
       parts = &v->elements;
       begin = 0;
     }
+    const auto scalars = target;
     target = {};
     if (parts->size() != begin + 3) {
       accepted(key, false, true);
@@ -208,6 +210,21 @@ public:
     for (auto &component : target)
       constant = constant && component && component->kind == ScalarValue::Kind::constant;
     accepted(key, constant, true);
+    if (compare) {
+      bool conflict = false;
+      for (int i = 0; i < 3; ++i) {
+        if (!scalars[i] || !target[i])
+          continue;
+        const auto &a = *scalars[i], &b = *target[i];
+        if (a.constant && b.constant)
+          conflict = conflict || std::abs(*a.constant - *b.constant) >
+              1e-8 * std::max({1.0, std::abs(*a.constant), std::abs(*b.constant)});
+        else
+          conflict = conflict || a != b;
+      }
+      if (conflict)
+        c.issues.push_back({prefix + std::string(key), "unsupported: scalar and vector forms disagree"});
+    }
   }
 };
 ZoneType zone_type(std::string_view s) {
@@ -523,6 +540,105 @@ void reference(FluentCase &c) {
   if (v)
     c.variables.interpreted.insert("reference-values");
 }
+// Only recognized switches can be neutral or interpreted. Unknown switches are
+// held even when false; a future writer must not silently expand solver support.
+void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t id) {
+  std::map<std::string, SExpr> neutral;
+  auto flags = [&](std::string_view keys, bool value) {
+    std::istringstream words{std::string(keys)};
+    for (std::string key; words >> key;) {
+      SExpr v;
+      v.kind = K::boolean;
+      v.boolean = value;
+      neutral.emplace(key, v);
+    }
+  };
+  flags("geom-disable? geom-dir-spec", false);
+  if (type == ZoneType::fluid) {
+    flags("sources? fixed? cylindrical-fixed-var? mgrid-enable-transient? mgrid-motion? "
+          "solid-motion? deactivated? les-embedded? contact-property? glass? conical? cursys? "
+          "alt-inertial-form? corey? stone-1? stone-2? rp-cbox-p1 rp-edit-p1 rp-cbox-p2 rp-edit-p2 "
+          "rel-perm-tabular-p1? rel-perm-tabular-p2? non-equib-thermal? fanzone? limit-flow-fan "
+          "tan-source-term rad-source-term axial-source-term read-fan-curve numerical-beach? "
+          "beach-multi-dir? porous-structure? anisotropic-spe-diff? axis-origin-component "
+          "axis-direction-component moving-mesh-velocity-components moving-mesh-axis-origin-components "
+          "solid-motion-velocity-components solid-motion-axis-origin-components "
+          "solid-motion-axis-direction-components none", false);
+    // Radiation/chemistry/multiphase switches are inactive in the globally
+    // allowlisted single-phase, nonreacting problem. Their model flags are checked.
+    flags("radiating? laminar-mut-zero? none? equib-thermal? react? electrolyte? "
+          "mp-boiling-zone? beach-damp-relative? active-wetsteam-zone?", true);
+  }
+  if (type == ZoneType::velocity_inlet || type == ZoneType::pressure_outlet) {
+    flags("open-channel-wave-bc? ocw-vel-segregated? moving-object-direction-components "
+          "secondary-phase-direction-components primary-phase-direction-components "
+          "axis-direction-component axis-origin-component non-equil-boundary? vm-mass-conservation? "
+          "volumetric-synthetic-turbulence-generator? species-in-mole-fractions? equ-required? "
+          "radial-direction-component solar-direction? solar-irradiation? "
+          "fensapice/drop/bccustom? fensapice/drop/dv? fensapice/dpm/surface-injection? "
+          "fensapice/drop/cv? mixing-plane-thread? open-channel? radial? avg-press-spec? "
+          "targeted-mf-boundary? flow-direction-component velocity-component velocity-components", false);
+    flags("vm-streamwise-fluct? parallel-collimated-beam? fensapice/drop/vrh? "
+          "solar-fluxes? radiating-s2s-surface?", true);
+  }
+  if (type == ZoneType::wall) {
+    flags("planar-conduction? moving? wall-translation-vector velocity-components int-rad? rough-nasa? rough-shin-et-al? rough-data? inactive "
+          "dpm/wall-heat-exchange? dpm/film-condensation? dpm/film-bl-model? dpm/film-stripping? "
+          "dpm/initialize-lwf? film-velocity mc-bsource-p? mc-poldfun-p? pold-pair-list-rad "
+          "component-of-radiation-direction critical-zone? solar-direction? solar-irradiation? "
+          "fsi-interface? react? partially-catalytic? echem-reaction? faradaic-heat? fwd? aero? "
+          "cmplx? norm? ablation/flux? film-wall? flux-momentum-components film-relative-vel? "
+          "film-bc-imp-press? film-source? momentum-source-components film-phase-change? "
+          "film-momentum-coupling? film-splash-wall? film-boundary-separation? film-contact-angle? "
+          "film-vof-coupling-high? film-vof-coupling-low? thermal-stabilization? fensapice/ice/hflux? "
+          "fensapice/drop/vwet?", false);
+    flags("rough-option? dpm/bc-erosion-generic? dpm/bc-erosion-finnie? dpm/bc-erosion-mclaury? "
+          "dpm/bc-erosion-oka? dpm/bc-erosion-dnv? dpm/bc-erosion-dnv-ductile? dpm/bc-erosion-shear? "
+          "dpm/bc-erosion-shielding? dpm/allow-lwf-to-vof? dpm/allow-vof-to-lwf? "
+          "radiating-s2s-surface? parallel-collimated-beam? solar-fluxes?", true);
+  }
+  if (type == ZoneType::interior)
+    flags("is-not-a-rans-les-interface", true);
+  auto zero = [&](std::string key) {
+    SExpr v;
+    v.kind = K::integer;
+    neutral.emplace(std::move(key), v);
+  };
+  if (type == ZoneType::wall)
+    zero("method?");
+  if (type == ZoneType::velocity_inlet) {
+    zero("coordinate-system");
+    zero("omega-swirl");
+  }
+  if (type == ZoneType::pressure_outlet)
+    for (auto key : {"gen-nrbc-spec", "p-backflow-spec", "p-backflow-spec-gen", "press-spec-gen"})
+      zero(key);
+  for (const auto &key : raw.unparsed_names()) {
+    const auto *v = raw.value(key);
+    auto it = neutral.find(key);
+    const bool is_switch = boolean(v).has_value() || key.ends_with('?') || it != neutral.end();
+    if (!is_switch)
+      continue;
+    const bool equal = v && it != neutral.end() &&
+        (*v == it->second || (v->number() && it->second.number() && v->number() == it->second.number()));
+    if (equal)
+      raw.interpreted.insert(key);
+    else
+      c.issues.push_back({"zone/" + std::to_string(id) + "/" + key,
+          it == neutral.end() ? "unsupported: switch is not in this zone type's allowlist"
+                              : "unsupported: expected neutral value " + to_string(it->second)});
+  }
+  // These numeric selectors must be checked even when their typed value was read.
+  for (auto key : {"coordinate-system", "omega-swirl", "gen-nrbc-spec", "p-backflow-spec",
+                   "p-backflow-spec-gen", "press-spec-gen"}) {
+    if (!raw.interpreted.contains(key) || !neutral.contains(key))
+      continue;
+    auto v = raw.value(key);
+    if (!v || v->number() != 0.0)
+      c.issues.push_back({"zone/" + std::to_string(id) + "/" + key,
+                         "unsupported: expected neutral value 0"});
+  }
+}
 void thread(FluentCase &c, const SExpr &e) {
   if (e.elements.size() != 3 || e.elements[1].elements.size() < 3 || e.elements[2].kind != K::list)
     throw std::runtime_error("malformed section 39");
@@ -570,6 +686,9 @@ void thread(FluentCase &c, const SExpr &e) {
       z.porous_directions[i] =
           x.vector({p + "x", p + "y", p + "z"}, z.porous.value_or(false) && i < 2);
     }
+    zone_support(c, z.raw, ztype, z.id);
+    if (ztype == ZoneType::solid)
+      c.issues.push_back({"zone/" + std::to_string(z.id), "unsupported: solid cell zone"});
     c.cell_zones.push_back(std::move(z));
     return;
   }
@@ -583,17 +702,39 @@ void thread(FluentCase &c, const SExpr &e) {
   Extractor x(c, z.raw, "zone/" + std::to_string(z.id) + "/");
   bool inlet = ztype == ZoneType::velocity_inlet, outlet = ztype == ZoneType::pressure_outlet,
        wall = ztype == ZoneType::wall;
-  if (inlet || wall) {
-    z.velocity_spec = x.enumeration(
-        "velocity-spec",
-        {VelocitySpec::magnitude_direction, VelocitySpec::components, VelocitySpec::normal}, inlet);
-    z.velocity_magnitude = x.scalar("vmag");
-    z.velocity = x.vector({"u", "v", "w"});
-    z.direction = x.vector({"ni", "nj", "nk"});
+  if (wall) {
+    auto motion = x.code("motion-bc");
+    auto rotating = x.flag("rotating?", motion == 1);
+    if (motion == 0)
+      z.wall_motion = WallMotion::stationary;
+    else if (motion == 1 && rotating)
+      z.wall_motion = *rotating ? WallMotion::rotating : WallMotion::translating;
+    else
+      c.issues.push_back({"zone/" + std::to_string(z.id) + "/motion-bc", "unparsed wall motion"});
+    z.wall_components = x.flag("components?", z.wall_motion == WallMotion::translating);
+    if (z.wall_motion == WallMotion::translating && z.wall_components)
+      z.velocity_spec = *z.wall_components ? VelocitySpec::components : VelocitySpec::magnitude_direction;
+  }
+  if (inlet)
+    z.velocity_spec = x.enumeration("velocity-spec",
+        {VelocitySpec::magnitude_direction, VelocitySpec::components, VelocitySpec::normal});
+  if (inlet || z.wall_motion == WallMotion::translating) {
+    if (z.velocity_spec == VelocitySpec::components) {
+      const std::string key = inlet ? "velocity-component" : "velocity-components";
+      const bool vector_active = z.raw.entry(key) && boolean(z.raw.value(key)) != false;
+      z.velocity = x.vector({"u", "v", "w"}, !vector_active);
+      x.vector_override(key, z.velocity, true);
+    } else if (z.velocity_spec) {
+      z.velocity_magnitude = x.scalar("vmag");
+      if (z.velocity_spec == VelocitySpec::magnitude_direction) {
+        z.direction = x.vector({"ni", "nj", "nk"});
+        x.vector_override("reference-direction-components", z.direction, true);
+        x.vector_override("flow-direction-component", z.direction, true);
+        if (wall)
+          x.vector_override("wall-translation-vector", z.direction, true);
+      }
+    }
     z.frame_of_reference = x.code("frame-of-reference", inlet);
-    x.vector_override("velocity-components", z.velocity);
-    x.vector_override("reference-direction-components", z.direction);
-    x.vector_override("flow-direction-component", z.direction);
   }
   if (inlet || outlet) {
     z.gauge_pressure = x.scalar("p");
@@ -620,30 +761,23 @@ void thread(FluentCase &c, const SExpr &e) {
         z.turbulence.emplace(k == "o" ? "omega" : (k == "e" ? "epsilon" : key), *v);
     }
     if (outlet) {
-      z.backflow_pressure_spec = x.code("press-spec-gen");
-      z.prevent_reverse_flow = x.flag("prevent-reverse-flow", false);
+      z.backflow_pressure_spec = x.code("p-backflow-spec");
+      z.prevent_reverse_flow = x.flag("prevent-reverse-flow?", false);
     }
   }
   if (wall) {
-    auto motion = x.code("motion-bc");
-    auto rotating = x.flag("rotating?");
-    if (motion == 0)
-      z.wall_motion = WallMotion::stationary;
-    else if (motion == 1 && rotating)
-      z.wall_motion = *rotating ? WallMotion::rotating : WallMotion::translating;
-    else
-      c.issues.push_back({"zone/" + std::to_string(z.id) + "/motion-bc", "unparsed wall motion"});
     z.relative_motion = x.flag("relative?");
-    z.angular_velocity = x.scalar("omega");
-    z.axis_origin = x.vector({"x-origin", "y-origin", "z-origin"});
-    z.axis_direction = x.vector({"ai", "aj", "ak"});
+    if (z.wall_motion == WallMotion::rotating) {
+      z.angular_velocity = x.scalar("omega");
+      z.axis_origin = x.vector({"x-origin", "y-origin", "z-origin"});
+      z.axis_direction = x.vector({"ai", "aj", "ak"});
+    }
     z.specified_shear = x.flag("specified-shear?");
     z.shear_bc = x.code("shear-bc");
     z.rough_bc = x.code("rough-bc");
     z.shear = x.vector({"shear-x", "shear-y", "shear-z"});
     z.roughness_height = x.scalar("roughness-height");
     z.roughness_constant = x.scalar("roughness-const");
-    x.vector_override("wall-translation-vector", z.direction);
     x.vector_override("axis-origin-component", z.axis_origin);
     x.vector_override("axis-direction-component", z.axis_direction);
     x.vector_override("position-of-rotation-axis", z.axis_origin);
@@ -652,6 +786,7 @@ void thread(FluentCase &c, const SExpr &e) {
   }
   if (ztype == ZoneType::other)
     c.issues.push_back({"zone/" + std::to_string(z.id), "unparsed boundary type: " + *type});
+  zone_support(c, z.raw, ztype, z.id);
   c.boundaries.push_back(std::move(z));
 }
 void reports(FluentCase &c) {

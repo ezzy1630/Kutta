@@ -46,7 +46,7 @@ auto typed(const BoundaryZone &z) {
       z.id, z.domain, z.name, z.fluent_type, z.type, z.velocity_spec, z.velocity_magnitude,
       z.gauge_pressure, z.velocity, z.direction, z.turbulence_spec, z.turbulence, z.wall_motion,
       z.relative_motion, z.specified_shear, z.prevent_reverse_flow, z.frame_of_reference,
-      z.backflow_pressure_spec, z.shear_bc, z.rough_bc, z.angular_velocity, z.roughness_height,
+      z.backflow_pressure_spec, z.wall_components, z.shear_bc, z.rough_bc, z.angular_velocity, z.roughness_height,
       z.roughness_constant, z.axis_origin, z.axis_direction, z.shear);
 }
 auto typed(const CellZone &z) {
@@ -365,4 +365,49 @@ TEST_CASE("Energy and gravity require proven constant flow properties") {
       CHECK(i->classification == (constant ? IssueClass::informational : IssueClass::unsupported));
     }
   }
+}
+TEST_CASE("Zone switches reject nonneutral cell inlet and outlet behavior") {
+  for (auto key : {"sources?", "fixed?", "fanzone?", "mgrid-motion?", "solid-motion?", "deactivated?", "conical?", "future-switch?"}) {
+    auto c = synthetic(config(false, false, true), "(39 (2 fluid f 1) ((" + std::string(key) + " . #t)))");
+    CHECK(issue_at(c, "zone/2/" + std::string(key)));
+  }
+  for (auto [key, val] : {std::pair{"avg-press-spec?", "#t"}, {"targeted-mf-boundary?", "#t"},
+      {"radial?", "#t"}, {"gen-nrbc-spec", "1"}, {"p-backflow-spec", "1"}}) {
+    auto c = synthetic(config(false, false, true), "(39 (5 pressure-outlet out 1) ((" + std::string(key) + " . " + val + ")))");
+    CHECK(issue_at(c, "zone/5/" + std::string(key)));
+  }
+  for (auto key : {"coordinate-system", "omega-swirl"}) {
+    auto c = synthetic(config(false, false, true), "(39 (4 velocity-inlet in 1) ((" + std::string(key) + " . 1)))");
+    CHECK(issue_at(c, "zone/4/" + std::string(key)));
+  }
+}
+TEST_CASE("Translating walls require only the active velocity representation") {
+  for (bool components : {false, true}) {
+    auto settings = std::string("(motion-bc . 1) (rotating? . #f) (components? . ") + (components ? "#t" : "#f") + ") ";
+    settings += components ? "(u . 15) (v . 0) (w . 0)" : "(vmag . 15) (ni . 1) (nj . 0) (nk . 0)";
+    auto c = synthetic(config(false, false, true), "(39 (8 wall ground 1) (" + settings + "))");
+    auto &z = boundary(c, 8);
+    CHECK(z.wall_motion == WallMotion::translating);
+    CHECK(z.wall_components == components);
+    CHECK(z.velocity_spec == (components ? VelocitySpec::components : VelocitySpec::magnitude_direction));
+    if (components) {
+      REQUIRE(z.velocity[0]);
+      CHECK(z.velocity[0]->constant == 15);
+      CHECK_FALSE(z.velocity_magnitude);
+    } else {
+      REQUIRE(z.velocity_magnitude);
+      CHECK(z.velocity_magnitude->constant == 15);
+      CHECK_FALSE(z.velocity[0]);
+    }
+    for (auto key : {"u", "v", "w", "vmag", "ni", "nj", "nk"})
+      CHECK_FALSE(issue_at(c, "zone/8/" + std::string(key)));
+  }
+}
+TEST_CASE("Inlet singular vector override detects conflicting scalar components") {
+  auto c = synthetic(config(false, false, true), R"scm(
+    (39 (4 velocity-inlet in 1) ((velocity-spec . 1) (u . 2) (v . 0) (w . 0)
+       (velocity-component ((constant . 3)) ((constant . 0)) ((constant . 0)))))
+  )scm");
+  CHECK(boundary(c, 4).velocity[0]->constant == 3);
+  CHECK(issue_at(c, "zone/4/velocity-component"));
 }
