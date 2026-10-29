@@ -24,7 +24,8 @@ struct SExpr {
 };
 struct ParseLimits {
   std::size_t max_depth = 128;
-  std::size_t max_nodes = 2'000'000;
+  // Zero derives a budget from input bytes; explicit caller budgets remain hard limits.
+  std::size_t max_nodes = 0;
   std::size_t max_bytes = 128 * 1024 * 1024;
 };
 struct ParseError : std::runtime_error {

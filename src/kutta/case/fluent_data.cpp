@@ -185,6 +185,17 @@ FluentData read_data(const std::filesystem::path &path, const FluentCase &c) {
   out.mesh = c.mesh;
   for (auto &key : h5::children(f, "/settings"))
     out.raw_settings.emplace(key, h5::string(f, "/settings/" + key));
+  if (auto saved = out.raw_settings.find("Case File"); saved != out.raw_settings.end()) {
+    out.case_file = saved->second;
+    auto basename = [](std::string name) {
+      std::replace(name.begin(), name.end(), '\\', '/');
+      return std::filesystem::path(name).filename().string();
+    };
+    if (c.source_path && basename(*out.case_file) != c.source_path->filename().string())
+      out.issues.push_back({"data/Case File", "saved case name " + *out.case_file +
+          " differs from loaded case " + c.source_path->filename().string(), IssueClass::informational});
+  } else
+    out.issues.push_back({"data/Case File", "absent: saved case name unavailable", IssueClass::informational});
   if (auto it = out.raw_settings.find("Data Variables"); it != out.raw_settings.end()) {
     auto s = parse_sexpr(it->second);
     if (s.elements.size() != 2 || s.elements[0].kind != SExpr::Kind::integer ||

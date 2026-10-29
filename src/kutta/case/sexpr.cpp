@@ -226,6 +226,10 @@ public:
   Parser(std::string_view text, ParseLimits lim) : s(text), limits(lim) {
     if (s.size() > limits.max_bytes)
       fail("input size limit exceeded");
+    // Quotation synthesizes a quote node: compact quoted data can approach one
+    // AST node per input byte. Keep depth and byte limits independent of size.
+    if (!limits.max_nodes)
+      limits.max_nodes = s.size() == std::numeric_limits<std::size_t>::max() ? s.size() : s.size() + 1;
     if (limits.max_depth > 256)
       fail("maximum supported nesting limit is 256");
   }

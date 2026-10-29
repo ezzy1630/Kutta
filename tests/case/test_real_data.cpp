@@ -1,5 +1,6 @@
 #include "kutta/case/fluent_data.hpp"
 #include <cstdlib>
+#include <algorithm>
 #include <doctest/doctest.h>
 using namespace kutta::fluent;
 #if KUTTA_HAS_HDF5
@@ -24,6 +25,9 @@ TEST_CASE("Real mixing elbow data fields match mesh zones") {
   if (!available(data))
     return;
   auto d = read_data(data, c);
+  CHECK(d.case_file == "mixing_elbow.cas.h5");
+  CHECK(c.source_path->filename() == "mixing_elbow.cas.h5");
+  CHECK(std::none_of(d.issues.begin(), d.issues.end(), [](auto &i) { return i.path == "data/Case File"; }));
   CHECK(d.cell_fields.at("SV_P").size() == 17822);
   CHECK(d.cell_fields.at("SV_O").size() == 17822);
   CHECK(d.face_fields.at("SV_P").size() == 91581);

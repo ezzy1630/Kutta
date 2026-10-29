@@ -43,3 +43,14 @@ TEST_CASE("Scheme rejects malformed or excessive input without stack overflow") 
   REQUIRE(large.size() > 2 * 1024 * 1024);
   CHECK(parse_sexpr(large).elements.size() == 300000);
 }
+TEST_CASE("Scheme node budget scales beyond two million for large thread tables") {
+  std::string threads;
+  for (int zone = 1; zone <= 1200; ++zone) {
+    threads += "(39 (" + std::to_string(zone) + " wall body 1) (";
+    for (int key = 0; key < 560; ++key)
+      threads += "(switch . #f) ";
+    threads += "))\n";
+  }
+  CHECK(parse_sexprs(threads).size() == 1200);
+  CHECK_THROWS_AS(parse_sexprs(threads, {128, 2'000'000, 128 * 1024 * 1024}), ParseError);
+}

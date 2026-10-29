@@ -30,6 +30,7 @@ struct ResidualHistory {
   std::vector<std::array<double, 4>> rows;
 };
 struct FluentData {
+  std::optional<std::string> case_file;
   std::map<std::string, Field> cell_fields, face_fields;
   std::map<std::string, ResidualHistory> residuals;
   std::optional<std::uint64_t> iteration_count;

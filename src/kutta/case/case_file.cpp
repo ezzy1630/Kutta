@@ -24,6 +24,38 @@ void validate_topology(const std::vector<ZoneRange> &zs, std::optional<std::uint
   if (count && n != *count)
     throw std::runtime_error("mesh count disagrees with zone topology");
 }
+void check_thread_topology(FluentCase &c) {
+  auto check = [&](const auto &ranges, const auto &threads, bool cell) {
+    for (const auto &range : ranges) {
+      const auto prefix = "mesh/zone/" + std::to_string(range.zone_id);
+      auto thread = std::find_if(threads.begin(), threads.end(),
+          [&](const auto &z) { return z.id == range.zone_id; });
+      if (thread == threads.end()) {
+        c.issues.push_back({prefix, "required: topology zone has no Thread Variables record"});
+        continue;
+      }
+      if (range.name != thread->name)
+        c.issues.push_back({prefix + "/name", "unsupported: topology and thread names disagree"});
+      std::optional<int> expected;
+      if (cell && thread->type == ZoneType::fluid)
+        expected = 1;
+      if (!cell) {
+        switch (thread->type) {
+        case ZoneType::interior: expected = 2; break;
+        case ZoneType::wall: expected = 3; break;
+        case ZoneType::pressure_outlet: expected = 5; break;
+        case ZoneType::symmetry: expected = 7; break;
+        case ZoneType::velocity_inlet: expected = 10; break;
+        default: break;
+        }
+      }
+      if (!expected || !range.type_code || range.type_code != expected)
+        c.issues.push_back({prefix + "/type", "unsupported: topology and thread types disagree or are unverified"});
+    }
+  };
+  check(c.mesh.cell_zones, c.cell_zones, true);
+  check(c.mesh.face_zones, c.boundaries, false);
+}
 std::string read_bytes(const std::filesystem::path &path) {
   std::ifstream f(path, std::ios::binary | std::ios::ate);
   if (!f)
@@ -267,7 +299,9 @@ FluentCase cff(const std::filesystem::path &path) {
       version = s;
     else if (name == "Origin")
       origin = s;
-    else if (!s.empty() && s.front() == '(')
+    else if (name == "Rampant Variables" || name == "Thread Variables" ||
+             name == "Domain Variables" || name == "Cortex Variables" ||
+             (!s.empty() && s.front() == '('))
       sections.emplace(name, parse_sexprs(s));
     else {
       SExpr raw;
@@ -300,14 +334,19 @@ FluentCase cff(const std::filesystem::path &path) {
 #endif
 } // namespace
 FluentCase read_case(const std::filesystem::path &path) {
-  if (path.extension() == ".h5") {
+  auto c = [&]() {
+    if (path.extension() == ".h5") {
 #if KUTTA_HAS_HDF5
-    return cff(path);
+      return cff(path);
 #else
-    throw std::runtime_error(
-        "HDF5 support is not built; configure with an available HDF5 C library");
+      throw std::runtime_error(
+          "HDF5 support is not built; configure with an available HDF5 C library");
 #endif
-  }
-  return legacy(path);
+    }
+    return legacy(path);
+  }();
+  c.source_path = std::filesystem::absolute(path).lexically_normal();
+  check_thread_topology(c);
+  return c;
 }
 } // namespace kutta::fluent

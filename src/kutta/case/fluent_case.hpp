@@ -179,6 +179,7 @@ struct NamedExpression {
   std::string name, parameter_id, definition;
 };
 struct FluentCase {
+  std::optional<std::filesystem::path> source_path;
   std::optional<std::string> solver_version, origin;
   std::optional<int> dimension;
   std::optional<bool> double_precision, unsteady, pressure_based, energy, gravity;

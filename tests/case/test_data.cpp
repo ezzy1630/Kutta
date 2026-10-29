@@ -1,5 +1,6 @@
 #include "kutta/case/fluent_data.hpp"
 #include <doctest/doctest.h>
+#include <algorithm>
 #if KUTTA_HAS_HDF5
 #include "kutta/case/hdf5.hpp"
 #include <chrono>
@@ -50,6 +51,13 @@ struct Fixture {
       attr(ds, "minId", *first);
     if (last)
       attr(ds, "maxId", *last);
+  }
+  void integers(const std::string &path, std::vector<std::int64_t> values) {
+    const hsize_t size = values.size();
+    h5::Handle space(H5Screate_simple(1, &size, nullptr), H5Sclose);
+    h5::Handle ds(H5Dcreate2(file, path.c_str(), H5T_STD_I64LE, space, H5P_DEFAULT, H5P_DEFAULT,
+                            H5P_DEFAULT), H5Dclose);
+    h5::check(H5Dwrite(ds, H5T_NATIVE_INT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, values.data()), path);
   }
   void base() {
     group("/settings");
@@ -134,5 +142,73 @@ TEST_CASE("Data rejects invalid ranges shapes overlaps and external links") {
                             "scalar field",     "wall shear"};
     CHECK_THROWS_WITH(read_data(f.path, matching()), doctest::Contains(errors[mode]));
   }
+}
+#endif
+#if KUTTA_HAS_HDF5
+TEST_CASE("Data Case File provenance is compared by basename without claiming mesh identity") {
+  for (const auto &saved : {"expected.cas.h5", "C:\\run\\expected.cas.h5", "different.cas.h5"}) {
+    Fixture f;
+    f.base();
+    f.str("/settings/Case File", saved);
+    f.numbers("/results/1/phase-1/cells/SV_P/1", {1, 2, 3}, {3}, 101, 103);
+    f.numbers("/results/1/phase-1/faces/SV_WALL_SHEAR/1", {1, 2, 3, 4, 5, 6}, {2, 3}, 11, 12);
+    f.flush();
+    auto c = matching();
+    c.source_path = "/fixtures/expected.cas.h5";
+    auto d = read_data(f.path, c);
+    const bool mismatch = std::any_of(d.issues.begin(), d.issues.end(), [](auto &i) {
+      return i.path == "data/Case File" && i.reason.find("differs") != std::string::npos;
+    });
+    CHECK(mismatch == (std::string_view(saved) == "different.cas.h5"));
+    CHECK(d.case_file == saved);
+    for (const auto &i : d.issues)
+      if (i.path == "data/Case File")
+        CHECK(i.classification == IssueClass::informational);
+  }
+}
+TEST_CASE("Case topology requires matching thread records names and types") {
+  for (bool cell : {false, true})
+  for (int mode = 0; mode < 4; ++mode) {
+    Fixture f;
+    f.group("/settings");
+    f.str("/settings/Rampant Variables", "(37 ((case-config ((rp-3d? . #t)))))");
+    const auto type = cell ? "fluid" : "wall";
+    const auto name = mode == 2 ? "other" : "body";
+    const auto actual_type = mode == 3 ? (cell ? "solid" : "symmetry") : type;
+    auto thread = mode == 1 ? std::string{} : "(39 (8 " + std::string(actual_type) + " " + name + " 1) ())";
+    f.str("/settings/Thread Variables", thread);
+    const std::string root = cell ? "/meshes/1/cells/zoneTopology" : "/meshes/1/faces/zoneTopology";
+    f.group(root);
+    h5::Handle mesh(H5Gopen2(f.file, "/meshes/1", H5P_DEFAULT), H5Gclose);
+    f.attr(mesh, "dimension", 3);
+    f.attr(mesh, cell ? "cellCount" : "faceCount", 1);
+    const std::string p = root + "/";
+    f.integers(p + "id", {8});
+    f.integers(p + "minId", {1});
+    f.integers(p + "maxId", {1});
+    f.integers(p + "zoneType", {cell ? 1 : 3});
+    f.str(p + "name", "body");
+    f.flush();
+    auto c = read_case(f.path);
+    const bool mismatch = std::any_of(c.issues.begin(), c.issues.end(), [](auto &i) {
+      return i.path.starts_with("mesh/zone/8");
+    });
+    CHECK(mismatch == (mode != 0));
+  }
+}
+TEST_CASE("CFF reads large complete Thread Variables strings with a bounded parser") {
+  Fixture f;
+  f.group("/settings");
+  f.str("/settings/Rampant Variables", "(37 ((case-config ((rp-3d? . #t)))))");
+  std::string threads;
+  for (int zone = 1; zone <= 1200; ++zone) {
+    threads += "(39 (" + std::to_string(zone) + " wall body 1) (";
+    for (int key = 0; key < 560; ++key)
+      threads += "(switch . #f) ";
+    threads += "))\n";
+  }
+  f.str("/settings/Thread Variables", threads);
+  f.flush();
+  CHECK(read_case(f.path).boundaries.size() == 1200);
 }
 #endif
