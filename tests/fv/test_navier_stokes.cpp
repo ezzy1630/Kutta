@@ -33,7 +33,7 @@ Errors manufactured(Device& dev,int n,bool tet) {
   using namespace kutta::detail;
   auto mesh=tet?make_box_tet(n,n,n,{0,0,0},{1,1,1}):make_box_hex(n,n,1,{0,0,0},{1,1,1./n});
   // Select x=0, 0<=y<=1/2 as real wall patches, keeping every face in its
-  // original position. Whole-wall pressure/shear cancel for this MMS.
+  // original position. Whole-wall pressure cancels for this MMS.
   const auto initial_geometry=compute_geometry(mesh);
   std::vector<Patch> split;std::vector<std::string> force_patches;
   for(const auto& patch:mesh.patches) {

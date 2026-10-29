@@ -16,6 +16,7 @@ TEST_CASE("FV MMS pressure gradient operator convergence") {
         std::cout<<" exact_face_order="<<exact_order<<" momentum_order="<<momentum_order
           <<" LSQ_order="<<test::order(old.lsq,e.lsq);
         if(n==16) {
+          CHECK(test::order(old.lsq,e.lsq)>=.9);
           CHECK(exact_order>=(tet?.9:1.9));
           if(tet) {CHECK(exact_order<=1.1);CHECK(momentum_order>=.9);}
         }
