@@ -17,7 +17,7 @@ KUTTA_KERNEL void amg_restrict(int i, KIn(int) offsets, KIn(int) members,
 
 KUTTA_KERNEL void amg_prolong(int i, KIn(int) aggregate, KIn(float) coarse,
                              KOut(float) fine) {
-  fine[i] += coarse[aggregate[i]];
+  if (aggregate[i] >= 0) fine[i] += coarse[aggregate[i]];
 }
 
 // Precomputed inverse fine-entry -> coarse-entry map. A coarse entry owns

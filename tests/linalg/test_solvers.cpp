@@ -272,3 +272,39 @@ TEST_CASE("empty CSR and solvers are valid no-ops") {
     }
   }
 }
+
+TEST_CASE("strong upwind couplings coarsen in either direction and under permutation") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    for (double wind : {5.0, 20.0, 100.0}) {
+      auto a = poisson(24, 16, 8, 1, false, false, wind);
+      std::vector<Index> order(a.pattern.n_rows);
+      std::iota(order.begin(), order.end(), 0);
+      for (int ordering = 0; ordering < 3; ++ordering) {
+        if (ordering == 1) std::reverse(order.begin(), order.end());
+        if (ordering == 2) std::sort(order.begin(), order.end(), [](Index i, Index j) {
+          return std::pair{hash(i), i} < std::pair{hash(j), j};
+        });
+        auto matrix = permute(a, order);
+        auto solver = make_solver(SolverKind::AmgBicgstab, *dev, matrix);
+        INFO("wind=" << wind << " order=" << ordering << " " << solver->describe());
+        CHECK(solver->describe().find("1 levels") == std::string::npos);
+      }
+    }
+  }
+}
+
+TEST_CASE("isolated diagonal rows do not prevent connected cells from coarsening") {
+  auto a = poisson(8, 8);
+  // Most cells are independent (e.g. masked solid cells), but the connected
+  // fluid block must still get a coarse correction.
+  for (int i = 0; i < 1024; ++i) {
+    const Index row = a.pattern.n_rows++;
+    a.pattern.diag.push_back(a.pattern.nnz()); a.pattern.col.push_back(row);
+    a.val.push_back(2); a.pattern.row_ptr.push_back(a.pattern.nnz());
+  }
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto solver = make_solver(SolverKind::AmgPcg, *dev, a);
+    CHECK(solver->describe().find("1 levels") == std::string::npos);
+    check_solution(*dev, a, SolverKind::AmgPcg);
+  }
+}

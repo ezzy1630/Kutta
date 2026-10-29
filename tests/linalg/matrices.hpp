@@ -133,3 +133,29 @@ inline std::vector<double> reference_dense(const CsrMatrixHost& a, const std::ve
   return x;
 }
 }  // namespace kutta::test_linalg
+
+namespace kutta::test_linalg {
+// new_to_old defines a simultaneous row/column permutation, preserving A's
+// operator while changing the greedy aggregation traversal order.
+inline CsrMatrixHost permute(const CsrMatrixHost& a, const std::vector<Index>& new_to_old) {
+  CsrMatrixHost result;
+  auto& p = result.pattern;
+  p.n_rows = a.pattern.n_rows;
+  p.diag.resize(p.n_rows);
+  std::vector<Index> old_to_new(p.n_rows);
+  for (Index i = 0; i < p.n_rows; ++i) old_to_new[new_to_old[i]] = i;
+  for (Index i = 0; i < p.n_rows; ++i) {
+    const Index old = new_to_old[i];
+    std::vector<std::pair<Index, double>> row;
+    for (Index j = a.pattern.row_ptr[old]; j < a.pattern.row_ptr[old + 1]; ++j)
+      row.emplace_back(old_to_new[a.pattern.col[j]], a.val[j]);
+    std::sort(row.begin(), row.end());
+    for (auto [col, value] : row) {
+      if (col == i) p.diag[i] = p.nnz();
+      p.col.push_back(col); result.val.push_back(value);
+    }
+    p.row_ptr.push_back(p.nnz());
+  }
+  return result;
+}
+}  // namespace kutta::test_linalg

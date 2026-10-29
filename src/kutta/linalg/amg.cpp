@@ -21,25 +21,51 @@ struct Coarsening {
 // Greedy strongest-unassigned matching, with deterministic index tie-breaking.
 // Repeating on the pair graph forms larger aggregates. Strong normal
 // coupling in a boundary layer is contracted before weak tangential edges.
-std::vector<Index> pairs(const CsrMatrixHost& a, double threshold) {
+std::vector<Index> pairs(const CsrMatrixHost& a, double threshold, bool exclude_isolated) {
   const auto& p = a.pattern;
+  // CSR transpose indices allow strength to see incoming as well as outgoing
+  // edges, including structurally one-sided upwind operators. No atomics.
+  std::vector<Index> offsets(std::size_t(p.n_rows) + 1), sources(p.nnz());
+  for (auto col : p.col) ++offsets[col + 1];
+  std::partial_sum(offsets.begin(), offsets.end(), offsets.begin());
+  auto cursor = offsets;
+  for (Index i = 0; i < p.n_rows; ++i)
+    for (Index j = p.row_ptr[i]; j < p.row_ptr[i + 1]; ++j)
+      sources[cursor[p.col[j]]++] = i;
+  // Transposed rows are sorted because source rows were visited in order.
+  auto neighbors = [&](Index i, auto visit) {
+    Index out = p.row_ptr[i], incoming = offsets[i];
+    while (out < p.row_ptr[i + 1] || incoming < offsets[i + 1]) {
+      const Index oc = out < p.row_ptr[i + 1] ? p.col[out] : p.n_rows;
+      const Index ic = incoming < offsets[i + 1] ? sources[incoming] : p.n_rows;
+      const Index col = std::min(oc, ic);
+      double weight = 0;
+      if (oc == col) weight = std::abs(a.val[out++]);
+      if (ic == col) {
+        const auto first = p.col.begin() + p.row_ptr[col];
+        const auto last = p.col.begin() + p.row_ptr[col + 1];
+        const auto entry = std::lower_bound(first, last, i) - p.col.begin();
+        weight = std::max(weight, std::abs(a.val[entry]));
+        ++incoming;
+      }
+      if (col != i && weight != 0) visit(col, weight);
+    }
+  };
   std::vector<Index> map(p.n_rows, -1);
   Index next = 0;
   for (Index i = 0; i < p.n_rows; ++i) {
     if (map[i] != -1) continue;
     double strongest = 0;
-    for (Index j = p.row_ptr[i]; j < p.row_ptr[i + 1]; ++j)
-      if (p.col[j] != i) strongest = std::max(strongest, std::abs(a.val[j]));
+    neighbors(i, [&](Index, double weight) { strongest = std::max(strongest, weight); });
+    if (exclude_isolated && strongest == 0) continue;
     Index partner = -1;
     double weight = 0;
-    for (Index j = p.row_ptr[i]; j < p.row_ptr[i + 1]; ++j) {
-      const Index c = p.col[j];
-      const double w = std::abs(a.val[j]);
-      if (c != i && map[c] == -1 && w > weight && w >= threshold * strongest) {
-        partner = c;
+    neighbors(i, [&](Index col, double w) {
+      if (map[col] == -1 && w > weight && w >= threshold * strongest) {
+        partner = col;
         weight = w;
       }
-    }
+    });
     map[i] = next;
     if (partner != -1) map[partner] = next;
     ++next;
@@ -47,59 +73,67 @@ std::vector<Index> pairs(const CsrMatrixHost& a, double threshold) {
   return map;
 }
 
-Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate) {
+Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool entry_map) {
   Coarsening c;
   c.aggregate = std::move(aggregate);
-  const Index nc = *std::max_element(c.aggregate.begin(), c.aggregate.end()) + 1;
+  const Index nc = c.aggregate.empty() ? 0 : *std::max_element(c.aggregate.begin(), c.aggregate.end()) + 1;
   auto& cp = c.matrix.pattern;
   cp.n_rows = nc;
   cp.row_ptr.assign(std::size_t(nc) + 1, 0);
   cp.diag.resize(nc);
   c.member_offsets.assign(std::size_t(nc) + 1, 0);
-  for (auto g : c.aggregate) ++c.member_offsets[g + 1];
+  for (auto g : c.aggregate) if (g >= 0) ++c.member_offsets[g + 1];
   std::partial_sum(c.member_offsets.begin(), c.member_offsets.end(), c.member_offsets.begin());
-  c.members.resize(c.aggregate.size());
+  c.members.resize(c.member_offsets.back());
   auto cursor = c.member_offsets;
-  for (Index i = 0; i < fine.pattern.n_rows; ++i) c.members[cursor[c.aggregate[i]]++] = i;
+  for (Index i = 0; i < fine.pattern.n_rows; ++i)
+    if (c.aggregate[i] >= 0) c.members[cursor[c.aggregate[i]]++] = i;
 
   // Sort only one aggregate row at a time, not a global nnz-sized tuple array.
   // Source indices are tie-breakers, fixing the sum order across all backends.
   std::vector<std::pair<Index, Index>> row;
-  c.entries.reserve(fine.pattern.nnz());
-  c.entry_offsets.push_back(0);
+  if (entry_map) {
+    c.entries.reserve(fine.pattern.nnz());
+    c.entry_offsets.push_back(0);
+  }
   for (Index g = 0; g < nc; ++g) {
     row.clear();
     for (Index m = c.member_offsets[g]; m < c.member_offsets[g + 1]; ++m) {
       Index i = c.members[m];
       for (Index j = fine.pattern.row_ptr[i]; j < fine.pattern.row_ptr[i + 1]; ++j)
-        row.emplace_back(c.aggregate[fine.pattern.col[j]], j);
+        if (c.aggregate[fine.pattern.col[j]] >= 0)
+          row.emplace_back(c.aggregate[fine.pattern.col[j]], j);
     }
     std::sort(row.begin(), row.end());
     Index previous = -1;
     for (auto [col, source] : row) {
       if (col != previous) {
-        if (previous != -1) c.entry_offsets.push_back(static_cast<Index>(c.entries.size()));
+        if (entry_map && previous != -1) c.entry_offsets.push_back(static_cast<Index>(c.entries.size()));
         if (col == g) cp.diag[g] = static_cast<Index>(cp.col.size());
         cp.col.push_back(col);
         c.matrix.val.push_back(0);
         previous = col;
       }
-      c.entries.push_back(source);
+      if (entry_map) c.entries.push_back(source);
       c.matrix.val.back() += fine.val[source];
     }
-    c.entry_offsets.push_back(static_cast<Index>(c.entries.size()));
+    if (entry_map) c.entry_offsets.push_back(static_cast<Index>(c.entries.size()));
     cp.row_ptr[g + 1] = static_cast<Index>(cp.col.size());
   }
   return c;
 }
 
 Coarsening aggregate(const CsrMatrixHost& a, const AmgOptions& options) {
-  auto c = coarsen(a, pairs(a, options.strength_threshold));
+  auto map = pairs(a, options.strength_threshold, true);
   for (int pass = 1; pass < options.aggregation_passes; ++pass) {
-    auto next = pairs(c.matrix, options.strength_threshold);
-    for (auto& g : c.aggregate) g = next[g];
-    c = coarsen(a, std::move(c.aggregate));
+    // Pairing only needs the intermediate operator; entry maps are built once
+    // for the final transfer. Release it before rebuilding from the fine grid.
+    auto intermediate = coarsen(a, std::move(map), false);
+    auto next = pairs(intermediate.matrix, options.strength_threshold, false);
+    map = std::move(intermediate.aggregate);
+    for (auto& g : map) if (g >= 0) g = next[g];
   }
+  auto c = coarsen(a, std::move(map), true);
   return c;
 }
 
@@ -130,7 +164,8 @@ class Aggregation final : public linalg_detail::Preconditioner {
            levels_.size() < std::size_t(options_.max_levels)) {
       auto c = aggregate(*fine, options_);
       // Unconnected/diagonal graphs cannot coarsen. Smoothing remains valid.
-      if (c.matrix.pattern.n_rows >= 0.85 * fine->pattern.n_rows) break;
+      const auto active = c.members.size();
+      if (active == 0 || c.matrix.pattern.n_rows >= 0.85 * active) break;
       auto& t = levels_.back().transfer;
       t.aggregate = dev.upload<Index>(c.aggregate);
       t.member_offsets = dev.upload<Index>(c.member_offsets);
