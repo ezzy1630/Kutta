@@ -278,7 +278,7 @@ def gen_metal(kernels: list[Kernel], paths: list[pathlib.Path], prelude: pathlib
         src.append("  if (kutta_gid >= kutta_n) return;")
         src.append(f"  ksrc::{k.name}({call});")
         src.append("}")
-    body = "\n".join(src)
+    body = "\n".join(src) + "\n"
     if ")KUTTA_METAL\"" in body:
         fail("kernel source contains the raw-string terminator )KUTTA_METAL\"")
     out = [
@@ -287,7 +287,26 @@ def gen_metal(kernels: list[Kernel], paths: list[pathlib.Path], prelude: pathlib
         '#include "kernels.hpp"',
         "",
         "namespace kutta {",
-        f'const char* const metal_kernel_source = R"KUTTA_METAL({body}\n)KUTTA_METAL";',
+        "const char* const metal_kernel_source_parts[] = {",
+    ]
+    # Separate array elements, not adjacent literals: concatenation at compile
+    # time would still exceed the compiler's 65,536-character literal limit.
+    # Split UTF-8 bytes so the bound also holds if kernel comments use Unicode.
+    chunk = ""
+    size = 0
+    for character in body:
+        width = len(character.encode("utf-8"))
+        if size + width > 60000:
+            out.append(f'    R"KUTTA_METAL({chunk})KUTTA_METAL",')
+            chunk, size = "", 0
+        chunk += character
+        size += width
+    if chunk:
+        out.append(f'    R"KUTTA_METAL({chunk})KUTTA_METAL",')
+    out += [
+        "};",
+        "const std::size_t metal_kernel_source_part_count =",
+        "    sizeof(metal_kernel_source_parts) / sizeof(metal_kernel_source_parts[0]);",
         "const char* const metal_kernel_entry[] = {",
     ]
     out += [f'    "kutta_{k.name}",' for k in kernels]

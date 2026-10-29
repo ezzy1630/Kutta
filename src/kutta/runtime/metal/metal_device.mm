@@ -167,8 +167,11 @@ class MetalDevice final : public Device {
 #pragma clang diagnostic pop
       }
       NSError* error = nil;
-      NSString* source = [[NSString stringWithUTF8String:metal_kernel_source]
-          stringByAppendingString:[NSString stringWithUTF8String:reduction_source]];
+      std::string joined_source;
+      for (std::size_t i = 0; i < metal_kernel_source_part_count; ++i)
+        joined_source += metal_kernel_source_parts[i];
+      joined_source += reduction_source;
+      NSString* source = [NSString stringWithUTF8String:joined_source.c_str()];
       id<MTLLibrary> library = [device_ newLibraryWithSource:source options:options error:&error];
       if (!library) throw Error("Metal compilation: " + std::string(error.localizedDescription.UTF8String));
       auto pipeline = [&](const char* entry) {
