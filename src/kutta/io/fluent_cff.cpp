@@ -66,12 +66,21 @@ std::size_t count(hid_t dataset) {
                 "CFF: dataset exceeds mesh capacity");
   return static_cast<std::size_t>(n);
 }
-// Older Fluent writers deflate only the valid rows of the final chunk.
-// HDF5 2.2 rejects these (HDFGroup/hdf5#6691). On a failed ordinary read,
-// accept only a complete deflate stream with exactly the full chunk size or
-// the valid final-row size. Never pad missing mesh data or modify the file.
+herr_t partial_chunk_error(unsigned, const H5E_error2_t* error, void* found) {
+  if (error->desc && std::strstr(error->desc,
+                                "chunk size is incorrect after being unfiltered"))
+    *static_cast<bool*>(found) = true;
+  return 0;
+}
+// HDF5 2.2 rejects older Fluent writers' unpadded final chunks (#6691).
+// Only that diagnostic permits raw reads; every stream must still contain
+// exactly its full chunk or valid final rows. Never pad missing mesh data.
 template <class T>
 void read_legacy_chunks(hid_t d, hid_t memory_type, std::vector<T>& out) {
+  unsigned major = 0, minor = 0, release = 0;
+  check(H5get_libversion(&major, &minor, &release), "library version");
+  KUTTA_REQUIRE(major == 2 && minor == 2,
+                "CFF: legacy chunk fallback requires HDF5 2.2");
   H5 space(H5Dget_space(d), H5Sclose, "legacy chunk space");
   auto rank = H5Sget_simple_extent_ndims(space);
   KUTTA_REQUIRE(rank == 1 || rank == 2, "CFF: unsupported legacy chunk rank");
@@ -94,8 +103,17 @@ void read_legacy_chunks(hid_t d, hid_t memory_type, std::vector<T>& out) {
                     chunk[0] <= static_cast<hsize_t>(
                                     std::numeric_limits<Index>::max()) / dims[1],
                 "CFF: invalid legacy numeric chunk");
+  KUTTA_REQUIRE(dims[0] > 0 && dims[0] % chunk[0] != 0 &&
+                    dims[0] <= out.size() / dims[1] &&
+                    dims[0] * dims[1] == out.size(),
+                "CFF: legacy fallback requires partial final rows within output");
   auto elements = static_cast<std::size_t>(chunk[0] * dims[1]);
+  KUTTA_REQUIRE(elements <= std::numeric_limits<std::size_t>::max() /
+                               std::max(width, sizeof(T)) &&
+                    elements <= std::numeric_limits<uLong>::max() / width,
+                "CFF: legacy chunk exceeds buffer capacity");
   auto full_bytes = elements * width;
+  bool partial_final = false;
   for (hsize_t row = 0; row < dims[0]; row += chunk[0]) {
     hsize_t offset[2]{row, 0}, stored_bytes = 0;
     check(H5Dget_chunk_storage_size(d, offset, &stored_bytes), "chunk size");
@@ -126,11 +144,13 @@ void read_legacy_chunks(hid_t d, hid_t memory_type, std::vector<T>& out) {
                       (decoded_bytes == full_bytes ||
                        decoded_bytes == valid * width),
                   "CFF: invalid/truncated legacy deflate chunk");
+    partial_final = partial_final || decoded_bytes < full_bytes;
     check(H5Tconvert(stored_type, memory_type, valid, decoded.data(), nullptr,
                      H5P_DEFAULT), "legacy numeric conversion");
     std::memcpy(out.data() + static_cast<std::size_t>(row * dims[1]),
                 decoded.data(), valid * sizeof(T));
   }
+  KUTTA_REQUIRE(partial_final, "CFF: no legacy partial deflate chunk found");
 }
 template <class T>
 std::vector<T> read(hid_t file, const std::string& path, hid_t type) {
@@ -138,11 +158,18 @@ std::vector<T> read(hid_t file, const std::string& path, hid_t type) {
   std::vector<T> out(count(d));
   if (!out.empty()) {
     herr_t status = 0;
+    bool partial_error = false;
+    herr_t walk_status = 0;
     H5E_BEGIN_TRY {
       status = H5Dread(d, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, out.data());
+      if (status < 0)
+        walk_status = H5Ewalk2(H5E_DEFAULT, H5E_WALK_DOWNWARD,
+                              partial_chunk_error, &partial_error);
     }
     H5E_END_TRY;
+    check(walk_status, "error stack");
     if (status < 0) {
+      KUTTA_REQUIRE(partial_error, "CFF: HDF5 failure reading " + path);
       try {
         read_legacy_chunks(d, type, out);
       } catch (const Error& error) {

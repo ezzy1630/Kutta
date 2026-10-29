@@ -371,48 +371,83 @@ TEST_CASE("CFF legacy deflate partial chunks preserve numeric conversion and rej
   REQUIRE(f >= 0);
   const std::string coords = "/meshes/1/nodes/coords/1";
   REQUIRE(H5Ldelete(f, coords.c_str(), H5P_DEFAULT) >= 0);
-  hsize_t dims[2]{6, 3}, chunk[2]{4, 3};
-  auto space = H5Screate_simple(2, dims, nullptr);
+  enum class Stream {
+    Partial, Full, Corrupt, Short, Overlong, Trailing, ShortInterior, Oversized,
+    Truncated
+  };
+  auto stream = Stream::Partial;
+  bool flat = false, narrow = false;
+  SUBCASE("valid short final chunk") {}
+  SUBCASE("full padded final chunk") { stream = Stream::Full; }
+  SUBCASE("rank one chunks") { flat = true; }
+  SUBCASE("float32 widens to native double") { narrow = true; }
+  SUBCASE("corrupt deflate stream bypasses compatibility fallback") {
+    stream = Stream::Corrupt;
+  }
+#if H5_VERSION_GE(2, 2, 0)
+  // Earlier HDF5 versions accept undersized streams without invoking fallback.
+  SUBCASE("complete stream with missing numeric values") {
+    stream = Stream::Short;
+  }
+  SUBCASE("complete stream with excess numeric values") {
+    stream = Stream::Overlong;
+  }
+  SUBCASE("trailing bytes after complete stream") { stream = Stream::Trailing; }
+  SUBCASE("short interior chunk") { stream = Stream::ShortInterior; }
+  SUBCASE("decoded stream exceeds full buffer") { stream = Stream::Oversized; }
+  SUBCASE("truncated compressed stream") { stream = Stream::Truncated; }
+#endif
+  hsize_t dims[2]{flat ? 18u : 6u, 3}, chunk[2]{flat ? 12u : 4u, 3};
+  const int rank = flat ? 1 : 2;
+  auto space = H5Screate_simple(rank, dims, nullptr);
   auto props = H5Pcreate(H5P_DATASET_CREATE);
-  REQUIRE(H5Pset_chunk(props, 2, chunk) >= 0);
+  REQUIRE(H5Pset_chunk(props, rank, chunk) >= 0);
   REQUIRE(H5Pset_deflate(props, 1) >= 0);
-  auto d = H5Dcreate2(f, coords.c_str(), H5T_IEEE_F64BE, space, H5P_DEFAULT,
-                     props, H5P_DEFAULT);
+  auto d = H5Dcreate2(f, coords.c_str(), narrow ? H5T_IEEE_F32BE : H5T_IEEE_F64BE,
+                     space, H5P_DEFAULT, props, H5P_DEFAULT);
   REQUIRE(d >= 0);
   attr(f, coords, "minId", 7);
   attr(f, coords, "maxId", 12);
-  bool corrupt = false, short_data = false;
-  SUBCASE("valid short final chunk") {}
-  SUBCASE("corrupt deflate stream") { corrupt = true; }
-#if H5_VERSION_GE(2, 2, 0)
-  // Older HDF5 accepts undersized streams itself; this exercises our fallback
-  // on versions that reject them and must never manufacture missing values.
-  SUBCASE("complete stream with missing numeric values") { short_data = true; }
-#endif
+  const std::size_t width = narrow ? 4 : 8;
   for (hsize_t row : {0, 4}) {
     std::vector<unsigned char> bytes;
-    for (hsize_t i = row; i < std::min(row + 4, dims[0]); ++i) {
+    for (hsize_t i = row; i < std::min<hsize_t>(row + 4, 6); ++i) {
       auto point = original.points[6 + i];
       for (auto x : {point.x, point.y, point.z}) {
-        auto word = std::bit_cast<std::uint64_t>(x);
-        for (int j = 7; j >= 0; --j) bytes.push_back((word >> (8 * j)) & 255);
+        const std::uint64_t word = narrow
+            ? std::bit_cast<std::uint32_t>(static_cast<float>(x))
+            : std::bit_cast<std::uint64_t>(x);
+        for (int j = static_cast<int>(width) - 1; j >= 0; --j)
+          bytes.push_back((word >> (8 * j)) & 255);
       }
     }
-    if (short_data && row == 4) bytes.resize(bytes.size() - sizeof(double));
+    if ((stream == Stream::Short && row == 4) ||
+        (stream == Stream::ShortInterior && row == 0))
+      bytes.resize(bytes.size() - width);
+    if (stream == Stream::Overlong && row == 4) bytes.resize(bytes.size() + width);
+    if (stream == Stream::Full && row == 4) bytes.resize(12 * width);
+    if (stream == Stream::Oversized && row == 4) bytes.resize(13 * width);
     auto length = compressBound(bytes.size());
     std::vector<unsigned char> compressed(length);
     REQUIRE(compress2(compressed.data(), &length, bytes.data(), bytes.size(), 1) == Z_OK);
-    if (corrupt && row == 4) compressed[length - 1] ^= 255;
-    hsize_t offset[2]{row, 0};
+    if (stream == Stream::Corrupt && row == 4) compressed[length - 1] ^= 255;
+    if (stream == Stream::Truncated && row == 4) --length;
+    if (stream == Stream::Trailing && row == 4) {
+      compressed.resize(length + 1);
+      compressed[length++] = 42;
+    }
+    hsize_t offset[2]{flat ? row * 3 : row, 0};
     REQUIRE(H5Dwrite_chunk(d, H5P_DEFAULT, 0, offset, length, compressed.data()) >= 0);
   }
   H5Dclose(d);
   H5Pclose(props);
   H5Sclose(space);
   REQUIRE(H5Fclose(f) >= 0);
-  if (corrupt || short_data) {
-    H5E_BEGIN_TRY { CHECK_THROWS_AS(read_mesh(path), Error); }
-    H5E_END_TRY;
+  if (stream == Stream::Corrupt) {
+    const auto expected = "CFF: HDF5 failure reading " + coords;
+    CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains(expected.c_str()), Error);
+  } else if (stream != Stream::Partial && stream != Stream::Full) {
+    CHECK_THROWS_AS(read_mesh(path), Error);
   } else {
     auto mesh = read_mesh(path);
     CHECK(mesh.n_points() == original.n_points());

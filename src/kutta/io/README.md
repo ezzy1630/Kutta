@@ -157,9 +157,13 @@ Layout and convention references (read for documentation; code is original):
 
 Older Fluent writers can deflate only the valid rows of the final HDF5 chunk.
 HDF5 2.2 rejects this layout ([upstream issue 6691](https://github.com/HDFGroup/hdf5/issues/6691)).
-If an ordinary numeric read fails, the reader supports a constrained raw-chunk
-fallback: rank 1/2, complete rows, a single deflate filter, and a complete stream
-that expands to exactly a full chunk or the valid final rows. HDF5 performs
+Only an ordinary numeric read failing with HDF5 2.2's specific
+"chunk size is incorrect after being unfiltered" diagnostic permits the raw-chunk
+fallback. It requires rank 1/2, complete rows, a single deflate filter, and a
+partial final chunk. Each complete stream must expand to exactly a full chunk
+or the valid final rows, with at least one unpadded final chunk. Decoded and
+converted buffer sizes are bounded against the output. Other HDF5 read failures
+propagate without compatibility recovery. HDF5 performs
 numeric conversion, including byte order. Corrupt, truncated and unsupported
 chunks fail; inputs are never rewritten.
 
