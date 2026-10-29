@@ -90,8 +90,24 @@ TEST_CASE("prism, polygonal prism and warped face geometry") {
   // Bilinear top z=1+.4*x*y: exact integral of its center fan is 1.1.
   volume_and_closure(m, 1.1);
   auto g = compute_geometry(m);
-  CHECK(g.cell_centroid[0].x == doctest::Approx((.5 + .4 / 6) / 1.1));
-  CHECK(g.cell_centroid[0].y == doctest::Approx((.5 + .4 / 6) / 1.1));
+  // Cell centroids follow the Fluent/OpenFOAM face-pyramid convention, so on a
+  // warped face they differ slightly from the exact moment of the fan surface.
+  // Reference: pyramids from the mean face centroid over flattened faces.
+  Vec3d apex{};
+  for (Index f = 0; f < m.n_faces(); ++f) apex = apex + g.face_centroid[f] / double(m.n_faces());
+  double volume = 0;
+  Vec3d moment{};
+  for (Index f = 0; f < m.n_faces(); ++f) {
+    const double v = dot(g.face_area[f], g.face_centroid[f] - apex) / 3;
+    volume += v;
+    moment = moment + (apex + (g.face_centroid[f] - apex) * 0.75) * v;
+  }
+  const Vec3d pyramid = moment / volume;
+  const Vec3d exact{(.5 + .4 / 6) / 1.1, (.5 + .4 / 6) / 1.1, (14.62 / 24) / 1.1};
+  CHECK(g.cell_centroid[0].x == doctest::Approx(pyramid.x).epsilon(1e-12));
+  CHECK(g.cell_centroid[0].y == doctest::Approx(pyramid.y).epsilon(1e-12));
+  CHECK(g.cell_centroid[0].z == doctest::Approx(pyramid.z).epsilon(1e-12));
+  CHECK(norm(g.cell_centroid[0] - exact) < 2e-3);
   // Area centroid must differ from the unweighted vertex average on a warped
   // quad.
   auto f = m.patches[5].start;
@@ -99,7 +115,6 @@ TEST_CASE("prism, polygonal prism and warped face geometry") {
   CHECK(g.face_centroid[f].x == doctest::Approx(41. / 81));
   CHECK(g.face_centroid[f].y == doctest::Approx(41. / 81));
   CHECK(g.face_centroid[f].z == doctest::Approx(893. / 810));
-  CHECK(g.cell_centroid[0].z == doctest::Approx((14.62 / 24) / 1.1));
 }
 TEST_CASE("validation rejects malformed topology and winding") {
   auto good = make_box_hex(2, 1, 1, {0, 0, 0}, {2, 1, 1});

@@ -100,8 +100,8 @@ MeshGeometry geometry(const PolyMesh& m) {
                   "face " + std::to_string(f) + " has invalid projected area");
     g.face_centroid[f] = center + moment / area;
     auto add = [&](Index c) {
-      if (!count[c]) anchor[c] = center;
-      estimate[c] = estimate[c] + (center - anchor[c]);
+      if (!count[c]) anchor[c] = g.face_centroid[f];
+      estimate[c] = estimate[c] + (g.face_centroid[f] - anchor[c]);
       ++count[c];
     };
     add(m.owner[f]);
@@ -112,20 +112,18 @@ MeshGeometry geometry(const PolyMesh& m) {
                   "cell " + std::to_string(c) + " has fewer than four faces");
     estimate[c] = anchor[c] + estimate[c] / count[c];
   }
-  // Signed tetrahedral pyramids use the same center fan as the face geometry.
-  // This integrates first moments of warped faces without flattening them.
+  // Fluent/OpenFOAM convention: one pyramid per face from the mean of the
+  // cell's face centroids to the face's (flattened) area vector and centroid,
+  // with the pyramid centroid 3/4 of the way to the face. Saved Fluent wall
+  // distances, y+ and wall omega reproduce only with this convention (exact
+  // warped-face tetrahedra shift wall-normal distances by up to 0.6%; see
+  // docs/research/fluent-sst-forensics.md and fv/turbulence/README.md).
   for (Index f = 0; f < m.n_faces(); ++f) {
-    auto ns = nodes(m, f);
-    auto center = face_center(m, f);
     auto add = [&](Index c, double sign) {
-      auto r = center - estimate[c];
-      for (std::size_t j = 0; j < ns.size(); ++j) {
-        auto a = m.points[ns[j]] - estimate[c],
-             b = m.points[ns[(j + 1) % ns.size()]] - estimate[c];
-        double v = sign * dot(r, cross(a, b)) / 6;
-        g.cell_volume[c] += v;
-        g.cell_centroid[c] = g.cell_centroid[c] + (r + a + b) * (v / 4);
-      }
+      const auto r = g.face_centroid[f] - estimate[c];
+      const double v = sign * dot(g.face_area[f], r) / 3;
+      g.cell_volume[c] += v;
+      g.cell_centroid[c] = g.cell_centroid[c] + r * (0.75 * v);
     };
     add(m.owner[f], 1);
     if (f < m.n_internal_faces()) add(m.neighbour[f], -1);

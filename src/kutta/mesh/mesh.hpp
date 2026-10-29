@@ -67,10 +67,12 @@ struct PolyMesh {
 // Throws kutta::Error describing the first violated invariant.
 void validate(const PolyMesh& mesh);
 
-// Double-precision center-fan geometry. Face centroids use signed areas
-// projected onto the resultant normal; cell moments use signed tetrahedra.
-// Planar simple polygons have exact area moments. Warped-face centroids
-// follow this decomposition rather than an exact curved-surface definition.
+// Double-precision geometry in the Fluent/OpenFOAM convention. Faces are
+// triangle fans about the node average, with centroids weighted by triangle
+// area projected on the resultant normal (exact for planar simple polygons).
+// Cells are pyramids from the mean of their face centroids to each flattened
+// face, with the centroid 3/4 of the way to the face. Saved Fluent fields
+// (wall distance, y+, wall omega) reproduce only with this convention.
 struct MeshGeometry {
   std::vector<Vec3d> face_centroid;  // per face
   std::vector<Vec3d> face_area;      // area-weighted normal, points out of owner
