@@ -20,8 +20,12 @@ void scalar(const std::optional<ScalarValue> &v) {
     value(v->constant);
   else {
     std::cout << "binding(" << v->binding << ')';
-    if (v->constant)
-      std::cout << " saved=" << *v->constant;
+    if (v->resolved) {
+      std::cout << " resolved=" << *v->resolved << " (resolved from expression";
+      if (!v->expression_name.empty())
+        std::cout << ' ' << v->expression_name;
+      std::cout << ": " << v->definition << ')';
+    }
   }
 }
 void vector(const ScalarVector &v) {
@@ -75,17 +79,25 @@ void numerics_summary(const FluentCase &c) {
   auto scheme = [](const char *label, auto s) {
     std::cout << label << '=' << (s ? name(*s) : "unparsed") << ' ';
   };
+  const bool epsilon = c.viscous.model == ViscousModel::ke_standard ||
+                       c.viscous.model == ViscousModel::ke_rng ||
+                       c.viscous.model == ViscousModel::ke_realizable;
   std::cout << "Schemes: ";
   scheme("p", c.numerics.pressure);
   scheme("mom", c.numerics.momentum);
-  scheme("k", c.numerics.k);
-  scheme("omega", c.numerics.omega);
+  if (c.viscous.model != ViscousModel::laminar) {
+    scheme("k", c.numerics.k);
+    if (epsilon)
+      scheme("epsilon", c.numerics.epsilon);
+    else
+      scheme("omega", c.numerics.omega);
+  }
   std::cout << "coupling=" << (c.numerics.coupling ? name(*c.numerics.coupling) : "unparsed")
             << " gradient=";
   if (c.numerics.gradient)
     std::cout << (*c.numerics.gradient == Gradient::least_squares_cell
                       ? "LSQ-cell"
-                      : (*c.numerics.gradient == Gradient::green_gauss_node ? "GG-node"
+                      : (*c.numerics.gradient == Gradient::green_gauss_node ? "GG-node (unverified mapping)"
                                                                             : "GG-cell"));
   else
     std::cout << "unparsed";
@@ -104,9 +116,35 @@ void numerics_summary(const FluentCase &c) {
   value(c.numerics.courant);
   std::cout << " length-scale-code=";
   value(c.numerics.pseudo.length_scale_method);
-  std::cout << "\nURFs:";
-  for (auto &[eq, urf] : c.numerics.relaxation)
-    std::cout << ' ' << eq << '=' << urf;
+  const auto &n = c.numerics;
+  const bool coupled = n.coupling == Coupling::coupled;
+  const auto method = coupled ? n.pseudo.coupled_method : n.pseudo.segregated_method;
+  if (!n.coupling || !n.pseudo.formulation ||
+      (*n.pseudo.formulation && (!method || *method == 0))) {
+    std::cout << "\nActive under-relaxation (unverified selection): unparsed";
+  } else if (*n.pseudo.formulation) {
+    std::cout << "\nActive under-relaxation ("
+              << (coupled ? "coupled pseudo-transient" : "segregated pseudo-transient") << "):";
+    std::vector<std::string> equations = {"pressure", "mom", "density", "body-force"};
+    if (c.viscous.model != ViscousModel::laminar) {
+      equations.push_back("k");
+      equations.push_back(epsilon ? "epsilon" : "omega");
+      equations.push_back("turb-viscosity");
+    }
+    for (const auto &eq : equations) {
+      const auto key = coupled && (eq == "pressure" || eq == "mom")
+          ? "pressure-coupled/" + eq + "/pseudo-explicit-relax" : eq + "/pseudo-relax";
+      std::cout << ' ' << eq << '=';
+      if (auto it = n.pseudo_relaxation.find(key); it != n.pseudo_relaxation.end())
+        std::cout << it->second;
+      else
+        std::cout << "unparsed/absent";
+    }
+  } else {
+    std::cout << "\nActive under-relaxation (segregated URFs):";
+    for (auto &[eq, urf] : n.relaxation)
+      std::cout << ' ' << eq << '=' << urf;
+  }
   std::cout << '\n';
 }
 void material_summary(const FluentCase &c) {
@@ -208,12 +246,16 @@ void boundary_summary(const FluentCase &c) {
         vector(z.axis_direction);
       }
       if (z.wall_motion == WallMotion::translating) {
-        std::cout << " speed=";
-        scalar(z.velocity_magnitude);
-        std::cout << " direction=";
-        vector(z.direction);
-        std::cout << " uvw=";
-        vector(z.velocity);
+        if (z.wall_components == true) {
+          std::cout << " components uvw=";
+          vector(z.velocity);
+        } else if (z.wall_components == false) {
+          std::cout << " magnitude/direction speed=";
+          scalar(z.velocity_magnitude);
+          std::cout << " direction=";
+          vector(z.direction);
+        } else
+          std::cout << " velocity representation=unparsed";
       }
       if (z.specified_shear == true) {
         std::cout << " specified-shear=";
@@ -244,6 +286,13 @@ void report_summary(const FluentCase &c) {
   std::cout << "Reports: " << c.reports.size() << '\n';
   for (auto &r : c.reports) {
     std::cout << "  " << r.name << " (" << r.fluent_type << ')';
+    if (r.scaled)
+      std::cout << (*r.scaled ? " coefficient" : " force (unscaled)");
+    if (r.surface_ids) {
+      std::cout << " surface-ids=";
+      for (auto id : *r.surface_ids)
+        std::cout << id << ',';
+    }
     if (r.zone_ids) {
       std::cout << " zones=";
       for (auto id : *r.zone_ids)
@@ -263,9 +312,13 @@ void report_summary(const FluentCase &c) {
   }
 }
 void unparsed_summary(const FluentCase &c) {
-  std::cout << "Unparsed/absent required values: " << c.issues.size() << '\n';
+  const auto info = std::count_if(c.issues.begin(), c.issues.end(),
+      [](const auto &i) { return i.classification == IssueClass::informational; });
+  std::cout << "Issues: unsupported/required=" << c.issues.size() - info
+            << " informational=" << info << '\n';
   for (auto &issue : c.issues)
-    std::cout << "  " << issue.path << ": " << issue.reason << '\n';
+    std::cout << "  [" << (issue.classification == IssueClass::informational ? "informational" : "unsupported")
+              << "] " << issue.path << ": " << issue.reason << '\n';
   auto raw = c.variables.unparsed_names();
   std::cout << "Raw rpvars retained: " << raw.size() << " unparsed names";
   for (std::size_t i = 0; i < std::min<std::size_t>(8, raw.size()); ++i)
@@ -278,6 +331,20 @@ void unparsed_summary(const FluentCase &c) {
 void summary(const FluentCase &c) {
   mesh_summary(c);
   model_summary(c);
+  std::cout << "Physics: energy=";
+  value(c.energy);
+  std::cout << " gravity=";
+  value(c.gravity);
+  if (c.gravity == true) {
+    std::cout << " vector=(";
+    for (int i = 0; i < 3; ++i) {
+      if (i)
+        std::cout << ',';
+      value(c.gravity_vector[i]);
+    }
+    std::cout << ')';
+  }
+  std::cout << '\n';
   numerics_summary(c);
   material_summary(c);
   boundary_summary(c);
@@ -286,6 +353,14 @@ void summary(const FluentCase &c) {
   unparsed_summary(c);
 }
 void data_summary(const FluentCase &c, const FluentData &d) {
+  std::cout << "Data Case File=";
+  value(d.case_file);
+  std::cout << "; loaded case=";
+  if (c.source_path)
+    std::cout << c.source_path->filename().string();
+  else
+    std::cout << "unavailable";
+  std::cout << '\n';
   std::cout << "Data: " << d.cell_fields.size() << " cell fields, " << d.face_fields.size()
             << " face fields; saved iteration=";
   value(d.iteration_count);
@@ -305,8 +380,13 @@ void data_summary(const FluentCase &c, const FluentData &d) {
       }
     std::cout << '\n';
   }
+  const auto info = std::count_if(d.issues.begin(), d.issues.end(),
+      [](const auto &i) { return i.classification == IssueClass::informational; });
+  std::cout << "Data issues: unsupported/required=" << d.issues.size() - info
+            << " informational=" << info << '\n';
   for (auto &i : d.issues)
-    std::cout << "  " << i.path << ": " << i.reason << '\n';
+    std::cout << "  [" << (i.classification == IssueClass::informational ? "informational" : "unsupported")
+              << "] " << i.path << ": " << i.reason << '\n';
 }
 } // namespace
 int main(int argc, char **argv) {
