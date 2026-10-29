@@ -148,16 +148,52 @@ Zones zones(hid_t file, const std::string& base, bool faces) {
     id(z.last[i]);
     KUTTA_REQUIRE(z.last[i] >= z.first[i], "CFF: reversed zone range");
   }
+  std::set<std::int64_t> ids(z.ids.begin(), z.ids.end());
+  KUTTA_REQUIRE(ids.size() == z.ids.size(), "CFF: duplicate zone id");
+  std::vector<std::pair<Index, Index>> ranges;
+  for (std::size_t i = 0; i < z.ids.size(); ++i)
+    ranges.emplace_back(id(z.first[i]), id(z.last[i]));
+  std::sort(ranges.begin(), ranges.end());
+  for (std::size_t i = 1; i < ranges.size(); ++i)
+    KUTTA_REQUIRE(ranges[i - 1].second < ranges[i].first,
+                  "CFF: overlapping zone ranges at " + base);
   return z;
 }
+template <class T>
+void coverage(const Zones& z, const std::map<Index, T>& values) {
+  std::uint64_t expected = 0;
+  for (std::size_t i = 0; i < z.ids.size(); ++i) {
+    expected += z.last[i] - z.first[i] + 1;
+    auto it = values.find(id(z.first[i]));
+    for (auto n = z.first[i]; n <= z.last[i]; ++n, ++it)
+      KUTTA_REQUIRE(it != values.end() && it->first == n,
+                    "CFF: missing section data in zone topology");
+  }
+  KUTTA_REQUIRE(values.size() == expected,
+                "CFF: section data outside zone topology");
+}
 template <class F>
-void sections(hid_t file, const std::string& base, bool datasets, F callback) {
+void sections(hid_t file, const std::string& base, bool datasets, F callback,
+              bool numbered = true) {
   H5 g(H5Gopen2(file, base.c_str(), H5P_DEFAULT), H5Gclose, base);
-  auto n = attribute(g, "nSections");
+  H5G_info_t info{};
+  check(H5Gget_info(g, &info), base);
+  auto n = numbered ? attribute(g, "nSections")
+                    : static_cast<std::int64_t>(info.nlinks);
   KUTTA_REQUIRE(n >= 0 && n <= std::numeric_limits<Index>::max(),
                 "CFF: invalid nSections");
   for (std::int64_t i = 1; i <= n; ++i) {
-    auto path = base + "/" + std::to_string(i);
+    auto name = std::to_string(i);
+    if (!numbered) {
+      auto length = H5Lget_name_by_idx(g, ".", H5_INDEX_NAME, H5_ITER_INC,
+                                      i - 1, nullptr, 0, H5P_DEFAULT);
+      KUTTA_REQUIRE(length >= 0, "CFF: cannot enumerate " + base);
+      std::vector<char> buffer(static_cast<std::size_t>(length) + 1);
+      check(H5Lget_name_by_idx(g, ".", H5_INDEX_NAME, H5_ITER_INC, i - 1,
+                              buffer.data(), buffer.size(), H5P_DEFAULT), base);
+      name = buffer.data();
+    }
+    auto path = base + "/" + name;
     H5 object(datasets ? H5Dopen2(file, path.c_str(), H5P_DEFAULT)
                        : H5Gopen2(file, path.c_str(), H5P_DEFAULT),
               datasets ? H5Dclose : H5Gclose, path);
@@ -170,6 +206,7 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
   H5 file(H5Fopen(path.string().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT), H5Fclose,
           path.string());
   const std::string root = "/meshes/1";
+  KUTTA_REQUIRE(exists(file, root), "CFF: file contains no /meshes/1 mesh");
   H5 mesh(H5Gopen2(file, root.c_str(), H5P_DEFAULT), H5Gclose, root);
   for (const auto& unsupported :
        {root + "/cells/tree", root + "/faces/tree", root + "/faces/interface",
@@ -183,30 +220,32 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
                 "CFF: dimension must be 2 or 3");
   raw.dimension = static_cast<int>(dimension);
   auto nz = zones(file, root + "/nodes/zoneTopology", false);
-  for (std::size_t z = 0; z < nz.ids.size(); ++z) {
-    auto path_coords = root + "/nodes/coords/" + std::to_string(nz.ids[z]);
-    H5 d(H5Dopen2(file, path_coords.c_str(), H5P_DEFAULT), H5Dclose,
-         path_coords);
-    auto [a, b] = range(d);
-    KUTTA_REQUIRE(a == nz.first[z] && b == nz.last[z],
-                  "CFF: node coordinate and zone ranges disagree");
-    auto values = read<double>(file, path_coords, H5T_NATIVE_DOUBLE);
-    auto n = static_cast<std::size_t>(b) - a + 1;
-    KUTTA_REQUIRE(
-        values.size() == n * raw.dimension,
-        "CFF: node coordinate dataset length does not match dimension/range");
-    for (std::size_t i = 0; i < n; ++i) {
-      auto k = i * raw.dimension;
-      KUTTA_REQUIRE(raw.nodes
-                        .emplace(a + static_cast<Index>(i),
-                                 Vec3d{values[k], values[k + 1],
-                                       raw.dimension == 3 ? values[k + 2] : 0})
-                        .second,
-                    "CFF: overlapping node zones");
-    }
-  }
+  // Fluent versions name coordinates by either zone id or section ordinal.
+  // Names carry no placement information; the declared id ranges do.
+  sections(file, root + "/nodes/coords", true,
+           [&](const std::string& path_coords, Index a, Index b) {
+             auto values = read<double>(file, path_coords, H5T_NATIVE_DOUBLE);
+             auto n = static_cast<std::size_t>(b) - a + 1;
+             KUTTA_REQUIRE(
+                 values.size() == n * raw.dimension,
+                 "CFF: node coordinate dataset length does not match "
+                 "dimension/range");
+             for (std::size_t i = 0; i < n; ++i) {
+               auto k = i * raw.dimension;
+               KUTTA_REQUIRE(raw.nodes
+                                 .emplace(a + static_cast<Index>(i),
+                                          Vec3d{values[k], values[k + 1],
+                                                raw.dimension == 3
+                                                    ? values[k + 2] : 0})
+                                 .second,
+                             "CFF: overlapping node zones");
+             }
+           }, false);
+  coverage(nz, raw.nodes);
   auto cz = zones(file, root + "/cells/zoneTopology", false);
   for (std::size_t z = 0; z < cz.ids.size(); ++z) {
+    KUTTA_REQUIRE(cz.types[z] != 32,
+                  "CFF: inactive parent cells are unsupported");
     auto zone = id(cz.ids[z]);
     raw.zones[zone] = {
         cz.labels[z].empty() ? "zone" + std::to_string(zone) : cz.labels[z],
@@ -215,6 +254,44 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
       KUTTA_REQUIRE(raw.cells.emplace(id(c), zone).second,
                     "CFF: overlapping cell zones");
   }
+  std::map<Index, std::int64_t> cell_types;
+  if (exists(file, root + "/cells/zoneTopology/cellType")) {
+    auto types = ints(file, root + "/cells/zoneTopology/cellType");
+    KUTTA_REQUIRE(types.size() == cz.ids.size(),
+                  "CFF: cellType count does not match topology");
+    for (std::size_t z = 0; z < types.size(); ++z) {
+      KUTTA_REQUIRE(types[z] >= 0 && types[z] <= 7,
+                    "CFF: invalid zone cell element type");
+      cell_types.emplace(id(cz.ids[z]), types[z]);
+    }
+  }
+  std::set<Index> typed;
+  sections(file, root + "/cells/ctype", false,
+           [&](const std::string& base, Index a, Index b) {
+             H5 group(H5Gopen2(file, base.c_str(), H5P_DEFAULT), H5Gclose, base);
+             auto type = attribute(group, "elementType");
+             KUTTA_REQUIRE(type >= 0 && type <= 7,
+                           "CFF: invalid cell element type");
+             std::vector<std::int64_t> types;
+             if (type == 0) {
+               types = ints(file, base + "/cell-types");
+               KUTTA_REQUIRE(types.size() == static_cast<std::size_t>(b) - a + 1,
+                             "CFF: cell-types length/range mismatch");
+             }
+             for (std::int64_t c = a; c <= b; ++c) {
+               auto it = raw.cells.find(id(c));
+               KUTTA_REQUIRE(it != raw.cells.end() && typed.insert(id(c)).second,
+                             "CFF: ctype section outside topology or overlapping");
+               auto element = type ? type : types[static_cast<std::size_t>(c - a)];
+               KUTTA_REQUIRE(element >= 1 && element <= 7,
+                             "CFF: invalid cell element type");
+               auto zone_type = cell_types.find(it->second);
+               KUTTA_REQUIRE(zone_type == cell_types.end() || zone_type->second == 0 ||
+                                 zone_type->second == element,
+                             "CFF: ctype disagrees with zone cellType");
+             }
+           });
+  KUTTA_REQUIRE(typed.size() == raw.cells.size(), "CFF: missing ctype data");
   auto fz = zones(file, root + "/faces/zoneTopology", true);
   for (std::size_t z = 0; z < fz.ids.size(); ++z) {
     auto zone = id(fz.ids[z]);
@@ -278,6 +355,14 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
   for (const auto& [f, face] : raw.faces) {
     (void)f;
     KUTTA_REQUIRE(!face.nodes.empty(), "CFF: missing face node connectivity");
+  }
+  for (const auto& [name, size] :
+       {std::pair{"nodeCount", raw.nodes.size()},
+        std::pair{"cellCount", raw.cells.size()},
+        std::pair{"faceCount", raw.faces.size()}}) {
+    if (H5Aexists(mesh, name) > 0)
+      KUTTA_REQUIRE(attribute(mesh, name) == static_cast<std::int64_t>(size),
+                    std::string("CFF: ") + name + " disagrees with topology");
   }
   // CFF stores the Fluent file face winding, not the solver's in-memory normal.
   return detail::assemble_fluent(raw, thickness).mesh;

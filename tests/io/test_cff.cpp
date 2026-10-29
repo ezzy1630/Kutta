@@ -112,9 +112,10 @@ void synthetic(const std::filesystem::path& path, const PolyMesh& m,
   attr(f, root, "faceCount", nf);
   attr(f, root, "cellOffset", 0);
   attr(f, root, "cellCount", m.n_cells);
-  topology(f, root + "/nodes/zoneTopology", {1}, {1},
-           {static_cast<std::int64_t>(points.size())}, {0}, {"nodes"}, variable,
-           planar ? 2 : 3);
+  auto split = static_cast<std::int64_t>(points.size() / 2);
+  topology(f, root + "/nodes/zoneTopology", {8, 41}, {1, split + 1},
+           {split, static_cast<std::int64_t>(points.size())}, {0, 0},
+           {"nodes-a", "nodes-b"}, variable, planar ? 2 : 3);
   group(f, root + "/nodes/coords");
   std::vector<double> coords;
   for (auto p : points) {
@@ -122,17 +123,26 @@ void synthetic(const std::filesystem::path& path, const PolyMesh& m,
     coords.push_back(p.y);
     if (!planar) coords.push_back(p.z);
   }
-  hsize_t dims[2] = {points.size(), static_cast<hsize_t>(planar ? 2 : 3)};
-  auto s = H5Screate_simple(2, dims, nullptr);
-  auto d = H5Dcreate2(f, (root + "/nodes/coords/1").c_str(), H5T_IEEE_F64LE, s,
-                      H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  REQUIRE(d >= 0);
-  REQUIRE(H5Dwrite(d, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
-                   coords.data()) >= 0);
-  H5Dclose(d);
-  H5Sclose(s);
-  attr(f, root + "/nodes/coords/1", "minId", 1);
-  attr(f, root + "/nodes/coords/1", "maxId", points.size());
+  // Both layouts occur in Fluent: zone-id names and numbered sections.
+  // Reverse the numbered section ranges to ensure placement uses minId/maxId.
+  for (int part = 0; part < 2; ++part) {
+    auto first = part == 0 ? 0 : split;
+    auto last = part == 0 ? split : static_cast<std::int64_t>(points.size());
+    auto name = variable ? (part == 0 ? "8" : "41") : (part == 0 ? "2" : "1");
+    auto path_coords = root + "/nodes/coords/" + name;
+    hsize_t dims[2] = {static_cast<hsize_t>(last - first),
+                       static_cast<hsize_t>(planar ? 2 : 3)};
+    auto s = H5Screate_simple(2, dims, nullptr);
+    auto d = H5Dcreate2(f, path_coords.c_str(), H5T_IEEE_F64LE, s,
+                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    REQUIRE(d >= 0);
+    REQUIRE(H5Dwrite(d, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                     coords.data() + first * (planar ? 2 : 3)) >= 0);
+    H5Dclose(d);
+    H5Sclose(s);
+    attr(f, path_coords, "minId", first + 1);
+    attr(f, path_coords, "maxId", last);
+  }
   topology(f, root + "/cells/zoneTopology", {20}, {1}, {m.n_cells}, {1},
            {"water"}, variable, planar ? 2 : 3);
   dataset(f, root + "/cells/zoneTopology/cellType",
@@ -192,13 +202,15 @@ void synthetic(const std::filesystem::path& path, const PolyMesh& m,
   attr(f, root + "/faces/c0/1", "minId", 1);
   attr(f, root + "/faces/c0/1", "maxId", nf);
   group(f, root + "/faces/c1");
-  attr(f, root + "/faces/c1", "nSections", ni ? 1 : 0);
-  if (ni) {
+  auto c1_count = variable ? nf : ni;
+  attr(f, root + "/faces/c1", "nSections", c1_count ? 1 : 0);
+  if (c1_count) {
     std::vector<std::int64_t> nb;
-    for (auto c : m.neighbour) nb.push_back(c + 1);
+    for (Index face = 0; face < c1_count; ++face)
+      nb.push_back(face < ni ? m.neighbour[face] + 1 : 0);
     dataset(f, root + "/faces/c1/1", nb);
     attr(f, root + "/faces/c1/1", "minId", 1);
-    attr(f, root + "/faces/c1/1", "maxId", ni);
+    attr(f, root + "/faces/c1/1", "maxId", c1_count);
   }
   REQUIRE(H5Fclose(f) >= 0);
 }
@@ -261,6 +273,92 @@ TEST_CASE(
                        doctest::Contains("nnodes length"), Error);
   CHECK(H5Fget_obj_count(H5F_OBJ_ALL, H5F_OBJ_ALL) == handles);
 }
+
+TEST_CASE("CFF cell type sections use ranges, with complete coverage and count checks") {
+  MeshTemp temp;
+  auto path = temp.path("sections.msh.h5");
+  synthetic(path, make_box_hex(2, 1, 1, {0, 0, 0}, {2, 1, 1}), false);
+  auto f = H5Fopen(path.string().c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+  REQUIRE(f >= 0);
+  const std::string base = "/meshes/1/cells/ctype";
+  REQUIRE(H5Ldelete(f, (base + "/1").c_str(), H5P_DEFAULT) >= 0);
+  auto replace_attr = [&](const std::string& object, const char* name,
+                          std::int64_t value) {
+    auto o = H5Oopen(f, object.c_str(), H5P_DEFAULT);
+    auto a = H5Aopen(o, name, H5P_DEFAULT);
+    REQUIRE(a >= 0);
+    REQUIRE(H5Awrite(a, H5T_NATIVE_INT64, &value) >= 0);
+    H5Aclose(a);
+    H5Oclose(o);
+  };
+  replace_attr(base, "nSections", 2);
+  for (int part = 1; part <= 2; ++part) {
+    auto section = base + "/" + std::to_string(part);
+    group(f, section);
+    attr(f, section, "minId", 3 - part);
+    attr(f, section, "maxId", 3 - part);
+    attr(f, section, "elementType", 4);
+  }
+  REQUIRE(H5Fflush(f, H5F_SCOPE_GLOBAL) >= 0);
+  SUBCASE("valid sections in reversed range order") {
+    auto m = read_mesh(path);
+    CHECK(m.n_cells == 2);
+    CHECK(compute_geometry(m).cell_volume[1] == doctest::Approx(1));
+  }
+  SUBCASE("overlapping sections") {
+    replace_attr(base + "/2", "minId", 2);
+    replace_attr(base + "/2", "maxId", 2);
+    H5Fflush(f, H5F_SCOPE_GLOBAL);
+    CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("overlapping"), Error);
+  }
+  SUBCASE("missing section coverage") {
+    replace_attr(base, "nSections", 1);
+    H5Fflush(f, H5F_SCOPE_GLOBAL);
+    CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("missing ctype"), Error);
+  }
+  SUBCASE("invalid cell element type") {
+    replace_attr(base + "/2", "elementType", 32);
+    H5Fflush(f, H5F_SCOPE_GLOBAL);
+    CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("invalid cell element"), Error);
+  }
+  SUBCASE("uniform zone and section types disagree") {
+    REQUIRE(H5Ldelete(f, "/meshes/1/cells/zoneTopology/cellType", H5P_DEFAULT) >= 0);
+    dataset(f, "/meshes/1/cells/zoneTopology/cellType", {2});
+    H5Fflush(f, H5F_SCOPE_GLOBAL);
+    CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("ctype disagrees"), Error);
+  }
+  SUBCASE("invalid mixed cell element type") {
+    replace_attr(base + "/1", "elementType", 0);
+    dataset(f, base + "/1/cell-types", {8});
+    H5Fflush(f, H5F_SCOPE_GLOBAL);
+    CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("invalid cell element"),
+                         Error);
+  }
+  SUBCASE("mixed cell type payload length") {
+    replace_attr(base + "/1", "elementType", 0);
+    dataset(f, base + "/1/cell-types", {});
+    H5Fflush(f, H5F_SCOPE_GLOBAL);
+    CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("cell-types length"), Error);
+  }
+  SUBCASE("declared mesh counts must agree") {
+    for (const auto& [name, actual] :
+         {std::pair{"cellCount", 2}, std::pair{"faceCount", 11},
+          std::pair{"nodeCount", 12}}) {
+      replace_attr("/meshes/1", name, 999);
+      H5Fflush(f, H5F_SCOPE_GLOBAL);
+      auto message = std::string(name) + " disagrees with topology";
+      CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains(message.c_str()), Error);
+      replace_attr("/meshes/1", name, actual);
+    }
+  }
+  SUBCASE("node coordinate coverage must match topology") {
+    REQUIRE(H5Ldelete(f, "/meshes/1/nodes/coords/1", H5P_DEFAULT) >= 0);
+    H5Fflush(f, H5F_SCOPE_GLOBAL);
+    CHECK_THROWS_WITH_AS(read_mesh(path), doctest::Contains("missing section data"), Error);
+  }
+  REQUIRE(H5Fclose(f) >= 0);
+}
+
 #else
 TEST_CASE("CFF disabled build explains missing HDF5") {
   CHECK_THROWS_WITH_AS(kutta::read_fluent_cff("absent.msh.h5"),
