@@ -27,7 +27,7 @@ class InstrumentedDevice final : public Device {
   explicit InstrumentedDevice(Backend backend) : inner_(Device::create(backend)) {}
   Backend backend() const override { return inner_->backend(); }
   std::string name() const override { return inner_->name(); }
-  std::size_t live_bytes = 0, peak_bytes = 0, reductions = 0, downloads = 0;
+  std::size_t live_bytes = 0, peak_bytes = 0, reductions = 0, downloads = 0, device_reductions = 0;
   std::function<void(KernelId, std::size_t, std::span<const KernelArg>)> after_launch;
   double sum(const Buffer<float>& x, std::size_t n) override {
     ++reductions; return inner_->sum(allocation(*x.handle()).data, n);
@@ -54,6 +54,19 @@ class InstrumentedDevice final : public Device {
   }
   void synchronize() override { inner_->synchronize(); }
  protected:
+  void reduce_into(const Buffer<float>& x, const Buffer<float>& y,
+      const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
+      Buffer<float>& dst, std::size_t offset, Reduction mode) override {
+    check_reduction(x, y, u, v, n, dst, offset, mode);
+    ++device_reductions;
+    auto& out = allocation(*dst.handle()).data;
+    const auto& a = allocation(*x.handle()).data;
+    const auto& b = allocation(*y.handle()).data;
+    if (mode == Reduction::Sum) inner_->sum_into(a, n, out, offset);
+    else if (mode == Reduction::Dot) inner_->dot_into(a, b, n, out, offset);
+    else inner_->dot2_into(a, b, allocation(*u.handle()).data,
+                           allocation(*v.handle()).data, n, out, offset);
+  }
   std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) override {
     KUTTA_REQUIRE(bytes % sizeof(float) == 0, "instrumentation requires 32-bit buffers");
     auto result = std::make_unique<Allocation>(inner_->alloc<float>(bytes / sizeof(float)), live_bytes);

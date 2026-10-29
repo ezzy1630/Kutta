@@ -141,6 +141,24 @@ class Device {
   virtual double dot(const Buffer<float>& x, const Buffer<float>& y, std::size_t n) = 0;
   virtual double max_abs(const Buffer<float>& x, std::size_t n) = 0;
 
+  // Asynchronous reductions: write normalized (hi, lo) float pairs to dst.
+  // dot2_into fuses two dot products, writing pairs at offset and offset+2.
+  // Accumulation is FP64 on CPU/CUDA and compensated pairs on Metal. Ordered
+  // with all other Device work; no host read or wait. Inputs must not alias dst.
+  void sum_into(const Buffer<float>& x, std::size_t n, Buffer<float>& dst,
+                std::size_t offset = 0) {
+    reduce_into(x, x, x, x, n, dst, offset, Reduction::Sum);
+  }
+  void dot_into(const Buffer<float>& x, const Buffer<float>& y, std::size_t n,
+                Buffer<float>& dst, std::size_t offset = 0) {
+    reduce_into(x, y, x, y, n, dst, offset, Reduction::Dot);
+  }
+  void dot2_into(const Buffer<float>& x, const Buffer<float>& y,
+                 const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
+                 Buffer<float>& dst, std::size_t offset = 0) {
+    reduce_into(x, y, u, v, n, dst, offset, Reduction::Dot2);
+  }
+
   // Runs kernel `id` for global indices [0, n). Called by generated kutta::kern code.
   virtual void launch(KernelId id, std::size_t n, std::span<const KernelArg> args) = 0;
 
@@ -148,6 +166,21 @@ class Device {
   virtual void synchronize() = 0;
 
  protected:
+  enum class Reduction { Sum, Dot, Dot2 };
+  virtual void reduce_into(const Buffer<float>& x, const Buffer<float>& y,
+      const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
+      Buffer<float>& dst, std::size_t offset, Reduction mode) = 0;
+  static void check_reduction(const Buffer<float>& x, const Buffer<float>& y,
+      const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
+      const Buffer<float>& dst, std::size_t offset, Reduction mode) {
+    const std::size_t count = mode == Reduction::Dot2 ? 4 : 2;
+    KUTTA_REQUIRE(n <= x.size() && n <= y.size() && n <= u.size() && n <= v.size(),
+                  "device reduction: n out of range");
+    KUTTA_REQUIRE(offset <= dst.size() && count <= dst.size() - offset &&
+                      dst.handle() != x.handle() && dst.handle() != y.handle() &&
+                      dst.handle() != u.handle() && dst.handle() != v.handle(),
+                  "device reduction: output size or alias mismatch");
+  }
   virtual std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) = 0;
   virtual void upload_bytes(BufferHandle& dst, const void* src, std::size_t bytes) = 0;
   virtual void download_bytes(const BufferHandle& src, void* dst, std::size_t bytes) = 0;

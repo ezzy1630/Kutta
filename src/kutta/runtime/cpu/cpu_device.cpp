@@ -67,6 +67,24 @@ class CpuDevice final : public Device {
   void synchronize() override {}
 
  protected:
+  void reduce_into(const Buffer<float>& x, const Buffer<float>& y,
+      const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
+      Buffer<float>& dst, std::size_t offset, Reduction mode) override {
+    check_reduction(x, y, u, v, n, dst, offset, mode);
+    double a = 0, b = 0;
+    for (std::size_t i = 0; i < n; ++i) {
+      a += mode == Reduction::Sum ? double(floats(x)[i]) :
+          double(floats(x)[i]) * double(floats(y)[i]);
+      if (mode == Reduction::Dot2) b += double(floats(u)[i]) * double(floats(v)[i]);
+    }
+    auto* out = static_cast<float*>(cpu(*dst.handle()).data()) + offset;
+    auto store = [](float* p, double value) {
+      p[0] = static_cast<float>(value);
+      p[1] = std::isfinite(p[0]) ? static_cast<float>(value - double(p[0])) : 0;
+    };
+    store(out, a);
+    if (mode == Reduction::Dot2) store(out + 2, b);
+  }
   std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) override {
     return std::make_unique<CpuBuffer>(bytes);
   }

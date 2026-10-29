@@ -38,6 +38,8 @@ kernel void runtime_reduce(const device float* x [[buffer(0)]],
                            device float2* partial [[buffer(2)]],
                            constant uint& n [[buffer(3)]],
                            constant uint& mode [[buffer(4)]],
+                           const device float* u [[buffer(5)]],
+                           const device float* v [[buffer(6)]],
                            uint gid [[thread_position_in_grid]],
                            uint tid [[thread_index_in_threadgroup]],
                            uint group [[threadgroup_position_in_grid]],
@@ -47,29 +49,58 @@ kernel void runtime_reduce(const device float* x [[buffer(0)]],
                            uint threads [[threads_per_threadgroup]],
                            uint groups [[threadgroups_per_grid]]) {
   threadgroup float2 scratch[32];
-  float2 a = float2(0.0f);
+  threadgroup float2 second[32];
+  float2 a = float2(0.0f), c = float2(0.0f);
   for (uint i = gid; i < n; i += threads * groups) {
     if (mode == 2) a.x = nan_max(a.x, abs(x[i]));
     else {
-      float h = mode == 1 ? x[i] * y[i] : x[i];
-      float l = mode == 1 ? fma(x[i], y[i], -h) : 0.0f;
+      float h = mode == 1 || mode == 3 ? x[i] * y[i] : x[i];
+      float l = mode == 1 || mode == 3 ? fma(x[i], y[i], -h) : 0.0f;
       a = pair_add(a, float2(h, l));
+      if (mode == 3) {
+        float h2 = u[i] * v[i];
+        c = pair_add(c, float2(h2, fma(u[i], v[i], -h2)));
+      }
     }
   }
   for (uint d = width / 2; d > 0; d /= 2) {
     float2 b = simd_shuffle_down(a, d);
+    float2 e = simd_shuffle_down(c, d);
+    if (mode == 3 && lane + d < width) c = pair_add(c, e);
     if (lane + d < width) a = mode == 2 ? float2(nan_max(a.x, b.x), 0) : pair_add(a, b);
   }
-  if (lane == 0) scratch[simd] = a;
+  if (lane == 0) { scratch[simd] = a; second[simd] = c; }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   if (simd == 0) {
     a = lane < threads / width ? scratch[lane] : float2(0.0f);
+    c = lane < threads / width ? second[lane] : float2(0.0f);
     for (uint d = width / 2; d > 0; d /= 2) {
       float2 b = simd_shuffle_down(a, d);
+      float2 e = simd_shuffle_down(c, d);
+      if (mode == 3 && lane + d < width) c = pair_add(c, e);
       if (lane + d < width) a = mode == 2 ? float2(nan_max(a.x, b.x), 0) : pair_add(a, b);
     }
-    if (lane == 0) partial[group] = a;
+    if (lane == 0) {
+      partial[group] = a;
+      if (mode == 3) partial[1024 + group] = c;
+    }
   }
+}
+// One thread finishes the bounded, fixed-order partial list on the device.
+kernel void runtime_reduce_into(const device float2* partial [[buffer(0)]],
+                                device float* out [[buffer(1)]],
+                                constant uint& groups [[buffer(2)]],
+                                constant uint& offset [[buffer(3)]],
+                                constant uint& dual [[buffer(4)]],
+                                uint i [[thread_position_in_grid]]) {
+  if (i != 0) return;
+  float2 a = float2(0), b = float2(0);
+  for (uint j = 0; j < groups; ++j) {
+    a = pair_add(a, partial[j]);
+    if (dual) b = pair_add(b, partial[1024 + j]);
+  }
+  out[offset] = a.x; out[offset + 1] = a.y;
+  if (dual) { out[offset + 2] = b.x; out[offset + 3] = b.y; }
 }
 kernel void runtime_fill(device uint* dst [[buffer(0)]],
                          constant uint& value [[buffer(1)]],
@@ -128,6 +159,7 @@ class MetalDevice final : public Device {
       };
       for (std::size_t i = 0; i < kKernelCount; ++i) pipelines_.push_back(pipeline(metal_kernel_entry[i]));
       reduce_ = pipeline("runtime_reduce");
+      reduce_into_ = pipeline("runtime_reduce_into");
       fill_ = pipeline("runtime_fill");
     }
   }
@@ -181,6 +213,23 @@ class MetalDevice final : public Device {
   }
 
  protected:
+  void reduce_into(const Buffer<float>& x, const Buffer<float>& y,
+      const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
+      Buffer<float>& dst, std::size_t offset, Reduction mode) override {
+    check_reduction(x, y, u, v, n, dst, offset, mode);
+    const auto groups = enqueue_reduce(x, y, u, v, n,
+        mode == Reduction::Sum ? 0 : (mode == Reduction::Dot ? 1 : 3));
+    auto encoder = compute();
+    const auto index = static_cast<std::uint32_t>(offset);
+    const std::uint32_t dual = mode == Reduction::Dot2 ? 1 : 0;
+    [encoder setComputePipelineState:reduce_into_];
+    [encoder setBuffer:partial_->buffer offset:0 atIndex:0];
+    [encoder setBuffer:metal(*dst.handle()) offset:0 atIndex:1];
+    [encoder setBytes:&groups length:sizeof groups atIndex:2];
+    [encoder setBytes:&index length:sizeof index atIndex:3];
+    [encoder setBytes:&dual length:sizeof dual atIndex:4];
+    dispatch(reduce_into_, 1);
+  }
   std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) override {
     return std::make_unique<MetalBuffer>(device_, bytes);
   }
@@ -278,13 +327,14 @@ class MetalDevice final : public Device {
        threadsPerThreadgroup:MTLSizeMake(threads(pipeline), 1, 1)];
     count_dispatch();
   }
-  double reduce(const Buffer<float>& x, const Buffer<float>& y, std::size_t n, std::uint32_t mode) {
+  std::uint32_t enqueue_reduce(const Buffer<float>& x, const Buffer<float>& y,
+      const Buffer<float>& u, const Buffer<float>& v, std::size_t n, std::uint32_t mode) {
     check_size(n);
-    if (!n) { synchronize(); return 0; }
+
     const auto count = static_cast<std::uint32_t>(n);
     const auto group_count = std::min<std::size_t>((n + threads(reduce_) - 1) / threads(reduce_), kMaxGroups);
-    // Safe to reuse: every reduction synchronizes before returning.
-    if (!partial_) partial_ = std::make_unique<MetalBuffer>(device_, kMaxGroups * 2 * sizeof(float));
+    // Ordered dispatches consume scratch before its next use, including across command buffers.
+    if (!partial_) partial_ = std::make_unique<MetalBuffer>(device_, kMaxGroups * 4 * sizeof(float));
     MetalBuffer& partial = *partial_;
     auto encoder = compute();
     [encoder setComputePipelineState:reduce_];
@@ -293,11 +343,17 @@ class MetalDevice final : public Device {
     [encoder setBuffer:partial.buffer offset:0 atIndex:2];
     [encoder setBytes:&count length:sizeof count atIndex:3];
     [encoder setBytes:&mode length:sizeof mode atIndex:4];
-    [encoder dispatchThreadgroups:MTLSizeMake(group_count, 1, 1)
+    [encoder setBuffer:metal(*u.handle()) offset:0 atIndex:5];
+    [encoder setBuffer:metal(*v.handle()) offset:0 atIndex:6];
+    if (group_count) [encoder dispatchThreadgroups:MTLSizeMake(group_count, 1, 1)
              threadsPerThreadgroup:MTLSizeMake(threads(reduce_), 1, 1)];
     count_dispatch();
+    return static_cast<std::uint32_t>(group_count);
+  }
+  double reduce(const Buffer<float>& x, const Buffer<float>& y, std::size_t n, std::uint32_t mode) {
+    const auto group_count = enqueue_reduce(x, y, x, y, n, mode);
     synchronize();
-    const float* p = static_cast<const float*>(partial.buffer.contents);
+    const float* p = static_cast<const float*>(partial_->buffer.contents);
     double result = 0, correction = 0;
     for (std::size_t i = 0; i < group_count * 2; ++i) {
       if (mode == 2) result = (p[i] > result || std::isnan(p[i])) ? double(p[i]) : result;
@@ -317,7 +373,7 @@ class MetalDevice final : public Device {
   id<MTLComputeCommandEncoder> encoder_;
   std::vector<id<MTLCommandBuffer>> pending_;
   std::vector<id<MTLComputePipelineState>> pipelines_;
-  id<MTLComputePipelineState> reduce_, fill_;
+  id<MTLComputePipelineState> reduce_, reduce_into_, fill_;
   unsigned dispatches_ = 0;
   static constexpr std::size_t kMaxGroups = 1024;
   std::unique_ptr<MetalBuffer> partial_;

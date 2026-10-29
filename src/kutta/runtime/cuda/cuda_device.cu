@@ -36,23 +36,29 @@ __device__ double nan_max(double a, double b) { return (b > a || isnan(b)) ? b :
 
 // Both stages use a fixed tree and no atomics; scheduling cannot change the sum.
 __global__ void reduce_first(const float* x, const float* y, std::size_t n,
-                             double* partial, int mode) {
-  __shared__ double values[kCudaBlock];
-  double a = 0;
+                             double* partial, int mode, const float* u, const float* v) {
+  __shared__ double values[kCudaBlock], second[kCudaBlock];
+  double a = 0, b = 0;
   for (std::size_t i = std::size_t(blockIdx.x) * blockDim.x + threadIdx.x;
        i < n; i += std::size_t(blockDim.x) * gridDim.x) {
     if (mode == 2) a = nan_max(a, fabs(double(x[i])));
-    else a += mode == 1 ? double(x[i]) * double(y[i]) : double(x[i]);
+    else a += mode == 1 || mode == 3 ? double(x[i]) * double(y[i]) : double(x[i]);
+    if (mode == 3) b += double(u[i]) * double(v[i]);
   }
   values[threadIdx.x] = a;
+  second[threadIdx.x] = b;
   __syncthreads();
   for (unsigned int d = blockDim.x / 2; d; d /= 2) {
     if (threadIdx.x < d) values[threadIdx.x] = mode == 2
         ? nan_max(values[threadIdx.x], values[threadIdx.x + d])
         : values[threadIdx.x] + values[threadIdx.x + d];
+    if (mode == 3 && threadIdx.x < d) second[threadIdx.x] += second[threadIdx.x + d];
     __syncthreads();
   }
-  if (!threadIdx.x) partial[blockIdx.x] = values[0];
+  if (!threadIdx.x) {
+    partial[blockIdx.x] = values[0];
+    if (mode == 3) partial[1024 + blockIdx.x] = second[0];
+  }
 }
 
 __global__ void reduce_last(const double* partial, unsigned int n, double* result, int mode) {
@@ -69,6 +75,24 @@ __global__ void reduce_last(const double* partial, unsigned int n, double* resul
     __syncthreads();
   }
   if (!threadIdx.x) *result = values[0];
+}
+
+__global__ void reduce_pair(const double* partial, unsigned int n, float* out,
+                            std::size_t offset, bool dual) {
+  // Bounded list, fixed order; FP64 until the final pair encoding.
+  double a = 0, b = 0;
+  for (unsigned int j = 0; j < n; ++j) {
+    a += partial[j];
+    if (dual) b += partial[1024 + j];
+  }
+  const float hi = static_cast<float>(a);
+  out[offset] = hi;
+  out[offset + 1] = isfinite(hi) ? static_cast<float>(a - double(hi)) : 0;
+  if (dual) {
+    const float hi2 = static_cast<float>(b);
+    out[offset + 2] = hi2;
+    out[offset + 3] = isfinite(hi2) ? static_cast<float>(b - double(hi2)) : 0;
+  }
 }
 
 class CudaDevice final : public Device {
@@ -113,6 +137,16 @@ class CudaDevice final : public Device {
     return reduce(x, x, n, 2);
   }
  protected:
+  void reduce_into(const Buffer<float>& x, const Buffer<float>& y,
+      const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
+      Buffer<float>& dst, std::size_t offset, Reduction mode) override {
+    check_reduction(x, y, u, v, n, dst, offset, mode);
+    const auto blocks = enqueue_reduce(x, y, u, v, n,
+        mode == Reduction::Sum ? 0 : (mode == Reduction::Dot ? 1 : 3));
+    reduce_pair<<<1, 1, 0, stream_>>>(static_cast<double*>(partial_->data), blocks,
+        static_cast<float*>(cuda_ptr(dst.handle())), offset, mode == Reduction::Dot2);
+    check(cudaGetLastError());
+  }
   std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) override {
     activate();
     return std::make_unique<CudaBuffer>(bytes);
@@ -146,21 +180,28 @@ class CudaDevice final : public Device {
   }
  private:
   void activate() const { check(cudaSetDevice(ordinal_)); }
-  double reduce(const Buffer<float>& x, const Buffer<float>& y, std::size_t n, int mode) {
+  unsigned int enqueue_reduce(const Buffer<float>& x, const Buffer<float>& y,
+      const Buffer<float>& u, const Buffer<float>& v, std::size_t n, int mode) {
     activate();
-    if (!n) { synchronize(); return 0; }
+
     const auto blocks = static_cast<unsigned int>(std::min<std::size_t>((n + kCudaBlock - 1) / kCudaBlock, kMaxBlocks));
-    // Safe to reuse: every reduction synchronizes before returning.
-    if (!partial_) partial_ = std::make_unique<CudaBuffer>((kMaxBlocks + 1) * sizeof(double));
+    // Scratch reuse is ordered on stream_, including the final pair write.
+    if (!partial_) partial_ = std::make_unique<CudaBuffer>((2 * kMaxBlocks + 1) * sizeof(double));
     auto* p = static_cast<double*>(partial_->data);
-    reduce_first<<<blocks, kCudaBlock, 0, stream_>>>(
+    if (blocks) reduce_first<<<blocks, kCudaBlock, 0, stream_>>>(
         static_cast<const float*>(cuda_ptr(x.handle())),
-        static_cast<const float*>(cuda_ptr(y.handle())), n, p, mode);
+        static_cast<const float*>(cuda_ptr(y.handle())), n, p, mode,
+        static_cast<const float*>(cuda_ptr(u.handle())), static_cast<const float*>(cuda_ptr(v.handle())));
     check(cudaGetLastError());
-    reduce_last<<<1, kCudaBlock, 0, stream_>>>(p, blocks, p + blocks, mode);
+    return blocks;
+  }
+  double reduce(const Buffer<float>& x, const Buffer<float>& y, std::size_t n, int mode) {
+    const auto blocks = enqueue_reduce(x, y, x, y, n, mode);
+    auto* p = static_cast<double*>(partial_->data);
+    reduce_last<<<1, kCudaBlock, 0, stream_>>>(p, blocks, p + 2 * kMaxBlocks, mode);
     check(cudaGetLastError());
     double result;
-    check(cudaMemcpyAsync(&result, p + blocks, sizeof result, cudaMemcpyDeviceToHost, stream_));
+    check(cudaMemcpyAsync(&result, p + 2 * kMaxBlocks, sizeof result, cudaMemcpyDeviceToHost, stream_));
     synchronize();
     return result;
   }
