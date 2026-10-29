@@ -54,10 +54,23 @@ One exception: the Rhie–Chow coefficient `d_f` depends on `a_P`, which include
 | Step | Test | Pass |
 | --- | --- | --- |
 | V1 | Scalar convection–diffusion, manufactured solution on hex, tet and poly-dual meshes | 2nd order (L2 slope ≥ 1.9) diffusion; SOU convection ≥ 1.8 |
-| V2 | Laminar NS manufactured solution (steady) | 2nd order for velocity, ≥ 1.8 for pressure |
-| V3 | Lid-driven cavity Re 100/400/1000 (`validation/data/ghia1982_cavity`) | Centerline profiles within the Ghia/Erturk scatter |
-| V4 | Fluent cavity mesh (`validation/fluent_examples/lid_driven_cavity`) runs end-to-end | Converges; same answer as V3 at equal resolution |
+| V2 | Laminar NS manufactured solution (steady), plus independent pressure-operator and wall-force refinement | Velocity ≥ 1.9 on both meshes; hex pressure ≥ 1.8; tet pressure ≥ measured momentum pressure-operator order − 0.1 (operator ≥ 0.9). Exact-face Gauss: tet order 0.9–1.1, hex ≥ 1.9. Wall pressure, viscous and total force orders ≥ 1.8; retain failures |
+| V3 | Re=1000 cavity at 65²/129²/257² against Erturk 601² tables | Both centreline max errors decrease from 129² to 257², finest-pair order ≥ 1.6; report Richardson primary-vortex values against Erturk/Botella. Re=100/400 Ghia deviations are reported |
+| V4 | Fluent cavity mesh (`validation/fluent_examples/lid_driven_cavity`) runs end-to-end | Converges; centreline velocities match a generated mesh with the same grid lines within 2e-6 |
 | V5 | SST flat plate, bump and NACA 0012 (`validation/data/nasa_tmr`) | cf and CL/CD within the TMR grid-family band, after the documented compressibility offset |
 | V6 | Mixing elbow (`validation/fluent_examples/mixing_elbow`), same mesh as Fluent | Cell fields u, p, k, ω and wall shear compared against `.dat.h5`; report the distributions |
 
 Every step runs on CPU and Metal. CUDA joins once we have hardware.
+
+V2's former second-order tet pressure gate is incompatible with the deliberately
+matched Gauss momentum pressure force: midpoint-face quadrature errors leave a
+first-order pointwise gradient on Freudenthal tets even with exact face pressure.
+Opposite-face cancellation gives second order on hexes. This is an operator
+limit, not a reason to change the discretization. The consistency gate is paired
+with the independent ≥1.8 integrated-force gate; it does not declare first-order
+forces acceptable. See [measured verification](../src/kutta/fv/VERIFICATION.md).
+
+The `slow` doctest suite contains long refinements and cavities; omit it with
+`--test-suite-exclude=slow` for CI/quick loops. Running `./build/kutta-tests`
+without filters exercises the full ladder implemented so far, including retained
+failing accuracy gates.
