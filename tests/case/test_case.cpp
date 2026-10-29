@@ -56,7 +56,7 @@ auto typed(const CellZone &z) {
                   z.viscous_resistance, z.inertial_resistance, z.porous_directions);
 }
 auto typed(const ReportDefinition &r) {
-  return std::tie(r.name, r.fluent_type, r.kind, r.zone_ids, r.zone_names, r.direction);
+  return std::tie(r.name, r.fluent_type, r.kind, r.zone_ids, r.surface_ids, r.reported_zone_ids, r.scaled, r.zone_names, r.direction);
 }
 template <class T> void same(const std::vector<T> &a, const std::vector<T> &b) {
   REQUIRE(a.size() == b.size());
@@ -161,8 +161,9 @@ TEST_CASE("Case BC material frame porous and force bindings stay explicit") {
   CHECK(zone.axis_direction[2]->constant == 1);
   REQUIRE(c.reports.size() == 1);
   CHECK(c.reports[0].kind == ReportDefinition::Kind::drag);
-  REQUIRE(c.reports[0].zone_ids);
-  CHECK(*c.reports[0].zone_ids == std::vector<std::int64_t>{8, 9});
+  CHECK_FALSE(c.reports[0].zone_ids);
+  REQUIRE(c.reports[0].reported_zone_ids);
+  CHECK(*c.reports[0].reported_zone_ids == std::vector<std::int64_t>{8, 9});
   REQUIRE(c.reports[0].direction);
   CHECK((*c.reports[0].direction)[0] == 1);
   REQUIRE(c.materials.size() == 1);
@@ -440,4 +441,24 @@ TEST_CASE("Only complete constant expressions with recognized units resolve") {
     auto c = synthetic(config(false, false, true), "(39 (4 velocity-inlet in 1) ((velocity-spec . 2) (vmag (expression . \"" + std::string(expression) + "\"))))");
     CHECK(issue_at(c, "zone/4/vmag"));
   }
+}
+TEST_CASE("Force report surface IDs never masquerade as thread IDs") {
+  auto c = synthetic(config(false, false, true) + R"scm(
+    (monitor/report-definitions (
+      ((name . "drag") (report-definition force-drag (surface-ids 1) (surface-names body) (force-vector 1 0 0) (scaled? . #t)))
+      ((name . "force") (report-definition force-force (surface-ids 1) (force-vector 0 1 0) (scaled? . #f)))
+      ((name . "bad") (report-definition force-lift (surface-names missing) (force-vector 0 1 0) (scaled? . #t)))))
+  )scm", "(39 (8 wall body 1) ())");
+  const auto &drag = c.reports[1];
+  REQUIRE(drag.zone_ids);
+  CHECK(*drag.zone_ids == std::vector<std::int64_t>{8});
+  CHECK_FALSE(issue_at(c, "report/drag/zones"));
+  CHECK_FALSE(c.reports[2].zone_ids);
+  CHECK(issue_at(c, "report/force/zones"));
+  CHECK(issue_at(c, "report/bad/zones"));
+  CHECK(drag.raw.interpreted.contains("scaled?"));
+  CHECK(drag.scaled == true);
+  CHECK(c.reports[2].scaled == false);
+  REQUIRE(drag.surface_ids);
+  CHECK(*drag.surface_ids == std::vector<std::int64_t>{1});
 }

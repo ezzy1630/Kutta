@@ -153,7 +153,9 @@ struct ReportDefinition {
   enum class Kind { force, drag, lift, moment, other };
   std::string name, fluent_type;
   Kind kind = Kind::other;
-  std::optional<std::vector<std::int64_t>> zone_ids;
+  // zone_ids are resolved thread IDs; source surface IDs use a different ID space.
+  std::optional<std::vector<std::int64_t>> zone_ids, surface_ids, reported_zone_ids;
+  std::optional<bool> scaled;
   std::optional<std::vector<std::string>> zone_names;
   std::optional<std::array<double, 3>> direction;
   RawSettings raw;

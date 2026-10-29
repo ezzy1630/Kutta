@@ -894,7 +894,7 @@ void reports(FluentCase &c) {
       auto value = entry_value(*e);
       return value && value->kind == K::list ? value : e;
     };
-    for (auto key : {"zones", "zone-list", "zone-ids", "thread-ids"})
+    for (auto key : {"surface-ids", "zones", "zone-list", "zone-ids", "thread-ids"})
       if (auto zs = list(key)) {
         std::vector<std::int64_t> ids;
         bool valid = true;
@@ -906,10 +906,17 @@ void reports(FluentCase &c) {
           else
             valid = false;
         }
-        if (valid)
-          report.zone_ids = std::move(ids);
+        if (valid) {
+          std::sort(ids.begin(), ids.end());
+          ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
+          if (std::string_view(key) == "surface-ids")
+            report.surface_ids = std::move(ids);
+          else
+            report.reported_zone_ids = std::move(ids);
+        } else
+          c.issues.push_back({"report/" + report.name + "/zones", "unparsed report IDs"});
       }
-    for (auto key : {"zone-names", "thread-names"})
+    for (auto key : {"surface-names", "zone-names", "thread-names"})
       if (auto zs = list(key)) {
         std::vector<std::string> names;
         bool valid = true;
@@ -921,8 +928,11 @@ void reports(FluentCase &c) {
           else
             valid = false;
         }
-        if (valid)
+        if (valid) {
+          std::sort(names.begin(), names.end());
+          names.erase(std::unique(names.begin(), names.end()), names.end());
           report.zone_names = std::move(names);
+        }
       }
     for (auto key : {"force-vector", "direction-vector", "direction"})
       if (auto ds = list(key)) {
@@ -939,8 +949,33 @@ void reports(FluentCase &c) {
         if (valid && values.size() == 3)
           report.direction = std::array<double, 3>{values[0], values[1], values[2]};
       }
+    Extractor properties(c, props, "report/" + report.name + "/");
+    report.scaled = properties.flag("scaled?", report.kind != ReportDefinition::Kind::other);
+    if (props.interpreted.contains("scaled?"))
+      report.raw.interpreted.insert("scaled?");
+    if (report.zone_names && !report.zone_names->empty()) {
+      std::vector<std::int64_t> ids;
+      bool valid = true;
+      for (const auto &name : *report.zone_names) {
+        std::vector<std::int64_t> matches;
+        for (const auto &z : c.boundaries)
+          if (z.name == name)
+            matches.push_back(z.id);
+        if (matches.size() != 1)
+          valid = false;
+        else
+          ids.push_back(matches[0]);
+      }
+      if (valid)
+        report.zone_ids = std::move(ids);
+      else
+        c.issues.push_back({"report/" + report.name + "/zones",
+                           "unverified: surface name has no unique matching thread"});
+    } else if (report.surface_ids || report.reported_zone_ids)
+      c.issues.push_back({"report/" + report.name + "/zones",
+                         "unverified: ID-only report; surface IDs are not thread IDs"});
     if (report.kind != ReportDefinition::Kind::other) {
-      if (!report.zone_ids && !report.zone_names)
+      if (!report.zone_ids && !report.zone_names && !report.surface_ids && !report.reported_zone_ids)
         c.issues.push_back({"report/" + report.name + "/zones", "unparsed force zones"});
       if (!report.direction && report.kind != ReportDefinition::Kind::moment)
         c.issues.push_back({"report/" + report.name + "/direction", "unparsed force direction"});
@@ -972,7 +1007,6 @@ FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,
   numerics(c);
   materials(c);
   reference(c);
-  reports(c);
   if (auto domains = c.raw_sections.find("Domain Variables"); domains != c.raw_sections.end()) {
     for (auto &form : domains->second) {
       if (form.elements.size() != 2 || form.elements[1].kind != K::list)
@@ -1004,6 +1038,7 @@ FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,
   for (auto &z : c.boundaries)
     if (!ids.insert(z.id).second)
       throw std::runtime_error("duplicate thread ID");
+  reports(c);
   property_support(c);
   // File writers reorder alists; typed records use identity order, raw sections retain source
   // order.
