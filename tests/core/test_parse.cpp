@@ -1,6 +1,7 @@
 #include <doctest/doctest.h>
 
 #include <clocale>
+#include <string>
 
 #include "kutta/core/parse.hpp"
 
