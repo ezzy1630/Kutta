@@ -4,3 +4,20 @@ __pycache__/
 *.pyc
 .DS_Store
 /runs/
+
+# Large validation downloads stay out of git; SOURCE.md next to each lists URL + sha256 to re-fetch.
+/validation/data/ercoftac_ahmed_body/cfd11_cfx5_sst/CFD11_SST_Ahmed_25_y=0.dat
+/validation/data/ercoftac_ahmed_body/cfd11_cfx5_sst/CFD11_SST_Ahmed_25_y=195.dat
+/validation/data/ercoftac_ahmed_body/cfd11_cfx5_sst/CFD11_SST_Ahmed_35_y=0.dat
+/validation/data/ercoftac_ahmed_body/cfd11_cfx5_sst/CFD11_SST_Ahmed_35_y=195.dat
+/validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_897-257.p2dfmt.gz
+/validation/fluent_examples/aero/wing.msh.h5
+/validation/fluent_examples/box/poly.msh.h5
+/validation/fluent_examples/file_session/elbow1.cas.h5
+/validation/fluent_examples/file_session/elbow1.dat.h5
+/validation/fluent_examples/flow_over_cylinder/flow_over_cylinder.msh
+/validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5
+/validation/fluent_examples/mixing_elbow/mixing_elbow.dat.h5
+/validation/fluent_examples/static_mixer/Static_Mixer_Parameters.cas.h5
+/validation/fluent_examples/static_mixer/Static_Mixer_Parameters_legacy_binary.cas
+/validation/fluent_examples/static_mixer/Static_Mixer_Parameters_legacy_text.cas

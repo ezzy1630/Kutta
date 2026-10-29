@@ -1,0 +1,6 @@
+source,grid,order,psi_min_abs,omega_center,x_center,y_center
+Erturk2005_601x601,601x601,2,0.118781,2.065530,0.5300,0.5650
+Erturk2005_extrapolated,Richardson(401/513/601),6,0.118942,2.067213,,
+BotellaPeyret1998_N160,Chebyshev N=160,spectral,0.1189366,2.067753,0.5308,0.5652
+BarragyCarey1997,257x257 p=8,8,0.118930,,,
+Ghia1982,129x129,2,0.117929,2.04968,0.5313,0.5625
