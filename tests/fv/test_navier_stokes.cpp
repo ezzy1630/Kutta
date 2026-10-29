@@ -4,6 +4,7 @@
 #include <numbers>
 
 #include "../backend_helpers.hpp"
+#include "pressure_operator.hpp"
 #include "kutta/fv/steady_solver.hpp"
 #include "kutta/io/mesh_io.hpp"
 #include "kutta/mesh/detail.hpp"
@@ -27,8 +28,26 @@ Vec3d source(Vec3d p) {
   return {q.x*ux+q.y*uy-mu*lapu-pi*std::sin(pi*p.x)*std::cos(pi*p.y),
     q.x*vx+q.y*vy-mu*lapv-pi*std::cos(pi*p.x)*std::sin(pi*p.y),0};
 }
-std::pair<double,double> manufactured(Device& dev,int n,bool tet) {
+struct Errors { double velocity,pressure,wall_pressure,wall_viscous,wall_total; };
+Errors manufactured(Device& dev,int n,bool tet) {
+  using namespace kutta::detail;
   auto mesh=tet?make_box_tet(n,n,n,{0,0,0},{1,1,1}):make_box_hex(n,n,1,{0,0,0},{1,1,1./n});
+  // Select x=0, 0<=y<=1/2 as real wall patches, keeping every face in its
+  // original position. Whole-wall pressure/shear cancel for this MMS.
+  const auto initial_geometry=compute_geometry(mesh);
+  std::vector<Patch> split;std::vector<std::string> force_patches;
+  for(const auto& patch:mesh.patches) {
+    if(patch.name!="xmin") {split.push_back(patch);continue;}
+    for(Index face=patch.start;face<patch.start+patch.size;) {
+      const bool selected=initial_geometry.face_centroid[face].y<.5;
+      auto part=patch;part.start=face;part.name="xmin_"+std::to_string(face);
+      do {++face;} while(face<patch.start+patch.size &&
+        (initial_geometry.face_centroid[face].y<.5)==selected);
+      part.size=face-part.start;split.push_back(part);
+      if(selected) force_patches.push_back(part.name);
+    }
+  }
+  mesh.patches=std::move(split);
   std::vector<PatchCondition> bc;
   for(auto& patch:mesh.patches)
     if(patch.name=="zmin" || patch.name=="zmax") bc.push_back({patch.name,Symmetry{}});
@@ -81,26 +100,51 @@ std::pair<double,double> manufactured(Device& dev,int n,bool tet) {
     <<" iterations="<<solver.report().iteration<<" u_L2="<<eu<<" p_L2="<<ep
     <<" ru="<<solver.report().u.scaled<<" rv="<<solver.report().v.scaled<<" rw="<<solver.report().w.scaled
     <<" rc_raw="<<solver.report().continuity.raw<<" corrected_mass="<<solver.report().corrected_mass_imbalance<<std::endl;
-  return {eu,ep};
+  // Analytic wall-on-solid traction is p*n - mu*(grad u + grad u^T)*n.
+  // At xmin: pressure=(-cos(pi*y),0,0), viscous=(0,-20*f(y),0).
+  // Integrals over y=[0,1/2]: -1/pi and -20*(1/60)=-1/3.
+  // These closed-form antiderivatives avoid a reference quadrature error.
+  const double span=tet?1.:1./n;
+  const auto force=solver.forces(force_patches,mean);
+  const Vec3d exact_p{-span/std::numbers::pi,0,0},exact_v{0,-span/3,0};
+  const double efp=kutta::detail::norm(force.pressure-exact_p)/span;
+  const double efv=kutta::detail::norm(force.viscous-exact_v)/span;
+  const double eft=kutta::detail::norm(force.force()-exact_p-exact_v)/span;
+  std::cout<<"FV_V2_FORCE backend="<<backend_name(dev.backend())<<" tet="<<tet<<" n="<<n
+    <<" pressure_x="<<force.pressure.x/span<<" viscous_y="<<force.viscous.y/span
+    <<" pressure_error="<<efp<<" viscous_error="<<efv<<" total_error="<<eft<<std::endl;
+  return {eu,ep,efp,efv,eft};
 }
 }
 
 void check_refinement(Device& dev,bool tet) {
-  double old_u=0,old_p=0;
+  Errors old{};double old_operator=0;
   for(int n:tet?std::vector<int>{4,8,16}:std::vector<int>{8,16,32}) {
-    auto [eu,ep]=manufactured(dev,n,tet);
-    if(old_u>0) {
-      double ou=std::log2(old_u/eu),op=std::log2(old_p/ep);
+    const auto e=manufactured(dev,n,tet);
+    const double momentum=test::pressure_operator_error(dev,n,tet).momentum;
+    if(old.velocity>0) {
+      const double ou=test::order(old.velocity,e.velocity),op=test::order(old.pressure,e.pressure);
+      const double operator_order=test::order(old_operator,momentum);
+      const double ofp=test::order(old.wall_pressure,e.wall_pressure);
+      const double ofv=test::order(old.wall_viscous,e.wall_viscous);
+      const double oft=test::order(old.wall_total,e.wall_total);
       std::cout<<"FV_V2_ORDER backend="<<backend_name(dev.backend())<<" tet="<<tet<<" n="<<n
-        <<" u="<<ou<<" p="<<op<<std::endl;
-      if(n==(tet?16:32)) {CHECK(ou>=1.9);CHECK(op>=1.8);}
+        <<" u="<<ou<<" p="<<op<<" momentum_operator="<<operator_order
+        <<" wall_pressure="<<ofp<<" wall_viscous="<<ofv<<" wall_total="<<oft<<std::endl;
+      if(n==(tet?16:32)) {
+        CHECK(ou>=1.9);
+        if(tet) {CHECK(operator_order>=.9);CHECK(op>=operator_order-.1);}
+        else CHECK(op>=1.8);
+        CHECK(ofp>=1.8);CHECK(ofv>=1.8);CHECK(oft>=1.8);
+      }
     }
-    old_u=eu;old_p=ep;
+    old=e;old_operator=momentum;
   }
 }
-TEST_CASE("FV V2 manufactured Navier Stokes hex refinement") {
+
+TEST_CASE("FV V2 manufactured Navier Stokes hex refinement" * doctest::test_suite("slow")) {
   KUTTA_FOR_EACH_BACKEND(dev) check_refinement(*dev,false);
 }
-TEST_CASE("FV V2 manufactured Navier Stokes tet refinement") {
+TEST_CASE("FV V2 manufactured Navier Stokes tet refinement" * doctest::test_suite("slow")) {
   KUTTA_FOR_EACH_BACKEND(dev) check_refinement(*dev,true);
 }

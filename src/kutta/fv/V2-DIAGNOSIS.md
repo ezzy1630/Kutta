@@ -1,5 +1,24 @@
 # V2 pressure-order diagnosis
 
+## Current conclusion
+
+The original investigation below is historical. An independent exact-face
+Gauss probe now identifies the operator limit: midpoint-face quadrature gives
+first-order cell-centred pressure gradients on Freudenthal tets even with exact
+face pressure (finest order 0.999409), while opposite-face cancellation gives
+second order on hexes (1.99791). The actual LSQ/Second Order momentum pressure
+force has tet order 1.01406; solver pressure order 0.942387 is within 0.1 of it.
+The former tet pressure ≥1.8 gate was incompatible with the deliberately matched
+Fluent-class discretization. No discretization was changed.
+
+The replacement couples operator consistency with independent, strict ≥1.8
+wall-pressure, viscous and total-force gates. Measured tet orders 0.996464,
+0.874869 and 0.933580 fail those gates, which remain red. See
+[VERIFICATION.md](VERIFICATION.md) for the force integrals, mesh families and
+full results. This diagnosis does not establish second-order tet loads.
+
+## Historical bounded investigation
+
 The tetrahedral pressure gate remains failed, with its assertion `order >= 1.8`
 unchanged. The user authorized continuing to V3/V4 after this bounded diagnosis.
 These measurements use Apple M4 Pro, CPU and Metal, Release, source `dcf0e42`
