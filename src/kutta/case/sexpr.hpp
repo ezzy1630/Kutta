@@ -20,7 +20,7 @@ struct SExpr {
   static SExpr symbol(std::string text);
   std::optional<double> number() const;
   std::optional<std::string_view> atom_text() const;
-  bool operator==(const SExpr&) const;
+  bool operator==(const SExpr &) const;
 };
 struct ParseLimits {
   std::size_t max_depth = 128;
@@ -34,9 +34,9 @@ struct ParseError : std::runtime_error {
 // Data only: quoted forms and Scheme procedures are never evaluated.
 std::vector<SExpr> parse_sexprs(std::string_view text, ParseLimits limits = {});
 SExpr parse_sexpr(std::string_view text, ParseLimits limits = {});
-std::string to_string(const SExpr&);
+std::string to_string(const SExpr &);
 // Prefer an exact (key value) or (key . value) over rpvar registration metadata.
-const SExpr* alist_entry(const SExpr& alist, std::string_view key);
-const SExpr* entry_value(const SExpr& entry);
-const SExpr* alist_value(const SExpr& alist, std::string_view key);
-}
+const SExpr *alist_entry(const SExpr &alist, std::string_view key);
+const SExpr *entry_value(const SExpr &entry);
+const SExpr *alist_value(const SExpr &alist, std::string_view key);
+} // namespace kutta::fluent

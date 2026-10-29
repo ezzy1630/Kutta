@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(kutta LANGUAGES CXX)
+project(kutta LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,6 +31,7 @@ add_custom_command(
 
 # ---- Core library ---------------------------------------------------------------
 file(GLOB_RECURSE KUTTA_CORE_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_SOURCE_DIR}/src/kutta/case/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/core/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/mesh/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/io/*.cpp
@@ -43,6 +44,11 @@ add_library(kutta
   ${KUTTA_GEN_DIR}/kernels_host.cpp
   ${KUTTA_GEN_DIR}/kernels_cpu.cpp)
 target_include_directories(kutta PUBLIC ${CMAKE_SOURCE_DIR}/src ${KUTTA_GEN_DIR})
+find_package(HDF5 QUIET COMPONENTS C)
+if(HDF5_FOUND)
+  target_link_libraries(kutta PUBLIC HDF5::HDF5)
+  target_compile_definitions(kutta PUBLIC KUTTA_HAS_HDF5=1)
+endif()
 if(MSVC)
   target_compile_options(kutta PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4;/permissive->)
 else()
