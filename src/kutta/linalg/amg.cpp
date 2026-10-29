@@ -106,8 +106,11 @@ Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool
     }
     std::sort(row.begin(), row.end());
     Index previous = -1;
+    float sum = 0, error = 0;
     for (auto [col, source] : row) {
       if (col != previous) {
+        if (previous != -1) c.matrix.val.back() = sum;
+        sum = error = 0;
         if (entry_map && previous != -1) c.entry_offsets.push_back(static_cast<Index>(c.entries.size()));
         if (col == g) cp.diag[g] = static_cast<Index>(cp.col.size());
         cp.col.push_back(col);
@@ -115,8 +118,12 @@ Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool
         previous = col;
       }
       if (entry_map) c.entries.push_back(source);
-      c.matrix.val.back() += fine.val[source];
+      const float term = static_cast<float>(fine.val[source]) - error;
+      const float next = sum + term;
+      error = (next - sum) - term;
+      sum = next;
     }
+    if (previous != -1) c.matrix.val.back() = sum;
     if (entry_map) c.entry_offsets.push_back(static_cast<Index>(c.entries.size()));
     cp.row_ptr[g + 1] = static_cast<Index>(cp.col.size());
   }
@@ -142,21 +149,25 @@ struct Transfer {
 };
 struct Level {
   CsrMatrix matrix;  // fine matrix comes from the caller; levels > 0 own CSR
-  Buffer<float> inverse, l1, invalid, x, b, r, p, q, z, t;
+  Buffer<float> l1, x, b, r, p, q, z, t;
   Transfer transfer;
-  Level(Device& dev, std::size_t n)
-      : inverse(dev.alloc<float>(n)), l1(dev.alloc<float>(n)), invalid(dev.alloc<float>(n)),
-        x(dev.alloc<float>(n)), b(dev.alloc<float>(n)), r(dev.alloc<float>(n)),
-        p(dev.alloc<float>(n)), q(dev.alloc<float>(n)), z(dev.alloc<float>(n)),
-        t(dev.alloc<float>(n)) {}
+  Level(Device& dev, const CsrMatrixHost& a, bool fine, bool k_cycle, bool nullspace)
+      : l1(dev.upload<float>(linalg_detail::diagonal_values(a, true, nullspace))),
+        x(dev.alloc<float>(fine ? 0 : a.pattern.n_rows)),
+        b(dev.alloc<float>(fine ? 0 : a.pattern.n_rows)),
+        r(dev.alloc<float>(a.pattern.n_rows)),
+        p(dev.alloc<float>(!fine && k_cycle ? a.pattern.n_rows : 0)),
+        q(dev.alloc<float>(!fine && k_cycle ? a.pattern.n_rows : 0)),
+        z(dev.alloc<float>(!fine && k_cycle ? a.pattern.n_rows : 0)),
+        t(dev.alloc<float>(!fine && k_cycle ? a.pattern.n_rows : 0)) {}
 };
 
 class Aggregation final : public linalg_detail::Preconditioner {
  public:
   Aggregation(SolverKind kind, Device& dev, const CsrMatrixHost& a, AmgOptions options)
       : options_(options), spd_(kind == SolverKind::AmgPcg),
-        nullspace_(linalg_detail::constant_nullspace(a)) {
-    levels_.emplace_back(dev, a.pattern.n_rows);
+        nullspace_(options.nullspace == NullSpace::Constant) {
+    levels_.emplace_back(dev, a, true, options_.cycle == AmgCycle::K, nullspace_);
     const CsrMatrixHost* fine = &a;
     CsrMatrixHost owned;
     std::size_t total_nnz = a.pattern.nnz();
@@ -173,8 +184,8 @@ class Aggregation final : public linalg_detail::Preconditioner {
       t.entry_offsets = dev.upload<Index>(c.entry_offsets);
       t.entries = dev.upload<Index>(c.entries);
       total_nnz += c.matrix.pattern.nnz();
-      levels_.emplace_back(dev, c.matrix.pattern.n_rows);
-      levels_.back().matrix = upload(dev, c.matrix.pattern);
+      levels_.emplace_back(dev, c.matrix, false, options_.cycle == AmgCycle::K, nullspace_);
+      levels_.back().matrix = upload(dev, c.matrix);
       owned = std::move(c.matrix);
       fine = &owned;
     }
@@ -186,12 +197,13 @@ class Aggregation final : public linalg_detail::Preconditioner {
     for (std::size_t i = 0; i < levels_.size(); ++i) {
       auto& l = levels_[i];
       kern::krylov_diagonal(dev, matrix->n_rows, matrix->row_ptr, matrix->diag, matrix->val,
-                           l.inverse, l.l1, l.invalid);
-      // The last Neumann operator may be the scalar zero matrix. Its
-      // projected RHS is zero and its smoothing correction is zero.
+                           l.l1, l.r, 1);
+      // r is scratch between applications; use it for refresh validation too.
+      // The final scalar zero Neumann operator has a zero projected RHS.
       const double allowed = nullspace_ && matrix->n_rows == 1 ? 1 : 0;
-      KUTTA_REQUIRE(dev.max_abs(l.invalid, matrix->n_rows) <= allowed,
-                    "AMG: invalid values or zero diagonal");
+      const double invalid = dev.max_abs(l.r, matrix->n_rows);
+      KUTTA_REQUIRE(invalid != 3, "AMG: requires positive diagonals");
+      KUTTA_REQUIRE(invalid <= allowed, "AMG: invalid values or zero diagonal");
       if (i + 1 < levels_.size()) {
         auto& coarse = levels_[i + 1].matrix;
         auto& t = l.transfer;
@@ -305,20 +317,30 @@ std::unique_ptr<LinearSolver> make_amg_solver(SolverKind kind, Device& dev,
   KUTTA_REQUIRE(kind != SolverKind::AmgPcg || options.pre_sweeps == options.post_sweeps,
                 "AMG-PCG requires equal pre/post sweeps");
   // Validate the public host CSR boundary before traversing any arrays.
-  auto checked = upload(dev, a);
+  linalg_detail::validate_host(a);
+  linalg_detail::check_nullspace(a, options.nullspace);
   return linalg_detail::krylov_solver(kind, dev, a,
-      std::make_unique<Aggregation>(kind, dev, a, options), checked);
+      std::make_unique<Aggregation>(kind, dev, a, options), options.nullspace);
 }
 
 std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const CsrMatrixHost& a) {
+  return make_solver(kind, dev, a, SolverOptions{});
+}
+
+std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const CsrMatrixHost& a,
+                                          const SolverOptions& options) {
   switch (kind) {
     case SolverKind::AmgPcg:
-    case SolverKind::AmgBicgstab: return make_amg_solver(kind, dev, a, AmgOptions{});
+    case SolverKind::AmgBicgstab: {
+      AmgOptions amg; amg.nullspace = options.nullspace;
+      return make_amg_solver(kind, dev, a, amg);
+    }
     case SolverKind::Jacobi:
     case SolverKind::PcgJacobi:
     case SolverKind::BicgstabJacobi: {
-      auto initial = upload(dev, a);
-      return linalg_detail::krylov_solver(kind, dev, a, nullptr, initial);
+      linalg_detail::validate_host(a);
+      linalg_detail::check_nullspace(a, options.nullspace);
+      return linalg_detail::krylov_solver(kind, dev, a, nullptr, options.nullspace);
     }
   }
   throw Error("unknown SolverKind");

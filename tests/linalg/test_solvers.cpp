@@ -4,13 +4,14 @@
 #include "../backend_helpers.hpp"
 #include "kutta/linalg/amg.hpp"
 #include "matrices.hpp"
+#include "instrumented_device.hpp"
 
 using namespace kutta;
 using namespace kutta::test_linalg;
 
 namespace {
 void check_solution(Device& dev, const CsrMatrixHost& a, SolverKind kind,
-                    double tolerance = 2e-6, bool neumann = false, AmgCycle cycle = AmgCycle::K) {
+                    double tolerance = 2e-6, bool neumann = false, AmgCycle cycle = AmgCycle::V) {
   auto matrix = upload(dev, a);
   auto exact = random_solution(a.pattern.n_rows);
   auto b = rhs(a, exact);
@@ -21,8 +22,10 @@ void check_solution(Device& dev, const CsrMatrixHost& a, SolverKind kind,
   auto reference = kind == SolverKind::BicgstabJacobi || kind == SolverKind::AmgBicgstab ?
       reference_dense(a, b) : reference_cg(a, b, neumann);
   AmgOptions options; options.cycle = cycle;
+  options.nullspace = neumann ? NullSpace::Constant : NullSpace::None;
   auto solver = kind == SolverKind::AmgPcg || kind == SolverKind::AmgBicgstab ?
-      make_amg_solver(kind, dev, a, options) : make_solver(kind, dev, a);
+      make_amg_solver(kind, dev, a, options) :
+      make_solver(kind, dev, a, {.nullspace = options.nullspace});
   auto x = dev.alloc<float>(a.pattern.n_rows);
   dev.fill(x, 0.0f);
   auto db = dev.upload<float>(b);
@@ -99,7 +102,7 @@ TEST_CASE("constant Neumann nullspace is projected and incompatible RHS is rejec
     auto a = poisson(8, 7, 1, 1, false, true);
     for (auto kind : {SolverKind::PcgJacobi, SolverKind::AmgPcg}) {
       check_solution(*dev, a, kind, 2e-6, true);
-      auto solver = make_solver(kind, *dev, a);
+      auto solver = make_solver(kind, *dev, a, {.nullspace = NullSpace::Constant});
       CHECK(solver->describe().find("nullspace") != std::string::npos);
       auto matrix = upload(*dev, a);
       auto x = dev->alloc<float>(a.pattern.n_rows), b = dev->alloc<float>(a.pattern.n_rows);
@@ -144,7 +147,13 @@ TEST_CASE("AMG refresh agrees with fresh setup and V and K cycles are selectable
     for (auto cycle : {AmgCycle::V, AmgCycle::K}) {
       AmgOptions options; options.cycle = cycle;
       auto solver = make_amg_solver(SolverKind::AmgPcg, *dev, a, options);
-      auto scaled = a; for (auto& v : scaled.val) v *= 4;
+      auto scaled = a;
+      for (auto& v : scaled.val) v = static_cast<float>(v * 1.37);
+      // Preserve relative edge strengths (and hence P), but change the reaction
+      // per cell. A stale coarse operator cannot cancel this in Krylov scaling.
+      for (Index i = 0; i < a.pattern.n_rows; ++i)
+        scaled.val[a.pattern.diag[i]] = static_cast<float>(
+            scaled.val[a.pattern.diag[i]] + 0.031 * (1 + hash(i) % 17));
       auto new_matrix = upload(*dev, scaled);
       // Refresh values only; keep the uploaded original pattern.
       dev->copy(matrix.val, new_matrix.val);
@@ -194,6 +203,7 @@ TEST_CASE("AMG 3D Poisson grid growth at requested 1e-8 is measured honestly") {
                 << " iterations=" << s.iterations << " rel=" << s.final_residual / s.initial_residual
                 << " converged=" << s.converged << " " << solver->describe() << '\n';
       CHECK(s.converged);
+      CHECK(s.iterations <= 15);
     }
     CHECK(counts[1] < 1.5 * counts[0]);
   }
@@ -306,5 +316,111 @@ TEST_CASE("isolated diagonal rows do not prevent connected cells from coarsening
     auto solver = make_solver(SolverKind::AmgPcg, *dev, a);
     CHECK(solver->describe().find("1 levels") == std::string::npos);
     check_solution(*dev, a, SolverKind::AmgPcg);
+  }
+}
+
+TEST_CASE("default AMG avoids recursive host reductions and Krylov uses bounded storage") {
+  InstrumentedDevice dev(Backend::Cpu);
+  auto a = poisson(32, 32, 32);
+  auto matrix = upload(dev, a);
+  const auto before = dev.live_bytes;
+  dev.peak_bytes = before;
+  auto solver = make_solver(SolverKind::AmgPcg, dev, a);
+  INFO("solver bytes/row=" << double(dev.live_bytes - before) / a.pattern.n_rows
+       << " peak=" << double(dev.peak_bytes - before) / a.pattern.n_rows);
+  CHECK(dev.live_bytes - before < 85 * std::size_t(a.pattern.n_rows));
+  CHECK(dev.peak_bytes - before < 90 * std::size_t(a.pattern.n_rows));
+  auto b = dev.upload<float>(random_solution(a.pattern.n_rows));
+  auto x = dev.alloc<float>(b.size()); dev.fill(x, 0);
+  dev.reductions = 0;
+  auto s = solver->solve(dev, matrix, x, b, {0, 0, 3});
+  CHECK(s.iterations == 3);
+  CHECK(dev.reductions <= 3 * std::size_t(s.iterations) + 6);
+}
+
+TEST_CASE("Jacobi batches residual reductions and BiCGStab checks s only once") {
+  for (auto kind : {SolverKind::Jacobi, SolverKind::BicgstabJacobi}) {
+    InstrumentedDevice dev(Backend::Cpu);
+    auto a = poisson(16, 12, 8, 1, false, false, 5);
+    auto matrix = upload(dev, a);
+    auto solver = make_solver(kind, dev, a);
+    auto b = dev.upload<float>(random_solution(a.pattern.n_rows));
+    auto x = dev.alloc<float>(b.size()); dev.fill(x, 0);
+    dev.reductions = 0;
+    auto s = solver->solve(dev, matrix, x, b, {0, 0, kind == SolverKind::Jacobi ? 17 : 4});
+    INFO("reductions=" << dev.reductions << " iterations=" << s.iterations);
+    if (kind == SolverKind::Jacobi) CHECK(dev.reductions <= 7);
+    else CHECK(dev.reductions <= 6 * std::size_t(s.iterations) + 4);
+  }
+}
+
+TEST_CASE("assembled random Neumann pressure uses the caller nullspace contract") {
+  auto a = poisson(12, 10, 4, 1, true, true);
+  // FV assembly sums float off-diagonals, introducing harmless row-sum noise.
+  for (Index i = 0; i < a.pattern.n_rows; ++i) {
+    float d = 0;
+    for (Index j = a.pattern.row_ptr[i]; j < a.pattern.row_ptr[i + 1]; ++j)
+      if (a.pattern.col[j] != i) d -= static_cast<float>(a.val[j]);
+    a.val[a.pattern.diag[i]] = d;
+  }
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto matrix = upload(*dev, a);
+    auto b = dev->alloc<float>(a.pattern.n_rows), x = dev->alloc<float>(a.pattern.n_rows);
+    dev->fill(b, 0); dev->fill(x, 4);
+    for (auto kind : {SolverKind::PcgJacobi, SolverKind::AmgPcg}) {
+      auto solver = make_solver(kind, *dev, a, {.nullspace = NullSpace::Constant});
+      CHECK(solver->describe().find("nullspace") != std::string::npos);
+      auto stats = solver->solve(*dev, matrix, x, b, {1e-5, 1e-7, 300});
+      CHECK(stats.converged);
+      CHECK(std::abs(dev->sum(x, x.size())) < 1e-5);
+      std::vector<float> forcing(a.pattern.n_rows);
+      forcing.front() = 1; forcing.back() = -1;
+      dev->upload<float>(b, forcing);
+      stats = solver->solve(*dev, matrix, x, b, {1e-5, 1e-7, 300});
+      CHECK(stats.converged);
+      const auto reference = reference_cg(a, forcing, true);
+      const auto got = dev->download(x);
+      double error = 0, scale = 0;
+      for (std::size_t i = 0; i < got.size(); ++i) {
+        error += std::pow(got[i] - reference[i], 2); scale += reference[i] * reference[i];
+      }
+      CHECK(std::sqrt(error / scale) < 2e-4);
+      CHECK(std::abs(dev->sum(x, x.size())) < 1e-5);
+      dev->fill(b, 1);
+      CHECK_THROWS_AS(solver->solve(*dev, matrix, x, b, {}), Error);
+      dev->fill(b, 0); dev->fill(x, 4);
+    }
+  }
+}
+
+TEST_CASE("AMG rejects negative diagonals and Krylov restores its best verified iterate on divergence") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto a = poisson(16, 12, 4, 1, false, false, 20);
+    for (Index i = 0; i < a.pattern.n_rows; i += 7)
+      for (Index j = a.pattern.row_ptr[i]; j < a.pattern.row_ptr[i + 1]; ++j) a.val[j] = -a.val[j];
+    CHECK_THROWS_WITH_AS(make_solver(SolverKind::AmgBicgstab, *dev, a),
+                         doctest::Contains("AMG: requires positive diagonals"), Error);
+    auto matrix = upload(*dev, a);
+    auto solver = make_solver(SolverKind::BicgstabJacobi, *dev, a);
+    auto b = dev->upload<float>(rhs(a, random_solution(a.pattern.n_rows)));
+    auto x = dev->alloc<float>(b.size()); dev->fill(x, 0);
+    CHECK(solver->solve(*dev, matrix, x, b, {1e-5, 0, 300}).converged);
+    // Deliberately violates PCG's SPD contract; both Krylov methods make a
+    // huge first step. Returning it would amplify the initial residual 1e5x.
+    CsrMatrixHost bad;
+    bad.pattern.n_rows = 2; bad.pattern.row_ptr = {0, 2, 4};
+    bad.pattern.col = {0, 1, 0, 1}; bad.pattern.diag = {0, 3};
+    bad.val = {1, 999999, -999998, 1};
+    matrix = upload(*dev, bad);
+    for (auto kind : {SolverKind::PcgJacobi, SolverKind::BicgstabJacobi}) {
+      solver = make_solver(kind, *dev, bad);
+      b = dev->upload<float>(std::vector<float>{1, 1});
+      x = dev->alloc<float>(2); dev->fill(x, 0);
+      auto stats = solver->solve(*dev, matrix, x, b, {1e-8, 0, 8});
+      CHECK_FALSE(stats.converged);
+      CHECK(stats.final_residual <= stats.initial_residual);
+      CHECK(dev->download(x) == std::vector<float>{0, 0});
+      CHECK(stats.iterations == 1);
+    }
   }
 }

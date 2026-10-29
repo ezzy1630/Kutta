@@ -4,6 +4,7 @@
 #include <limits>
 
 #include "kernels.hpp"
+#include "kutta/linalg/detail.hpp"
 
 namespace kutta {
 namespace {
@@ -47,6 +48,14 @@ CsrMatrix upload(Device& dev, const CsrPattern& p) {
   a.val = dev.alloc<float>(p.col.size());
   dev.fill(a.val, 0.0f);
   return a;
+}
+
+void linalg_detail::validate_host(const CsrMatrixHost& m) {
+  validate(m.pattern);
+  KUTTA_REQUIRE(m.val.size() == m.pattern.col.size(), "CSR: value count mismatch");
+  for (double v : m.val)
+    KUTTA_REQUIRE(std::isfinite(v) && std::abs(v) <= std::numeric_limits<float>::max(),
+                  "CSR: nonfinite or out-of-range value");
 }
 
 CsrMatrix upload(Device& dev, const CsrMatrixHost& m) {

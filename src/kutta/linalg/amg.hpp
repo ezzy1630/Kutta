@@ -6,14 +6,15 @@ namespace kutta {
 enum class AmgCycle { V, K };
 
 struct AmgOptions {
-  AmgCycle cycle = AmgCycle::K;
-  int pre_sweeps = 2;
-  int post_sweeps = 2;
+  AmgCycle cycle = AmgCycle::V;
+  int pre_sweeps = 5;
+  int post_sweeps = 5;
   int coarse_sweeps = 32;
   Index coarse_rows = 24;
   int max_levels = 24;
   int aggregation_passes = 3;
   double strength_threshold = 0.25;
+  NullSpace nullspace = NullSpace::None;
 };
 
 // Same lifecycle as make_solver; only AmgPcg/AmgBicgstab are accepted.

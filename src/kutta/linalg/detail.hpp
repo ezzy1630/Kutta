@@ -23,7 +23,9 @@ inline bool coefficient(double x) {
 
 // Structure and nullspace are fixed for a solver's lifetime. A refresh may
 // change coefficients, but must retain that pattern and the nullspace choice.
-bool constant_nullspace(const CsrMatrixHost& a);
+void validate_host(const CsrMatrixHost& a);
+std::vector<float> diagonal_values(const CsrMatrixHost& a, bool l1, bool nullspace);
+void check_nullspace(const CsrMatrixHost& a, NullSpace choice);
 
 class Preconditioner {
  public:
@@ -37,5 +39,5 @@ class Preconditioner {
 
 std::unique_ptr<LinearSolver> krylov_solver(SolverKind kind, Device& dev,
     const CsrMatrixHost& a, std::unique_ptr<Preconditioner> preconditioner,
-    const CsrMatrix& validated_initial);
+    NullSpace nullspace);
 }  // namespace kutta::linalg_detail

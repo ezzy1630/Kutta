@@ -19,6 +19,7 @@ struct SolveControl {
   double rel_tol = 1e-2;  // outer SIMPLE loops only need ~1-2 orders per solve
   double abs_tol = 1e-12;
   int max_iter = 200;
+  int residual_check_interval = 8;  // Jacobi sweeps between host norm checks
 };
 
 struct SolveStats {
@@ -36,6 +37,12 @@ enum class SolverKind : std::uint8_t {
   AmgBicgstab,     // nonsymmetric with AMG preconditioner
 };
 
+enum class NullSpace : std::uint8_t { None, Constant };
+
+struct SolverOptions {
+  NullSpace nullspace = NullSpace::None;  // the equation, not rounded row sums, decides
+};
+
 class LinearSolver {
  public:
   virtual ~LinearSolver() = default;
@@ -46,7 +53,10 @@ class LinearSolver {
 };
 
 // Builds structure (and for AMG the aggregation hierarchy) from the host matrix.
-// The host values are used only to choose AMG aggregates by connection strength.
+// Host values initialize diagonals/coarse operators and choose AMG aggregates.
 std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const CsrMatrixHost& a);
+
+std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const CsrMatrixHost& a,
+                                           const SolverOptions& options);
 
 }  // namespace kutta

@@ -34,12 +34,13 @@ TEST_CASE("linalg kernels match explicit host calculations on every backend") {
     auto diag = dev->upload<Index>(std::vector<Index>{0, 3, 6});
     auto values = dev->upload<float>(std::vector<float>{2, -1, -1, 4, -2, -2, 8});
     auto l1 = dev->alloc<float>(3), invalid = dev->alloc<float>(3);
-    kern::krylov_diagonal(*dev, 3, rows, diag, values, out, l1, invalid);
+    kern::krylov_diagonal(*dev, 3, rows, diag, values, out, invalid, 0);
     CHECK(dev->download(out) == std::vector<float>{0.5f, 0.25f, 0.125f});
+    kern::krylov_diagonal(*dev, 3, rows, diag, values, l1, invalid, 1);
     CHECK(dev->download(l1) == dev->download(out));
     CHECK(dev->max_abs(invalid, 3) == 0);
     dev->fill(values, 0);
-    kern::krylov_diagonal(*dev, 3, rows, diag, values, out, l1, invalid);
+    kern::krylov_diagonal(*dev, 3, rows, diag, values, out, invalid, 0);
     CHECK(dev->download(invalid) == std::vector<float>{1, 1, 1});
   }
 }

@@ -46,7 +46,7 @@ KUTTA_KERNEL void csr_residual(int i, KIn(int) rows, KIn(int) cols, KIn(float) v
 
 KUTTA_KERNEL void krylov_diagonal(int i, KIn(int) rows, KIn(int) diag,
                                  KIn(float) values, KOut(float) inverse,
-                                 KOut(float) l1_inverse, KOut(float) invalid) {
+                                 KOut(float) invalid, int use_l1) {
   float d = values[diag[i]];
   float off = 0.0f;
   float bad = 0.0f;
@@ -59,10 +59,9 @@ KUTTA_KERNEL void krylov_diagonal(int i, KIn(int) rows, KIn(int) diag,
   // D_l1 >= (|D| + sum |offdiag|)/2 bounds the spectrum by two for SPD
   // operators. Symmetric pre/post sweeps therefore give an SPD V-cycle.
   float l1 = kmax(kabs(d), 0.5f * (kabs(d) + off));
-  inverse[i] = inv;
-  l1_inverse[i] = l1 != 0.0f ? 1.0f / l1 : 0.0f;
+  inverse[i] = use_l1 != 0 ? (l1 != 0.0f ? 1.0f / l1 : 0.0f) : inv;
   invalid[i] = (bad != 0.0f || inv - inv != 0.0f || l1 - l1 != 0.0f) ?
-      2.0f : (d == 0.0f ? 1.0f : 0.0f);
+      2.0f : (use_l1 != 0 && d < 0.0f ? 3.0f : (d == 0.0f ? 1.0f : 0.0f));
 }
 
 KUTTA_KERNEL void krylov_multiply(int i, KIn(float) r, KIn(float) inverse,
