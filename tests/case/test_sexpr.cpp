@@ -54,3 +54,12 @@ TEST_CASE("Scheme node budget scales beyond two million for large thread tables"
   CHECK(parse_sexprs(threads).size() == 1200);
   CHECK_THROWS_AS(parse_sexprs(threads, {128, 2'000'000, 128 * 1024 * 1024}), ParseError);
 }
+
+TEST_CASE("Automatic Scheme node budgets include synthesized quote nodes") {
+  CHECK(to_string(parse_sexpr("''a")) == "(quote (quote a))");
+  std::string quoted = "(";
+  for (int i = 0; i < 2000; ++i)
+    quoted += "''a ";
+  quoted += ')';
+  CHECK(parse_sexpr(quoted).elements.size() == 2000);
+}

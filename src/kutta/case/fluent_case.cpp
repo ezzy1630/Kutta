@@ -284,9 +284,11 @@ public:
         if (!scalars[i] || !target[i])
           continue;
         const auto &a = *scalars[i], &b = *target[i];
-        if (a.constant && b.constant)
-          conflict = conflict || std::abs(*a.constant - *b.constant) >
-              1e-8 * std::max({1.0, std::abs(*a.constant), std::abs(*b.constant)});
+        const auto av = a.constant ? a.constant : a.resolved;
+        const auto bv = b.constant ? b.constant : b.resolved;
+        if (av && bv)
+          conflict = conflict || std::abs(*av - *bv) >
+              1e-8 * std::max({1.0, std::abs(*av), std::abs(*bv)});
         else
           conflict = conflict || a != b;
       }
@@ -315,6 +317,24 @@ ZoneType zone_type(std::string_view s) {
 bool epsilon_model(const FluentCase &c) {
   return c.viscous.model == ViscousModel::ke_standard || c.viscous.model == ViscousModel::ke_rng ||
          c.viscous.model == ViscousModel::ke_realizable;
+}
+void model_flag_support(FluentCase &c) {
+  for (const auto &key : c.variables.unparsed_names()) {
+    if (!key.starts_with("kw-") && !key.starts_with("ke-") && !key.starts_with("sst-"))
+      continue;
+    auto flag = boolean(c.variables.value(key));
+    if (!flag)
+      continue;
+    c.viscous.unsupported_options.emplace(key, *flag);
+    if (!*flag)
+      continue;
+    const bool inactive = c.viscous.model == ViscousModel::laminar ||
+        (key.starts_with("ke-") ? !epsilon_model(c) : epsilon_model(c));
+    c.issues.push_back({"rp/" + key, inactive
+        ? "inactive model flag retained; does not apply to the selected viscous model"
+        : "unsupported: active model flag is not in the model allowlist",
+        inactive ? IssueClass::informational : IssueClass::unsupported});
+  }
 }
 // The table describes the supported physical problem, not Fluent's defaults.
 // New flags are rejected even when a writer introduces them in a future version.
@@ -459,13 +479,15 @@ void model(FluentCase &c) {
     if (auto v = x.flag(key, false); v == true)
       c.issues.push_back({"rp/" + std::string(key), "unsupported model option"});
   if (epsilon) {
-    for (auto key : {"ke-standard-wall-fn?", "ke-non-equilibrium-wall-fn?", "ke-enhanced-wall-treatment?",
-                     "ke-scalable-wall-fn?", "ke-mblend-wall?", "ke-two-layer?", "ke-easm-on?"})
+    for (auto key : {"ke-std-wall?", "ke-non-eqm", "ke-enh-wall?", "ke-scalable-wall?",
+                     "ke-nwt-ml?", "ke-udf-wall?", "ke-rough-wall-treatment-r14?"})
       if (auto v = x.flag(key, false))
         t.unsupported_options.emplace(key, *v);
   }
-  if (t.model == ViscousModel::laminar)
+  if (t.model == ViscousModel::laminar) {
+    model_flag_support(c);
     return;
+  }
   t.production_limiter =
       x.flag(epsilon ? "ke-production-limiter?" : "kw-not-trans-sst-production-limiter?");
   t.production_factor = x.num(epsilon ? "ke-pk-factor" : "sst-pk-factor");
@@ -493,10 +515,7 @@ void model(FluentCase &c) {
         "sst-sig-k1",   "sst-sig-k2",        "sst-sig-w1", "sst-sig-w2",       "sst-kappa"})
     if (auto v = x.num(key, false))
       t.coefficients.emplace(key, *v);
-  for (const auto &key : r.unparsed_names())
-    if ((key.starts_with("kw-") || key.starts_with("ke-") || key.starts_with("sst-")) &&
-        boolean(r.value(key)) == true)
-      c.issues.push_back({"rp/" + key, "unsupported: active model flag is not in the model allowlist"});
+  model_flag_support(c);
 }
 void numerics(FluentCase &c) {
   Extractor x(c, c.variables, "rp/");
@@ -552,17 +571,19 @@ void numerics(FluentCase &c) {
     equations.push_back(epsilon_model(c) ? "epsilon" : "omega");
     equations.push_back("turb-viscosity");
   }
+  const bool pseudo = n.pseudo.formulation == true;
+  const bool coupled = n.coupling == Coupling::coupled;
   for (const auto &eq : equations) {
     auto key = std::string(eq) + "/relax";
-    if (auto v = x.num(key))
+    if (auto v = x.num(key, !pseudo))
       n.relaxation.emplace(eq, *v);
     key = std::string(eq) + "/pseudo-relax";
-    if (auto v = x.num(key, false))
+    if (auto v = x.num(key, pseudo && (!coupled || (eq != "pressure" && eq != "mom"))))
       n.pseudo_relaxation.emplace(key, *v);
   }
   for (auto key : {"pressure-coupled/pressure/pseudo-explicit-relax",
                    "pressure-coupled/mom/pseudo-explicit-relax"})
-    if (auto v = x.num(key))
+    if (auto v = x.num(key, pseudo && coupled))
       n.pseudo_relaxation.emplace(key, *v);
 }
 void materials(FluentCase &c) {

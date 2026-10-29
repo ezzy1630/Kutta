@@ -274,6 +274,8 @@ TEST_CASE("Real elbow1 authoritative k epsilon and velocity components") {
   CHECK(c.numerics.epsilon == Scheme::first_upwind);
   CHECK_FALSE(c.numerics.omega);
   CHECK(c.numerics.relaxation.contains("epsilon"));
+  CHECK(c.viscous.unsupported_options.at("ke-std-wall?") == true);
+  CHECK(c.viscous.unsupported_options.at("ke-enh-wall?") == false);
   CHECK(boundary(c, 6).velocity[1]->constant == 1.2);
   CHECK(*boundary(c, 7).velocity[0]->constant == doctest::Approx(0.40000001));
   CHECK(c.cell_zones[0].material == "water");
@@ -461,4 +463,17 @@ TEST_CASE("Force report surface IDs never masquerade as thread IDs") {
   CHECK(c.reports[2].scaled == false);
   REQUIRE(drag.surface_ids);
   CHECK(*drag.surface_ids == std::vector<std::int64_t>{1});
+}
+
+TEST_CASE("Inactive turbulence flags remain visible in a laminar case") {
+  auto c = synthetic(config(false, false, true) + "(kw-future? #t)");
+  auto i = std::find_if(c.issues.begin(), c.issues.end(), [](auto &i) { return i.path == "rp/kw-future?"; });
+  REQUIRE(i != c.issues.end());
+  CHECK(i->classification == IssueClass::informational);
+}
+TEST_CASE("Active pseudo relaxation requires turbulence factors") {
+  auto c = synthetic(config(false, true) + "(kw-sst-on? #t) (kw-bsl-on? #f) (kw-std-on? #f) (flow/scheme 24) (pseudo-transient-formulation? #t)");
+  CHECK(issue_at(c, "rp/omega/pseudo-relax"));
+  CHECK(issue_at(c, "rp/k/pseudo-relax"));
+  CHECK_FALSE(issue_at(c, "rp/pressure/relax"));
 }
