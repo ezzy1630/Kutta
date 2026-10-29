@@ -59,6 +59,23 @@ std::pair<double,double> manufactured(Device& dev,int n,bool tet) {
     eu+=g.cell_volume[c]*(std::pow(u[c]-exact.x,2)+std::pow(v[c]-exact.y,2)+std::pow(w[c]-exact.z,2));
     ep+=g.cell_volume[c]*std::pow(p[c]-exact_pressure(g.cell_centroid[c])-mean,2);
   }
+  std::vector<bool> boundary(solver.mesh().n_cells),wall(solver.mesh().n_cells);
+  for(const auto& patch:solver.mesh().patches) for(Index face=patch.start;face<patch.start+patch.size;++face) {
+    boundary[solver.mesh().owner[face]]=true;
+    if(patch.kind==PatchKind::Wall) wall[solver.mesh().owner[face]]=true;
+  }
+  double ei=0,vi=0,ew=0,vw=0,emax=0;Index worst=0;
+  for(Index c=0;c<solver.mesh().n_cells;++c) {
+    const double error=p[c]-exact_pressure(g.cell_centroid[c])-mean;
+    if(!boundary[c]) {ei+=g.cell_volume[c]*error*error;vi+=g.cell_volume[c];}
+    if(!wall[c]) {ew+=g.cell_volume[c]*error*error;vw+=g.cell_volume[c];}
+    if(std::abs(error)>emax) {emax=std::abs(error);worst=c;}
+  }
+  const auto point=g.cell_centroid[worst];
+  std::cout<<"FV_V2_BOUNDARY backend="<<backend_name(dev.backend())<<" tet="<<tet<<" n="<<n
+    <<" interior_p_L2="<<(vi>0?std::sqrt(ei/vi):-1)<<" excluding_walls_p_L2="<<std::sqrt(ew/vw)
+    <<" p_Linf="<<emax<<" at="<<point.x<<","<<point.y<<","<<point.z
+    <<" boundary="<<boundary[worst]<<" wall="<<wall[worst]<<std::endl;
   eu=std::sqrt(eu/vol);ep=std::sqrt(ep/vol);
   std::cout<<"FV_V2 backend="<<backend_name(dev.backend())<<" tet="<<tet<<" n="<<n
     <<" iterations="<<solver.report().iteration<<" u_L2="<<eu<<" p_L2="<<ep
