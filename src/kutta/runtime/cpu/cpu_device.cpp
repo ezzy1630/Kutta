@@ -51,7 +51,11 @@ class CpuDevice final : public Device {
     KUTTA_REQUIRE(n <= x.size(), "max_abs: n out of range");
     const float* p = floats(x);
     double m = 0;
-    for (std::size_t i = 0; i < n; ++i) m = std::max(m, double(std::fabs(p[i])));
+    // NaN-propagating, unlike std::max, so a diverged field never reports a finite norm.
+    for (std::size_t i = 0; i < n; ++i) {
+      const double v = std::fabs(p[i]);
+      if (v > m || std::isnan(v)) m = v;
+    }
     return m;
   }
 

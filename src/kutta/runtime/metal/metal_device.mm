@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <cmath>
 #include <cstring>
 #include <vector>
 
@@ -15,18 +16,23 @@ namespace {
 // TwoSum keeps the rounding residual at every addition, including across SIMD
 // lanes and threadgroups. Dot products also retain the FMA product residual.
 // With fast math disabled these float pairs have roughly 48 bits of precision;
-// the host finishes the bounded set of (hi, lo) partials in double.
+// the host finishes the bounded set of (hi, lo) partials in double. Range is
+// still float's: partial sums beyond ~3e38 become Inf, and products below ~1e-38
+// flush to zero, so callers keep solver vectors O(1)-scaled. The max is
+// NaN-propagating so a diverged field can never report a finite norm.
 constexpr const char* reduction_source = R"MSL(
 #include <metal_stdlib>
 using namespace metal;
 float2 pair_add(float2 a, float2 b) {
   float s = a.x + b.x;
+  if (!isfinite(s)) return float2(s, 0.0f);  // keep Inf as Inf instead of Inf - Inf = NaN
   float v = s - a.x;
   float e = (a.x - (s - v)) + (b.x - v);
   e = e + a.y + b.y;
   float h = s + e;
   return float2(h, e - (h - s));
 }
+float nan_max(float a, float b) { return (b > a || isnan(b)) ? b : a; }
 kernel void runtime_reduce(const device float* x [[buffer(0)]],
                            const device float* y [[buffer(1)]],
                            device float2* partial [[buffer(2)]],
@@ -43,7 +49,7 @@ kernel void runtime_reduce(const device float* x [[buffer(0)]],
   threadgroup float2 scratch[32];
   float2 a = float2(0.0f);
   for (uint i = gid; i < n; i += threads * groups) {
-    if (mode == 2) a.x = max(a.x, abs(x[i]));
+    if (mode == 2) a.x = nan_max(a.x, abs(x[i]));
     else {
       float h = mode == 1 ? x[i] * y[i] : x[i];
       float l = mode == 1 ? fma(x[i], y[i], -h) : 0.0f;
@@ -52,7 +58,7 @@ kernel void runtime_reduce(const device float* x [[buffer(0)]],
   }
   for (uint d = width / 2; d > 0; d /= 2) {
     float2 b = simd_shuffle_down(a, d);
-    if (lane + d < width) a = mode == 2 ? float2(max(a.x, b.x), 0) : pair_add(a, b);
+    if (lane + d < width) a = mode == 2 ? float2(nan_max(a.x, b.x), 0) : pair_add(a, b);
   }
   if (lane == 0) scratch[simd] = a;
   threadgroup_barrier(mem_flags::mem_threadgroup);
@@ -60,7 +66,7 @@ kernel void runtime_reduce(const device float* x [[buffer(0)]],
     a = lane < threads / width ? scratch[lane] : float2(0.0f);
     for (uint d = width / 2; d > 0; d /= 2) {
       float2 b = simd_shuffle_down(a, d);
-      if (lane + d < width) a = mode == 2 ? float2(max(a.x, b.x), 0) : pair_add(a, b);
+      if (lane + d < width) a = mode == 2 ? float2(nan_max(a.x, b.x), 0) : pair_add(a, b);
     }
     if (lane == 0) partial[group] = a;
   }
@@ -97,8 +103,12 @@ class MetalDevice final : public Device {
       queue_ = [device_ newCommandQueue];
       KUTTA_REQUIRE(queue_ != nil, "Metal command queue creation failed");
       MTLCompileOptions* options = [MTLCompileOptions new];
-      if (@available(macOS 15.0, *)) options.mathMode = MTLMathModeSafe;
-      else {
+      // Solver kernels need IEEE-accurate sqrt/exp/log/tanh/pow on every OS
+      // version; on macOS 15+ mathMode alone still selects fast functions.
+      if (@available(macOS 15.0, *)) {
+        options.mathMode = MTLMathModeSafe;
+        options.mathFloatingPointFunctions = MTLMathFloatingPointFunctionsPrecise;
+      } else {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
         options.fastMathEnabled = NO;
@@ -146,15 +156,15 @@ class MetalDevice final : public Device {
   void synchronize() override {
     @autoreleasepool {
       commit();
+      // Wait for every buffer before reporting, so no GPU work is still writing
+      // shared memory when the caller handles the error.
+      std::string first_error;
       for (id<MTLCommandBuffer> buffer : pending_) {
-        [buffer waitUntilCompleted];
-        if (buffer.status == MTLCommandBufferStatusError) {
-          const std::string message = buffer.error.localizedDescription.UTF8String;
-          pending_.clear();
-          throw Error("Metal execution: " + message);
-        }
+        const std::string error = wait(buffer);
+        if (first_error.empty()) first_error = error;
       }
       pending_.clear();
+      if (!first_error.empty()) throw Error("Metal execution: " + first_error);
     }
   }
   double sum(const Buffer<float>& x, std::size_t n) override {
@@ -240,11 +250,24 @@ class MetalDevice final : public Device {
       dispatches_ = 0;
     }
   }
+  static std::string wait(id<MTLCommandBuffer> buffer) {
+    [buffer waitUntilCompleted];
+    if (buffer.status != MTLCommandBufferStatusError) return {};
+    return buffer.error.localizedDescription.UTF8String;
+  }
   void count_dispatch() {
     if (++dispatches_ == 256) {
       commit();
-      // Bound command-buffer/resource retention for long host-only launch loops.
-      if (pending_.size() >= 8) synchronize();
+      // Bound command-buffer/resource retention for long host-only launch loops,
+      // waiting only on the oldest buffer so the GPU stays busy.
+      if (pending_.size() >= 8) {
+        const std::string error = wait(pending_.front());
+        pending_.erase(pending_.begin());
+        if (!error.empty()) {
+          synchronize();
+          throw Error("Metal execution: " + error);
+        }
+      }
     }
   }
   static NSUInteger threads(id<MTLComputePipelineState> pipeline) {
@@ -259,8 +282,10 @@ class MetalDevice final : public Device {
     check_size(n);
     if (!n) { synchronize(); return 0; }
     const auto count = static_cast<std::uint32_t>(n);
-    const auto group_count = std::min<std::size_t>((n + threads(reduce_) - 1) / threads(reduce_), 1024);
-    MetalBuffer partial(device_, group_count * 2 * sizeof(float));
+    const auto group_count = std::min<std::size_t>((n + threads(reduce_) - 1) / threads(reduce_), kMaxGroups);
+    // Safe to reuse: every reduction synchronizes before returning.
+    if (!partial_) partial_ = std::make_unique<MetalBuffer>(device_, kMaxGroups * 2 * sizeof(float));
+    MetalBuffer& partial = *partial_;
     auto encoder = compute();
     [encoder setComputePipelineState:reduce_];
     [encoder setBuffer:metal(*x.handle()) offset:0 atIndex:0];
@@ -275,11 +300,12 @@ class MetalDevice final : public Device {
     const float* p = static_cast<const float*>(partial.buffer.contents);
     double result = 0, correction = 0;
     for (std::size_t i = 0; i < group_count * 2; ++i) {
-      if (mode == 2) result = std::max(result, double(p[i]));
+      if (mode == 2) result = (p[i] > result || std::isnan(p[i])) ? double(p[i]) : result;
       else {
         double v = double(p[i]) - correction;
         double next = result + v;
-        correction = (next - result) - v;
+        // Inf - Inf in the compensation would turn an infinite sum into NaN.
+        correction = std::isfinite(next) ? (next - result) - v : 0.0;
         result = next;
       }
     }
@@ -293,6 +319,8 @@ class MetalDevice final : public Device {
   std::vector<id<MTLComputePipelineState>> pipelines_;
   id<MTLComputePipelineState> reduce_, fill_;
   unsigned dispatches_ = 0;
+  static constexpr std::size_t kMaxGroups = 1024;
+  std::unique_ptr<MetalBuffer> partial_;
 };
 }  // namespace
 

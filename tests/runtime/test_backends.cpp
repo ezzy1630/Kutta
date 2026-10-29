@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 #include "../backend_helpers.hpp"
@@ -21,10 +22,15 @@ void close_reduction(double actual, double expected) {
 }
 }
 
-TEST_CASE("compiled Metal backend is exercised, not silently skipped") {
+TEST_CASE("compiled GPU backends are exercised, not silently skipped") {
 #if KUTTA_HAS_METAL
   auto device = Device::create(Backend::Metal);
   CHECK(device->backend() == Backend::Metal);
+#endif
+#if KUTTA_HAS_CUDA
+  // A too-old driver makes CUDA drop out of available(); fail loudly instead.
+  auto cuda = Device::create(Backend::Cuda);
+  CHECK(cuda->backend() == Backend::Cuda);
 #endif
   for (auto backend : Device::available()) {
     auto device = Device::create(backend);
@@ -210,5 +216,43 @@ TEST_CASE("identical queued computations and reductions are bitwise deterministi
     CHECK(std::memcmp(&sums[0], &sums[1], sizeof(double)) == 0);
     CHECK(std::memcmp(&dots[0], &dots[1], sizeof(double)) == 0);
     CHECK(std::memcmp(&maxima[0], &maxima[1], sizeof(double)) == 0);
+  }
+}
+
+TEST_CASE("reductions propagate NaN and Inf instead of hiding them") {
+  const float nan = std::nanf("");
+  const float inf = INFINITY;
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto with_nan = dev->upload<float>(std::vector<float>{1, nan, 1, 1});
+    CHECK(std::isnan(dev->max_abs(with_nan, 4)));
+    CHECK(std::isnan(dev->sum(with_nan, 4)));
+    auto with_inf = dev->upload<float>(std::vector<float>{1, inf, 1});
+    CHECK(dev->sum(with_inf, 3) == inf);
+    CHECK(dev->max_abs(with_inf, 3) == inf);
+  }
+}
+
+TEST_CASE("math wrappers are accurate on every backend") {
+  // Guards against fast-math variants (e.g. Metal's default fast tanh near 0):
+  // each backend must agree with the CPU oracle running the same float kernel.
+  const std::size_t n = 4096;
+  std::vector<float> x(n);
+  for (std::size_t i = 0; i < n; ++i) x[i] = -4.0f + 8.0f * float(i) / float(n - 1);
+  auto cpu = Device::create(Backend::Cpu);
+  auto cpu_x = cpu->upload<float>(x);
+  auto cpu_out = cpu->alloc<float>(n);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto bx = dev->upload<float>(x);
+    auto out = dev->alloc<float>(n);
+    for (int fn = 0; fn < 5; ++fn) {
+      kern::test_math(*cpu, n, cpu_out, cpu_x, fn);
+      kern::test_math(*dev, n, out, bx, fn);
+      const auto ref = cpu->download(cpu_out);
+      const auto got = dev->download(out);
+      for (std::size_t i = 0; i < n; ++i) {
+        INFO("fn " << fn << " x " << x[i]);
+        REQUIRE(std::fabs(got[i] - ref[i]) <= 4.0f * std::numeric_limits<float>::epsilon() * std::fabs(ref[i]));
+      }
+    }
   }
 }

@@ -1,7 +1,8 @@
 # CUDA backend
 
-The backend and generated `kernels_cuda.cu` were source-reviewed on macOS without
-an NVIDIA GPU or CUDA toolkit; neither has been compiled or run with nvcc here.
+The backend and generated `kernels_cuda.cu` compile cleanly with CUDA 13.0.2 for
+sm_75/86/89/120 (Docker `nvidia/cuda:13.0.2-devel-ubuntu24.04` on macOS) but have
+never run on an NVIDIA GPU.
 Validate with CUDA 12.x/13.x and a C++20 host toolchain (MSVC 2022 or clang/gcc):
 
 ```

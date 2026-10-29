@@ -17,6 +17,8 @@ class CudaBuffer final : public BufferHandle {
   explicit CudaBuffer(std::size_t bytes) : bytes_(bytes) {
     check(cudaMalloc(&data, std::max(bytes, std::size_t{4})));
   }
+  // cudaFree synchronizes the device, so freeing a buffer still referenced by
+  // queued work is safe (and is why reduction scratch is reused, not freed).
   ~CudaBuffer() override { cudaFree(data); }
   std::size_t bytes() const override { return bytes_; }
   void* data = nullptr;
@@ -29,6 +31,9 @@ __global__ void fill_words(unsigned int* dst, unsigned int value, std::size_t n)
   if (i < n) dst[i] = value;
 }
 
+// NaN-propagating max (fmax drops NaN), so a diverged field never reports a finite norm.
+__device__ double nan_max(double a, double b) { return (b > a || isnan(b)) ? b : a; }
+
 // Both stages use a fixed tree and no atomics; scheduling cannot change the sum.
 __global__ void reduce_first(const float* x, const float* y, std::size_t n,
                              double* partial, int mode) {
@@ -36,14 +41,14 @@ __global__ void reduce_first(const float* x, const float* y, std::size_t n,
   double a = 0;
   for (std::size_t i = std::size_t(blockIdx.x) * blockDim.x + threadIdx.x;
        i < n; i += std::size_t(blockDim.x) * gridDim.x) {
-    if (mode == 2) a = fmax(a, fabs(double(x[i])));
+    if (mode == 2) a = nan_max(a, fabs(double(x[i])));
     else a += mode == 1 ? double(x[i]) * double(y[i]) : double(x[i]);
   }
   values[threadIdx.x] = a;
   __syncthreads();
   for (unsigned int d = blockDim.x / 2; d; d /= 2) {
     if (threadIdx.x < d) values[threadIdx.x] = mode == 2
-        ? fmax(values[threadIdx.x], values[threadIdx.x + d])
+        ? nan_max(values[threadIdx.x], values[threadIdx.x + d])
         : values[threadIdx.x] + values[threadIdx.x + d];
     __syncthreads();
   }
@@ -54,12 +59,12 @@ __global__ void reduce_last(const double* partial, unsigned int n, double* resul
   __shared__ double values[kCudaBlock];
   double a = 0;
   for (unsigned int i = threadIdx.x; i < n; i += blockDim.x)
-    a = mode == 2 ? fmax(a, partial[i]) : a + partial[i];
+    a = mode == 2 ? nan_max(a, partial[i]) : a + partial[i];
   values[threadIdx.x] = a;
   __syncthreads();
   for (unsigned int d = blockDim.x / 2; d; d /= 2) {
     if (threadIdx.x < d) values[threadIdx.x] = mode == 2
-        ? fmax(values[threadIdx.x], values[threadIdx.x + d])
+        ? nan_max(values[threadIdx.x], values[threadIdx.x + d])
         : values[threadIdx.x] + values[threadIdx.x + d];
     __syncthreads();
   }
@@ -144,9 +149,10 @@ class CudaDevice final : public Device {
   double reduce(const Buffer<float>& x, const Buffer<float>& y, std::size_t n, int mode) {
     activate();
     if (!n) { synchronize(); return 0; }
-    const auto blocks = static_cast<unsigned int>(std::min<std::size_t>((n + kCudaBlock - 1) / kCudaBlock, 1024));
-    CudaBuffer partial((blocks + 1) * sizeof(double));
-    auto* p = static_cast<double*>(partial.data);
+    const auto blocks = static_cast<unsigned int>(std::min<std::size_t>((n + kCudaBlock - 1) / kCudaBlock, kMaxBlocks));
+    // Safe to reuse: every reduction synchronizes before returning.
+    if (!partial_) partial_ = std::make_unique<CudaBuffer>((kMaxBlocks + 1) * sizeof(double));
+    auto* p = static_cast<double*>(partial_->data);
     reduce_first<<<blocks, kCudaBlock, 0, stream_>>>(
         static_cast<const float*>(cuda_ptr(x.handle())),
         static_cast<const float*>(cuda_ptr(y.handle())), n, p, mode);
@@ -158,6 +164,8 @@ class CudaDevice final : public Device {
     synchronize();
     return result;
   }
+  static constexpr std::size_t kMaxBlocks = 1024;
+  std::unique_ptr<CudaBuffer> partial_;
   int ordinal_ = 0;
   cudaStream_t stream_ = nullptr;
   std::string name_;
