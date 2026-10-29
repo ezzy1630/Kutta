@@ -50,7 +50,7 @@ It adds one layer in positive z and appends `front` and `back` Symmetry patches.
 including Fortran D exponents and one-k-plane extrusion. Whole 3D grids and
 single-block dimension headers are supported. Gzip, binary Plot3D, iblank and
 function files are unsupported: callers must **gunzip** compressed grids first.
-No zlib dependency is added.
+Plot3D adds no zlib dependency.
 
 Each block has `blockN_imin`, `blockN_imax`, `blockN_jmin`, `blockN_jmax` boundary
 patches (and `kmin`/`kmax` for 3D). Extruded caps are named `front`/`back`.
@@ -77,7 +77,12 @@ ASCII sections 10/12/13/18 and binary 2010/3010, 2012/3012, 2013/3013,
 2018/3018 are supported, along with zone names/types in 39/45. The section-4
 machine flag selects byte order (60 little endian; other flags big endian).
 Binary payload lengths come from headers, never parenthesis scanning inside
-raw bytes. Node coordinates may be floats or doubles; connectivity is 32-bit.
+raw bytes. Uniform binary cell sections may omit the payload and still carry
+the binary trailer. Node flags (2041/3041) are skipped as one 32-bit word per
+node in their declared range. Unknown binary sections are rejected rather than
+scanned. ASCII settings and trailing zone lists are skipped with balanced
+parentheses, respecting quoted strings and escaped quotes. Node coordinates may
+be floats or doubles; connectivity is 32-bit.
 
 Grid ids are hexadecimal. Zone metadata ids in 39/45 are decimal. Mixed and
 polygonal faces carry per-face node counts. File node winding points *toward*
@@ -96,17 +101,25 @@ are rejected explicitly; surface-only files are rejected.
 
 ## Fluent CFF / HDF5
 
-CMake discovers HDF5 optionally and publishes `KUTTA_HAS_HDF5=1` or `0`. Disable
-it explicitly with `-DKUTTA_ENABLE_HDF5=OFF`. The stub reader throws a clear
+CMake discovers HDF5 1.10.2 or newer optionally and publishes
+`KUTTA_HAS_HDF5=1` or `0`. Disable it explicitly with `-DKUTTA_ENABLE_HDF5=OFF`. The stub reader throws a clear
 installation/configuration error when HDF5 is unavailable. HDF5's imported CMake
 target carries the C library's platform-specific include/link definitions.
+CFF builds also require zlib 1.2.9 or newer for the legacy compressed-chunk
+compatibility path; HDF5-disabled builds require neither library.
 
 The reader uses the HDF5 C API and `/meshes/1` layout: dimension, node
 zoneTopology/coords, cell zoneTopology, face zoneTopology, faces/nodes sections
 with `nnodes`/`nodes`, and sectioned c0/c1 datasets with minId/maxId attributes.
+Coordinate dataset names can be zone IDs or section ordinals: placement always
+uses the ranges, independently of names or traversal order. Cell `ctype`
+sections (uniform or mixed) are checked by range against cell-zone topology.
+Overlaps, missing coverage, inconsistent element types and mismatched root
+`nodeCount`/`cellCount`/`faceCount` attributes are rejected.
 It supports fixed semicolon-delimited and variable-length names, polygonal
-faces, sparse boundary c1 sections, 2D extrusion, and mesh data embedded in
-`.cas.h5`. Boundary kinds come from `zoneType`, not element `faceType`.
+faces, sparse boundary c1 sections or full-length sections with zero boundary
+neighbours, 2D extrusion, and mesh data embedded in `.cas.h5`. Boundary kinds
+come from `zoneType`, not element `faceType`.
 Cell material is kept as the numeric source type instead of being guessed.
 Adapted, nonconformal and overset layouts are rejected. CFF periodic pairing
 metadata is not imported; raw periodic boundary types are retained.
@@ -119,11 +132,60 @@ Layout and convention references (read for documentation; code is original):
 - [Ansys CFF boundary-type enumerations](https://developer.synopsys.com/docs/common-fluids-format-2024-r2/group__enums.xhtml)
 - [PyFluent case/mesh reader documentation](https://fluent.docs.pyansys.com/version/0.38/api/filereader/case_file.html)
 
-**Real Fluent acceptance remains unverified.** CFF tests create small synthetic
-HDF5 files independently through the C API. Legacy tests use small hand-made
-ASCII and binary files. Before claiming Fluent compatibility on a production
-case, re-verify a real Fluent `.msh` and `.msh.h5`/`.cas.h5`, including polygonal
-cells, zone metadata, winding and total volumes.
+Older Fluent writers can deflate only the valid rows of the final HDF5 chunk.
+HDF5 2.2 rejects this layout ([upstream issue 6691](https://github.com/HDFGroup/hdf5/issues/6691)).
+If an ordinary numeric read fails, the reader supports a constrained raw-chunk
+fallback: rank 1/2, complete rows, a single deflate filter, and a complete stream
+that expands to exactly a full chunk or the valid final rows. HDF5 performs
+numeric conversion, including byte order. Corrupt, truncated and unsupported
+chunks fail; inputs are never rewritten.
+
+### Verified real Fluent files
+
+The optional `real Fluent external mesh acceptance` test reads these exact
+[Ansys example-data](https://github.com/ansys/example-data/tree/master/pyfluent)
+files (MIT license), in place under
+`/Users/ezzy/.Others/Kutta/validation/fluent_examples/`. It skips cleanly when
+that external directory is absent. No external fixture is copied into the repo.
+Counts below are for the returned 3D mesh; cylinder and cavity are extruded one
+unit thick from their source 2D grids. Other files are native 3D.
+
+| File relative to the examples directory | Cells | Faces | Points | Patches | Total volume |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `flow_over_cylinder/flow_over_cylinder.msh` | 46,949 | 188,392 | 95,090 | 6 | 449.214654586013 |
+| `lid_driven_cavity/lid_driven_cavity.msh` | 3,550 | 14,321 | 7,344 | 5 | 1.00000000000001 |
+| `simple_duct/simple-duct.msh.h5` | 10 | 51 | 44 | 3 | 9.99999904 |
+| `box/poly.msh.h5` | 86,803 | 591,932 | 505,132 | 6 | 0.500000000000006 |
+| `aero/wing.msh.h5` | 114,219 | 654,343 | 478,848 | 5 | 6995.01687397708 |
+| `file_session/elbow1.cas.h5` | 13,852 | 44,500 | 16,968 | 5 | 0.00263365409702418 |
+| `mixing_elbow/mixing_elbow.cas.h5` | 17,822 | 91,581 | 66,417 | 6 | 0.00250065507937294 |
+| `static_mixer/Static_Mixer_Parameters.cas.h5` | 22,771 | 119,140 | 82,247 | 4 | 3.95970656064711e-08 |
+| `static_mixer/Static_Mixer_Parameters_legacy_text.cas` | 22,771 | 119,140 | 82,247 | 4 | 3.95970656064711e-08 |
+| `static_mixer/Static_Mixer_Parameters_legacy_binary.cas` | 22,771 | 119,140 | 82,247 | 4 | 3.95970656064711e-08 |
+
+Expectations in `tests/io/test_fluent_real.cpp` come from `h5dump` root count
+attributes and zoneTopology ranges/names, or legacy declaration and zone
+headers. Before extrusion, the cylinder has 94,494 edges and 47,545 points;
+the cavity has 7,221 edges and 3,672 points. Both `.msh` files contain binary
+sections despite the extension. Tests assert total/internal face counts, point
+counts and every boundary/cell zone's ID, name and size. They run `validate()`
+and `compute_geometry()`, require positive cell volumes, check every face's
+area vector points away from its owner centroid, and require global boundary
+area closure within `1e-10 * boundary area`. The measured minimum face-normal
+cosine is positive in every file (lowest: wing, 0.21637); the largest relative
+boundary closure residual is 2.0e-14 (cylinder).
+
+The static mixer's three formats have identical connectivity/owners/neighbours,
+matching point coordinates within `1e-12` of mesh scale, matching patch
+names/IDs/kinds/ranges, and total volume equal within `1e-12` relative. These
+checks establish import/topology/geometry compatibility for the listed files,
+not solver boundary-condition setup or every Fluent layout.
+
+The companion `file_session/elbow1.dat.h5` and
+`mixing_elbow/mixing_elbow.dat.h5` are also checked: they are data-only files,
+so mesh dispatch rejects their extension and the direct CFF reader reports no
+`/meshes/1` mesh. With HDF5 disabled the four legacy meshes still run; the six
+CFF mesh cases and two data-only files are explicitly skipped.
 
 ## VTU and tests
 
