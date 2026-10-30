@@ -39,5 +39,6 @@ class SaModel {
  private:
   Device& device_;const DeviceMesh& mesh_;SaOptions options_;SaFields fields_;
   Buffer<Index> wall_;
+  Buffer<float> rate_derivative_,fw_derivative_;
 };
 } // namespace kutta

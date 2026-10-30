@@ -9,7 +9,7 @@ KUTTA_FN float sa_fv1(float chi,float cv1) {
 KUTTA_KERNEL void sa_coefficients(int i,KIn(float) rho,KIn(float) mu,KIn(float) q,
     KIn(float) distance,KIn(float) strain,KIn(float) rotation,
     KOut(float) mut,KOut(float) gamma,KOut(float) fv1,KOut(float) fv2,
-    KOut(float) rate,KOut(float) fw,int alternate,int tmr,
+    KOut(float) rate,KOut(float) fw,KOut(float) rate_derivative,KOut(float) fw_derivative,int alternate,int tmr,
     float sigma,float cv1,float cw2,float cw3,float kappa,float max_ratio) {
   float v=kmax(q[i],0.0f),chi=v/(mu[i]/rho[i]);
   float t=kmin(chi/cv1,1e12f),one_minus_f1=1.0f/(1.0f+t*t*t);
@@ -17,24 +17,34 @@ KUTTA_KERNEL void sa_coefficients(int i,KIn(float) rho,KIn(float) mu,KIn(float) 
   float base=rotation[i]+(alternate?2.0f*kmin(0.0f,strain[i]-rotation[i]):0.0f);
   float invd=1.0f/distance[i],wall_rate=(v*invd)*invd/(kappa*kappa);
   float s=base+wall_rate*f2;
+  float df1=chi>0.0f?3.0f*f1*one_minus_f1/chi:0.0f;
+  float denom=1.0f+chi*f1,ratio=chi/denom;
+  float df2=ratio*ratio*df1-(1.0f/denom)/denom;
+  float dwall=invd*invd/(kappa*kappa),ds=dwall*(f2+chi*df2);
   // TG leaves the sign of modified S intact. A negative production or
   // destruction is split by sign in sa_sources, never made into a negative sink.
   // NASA's standard implementation bounds S below by .3*Omega and r above by 10.
-  if(tmr) s=kmax(s,0.3f*rotation[i]);
+  if(tmr && s<0.3f*rotation[i]) {s=0.3f*rotation[i];ds=0.0f;}
   float r=wall_rate==0.0f?0.0f:(s==0.0f?10.0f:wall_rate/s);
+  float dr=s!=0.0f?(dwall-r*ds)/s:0.0f;
+  if(r<=-1e4f || r>=(tmr?10.0f:1e4f)) dr=0.0f;
   r=kmax(-1e4f,kmin(r,tmr?10.0f:1e4f));
   float r2=r*r,r6=r2*r2*r2,g=r+cw2*(r6-r);
   float scale=kmax(kabs(g),cw3),a=g/scale,b=cw3/scale;
   float a2=a*a,b2=b*b;
   float c6=kpow(cw3,6.0f);
   float wall=a*kpow((1.0f+c6)/(a2*a2*a2+b2*b2*b2),1.0f/6.0f);
+  float prefactor=g!=0.0f?wall/g:kpow(1.0f+c6,1.0f/6.0f)/cw3;
+  float dg=(1.0f-cw2+6.0f*cw2*r*r2*r2)*dr;
+  rate_derivative[i]=ds;
+  fw_derivative[i]=prefactor*(b2*b2*b2/(a2*a2*a2+b2*b2*b2))*dg;
   mut[i]=kmin(rho[i]*v*f1,max_ratio*mu[i]);
   gamma[i]=(mu[i]+rho[i]*v)/sigma;
   fv1[i]=f1;fv2[i]=f2;rate[i]=s;fw[i]=wall;
 }
 KUTTA_KERNEL void sa_sources(int i,KIn(float) rho,KIn(float) mu,KIn(float) q,
     KIn(float) distance,KIn(float) gx,KIn(float) gy,KIn(float) gz,
-    KIn(float) rate,KIn(float) fw,KOut(float) source,KOut(float) sink,
+    KIn(float) rate,KIn(float) fw,KIn(float) rate_derivative,KIn(float) fw_derivative,KOut(float) source,KOut(float) sink,
     int tmr,float cb1,float cb2,float sigma,float kappa) {
   float v=kmax(q[i],0.0f),chi=v/(mu[i]/rho[i]);
   float ft2=tmr?1.2f*kexp(-0.5f*kmin(chi,100.0f)*kmin(chi,100.0f)):0.0f;
@@ -43,8 +53,17 @@ KUTTA_KERNEL void sa_sources(int i,KIn(float) rho,KIn(float) mu,KIn(float) q,
   float invd=1.0f/distance[i];
   float destruction=(cw1*fw[i]-cb1*ft2/(kappa*kappa))*(v*invd)*invd;
   float growth=p-destruction;
-  source[i]=rho[i]*(kmax(growth,0.0f)*v+cb2/sigma*(gx[i]*gx[i]+gy[i]*gy[i]+gz[i]*gz[i]));
-  sink[i]=rho[i]*kmax(-growth,0.0f);
+  float dft=tmr && chi<100.0f?-ft2*chi/(mu[i]/rho[i]):0.0f;
+  float dp=cb1*((1.0f-ft2)*rate_derivative[i]-dft*rate[i]);
+  float dd=((cw1*fw_derivative[i]-cb1*dft/(kappa*kappa))*v+cw1*fw[i]-cb1*ft2/(kappa*kappa))*invd*invd;
+  float derivative=growth+v*(dp-dd);
+  // The full local derivative includes fv2, modified S, the bounded r/fw
+  // function and ft2. Freezing fw leaves a two-step cycle on the coarse TMR
+  // plate at the existing .75 URF. This changes the implicit split, while
+  // source-sink*v remains the same SA equation at the assembly state.
+  float implicit=kmax(kmax(-growth,0.0f),-derivative);
+  source[i]=rho[i]*((growth+implicit)*v+cb2/sigma*(gx[i]*gx[i]+gy[i]*gy[i]+gz[i]*gz[i]));
+  sink[i]=rho[i]*implicit;
 }
 KUTTA_KERNEL void sa_face_diffusion(int i,KIn(int) owner,KIn(int) neighbour,
     KIn(float) weight,KIn(int) wall,KIn(float) mu,KIn(float) gamma,

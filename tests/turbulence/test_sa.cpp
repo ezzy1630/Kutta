@@ -38,8 +38,22 @@ TEST_CASE("SA transport coefficients match independent double equations and back
         double ft=form==SaFormulation::TmrStandard?1.2*std::exp(-.5*chi*chi):0;
         double growth=o.cb1*(1-ft)*st-(o.cb1/(kp*kp)+(1+o.cb2)/o.sigma)*wall*v/(distance[i]*distance[i])+o.cb1*ft/(kp*kp)*v/(distance[i]*distance[i]);
         CHECK(near(fv[i],f1));CHECK(near(rate[i],st));CHECK(near(fw[i],wall));
-        CHECK(near(source[i],std::max(growth,0.)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))));
-        CHECK(near(sink[i],std::max(-growth,0.)));CHECK(near(mt[i],std::min(v*f1,double(o.max_viscosity_ratio)*double(float(.001)))));
+        const auto local_source=[&](double q) {
+          const double chi=q/double(float(.001)),f1=std::pow(chi,3)/(std::pow(chi,3)+std::pow(cv,3));
+          double rate=20+q/(kp*kp*distance[i]*distance[i])*(1-chi/(1+chi*f1));
+          if(form==SaFormulation::TmrStandard) rate=std::max(rate,6.);
+          double r=q==0?0:q/(rate*kp*kp*distance[i]*distance[i]);
+          r=std::clamp(r,-1e4,form==SaFormulation::TmrStandard?10.:1e4);
+          const double g=r+o.cw2*(std::pow(r,6)-r);
+          const double fw=g*std::pow((1+std::pow(o.cw3,6))/(std::pow(g,6)+std::pow(o.cw3,6)),1./6);
+          const double ft=form==SaFormulation::TmrStandard?1.2*std::exp(-.5*chi*chi):0;
+          return (o.cb1*(1-ft)*rate-((o.cb1/(kp*kp)+(1+o.cb2)/o.sigma)*fw-o.cb1*ft/(kp*kp))*q/(distance[i]*distance[i]))*q;
+        };
+        const double h=v>0?v*1e-5:1e-11;
+        const double derivative=v>0?(local_source(v+h)-local_source(v-h))/(2*h):(local_source(h)-local_source(0))/h;
+        const double implicit=std::max({-growth,-derivative,0.});
+        CHECK(near(source[i],(growth+implicit)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))));
+        CHECK(near(sink[i],implicit));CHECK(near(mt[i],std::min(v*f1,double(o.max_viscosity_ratio)*double(float(.001)))));
       }
       auto first=snapshot(*dev,f);model.update({s.rho,s.mu,s.k,s.gk,strain,rotation});CHECK(first==snapshot(*dev,f));
       if(form==SaFormulation::Fluent) {
