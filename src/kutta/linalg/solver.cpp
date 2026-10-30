@@ -1,6 +1,7 @@
 #include "kutta/linalg/detail.hpp"
 
 #include <algorithm>
+#include <array>
 #include <limits>
 
 namespace kutta::linalg_detail {
@@ -60,8 +61,9 @@ class Jacobi final : public Preconditioner {
     kern::krylov_diagonal(dev, a.n_rows, a.row_ptr, a.diag, a.val, inverse_, invalid, 0);
     KUTTA_REQUIRE(dev.max_abs(invalid, a.n_rows) == 0, "Jacobi: invalid values or zero diagonal");
   }
-  void apply(Device& dev, const CsrMatrix&, const Buffer<float>& r, Buffer<float>& z) override {
-    kern::krylov_multiply(dev, r.size(), r, inverse_, z);
+  void apply(Device& dev, const CsrMatrix&, const Buffer<float>& r, Buffer<float>& z,
+             const Buffer<Index>& status) override {
+    kern::krylov_multiply_guarded(dev, r.size(), r, inverse_, z, status);
   }
   std::string describe() const override { return "Jacobi"; }
  private:
@@ -79,7 +81,8 @@ class Krylov final : public LinearSolver {
         q_(dev.alloc<float>(kind == SolverKind::Jacobi ? 0 : n_)),
         shadow_(dev.alloc<float>(bicg(kind) ? n_ : 0)), s_(dev.alloc<float>(bicg(kind) ? n_ : 0)),
         t_(dev.alloc<float>(bicg(kind) ? n_ : 0)), zs_(dev.alloc<float>(bicg(kind) ? n_ : 0)),
-        best_(dev.alloc<float>(n_)) {}
+        best_(dev.alloc<float>(n_)), scalars_(dev.alloc<float>(24)),
+        status_(dev.alloc<Index>(3)), projection_(dev.alloc<float>(nullspace_ ? 2 : 0)) {}
 
   void refresh(Device& dev, const CsrMatrix& a) override {
     check_matrix(dev, a);
@@ -101,17 +104,30 @@ class Krylov final : public LinearSolver {
       KUTTA_REQUIRE(std::abs(dev.sum(b, n_)) <=
                         1e-6 * std::sqrt(double(n_)) * bnorm,
                     "solve: incompatible RHS for constant Neumann nullspace");
-      project(dev, x);
+      project(dev, x, projection_);
     }
     SolveStats stats;
     residual(dev, a, x, b, r_);
     stats.initial_residual = norm(dev, r_);
     stats.final_residual = stats.initial_residual;
     const double target = std::max(c.abs_tol, c.rel_tol * stats.initial_residual);
+    if (!std::isfinite(stats.initial_residual)) return stats;
     if (stats.final_residual <= target) { stats.converged = true; return stats; }
-    if (nullspace_) project(dev, r_);
+    if (nullspace_) project(dev, r_, projection_);
     best_residual_ = stats.initial_residual;
     dev.copy(best_, x);
+    // Thresholds use the same double host calculation as the public norm API.
+    // Upload only at the solve boundary; iteration state is reset by kernels.
+    std::array<float, 24> scalars{};
+    auto pair = [&](int offset, double value) {
+      scalars[offset] = static_cast<float>(value);
+      scalars[offset + 1] = std::isfinite(scalars[offset]) ?
+          static_cast<float>(value - double(scalars[offset])) : 0;
+    };
+    pair(20, target * target);
+    pair(22, 1e6 * stats.initial_residual * stats.initial_residual);
+    dev.upload<float>(scalars_, scalars);
+    reset(dev, 0);
     if (kind_ == SolverKind::Jacobi) {
       for (int i = 0; i < c.max_iter; ++i) {
         apply(dev, a, r_, z_);
@@ -152,12 +168,12 @@ class Krylov final : public LinearSolver {
                       a.val.size() == std::size_t(nnz_), "solver: device or matrix mismatch");
   }
   void apply(Device& dev, const CsrMatrix& a, const Buffer<float>& r, Buffer<float>& z) {
-    preconditioner_->apply(dev, a, r, z);
-    if (nullspace_) project(dev, z);
+    preconditioner_->apply(dev, a, r, z, status_);
+    if (nullspace_) project(dev, z, projection_);
   }
   bool verified(Device& dev, const CsrMatrix& a, Buffer<float>& x, const Buffer<float>& b,
                 double target, SolveStats& stats) {
-    if (nullspace_) project(dev, x);
+    if (nullspace_) project(dev, x, projection_);
     residual(dev, a, x, b, r_);
     stats.final_residual = norm(dev, r_);
     stats.converged = std::isfinite(stats.final_residual) && stats.final_residual <= target;
@@ -165,102 +181,111 @@ class Krylov final : public LinearSolver {
       best_residual_ = stats.final_residual;
       dev.copy(best_, x);
     }
-    if (nullspace_) project(dev, r_);
+    if (nullspace_) project(dev, r_, projection_);
     return stats.converged;
   }
   bool diverged(const SolveStats& stats) const {
     return !std::isfinite(stats.final_residual) ||
            stats.final_residual > 1e3 * stats.initial_residual;
   }
+  void reset(Device& dev, int iterations) {
+    kern::solver_reset(dev, 1, scalars_, status_, iterations);
+  }
+  // A candidate pauses device updates until the full b-A*x is checked. Batches
+  // may contain no-op updates after that point; they never inflate iterations.
+  bool replacement(Device& dev, const CsrMatrix& a, Buffer<float>& x,
+                   const Buffer<float>& b, double target, SolveStats& stats,
+                   int& restarts, double& last_verified) {
+    if (verified(dev, a, x, b, target, stats) || diverged(stats)) return false;
+    restarts = stats.final_residual >= 0.9 * last_verified ? restarts + 1 : 0;
+    last_verified = stats.final_residual;
+    return restarts < 12;
+  }
   void pcg(Device& dev, const CsrMatrix& a, Buffer<float>& x, const Buffer<float>& b,
            const SolveControl& c, double target, SolveStats& stats) {
-    apply(dev, a, r_, z_);
-    dev.copy(p_, z_);
-    double rho = dev.dot(r_, z_, n_);
+    auto restart = [&] {
+      reset(dev, stats.iterations);
+      apply(dev, a, r_, z_);
+      dev.copy(p_, z_);
+      dev.dot_into(r_, z_, n_, scalars_, 0);
+    };
+    restart();
     int restarts = 0;
     double last_verified = stats.initial_residual;
+    int check_interval = c.residual_check_interval;
     while (stats.iterations < c.max_iter) {
-      spmv(dev, a, p_, q_);
-      const double pq = dev.dot(p_, q_, n_);
-      if (!(rho > 0 && pq > 0) || (!coefficient(rho / pq) || rho / pq == 0)) break;
-      const double alpha = rho / pq;
-      kern::krylov_step(dev, n_, x, r_, p_, q_, static_cast<float>(alpha));
-      ++stats.iterations;
-      const double rn = norm(dev, r_);
-      if (rn <= target || !std::isfinite(rn) || rn > 1e3 * stats.initial_residual ||
-          stats.iterations % 50 == 0) {
-        if (verified(dev, a, x, b, target, stats) || diverged(stats)) break;
-        // Reliable residual replacement restarts the recurrence. Twelve
-        // stagnant replacements indicate a float precision floor.
-        restarts = stats.final_residual >= 0.9 * last_verified ? restarts + 1 : 0;
-        last_verified = stats.final_residual;
-        if (restarts >= 12 || stats.iterations == c.max_iter) break;
+      const int batch = std::min(check_interval, c.max_iter - stats.iterations);
+      for (int j = 0; j < batch; ++j) {
+        kern::csr_spmv_guarded(dev, n_, a.row_ptr, a.col, a.val, p_, q_, status_);
+        dev.dot_into(p_, q_, n_, scalars_, 2);
+        kern::solver_pcg_alpha(dev, 1, scalars_, status_);
+        kern::solver_step(dev, n_, x, r_, p_, q_, scalars_, status_);
+        dev.dot_into(r_, r_, n_, scalars_, 18);
+        kern::solver_check(dev, 1, scalars_, status_, 1);
+        if (stats.iterations + j + 1 == c.max_iter) continue;
         apply(dev, a, r_, z_);
-        rho = dev.dot(r_, z_, n_);
-        dev.copy(p_, z_);
-        continue;
+        if (preconditioner_->variable()) dev.dot2_into(r_, z_, z_, q_, n_, scalars_, 4);
+        else dev.dot_into(r_, z_, n_, scalars_, 4);
+        kern::solver_pcg_beta(dev, 1, scalars_, status_, preconditioner_->variable() ? 1 : 0);
+        kern::solver_direction(dev, n_, z_, p_, scalars_, status_);
       }
-      if (stats.iterations == c.max_iter) break;
-      apply(dev, a, r_, z_);
-      const double next = dev.dot(r_, z_, n_);
-      // One-term flexible CG for the nonlinear K-cycle. Fixed V/Jacobi
-      // preconditioners use the ordinary Fletcher-Reeves recurrence.
-      const double beta = preconditioner_->variable() ?
-          -alpha * dev.dot(z_, q_, n_) / rho : next / rho;
-      if (!(next > 0) || !std::isfinite(beta) || std::abs(beta) >
-          std::numeric_limits<float>::max()) break;
-      kern::krylov_direction(dev, n_, z_, p_, static_cast<float>(beta));
-      rho = next;
+      const auto state = dev.download(status_);
+      stats.iterations = state[1];
+      if (state[0] == 2) break;
+      if (state[0] == 1) {
+        if (!replacement(dev, a, x, b, target, stats, restarts, last_verified) ||
+            stats.iterations == c.max_iter) break;
+        // Near a float residual floor, repeated candidates can stop after one
+        // update. Avoid queueing a full batch behind each reliable replacement.
+        if (stats.final_residual <= 10 * target) check_interval = 1;
+        restart();
+      }
     }
   }
   void bicgstab(Device& dev, const CsrMatrix& a, Buffer<float>& x, const Buffer<float>& b,
                 const SolveControl& c, double target, SolveStats& stats) {
-    dev.copy(shadow_, r_);
-    dev.fill(p_, 0.0f);
-    dev.fill(q_, 0.0f);
-    double old_rho = 1, alpha = 1, omega = 1;
+    auto restart = [&] {
+      reset(dev, stats.iterations);
+      dev.copy(shadow_, r_);
+      dev.fill(p_, 0.0f);
+      dev.fill(q_, 0.0f);
+    };
+    restart();
     int restarts = 0;
     double last_verified = stats.initial_residual;
+    int check_interval = c.residual_check_interval;
     while (stats.iterations < c.max_iter) {
-      const double rho = dev.dot(shadow_, r_, n_);
-      if (rho == 0 || !std::isfinite(rho) || omega == 0 || !coefficient(omega)) break;
-      const double beta = (rho / old_rho) * (alpha / omega);
-      if (!coefficient(beta)) break;
-      kern::krylov_bicg_direction(dev, n_, r_, q_, p_, static_cast<float>(beta),
-                                static_cast<float>(omega));
-      apply(dev, a, p_, z_);
-      spmv(dev, a, z_, q_);
-      const double rv = dev.dot(shadow_, q_, n_);
-      if (rv == 0 || !std::isfinite(rv) || !coefficient(rho / rv)) break;
-      alpha = rho / rv;
-      kern::krylov_difference(dev, n_, r_, q_, s_, static_cast<float>(alpha));
-      ++stats.iterations;
-      const double sn = norm(dev, s_);
-      if (sn <= target) {
-        kern::krylov_bicg_step(dev, n_, x, z_, z_, static_cast<float>(alpha), 0.0f);
-      } else {
+      const int batch = std::min(check_interval, c.max_iter - stats.iterations);
+      for (int j = 0; j < batch; ++j) {
+        dev.dot_into(shadow_, r_, n_, scalars_, 0);
+        kern::solver_bicg_beta(dev, 1, scalars_, status_);
+        kern::solver_bicg_direction(dev, n_, r_, q_, p_, scalars_, status_);
+        apply(dev, a, p_, z_);
+        kern::csr_spmv_guarded(dev, n_, a.row_ptr, a.col, a.val, z_, q_, status_);
+        dev.dot_into(shadow_, q_, n_, scalars_, 2);
+        kern::solver_bicg_alpha(dev, 1, scalars_, status_);
+        kern::solver_bicg_difference(dev, n_, r_, q_, s_, scalars_, status_);
+        dev.dot_into(s_, s_, n_, scalars_, 16);
+        kern::solver_bicg_s(dev, 1, scalars_, status_);
         apply(dev, a, s_, zs_);
-        spmv(dev, a, zs_, t_);
-        const double tt = dev.dot(t_, t_, n_);
-        if (!(tt > 0) || !std::isfinite(tt)) break;
-        omega = dev.dot(t_, s_, n_) / tt;
-        if (omega == 0 || !coefficient(omega)) break;
-        kern::krylov_bicg_step(dev, n_, x, z_, zs_, static_cast<float>(alpha),
-                             static_cast<float>(omega));
-        kern::krylov_difference(dev, n_, s_, t_, r_, static_cast<float>(omega));
+        kern::csr_spmv_guarded(dev, n_, a.row_ptr, a.col, a.val, zs_, t_, status_);
+        dev.dot2_into(t_, t_, t_, s_, n_, scalars_, 2);
+        kern::solver_bicg_omega(dev, 1, scalars_, status_);
+        kern::solver_bicg_step(dev, n_, x, r_, z_, zs_, s_, t_, scalars_, status_);
+        dev.dot_into(r_, r_, n_, scalars_, 18);
+        kern::solver_check(dev, 1, scalars_, status_, 0);
       }
-      const double rn = sn <= target ? sn : norm(dev, r_);
-      if (rn <= target || !std::isfinite(rn) || rn > 1e3 * stats.initial_residual ||
-          stats.iterations % 50 == 0) {
-        if (verified(dev, a, x, b, target, stats) || diverged(stats)) break;
-        restarts = stats.final_residual >= 0.9 * last_verified ? restarts + 1 : 0;
-        last_verified = stats.final_residual;
-        if (restarts >= 12) break;
-        dev.copy(shadow_, r_);
-        dev.fill(p_, 0.0f);
-        dev.fill(q_, 0.0f);
-        old_rho = alpha = omega = 1;
-      } else old_rho = rho;
+      const auto state = dev.download(status_);
+      stats.iterations = state[1];
+      if (state[0] == 2) break;
+      if (state[0] == 1) {
+        if (!replacement(dev, a, x, b, target, stats, restarts, last_verified) ||
+            stats.iterations == c.max_iter) break;
+        // Near a float residual floor, repeated candidates can stop after one
+        // update. Avoid queueing a full batch behind each reliable replacement.
+        if (stats.final_residual <= 10 * target) check_interval = 1;
+        restart();
+      }
     }
   }
 
@@ -270,6 +295,9 @@ class Krylov final : public LinearSolver {
   bool nullspace_;
   std::unique_ptr<Preconditioner> preconditioner_;
   Buffer<float> r_, z_, p_, q_, shadow_, s_, t_, zs_, best_;
+  Buffer<float> scalars_;
+  Buffer<Index> status_;
+  Buffer<float> projection_;
   double best_residual_ = 0;
 };
 }  // namespace

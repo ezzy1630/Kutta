@@ -29,8 +29,8 @@ KUTTA_FN float csr_product_error(float a, float b, float product) {
   return ((ah * bh - product) + ah * bl + al * bh) + al * bl;
 }
 
-KUTTA_KERNEL void csr_residual(int i, KIn(int) rows, KIn(int) cols, KIn(float) values,
-                              KIn(float) x, KIn(float) b, KOut(float) r) {
+KUTTA_FN float csr_row_residual(int i, KIn(int) rows, KIn(int) cols, KIn(float) values,
+                                 KIn(float) x, KIn(float) b) {
   float sum = b[i];
   float error = 0.0f;
   for (int j = rows[i]; j < rows[i + 1]; ++j) {
@@ -41,7 +41,12 @@ KUTTA_KERNEL void csr_residual(int i, KIn(int) rows, KIn(int) cols, KIn(float) v
     error -= csr_product_error(values[j], x[cols[j]], product);
     sum = next;
   }
-  r[i] = sum + error;
+  return sum + error;
+}
+
+KUTTA_KERNEL void csr_residual(int i, KIn(int) rows, KIn(int) cols, KIn(float) values,
+                              KIn(float) x, KIn(float) b, KOut(float) r) {
+  r[i] = csr_row_residual(i, rows, cols, values, x, b);
 }
 
 KUTTA_KERNEL void krylov_diagonal(int i, KIn(int) rows, KIn(int) diag,
@@ -99,4 +104,53 @@ KUTTA_KERNEL void krylov_difference(int i, KIn(float) a, KIn(float) b,
 KUTTA_KERNEL void krylov_bicg_step(int i, KOut(float) x, KIn(float) p,
                                   KIn(float) s, float alpha, float omega) {
   x[i] += alpha * p[i] + omega * s[i];
+}
+
+// Frozen Krylov batches still enqueue dispatches; guards prevent their large
+// memory sweeps after a convergence candidate or breakdown has been detected.
+KUTTA_KERNEL void csr_spmv_guarded(int i, KIn(int) rows, KIn(int) cols, KIn(float) values,
+                                  KIn(float) x, KOut(float) y, KIn(int) status) {
+  if (status[0] == 0) csr_spmv(i, rows, cols, values, x, y);
+}
+KUTTA_KERNEL void csr_residual_guarded(int i, KIn(int) rows, KIn(int) cols, KIn(float) values,
+                                      KIn(float) x, KIn(float) b, KOut(float) r, KIn(int) status) {
+  if (status[0] == 0) csr_residual(i, rows, cols, values, x, b, r);
+}
+KUTTA_KERNEL void krylov_multiply_guarded(int i, KIn(float) r, KIn(float) inverse,
+                                         KOut(float) z, KIn(int) status) {
+  if (status[0] == 0) krylov_multiply(i, r, inverse, z);
+}
+// One owner for an entire <=24-row coarse system. Local arrays preserve the
+// simultaneous Jacobi updates and exactly the ordinary residual's arithmetic.
+// This replaces 64 tiny dispatches, with no inter-thread barrier or host solve.
+KUTTA_KERNEL void amg_coarse_solve(int i, KIn(int) rows, KIn(int) cols,
+                                   KIn(float) values, KOut(float) x, KIn(float) b,
+                                   KIn(float) inverse, KIn(int) status, int count, int sweeps) {
+  if (i != 0 || status[0] != 0) return;
+  float current[24], r[24];
+  for (int row = 0; row < count; ++row) current[row] = 0.0f;
+  for (int sweep = 0; sweep < sweeps; ++sweep) {
+    for (int row = 0; row < count; ++row) {
+      float sum = b[row], error = 0.0f;
+      for (int j = rows[row]; j < rows[row + 1]; ++j) {
+        float product = values[j] * current[cols[j]], term = -product;
+        float next = sum + term;
+        error += kabs(sum) >= kabs(term) ? (sum - next) + term : (term - next) + sum;
+        error -= csr_product_error(values[j], current[cols[j]], product);
+        sum = next;
+      }
+      r[row] = sum + error;
+    }
+    for (int row = 0; row < count; ++row) current[row] += (2.0f / 3.0f) * inverse[row] * r[row];
+  }
+  for (int row = 0; row < count; ++row) x[row] = current[row];
+}
+
+
+KUTTA_KERNEL void amg_smooth(int i, KIn(int) rows, KIn(int) cols, KIn(float) values,
+                             KIn(float) x, KIn(float) b, KIn(float) inverse,
+                             KOut(float) next, KIn(int) status) {
+  if (status[0] != 0) return;
+  float r = csr_row_residual(i, rows, cols, values, x, b);
+  next[i] = x[i] + (2.0f / 3.0f) * inverse[i] * r;
 }

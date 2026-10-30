@@ -27,7 +27,7 @@ class InstrumentedDevice final : public Device {
   explicit InstrumentedDevice(Backend backend) : inner_(Device::create(backend)) {}
   Backend backend() const override { return inner_->backend(); }
   std::string name() const override { return inner_->name(); }
-  std::size_t live_bytes = 0, peak_bytes = 0, reductions = 0, downloads = 0, device_reductions = 0;
+  std::size_t live_bytes = 0, peak_bytes = 0, reductions = 0, downloads = 0, device_reductions = 0, uploads = 0;
   std::function<void(KernelId, std::size_t, std::span<const KernelArg>)> after_launch;
   double sum(const Buffer<float>& x, std::size_t n) override {
     ++reductions; return inner_->sum(allocation(*x.handle()).data, n);
@@ -74,6 +74,7 @@ class InstrumentedDevice final : public Device {
     return result;
   }
   void upload_bytes(BufferHandle& dst, const void* src, std::size_t bytes) override {
+    if (bytes) ++uploads;
     std::vector<float> words(bytes / sizeof(float));
     if (bytes) std::memcpy(words.data(), src, bytes);
     inner_->upload<float>(allocation(dst).data, words);

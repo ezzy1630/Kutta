@@ -58,3 +58,12 @@ KUTTA_KERNEL void amg_galerkin_rows(int i, KIn(int) coarse_rows, KIn(int) coarse
     coarse[entry] = sum;
   }
 }
+
+KUTTA_KERNEL void amg_restrict_guarded(int i, KIn(int) offsets, KIn(int) members,
+                                      KIn(float) fine, KOut(float) coarse, KIn(int) status) {
+  if (status[0] == 0) amg_restrict(i, offsets, members, fine, coarse);
+}
+KUTTA_KERNEL void amg_prolong_guarded(int i, KIn(int) aggregate, KIn(float) coarse,
+                                     KOut(float) fine, KIn(int) status) {
+  if (status[0] == 0) amg_prolong(i, aggregate, coarse, fine);
+}

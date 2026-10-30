@@ -78,7 +78,7 @@ void run(kutta::test_linalg::InstrumentedDevice& dev, int size, double anisotrop
     double refresh = seconds(start);
     dev.copy(matrix.val, original_values); solver->refresh(dev, matrix);
     dev.fill(x, 0); dev.synchronize(); start = Clock::now();
-    dev.reductions = 0;
+    dev.reductions = dev.downloads = dev.device_reductions = dev.uploads = 0;
     auto stats = solver->solve(dev, matrix, x, db, {tolerance, 1e-12, max_iter});
     dev.synchronize(); double solve = seconds(start);
     const char* name = kind == SolverKind::PcgJacobi ? "PcgJacobi" :
@@ -89,7 +89,8 @@ void run(kutta::test_linalg::InstrumentedDevice& dev, int size, double anisotrop
               << " solver=" << name << " setup_s=" << setup << " refresh_s=" << refresh
               << " iterations=" << stats.iterations << " solve_s=" << solve
               << " relative_residual=" << stats.final_residual / stats.initial_residual
-              << " reductions=" << dev.reductions << " bytes_per_row=" << double(solver_bytes) / a.pattern.n_rows
+              << " reductions=" << dev.reductions << " scalar_polls=" << dev.downloads
+              << " uploads=" << dev.uploads << " device_reductions=" << dev.device_reductions << " bytes_per_row=" << double(solver_bytes) / a.pattern.n_rows
               << " setup_peak_bytes_per_row=" << double(setup_peak_bytes) / a.pattern.n_rows
               << " wind=" << wind << " ordering=" << ordering << " converged=" << stats.converged << " " << solver->describe() << '\n';
     std::cout << "{\"benchmark\":\"linalg\",\"backend\":" << json_string(backend_name(dev.backend()))
@@ -97,6 +98,8 @@ void run(kutta::test_linalg::InstrumentedDevice& dev, int size, double anisotrop
               << ",\"rows\":" << a.pattern.n_rows << ",\"nnz\":" << a.pattern.nnz()
               << ",\"wind\":" << wind << ",\"ordering\":" << ordering
               << ",\"reductions\":" << dev.reductions
+              << ",\"scalar_polls\":" << dev.downloads << ",\"uploads\":" << dev.uploads
+              << ",\"device_reductions\":" << dev.device_reductions
               << ",\"solver_bytes\":" << solver_bytes << ",\"setup_peak_bytes\":" << setup_peak_bytes
               << ",\"anisotropy\":" << anisotropy << ",\"solver\":" << json_string(name)
               << ",\"description\":" << json_string(solver->describe())

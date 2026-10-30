@@ -11,7 +11,6 @@
 
 namespace kutta {
 namespace {
-using linalg_detail::norm;
 
 struct Coarsening {
   CsrMatrixHost matrix;
@@ -149,7 +148,8 @@ struct Transfer {
 };
 struct Level {
   CsrMatrix matrix;  // fine matrix comes from the caller; levels > 0 own CSR
-  Buffer<float> l1, x, b, r, p, q, z, t;
+  Buffer<float> l1, x, b, r, p, q, z, t, projection, scalars;
+  Buffer<Index> status;
   Transfer transfer;
   Level(Device& dev, const CsrMatrixHost& a, bool fine, bool k_cycle, bool nullspace)
       : l1(dev.upload<float>(linalg_detail::diagonal_values(a, true, nullspace))),
@@ -159,7 +159,10 @@ struct Level {
         p(dev.alloc<float>(!fine && k_cycle ? a.pattern.n_rows : 0)),
         q(dev.alloc<float>(!fine && k_cycle ? a.pattern.n_rows : 0)),
         z(dev.alloc<float>(!fine && k_cycle ? a.pattern.n_rows : 0)),
-        t(dev.alloc<float>(!fine && k_cycle ? a.pattern.n_rows : 0)) {}
+        t(dev.alloc<float>(!fine && k_cycle ? a.pattern.n_rows : 0)),
+        projection(dev.alloc<float>(nullspace ? 2 : 0)),
+        scalars(dev.alloc<float>(!fine && k_cycle ? 12 : 0)),
+        status(dev.alloc<Index>(!fine && k_cycle ? 1 : 0)) {}
 };
 
 class Aggregation final : public linalg_detail::Preconditioner {
@@ -214,8 +217,8 @@ class Aggregation final : public linalg_detail::Preconditioner {
   }
 
   void apply(Device& dev, const CsrMatrix& a, const Buffer<float>& r,
-             Buffer<float>& z) override {
-    cycle(dev, 0, a, r, z);
+             Buffer<float>& z, const Buffer<Index>& status) override {
+    cycle(dev, 0, a, r, z, status);
   }
   bool variable() const override { return options_.cycle == AmgCycle::K; }
   std::string describe() const override {
@@ -228,74 +231,67 @@ class Aggregation final : public linalg_detail::Preconditioner {
 
  private:
   void smooth(Device& dev, Level& l, const CsrMatrix& a, const Buffer<float>& b,
-              Buffer<float>& x, int sweeps) {
+              Buffer<float>& x, int sweeps, const Buffer<Index>& status) {
     for (int sweep = 0; sweep < sweeps; ++sweep) {
-      residual(dev, a, x, b, l.r);
-      kern::krylov_smooth(dev, a.n_rows, l.r, l.l1, x, 2.0f / 3.0f);
+      kern::amg_smooth(dev, a.n_rows, a.row_ptr, a.col, a.val, x, b, l.l1, l.r, status);
+      // Same-sized, uniquely owned work buffers. Queued kernels retain their
+      // original handles; ordered dispatches finish reading before reuse.
+      std::swap(x, l.r);
     }
   }
   void cycle(Device& dev, std::size_t index, const CsrMatrix& a,
-             const Buffer<float>& b, Buffer<float>& x) {
+             const Buffer<float>& b, Buffer<float>& x, const Buffer<Index>& status) {
     auto& l = levels_[index];
     dev.fill(x, 0.0f);
     if (index + 1 == levels_.size()) {
       // Entire coarsest solve stays on the device. A fixed sweep count
       // avoids a CPU download/synchronization and retains V-cycle linearity.
-      smooth(dev, l, a, b, x, options_.coarse_sweeps);
+      if (a.n_rows <= 24)
+        kern::amg_coarse_solve(dev, 1, a.row_ptr, a.col, a.val, x, b, l.l1,
+                               status, a.n_rows, options_.coarse_sweeps);
+      else smooth(dev, l, a, b, x, options_.coarse_sweeps, status);
     } else {
-      smooth(dev, l, a, b, x, options_.pre_sweeps);
-      residual(dev, a, x, b, l.r);
+      smooth(dev, l, a, b, x, options_.pre_sweeps, status);
+      kern::csr_residual_guarded(dev, a.n_rows, a.row_ptr, a.col, a.val, x, b, l.r, status);
       auto& c = levels_[index + 1];
-      kern::amg_restrict(dev, c.b.size(), l.transfer.member_offsets,
-                         l.transfer.members, l.r, c.b);
-      if (nullspace_) linalg_detail::project(dev, c.b);
+      kern::amg_restrict_guarded(dev, c.b.size(), l.transfer.member_offsets,
+                         l.transfer.members, l.r, c.b, status);
+      if (nullspace_) linalg_detail::project(dev, c.b, c.projection);
       if (options_.cycle == AmgCycle::K && index + 2 < levels_.size())
-        inner(dev, index + 1);
-      else cycle(dev, index + 1, c.matrix, c.b, c.x);
-      kern::amg_prolong(dev, a.n_rows, l.transfer.aggregate, c.x, x);
-      smooth(dev, l, a, b, x, options_.post_sweeps);
+        inner(dev, index + 1, status);
+      else cycle(dev, index + 1, c.matrix, c.b, c.x, status);
+      kern::amg_prolong_guarded(dev, a.n_rows, l.transfer.aggregate, c.x, x, status);
+      smooth(dev, l, a, b, x, options_.post_sweeps, status);
     }
     // Krylov::apply projects the fine correction once; recursive corrections
     // still need their own coarse-level projection.
-    if (nullspace_ && index != 0) linalg_detail::project(dev, x);
+    if (nullspace_ && index != 0) linalg_detail::project(dev, x, l.projection);
   }
 
   // Two recursive preconditioned Krylov steps on a coarse equation. Its
   // workspaces belong to that level and are distinct from cycle's residual.
   // SPD uses A-conjugate directions, nonsymmetric uses GCR orthogonalization.
-  void inner(Device& dev, std::size_t index) {
+  void inner(Device& dev, std::size_t index, const Buffer<Index>& parent) {
     auto& l = levels_[index];
     const auto& a = l.matrix;
     const auto n = a.n_rows;
-    cycle(dev, index, a, l.b, l.z);
+    cycle(dev, index, a, l.b, l.z, parent);
     dev.copy(l.p, l.z);
-    spmv(dev, a, l.p, l.q);
-    double denom = spd_ ? dev.dot(l.p, l.q, n) : dev.dot(l.q, l.q, n);
-    double numer = spd_ ? dev.dot(l.b, l.p, n) : dev.dot(l.b, l.q, n);
-    if (!(denom > 0) || !linalg_detail::coefficient(numer / denom)) {
-      dev.copy(l.x, l.z);
-      return;
-    }
-    double alpha = numer / denom;
-    kern::scale_copy(dev, n, l.x, l.p, static_cast<float>(alpha));
-    kern::krylov_difference(dev, n, l.b, l.q, l.t, static_cast<float>(alpha));
-    // This adaptive exit makes the K-cycle nonlinear; the outer PCG uses
-    // flexible CG rather than assuming a stationary preconditioner.
-    if (norm(dev, l.t) <= 0.25 * norm(dev, l.b)) return;
-    cycle(dev, index, a, l.t, l.z);
-    double beta;
-    if (spd_) beta = -dev.dot(l.z, l.q, n) / denom;
-    else {
-      spmv(dev, a, l.z, l.r);
-      beta = -dev.dot(l.r, l.q, n) / denom;
-    }
-    if (!linalg_detail::coefficient(beta)) return;
-    kern::krylov_direction(dev, n, l.z, l.p, static_cast<float>(beta));
-    spmv(dev, a, l.p, l.q);
-    denom = spd_ ? dev.dot(l.p, l.q, n) : dev.dot(l.q, l.q, n);
-    numer = spd_ ? dev.dot(l.t, l.p, n) : dev.dot(l.t, l.q, n);
-    if (denom > 0 && linalg_detail::coefficient(numer / denom))
-      kern::axpy(dev, n, l.x, l.p, static_cast<float>(numer / denom));
+    kern::csr_spmv_guarded(dev, n, a.row_ptr, a.col, a.val, l.p, l.q, parent);
+    dev.dot2_into(spd_ ? l.p : l.q, l.q, l.b, spd_ ? l.p : l.q, n, l.scalars);
+    kern::amg_inner_alpha(dev, 1, l.scalars, l.status, parent, 1);
+    kern::amg_inner_first(dev, n, l.b, l.p, l.q, l.x, l.t, l.scalars, l.status);
+    dev.dot2_into(l.t, l.t, l.b, l.b, n, l.scalars, 4);
+    kern::amg_inner_check(dev, 1, l.scalars, l.status);
+    cycle(dev, index, a, l.t, l.z, l.status);
+    if (!spd_) kern::csr_spmv_guarded(dev, n, a.row_ptr, a.col, a.val, l.z, l.r, l.status);
+    dev.dot_into(spd_ ? l.z : l.r, l.q, n, l.scalars, 4);
+    kern::amg_inner_beta(dev, 1, l.scalars, l.status);
+    kern::solver_direction(dev, n, l.z, l.p, l.scalars, l.status);
+    kern::csr_spmv_guarded(dev, n, a.row_ptr, a.col, a.val, l.p, l.q, l.status);
+    dev.dot2_into(spd_ ? l.p : l.q, l.q, l.t, spd_ ? l.p : l.q, n, l.scalars);
+    kern::amg_inner_alpha(dev, 1, l.scalars, l.status, parent, 0);
+    kern::amg_inner_step(dev, n, l.x, l.p, l.scalars, l.status);
   }
 
   AmgOptions options_;

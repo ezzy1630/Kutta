@@ -19,7 +19,7 @@ struct SolveControl {
   double rel_tol = 1e-2;  // outer SIMPLE loops only need ~1-2 orders per solve
   double abs_tol = 1e-12;
   int max_iter = 200;
-  int residual_check_interval = 8;  // Jacobi sweeps between host norm checks
+  int residual_check_interval = 8;  // updates between host convergence checks
 };
 
 struct SolveStats {

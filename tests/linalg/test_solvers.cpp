@@ -95,7 +95,7 @@ TEST_CASE("BiCGStab solves upwind convection diffusion against dense double refe
     for (auto kind : {SolverKind::BicgstabJacobi, SolverKind::AmgBicgstab})
       check_solution(*dev, poisson(20, 18, 1, 1, false, false, 3), kind);
     check_solution(*dev, poisson(20, 18, 1, 1, false, false, 3),
-                   SolverKind::AmgBicgstab, 2e-6, false, AmgCycle::V);
+                   SolverKind::AmgBicgstab, 2e-6, false, AmgCycle::K);
   }
 }
 
@@ -457,14 +457,16 @@ TEST_CASE("actual hierarchy Galerkin values match independent double PtAP before
       std::map<std::size_t, CsrMatrixHost> operators;
       std::map<std::size_t, std::vector<Index>> aggregates;
       dev.after_launch = [&](KernelId id, std::size_t n, std::span<const KernelArg> args) {
-        if (id == KernelId::csr_residual && !operators.contains(n)) {
+        if (id == KernelId::amg_coarse_solve) n = args[7].get<Index>();
+        if ((id == KernelId::csr_residual || id == KernelId::csr_residual_guarded || id == KernelId::amg_smooth ||
+             id == KernelId::amg_coarse_solve) && !operators.contains(n)) {
           auto& op = operators[n]; op.pattern.n_rows = static_cast<Index>(n);
           op.pattern.row_ptr = dev.read<Index>(*args[0].buffer);
           op.pattern.col = dev.read<Index>(*args[1].buffer);
           const auto values = dev.read<float>(*args[2].buffer);
           op.val.assign(values.begin(), values.end());
         }
-        if (id == KernelId::amg_prolong && !aggregates.contains(n))
+        if ((id == KernelId::amg_prolong || id == KernelId::amg_prolong_guarded) && !aggregates.contains(n))
           aggregates[n] = dev.read<Index>(*args[0].buffer);
       };
       dev.fill(x, 0);
@@ -545,5 +547,63 @@ TEST_CASE("Neumann PCG avoids duplicate fine projection and unused final precond
     CHECK_FALSE(stats.converged);
     INFO("Neumann reductions=" << dev.reductions);
     CHECK(dev.reductions <= 15);
+  }
+}
+
+TEST_CASE("batched BiCGStab freezes on zero omega and zero shadow product") {
+  CsrMatrixHost a;
+  a.pattern.n_rows = 2; a.pattern.row_ptr = {0, 2, 4};
+  a.pattern.col = {0, 1, 0, 1}; a.pattern.diag = {0, 3};
+  // A*[1,1]=[4,0], alpha=1/2, s=[-1,1], A*s=[2,2].
+  // Thus t.s=0 while t.t=8: an exact omega breakdown after one attempt.
+  for (bool zero_omega : {true, false}) {
+    a.val = zero_omega ? std::vector<double>{1, 3, -1, 1} :
+                         std::vector<double>{1, 2, -4, 1}; // rhat.v=0
+    for (auto backend : Device::available()) {
+      InstrumentedDevice dev(backend);
+      auto matrix = upload(dev, a);
+      auto solver = make_solver(SolverKind::BicgstabJacobi, dev, a);
+      auto b = dev.upload<float>(std::vector<float>{1, 1}), x = dev.alloc<float>(2);
+      for (int interval : {1, 8, 31}) {
+        dev.fill(x, 0); dev.downloads = dev.reductions = 0;
+        auto stats = solver->solve(dev, matrix, x, b, {1e-8, 0, 31, interval});
+        CHECK_FALSE(stats.converged);
+        CHECK(stats.iterations == (zero_omega ? 1 : 0));
+        CHECK(stats.final_residual == stats.initial_residual);
+        CHECK(dev.downloads == 1); // one batch poll, even after frozen dispatches
+        CHECK(dev.reductions == 4); // input norms, initial and actual final norms
+        CHECK(dev.download(x) == std::vector<float>{0, 0});
+      }
+    }
+  }
+}
+
+TEST_CASE("Krylov host checks are batched including K-cycle and Neumann projection") {
+  for (auto backend : Device::available()) {
+    InstrumentedDevice dev(backend);
+    for (auto cycle : {AmgCycle::V, AmgCycle::K}) {
+      for (bool neumann : {false, true}) {
+        auto a = poisson(12, 10, 4, 1, false, neumann);
+        auto matrix = upload(dev, a);
+        AmgOptions options; options.cycle = cycle;
+        options.nullspace = neumann ? NullSpace::Constant : NullSpace::None;
+        for (auto kind : {SolverKind::PcgJacobi, SolverKind::AmgPcg,
+                          SolverKind::BicgstabJacobi, SolverKind::AmgBicgstab}) {
+          if (neumann && (kind == SolverKind::BicgstabJacobi || kind == SolverKind::AmgBicgstab)) continue;
+          auto solver = kind == SolverKind::PcgJacobi || kind == SolverKind::BicgstabJacobi ?
+              make_solver(kind, dev, a, {.nullspace = options.nullspace}) :
+              make_amg_solver(kind, dev, a, options);
+          auto forcing = random_solution(a.pattern.n_rows);
+          if (neumann) { std::fill(forcing.begin(), forcing.end(), 0); forcing.front() = 1; forcing.back() = -1; }
+          auto b = dev.upload<float>(forcing), x = dev.alloc<float>(forcing.size());
+          dev.fill(x, 0); dev.downloads = dev.reductions = dev.device_reductions = 0;
+          auto stats = solver->solve(dev, matrix, x, b, {0, 0, 3, 8});
+          CHECK(stats.iterations == 3);
+          CHECK(dev.downloads == 1);
+          CHECK(dev.reductions == (neumann ? 5 : 4));
+          CHECK(dev.device_reductions > 0);
+        }
+      }
+    }
   }
 }

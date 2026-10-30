@@ -86,21 +86,42 @@ kernel void runtime_reduce(const device float* x [[buffer(0)]],
     }
   }
 }
-// One thread finishes the bounded, fixed-order partial list on the device.
+// A second fixed tree finishes partials on the device. A serial 1024-pair
+// finish would replace the host wait with a long single-lane dependency chain.
 kernel void runtime_reduce_into(const device float2* partial [[buffer(0)]],
                                 device float* out [[buffer(1)]],
                                 constant uint& groups [[buffer(2)]],
                                 constant uint& offset [[buffer(3)]],
                                 constant uint& dual [[buffer(4)]],
-                                uint i [[thread_position_in_grid]]) {
-  if (i != 0) return;
+                                uint tid [[thread_index_in_threadgroup]],
+                                uint width [[threads_per_simdgroup]],
+                                uint lane [[thread_index_in_simdgroup]],
+                                uint simd [[simdgroup_index_in_threadgroup]],
+                                uint threads [[threads_per_threadgroup]]) {
+  threadgroup float2 first[32], second[32];
   float2 a = float2(0), b = float2(0);
-  for (uint j = 0; j < groups; ++j) {
+  for (uint j = tid; j < groups; j += threads) {
     a = pair_add(a, partial[j]);
     if (dual) b = pair_add(b, partial[1024 + j]);
   }
-  out[offset] = a.x; out[offset + 1] = a.y;
-  if (dual) { out[offset + 2] = b.x; out[offset + 3] = b.y; }
+  for (uint d = width / 2; d > 0; d /= 2) {
+    float2 c = simd_shuffle_down(a, d), e = simd_shuffle_down(b, d);
+    if (lane + d < width) { a = pair_add(a, c); if (dual) b = pair_add(b, e); }
+  }
+  if (lane == 0) { first[simd] = a; second[simd] = b; }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  if (simd == 0) {
+    a = lane < threads / width ? first[lane] : float2(0);
+    b = lane < threads / width ? second[lane] : float2(0);
+    for (uint d = width / 2; d > 0; d /= 2) {
+      float2 c = simd_shuffle_down(a, d), e = simd_shuffle_down(b, d);
+      if (lane + d < width) { a = pair_add(a, c); if (dual) b = pair_add(b, e); }
+    }
+    if (lane == 0) {
+      out[offset] = a.x; out[offset + 1] = a.y;
+      if (dual) { out[offset + 2] = b.x; out[offset + 3] = b.y; }
+    }
+  }
 }
 kernel void runtime_fill(device uint* dst [[buffer(0)]],
                          constant uint& value [[buffer(1)]],
@@ -213,7 +234,7 @@ class MetalDevice final : public Device {
   }
 
  protected:
-  void reduce_into(const Buffer<float>& x, const Buffer<float>& y,
+    void reduce_into(const Buffer<float>& x, const Buffer<float>& y,
       const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
       Buffer<float>& dst, std::size_t offset, Reduction mode) override {
     check_reduction(x, y, u, v, n, dst, offset, mode);
@@ -228,7 +249,7 @@ class MetalDevice final : public Device {
     [encoder setBytes:&groups length:sizeof groups atIndex:2];
     [encoder setBytes:&index length:sizeof index atIndex:3];
     [encoder setBytes:&dual length:sizeof dual atIndex:4];
-    dispatch(reduce_into_, 1);
+    dispatch(reduce_into_, threads(reduce_into_));
   }
   std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) override {
     return std::make_unique<MetalBuffer>(device_, bytes);

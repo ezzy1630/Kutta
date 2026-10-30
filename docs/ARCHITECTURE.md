@@ -29,7 +29,7 @@ Metal has no FP64, and consumer NVIDIA FP64 runs at 1/64 rate. So:
 - Field storage and arithmetic are `float`.
 - Geometry is computed on the host in `double` (`MeshGeometry`). The device stores only *differences*: face-to-cell vectors, cell-to-cell vectors, face area vectors and volumes. It never stores absolute coordinates, so float keeps full relative precision even far from the origin.
 - Pressure is stored as a gauge value relative to a reference, never as absolute operating pressure.
-- Reductions (dot products, norms, force integrals) accumulate in double on CPU/CUDA and in compensated float pairs on Metal. They always return `double`.
+- Reductions (dot products, norms, force integrals) accumulate in double on CPU/CUDA and in compensated float pairs on Metal. Host reductions return `double`; asynchronous reductions write normalized `(hi, lo)` float pairs to device buffers. Device scalar kernels retain both words until rounding the final coefficient to float.
 - The outer SIMPLE iteration is a defect correction: residuals are recomputed from the current state each iteration, so inner linear solves can stay in float without limiting final accuracy.
 
 ## Layers

@@ -79,12 +79,24 @@ __global__ void reduce_last(const double* partial, unsigned int n, double* resul
 
 __global__ void reduce_pair(const double* partial, unsigned int n, float* out,
                             std::size_t offset, bool dual) {
-  // Bounded list, fixed order; FP64 until the final pair encoding.
+  // Fixed tree, FP64 until the final pair encoding.
+  __shared__ double first[kCudaBlock], second[kCudaBlock];
   double a = 0, b = 0;
-  for (unsigned int j = 0; j < n; ++j) {
+  for (unsigned int j = threadIdx.x; j < n; j += blockDim.x) {
     a += partial[j];
     if (dual) b += partial[1024 + j];
   }
+  first[threadIdx.x] = a; second[threadIdx.x] = b;
+  __syncthreads();
+  for (unsigned int d = blockDim.x / 2; d; d /= 2) {
+    if (threadIdx.x < d) {
+      first[threadIdx.x] += first[threadIdx.x + d];
+      if (dual) second[threadIdx.x] += second[threadIdx.x + d];
+    }
+    __syncthreads();
+  }
+  if (threadIdx.x != 0) return;
+  a = first[0]; b = second[0];
   const float hi = static_cast<float>(a);
   out[offset] = hi;
   out[offset + 1] = isfinite(hi) ? static_cast<float>(a - double(hi)) : 0;
@@ -143,7 +155,7 @@ class CudaDevice final : public Device {
     check_reduction(x, y, u, v, n, dst, offset, mode);
     const auto blocks = enqueue_reduce(x, y, u, v, n,
         mode == Reduction::Sum ? 0 : (mode == Reduction::Dot ? 1 : 3));
-    reduce_pair<<<1, 1, 0, stream_>>>(static_cast<double*>(partial_->data), blocks,
+    reduce_pair<<<1, kCudaBlock, 0, stream_>>>(static_cast<double*>(partial_->data), blocks,
         static_cast<float*>(cuda_ptr(dst.handle())), offset, mode == Reduction::Dot2);
     check(cudaGetLastError());
   }

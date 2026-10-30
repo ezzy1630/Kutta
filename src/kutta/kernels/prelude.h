@@ -22,6 +22,7 @@ using namespace metal;
 #define KOut(T) device T*
 #define KIn(T) const device T*
 #define KUTTA_SQRT metal::sqrt
+#define KUTTA_FMA metal::fma
 #define KUTTA_ABS metal::fabs
 #define KUTTA_MAX metal::fmax
 #define KUTTA_MIN metal::fmin
@@ -35,6 +36,7 @@ using namespace metal;
 #define KIn(T) const T* __restrict__
 typedef unsigned int uint;
 #define KUTTA_SQRT sqrtf
+#define KUTTA_FMA fmaf
 #define KUTTA_ABS fabsf
 #define KUTTA_MAX fmaxf
 #define KUTTA_MIN fminf
@@ -49,6 +51,7 @@ typedef unsigned int uint;
 #define KIn(T) const T* __restrict
 typedef unsigned int uint;
 #define KUTTA_SQRT std::sqrt
+#define KUTTA_FMA std::fma
 #define KUTTA_ABS std::fabs
 #define KUTTA_MAX std::fmax
 #define KUTTA_MIN std::fmin
@@ -60,6 +63,7 @@ typedef unsigned int uint;
 
 #define KUTTA_KERNEL KUTTA_FN
 
+KUTTA_FN float kfma(float a, float b, float c) { return KUTTA_FMA(a, b, c); }
 KUTTA_FN float ksqrt(float x) { return KUTTA_SQRT(x); }
 KUTTA_FN float kabs(float x) { return KUTTA_ABS(x); }
 KUTTA_FN float kmax(float a, float b) { return KUTTA_MAX(a, b); }

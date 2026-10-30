@@ -1,8 +1,10 @@
 #include <cmath>
+#include <limits>
 
 #include "../backend_helpers.hpp"
 #include "kernels.hpp"
 #include "kutta/linalg/csr.hpp"
+#include "matrices.hpp"
 
 using namespace kutta;
 
@@ -84,5 +86,60 @@ TEST_CASE("compensated CSR residual resolves product and cancellation error") {
     auto result = dev->download(r);
     for (std::size_t i = 0; i < result.size(); ++i)
       CHECK(result[i] == doctest::Approx(reference[i]).epsilon(1e-6));
+  }
+}
+
+TEST_CASE("fused coarse Jacobi preserves the ordinary sweep arithmetic") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    for (Index count : {1, 17, 24}) {
+      auto a = kutta::test_linalg::poisson(count, 1);
+      auto matrix = upload(*dev, a);
+      auto forcing = kutta::test_linalg::random_solution(count);
+      auto b = dev->upload<float>(forcing), x = dev->alloc<float>(count);
+      auto y = dev->alloc<float>(count), r = dev->alloc<float>(count);
+      std::vector<float> inverse(count);
+      for (Index row = 0; row < count; ++row) inverse[row] = 1.0f / float(a.val[a.pattern.diag[row]]);
+      auto di = dev->upload<float>(inverse);
+      auto status = dev->alloc<Index>(1); dev->fill(status, 0);
+      for (int sweeps : {1, 5, 32}) {
+        dev->fill(x, 0); dev->fill(y, 0);
+        for (int sweep = 0; sweep < sweeps; ++sweep) {
+          residual(*dev, matrix, y, b, r);
+          kern::krylov_smooth(*dev, count, r, di, y, 2.0f / 3.0f);
+        }
+        kern::amg_coarse_solve(*dev, 1, matrix.row_ptr, matrix.col, matrix.val,
+                               x, b, di, status, count, sweeps);
+        CHECK(dev->download(x) == dev->download(y));
+      }
+      dev->fill(status, 2); dev->fill(x, 42);
+      kern::amg_coarse_solve(*dev, 1, matrix.row_ptr, matrix.col, matrix.val,
+                             x, b, di, status, count, 32);
+      CHECK(dev->download(x) == std::vector<float>(count, 42));
+    }
+  }
+}
+
+TEST_CASE("device coefficient guards hold vectors on zero or nonfinite rho and omega") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto status = dev->alloc<Index>(3);
+    auto scalars = dev->alloc<float>(24);
+    auto x = dev->upload<float>(std::vector<float>{2, -3});
+    auto p = dev->upload<float>(std::vector<float>{1, 1});
+    auto r = dev->upload<float>(std::vector<float>{4, 5});
+    for (int slot : {0, 12}) {
+      for (float bad : {0.0f, std::numeric_limits<float>::quiet_NaN(),
+                         std::numeric_limits<float>::infinity()}) {
+        std::vector<float> values(24, 0);
+        values[0] = values[8] = values[12] = values[14] = 1;
+        values[slot] = bad;
+        dev->upload<float>(scalars, values);
+        dev->fill(status, 0);
+        kern::solver_bicg_beta(*dev, 1, scalars, status);
+        kern::solver_step(*dev, 2, x, r, p, p, scalars, status);
+        CHECK(dev->download(status)[0] == 2);
+        CHECK(dev->download(x) == std::vector<float>{2, -3});
+        CHECK(dev->download(r) == std::vector<float>{4, 5});
+      }
+    }
   }
 }
