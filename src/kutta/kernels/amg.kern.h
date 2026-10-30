@@ -22,17 +22,19 @@ KUTTA_KERNEL void amg_prolong(int i, KIn(int) aggregate, KIn(float) coarse,
 
 // Precomputed inverse fine-entry -> coarse-entry map. A coarse entry owns
 // its contributing fine entries, so Galerkin refresh is deterministic.
+// Neumaier summation retains weak couplings when large diagonal/off-diagonal
+// contributions cancel; ordinary Kahan can lose the weak term entirely.
 KUTTA_KERNEL void amg_galerkin(int i, KIn(int) offsets, KIn(int) entries,
                               KIn(float) fine, KOut(float) coarse) {
   float sum = 0.0f;
   float error = 0.0f;
   for (int j = offsets[i]; j < offsets[i + 1]; ++j) {
-    float term = fine[entries[j]] - error;
+    float term = fine[entries[j]];
     float next = sum + term;
-    error = (next - sum) - term;
+    error += kabs(sum) >= kabs(term) ? (sum - next) + term : (term - next) + sum;
     sum = next;
   }
-  coarse[i] = sum;
+  coarse[i] = sum + error;
 }
 
 // Memory-saving alternative, timed by bench_galerkin. One thread owns a
@@ -48,14 +50,14 @@ KUTTA_KERNEL void amg_galerkin_rows(int i, KIn(int) coarse_rows, KIn(int) coarse
       int row = members[m];
       for (int j = rows[row]; j < rows[row + 1]; ++j) {
         if (aggregate[cols[j]] == coarse_cols[entry]) {
-          float term = fine[j] - error;
+          float term = fine[j];
           float next = sum + term;
-          error = (next - sum) - term;
+          error += kabs(sum) >= kabs(term) ? (sum - next) + term : (term - next) + sum;
           sum = next;
         }
       }
     }
-    coarse[entry] = sum;
+    coarse[entry] = sum + error;
   }
 }
 

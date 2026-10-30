@@ -108,7 +108,7 @@ Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool
     float sum = 0, error = 0;
     for (auto [col, source] : row) {
       if (col != previous) {
-        if (previous != -1) c.matrix.val.back() = sum;
+        if (previous != -1) c.matrix.val.back() = sum + error;
         sum = error = 0;
         if (entry_map && previous != -1) c.entry_offsets.push_back(static_cast<Index>(c.entries.size()));
         if (col == g) cp.diag[g] = static_cast<Index>(cp.col.size());
@@ -117,12 +117,12 @@ Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool
         previous = col;
       }
       if (entry_map) c.entries.push_back(source);
-      const float term = static_cast<float>(fine.val[source]) - error;
+      const float term = static_cast<float>(fine.val[source]);
       const float next = sum + term;
-      error = (next - sum) - term;
+      error += std::abs(sum) >= std::abs(term) ? (sum - next) + term : (term - next) + sum;
       sum = next;
     }
-    if (previous != -1) c.matrix.val.back() = sum;
+    if (previous != -1) c.matrix.val.back() = sum + error;
     if (entry_map) c.entry_offsets.push_back(static_cast<Index>(c.entries.size()));
     cp.row_ptr[g + 1] = static_cast<Index>(cp.col.size());
   }

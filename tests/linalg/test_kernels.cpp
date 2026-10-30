@@ -150,3 +150,21 @@ TEST_CASE("device coefficient guards hold vectors on zero or nonfinite rho and o
     }
   }
 }
+
+TEST_CASE("AMG Galerkin preserves weak terms across strong cancellation") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto offsets=dev->upload<Index>(std::vector<Index>{0,3});
+    auto entries=dev->upload<Index>(std::vector<Index>{0,1,2});
+    auto fine=dev->upload<float>(std::vector<float>{1e8f,1,-1e8f});auto coarse=dev->alloc<float>(1);
+    kern::amg_galerkin(*dev,1,offsets,entries,fine,coarse);
+    CHECK(dev->download(coarse)[0]==1);
+    auto rows=dev->upload<Index>(std::vector<Index>{0,1});
+    auto cols=dev->upload<Index>(std::vector<Index>{0});
+    auto members=dev->upload<Index>(std::vector<Index>{0});
+    auto fine_rows=dev->upload<Index>(std::vector<Index>{0,3});
+    auto fine_cols=dev->upload<Index>(std::vector<Index>{0,0,0});
+    auto aggregate=dev->upload<Index>(std::vector<Index>{0});
+    kern::amg_galerkin_rows(*dev,1,rows,cols,rows,members,fine_rows,fine_cols,aggregate,fine,coarse);
+    CHECK(dev->download(coarse)[0]==1);
+  }
+}
