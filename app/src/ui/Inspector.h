@@ -80,10 +80,14 @@ QWidget* residuals(const InspectorContext& c);
 QWidget* reportPlots(const InspectorContext& c);
 QWidget* forces(const InspectorContext& c);
 QWidget* integrals(const InspectorContext& c);
+QWidget* aero(const InspectorContext& c);
 QWidget* runHistory(const InspectorContext& c);
+QWidget* studies(const InspectorContext& c);
 QWidget* compare(const InspectorContext& c);
 QWidget* allSettings(const InspectorContext& c, const QString& filter);
 QWidget* noCase(const InspectorContext& c, const QString& title);
+// Where the live or last run stands against its convergence criteria.
+QWidget* convergenceStatus(const InspectorContext& c);
 } // namespace pages
 
 } // namespace kapp

@@ -119,7 +119,7 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
     connect(session, &Session::runFinished, this, [this](const QString& id) {
         const RunRecord* r = m_session->history().find(id);
         if (!r) return;
-        statusBar()->showMessage(tr("%1 %2").arg(r->title(), runStatusLabel(r->status).toLower()), 8000);
+        statusBar()->showMessage(tr("%1 %2").arg(r->title(), runStatusText(*r).toLower()), 8000);
         if (r->status == RunStatus::Completed || r->status == RunStatus::Stopped) {
             for (int i = 0; i < m_graphics->visibleCount(); ++i) {
                 auto* p = m_graphics->panel(i);
@@ -551,7 +551,7 @@ std::vector<PaletteEntry> MainWindow::paletteEntries()
         for (auto it = runs.rbegin(); it != runs.rend(); ++it) {
             if (it->status != RunStatus::Completed && it->status != RunStatus::Stopped) continue;
             const QString id = it->id;
-            out.push_back({tr("Run"), tr("Show %1").arg(it->title()), runStatusLabel(it->status), [this, id] { m_graphics->show("run:" + id); }});
+            out.push_back({tr("Run"), tr("Show %1").arg(it->title()), runStatusText(*it), [this, id] { m_graphics->show("run:" + id); }});
         }
     }
     for (const QString& p : m_samples) {

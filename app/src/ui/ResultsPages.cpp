@@ -942,7 +942,9 @@ QWidget* forces(const InspectorContext& c)
     v->addWidget(axis, 0, Qt::AlignLeft);
     auto* table = new QTableWidget;
     table->setColumnCount(5);
-    table->setHorizontalHeaderLabels({QObject::tr("Zone / report"), QObject::tr("Pressure [N]"), QObject::tr("Viscous [N]"), QObject::tr("Total [N]"), QObject::tr("Coefficient")});
+    table->setHorizontalHeaderLabels({QObject::tr("Zone / report"), QObject::tr("Pressure [N]"), QObject::tr("Viscous [N]"), QObject::tr("Total [N]"), QObject::tr("Coeff.")});
+    table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    table->setWordWrap(false);
     table->verticalHeader()->hide();
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table->setShowGrid(false);
@@ -955,7 +957,7 @@ QWidget* forces(const InspectorContext& c)
         double sp = 0, sv = 0;
         int walls = 0;
         auto num = [](double x) {
-            auto* it = new QTableWidgetItem(QLocale().toString(x, 'f', 3));
+            auto* it = new QTableWidgetItem(QLocale().toString(x, 'f', 2));
             it->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
             return it;
         };
@@ -965,7 +967,8 @@ QWidget* forces(const InspectorContext& c)
             const bool report = row.kind == "report";
             const double p = report && row.pressureProjection ? *row.pressureProjection : row.pressure[ax];
             const double vv = report && row.viscousProjection ? *row.viscousProjection : row.viscous[ax];
-            auto* name = new QTableWidgetItem(report ? row.name + QObject::tr("  (report)") : row.name);
+            auto* name = new QTableWidgetItem(report ? row.name + QObject::tr(" (report)") : row.name);
+            name->setToolTip(name->text());
             if (report) { QFont f = name->font(); f.setBold(true); name->setFont(f); }
             table->setItem(r, 0, name);
             table->setItem(r, 1, num(p));
@@ -987,7 +990,9 @@ QWidget* forces(const InspectorContext& c)
             table->setItem(r, 3, num(sp + sv));
             table->setItem(r, 4, new QTableWidgetItem(QStringLiteral("—")));
         }
+        // Names get the room the numbers leave; numbers never elide.
         table->resizeColumnsToContents();
+        for (int col = 1; col < table->columnCount(); ++col) table->horizontalHeader()->setSectionResizeMode(col, QHeaderView::ResizeToContents);
         table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
         table->setMinimumHeight(std::min(460, 34 + table->rowCount() * 26));
     };
@@ -1001,7 +1006,7 @@ QWidget* forces(const InspectorContext& c)
         if (!f.isEmpty()) { QFile::remove(f); QFile::copy(src, f); }
     });
     v->addWidget(exportBtn, 0, Qt::AlignLeft);
-    v->addWidget(label(QObject::tr("Report rows are projected on the report's direction; wall rows on the axis chosen above."), "faint"));
+    v->addWidget(label(QObject::tr("Report rows are projected on the report's direction; wall rows on the axis chosen above. Coefficients, groups and balance are under Aerodynamics."), "faint"));
     return page;
 }
 
@@ -1182,7 +1187,7 @@ QWidget* runHistory(const InspectorContext& c)
         name->setData(Qt::UserRole, r.id);
         name->setToolTip(QStringLiteral("%1\n%2").arg(QLocale().toString(r.started, QLocale::ShortFormat), QDir::toNativeSeparators(r.dir)));
         table->setItem(i, 0, name);
-        auto* st = new QTableWidgetItem(runStatusLabel(r.status) + (r.status == RunStatus::Stopped && r.stopReason == "stopped" ? QObject::tr(" by you") : QString()));
+        auto* st = new QTableWidgetItem(runStatusText(r) + (r.status == RunStatus::Stopped && r.stopReason == "stopped" ? QObject::tr(" by you") : QString()));
         if (r.status == RunStatus::Failed || r.status == RunStatus::Interrupted) st->setForeground(t.red);
         if (r.status == RunStatus::Running) st->setForeground(t.dark ? t.accent : t.accent.darker(115));
         if (!r.error.isEmpty()) st->setToolTip(r.error);

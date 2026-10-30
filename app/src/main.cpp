@@ -157,8 +157,8 @@ int main(int argc, char** argv)
     // Post-processing ones need the real CLI: the fixture has no volume fields.
     // car-* and bench use the fixture CLI's synthetic FSAE car.
     const QStringList scenarios = {"start", "open-failed", "elbow-open", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
-                                   "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare",
-                                   "car-results", "car-xy", "car-compare", "car-failed", "bench"};
+                                   "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare", "elbow-monitors",
+                                   "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "bench"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
         return 0;
@@ -343,6 +343,20 @@ int main(int argc, char** argv)
             sc->add(preset(0, Camera::Preset::Top));
             sc->add(go("solution/run"));
         }
+    } else if (scenario == "elbow-monitors") {
+        // The seeded elbow stopping on its own residual criteria. The recorded
+        // fixture predates convergence checking and shows the older-CLI page.
+        sc->add(open(elbowCase, elbowData));
+        sc->add(approveAll);
+        sc->add([session](auto next) {
+            session->settings()->setValue("monitors/check-convergence", true);
+            next();
+        });
+        sc->add(runWith(1000));
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); d.bands = 16; d.visible = {"zone:symmetry-xyplane"}; d.visibleInitialized = true; }));
+        sc->add(preset(0, Camera::Preset::Top));
+        sc->add(go("solution/monitors"));
     } else if (scenario == "elbow-post") {
         // Volume post-processing needs the real CLI: pass --cli, the case and --open-data.
         sc->add(open(elbowCase, elbowData));
@@ -521,6 +535,71 @@ int main(int argc, char** argv)
         sc->add(display(1, [&](ViewDisplay& d) { d.field = field("pressure_coefficient", FieldRole::Run); }));
         sc->add(go("runs/compare"));
         sc->add([&w](auto next) { w.charts()->showRuns({"run-0002", "run-0001"}); next(); });
+    } else if (scenario == "car-aero") {
+        // Coefficients, breakdown by group and balance of one finished run.
+        sc->add(open(caseArg.isEmpty() ? car : caseArg));
+        sc->add(approveAll);
+        sc->add([session](auto next) {
+            AeroSpec spec = session->aeroSpec();
+            spec.frontAxle = QVector3D(-0.78f, 0, 0);  // the synthetic car's front tyre contact
+            spec.wheelbase = 1.58;
+            spec.momentCentre = *spec.frontAxle;
+            session->setAeroSpec(spec);
+            next();
+        });
+        sc->add(runToEnd);
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
+        sc->add(preset(0, Camera::Preset::Isometric));
+        sc->add(go("results/aero"));
+        sc->add([sc, session](auto next) {
+            sc->waitFor([session] { return session->aeroIfComputed("run-0001").has_value(); }, next, "aero coefficients");
+        });
+    } else if (scenario == "car-monitors") {
+        // A run stopped by its convergence criteria: residuals and two reports.
+        sc->add(open(caseArg.isEmpty() ? car : caseArg));
+        sc->add(approveAll);
+        sc->add([session](auto next) {
+            for (const char* p : {"monitors/check-convergence", "monitors/report/downforce/active", "monitors/report/drag/active"})
+                session->settings()->setValue(p, true);
+            next();
+        });
+        sc->add(runToEnd);
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
+        sc->add(go("solution/monitors"));
+        sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Reports); next(); });
+    } else if (scenario == "car-study") {
+        // An inlet speed sweep, run back to back, with the reference velocity following.
+        sc->add(open(caseArg.isEmpty() ? car : caseArg));
+        sc->add(approveAll);
+        sc->add([session, sc](auto next) {
+            AeroSpec spec = session->aeroSpec();
+            spec.frontAxle = QVector3D(-0.78f, 0, 0);
+            spec.wheelbase = 1.58;
+            session->setAeroSpec(spec);
+            session->settings()->setValue("run/iterations", 600);
+            const QString p = "boundary/inlet/velocity-magnitude";
+            auto study = makeSweep(*session->settings(), p, {12, 16, 20, 24, 28}, referenceFollowers(*session->settings(), p));
+            if (!study) return sc->fail(study.error());
+            study->name = "Speed sweep";
+            QString why;
+            const QString id = session->addStudy(study.value(), &why);
+            if (id.isEmpty() || !session->startStudy(id, &why)) return sc->fail(why);
+            QSettings().setValue("studies/plot", "cd");
+            sc->waitFor([session] { return session->activeStudy().isEmpty() && !session->running(); }, next, "study to finish", 300000);
+        });
+        sc->add(showScene(0, "run:run-0005"));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
+        sc->add(go("runs/studies"));
+        sc->add([session, sc](auto next) {
+            sc->waitFor([session] {
+                for (int i = 1; i <= 5; ++i)
+                    if (!session->aeroIfComputed(QStringLiteral("run-%1").arg(i, 4, 10, QChar('0')))) return false;
+                return true;
+            }, next, "study results");
+        });
+        sc->add(go("runs/studies"));
     } else if (scenario == "bench") {
         // Frame timing on the car's surfaces; KUTTA_FIXTURE_CAR_DETAIL scales
         // the tessellation (5 gives about 10M triangles).

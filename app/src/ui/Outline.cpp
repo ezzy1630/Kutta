@@ -99,10 +99,12 @@ const QHash<QString, QString>& titles()
         {"results/report-plots", "Report Plots"},
         {"results/reports", "Reports"},
         {"results/forces", "Forces"},
+        {"results/aero", "Aerodynamics"},
         {"results/integrals", "Surface Integrals"},
         {"runs", "Runs"},
         {"runs/history", "Run History"},
         {"runs/compare", "Compare Runs"},
+        {"runs/studies", "Design Studies"},
         {"settings", "All Case Settings"},
     };
     return t;
@@ -199,10 +201,12 @@ void Outline::rebuild()
     add(plots, "results/report-plots", tr("Report Plots"));
     auto* reps = add(res, "results/reports", tr("Reports"));
     add(reps, "results/forces", tr("Forces"));
+    add(reps, "results/aero", tr("Aerodynamics"));
     add(reps, "results/integrals", tr("Surface Integrals"));
     auto* runs = add(nullptr, "runs", tr("Runs"), "history");
     add(runs, "runs/history", tr("Run History"));
     add(runs, "runs/compare", tr("Compare Runs"));
+    add(runs, "runs/studies", tr("Design Studies"));
     add(nullptr, "settings", tr("All Case Settings"), "list-filter");
 
     expandAll();

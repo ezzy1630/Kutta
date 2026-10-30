@@ -46,7 +46,7 @@ Inspector::Inspector(Session* session, GraphicsArea* graphics, ChartsPanel* char
     });
     connect(session, &Session::historyChanged, this, [this] {
         // Pages listing runs follow the history; editing pages keep their state.
-        if (m_id.startsWith("runs/") || m_id == "results/forces" || m_id == "setup/general") refresh();
+        if (m_id.startsWith("runs/") || m_id == "results/forces" || m_id == "results/aero" || m_id == "setup/general") refresh();
     });
     show("setup/general");
 }
@@ -129,6 +129,8 @@ QWidget* Inspector::build(const QString& id)
     if (id == "results/integrals") return pages::integrals(c);
     if (id == "runs/history") return pages::runHistory(c);
     if (id == "runs/compare") return pages::compare(c);
+    if (id == "runs/studies") return pages::studies(c);
+    if (id == "results/aero") return pages::aero(c);
     if (id == "settings") return c.session->hasCase() ? pages::allSettings(c, m_settingsFilter) : pages::noCase(c, tr("All Case Settings"));
     return pages::noCase(c, Outline::titleOf(id));
 }
@@ -795,23 +797,6 @@ QWidget* reportDefinitions(const InspectorContext& c)
     return page;
 }
 
-QWidget* monitors(const InspectorContext& c)
-{
-    QWidget* page;
-    SettingsForm* f = formPage(c, QObject::tr("Monitors"), QObject::tr("Solution"), &page);
-    f->addSection(QObject::tr("Residuals"));
-    f->addNote(QObject::tr("Scaled residuals for continuity, momentum and the turbulence equations are reported every iteration and plotted live."));
-    f->addSetting("monitors/convergence-criteria");
-    f->addSetting("run/monitor-interval");
-    for (const Setting* s : settingsUnder(c, "monitors/"))
-        if (s->path != "monitors/convergence-criteria") f->addSetting(s->path);
-    auto* b = button(QObject::tr("Show residual plot"), "chart-line");
-    QObject::connect(b, &QPushButton::clicked, b, [c] { c.charts->showTab(ChartsPanel::Tab::Residuals); });
-    f->addWidget(b);
-    f->finish();
-    return page;
-}
-
 QWidget* initialization(const InspectorContext& c)
 {
     QWidget* page;
@@ -904,6 +889,7 @@ QWidget* run(const InspectorContext& c)
     outcome->layout()->addWidget(outcomeError);
     outcome->layout()->addWidget(outcomeAdvice);
     f->addWidget(outcome);
+    if (s->settings()->find("monitors/check-convergence")) f->addWidget(convergenceStatus(c));
 
     auto refresh = [s, runBtn, stopBtn, status, why, outcome, outcomeTitle, outcomeError, outcomeAdvice] {
         QString reason;
@@ -928,7 +914,7 @@ QWidget* run(const InspectorContext& c)
             } else t = QObject::tr("Setting up on %1…").arg(l.setup ? l.setup->device : QObject::tr("the device"));
             status->setText(t);
         } else if (const RunRecord* r = s->history().runs().empty() ? nullptr : &s->history().runs().back()) {
-            status->setText(QObject::tr("Last run: %1 · %2 · %3 iterations").arg(r->title(), runStatusLabel(r->status)).arg(r->iterationsDone));
+            status->setText(QObject::tr("Last run: %1 · %2 · %3 iterations").arg(r->title(), runStatusText(*r)).arg(r->iterationsDone));
         } else {
             status->setText(QObject::tr("No runs yet for this case."));
         }
