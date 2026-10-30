@@ -27,7 +27,8 @@ class InstrumentedDevice final : public Device {
   explicit InstrumentedDevice(Backend backend) : inner_(Device::create(backend)) {}
   Backend backend() const override { return inner_->backend(); }
   std::string name() const override { return inner_->name(); }
-  std::size_t live_bytes = 0, peak_bytes = 0, reductions = 0, downloads = 0, device_reductions = 0, uploads = 0;
+  std::size_t live_bytes = 0, peak_bytes = 0, reductions = 0, downloads = 0, device_reductions = 0, uploads = 0,
+      allocations = 0;
   std::function<void(KernelId, std::size_t, std::span<const KernelArg>)> after_launch;
   double sum(const Buffer<float>& x, std::size_t n) override {
     ++reductions; return inner_->sum(allocation(*x.handle()).data, n);
@@ -68,6 +69,7 @@ class InstrumentedDevice final : public Device {
                            allocation(*v.handle()).data, n, out, offset);
   }
   std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) override {
+    ++allocations;
     KUTTA_REQUIRE(bytes % sizeof(float) == 0, "instrumentation requires 32-bit buffers");
     auto result = std::make_unique<Allocation>(inner_->alloc<float>(bytes / sizeof(float)), live_bytes);
     peak_bytes = std::max(peak_bytes, live_bytes);

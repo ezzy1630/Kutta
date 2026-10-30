@@ -356,6 +356,40 @@ TEST_CASE("Jacobi batches residual reductions and BiCGStab checks s only once") 
   }
 }
 
+TEST_CASE("reused transport solves allocate nothing and avoid frozen reduction batches") {
+  for(auto backend:Device::available()) {
+    InstrumentedDevice dev(backend);
+    auto a=poisson(8,6,4,1,false,false,5);
+    for(auto d:a.pattern.diag) a.val[d]+=100;
+    auto matrix=upload(dev,a);
+    auto solver=make_solver(SolverKind::BicgstabJacobi,dev,a);
+    auto reference=make_solver(SolverKind::BicgstabJacobi,dev,a);
+    auto b=dev.upload<float>(random_solution(a.pattern.n_rows));
+    auto x=dev.alloc<float>(b.size()),y=dev.alloc<float>(b.size());
+    std::size_t first_reductions=0;
+    for(int repeat=0;repeat<3;++repeat) {
+      dev.fill(x,0);dev.fill(y,0);
+      const auto allocations=dev.allocations;
+      solver->refresh(dev,matrix);
+      CHECK(dev.allocations==allocations);
+      dev.device_reductions=0;
+      const auto stats=solver->solve(dev,matrix,x,b,{1e-4,1e-12,100,8});
+      REQUIRE(stats.converged);
+      if(repeat==0) first_reductions=dev.device_reductions;
+      else CHECK(dev.device_reductions<first_reductions);
+      const auto oracle=reference->solve(dev,matrix,y,b,{1e-4,1e-12,100,1});
+      CHECK(stats.iterations==oracle.iterations);
+      CHECK(stats.final_residual==oracle.final_residual);
+      CHECK(dev.download(x)==dev.download(y));
+    }
+    // Reusing validation storage must still reject bad refreshed coefficients.
+    auto bad=std::vector<float>(a.val.begin(),a.val.end());
+    bad.front()=std::numeric_limits<float>::quiet_NaN();
+    dev.upload<float>(matrix.val,bad);
+    CHECK_THROWS_AS(solver->refresh(dev,matrix),Error);
+  }
+}
+
 TEST_CASE("assembled random Neumann pressure uses the caller nullspace contract") {
   for (bool float_diagonal : {false, true}) {
     auto a = poisson(12, 10, 4, 1, true, true);

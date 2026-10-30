@@ -55,11 +55,11 @@ namespace {
 class Jacobi final : public Preconditioner {
  public:
   Jacobi(Device& dev, const CsrMatrixHost& a)
-      : inverse_(dev.upload<float>(diagonal_values(a, false, false))) {}
+      : inverse_(dev.upload<float>(diagonal_values(a, false, false))),
+        invalid_(dev.alloc<float>(a.pattern.n_rows)) {}
   void refresh(Device& dev, const CsrMatrix& a) override {
-    auto invalid = dev.alloc<float>(a.n_rows);
-    kern::krylov_diagonal(dev, a.n_rows, a.row_ptr, a.diag, a.val, inverse_, invalid, 0);
-    KUTTA_REQUIRE(dev.max_abs(invalid, a.n_rows) == 0, "Jacobi: invalid values or zero diagonal");
+    kern::krylov_diagonal(dev, a.n_rows, a.row_ptr, a.diag, a.val, inverse_, invalid_, 0);
+    KUTTA_REQUIRE(dev.max_abs(invalid_, a.n_rows) == 0, "Jacobi: invalid values or zero diagonal");
   }
   void apply(Device& dev, const CsrMatrix&, const Buffer<float>& r, Buffer<float>& z,
              const Buffer<Index>& status) override {
@@ -67,7 +67,7 @@ class Jacobi final : public Preconditioner {
   }
   std::string describe() const override { return "Jacobi"; }
  private:
-  Buffer<float> inverse_;
+  Buffer<float> inverse_, invalid_;
 };
 
 class Krylov final : public LinearSolver {
@@ -150,6 +150,7 @@ class Krylov final : public LinearSolver {
       dev.copy(x, best_);
       verified(dev, a, x, b, target, stats);
     }
+    previous_iterations_ = stats.converged ? stats.iterations : 0;
     return stats;
   }
 
@@ -214,7 +215,7 @@ class Krylov final : public LinearSolver {
     restart();
     int restarts = 0;
     double last_verified = stats.initial_residual;
-    int check_interval = c.residual_check_interval;
+    int check_interval = batch_interval(c);
     while (stats.iterations < c.max_iter) {
       const int batch = std::min(check_interval, c.max_iter - stats.iterations);
       for (int j = 0; j < batch; ++j) {
@@ -255,7 +256,7 @@ class Krylov final : public LinearSolver {
     restart();
     int restarts = 0;
     double last_verified = stats.initial_residual;
-    int check_interval = c.residual_check_interval;
+    int check_interval = batch_interval(c);
     while (stats.iterations < c.max_iter) {
       const int batch = std::min(check_interval, c.max_iter - stats.iterations);
       for (int j = 0; j < batch; ++j) {
@@ -291,6 +292,14 @@ class Krylov final : public LinearSolver {
     }
   }
 
+  int batch_interval(const SolveControl& c) const {
+    // The caller's interval bounds updates between host polls. A reused solver
+    // often converges in fewer updates: smaller batches avoid frozen AMG cycles
+    // and reductions without changing device convergence tests or arithmetic.
+    return previous_iterations_ > 0 && previous_iterations_ < c.residual_check_interval ?
+        previous_iterations_ + 1 : c.residual_check_interval;
+  }
+
   SolverKind kind_;
   Device* device_;
   Index n_, nnz_;
@@ -301,6 +310,7 @@ class Krylov final : public LinearSolver {
   Buffer<Index> status_;
   Buffer<float> projection_;
   double best_residual_ = 0;
+  int previous_iterations_ = 0;
 };
 }  // namespace
 
