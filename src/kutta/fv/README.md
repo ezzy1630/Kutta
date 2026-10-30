@@ -40,21 +40,34 @@ inlets and pressure-outlet backflow accept uniform values or host profiles.
 Default outlet backflow is normal to the boundary, with its speed obtained from
 the computed mass flux and density. Backflow data controls advected momentum;
 the outlet flux predictor continues to use the momentum solution. Moving-wall
-normal motion is projected away. Symmetry removes normal velocity
-and extrapolates tangentially. Pressure outlets impose gauge static pressure.
+normal motion is projected away. Symmetry uses the tangential projection of
+cell velocity and exerts no net viscous force. Its normal component coefficient
+is implicit, balanced by the same explicit term. Outlets convect cell velocity;
+their viscous flux retains the transpose stress. Pressure outlets impose gauge
+static pressure.
 Wall force is pressure relative to the requested reference, minus the viscous
 traction on the fluid, integrated using Device double/compensated reductions.
 
-For SST extrapolated boundary values, `boundary_least_squares()` precomputes a
-separate observation matrix for each equation. Pressure excludes wall, inlet
-and symmetry rows; velocity excludes outlet and symmetry rows; k excludes all
-but inlet rows; omega additionally includes independent wall reconstruction
-values. Excluded rows have zero weighted deltas. A symmetric eigensolve adds
-zero-difference constraints only along deficient directions, preserving all
-resolved directions. No previous gradient can feed itself through a boundary
-value. Standalone operators with supplied independent face data retain the
-original full LSQ stencil, as does the verified laminar flow path. Selecting SST
-is what enables the boundary-aware flow reconstruction.
+`boundary_least_squares()` precomputes each field's observation matrix for
+laminar and SST flow alike. Pressure includes wall, inlet and symmetry rows
+with zero differences (`p_b=p_c`) and prescribed outlet pressure. These LSQ
+observations are separate from momentum's extrapolated boundary pressure
+`p_c+G·r_b`, including at symmetry. Velocity includes wall, inlet and projected
+symmetry data, and omits outlet rows. k includes inlet rows; omega additionally
+includes independent wall reconstruction values. Excluded rows have zero
+weighted deltas. A symmetric eigensolve constrains only deficient directions,
+preserving all resolved directions. No previous gradient feeds itself through
+an extrapolated boundary observation. Standalone operators still accept the
+caller's independent boundary face data.
+
+SST strain and production use one derivative gradient: plain LSQ `1/d²` without
+wall rows plus half a face-jump fit. The fit uses centroid-to-face rows weighted
+by `1/|r_f|²`, and jumps between the two unlimited side reconstructions (boundary
+value minus the owner reconstruction at boundaries). This is one pass, with its
+geometry matrix precomputed. It is a likely Fluent approximation, not the exact
+undocumented WFGC algorithm. Convection and diffusion retain plain LSQ; SOU uses
+Barth–Jespersen separately per component, with boundary values in the min/max
+and evaluations at face centroids.
 
 Set `SolverSettings::sst` and supply inlet/outlet `TurbulenceCondition` values
 to enable SST. Momentum uses interpolated `mu+mu_t`, explicit transpose stress,
@@ -64,7 +77,8 @@ trace/3 of the three **physical** component diagonals drives Rhie-Chow and its
 face interpolation; the mean component SIMPLEC inverse drives correction.
 Neither physical diagonal includes relaxation or pseudo-time. Forces use
 `-A*wall_shear` on the body. k/omega transport adds volume-weighted implicit
-sinks, clips solved fields at configured floors, and imposes wall-cell omega
+sinks (Newton `2*rho*beta*omega` for omega with matching
+`+rho*beta*omega²` on the RHS), clips solved fields at configured floors, and imposes wall-cell omega
 rows at the original row scale (unscaled identity rows harm inexact-solve
 conditioning). Those rows are rebuilt each assembly and excluded from omega
 residual scaling. `monitor()` reports both turbulence residuals without changing
@@ -105,11 +119,11 @@ The pressure update is capped at `0.7*aP_physical*consistent_inverse` when
 pseudo time makes the correction coefficient smaller than the Rhie–Chow
 coefficient. This damps pressure overshoot without changing the steady equations.
 Pressure face values use the second-order reconstruction in the design spec.
-Momentum-weighted face velocities include an affine-exact correction from the
-weighted cell interpolation point to the actual face centroid. Symmetry
-pressure extrapolation uses only the tangential centroid-to-face displacement.
-The undocumented Fluent high-order Rhie–Chow correction and warped-face
-gradient correction are not implemented or claimed as matched.
+Momentum-weighted face velocities average the two limited side reconstructions
+with physical a_P weights. Outlet flux predictors use cell velocity. The
+Rhie–Chow pressure jump uses momentum's own gradient, Green–Gauss of those same
+second-order face pressures. The exact Fluent high-order Rhie–Chow correction
+and complete warped-face gradient correction remain open.
 
 Closed domains pin the cell containing `reference_point` (Fluent's reference
 pressure location, default the origin; nearest centroid if no cell contains
@@ -131,9 +145,18 @@ the residual snapshot and is empty before the first monitor. A caller can
 therefore distinguish current iteration statistics from cached residuals.
 
 Momentum residuals are steady equation L1 defects, reassembled from the current
-state, scaled by `sum(aP_physical*|velocity|)`. Continuity is the provisional
-mass-creation L1 defect before pressure correction, normalized by its maximum
-over iterations 1–5. The corrected mass imbalance is reported separately.
-This makes the pressure-correction linear tolerance distinct from outer
-convergence. Zero denominators preserve unknown/infinite ratios rather than
-reporting a false zero.
+state. `ResidualValue::scaled` retains the legacy denominator
+`sum(aP_physical*|velocity|)` for existing convergence criteria.
+`fluent_scaled` uses the per-component `sum(2*(aP_i+rho*V/dt)*|velocity|)`;
+`fluent_normalization` exposes that denominator. k/omega use their physical
+transport diagonals (including implicit sinks) plus `rho*V/dt`; fixed omega
+rows are excluded. The omega sink is Newton-linearized. These diagnostics use
+the run's actual pseudo time and flux; comparison with Fluent's saved scale
+also depends on its saved pseudo time and convecting flux. No energy equation
+is currently solved by this driver.
+
+Continuity is the provisional mass-creation L1 defect before pressure
+correction, normalized by its maximum over iterations 1–5. The corrected mass
+imbalance is reported separately. This distinguishes linear pressure tolerance
+from outer convergence. Zero denominators preserve unknown/infinite ratios
+rather than reporting a false zero.

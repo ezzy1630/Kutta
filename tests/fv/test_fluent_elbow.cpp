@@ -138,10 +138,20 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
           mut.push_back(d.cell_fields.at("SV_MU_T").at(std::uint64_t(cell)+1)[0]);
         }
         print_error("initial_wall_distance",error(original(*dev,solver,solver.device_mesh().wall_distance),distance));
-        print_error("initial_mu_t",error(original(*dev,solver,solver.turbulence().mu_t),mut));
+        const auto mut_error=error(original(*dev,solver,solver.turbulence().mu_t),mut);
+        print_error("initial_mu_t",mut_error);
+        CHECK(mut_error.l2<.011); // round-1 derivative-gradient ratchet
+        CHECK(r0.continuity.raw<8e-4); // round-1 flux ratchet; original gates below remain strict
       }
       std::cout<<"V6_INITIAL backend="<<backend_name(dev->backend())<<" mode="<<mode<<" u="<<r0.u.scaled<<" v="<<r0.v.scaled
-        <<" w="<<r0.w.scaled<<" continuity_raw="<<r0.continuity.raw<<" k="<<r0.k.scaled<<" omega="<<r0.omega.scaled<<std::endl;
+        <<" w="<<r0.w.scaled<<" pseudo_time_step="<<r0.pseudo_time_step<<" continuity_raw="<<r0.continuity.raw<<" k="<<r0.k.scaled<<" omega="<<r0.omega.scaled<<std::endl;
+      if(seeded) {
+        for(const auto& [name,value]:std::vector<std::pair<std::string,ResidualValue>>{
+            {"x-velocity",r0.u},{"y-velocity",r0.v},{"z-velocity",r0.w},{"k",r0.k},{"omega",r0.omega}})
+          std::cout<<"V6_SAVED_RESIDUAL backend="<<backend_name(dev->backend())<<" equation="<<name
+            <<" raw="<<value.raw<<" steady_scaled="<<value.scaled<<" Fluent_scaled="<<value.fluent_scaled
+            <<" normalization="<<value.fluent_normalization<<'\n';
+      }
       // The absolute mass scale depends on mesh, density and throughput. Use
       // the saved run's final unscaled continuity as the comparison target,
       // alongside a tighter 1e-6 steady transport defect for every equation.

@@ -59,7 +59,10 @@ struct SolverSettings {
   std::optional<SstSettings> sst;
 };
 
-struct ResidualValue { double raw=0,scaled=0; };
+struct ResidualValue {
+  double raw=0,scaled=0; // legacy steady scaling, retained for stopping criteria
+  double fluent_scaled=0,fluent_normalization=0;
+};
 struct IterationReport {
   int iteration=0;
   std::optional<int> residual_iteration;

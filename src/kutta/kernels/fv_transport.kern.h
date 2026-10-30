@@ -77,7 +77,10 @@ KUTTA_KERNEL void fv_floor(int i,KOut(float) field,float floor) {
 }
 
 KUTTA_KERNEL void fv_scalar_monitor(int i,KIn(float) field,KIn(float) diagonal,
-    KIn(float) residual,KIn(int) excluded,KOut(float) absolute,KOut(float) scale) {
+    KIn(float) residual,KIn(int) excluded,KIn(float) volume,KOut(float) absolute,KOut(float) scale,
+    KOut(float) fluent_scale,float rho,float dt) {
   absolute[i]=excluded[i]!=0?0.0f:kabs(residual[i]);
   scale[i]=excluded[i]!=0?0.0f:kabs(diagonal[i]*field[i]);
+  float time=dt>0.0f?rho*volume[i]/dt:0.0f;
+  fluent_scale[i]=excluded[i]!=0?0.0f:kabs((diagonal[i]+time)*field[i]);
 }

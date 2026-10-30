@@ -4,11 +4,7 @@
 // pressure outlet with normal backflow=4.
 KUTTA_KERNEL void fv_velocity_boundary(int i,KIn(int) owner,KIn(int) kind,
     KIn(float) sx,KIn(float) sy,KIn(float) sz,
-    KIn(float) rx,KIn(float) ry,KIn(float) rz,
     KIn(float) u,KIn(float) v,KIn(float) w,
-    KIn(float) ux,KIn(float) uy,KIn(float) uz,
-    KIn(float) vx,KIn(float) vy,KIn(float) vz,
-    KIn(float) wx,KIn(float) wy,KIn(float) wz,
     KIn(float) prescribed_u,KIn(float) prescribed_v,KIn(float) prescribed_w,
     KIn(float) flux,KOut(float) bu,KOut(float) bv,KOut(float) bw,
     KOut(int) scalar_kind,int internal,float rho) {
@@ -36,7 +32,7 @@ KUTTA_KERNEL void fv_velocity_boundary(int i,KIn(int) owner,KIn(int) kind,
 }
 
 KUTTA_KERNEL void fv_pressure_boundary(int i,KIn(int) owner,KIn(int) kind,
-    KIn(float) sx,KIn(float) sy,KIn(float) sz,KIn(float) rx,KIn(float) ry,KIn(float) rz,KIn(float) p,
+    KIn(float) rx,KIn(float) ry,KIn(float) rz,KIn(float) p,
     KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) prescribed,
     KOut(float) boundary,int internal) {
   int f=i+internal,c=owner[f];
@@ -241,4 +237,12 @@ KUTTA_KERNEL void fv_wall_viscous_force(int i,KIn(int) owner,KIn(float) selected
   x[i]=scale*(2.0f*a*sx[f]+(b+e)*sy[f]+(d+j)*sz[f]);
   y[i]=scale*((e+b)*sx[f]+2.0f*g*sy[f]+(h+k)*sz[f]);
   z[i]=scale*((j+d)*sx[f]+(k+h)*sy[f]+2.0f*l*sz[f]);
+}
+
+// Fluent's coupled pseudo-time momentum normalization. This is independent
+// of the physical diagonal used by Rhie-Chow and the legacy steady monitor.
+KUTTA_KERNEL void fv_fluent_momentum_scale(int i,KIn(float) ax,KIn(float) ay,KIn(float) az,
+    KIn(float) volume,KIn(float) speed,KOut(float) x,KOut(float) y,KOut(float) z,float rho,float dt) {
+  float time=dt>0.0f?rho*volume[i]/dt:0.0f;
+  x[i]=2.0f*(ax[i]+time)*speed[i];y[i]=2.0f*(ay[i]+time)*speed[i];z[i]=2.0f*(az[i]+time)*speed[i];
 }

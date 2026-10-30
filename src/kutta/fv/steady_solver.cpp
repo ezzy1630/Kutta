@@ -73,7 +73,7 @@ struct SteadySolver::Impl {
   Buffer<float> pressure_rhs,correction,correction_boundary,coefficient,face_pressure,pressure_jump;
   DeviceVec3 grad_correction;
   Buffer<float> residual_u,residual_v,residual_w,continuity,provisional_continuity,scale,speed;
-  DeviceVec3 absolute_residual;
+  DeviceVec3 absolute_residual,fluent_scale;
   IterationReport report;
   std::map<std::string,BoundaryCondition> boundaries;
   Index reference=-1;
@@ -116,6 +116,7 @@ struct SteadySolver::Impl {
     momentum_grad_p=vector_field(dev,n);
     for(auto& g:limited_gradient) g=vector_field(dev,n);
     grad_p=vector_field(dev,n);grad_correction=vector_field(dev,n);absolute_residual=vector_field(dev,n);
+    fluent_scale=vector_field(dev,n);
     pressure=dev.alloc<float>(n);dev.fill(pressure,0);
     mass=dev.alloc<float>(nf);dev.fill(mass,0);viscosity=dev.alloc<float>(nf);dev.fill(viscosity,float(settings.viscosity));
     boundary_pressure=dev.alloc<float>(nb);dev.fill(boundary_pressure,0);
@@ -310,9 +311,12 @@ struct SteadySolver::Impl {
       const auto& q=is_omega?omega:kinetic;
       residual(dev,eq.matrix,q,eq.rhs,residual_u);
       kern::fv_scalar_monitor(dev,mesh.n_cells,q,eq.diagonal,residual_u,
-        is_omega?sst->fields().fixed_omega_mask:zero_mask,absolute_residual.x,scale);
+        is_omega?sst->fields().fixed_omega_mask:zero_mask,mesh.volume,absolute_residual.x,scale,
+        fluent_scale.x,float(settings.density),time_step);
       const auto raw=dev.sum(absolute_residual.x,mesh.n_cells),den=dev.sum(scale,mesh.n_cells);
-      return ResidualValue{raw,den>0?raw/den:(raw==0?0:std::numeric_limits<double>::infinity())};
+      const auto fluent_den=dev.sum(fluent_scale.x,mesh.n_cells);
+      const auto scaled=[&](double d) {return d>0?raw/d:(raw==0?0:std::numeric_limits<double>::infinity());};
+      return ResidualValue{raw,scaled(den),scaled(fluent_den),fluent_den};
     };
     report.k=measure(false);report.omega=measure(true);
   }
@@ -321,10 +325,8 @@ struct SteadySolver::Impl {
       float(.3*length*settings.pseudo_time_scale/std::max({.1*bc_speed,maximum_speed,pressure_speed,1e-10}));
   }
   void update_boundaries() {
-    auto& gu=momentum[0]->grad;auto& gv=momentum[1]->grad;auto& gw=momentum[2]->grad;
     kern::fv_velocity_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
-      mesh.area.x,mesh.area.y,mesh.area.z,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
-      velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+      mesh.area.x,mesh.area.y,mesh.area.z,velocity.x,velocity.y,velocity.z,
       prescribed_velocity.x,prescribed_velocity.y,prescribed_velocity.z,mass,
       boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,scalar_kind,mesh.n_internal_faces,float(settings.density));
   }
@@ -339,12 +341,12 @@ struct SteadySolver::Impl {
   }
   void update_pressure() {
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
-      mesh.area.x,mesh.area.y,mesh.area.z,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
       prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
     apply_backflow_pressure();
     reconstruct_pressure(pressure,boundary_pressure,grad_p);
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
-      mesh.area.x,mesh.area.y,mesh.area.z,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
       prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
     apply_backflow_pressure();
     kern::fv_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
@@ -415,7 +417,7 @@ struct SteadySolver::Impl {
     // and homogeneous Dirichlet at pressure outlets.
     dev.fill(grad_correction.x,0);dev.fill(grad_correction.y,0);dev.fill(grad_correction.z,0);
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
-      mesh.area.x,mesh.area.y,mesh.area.z,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,correction,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,correction,
       grad_correction.x,grad_correction.y,grad_correction.z,correction_boundary,
       boundary_pressure,mesh.n_internal_faces);
     reconstruct_pressure(correction,boundary_pressure,grad_correction);
@@ -451,6 +453,8 @@ struct SteadySolver::Impl {
     kern::fv_monitor_cell(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
       mass,velocity.x,velocity.y,velocity.z,physical_diagonal,residual_u,residual_v,residual_w,
       continuity,scale,speed,absolute_residual.x,absolute_residual.y,absolute_residual.z);
+    kern::fv_fluent_momentum_scale(dev,mesh.n_cells,momentum[0]->diagonal,momentum[1]->diagonal,momentum[2]->diagonal,
+      mesh.volume,speed,fluent_scale.x,fluent_scale.y,fluent_scale.z,float(settings.density),time_step);
     const double denominator=dev.sum(scale,mesh.n_cells);
     const double raw=dev.sum(provisional_continuity,mesh.n_cells);
     report.corrected_mass_imbalance=dev.sum(continuity,mesh.n_cells);
@@ -460,10 +464,17 @@ struct SteadySolver::Impl {
     report.u.raw=dev.sum(absolute_residual.x,mesh.n_cells);report.u.scaled=scaled(report.u.raw,denominator);
     report.v.raw=dev.sum(absolute_residual.y,mesh.n_cells);report.v.scaled=scaled(report.v.raw,denominator);
     report.w.raw=dev.sum(absolute_residual.z,mesh.n_cells);report.w.scaled=scaled(report.w.raw,denominator);
-    report.continuity={raw,scaled(raw,continuity_scale)};
-    report.maximum_velocity=dev.max_abs(speed,mesh.n_cells);update_time(report.maximum_velocity);
+    ResidualValue* values[]{&report.u,&report.v,&report.w};
+    const Buffer<float>* scales[]{&fluent_scale.x,&fluent_scale.y,&fluent_scale.z};
+    for(int k=0;k<3;++k) {
+      values[k]->fluent_normalization=dev.sum(*scales[k],mesh.n_cells);
+      values[k]->fluent_scaled=scaled(values[k]->raw,values[k]->fluent_normalization);
+    }
+    report.continuity={raw,scaled(raw,continuity_scale),scaled(raw,continuity_scale),continuity_scale};
+    report.maximum_velocity=dev.max_abs(speed,mesh.n_cells);
     report.pseudo_time_step=time_step;
     monitor_turbulence();
+    update_time(report.maximum_velocity);
     report.residual_iteration=report.iteration;
     return report;
   }

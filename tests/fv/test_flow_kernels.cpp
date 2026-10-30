@@ -67,7 +67,7 @@ TEST_CASE("FV pressure symmetry boundary uses the full centroid displacement") {
     dev->fill(gradient.x,1);dev->fill(gradient.y,2);dev->fill(gradient.z,3);
     auto prescribed=dev->alloc<float>(m.n_boundary_faces()),bc=dev->alloc<float>(m.n_boundary_faces());
     dev->fill(prescribed,0);
-    kern::fv_pressure_boundary(*dev,m.n_boundary_faces(),m.owner,kind,m.area.x,m.area.y,m.area.z,
+    kern::fv_pressure_boundary(*dev,m.n_boundary_faces(),m.owner,kind,
       m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,p,gradient.x,gradient.y,gradient.z,
       prescribed,bc,m.n_internal_faces);
     auto got=dev->download(bc);
