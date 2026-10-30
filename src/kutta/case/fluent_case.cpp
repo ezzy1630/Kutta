@@ -330,6 +330,11 @@ void model_flag_support(FluentCase &c) {
   for (const auto &key : c.variables.unparsed_names()) {
     if (!key.starts_with("kw-") && !key.starts_with("ke-") && !key.starts_with("sst-") && !key.starts_with("sa-"))
       continue;
+    // Inactive SA settings are ignored: Fluent's CFF writer omits some that the
+    // legacy writers keep (sa-des-maxedge?), so retaining them would make the
+    // parsed case depend on the file format.
+    if (key.starts_with("sa-") && c.viscous.model != ViscousModel::spalart_allmaras)
+      continue;
     auto flag = boolean(c.variables.value(key));
     // Existing SST numeric controls are validated by setup/fluent. SA has no
     // accepted adapter yet, so retain/reject every unknown SA-valued setting.
