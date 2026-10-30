@@ -201,11 +201,11 @@ SA TMR progress cpu plate 0 it=2800 defect=0.0137794660424 load_change=2.3601008
 SA TMR progress cpu plate 0 it=2900 defect=0.0143797534022 load_change=1.53498625768e-05 Cf=0.00273978952916 Cd=0.00289144272756
 SA TMR progress cpu plate 0 it=3000 defect=0.0125831548079 load_change=4.52798568688e-05 Cf=0.0027396654775 Cd=0.00289131611169
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:14:
+<checkout>/tests/fv/test_tmr_sa.cpp:14:
 TEST SUITE: slow
 TEST CASE:  V7 SA TMR flat plate and bump accuracy convergence and three-grid trend
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           case 0x10047a89e level 0
@@ -241,7 +241,7 @@ SA TMR progress cpu plate 1 it=2700 defect=0.00620679495315 load_change=1.278720
 SA TMR progress cpu plate 1 it=2800 defect=0.0127993912502 load_change=9.020404134e-08 Cf=0.002725891819 Cd=0.00287835535602
 SA TMR progress cpu plate 1 it=2900 defect=0.0107736360103 load_change=5.72708730326e-08 Cf=0.002725891819 Cd=0.00287835519117
 SA TMR progress cpu plate 1 it=3000 defect=0.00912908946308 load_change=4.51020226246e-08 Cf=0.00272589169606 Cd=0.00287835514001
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           case 0x10047a89e level 1
@@ -277,7 +277,7 @@ SA TMR progress cpu plate 2 it=2700 defect=0.0432417440609 load_change=1.2727264
 SA TMR progress cpu plate 2 it=2800 defect=0.0347736055806 load_change=8.98681801856e-06 Cf=0.00272684670749 Cd=0.00288049595483
 SA TMR progress cpu plate 2 it=2900 defect=0.0437837751159 load_change=4.40733929548e-06 Cf=0.00272684396842 Cd=0.00288048325956
 SA TMR progress cpu plate 2 it=3000 defect=0.0222903342265 load_change=5.03268533263e-06 Cf=0.00272684012279 Cd=0.00288046876307
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           case 0x10047a89e level 2
@@ -313,7 +313,7 @@ SA TMR progress metal plate 0 it=2700 defect=0.0113598152984 load_change=1.26628
 SA TMR progress metal plate 0 it=2800 defect=0.0122177314623 load_change=2.7732886469e-06 Cf=0.00273979964687 Cd=0.00289145394277
 SA TMR progress metal plate 0 it=2900 defect=0.0125763162393 load_change=5.0215046324e-06 Cf=0.00273978588902 Cd=0.0028914410052
 SA TMR progress metal plate 0 it=3000 defect=0.0121979509251 load_change=2.21062768366e-05 Cf=0.00273972533401 Cd=0.00289137708762
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           case 0x10047a89e level 0
@@ -349,7 +349,7 @@ SA TMR progress metal plate 1 it=2700 defect=0.0144054907825 load_change=2.27108
 SA TMR progress metal plate 1 it=2800 defect=0.0166630175851 load_change=8.54144955792e-08 Cf=0.00272589145017 Cd=0.00287835440815
 SA TMR progress metal plate 1 it=2900 defect=0.00790946943556 load_change=4.03124672611e-08 Cf=0.00272589156006 Cd=0.00287835443231
 SA TMR progress metal plate 1 it=3000 defect=0.00638050081936 load_change=4.51020228407e-08 Cf=0.002725891683 Cd=0.00287835443942
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           case 0x10047a89e level 1
@@ -385,7 +385,7 @@ SA TMR progress metal plate 2 it=2700 defect=0.0258148308318 load_change=1.37018
 SA TMR progress metal plate 2 it=2800 defect=0.0285564438025 load_change=7.57337276719e-06 Cf=0.00272683979069 Cd=0.00288049773118
 SA TMR progress metal plate 2 it=2900 defect=0.0404983093185 load_change=4.73270202547e-06 Cf=0.00272683644994 Cd=0.00288048409871
 SA TMR progress metal plate 2 it=3000 defect=0.0251022276804 load_change=5.68736570877e-06 Cf=0.00272683470764 Cd=0.00288046771644
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           case 0x10047a89e level 2
@@ -421,7 +421,7 @@ SA TMR progress cpu bump 0 it=2700 defect=0.000766149434023 load_change=0.000802
 SA TMR progress cpu bump 0 it=2800 defect=0.000762113875104 load_change=0.000349321411678 Cf=0.00501345199242 Cd=0.00441845562839
 SA TMR progress cpu bump 0 it=2900 defect=0.000757649026396 load_change=0.00177500929091 Cf=0.00501336020677 Cd=0.00441796913981
 SA TMR progress cpu bump 0 it=3000 defect=0.000752792937024 load_change=0.000922849822826 Cf=0.00501331800282 Cd=0.00441735711965
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           case 0x10047a8a4 level 0
@@ -457,7 +457,7 @@ SA TMR progress cpu bump 1 it=2700 defect=0.000279541933329 load_change=0.000448
 SA TMR progress cpu bump 1 it=2800 defect=0.000420316447909 load_change=0.000200847521231 Cf=0.0052371416386 Cd=0.00370355020679
 SA TMR progress cpu bump 1 it=2900 defect=0.000287375480118 load_change=0.000526847863692 Cf=0.00523712723637 Cd=0.00370328321229
 SA TMR progress cpu bump 1 it=3000 defect=0.000286564176603 load_change=0.000621572050838 Cf=0.00523708144692 Cd=0.00370270162924
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           case 0x10047a8a4 level 1
@@ -488,22 +488,22 @@ SA TMR progress cpu bump 2 it=2200 defect=0.000295525758598 load_change=0.019760
 SA TMR progress cpu bump 2 it=2300 defect=0.000394620725308 load_change=0.0185650181686 Cf=0.00567800210059 Cd=0.0040820504462
 SA TMR progress cpu bump 2 it=2400 defect=0.000283117454219 load_change=0.017406741735 Cf=0.00564302592558 Cd=0.00404719705587
 SA TMR progress cpu bump 2 it=2500 defect=0.000275798753337 load_change=0.0163021294036 Cf=0.00561094023953 Cd=0.0040152619827
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           case 0x10047a8a4 level 2
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:27: ERROR: CHECK( cd_error<=(plate?.07:.1) ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:27: ERROR: CHECK( cd_error<=(plate?.07:.1) ) is NOT correct!
   values: CHECK( 0.123973 <= 0.1 )
   logged: backend: cpu
           case 0x10047a8a4 level 2
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:31: ERROR: CHECK( cf_error<=(plate?.05:.1) ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:31: ERROR: CHECK( cf_error<=(plate?.05:.1) ) is NOT correct!
   values: CHECK( 0.130296 <= 0.1 )
   logged: backend: cpu
           case 0x10047a8a4 level 2
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:31: ERROR: CHECK( cf_error<=(plate?.05:.1) ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:31: ERROR: CHECK( cf_error<=(plate?.05:.1) ) is NOT correct!
   values: CHECK( 0.217421 <= 0.1 )
   logged: backend: cpu
           case 0x10047a8a4 level 2
@@ -539,7 +539,7 @@ SA TMR progress metal bump 0 it=2700 defect=0.000766168500337 load_change=0.0017
 SA TMR progress metal bump 0 it=2800 defect=0.000762128813259 load_change=0.000572916536577 Cf=0.00501346891825 Cd=0.00441843471165
 SA TMR progress metal bump 0 it=2900 defect=0.000757656729589 load_change=0.000925042569055 Cf=0.00501340096678 Cd=0.00441795331009
 SA TMR progress metal bump 0 it=3000 defect=0.000752787823167 load_change=0.00116354552117 Cf=0.00501328101615 Cd=0.00441737950489
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           case 0x10047a8a4 level 0
@@ -575,7 +575,7 @@ SA TMR progress metal bump 1 it=2700 defect=0.000279546033321 load_change=0.0011
 SA TMR progress metal bump 1 it=2800 defect=0.000345832686511 load_change=0.00113924912379 Cf=0.00523712485276 Cd=0.00370355676527
 SA TMR progress metal bump 1 it=2900 defect=0.000300267517934 load_change=0.000308107934835 Cf=0.00523707894629 Cd=0.0037031055027
 SA TMR progress metal bump 1 it=3000 defect=0.000269128840443 load_change=0.000310148365305 Cf=0.0052370563281 Cd=0.00370260043173
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           case 0x10047a8a4 level 1
@@ -611,17 +611,17 @@ SA TMR progress metal bump 2 it=2700 defect=0.00026009202783 load_change=0.01427
 SA TMR progress metal bump 2 it=2800 defect=0.000425010333802 load_change=0.0133376429565 Cf=0.00552969429603 Cd=0.00393332096607
 SA TMR progress metal bump 2 it=2900 defect=0.000243898757605 load_change=0.012459648959 Cf=0.00550697899524 Cd=0.00391013862885
 SA TMR progress metal bump 2 it=3000 defect=0.000249188801186 load_change=0.0116324704442 Cf=0.00548617051643 Cd=0.00388899716122
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:25: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           case 0x10047a8a4 level 2
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:31: ERROR: CHECK( cf_error<=(plate?.05:.1) ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:31: ERROR: CHECK( cf_error<=(plate?.05:.1) ) is NOT correct!
   values: CHECK( 0.105071 <= 0.1 )
   logged: backend: metal
           case 0x10047a8a4 level 2
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00/tests/fv/test_tmr_sa.cpp:31: ERROR: CHECK( cf_error<=(plate?.05:.1) ) is NOT correct!
+<checkout>/tests/fv/test_tmr_sa.cpp:31: ERROR: CHECK( cf_error<=(plate?.05:.1) ) is NOT correct!
   values: CHECK( 0.139092 <= 0.1 )
   logged: backend: metal
           case 0x10047a8a4 level 2

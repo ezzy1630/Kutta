@@ -1,6 +1,6 @@
 {
   "source_commit": "b0e5aaba973971e623c9a51d7ecf3ceb460a1a19",
-  "checkout": "/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00",
+  "checkout": "<checkout>",
   "branch": "t3/add-fluent-car-turbulence-models",
   "started_utc": "2026-10-30T10:21:36.574262+00:00",
   "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
@@ -110,11 +110,11 @@
     "pdf_sha256": "68456426da703dfbb8087b4dcaa6ec185b07e1741c026d0d79281c25443786ba"
   },
   "sst_regression": {
-    "fixture_root": "/Users/ezzy/.Others/Kutta/validation/fluent_examples",
+    "fixture_root": "<checkout>/validation/fluent_examples",
     "result": "CPU and Metal saved-field test passed",
     "sha256": {
-      "/Users/ezzy/.Others/Kutta/validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
-      "/Users/ezzy/.Others/Kutta/validation/fluent_examples/mixing_elbow/mixing_elbow.dat.h5": "863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42"
+      "<checkout>/validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+      "<checkout>/validation/fluent_examples/mixing_elbow/mixing_elbow.dat.h5": "863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42"
     }
   },
   "sa_source_commit": "7a24c46be1f99208c377f59043b8ca356a39ca02",
