@@ -73,3 +73,11 @@ TEST_CASE("device scalar reductions preserve low terms and ordered scratch reuse
     CHECK_FALSE(std::isfinite(dev->download(out)[0]));
   }
 }
+
+TEST_CASE("Device inventory is additive and reports one auto default without kernel compilation") {
+  const auto devices=kutta::Device::enumerate();
+  REQUIRE(!devices.empty());
+  int defaults=0;bool cpu=false;
+  for(const auto& d:devices){CHECK(!d.name.empty());CHECK(d.ordinal>=0);defaults+=d.is_default;cpu |= d.backend==kutta::Backend::Cpu;}
+  CHECK(cpu);CHECK(defaults==1);
+}

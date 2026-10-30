@@ -405,4 +405,15 @@ class MetalDevice final : public Device {
 }  // namespace
 
 std::unique_ptr<Device> make_metal_device() { return std::make_unique<MetalDevice>(); }
+std::vector<DeviceInfo> enumerate_metal_devices() {
+  @autoreleasepool {
+    std::vector<DeviceInfo> out;
+    id<MTLDevice> preferred = MTLCreateSystemDefaultDevice();
+    int ordinal = 0;
+    for (id<MTLDevice> d in MTLCopyAllDevices())
+      out.push_back({Backend::Metal, d.name.UTF8String,
+        std::uint64_t(d.recommendedMaxWorkingSetSize), ordinal++, d.registryID == preferred.registryID});
+    return out;
+  }
+}
 }  // namespace kutta

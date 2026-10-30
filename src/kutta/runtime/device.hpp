@@ -23,6 +23,17 @@ enum class Backend : std::uint8_t { Cpu, Metal, Cuda };
 
 const char* backend_name(Backend b);
 
+// Inventory only: no kernels are compiled or device buffers allocated. Memory
+// is physical RAM (CPU), recommended working set (Metal), or total VRAM (CUDA).
+// Zero means the OS could not report capacity. The default matches CLI auto.
+struct DeviceInfo {
+  Backend backend;
+  std::string name;
+  std::uint64_t memory_bytes = 0;
+  int ordinal = 0;
+  bool is_default = false;
+};
+
 // Backend-owned allocation. Only backends look inside.
 class BufferHandle {
  public:
@@ -97,6 +108,7 @@ class Device {
   // Throws kutta::Error if the backend is not compiled in or no device exists.
   static std::unique_ptr<Device> create(Backend b);
   static std::vector<Backend> available();
+  static std::vector<DeviceInfo> enumerate();
 
   virtual Backend backend() const = 0;
   virtual std::string name() const = 0;  // e.g. "Apple M4 Pro"

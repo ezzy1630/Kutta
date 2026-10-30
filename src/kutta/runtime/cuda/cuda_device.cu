@@ -227,4 +227,16 @@ class CudaDevice final : public Device {
 
 void* cuda_ptr(BufferHandle* h) { return static_cast<CudaBuffer*>(h)->data; }
 std::unique_ptr<Device> make_cuda_device() { return std::make_unique<CudaDevice>(); }
+std::vector<DeviceInfo> enumerate_cuda_devices() {
+  std::vector<DeviceInfo> out;
+  int count = 0, preferred = 0;
+  if (cudaGetDeviceCount(&count) != cudaSuccess) return out;
+  if (cudaGetDevice(&preferred) != cudaSuccess) preferred = 0;
+  for (int i = 0; i < count; ++i) {
+    cudaDeviceProp p{};
+    if (cudaGetDeviceProperties(&p, i) == cudaSuccess)
+      out.push_back({Backend::Cuda, p.name, std::uint64_t(p.totalGlobalMem), i, i == preferred});
+  }
+  return out;
+}
 }  // namespace kutta
