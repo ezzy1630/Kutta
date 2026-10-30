@@ -72,7 +72,7 @@ with (root / "no-reports" / "forces.csv").open(newline="") as f:
     rows = list(csv.DictReader(f))
 assert len(rows) == 1 and rows[0]["kind"] == "wall"
 error = run(root / "unsupported.cas.h5", "--backend", "cpu", "--out", root / "rejected", success=False)
-assert "recon/cell-lsf?" in error and "curvature-correction?" in error, error
+assert all(key in error for key in ["recon/cell-lsf?", "curvature-correction?", "pseudo-time-step", "omega/default", "sst-pk-factor"]), error
 assert not (root / "rejected").exists()
 for args in [("--iterations", "0"), ("--iterations", "1.5"), ("--iterations", "999999999999999"), ("--backend", "invalid"), ("--out",), ("--iterations", "1", "--iterations", "2")]:
     run(case, *args, success=False)

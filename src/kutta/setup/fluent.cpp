@@ -132,7 +132,10 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh) {
   require(n.pseudo.mode==0,"pseudo-transient-mode");
   require(n.pseudo.length_scale_method==1,"pseudo/autotime-lscale-option");
   s.pseudo_time_scale=required(n.pseudo.scale_factor,"pseudo-auto-time-step-scale-factor");
-  if(!required(n.pseudo.automatic,"pseudo-auto-time-step?")) s.pseudo_time_step=required(n.pseudo.time_step,"pseudo-time-step");
+  if(!required(n.pseudo.automatic,"pseudo-auto-time-step?")) {
+    s.pseudo_time_step=required(n.pseudo.time_step,"pseudo-time-step");
+    require(s.pseudo_time_step>0,"pseudo-time-step","an explicit step must be positive; zero would select automatic stepping");
+  }
   const auto relax=[&](const std::string& eq) {
     const auto key=coupling==Coupling::coupled && (eq=="mom" || eq=="pressure")?
       "pressure-coupled/"+eq+"/pseudo-explicit-relax":eq+"/pseudo-relax";
@@ -166,6 +169,12 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh) {
   model.omega_floor=float(required(t.omega_floor,"omega/min-limit"));model.k_floor=float(number(c.variables,"k/min-limit"));
   model.max_viscosity_ratio=float(number(c.variables,"turb-viscosity/max-limit"));
   model.cross_diffusion_clip=float(number(c.variables,"sst-limit-cross-diff-to-n-times-w-destruct"));
+  for(const auto& [key,value]:std::map<std::string,float>{
+      {"sst-pk-factor",model.production_clip},{"omega/min-limit",model.omega_floor},
+      {"k/min-limit",model.k_floor},{"turb-viscosity/max-limit",model.max_viscosity_ratio},
+      {"sst-limit-cross-diff-to-n-times-w-destruct",model.cross_diffusion_clip}})
+    require(std::isfinite(value) && value>0,key,"requires a positive value representable in float storage");
+  require(!(model.kato_launder && model.vorticity_production),"kw-not-trans-sst-kato-launder?/kw-vorticity-pk?","production options are mutually exclusive");
   require(flag(c.variables,"sst-linearize-neg-cross-diff?"),"sst-linearize-neg-cross-diff?");
   out.convergence_notes.push_back("kw-dissipation-newton?: Newton implicit destruction with matching RHS correction");
   const std::set<std::string> handled{"rp/turbulence/wall-omega-treatment","rp/kw-dissipation-newton?",
@@ -242,7 +251,7 @@ CellFields initial_fields(const FluentCase& c,const PolyMesh& mesh) {
   out.pressure.assign(mesh.n_cells,v.number(c.variables,"pressure/default"));
   out.k.assign(mesh.n_cells,v.number(c.variables,"k/default"));out.omega.assign(mesh.n_cells,v.number(c.variables,"omega/default"));
   v.require(out.k.empty() || out.k.front()>=0,"k/default","requires nonnegative turbulent kinetic energy");
-  v.require(out.omega.empty() || out.omega.front()>=0,"omega/default","requires nonnegative specific dissipation");
+  v.require(out.omega.empty() || out.omega.front()>0,"omega/default","requires positive specific dissipation");
   v.finish();return out;
 }
 } // namespace kutta::setup

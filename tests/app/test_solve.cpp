@@ -54,6 +54,9 @@ std::string variables(bool unsupported,bool include_reports) {
   if(unsupported) {
     auto p=rp.find("(recon/cell-lsf? #f)");rp.replace(p,std::string("(recon/cell-lsf? #f)").size(),"(recon/cell-lsf? #t)");
     p=rp.find("(curvature-correction? #f)");rp.replace(p,std::string("(curvature-correction? #f)").size(),"(curvature-correction? #t)");
+    p=rp.find("(pseudo-time-step .01)");rp.replace(p,std::string("(pseudo-time-step .01)").size(),"(pseudo-time-step 0)");
+    p=rp.find("(omega/default 10)");rp.replace(p,std::string("(omega/default 10)").size(),"(omega/default 0)");
+    p=rp.find("(sst-pk-factor 10)");rp.replace(p,std::string("(sst-pk-factor 10)").size(),"(sst-pk-factor 0)");
   }
   if(!include_reports) {
     auto section=parse_sexpr(rp);
