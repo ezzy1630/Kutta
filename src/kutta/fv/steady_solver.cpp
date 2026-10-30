@@ -427,6 +427,15 @@ struct SteadySolver::Impl {
     time_step=settings.pseudo_time_step>0?float(settings.pseudo_time_step):
       float(.3*length*settings.pseudo_time_scale/std::max({.1*bc_speed,maximum_speed,pressure_speed,1e-10}));
   }
+  // The automatic pseudo time step follows the current flow. step() and
+  // monitor() both refresh it from the same state, so monitoring never changes
+  // the step a run takes; it used to be refreshed only in monitor(), which
+  // made the solution depend on the monitor interval.
+  void refresh_time_step() {
+    if(settings.pseudo_time_step>0) return;
+    kern::fv_speed(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,speed);
+    update_time(dev.max_abs(speed,mesh.n_cells));
+  }
   void update_boundaries() {
     kern::fv_velocity_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
       mesh.area.x,mesh.area.y,mesh.area.z,velocity.x,velocity.y,velocity.z,
@@ -500,12 +509,7 @@ struct SteadySolver::Impl {
   }
 
   void step() {
-    // The automatic pseudo time step follows the flow every outer iteration.
-    // Updating it only in monitor() made the solution depend on the interval.
-    if(settings.pseudo_time_step<=0) {
-      kern::fv_speed(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,speed);
-      update_time(dev.max_abs(speed,mesh.n_cells));
-    }
+    refresh_time_step();
     update_boundaries();update_pressure();
     update_turbulence();
     kern::fv_momentum_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
@@ -549,6 +553,7 @@ struct SteadySolver::Impl {
   }
 
   IterationReport monitor() {
+    refresh_time_step();
     update_boundaries();update_pressure();
     update_turbulence();
     kern::fv_momentum_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
