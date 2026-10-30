@@ -25,6 +25,10 @@ function(copy_solver dest)
   file(MAKE_DIRECTORY "${dest}")
   if(real_cli)
     foreach(f ${solver_files})
+      if(IS_DIRECTORY "${f}")  # e.g. the CUDA package's licenses/
+        file(COPY "${f}" DESTINATION "${dest}")
+        continue()
+      endif()
       get_filename_component(name "${f}" NAME)
       if(name MATCHES "^kutta-cli(\\.exe)?$")  # the in-tree target's file name
         string(REPLACE "kutta-cli" "kutta" name "${name}")
