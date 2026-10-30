@@ -18,7 +18,7 @@ KUTTA_KERNEL void fv_effective_viscosity(int i,KIn(int) owner,KIn(int) neighbour
 
 // Transpose of the velocity gradient, contracted with the area vector.
 // Wall-function traction replaces BOTH parts of the viscous stress on walls.
-KUTTA_KERNEL void fv_transpose_stress(int i,KIn(int) owner,KIn(int) neighbour,
+KUTTA_KERNEL void fv_transpose_stress(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) kind,
     KIn(float) weight,KIn(float) mu,KIn(float) sx,KIn(float) sy,KIn(float) sz,
     KIn(float) ux,KIn(float) uy,KIn(float) uz,KIn(float) vx,KIn(float) vy,KIn(float) vz,
     KIn(float) wx,KIn(float) wy,KIn(float) wz,KOut(float) x,KOut(float) y,KOut(float) z,int internal) {
@@ -29,9 +29,10 @@ KUTTA_KERNEL void fv_transpose_stress(int i,KIn(int) owner,KIn(int) neighbour,
     e=t*e+s*vx[n];g=t*g+s*vy[n];h=t*h+s*vz[n];
     j=t*j+s*wx[n];k=t*k+s*wy[n];l=t*l+s*wz[n];
   }
-  x[i]=mu[i]*(a*sx[i]+e*sy[i]+j*sz[i]);
-  y[i]=mu[i]*(b*sx[i]+g*sy[i]+k*sz[i]);
-  z[i]=mu[i]*(d*sx[i]+h*sy[i]+l*sz[i]);
+  float viscosity=i>=internal && kind[i-internal]==3?0.0f:mu[i];
+  x[i]=viscosity*(a*sx[i]+e*sy[i]+j*sz[i]);
+  y[i]=viscosity*(b*sx[i]+g*sy[i]+k*sz[i]);
+  z[i]=viscosity*(d*sx[i]+h*sy[i]+l*sz[i]);
 }
 KUTTA_KERNEL void fv_stress_source(int i,KIn(int) offsets,KIn(int) faces,KIn(float) sign,
     KIn(float) volume,KIn(float) x,KIn(float) y,KIn(float) z,
@@ -42,19 +43,26 @@ KUTTA_KERNEL void fv_stress_source(int i,KIn(int) offsets,KIn(int) faces,KIn(flo
   }
   su[i]+=a/volume[i];sv[i]+=b/volume[i];sw[i]+=c/volume[i];
 }
-KUTTA_KERNEL void fv_wall_momentum(int i,KIn(int) offsets,KIn(int) faces,KIn(int) kind,
+KUTTA_KERNEL void fv_boundary_momentum(int i,KIn(int) offsets,KIn(int) faces,KIn(int) kind,
     KIn(float) sx,KIn(float) sy,KIn(float) sz,KIn(float) coefficient,
+    KIn(float) mu,KIn(float) diffusion,
     KIn(float) u,KIn(float) v,KIn(float) w,KIn(float) bu,KIn(float) bv,KIn(float) bw,
-    KOut(float) diagonal,KOut(float) rhs,int internal,int component) {
+    KOut(float) diagonal,KOut(float) rhs,int internal,int component,int wall_function) {
   float ap=0.0f,b=0.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int f=faces[j];if(f<internal) continue;
-    int bf=f-internal;if(kind[bf]!=0) continue;
+    int bf=f-internal;if(kind[bf]!=3 && !(kind[bf]==0 && wall_function)) continue;
     float area=ksqrt(sx[f]*sx[f]+sy[f]*sy[f]+sz[f]*sz[f]);
     float nx=sx[f]/area,ny=sy[f]/area,nz=sz[f]/area;
     float nc=component==0?nx:(component==1?ny:nz);
     float uc=component==0?u[i]:(component==1?v[i]:w[i]);
     float wc=component==0?bu[bf]:(component==1?bv[bf]:bw[bf]);
+    if(kind[bf]==3) {
+      // Retain the normal coefficient in a_P for conditioning and Fluent's
+      // residual scale, with an equal explicit term: net symmetry force zero.
+      float d=mu[f]*diffusion[f]*nc*nc;
+      ap+=d;b+=d*uc;continue;
+    }
     float c=area*coefficient[bf];
     ap+=c*(1.0f-nc*nc);
     b+=c*(wc-nc*(nx*bu[bf]+ny*bv[bf]+nz*bw[bf])

@@ -65,7 +65,7 @@ struct SteadySolver::Impl {
   DeviceVec3 velocity,body,boundary_velocity,prescribed_velocity,source,face_velocity;
   Buffer<float> pressure,mass,viscosity,boundary_pressure,pressure_observation,prescribed_pressure;
   Buffer<Index> boundary_kind,scalar_kind;
-  DeviceVec3 grad_p;
+  DeviceVec3 grad_p,momentum_grad_p,limited_gradient[3];
   std::unique_ptr<TransportEquation> momentum[3];
   std::shared_ptr<CsrMatrix> pressure_matrix;
   std::unique_ptr<LinearSolver> pressure_solver;
@@ -112,6 +112,8 @@ struct SteadySolver::Impl {
     const auto n=mesh.n_cells,nf=mesh.n_faces,nb=mesh.n_boundary_faces();
     velocity=vector_field(dev,n);face_velocity=vector_field(dev,nf);body=vector_field(dev,n);source=vector_field(dev,n);
     boundary_velocity=vector_field(dev,nb);prescribed_velocity=vector_field(dev,nb);
+    momentum_grad_p=vector_field(dev,n);
+    for(auto& g:limited_gradient) g=vector_field(dev,n);
     grad_p=vector_field(dev,n);grad_correction=vector_field(dev,n);absolute_residual=vector_field(dev,n);
     pressure=dev.alloc<float>(n);dev.fill(pressure,0);
     mass=dev.alloc<float>(nf);dev.fill(mass,0);viscosity=dev.alloc<float>(nf);dev.fill(viscosity,float(settings.viscosity));
@@ -123,6 +125,7 @@ struct SteadySolver::Impl {
     coefficient=dev.alloc<float>(nf);face_pressure=dev.alloc<float>(nf);pressure_jump=dev.alloc<float>(nf);
     residual_u=dev.alloc<float>(n);residual_v=dev.alloc<float>(n);residual_w=dev.alloc<float>(n);
     continuity=dev.alloc<float>(n);provisional_continuity=dev.alloc<float>(n);dev.fill(provisional_continuity,0);scale=dev.alloc<float>(n);speed=dev.alloc<float>(n);
+    wall_diagonal=dev.alloc<float>(n);wall_rhs=dev.alloc<float>(n);
     total_pressure=dev.alloc<Index>(nb);
     std::vector<Index> totals(nb,0);
     physical_diagonal=dev.alloc<float>(n);consistent_inverse=dev.alloc<float>(n);
@@ -169,7 +172,7 @@ struct SteadySolver::Impl {
       dev.fill(rho_cell,float(settings.density));dev.fill(mu_cell,float(settings.viscosity));
       boundary_k=dev.alloc<float>(nb);boundary_omega=dev.alloc<float>(nb);
       turbulence_kind=dev.alloc<Index>(nb);zero_mask=dev.alloc<Index>(n);dev.fill(zero_mask,0);
-      wall_diagonal=dev.alloc<float>(n);wall_rhs=dev.alloc<float>(n);transpose_stress=vector_field(dev,nf);
+      transpose_stress=vector_field(dev,nf);
       std::vector<Index> specs(nb,0);std::vector<float> a(nb,0),b(nb,0);
       for(const auto& patch:host.patches) {
         const auto& bc=boundaries.at(patch.name);
@@ -225,13 +228,6 @@ struct SteadySolver::Impl {
       velocity.x,velocity.y,velocity.z,boundary_pressure,mesh.n_internal_faces,float(settings.density));
   }
   void update_momentum_diagonal() {
-    if(!sst) {
-      // Laminar component matrices are identical; avoid rounding their common
-      // coefficient through the SST trace/3 reduction.
-      dev.copy(physical_diagonal,momentum[0]->diagonal);
-      dev.copy(consistent_inverse,momentum[0]->consistent_inverse);
-      return;
-    }
     kern::fv_momentum_diagonal(dev,mesh.n_cells,momentum[0]->diagonal,momentum[1]->diagonal,momentum[2]->diagonal,
       momentum[0]->consistent_inverse,momentum[1]->consistent_inverse,momentum[2]->consistent_inverse,
       physical_diagonal,consistent_inverse);
@@ -261,18 +257,18 @@ struct SteadySolver::Impl {
   void add_transpose_stress() {
     if(!sst) return;
     const auto& u=momentum[0]->grad;const auto& v=momentum[1]->grad;const auto& w=momentum[2]->grad;
-    kern::fv_transpose_stress(dev,mesh.n_faces,mesh.owner,mesh.neighbour,mesh.weight,viscosity,
+    kern::fv_transpose_stress(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,mesh.weight,viscosity,
       mesh.area.x,mesh.area.y,mesh.area.z,u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,
       transpose_stress.x,transpose_stress.y,transpose_stress.z,mesh.n_internal_faces);
     kern::fv_stress_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
       mesh.volume,transpose_stress.x,transpose_stress.y,transpose_stress.z,source.x,source.y,source.z);
   }
   TransportTerms wall_terms(int component) {
-    if(!sst) return {};
-    kern::fv_wall_momentum(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,boundary_kind,
-      mesh.area.x,mesh.area.y,mesh.area.z,sst->fields().wall_shear_coefficient,
+    kern::fv_boundary_momentum(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,boundary_kind,
+      mesh.area.x,mesh.area.y,mesh.area.z,sst?sst->fields().wall_shear_coefficient:prescribed_pressure,
+      viscosity,stencil.diffusion,
       velocity.x,velocity.y,velocity.z,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
-      wall_diagonal,wall_rhs,mesh.n_internal_faces,component);
+      wall_diagonal,wall_rhs,mesh.n_internal_faces,component,sst?1:0);
     return {nullptr,&wall_diagonal,&wall_rhs};
   }
   void assemble_turbulence(bool is_omega) {
@@ -344,10 +340,25 @@ struct SteadySolver::Impl {
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,face_pressure,pressure_jump,mesh.n_internal_faces);
+    kern::fv_green_gauss(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
+      mesh.area.x,mesh.area.y,mesh.area.z,face_pressure,mesh.volume,
+      momentum_grad_p.x,momentum_grad_p.y,momentum_grad_p.z);
+    kern::fv_pressure_jump(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+      mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+      pressure,momentum_grad_p.x,momentum_grad_p.y,momentum_grad_p.z,boundary_pressure,pressure_jump,mesh.n_internal_faces);
   }
   void update_flux() {
     reconstruct_velocity();
-    const auto& gu=momentum[0]->grad;const auto& gv=momentum[1]->grad;const auto& gw=momentum[2]->grad;
+    const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+    const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+    for(int k=0;k<3;++k) {
+      auto& eq=*momentum[k];auto& g=limited_gradient[k];
+      if(settings.limit) limit_gradient(dev,mesh,stencil,*q[k],*bc[k],eq.grad,eq.limiter);
+      else dev.fill(eq.limiter,1);
+      kern::fv_scale_gradient(dev,mesh.n_cells,eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
+    }
+    const auto& gu=limited_gradient[0];const auto& gv=limited_gradient[1];const auto& gw=limited_gradient[2];
     kern::fv_momentum_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,

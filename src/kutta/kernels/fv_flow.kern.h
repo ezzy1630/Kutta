@@ -79,8 +79,8 @@ KUTTA_KERNEL void fv_momentum_source(int i,KIn(int) offsets,KIn(int) faces,
   su[i]=body_u[i]-x/volume[i];sv[i]=body_v[i]-y/volume[i];sw[i]=body_w[i]-z/volume[i];
 }
 
-// Correct the momentum-weighted interpolation point to the actual face.
-// This preserves affine fields even with unequal cell diagonals and skewness.
+// Weight the two independently reconstructed face values by physical a_P.
+// Gradients here are per-component Barth-Jespersen limited plain LSQ.
 KUTTA_KERNEL void fv_momentum_faces(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) kind,
     KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
     KIn(float) u,KIn(float) v,KIn(float) w,
@@ -93,22 +93,39 @@ KUTTA_KERNEL void fv_momentum_faces(int i,KIn(int) owner,KIn(int) neighbour,KIn(
     if(kind[b]==2 || kind[b]==4) {
       // Pressure fixes outlet flux through momentum, not through a prescribed
       // backflow velocity. Backflow data belongs to advected momentum only.
-      fu[i]=u[p]+ux[p]*px[i]+uy[p]*py[i]+uz[p]*pz[i];
-      fv[i]=v[p]+vx[p]*px[i]+vy[p]*py[i]+vz[p]*pz[i];
-      fw[i]=w[p]+wx[p]*px[i]+wy[p]*py[i]+wz[p]*pz[i];
+      fu[i]=u[p];fv[i]=v[p];fw[i]=w[p];
     } else {fu[i]=bu[b];fv[i]=bv[b];fw[i]=bw[b];}
     return;
   }
   int p=owner[i],n=neighbour[i];float weight=diagonal[p]/(diagonal[p]+diagonal[n]);
-  float rx=weight*px[i]+(1.0f-weight)*nx[i];
-  float ry=weight*py[i]+(1.0f-weight)*ny[i];
-  float rz=weight*pz[i]+(1.0f-weight)*nz[i];
-  fu[i]=weight*u[p]+(1.0f-weight)*u[n]
-    +0.5f*((ux[p]+ux[n])*rx+(uy[p]+uy[n])*ry+(uz[p]+uz[n])*rz);
-  fv[i]=weight*v[p]+(1.0f-weight)*v[n]
-    +0.5f*((vx[p]+vx[n])*rx+(vy[p]+vy[n])*ry+(vz[p]+vz[n])*rz);
-  fw[i]=weight*w[p]+(1.0f-weight)*w[n]
-    +0.5f*((wx[p]+wx[n])*rx+(wy[p]+wy[n])*ry+(wz[p]+wz[n])*rz);
+  fu[i]=weight*(u[p]+ux[p]*px[i]+uy[p]*py[i]+uz[p]*pz[i])
+    +(1.0f-weight)*(u[n]+ux[n]*nx[i]+uy[n]*ny[i]+uz[n]*nz[i]);
+  fv[i]=weight*(v[p]+vx[p]*px[i]+vy[p]*py[i]+vz[p]*pz[i])
+    +(1.0f-weight)*(v[n]+vx[n]*nx[i]+vy[n]*ny[i]+vz[n]*nz[i]);
+  fw[i]=weight*(w[p]+wx[p]*px[i]+wy[p]*py[i]+wz[p]*pz[i])
+    +(1.0f-weight)*(w[n]+wx[n]*nx[i]+wy[n]*ny[i]+wz[n]*nz[i]);
+}
+
+// The pressure jump must use the SAME pressure force as momentum, rather
+// than the LSQ gradient that reconstructs its second-order face pressures.
+KUTTA_KERNEL void fv_green_gauss(int i,KIn(int) offsets,KIn(int) faces,KIn(float) sign,
+    KIn(float) sx,KIn(float) sy,KIn(float) sz,KIn(float) face,KIn(float) volume,
+    KOut(float) gx,KOut(float) gy,KOut(float) gz) {
+  float x=0.0f,y=0.0f,z=0.0f;
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int f=faces[j];float q=sign[j]*face[f];
+    x+=q*sx[f];y+=q*sy[f];z+=q*sz[f];
+  }
+  gx[i]=x/volume[i];gy[i]=y/volume[i];gz[i]=z/volume[i];
+}
+KUTTA_KERNEL void fv_pressure_jump(int i,KIn(int) owner,KIn(int) neighbour,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) p,KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) boundary,
+    KOut(float) jump,int internal) {
+  int c=owner[i];float pp=p[c]+gx[c]*px[i]+gy[c]*py[i]+gz[c]*pz[i];
+  if(i<internal) {
+    int n=neighbour[i];jump[i]=pp-(p[n]+gx[n]*nx[i]+gy[n]*ny[i]+gz[n]*nz[i]);
+  } else jump[i]=pp-boundary[i-internal];
 }
 
 // The physical (unrelaxed, no pseudo-time) momentum diagonal is used in the

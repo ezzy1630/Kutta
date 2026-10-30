@@ -54,3 +54,8 @@ KUTTA_KERNEL void fv_vector_gradient(int i,KIn(int) offsets,KIn(int) adjacent,
   vx[i]=xx*bx+xy*by+xz*bz;vy[i]=xy*bx+yy*by+yz*bz;vz[i]=xz*bx+yz*by+zz*bz;
   wx[i]=xx*cx+xy*cy+xz*cz;wy[i]=xy*cx+yy*cy+yz*cz;wz[i]=xz*cx+yz*cy+zz*cz;
 }
+
+KUTTA_KERNEL void fv_scale_gradient(int i,KIn(float) gx,KIn(float) gy,KIn(float) gz,
+    KIn(float) limiter,KOut(float) x,KOut(float) y,KOut(float) z) {
+  x[i]=limiter[i]*gx[i];y[i]=limiter[i]*gy[i];z[i]=limiter[i]*gz[i];
+}

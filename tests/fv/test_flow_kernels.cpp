@@ -31,6 +31,28 @@ TEST_CASE("FV momentum face interpolation is affine exact with unequal diagonals
     for(Index f=0;f<m.n_faces;++f) CHECK(got[f]==doctest::Approx(value(g.face_centroid[f])).epsilon(1e-6));
     CHECK(dev->download(face.y)==got);CHECK(dev->download(face.z)==got);
     if(baseline.empty()) baseline=got;else CHECK(got==baseline);
+    // Non-affine side gradients distinguish independent reconstructions from
+    // the old weighted-point/mean-gradient formula. Outlets use the cell value.
+    std::vector<float> gx(mesh.n_cells),gy(mesh.n_cells),gz(mesh.n_cells);
+    for(Index c=0;c<mesh.n_cells;++c) {gx[c]=float(c%5)*.2f;gy[c]=float(c%3)*.3f;gz[c]=float(c%7)*.1f;}
+    dev->upload<float>(gradient.x,gx);dev->upload<float>(gradient.y,gy);dev->upload<float>(gradient.z,gz);
+    dev->fill(kind,2);
+    kern::fv_momentum_faces(*dev,m.n_faces,m.owner,m.neighbour,kind,
+      m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
+      m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
+      q,q,q,gradient.x,gradient.y,gradient.z,gradient.x,gradient.y,gradient.z,
+      gradient.x,gradient.y,gradient.z,ap,bc,bc,bc,face.x,face.y,face.z,m.n_internal_faces);
+    got=dev->download(face.x);
+    for(Index f=0;f<m.n_faces;++f) {
+      const auto c=mesh.owner[f];double expected=cell[c];
+      if(f<m.n_internal_faces) {
+        const auto n=mesh.neighbour[f];const double weight=diagonal[c]/(diagonal[c]+diagonal[n]);
+        const auto rc=g.face_centroid[f]-g.cell_centroid[c],rn=g.face_centroid[f]-g.cell_centroid[n];
+        expected=weight*(cell[c]+dot(Vec3d{gx[c],gy[c],gz[c]},rc))
+          +(1-weight)*(cell[n]+dot(Vec3d{gx[n],gy[n],gz[n]},rn));
+      }
+      CHECK(got[f]==doctest::Approx(expected).epsilon(1e-6));
+    }
   }
 }
 
