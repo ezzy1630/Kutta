@@ -55,7 +55,7 @@ void vector(const char* kind,const std::string& name,Vec3d a,Vec3d b) {
 }
 int main(int argc,char** argv) {
   try {
-    KUTTA_REQUIRE(argc==5,"Usage: bench_fluent_reference case.cas.h5 data.dat.h5 result.vtu cpu|metal");
+    KUTTA_REQUIRE(argc==5 || argc==6,"Usage: bench_fluent_reference case.cas.h5 data.dat.h5 result.vtu cpu|metal [approximations]");
     const auto case_hash=sha256_file(argv[1]);
     const auto summary_path=std::filesystem::path(argv[3]).parent_path()/"summary.json";
     std::ifstream summary_input(summary_path);KUTTA_REQUIRE(summary_input,"result needs adjacent solve summary.json provenance");
@@ -63,14 +63,23 @@ int main(int argc,char** argv) {
     KUTTA_REQUIRE(summary.find("\"case_sha256\": \""+case_hash+"\"")!=std::string::npos,"result summary belongs to a different case");
     const auto c=fluent::read_case(argv[1]);const auto d=fluent::read_data(argv[2],c);const auto mesh=read_mesh(argv[1]);
     const auto ref=setup::fluent_fields(c,d,mesh);const auto zones=reference_zones(c,d,mesh);
-    const auto allowed=setup::parse_approximations("wfgc");const auto problem=setup::fluent_setup(c,mesh,allowed);
+    // The solve's --approximate list; the V6 elbow needs wfgc.
+    const auto allowed=setup::parse_approximations(argc==6?argv[5]:"wfgc");const auto problem=setup::fluent_setup(c,mesh,allowed);
     KUTTA_REQUIRE(std::string_view(argv[4])=="cpu" || std::string_view(argv[4])=="metal","expected cpu|metal");
     auto dev=Device::create(std::string_view(argv[4])=="cpu"?Backend::Cpu:Backend::Metal);
     fv::SteadySolver solver(*dev,mesh,problem.boundaries,problem.settings);
     std::ifstream in(argv[3]);KUTTA_REQUIRE(in,"cannot read result VTU");const std::string xml{std::istreambuf_iterator<char>(in),{}};
-    const std::size_t n=mesh.n_cells;auto u=field(xml,"u",3*n),p=field(xml,"p",n),k=field(xml,"k",n),o=field(xml,"omega",n);
-    auto fields=ref;
-    for(std::size_t i=0;i<n;++i) {const auto old=solver.permutation().cells_new_to_old[i];fields.velocity[old]={u[3*i],u[3*i+1],u[3*i+2]};fields.pressure[old]=p[i];fields.k[old]=k[i];fields.omega[old]=o[i];}
+    // Closure fields follow the case model: SST k/omega, standard k-epsilon
+    // k/epsilon, laminar none (fluent_fields fills the same vectors).
+    const std::size_t n=mesh.n_cells;auto u=field(xml,"u",3*n),p=field(xml,"p",n);
+    const bool turbulent=!ref.k.empty(),ke=!ref.epsilon.empty();
+    std::vector<double> k,second;
+    if(turbulent) {k=field(xml,"k",n);second=field(xml,ke?"epsilon":"omega",n);}
+    auto fields=ref;auto& reference_second=ke?ref.epsilon:ref.omega;auto& fields_second=ke?fields.epsilon:fields.omega;
+    for(std::size_t i=0;i<n;++i) {
+      const auto old=solver.permutation().cells_new_to_old[i];fields.velocity[old]={u[3*i],u[3*i+1],u[3*i+2]};fields.pressure[old]=p[i];
+      if(turbulent) {fields.k[old]=k[i];fields_second[old]=second[i];}
+    }
     std::vector<double> actual_velocity,reference_velocity;
     for(std::size_t i=0;i<n;++i) {
       const auto a=fields.velocity[i],b=ref.velocity[i];
@@ -78,9 +87,22 @@ int main(int argc,char** argv) {
       reference_velocity.insert(reference_velocity.end(),{b.x,b.y,b.z});
     }
     std::cout<<std::setprecision(12)<<"REFERENCE_CASE sha256="<<sha256_file(argv[1])<<" data_sha256="<<sha256_file(argv[2])<<" result_sha256="<<sha256_file(argv[3])<<" backend="<<argv[4]<<" cells="<<n<<'\n';
-    for(const auto& [name,error]:std::vector<std::pair<const char*,double>>{{"velocity",l2(actual_velocity,reference_velocity)},{"pressure",l2(fields.pressure,ref.pressure)},{"k",l2(fields.k,ref.k)},{"omega",l2(fields.omega,ref.omega)}})
-      std::cout<<"REFERENCE_FIELD "<<name<<" relative_L2="<<error<<'\n';
-    solver.initialize_fields(fields.velocity,fields.pressure,fields.k,fields.omega);
+    // How converged the saved reference is: Fluent's own scaled residual.
+    if(const auto r=d.residuals.find("continuity");r!=d.residuals.end() && !r->second.rows.empty()) {
+      const auto& last=r->second.rows.back();
+      std::cout<<"REFERENCE_SAVED iteration="<<r->second.iterations.back()<<" continuity_scaled="<<last[0]/last[1]<<'\n';
+    }
+    // Saved data can outlive an edited case (same data file, different material).
+    if(const auto rho=d.cell_fields.find("SV_DENSITY");rho!=d.cell_fields.end()) {
+      double worst=0;
+      for(const auto& section:rho->second.sections) for(const double v:section.values) worst=std::max(worst,std::abs(v/problem.settings.density-1));
+      if(worst>1e-6) std::cout<<"REFERENCE_MISMATCH saved density differs from the case material by up to "<<worst<<" relative\n";
+    }
+    std::vector<std::pair<const char*,double>> errors{{"velocity",l2(actual_velocity,reference_velocity)},{"pressure",l2(fields.pressure,ref.pressure)}};
+    if(turbulent) {errors.push_back({"k",l2(fields.k,ref.k)});errors.push_back({ke?"epsilon":"omega",l2(fields_second,reference_second)});}
+    for(const auto& [name,error]:errors) std::cout<<"REFERENCE_FIELD "<<name<<" relative_L2="<<error<<'\n';
+    if(ke) solver.initialize_ke_fields(fields.velocity,fields.pressure,fields.k,fields.epsilon);
+    else solver.initialize_fields(fields.velocity,fields.pressure,fields.k,fields.omega);
     // Initialization rebuilds boundary reconstruction at these final fields.
     const auto bp=dev->download(solver.boundary_pressure());const auto& g=solver.geometry();
     double inlet=0,inlet_ref=0,ia=0,outlet=0,outlet_ref=0,oa=0;
