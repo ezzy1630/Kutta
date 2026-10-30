@@ -41,19 +41,14 @@ Curves line_probe(const Volume &volume, const LineProbe &spec) {
   g.line_offsets.push_back(0);
   bool active = false;
   Index hint = -1;
-  Vec3d previous;
   for (int i = 0; i < spec.line.count; ++i) {
     const double t =
         spec.line.count == 1 ? .5 : double(i) / (spec.line.count - 1);
     const auto p = spec.line.start + (spec.line.end - spec.line.start) * t;
-    Index cell = -1;
-    if (hint >= 0) {
-      const auto walked = volume.walk(previous, hint, p);
-      if (!walked.boundary)
-        cell = walked.cell;
-    }
-    if (cell < 0)
-      cell = volume.locate(p);
+    // Probe locations are independent samples, not an integrated trajectory.
+    // A coarse probe may span millions of cells between adjacent samples.
+    const Index cell =
+        hint >= 0 && volume.contains(hint, p) ? hint : volume.locate(p);
     Point point{p, {}};
     for (const auto &name : spec.fields) {
       Sample sample;
@@ -72,7 +67,6 @@ Curves line_probe(const Volume &volume, const LineProbe &spec) {
       active = false;
     }
     hint = cell;
-    previous = p;
   }
   if (active)
     g.line_offsets.push_back(std::uint32_t(g.indices.size()));

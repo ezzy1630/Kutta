@@ -116,3 +116,19 @@ TEST_CASE("Nonconvex cell iso decomposition finds a positive kernel away from "
   }
   CHECK(area == doctest::Approx(.9375).epsilon(1e-6));
 }
+
+TEST_CASE("Coarse line probes locate distant samples without exhausting a cell "
+          "walk") {
+  auto s = snapshot(
+      2048, 1, 1, {0, 0, 0}, {1, 1, 1}, [](Vec3d) { return Vec3d{1, 0, 0}; },
+      [](Vec3d p) { return p.x; });
+  post::Volume volume(s);
+  post::LineProbe line{
+      "long", {{.0001, .5, .5}, {.9999, .5, .5}, 2}, {"pressure"}};
+  const auto result = post::probe(volume, line);
+  REQUIRE(result.geometry.fields[0].values.size() == 2);
+  CHECK(result.geometry.fields[0].values[0] ==
+        doctest::Approx(.0001).epsilon(1e-5));
+  CHECK(result.geometry.fields[0].values[1] ==
+        doctest::Approx(.9999).epsilon(1e-5));
+}
