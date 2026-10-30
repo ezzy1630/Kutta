@@ -5,34 +5,46 @@ changes and observations, against `t3/implement-cli-app-protocol` at `57fcdc3`,
 measured on the Ansys mixing elbow (17,822 cells, M4 Pro, Metal). The app
 already works with the protocol as it is; none of these block it.
 
-## Wanted
+## Done (2026-10-30)
 
-1. **Labels for enum values.** Raw settings carry codes such as
-   `boundary/cold-inlet/turbulence-specification = 3`. An `options` entry of
-   `{"value": 3, "label": "Intensity and Hydraulic Diameter"}` (or a parallel
-   `option_labels`) would let the app show Fluent's words instead of numbers.
-   Editable enums (`methods/*-scheme`) are fine as they are.
+All four requests are in the CLI and used by the app; `docs/app-protocol.md`
+has the wire format.
 
-2. **Lenient derived fields in `export-view --post`.** One unavailable name in
-   `fields` fails the whole export (`unknown or unavailable post-processing
-   field`). The app wants a fixed useful set on every surface (Cp, total
-   pressure coefficient, skin friction, vorticity magnitude, x velocity)
-   without first exporting to read `available_fields`. Today it retries without
-   `fields`. Proposal: `"fields_policy": "available"` to skip unavailable ones
-   and list them in the manifest.
+1. **Labels for enum values.** Every inventory entry carries `option_labels`
+   (parallel to `options`) and `value_label`, in Fluent's words: the cold
+   inlet's turbulence specification reads "Intensity and Hydraulic Diameter",
+   not 3. Entries also carry `active`, `depends_on` and `active_when`, so the
+   app hides the fields a method does not use and updates them as the method
+   changes. The turbulence specification method is editable on k-omega inlets
+   and outlets, offering only methods whose values the case saved.
+2. **Lenient derived fields.** `"fields_policy": "available"` skips fields a
+   run cannot provide and lists them in the manifest's `unavailable_fields`.
+   The app asks for it and says in the console which were skipped; against an
+   older CLI it falls back once to the CLI's own selection.
+3. **Incremental post-processing.** Unchanged base surfaces, slices and
+   operations are reused from a per-run cache keyed by their inputs; the
+   manifest reports `post_cache` `{reused, computed, seconds}`. On the elbow,
+   adding a Q-criterion iso-surface to a 35-unit batch takes 0.23 s instead of
+   3.0 s; re-exporting an unchanged batch takes 0.02 s. Warm output is
+   byte-identical to cold.
+4. **Run controls do not mark results MODIFIED.** The `setup` event and
+   `summary.json` list them under `run_controls`; `modified` covers
+   case-changing overrides only. The app treats the iteration count and the
+   monitor interval the same way.
 
-3. **Incremental post-processing.** Every operation republishes the whole
-   `view/`, so adding one iso-surface recomputes every trace, probe and report
-   in the batch. That's fine on the elbow (0.2 s plain; 5.2 s for 30 surface
-   traces, an iso-surface, two probes and a report); it won't be on an
-   18M-cell car. Proposal: reuse unchanged operations' outputs from the
-   previous view, keyed by the operation's JSON.
+Also new: `kutta export-geometry CASE --out DIR [--json]` exports a case's
+boundary without a run (0.16 s on the elbow), and zones carry a KUTL edges
+file of their polygon edges, so the app shows the mesh as soon as a case
+opens, with face edges rather than triangle diagonals.
 
-4. **Run controls should not mark results MODIFIED.** `run/iterations` and
-   `run/monitor-interval` in a setup file set `modified: true` and
-   `MODIFIED RESULT`, but they don't change the case being solved. The app now
-   passes the iteration count with `--iterations`, so it no longer triggers
-   MODIFIED. A changed monitor interval still does.
+## Open
+
+- **The monitor interval changes the solution.** Found while testing request
+  4: two 40-iteration elbow runs at interval 20 and interval 1 differ by up to
+  0.0084 m/s in u (of 1.61) and 3e-4 in k (of 0.030); two runs at interval 20
+  are bit-identical. `SteadySolver::monitor()` changes solver state, so the
+  interval is not yet a pure run control. Until the solver lane fixes it,
+  compare runs at equal intervals; the app does not mark this difference.
 
 ## Observations
 
@@ -45,7 +57,7 @@ already works with the protocol as it is; none of these block it.
   at interval 20 and 9.6 s at interval 1 (+17%). Most of that is likely the
   per-event residual reduction on a small mesh. The cost is worth knowing
   before considering an independent `--progress-every`.
-- **Inventory size.** `inspect --json` returns 9,844 settings (26 editable) in
+- **Inventory size.** `inspect --json` returns 9,844 settings (41 editable) in
   0.6 s. The app groups them Fluent-style, keeps retained raw settings in a
   collapsed folder per group, and builds the searchable tree in about 120 ms.
 - **Approximation text.** The `APPROXIMATE RESULT` warning is about 600
@@ -55,5 +67,5 @@ already works with the protocol as it is; none of these block it.
   would make badges more specific.
 - **Stop.** Closing stdin through QProcess's pipe stops the run after the
   current iteration with outputs written; verified by the app's real-CLI test.
-- **Wording.** The protocol doc still says "sidecar" in the stdin paragraph;
-  the app is a native Qt child-process host.
+- **Wording.** Fixed: the protocol doc describes the app as a native Qt
+  child-process host, not a "sidecar".

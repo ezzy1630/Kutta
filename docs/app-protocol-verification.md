@@ -25,7 +25,7 @@ final outputs after stopping, projected force coefficients, direct downforce
 reports, strict override validation, and modified-output provenance. A generated
 inlet/outlet case changes actual integrated inlet mass flow from -1 to -2 kg/s
 when speed is overridden from 1 to 2 m/s. The source case hash stays unchanged.
-The saved mixing-elbow case inventories 9,844 settings, including 26 editable
+The saved mixing-elbow case inventories 9,844 settings, including 41 editable
 controls when seeded. Retained raw settings remain read-only.
 
 The independent Python decoder verifies the view header, byte offsets, scalar

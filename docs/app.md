@@ -44,7 +44,23 @@ KUTTA_REAL_CLI=/path/to/kutta ELBOW_CASE=/path/to/mixing_elbow.cas.h5 \
 ```
 
 `car-*` and `bench` use the fixture's synthetic car. Scenarios use the fixture
-unless `--cli` or `KUTTA_CLI` names a solver.
+unless `--cli` or `KUTTA_CLI` names a solver. The fixture can fail a run on
+request (`KUTTA_FIXTURE_FAIL_AT=N`, with `KUTTA_FIXTURE_FAIL_MESSAGE` for an
+error event, or none for a crash); `car-failed` uses it.
+
+## First run and failures
+
+Opening a case shows its boundary mesh at once (`kutta export-geometry`, cached
+per case) and a four-step "Getting started" card on the General page: open,
+approvals, run, results. Each step states what is true and offers the next
+action; Hide removes it for good (View ▸ Show Getting Started restores it).
+
+Nothing fails silently or behind a modal dialog. A case that cannot be opened
+says why on the page, and the open case stays open. A failed, crashed, stopped
+or interrupted run keeps a callout on Run Calculation with kutta's message and
+advice (disk full, device out of memory, permissions, crash) and stays in the
+top bar until the next run. A run whose record or `setup.json` cannot be
+written is refused before kutta starts.
 
 ## Tests
 
@@ -73,7 +89,7 @@ scales the synthetic car):
 Idle: 0 frames rendered and 0.01–0.02% CPU over 5 s with no input. Nothing
 animates continuously; views repaint only on change.
 
-On the real elbow (9,844 settings, 26 editable): `inspect` 0.6 s; the All Case
+On the real elbow (9,844 settings, 41 editable): `inspect` 0.6 s; the All Case
 Settings tree builds in about 120 ms.
 
 ## Packaging
