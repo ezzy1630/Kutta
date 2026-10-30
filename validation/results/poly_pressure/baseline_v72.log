@@ -1,0 +1,24 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FSAE V7.2 backend=cpu poly=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309582 momentum=6.57222e-08
+FSAE V7.2 backend=metal poly=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309582 momentum=6.57222e-08
+FSAE V7.2 backend=cpu poly=1 velocity_L2=0.000324131 pressure_relative_L2=0.0169127 momentum=9.26867e-08
+===============================================================================
+<checkout>/tests/fv/test_zone_physics.cpp:115:
+TEST SUITE: slow
+TEST CASE:  FSAE V7.2 rotating-wall Taylor Couette hex and poly
+
+<checkout>/tests/fv/test_zone_physics.cpp:133: ERROR: CHECK( ep<.01 ) is NOT correct!
+  values: CHECK( 0.0169127 <  0.01 )
+  logged: backend: cpu
+
+FSAE V7.2 backend=metal poly=1 velocity_L2=0.000324131 pressure_relative_L2=0.0169127 momentum=9.26867e-08
+<checkout>/tests/fv/test_zone_physics.cpp:133: ERROR: CHECK( ep<.01 ) is NOT correct!
+  values: CHECK( 0.0169127 <  0.01 )
+  logged: backend: metal
+
+139.378251 s: FSAE V7.2 rotating-wall Taylor Couette hex and poly
+===============================================================================
+[doctest] test cases:    1 |    0 passed | 1 failed | 212 skipped
+[doctest] assertions: 6668 | 6666 passed | 2 failed |
+[doctest] Status: FAILURE!

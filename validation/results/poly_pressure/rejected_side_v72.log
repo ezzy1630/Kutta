@@ -1,0 +1,10 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FSAE V7.2 backend=cpu poly=0 velocity_L2=0.00452055 pressure_relative_L2=0.00596663 momentum=3.34138e-08
+FSAE V7.2 backend=metal poly=0 velocity_L2=0.00452055 pressure_relative_L2=0.00596663 momentum=3.34138e-08
+FSAE V7.2 backend=cpu poly=1 velocity_L2=0.000322576 pressure_relative_L2=0.00600827 momentum=4.0209e-08
+FSAE V7.2 backend=metal poly=1 velocity_L2=0.000322576 pressure_relative_L2=0.00600827 momentum=4.0209e-08
+===============================================================================
+[doctest] test cases:    1 |    1 passed | 0 failed | 215 skipped
+[doctest] assertions: 6668 | 6668 passed | 0 failed |
+[doctest] Status: SUCCESS!

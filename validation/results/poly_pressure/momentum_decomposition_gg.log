@@ -1,0 +1,60 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+POLY_PRESSURE_FORCE backend=cpu nr=8 mode=0 radial_defect=0.0114816 tangential_defect=0.00867656
+POLY_PRESSURE_FORCE backend=cpu nr=8 mode=1 radial_defect=0.0142027 tangential_defect=2.694e-07
+POLY_PRESSURE_FORCE backend=cpu nr=8 mode=2 radial_defect=0.00207093 tangential_defect=1.8696e-07
+POLY_MOMENTUM backend=cpu nr=8 gradient_mode=0 convection=0 radial_defect=0.129479 tangential_defect=0.231218
+POLY_MOMENTUM backend=cpu nr=8 gradient_mode=0 convection=1 radial_defect=0.00145704 tangential_defect=0.00581549
+POLY_MOMENTUM backend=cpu nr=8 gradient_mode=1 convection=0 radial_defect=0.137165 tangential_defect=0.219967
+POLY_MOMENTUM backend=cpu nr=8 gradient_mode=1 convection=1 radial_defect=0.00146246 tangential_defect=0.000159918
+POLY_MOMENTUM backend=cpu nr=8 gradient_mode=2 convection=0 radial_defect=0.14007 tangential_defect=0.230955
+POLY_MOMENTUM backend=cpu nr=8 gradient_mode=2 convection=1 radial_defect=0.00151014 tangential_defect=0.00579339
+POLY_PRESSURE_FORCE backend=cpu nr=16 mode=0 radial_defect=0.00512842 tangential_defect=0.00616426
+POLY_PRESSURE_FORCE backend=cpu nr=16 mode=1 radial_defect=0.00563785 tangential_defect=5.2103e-07
+POLY_PRESSURE_FORCE backend=cpu nr=16 mode=2 radial_defect=0.000488972 tangential_defect=3.69252e-07
+POLY_MOMENTUM backend=cpu nr=16 gradient_mode=0 convection=0 radial_defect=0.0971374 tangential_defect=0.171218
+POLY_MOMENTUM backend=cpu nr=16 gradient_mode=0 convection=1 radial_defect=0.000405967 tangential_defect=0.00340079
+POLY_MOMENTUM backend=cpu nr=16 gradient_mode=1 convection=0 radial_defect=0.101749 tangential_defect=0.157942
+POLY_MOMENTUM backend=cpu nr=16 gradient_mode=1 convection=1 radial_defect=0.000405093 tangential_defect=2.34112e-05
+POLY_MOMENTUM backend=cpu nr=16 gradient_mode=2 convection=0 radial_defect=0.102848 tangential_defect=0.171048
+POLY_MOMENTUM backend=cpu nr=16 gradient_mode=2 convection=1 radial_defect=0.000416465 tangential_defect=0.00339832
+POLY_PRESSURE_FORCE backend=cpu nr=32 mode=0 radial_defect=0.00205674 tangential_defect=0.00364665
+POLY_PRESSURE_FORCE backend=cpu nr=32 mode=1 radial_defect=0.00212279 tangential_defect=1.0721e-06
+POLY_PRESSURE_FORCE backend=cpu nr=32 mode=2 radial_defect=0.000117093 tangential_defect=7.93323e-07
+POLY_MOMENTUM backend=cpu nr=32 gradient_mode=0 convection=0 radial_defect=0.0707802 tangential_defect=0.129138
+POLY_MOMENTUM backend=cpu nr=32 gradient_mode=0 convection=1 radial_defect=0.000106362 tangential_defect=0.00189616
+POLY_MOMENTUM backend=cpu nr=32 gradient_mode=1 convection=0 radial_defect=0.073726 tangential_defect=0.112376
+POLY_MOMENTUM backend=cpu nr=32 gradient_mode=1 convection=1 radial_defect=0.000105848 tangential_defect=3.58484e-06
+POLY_MOMENTUM backend=cpu nr=32 gradient_mode=2 convection=0 radial_defect=0.0741294 tangential_defect=0.129065
+POLY_MOMENTUM backend=cpu nr=32 gradient_mode=2 convection=1 radial_defect=0.000108761 tangential_defect=0.00189592
+POLY_PRESSURE_FORCE backend=metal nr=8 mode=0 radial_defect=0.0114816 tangential_defect=0.00867656
+POLY_PRESSURE_FORCE backend=metal nr=8 mode=1 radial_defect=0.0142027 tangential_defect=2.694e-07
+POLY_PRESSURE_FORCE backend=metal nr=8 mode=2 radial_defect=0.00207093 tangential_defect=1.8696e-07
+POLY_MOMENTUM backend=metal nr=8 gradient_mode=0 convection=0 radial_defect=0.129479 tangential_defect=0.231218
+POLY_MOMENTUM backend=metal nr=8 gradient_mode=0 convection=1 radial_defect=0.00145704 tangential_defect=0.00581549
+POLY_MOMENTUM backend=metal nr=8 gradient_mode=1 convection=0 radial_defect=0.137165 tangential_defect=0.219967
+POLY_MOMENTUM backend=metal nr=8 gradient_mode=1 convection=1 radial_defect=0.00146246 tangential_defect=0.000159918
+POLY_MOMENTUM backend=metal nr=8 gradient_mode=2 convection=0 radial_defect=0.14007 tangential_defect=0.230955
+POLY_MOMENTUM backend=metal nr=8 gradient_mode=2 convection=1 radial_defect=0.00151014 tangential_defect=0.00579339
+POLY_PRESSURE_FORCE backend=metal nr=16 mode=0 radial_defect=0.00512842 tangential_defect=0.00616426
+POLY_PRESSURE_FORCE backend=metal nr=16 mode=1 radial_defect=0.00563785 tangential_defect=5.2103e-07
+POLY_PRESSURE_FORCE backend=metal nr=16 mode=2 radial_defect=0.000488972 tangential_defect=3.69252e-07
+POLY_MOMENTUM backend=metal nr=16 gradient_mode=0 convection=0 radial_defect=0.0971374 tangential_defect=0.171218
+POLY_MOMENTUM backend=metal nr=16 gradient_mode=0 convection=1 radial_defect=0.000405967 tangential_defect=0.00340079
+POLY_MOMENTUM backend=metal nr=16 gradient_mode=1 convection=0 radial_defect=0.101749 tangential_defect=0.157942
+POLY_MOMENTUM backend=metal nr=16 gradient_mode=1 convection=1 radial_defect=0.000405093 tangential_defect=2.34112e-05
+POLY_MOMENTUM backend=metal nr=16 gradient_mode=2 convection=0 radial_defect=0.102848 tangential_defect=0.171048
+POLY_MOMENTUM backend=metal nr=16 gradient_mode=2 convection=1 radial_defect=0.000416465 tangential_defect=0.00339832
+POLY_PRESSURE_FORCE backend=metal nr=32 mode=0 radial_defect=0.00205674 tangential_defect=0.00364665
+POLY_PRESSURE_FORCE backend=metal nr=32 mode=1 radial_defect=0.00212279 tangential_defect=1.0721e-06
+POLY_PRESSURE_FORCE backend=metal nr=32 mode=2 radial_defect=0.000117093 tangential_defect=7.93323e-07
+POLY_MOMENTUM backend=metal nr=32 gradient_mode=0 convection=0 radial_defect=0.0707802 tangential_defect=0.129138
+POLY_MOMENTUM backend=metal nr=32 gradient_mode=0 convection=1 radial_defect=0.000106362 tangential_defect=0.00189616
+POLY_MOMENTUM backend=metal nr=32 gradient_mode=1 convection=0 radial_defect=0.073726 tangential_defect=0.112376
+POLY_MOMENTUM backend=metal nr=32 gradient_mode=1 convection=1 radial_defect=0.000105848 tangential_defect=3.58484e-06
+POLY_MOMENTUM backend=metal nr=32 gradient_mode=2 convection=0 radial_defect=0.0741294 tangential_defect=0.129065
+POLY_MOMENTUM backend=metal nr=32 gradient_mode=2 convection=1 radial_defect=0.000108761 tangential_defect=0.00189592
+===============================================================================
+[doctest] test cases: 1 | 1 passed | 0 failed | 214 skipped
+[doctest] assertions: 0 | 0 passed | 0 failed |
+[doctest] Status: SUCCESS!

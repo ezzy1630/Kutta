@@ -63,10 +63,10 @@ Wall force is pressure relative to the requested reference, minus the viscous
 traction on the fluid, integrated using Device double/compensated reductions.
 
 `boundary_least_squares()` precomputes each field's observation matrix for
-laminar and SST flow alike. Pressure includes wall, inlet and symmetry rows
-with zero differences (`p_b=p_c`) and prescribed outlet pressure. These LSQ
-observations are separate from momentum's extrapolated boundary pressure
-`p_c+G·r_b`, including at symmetry. Velocity includes wall, inlet and projected
+laminar and SST flow alike. Pressure includes prescribed outlet pressure and
+omits wall, inlet and symmetry rows. Extrapolated boundary pressure supplies no
+independent LSQ observation. Momentum separately uses `p_c+G·r_b` on those
+boundaries, including at symmetry. Velocity includes wall, inlet and projected
 symmetry data, and omits outlet rows. k includes inlet rows; omega additionally
 includes independent wall reconstruction values. Excluded rows have zero
 weighted deltas. A symmetric eigensolve constrains only deficient directions,

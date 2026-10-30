@@ -1,0 +1,79 @@
+--- a/src/kutta/fv/steady_solver.cpp
++++ b/src/kutta/fv/steady_solver.cpp
+@@ -76 +76 @@
+-  DeviceVec3 grad_p,limited_gradient[3];
++  DeviceVec3 grad_p,rc_gradient,limited_gradient[3];
+@@ -137 +137 @@
+-    velocity=vector_field(dev,n);face_velocity=vector_field(dev,nf);body=vector_field(dev,n);source=vector_field(dev,n);
++    transpose_stress=vector_field(dev,nf);velocity=vector_field(dev,n);face_velocity=vector_field(dev,nf);body=vector_field(dev,n);source=vector_field(dev,n);
+@@ -140 +140 @@
+-    grad_p=vector_field(dev,n);grad_correction=vector_field(dev,n);absolute_residual=vector_field(dev,n);
++    rc_gradient=vector_field(dev,n);grad_p=vector_field(dev,n);grad_correction=vector_field(dev,n);absolute_residual=vector_field(dev,n);
+@@ -361 +361,9 @@
+-    if(!sst && !sa && !rke) return;
++    if(!sst && !sa && !rke) {
++      const auto& u=momentum[0]->grad;const auto& v=momentum[1]->grad;const auto& w=momentum[2]->grad;
++      kern::fv_laminar_wall_normal_flux(dev,mesh.n_faces,mesh.owner,boundary_kind,
++        mesh.area.x,mesh.area.y,mesh.area.z,stencil.nonorthogonal.x,stencil.nonorthogonal.y,stencil.nonorthogonal.z,
++        stencil.diffusion,viscosity,velocity.x,velocity.y,velocity.z,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
++        u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,transpose_stress.x,transpose_stress.y,transpose_stress.z,mesh.n_internal_faces);
++      kern::fv_stress_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
++        mesh.volume,transpose_stress.x,transpose_stress.y,transpose_stress.z,source.x,source.y,source.z);
++    }
+@@ -374 +382 @@
+-      wall_diagonal,wall_rhs,mesh.n_internal_faces,component,(sst || rke)?1:0);
++      wall_diagonal,wall_rhs,mesh.n_internal_faces,component,(sst || rke)?1:2);
+@@ -468,0 +477,7 @@
++    kern::fv_pressure_force_gradient(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
++      mesh.area.x,mesh.area.y,mesh.area.z,face_pressure,mesh.volume,rc_gradient.x,rc_gradient.y,rc_gradient.z);
++    kern::fv_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
++      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
++      mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
++      pressure,rc_gradient.x,rc_gradient.y,rc_gradient.z,boundary_pressure,coefficient,pressure_jump,mesh.n_internal_faces);
++
+--- a/src/kutta/kernels/fv_flow.kern.h
++++ b/src/kutta/kernels/fv_flow.kern.h
+@@ -26,0 +27 @@
++  if(type==0) scalar_kind[i]=2; // wall shear is assembled as a tangential tensor
+@@ -104 +105 @@
+-    +0.5f*((ux[p]+ux[n])*rx+(uy[p]+uy[n])*ry+(uz[p]+uz[n])*rz);
++    +weight*(ux[p]*px[i]+uy[p]*py[i]+uz[p]*pz[i])+(1.0f-weight)*(ux[n]*nx[i]+uy[n]*ny[i]+uz[n]*nz[i]);
+@@ -106 +107 @@
+-    +0.5f*((vx[p]+vx[n])*rx+(vy[p]+vy[n])*ry+(vz[p]+vz[n])*rz);
++    +weight*(vx[p]*px[i]+vy[p]*py[i]+vz[p]*pz[i])+(1.0f-weight)*(vx[n]*nx[i]+vy[n]*ny[i]+vz[n]*nz[i]);
+@@ -108 +109 @@
+-    +0.5f*((wx[p]+wx[n])*rx+(wy[p]+wy[n])*ry+(wz[p]+wz[n])*rz);
++    +weight*(wx[p]*px[i]+wy[p]*py[i]+wz[p]*pz[i])+(1.0f-weight)*(wx[n]*nx[i]+wy[n]*ny[i]+wz[n]*nz[i]);
+@@ -226,3 +227,5 @@
+-  x[i]=scale*(2.0f*a*sx[f]+(b+e)*sy[f]+(d+j)*sz[f]);
+-  y[i]=scale*((e+b)*sx[f]+2.0f*g*sy[f]+(h+k)*sz[f]);
+-  z[i]=scale*((j+d)*sx[f]+(k+h)*sy[f]+2.0f*l*sz[f]);
++  float fx=a*sx[f]+b*sy[f]+d*sz[f];
++  float fy=e*sx[f]+g*sy[f]+h*sz[f];
++  float fz=j*sx[f]+k*sy[f]+l*sz[f];
++  float nn=fx*nx+fy*ny+fz*nz;
++  x[i]=scale*(fx-nn*nx);y[i]=scale*(fy-nn*ny);z[i]=scale*(fz-nn*nz);
+@@ -237,0 +241,8 @@
++
++KUTTA_KERNEL void fv_pressure_force_gradient(int i,KIn(int) offsets,KIn(int) faces,
++    KIn(float) sign,KIn(float) sx,KIn(float) sy,KIn(float) sz,KIn(float) face_pressure,
++    KIn(float) volume,KOut(float) x,KOut(float) y,KOut(float) z) {
++  float a=0.0f,b=0.0f,c=0.0f;
++  for(int j=offsets[i];j<offsets[i+1];++j) {int f=faces[j];float p=sign[j]*face_pressure[f];a+=p*sx[f];b+=p*sy[f];c+=p*sz[f];}
++  x[i]=a/volume[i];y[i]=b/volume[i];z[i]=c/volume[i];
++}
+--- a/src/kutta/kernels/fv_rans.kern.h
++++ b/src/kutta/kernels/fv_rans.kern.h
+@@ -32,4 +32,5 @@
+-  float viscosity=i>=internal && kind[i-internal]==3?0.0f:mu[i];
+-  x[i]=viscosity*(a*sx[i]+e*sy[i]+j*sz[i]);
+-  y[i]=viscosity*(b*sx[i]+g*sy[i]+k*sz[i]);
+-  z[i]=viscosity*(d*sx[i]+h*sy[i]+l*sz[i]);
++  float viscosity=i>=internal && (kind[i-internal]==3 || kind[i-internal]==0)?0.0f:mu[i];
++  float dilation=(2.0f/3.0f)*(a+g+l);
++  x[i]=viscosity*((a-dilation)*sx[i]+e*sy[i]+j*sz[i]);
++  y[i]=viscosity*(b*sx[i]+(g-dilation)*sy[i]+k*sz[i]);
++  z[i]=viscosity*(d*sx[i]+h*sy[i]+(l-dilation)*sz[i]);
+@@ -66 +67 @@
+-    float c=area*coefficient[bf];
++    float c=wall_function==2?mu[f]*diffusion[f]:area*coefficient[bf];

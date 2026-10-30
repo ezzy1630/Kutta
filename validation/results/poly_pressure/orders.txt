@@ -1,0 +1,5 @@
+Pressure refinement orders: 1.3310061778688684 1.0930048169765132
+normal_derivative0 finest-pair order 2.01062993619204
+normal_derivative1 finest-pair order 1.0080683525958278
+normal_derivative2 finest-pair order 1.0068384124868648
+normal_derivative3 finest-pair order 0.9553215251552807

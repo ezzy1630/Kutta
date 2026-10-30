@@ -1,0 +1,209 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+V6 Fluent=22.2 cells=17822 saved_iterations=absent last_residual_iteration=294 reports=0
+V6_FLUENT_RESIDUAL continuity raw=2.475884062e-06 scale=0.002614088497 scaled=0.000947130927
+V6_FLUENT_RESIDUAL energy raw=0.003127095862 scale=231923.8785 scaled=1.348328547e-08
+V6_FLUENT_RESIDUAL k raw=2.496480082e-07 scale=0.004837463694 scaled=5.160721071e-05
+V6_FLUENT_RESIDUAL omega raw=0.001920308188 scale=91.09322473 scaled=2.108069172e-05
+V6_FLUENT_RESIDUAL x-velocity raw=2.356566155e-06 scale=1.686371385 scaled=1.397418253e-06
+V6_FLUENT_RESIDUAL y-velocity raw=6.556134085e-06 scale=1.68649825 scaled=3.887424185e-06
+V6_FLUENT_RESIDUAL z-velocity raw=1.701407993e-06 scale=1.698761099 scaled=1.001558132e-06
+===============================================================================
+<checkout>/tests/fv/test_fluent_elbow.cpp:98:
+TEST SUITE: slow
+TEST CASE:  FV V6 Fluent mixing elbow fixed point and cold start
+
+<checkout>/tests/fv/test_fluent_elbow.cpp:116: ERROR: CHECK_NOTHROW( setup::fluent_setup(c,mesh) ) THREW exception: "Fluent setup rejected:
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison"
+
+V6_DIAGNOSTIC APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison; cold start uses stored hybrid initialization settings
+V6_FIELD initial_wall_distance relative_L2=2.093238401e-05 max_absolute=1.164756306e-05 relative_max=0.0002387150477
+V6_FIELD initial_mu_t relative_L2=0.01032625273 max_absolute=3.890473643e-05 relative_max=0.1048399602
+<checkout>/tests/fv/test_fluent_elbow.cpp:150: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
+  values: CHECK( 0.000834672 <  0.0008 )
+  logged: backend: metal
+
+V6_INITIAL backend=metal mode=seeded u=0.0006644992208 v=0.0009417445506 w=0.0004590377557 pseudo_time_step=0.02452421188 continuity_raw=0.0008346719701 k=0.007684160348 omega=0.02328137659
+V6_SAVED_RESIDUAL backend=metal equation=x-velocity raw=0.000512530601 steady_scaled=0.0006644992208 Fluent_scaled=0.0002851025137 normalization=1.797706356
+V6_SAVED_RESIDUAL backend=metal equation=y-velocity raw=0.0007263709052 steady_scaled=0.0009417445506 Fluent_scaled=0.0004040257431 normalization=1.797833226
+V6_SAVED_RESIDUAL backend=metal equation=z-velocity raw=0.0003540574458 steady_scaled=0.0004590377557 Fluent_scaled=0.0001956023709 normalization=1.8100877
+V6_SAVED_RESIDUAL backend=metal equation=k raw=3.376785097e-05 steady_scaled=0.007684160348 Fluent_scaled=0.0065699377 normalization=0.005139752081
+V6_SAVED_RESIDUAL backend=metal equation=omega raw=1.924925821 steady_scaled=0.02328137659 Fluent_scaled=0.02019656561 normalization=95.30956193
+V6_ITER backend=metal mode=seeded iteration=50 u=9.823638826e-05 v=0.0001145441801 w=6.139264615e-05 k=0.0006036431694 omega=0.0001767735008 continuity=2.496203939e-05 corrected_mass=5.656653443e-08 max_u=1.663600922
+V6_ITER backend=metal mode=seeded iteration=100 u=5.599729215e-05 v=8.756256474e-05 w=3.893037685e-05 k=0.0002025789449 omega=8.815696415e-05 continuity=3.638735682e-05 corrected_mass=6.863141488e-08 max_u=1.661543489
+V6_ITER backend=metal mode=seeded iteration=150 u=1.605611292e-05 v=3.491940255e-05 w=1.366123873e-05 k=6.352032173e-05 omega=2.892443022e-05 continuity=2.306366155e-05 corrected_mass=5.244891166e-08 max_u=1.662207723
+V6_ITER backend=metal mode=seeded iteration=200 u=2.625744439e-06 v=7.875697531e-06 w=2.412376379e-06 k=1.898168937e-05 omega=7.985250055e-06 continuity=3.062910626e-06 corrected_mass=3.677225133e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=250 u=6.411662072e-07 v=1.576634952e-06 w=5.895196255e-07 k=2.957374376e-06 omega=2.691878461e-06 continuity=1.79100037e-06 corrected_mass=3.552592352e-08 max_u=1.662323117
+V6_ITER backend=metal mode=seeded iteration=300 u=2.605985418e-07 v=3.179836119e-07 w=1.995700072e-07 k=4.473409308e-07 omega=1.677258035e-06 continuity=1.283474888e-06 corrected_mass=3.553188677e-08 max_u=1.662328005
+V6_ITER backend=metal mode=seeded iteration=350 u=2.348756116e-07 v=2.780845742e-07 w=2.331891466e-07 k=2.448276716e-07 omega=1.569531859e-06 continuity=1.391665598e-06 corrected_mass=3.516947594e-08 max_u=1.662330508
+V6_ITER backend=metal mode=seeded iteration=400 u=2.078353199e-07 v=1.768584659e-07 w=1.638065561e-07 k=1.138524357e-07 omega=1.532712265e-06 continuity=1.742549852e-06 corrected_mass=3.474232193e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=450 u=1.921183601e-07 v=1.748690274e-07 w=1.519336476e-07 k=1.002985579e-07 omega=1.532911112e-06 continuity=1.754686102e-06 corrected_mass=3.454665325e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=500 u=2.155704181e-07 v=1.981577604e-07 w=2.024018767e-07 k=9.821721662e-08 omega=1.532052445e-06 continuity=1.730516486e-06 corrected_mass=3.492365281e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=550 u=2.005008439e-07 v=1.695069819e-07 w=1.585147538e-07 k=9.54536736e-08 omega=1.528380248e-06 continuity=1.221638275e-06 corrected_mass=3.503273066e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=600 u=2.148872469e-07 v=2.007350905e-07 w=1.949427561e-07 k=9.779945204e-08 omega=1.532138835e-06 continuity=1.264158688e-06 corrected_mass=3.444242157e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=650 u=2.04177651e-07 v=2.039197108e-07 w=1.951645303e-07 k=9.468895025e-08 omega=1.526689037e-06 continuity=1.427262917e-06 corrected_mass=3.505680092e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=700 u=1.828176511e-07 v=1.538366399e-07 w=1.309699788e-07 k=9.580702765e-08 omega=1.528438588e-06 continuity=1.437894855e-06 corrected_mass=3.499225252e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=750 u=2.024891114e-07 v=1.698426771e-07 w=1.651556806e-07 k=9.54758643e-08 omega=1.526849591e-06 continuity=1.23735702e-06 corrected_mass=3.482769045e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=800 u=2.043273796e-07 v=1.783273928e-07 w=1.68608328e-07 k=9.637495177e-08 omega=1.53436198e-06 continuity=1.189042689e-06 corrected_mass=3.505551756e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=850 u=1.86464154e-07 v=1.544605984e-07 w=1.380339801e-07 k=9.615977518e-08 omega=1.533581644e-06 continuity=1.148098368e-06 corrected_mass=3.407586449e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=900 u=1.932053497e-07 v=1.624574358e-07 w=1.413046312e-07 k=1.027736316e-07 omega=1.534655069e-06 continuity=2.392452218e-06 corrected_mass=3.572336012e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=950 u=1.907852848e-07 v=1.647419626e-07 w=1.49513145e-07 k=9.653358942e-08 omega=1.529751121e-06 continuity=1.196105769e-06 corrected_mass=3.452652683e-08 max_u=1.662330389
+V6_ITER backend=metal mode=seeded iteration=1000 u=2.31905658e-07 v=2.362856891e-07 w=2.373410358e-07 k=9.712511006e-08 omega=1.528867746e-06 continuity=1.123676345e-06 corrected_mass=3.554257311e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1050 u=2.398992411e-07 v=2.570258975e-07 w=2.67420734e-07 k=9.640946985e-08 omega=1.524510509e-06 continuity=1.383011747e-06 corrected_mass=3.506152637e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1100 u=2.358008101e-07 v=2.232264715e-07 w=2.291171337e-07 k=9.948800871e-08 omega=1.53137374e-06 continuity=1.580494949e-06 corrected_mass=3.49370746e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1150 u=2.108114421e-07 v=2.060892371e-07 w=1.982001122e-07 k=9.789275757e-08 omega=1.52831784e-06 continuity=1.08950038e-06 corrected_mass=3.528006927e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1200 u=2.32629552e-07 v=2.200939924e-07 w=2.274025586e-07 k=9.703164856e-08 omega=1.527427249e-06 continuity=1.141955194e-06 corrected_mass=3.504076669e-08 max_u=1.662330031
+V6_ITER backend=metal mode=seeded iteration=1250 u=1.792910032e-07 v=1.507326049e-07 w=1.282247884e-07 k=9.459243986e-08 omega=1.525757578e-06 continuity=1.323798263e-06 corrected_mass=3.419542068e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1300 u=2.017637963e-07 v=2.041202274e-07 w=1.943825487e-07 k=9.63908785e-08 omega=1.529834947e-06 continuity=1.576838425e-06 corrected_mass=3.489813994e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1350 u=2.011184562e-07 v=1.899407816e-07 w=1.790180859e-07 k=9.644672856e-08 omega=1.523104115e-06 continuity=1.127063269e-06 corrected_mass=3.485854157e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1400 u=2.317940396e-07 v=2.38825723e-07 w=2.445222401e-07 k=9.59287196e-08 omega=1.52956359e-06 continuity=1.103420325e-06 corrected_mass=3.488354818e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1450 u=1.822374597e-07 v=1.542395969e-07 w=1.298409789e-07 k=9.657816646e-08 omega=1.526845441e-06 continuity=1.124072532e-06 corrected_mass=3.462346929e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1500 u=2.174055954e-07 v=2.066233474e-07 w=2.039159741e-07 k=9.716456005e-08 omega=1.525289851e-06 continuity=1.310453092e-06 corrected_mass=3.567928563e-08 max_u=1.662330031
+V6_ITER backend=metal mode=seeded iteration=1550 u=2.025691894e-07 v=1.840503081e-07 w=1.791881987e-07 k=9.996203362e-08 omega=1.536359948e-06 continuity=1.390209892e-06 corrected_mass=3.521923254e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1600 u=1.941092886e-07 v=1.693371076e-07 w=1.481286368e-07 k=1.000211152e-07 omega=1.528222935e-06 continuity=2.150741645e-06 corrected_mass=3.519664511e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1650 u=2.162841564e-07 v=2.242274272e-07 w=2.103433694e-07 k=1.003640307e-07 omega=1.528588757e-06 continuity=1.833409622e-06 corrected_mass=3.448144136e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1700 u=1.901880886e-07 v=1.49353814e-07 w=1.364163107e-07 k=9.549025681e-08 omega=1.529125564e-06 continuity=1.282577551e-06 corrected_mass=3.48641317e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1750 u=2.060525716e-07 v=1.90199902e-07 w=1.87456277e-07 k=9.700472461e-08 omega=1.5273162e-06 continuity=1.57286962e-06 corrected_mass=3.527259381e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1800 u=1.876728001e-07 v=1.642461133e-07 w=1.452043979e-07 k=9.579748398e-08 omega=1.527482991e-06 continuity=1.369480549e-06 corrected_mass=3.469956047e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1850 u=1.817031733e-07 v=1.597048582e-07 w=1.381238904e-07 k=9.5026761e-08 omega=1.531917928e-06 continuity=1.205761482e-06 corrected_mass=3.420491127e-08 max_u=1.662330389
+V6_ITER backend=metal mode=seeded iteration=1900 u=1.847858216e-07 v=1.574700113e-07 w=1.33967742e-07 k=9.784292119e-08 omega=1.52750737e-06 continuity=1.489893501e-06 corrected_mass=3.486967313e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=1950 u=1.932563454e-07 v=1.754153961e-07 w=1.577317934e-07 k=9.663180135e-08 omega=1.529734321e-06 continuity=1.280187465e-06 corrected_mass=3.477882819e-08 max_u=1.662330389
+V6_ITER backend=metal mode=seeded iteration=2000 u=1.966517351e-07 v=1.63467615e-07 w=1.538628754e-07 k=9.893866583e-08 omega=1.535076299e-06 continuity=1.748815414e-06 corrected_mass=3.563275251e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2050 u=1.937571413e-07 v=1.649627145e-07 w=1.475101425e-07 k=9.877349001e-08 omega=1.534009781e-06 continuity=1.748163109e-06 corrected_mass=3.492004897e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2100 u=2.40330122e-07 v=2.466026157e-07 w=2.539995558e-07 k=9.714493106e-08 omega=1.528695143e-06 continuity=1.178858603e-06 corrected_mass=3.507750671e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2150 u=2.035849921e-07 v=2.020234871e-07 w=1.878021823e-07 k=9.593800238e-08 omega=1.529572184e-06 continuity=1.194595621e-06 corrected_mass=3.513215213e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2200 u=1.830403022e-07 v=1.509748923e-07 w=1.314560912e-07 k=9.51761248e-08 omega=1.526940066e-06 continuity=1.239461699e-06 corrected_mass=3.456539978e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2250 u=2.419015401e-07 v=2.630725419e-07 w=2.69613063e-07 k=9.91238431e-08 omega=1.532390308e-06 continuity=1.22081846e-06 corrected_mass=3.560753981e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2300 u=1.845402569e-07 v=1.57629924e-07 w=1.364215691e-07 k=9.729158869e-08 omega=1.52726309e-06 continuity=1.527841031e-06 corrected_mass=3.522007196e-08 max_u=1.662330389
+V6_ITER backend=metal mode=seeded iteration=2350 u=1.946436218e-07 v=1.60327621e-07 w=1.489643514e-07 k=9.784740978e-08 omega=1.532279351e-06 continuity=1.610037907e-06 corrected_mass=3.474091057e-08 max_u=1.662330389
+V6_ITER backend=metal mode=seeded iteration=2400 u=2.005791941e-07 v=1.963024167e-07 w=1.810245476e-07 k=9.473812321e-08 omega=1.522815851e-06 continuity=1.195996261e-06 corrected_mass=3.503935633e-08 max_u=1.662330508
+V6_ITER backend=metal mode=seeded iteration=2450 u=1.82247666e-07 v=1.577970543e-07 w=1.344724694e-07 k=9.424313348e-08 omega=1.523873094e-06 continuity=1.21389948e-06 corrected_mass=3.472122437e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2500 u=1.85167522e-07 v=1.491907712e-07 w=1.300751598e-07 k=9.397250387e-08 omega=1.52098916e-06 continuity=1.324947774e-06 corrected_mass=3.408981341e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2550 u=1.974755841e-07 v=1.603053742e-07 w=1.492583232e-07 k=9.815744605e-08 omega=1.523660376e-06 continuity=1.13658058e-06 corrected_mass=3.492554751e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2600 u=1.958890992e-07 v=1.664311825e-07 w=1.524735971e-07 k=9.633074085e-08 omega=1.526304598e-06 continuity=1.18348886e-06 corrected_mass=3.555341384e-08 max_u=1.662330031
+V6_ITER backend=metal mode=seeded iteration=2650 u=2.044728754e-07 v=1.714318856e-07 w=1.670669385e-07 k=9.559008294e-08 omega=1.521523435e-06 continuity=1.172062898e-06 corrected_mass=3.497321804e-08 max_u=1.662330031
+V6_ITER backend=metal mode=seeded iteration=2700 u=2.052378833e-07 v=1.929288846e-07 w=1.799917814e-07 k=9.83982838e-08 omega=1.529552004e-06 continuity=1.618756217e-06 corrected_mass=3.559521841e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2750 u=1.878380668e-07 v=1.65358079e-07 w=1.44179464e-07 k=9.593747374e-08 omega=1.525130059e-06 continuity=1.470396954e-06 corrected_mass=3.502085502e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2800 u=2.090513141e-07 v=1.823430224e-07 w=1.744599654e-07 k=9.721059838e-08 omega=1.525470034e-06 continuity=1.24332221e-06 corrected_mass=3.517065247e-08 max_u=1.662330508
+V6_ITER backend=metal mode=seeded iteration=2850 u=2.096773911e-07 v=2.295923527e-07 w=2.151070998e-07 k=9.551407588e-08 omega=1.531779719e-06 continuity=1.094622061e-06 corrected_mass=3.440142861e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=2900 u=1.79228825e-07 v=1.523327894e-07 w=1.306705224e-07 k=9.488584457e-08 omega=1.527026204e-06 continuity=1.147554545e-06 corrected_mass=3.416911351e-08 max_u=1.662330508
+V6_ITER backend=metal mode=seeded iteration=2950 u=1.992760239e-07 v=1.982865426e-07 w=1.801432587e-07 k=9.570048163e-08 omega=1.529587413e-06 continuity=1.190456643e-06 corrected_mass=3.504106657e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3000 u=2.173995766e-07 v=1.93551312e-07 w=1.948622387e-07 k=9.779558198e-08 omega=1.526647218e-06 continuity=1.212950533e-06 corrected_mass=3.555043375e-08 max_u=1.662330508
+V6_ITER backend=metal mode=seeded iteration=3050 u=2.391868449e-07 v=2.673269294e-07 w=2.693390553e-07 k=9.764409637e-08 omega=1.523249528e-06 continuity=1.156505977e-06 corrected_mass=3.537158396e-08 max_u=1.662330031
+V6_ITER backend=metal mode=seeded iteration=3100 u=2.259610621e-07 v=2.285389682e-07 w=2.256394188e-07 k=9.821798452e-08 omega=1.529810575e-06 continuity=1.503444609e-06 corrected_mass=3.495293872e-08 max_u=1.662330389
+V6_ITER backend=metal mode=seeded iteration=3150 u=2.002690917e-07 v=1.687421567e-07 w=1.546530711e-07 k=1.008123069e-07 omega=1.530937482e-06 continuity=2.092149806e-06 corrected_mass=3.482703103e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3200 u=1.884685539e-07 v=1.594369281e-07 w=1.380200296e-07 k=9.77872034e-08 omega=1.529475752e-06 continuity=1.709249833e-06 corrected_mass=3.549299619e-08 max_u=1.662330389
+V6_ITER backend=metal mode=seeded iteration=3250 u=1.880299673e-07 v=1.555864905e-07 w=1.338688799e-07 k=9.738074008e-08 omega=1.528161088e-06 continuity=1.495997865e-06 corrected_mass=3.475377829e-08 max_u=1.662330508
+V6_ITER backend=metal mode=seeded iteration=3300 u=2.171411382e-07 v=1.995873609e-07 w=2.044468441e-07 k=9.72831995e-08 omega=1.5251781e-06 continuity=1.371300125e-06 corrected_mass=3.551795897e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3350 u=2.087537155e-07 v=1.806039669e-07 w=1.795584464e-07 k=9.535904847e-08 omega=1.531106498e-06 continuity=1.161276832e-06 corrected_mass=3.435785931e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3400 u=1.959705962e-07 v=1.53522724e-07 w=1.442757665e-07 k=9.690502375e-08 omega=1.53221416e-06 continuity=1.234794711e-06 corrected_mass=3.494598039e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3450 u=2.086810664e-07 v=2.282442416e-07 w=2.141986541e-07 k=9.546464947e-08 omega=1.52390556e-06 continuity=1.167267611e-06 corrected_mass=3.442419316e-08 max_u=1.662330389
+V6_ITER backend=metal mode=seeded iteration=3500 u=1.993560201e-07 v=1.731409739e-07 w=1.595633687e-07 k=9.803143988e-08 omega=1.535165389e-06 continuity=1.622554679e-06 corrected_mass=3.493441806e-08 max_u=1.662330389
+V6_ITER backend=metal mode=seeded iteration=3550 u=1.878761821e-07 v=1.570991733e-07 w=1.351151626e-07 k=9.841322749e-08 omega=1.526753079e-06 continuity=2.072878275e-06 corrected_mass=3.502677872e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3600 u=2.352166125e-07 v=2.402082985e-07 w=2.429803494e-07 k=9.963394813e-08 omega=1.533863957e-06 continuity=1.426955334e-06 corrected_mass=3.444217043e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3650 u=2.759106646e-07 v=3.28350007e-07 w=3.344226552e-07 k=1.040704789e-07 omega=1.528948627e-06 continuity=1.709994325e-06 corrected_mass=3.497815035e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3700 u=2.254178396e-07 v=2.10424445e-07 w=2.160934589e-07 k=9.674602938e-08 omega=1.52707586e-06 continuity=1.134079862e-06 corrected_mass=3.522283744e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3750 u=1.830125382e-07 v=1.502212895e-07 w=1.300468706e-07 k=9.575279553e-08 omega=1.530591372e-06 continuity=1.327180751e-06 corrected_mass=3.409599873e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3800 u=2.155572357e-07 v=2.017192613e-07 w=2.045043039e-07 k=9.546396635e-08 omega=1.528011798e-06 continuity=1.358420812e-06 corrected_mass=3.531372702e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3850 u=2.139349626e-07 v=2.200808069e-07 w=2.121195467e-07 k=9.65963353e-08 omega=1.531699528e-06 continuity=1.187132624e-06 corrected_mass=3.457411799e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3900 u=1.816457421e-07 v=1.505978062e-07 w=1.306133767e-07 k=9.508272077e-08 omega=1.527109764e-06 continuity=1.231700888e-06 corrected_mass=3.439553369e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=3950 u=2.338524387e-07 v=2.330316035e-07 w=2.404086094e-07 k=9.612490471e-08 omega=1.526807605e-06 continuity=1.162641399e-06 corrected_mass=3.51650308e-08 max_u=1.662330151
+V6_ITER backend=metal mode=seeded iteration=4000 u=2.054528991e-07 v=2.076008753e-07 w=1.90770913e-07 k=9.78591762e-08 omega=1.528157883e-06 continuity=1.659784071e-06 corrected_mass=3.58355434e-08 max_u=1.662330151
+V6_INITIAL_CONTINUITY backend=metal mode=seeded scaled=0.2748318296 first_five_scale=0.003037028031
+V6_RESULT backend=metal mode=seeded iterations=4000 seconds=119.1296486 converged=0
+V6_FIELD velocity relative_L2=0.02203579567 max_absolute=0.2475534818 relative_max=0.1490933064
+V6_FIELD pressure relative_L2=0.009978524086 max_absolute=0.03974270112 relative_max=0.03467583972
+V6_FIELD k relative_L2=0.1089482884 max_absolute=0.006098130586 relative_max=0.2161844183
+V6_FIELD omega relative_L2=0.08658315372 max_absolute=11550.27898 relative_max=0.1281558892
+<checkout>/tests/fv/test_fluent_elbow.cpp:186: ERROR: CHECK( converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+<checkout>/tests/fv/test_fluent_elbow.cpp:186: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+  values: CHECK( 0.0220358 <  0.005 )
+  logged: backend: metal
+
+<checkout>/tests/fv/test_fluent_elbow.cpp:187: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
+  values: CHECK( 0.108948 <  0.001 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE wall-elbow ours=0.245506799 Fluent=0.2443336319
+V6_FORCE wall-elbow pressure ours=0.006388145453,-0.005947685903,0.01559985888 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.004492209527
+V6_FORCE wall-elbow shear ours=0.0003386327887,0.000693963947,-6.406213636e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.01510887571
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0151089 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-elbow total ours=0.006726778242,-0.005253721956,0.01553579675 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.004524412118
+V6_ZONE_PRESSURE wall-inlet ours=0.7895182201 Fluent=0.7882671307
+V6_FORCE wall-inlet pressure ours=8.087306824e-05,-4.731148512e-06,0.001614530337 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.001511194002
+V6_FORCE wall-inlet shear ours=9.851733531e-07,6.984995985e-05,4.91116011e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.01503813593
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0150381 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-inlet total ours=8.18582416e-05,6.511881134e-05,0.001615021453 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.001685829498
+V6_ZONE_PRESSURE outlet ours=0 Fluent=0
+V6_ZONE_PRESSURE cold-inlet ours=0.5034596337 Fluent=0.5016180027
+V6_ZONE_PRESSURE hot-inlet ours=1.085635876 Fluent=1.087188619
+V6_ZONE_PRESSURE symmetry-xyplane ours=0.2612728344 Fluent=0.2603867108
+V6_PRESSURE_DROP ours=0.5367612517 Fluent=0.5351137855 relative=0.003078721248
+V6_INITIAL backend=metal mode=cold-hybrid u=0.009051277305 v=0.01024235331 w=0.001244586653 pseudo_time_step=0.01712153479 continuity_raw=9.159623666e-06 k=0.01144462292 omega=0.0289665323
+V6_ITER backend=metal mode=cold-hybrid iteration=50 u=0.001272860337 v=0.001396833018 w=0.0005875850029 k=0.004514280167 omega=0.00270869614 continuity=0.0004403546027 corrected_mass=5.713839876e-07 max_u=1.638115168
+V6_ITER backend=metal mode=cold-hybrid iteration=100 u=0.0006269714627 v=0.001200559873 w=0.0003605769271 k=0.003252639339 omega=0.001118414377 continuity=0.0003595242052 corrected_mass=4.588577183e-07 max_u=1.665724277
+V6_ITER backend=metal mode=cold-hybrid iteration=150 u=0.0001832856543 v=0.0006144787111 w=0.0001385803726 k=0.001337585193 omega=0.0004049225416 continuity=0.0001555995207 corrected_mass=2.254065062e-07 max_u=1.662939548
+V6_ITER backend=metal mode=cold-hybrid iteration=200 u=5.943492465e-05 v=0.0002109306917 w=5.071336248e-05 k=0.0004613892844 omega=0.0001479783815 continuity=7.847018417e-05 corrected_mass=1.174325012e-07 max_u=1.66221869
+V6_ITER backend=metal mode=cold-hybrid iteration=250 u=1.967426258e-05 v=5.160513492e-05 w=1.493172717e-05 k=0.0001376709559 omega=5.092218052e-05 continuity=1.86814924e-05 corrected_mass=5.342609413e-08 max_u=1.662204862
+V6_ITER backend=metal mode=cold-hybrid iteration=300 u=6.12840016e-06 v=1.911162979e-05 w=4.935075496e-06 k=3.147592044e-05 omega=1.594643797e-05 continuity=1.113764435e-05 corrected_mass=4.307403599e-08 max_u=1.66226387
+V6_ITER backend=metal mode=cold-hybrid iteration=350 u=2.373086738e-06 v=7.713727515e-06 w=2.190882699e-06 k=1.062044143e-05 omega=5.893758655e-06 continuity=5.610257962e-06 corrected_mass=3.837108326e-08 max_u=1.662323475
+V6_ITER backend=metal mode=cold-hybrid iteration=400 u=8.657531321e-07 v=2.396874463e-06 w=7.627392061e-07 k=3.356501222e-06 omega=2.862593382e-06 continuity=2.181640291e-06 corrected_mass=3.624635012e-08 max_u=1.662344813
+V6_ITER backend=metal mode=cold-hybrid iteration=450 u=3.593338475e-07 v=7.142635274e-07 w=2.944105725e-07 k=9.839138564e-07 omega=1.902883093e-06 continuity=1.395257227e-06 corrected_mass=3.474271563e-08 max_u=1.66234231
+V6_ITER backend=metal mode=cold-hybrid iteration=500 u=2.419222615e-07 v=3.329472339e-07 w=2.260748765e-07 k=3.464915448e-07 omega=1.623218938e-06 continuity=1.522239579e-06 corrected_mass=3.553819641e-08 max_u=1.662336826
+V6_ITER backend=metal mode=cold-hybrid iteration=550 u=2.04106628e-07 v=1.86697479e-07 w=1.63048858e-07 k=1.455160326e-07 omega=1.54696558e-06 continuity=1.543088921e-06 corrected_mass=3.503901048e-08 max_u=1.662334323
+V6_ITER backend=metal mode=cold-hybrid iteration=600 u=1.843874227e-07 v=1.529807058e-07 w=1.310465191e-07 k=1.013386597e-07 omega=1.533247843e-06 continuity=1.224897467e-06 corrected_mass=3.51796889e-08 max_u=1.662333608
+V6_ITER backend=metal mode=cold-hybrid iteration=650 u=2.362833399e-07 v=2.442011165e-07 w=2.46280938e-07 k=1.007534893e-07 omega=1.533815028e-06 continuity=1.787018498e-06 corrected_mass=3.520281722e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=700 u=2.274197872e-07 v=2.30965545e-07 w=2.3847016e-07 k=9.630349191e-08 omega=1.525720455e-06 continuity=1.301213441e-06 corrected_mass=3.53268029e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=750 u=1.927373938e-07 v=1.714016479e-07 w=1.575527713e-07 k=9.590920001e-08 omega=1.534882215e-06 continuity=1.278544078e-06 corrected_mass=3.426279809e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=800 u=2.208968868e-07 v=2.452201088e-07 w=2.40590069e-07 k=1.003393533e-07 omega=1.534396723e-06 continuity=1.782233007e-06 corrected_mass=3.533003264e-08 max_u=1.662333012
+V6_ITER backend=metal mode=cold-hybrid iteration=850 u=2.177409873e-07 v=2.237983452e-07 w=2.177938908e-07 k=9.583704537e-08 omega=1.527575466e-06 continuity=1.104178041e-06 corrected_mass=3.425861118e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=900 u=2.260597334e-07 v=2.27560729e-07 w=2.299420074e-07 k=9.598783494e-08 omega=1.53042877e-06 continuity=1.255800199e-06 corrected_mass=3.489931499e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=950 u=2.534821898e-07 v=2.782566272e-07 w=2.910149268e-07 k=9.897498323e-08 omega=1.533591458e-06 continuity=1.270986369e-06 corrected_mass=3.500346967e-08 max_u=1.662333012
+V6_ITER backend=metal mode=cold-hybrid iteration=1000 u=1.893811893e-07 v=1.571140029e-07 w=1.407723882e-07 k=9.483146344e-08 omega=1.534270296e-06 continuity=1.168422446e-06 corrected_mass=3.480881563e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=1050 u=2.03058834e-07 v=1.919400911e-07 w=1.771768434e-07 k=9.680737383e-08 omega=1.530051561e-06 continuity=1.38597774e-06 corrected_mass=3.493408121e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=1100 u=2.390868278e-07 v=2.321987538e-07 w=2.52019677e-07 k=1.001493022e-07 omega=1.533635055e-06 continuity=1.705880772e-06 corrected_mass=3.500626162e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=1150 u=1.868048654e-07 v=1.5379022e-07 w=1.35344707e-07 k=9.567968309e-08 omega=1.532170623e-06 continuity=1.369270085e-06 corrected_mass=3.44245646e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=1200 u=2.045143453e-07 v=1.813138572e-07 w=1.75294291e-07 k=9.601402129e-08 omega=1.533869992e-06 continuity=1.152389799e-06 corrected_mass=3.46126855e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=1250 u=2.503522087e-07 v=2.595665966e-07 w=2.800829404e-07 k=9.941369409e-08 omega=1.528929666e-06 continuity=1.911629461e-06 corrected_mass=3.544458143e-08 max_u=1.662332892
+V6_ITER backend=metal mode=cold-hybrid iteration=1300 u=2.034591243e-07 v=1.582681868e-07 w=1.481411584e-07 k=1.023007872e-07 omega=1.53096909e-06 continuity=2.129029541e-06 corrected_mass=3.626220278e-08 max_u=1.662333012
+V6_ITER backend=metal mode=cold-hybrid iteration=1350 u=2.047784432e-07 v=2.031828456e-07 w=1.88123788e-07 k=9.694190378e-08 omega=1.525853433e-06 continuity=1.287792499e-06 corrected_mass=3.526267651e-08 max_u=1.662333012
+V6_ITER backend=metal mode=cold-hybrid iteration=1400 u=1.913932736e-07 v=1.743399418e-07 w=1.559381873e-07 k=9.530060797e-08 omega=1.537635609e-06 continuity=1.236046968e-06 corrected_mass=3.47886665e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=1450 u=2.363832712e-07 v=2.656743943e-07 w=2.721278162e-07 k=9.906653432e-08 omega=1.532934183e-06 continuity=1.949915546e-06 corrected_mass=3.508028596e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=1500 u=2.027590142e-07 v=1.623243124e-07 w=1.531346839e-07 k=9.869797375e-08 omega=1.532772897e-06 continuity=1.908383034e-06 corrected_mass=3.576290519e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=1550 u=2.573673045e-07 v=3.033851855e-07 w=3.124626269e-07 k=9.918861248e-08 omega=1.535900469e-06 continuity=1.306560157e-06 corrected_mass=3.458907496e-08 max_u=1.662332892
+V6_ITER backend=metal mode=cold-hybrid iteration=1600 u=2.087298674e-07 v=1.662221347e-07 w=1.599787791e-07 k=9.710828314e-08 omega=1.538583557e-06 continuity=1.254441255e-06 corrected_mass=3.491762916e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=1650 u=1.979264577e-07 v=1.672094651e-07 w=1.547580007e-07 k=9.651538428e-08 omega=1.53062467e-06 continuity=1.223313158e-06 corrected_mass=3.564733476e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=1700 u=2.125604858e-07 v=1.945655943e-07 w=1.909991412e-07 k=9.712836833e-08 omega=1.52853676e-06 continuity=1.201962826e-06 corrected_mass=3.56805483e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=1750 u=2.976788353e-07 v=3.458317392e-07 w=3.677665126e-07 k=1.074056141e-07 omega=1.550652313e-06 continuity=2.211132607e-06 corrected_mass=3.612776439e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=1800 u=1.817289713e-07 v=1.489049436e-07 w=1.278879378e-07 k=9.641481519e-08 omega=1.53458267e-06 continuity=1.175852066e-06 corrected_mass=3.404406919e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=1850 u=2.126586937e-07 v=2.085822601e-07 w=2.050283992e-07 k=9.700822194e-08 omega=1.524257349e-06 continuity=1.483989162e-06 corrected_mass=3.52365105e-08 max_u=1.662333608
+V6_ITER backend=metal mode=cold-hybrid iteration=1900 u=1.901924176e-07 v=1.616801345e-07 w=1.414937314e-07 k=9.718670411e-08 omega=1.527581869e-06 continuity=1.245603903e-06 corrected_mass=3.51047329e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=1950 u=2.335616653e-07 v=2.498919501e-07 w=2.475508091e-07 k=9.715924599e-08 omega=1.532986323e-06 continuity=1.358540686e-06 corrected_mass=3.489762605e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=2000 u=1.931122961e-07 v=1.598428589e-07 w=1.487101637e-07 k=9.822939263e-08 omega=1.530615654e-06 continuity=1.543016771e-06 corrected_mass=3.510497069e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=2050 u=1.870834579e-07 v=1.544335763e-07 w=1.361406872e-07 k=9.530004423e-08 omega=1.52546294e-06 continuity=1.338296484e-06 corrected_mass=3.46634735e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=2100 u=2.030634432e-07 v=1.993527532e-07 w=1.829209023e-07 k=9.766391351e-08 omega=1.53124311e-06 continuity=1.442940921e-06 corrected_mass=3.415551732e-08 max_u=1.662333012
+V6_ITER backend=metal mode=cold-hybrid iteration=2150 u=1.916379352e-07 v=1.568077547e-07 w=1.38216284e-07 k=9.962400308e-08 omega=1.532842447e-06 continuity=1.838787105e-06 corrected_mass=3.577598233e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=2200 u=1.99316183e-07 v=1.729864249e-07 w=1.588549198e-07 k=9.745595666e-08 omega=1.537887828e-06 continuity=1.145972169e-06 corrected_mass=3.516697223e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=2250 u=2.313633533e-07 v=2.433007582e-07 w=2.365438343e-07 k=9.952981903e-08 omega=1.529595526e-06 continuity=1.748376737e-06 corrected_mass=3.52001193e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=2300 u=1.925948823e-07 v=1.577776588e-07 w=1.356115305e-07 k=1.031987411e-07 omega=1.534695957e-06 continuity=1.993648775e-06 corrected_mass=3.552831966e-08 max_u=1.662332773
+V6_ITER backend=metal mode=cold-hybrid iteration=2350 u=2.143689978e-07 v=1.849707011e-07 w=1.780416388e-07 k=9.905821026e-08 omega=1.534200828e-06 continuity=1.464561286e-06 corrected_mass=3.516135344e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=2400 u=1.880735544e-07 v=1.774054665e-07 w=1.596498312e-07 k=9.562644389e-08 omega=1.52512281e-06 continuity=1.511061726e-06 corrected_mass=3.461865726e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=2450 u=1.940316673e-07 v=1.674058226e-07 w=1.513674033e-07 k=1.030089476e-07 omega=1.541979775e-06 continuity=2.347592788e-06 corrected_mass=3.502284065e-08 max_u=1.662333369
+V6_ITER backend=metal mode=cold-hybrid iteration=2500 u=2.211165314e-07 v=2.122679482e-07 w=2.16827174e-07 k=9.592319182e-08 omega=1.532555291e-06 continuity=1.511467966e-06 corrected_mass=3.498910798e-08 max_u=1.66233325
+V6_ITER backend=metal mode=cold-hybrid iteration=2550 u=1.887610981e-07 v=1.595327893e-07 w=1.428587491e-07 k=9.540519903e-08 omega=1.529522401e-06 continuity=1.23882548e-06 corrected_mass=3.429304791e-08 max_u=1.662333131
+V6_ITER backend=metal mode=cold-hybrid iteration=2600 u=1.987684545e-07 v=1.659069611e-07 w=1.519941009e-07 k=9.761790432e-08 omega=1.538445279e-06 continuity=1.591103444e-06 corrected_mass=3.472424945e-08 max_u=1.66233325
+<checkout>/tests/fv/test_fluent_elbow.cpp:98: FATAL ERROR: test case CRASHED: SIGTERM - Termination request signal
+
+===============================================================================
+[doctest] test cases:    1 |    0 passed | 1 failed | 215 skipped
+[doctest] assertions: 2738 | 2731 passed | 7 failed |
+[doctest] Status: FAILURE!

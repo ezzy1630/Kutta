@@ -1,0 +1,16 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+<checkout>/tests/case/test_case.cpp:287:
+TEST CASE:  Static mixer typed settings agree across CFF ASCII and binary legacy
+
+<checkout>/tests/case/test_case.cpp:74: ERROR: CHECK( a.viscous == b.viscous ) is NOT correct!
+  values: CHECK( {?} == {?} )
+
+<checkout>/tests/case/test_case.cpp:74: ERROR: CHECK( a.viscous == b.viscous ) is NOT correct!
+  values: CHECK( {?} == {?} )
+
+===============================================================================
+[doctest] test cases:  1 |  0 passed | 1 failed | 212 skipped
+[doctest] assertions: 64 | 62 passed | 2 failed |
+[doctest] Status: FAILURE!

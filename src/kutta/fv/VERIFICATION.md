@@ -2658,3 +2658,20 @@ formulas from wall-treatment interpretations, missing algorithms and case
 selector provenance. No external realizable-code execution, Fluent same-mesh
 comparison, separately converged default-no-ft2 SA study, or new model release
 is claimed. Existing V1-V6 slow gates were not rerun or reclassified in this lane.
+
+## Polyhedral pressure and viscous-flux investigation (2026-10-30)
+
+The [manufactured checks and rejected numerical trials](../../../validation/results/poly_pressure/REPORT.md)
+reproduce V7.2's polyhedral pressure error and identify a large viscosity-dependent
+azimuthal pressure mode. Quadratic pressure face values converge at about second
+order; quadratic viscous normal derivatives on fine/coarse radial faces and at
+walls converge at about first order, even with exact velocity gradients.
+The existing non-orthogonal diffusion split matches its independent double oracle.
+
+Momentum-weighted side velocity reconstructions pass the unchanged V7.2 test,
+with .600827% poly pressure error on CPU and Metal, but introduce V2 failures
+and stall the V6 seeded solve. Wall-stress and pressure-gradient combinations
+also fail regression gates. All numerical trials were reverted; the retained
+solver code is identical to `fb827e0`. V7.2 remains at 1.69127%, and the native
+rotating-wall adapter remains rejected. This investigation does not supply an
+accepted numerical repair or a Fluent same-mesh comparison.

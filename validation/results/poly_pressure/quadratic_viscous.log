@@ -1,0 +1,30 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+POLY_VISCOUS backend=cpu nr=8 component=0 exact_grad=0 published_Linf=2.22166e-07 normal_derivative0=0.00460667 normal_derivative1=0.0302109 normal_derivative2=0.0389767 normal_derivative3=0.0788584 normal_derivative4=1.93979e-15
+POLY_VISCOUS backend=cpu nr=8 component=0 exact_grad=1 published_Linf=2.32045e-07 normal_derivative0=0.00460667 normal_derivative1=0.0270864 normal_derivative2=0.0389767 normal_derivative3=0.0793192 normal_derivative4=1.95785e-15
+POLY_VISCOUS backend=cpu nr=8 component=1 exact_grad=0 published_Linf=2.96995e-07 normal_derivative0=0.00921334 normal_derivative1=0.0572482 normal_derivative2=0.0450063 normal_derivative3=0.145116 normal_derivative4=2.41028e-15
+POLY_VISCOUS backend=cpu nr=8 component=1 exact_grad=1 published_Linf=4.32888e-07 normal_derivative0=0.00921334 normal_derivative1=0.0540741 normal_derivative2=0.0450063 normal_derivative3=0.142792 normal_derivative4=2.41964e-15
+POLY_VISCOUS backend=cpu nr=16 component=0 exact_grad=0 published_Linf=2.78144e-07 normal_derivative0=0.00113608 normal_derivative1=0.0146998 normal_derivative2=0.0193241 normal_derivative3=0.0419988 normal_derivative4=1.76462e-15
+POLY_VISCOUS backend=cpu nr=16 component=0 exact_grad=1 published_Linf=2.79487e-07 normal_derivative0=0.00113608 normal_derivative1=0.0136319 normal_derivative2=0.0193241 normal_derivative3=0.0420324 normal_derivative4=1.76685e-15
+POLY_VISCOUS backend=cpu nr=16 component=1 exact_grad=0 published_Linf=5.25825e-07 normal_derivative0=0.00227216 normal_derivative1=0.0277739 normal_derivative2=0.0223137 normal_derivative3=0.0747024 normal_derivative4=2.05259e-15
+POLY_VISCOUS backend=cpu nr=16 component=1 exact_grad=1 published_Linf=4.86654e-07 normal_derivative0=0.00227216 normal_derivative1=0.0272513 normal_derivative2=0.0223137 normal_derivative3=0.0739259 normal_derivative4=2.05523e-15
+POLY_VISCOUS backend=cpu nr=32 component=0 exact_grad=0 published_Linf=3.50279e-07 normal_derivative0=0.000281935 normal_derivative1=0.00730891 normal_derivative2=0.00961636 normal_derivative3=0.0216599 normal_derivative4=1.83989e-15
+POLY_VISCOUS backend=cpu nr=32 component=0 exact_grad=1 published_Linf=3.30743e-07 normal_derivative0=0.000281935 normal_derivative1=0.00683831 normal_derivative2=0.00961636 normal_derivative3=0.0216536 normal_derivative4=1.8417e-15
+POLY_VISCOUS backend=cpu nr=32 component=1 exact_grad=0 published_Linf=6.94176e-07 normal_derivative0=0.000563867 normal_derivative1=0.0137957 normal_derivative2=0.0111045 normal_derivative3=0.0378466 normal_derivative4=2.04006e-15
+POLY_VISCOUS backend=cpu nr=32 component=1 exact_grad=1 published_Linf=5.17372e-07 normal_derivative0=0.000563867 normal_derivative1=0.013675 normal_derivative2=0.0111045 normal_derivative3=0.0376235 normal_derivative4=2.03952e-15
+POLY_VISCOUS backend=metal nr=8 component=0 exact_grad=0 published_Linf=2.22166e-07 normal_derivative0=0.00460667 normal_derivative1=0.0302109 normal_derivative2=0.0389767 normal_derivative3=0.0788584 normal_derivative4=1.93979e-15
+POLY_VISCOUS backend=metal nr=8 component=0 exact_grad=1 published_Linf=2.32045e-07 normal_derivative0=0.00460667 normal_derivative1=0.0270864 normal_derivative2=0.0389767 normal_derivative3=0.0793192 normal_derivative4=1.95785e-15
+POLY_VISCOUS backend=metal nr=8 component=1 exact_grad=0 published_Linf=2.96995e-07 normal_derivative0=0.00921334 normal_derivative1=0.0572482 normal_derivative2=0.0450063 normal_derivative3=0.145116 normal_derivative4=2.41028e-15
+POLY_VISCOUS backend=metal nr=8 component=1 exact_grad=1 published_Linf=4.32888e-07 normal_derivative0=0.00921334 normal_derivative1=0.0540741 normal_derivative2=0.0450063 normal_derivative3=0.142792 normal_derivative4=2.41964e-15
+POLY_VISCOUS backend=metal nr=16 component=0 exact_grad=0 published_Linf=2.78144e-07 normal_derivative0=0.00113608 normal_derivative1=0.0146998 normal_derivative2=0.0193241 normal_derivative3=0.0419988 normal_derivative4=1.76462e-15
+POLY_VISCOUS backend=metal nr=16 component=0 exact_grad=1 published_Linf=2.79487e-07 normal_derivative0=0.00113608 normal_derivative1=0.0136319 normal_derivative2=0.0193241 normal_derivative3=0.0420324 normal_derivative4=1.76685e-15
+POLY_VISCOUS backend=metal nr=16 component=1 exact_grad=0 published_Linf=5.25825e-07 normal_derivative0=0.00227216 normal_derivative1=0.0277739 normal_derivative2=0.0223137 normal_derivative3=0.0747024 normal_derivative4=2.05259e-15
+POLY_VISCOUS backend=metal nr=16 component=1 exact_grad=1 published_Linf=4.86654e-07 normal_derivative0=0.00227216 normal_derivative1=0.0272513 normal_derivative2=0.0223137 normal_derivative3=0.0739259 normal_derivative4=2.05523e-15
+POLY_VISCOUS backend=metal nr=32 component=0 exact_grad=0 published_Linf=3.50279e-07 normal_derivative0=0.000281935 normal_derivative1=0.00730891 normal_derivative2=0.00961636 normal_derivative3=0.0216599 normal_derivative4=1.83989e-15
+POLY_VISCOUS backend=metal nr=32 component=0 exact_grad=1 published_Linf=3.30743e-07 normal_derivative0=0.000281935 normal_derivative1=0.00683831 normal_derivative2=0.00961636 normal_derivative3=0.0216536 normal_derivative4=1.8417e-15
+POLY_VISCOUS backend=metal nr=32 component=1 exact_grad=0 published_Linf=6.94176e-07 normal_derivative0=0.000563867 normal_derivative1=0.0137957 normal_derivative2=0.0111045 normal_derivative3=0.0378466 normal_derivative4=2.04006e-15
+POLY_VISCOUS backend=metal nr=32 component=1 exact_grad=1 published_Linf=5.17372e-07 normal_derivative0=0.000563867 normal_derivative1=0.013675 normal_derivative2=0.0111045 normal_derivative3=0.0376235 normal_derivative4=2.03952e-15
+===============================================================================
+[doctest] test cases:  1 |  1 passed | 0 failed | 215 skipped
+[doctest] assertions: 24 | 24 passed | 0 failed |
+[doctest] Status: SUCCESS!

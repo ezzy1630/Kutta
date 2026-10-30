@@ -1,0 +1,118 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FV_V2_PROGRESS backend=cpu tet=0 n=8 iter=20 ru=0.000159985 rv=0.000160209 rc=0.0046546 rc_raw=8.0015e-05
+FV_V2_LAYER backend=cpu n=8 layer=1 volume_fraction=0.4375 u_L2=0.0862567 p_L2=0.0529854 p_square_integral=0.000153533
+FV_V2_LAYER backend=cpu n=8 layer=2 volume_fraction=0.3125 u_L2=0.068134 p_L2=0.0207534 p_square_integral=1.68244e-05
+FV_V2_LAYER backend=cpu n=8 layer=3 volume_fraction=0.25 u_L2=0.0353716 p_L2=0.0873052 p_square_integral=0.000238194
+FV_V2_BOUNDARY backend=cpu tet=0 n=8 interior_p_L2=-1 excluding_walls_p_L2=0.060224 p_Linf=0.120122 at=0.4375,0.5625,0.0625 boundary=1 wall=0
+FV_V2 backend=cpu tet=0 n=8 iterations=80 u_L2=0.070842 p_L2=0.05717 ru=4.94105e-08 rv=4.37282e-08 rw=0 rc_raw=2.25846e-07 corrected_mass=3.83006e-08
+FV_V2_FORCE backend=cpu tet=0 n=8 pressure_x=-0.359479 viscous_y=-0.326872 viscous_x=0 pressure_error=0.041169 viscous_error=0.00646087 total_error=0.0416729
+FV_V2_PROGRESS backend=cpu tet=0 n=16 iter=20 ru=8.77029e-05 rv=8.7666e-05 rc=0.00436622 rc_raw=1.22187e-05
+FV_V2_LAYER backend=cpu n=16 layer=1 volume_fraction=0.234375 u_L2=0.0235197 p_L2=0.0187517 p_square_integral=5.15075e-06
+FV_V2_LAYER backend=cpu n=16 layer=2 volume_fraction=0.203125 u_L2=0.0233852 p_L2=0.0178895 p_square_integral=4.06295e-06
+FV_V2_LAYER backend=cpu n=16 layer=3 volume_fraction=0.5625 u_L2=0.0180452 p_L2=0.0193631 p_square_integral=1.31811e-05
+FV_V2_BOUNDARY backend=cpu tet=0 n=16 interior_p_L2=-1 excluding_walls_p_L2=0.0189833 p_Linf=0.042895 at=0.53125,0.53125,0.03125 boundary=1 wall=0
+FV_V2 backend=cpu tet=0 n=16 iterations=180 u_L2=0.0205888 p_L2=0.0189293 ru=8.45342e-08 rv=8.51653e-08 rw=0 rc_raw=8.90141e-08 corrected_mass=3.17123e-08
+FV_V2_FORCE backend=cpu tet=0 n=16 pressure_x=-0.330158 viscous_y=-0.332054 viscous_x=0 pressure_error=0.0118484 viscous_error=0.00127901 total_error=0.0119173
+FV_V2_ORDER backend=cpu tet=0 n=16 u=1.78274 p=1.59464 momentum_operator=1.36247 wall_pressure=1.79686 wall_viscous=2.3367 wall_total=1.80605
+FV_V2_PROGRESS backend=cpu tet=0 n=32 iter=20 ru=1.97928e-05 rv=1.97834e-05 rc=0.00150845 rc_raw=6.31862e-07
+FV_V2_PROGRESS backend=cpu tet=0 n=32 iter=220 ru=1.50068e-07 rv=1.52289e-07 rc=0.000410694 rc_raw=1.72032e-07
+FV_V2_LAYER backend=cpu n=32 layer=1 volume_fraction=0.121094 u_L2=0.00601079 p_L2=0.0058553 p_square_integral=1.29739e-07
+FV_V2_LAYER backend=cpu n=32 layer=2 volume_fraction=0.113281 u_L2=0.00615209 p_L2=0.008059 p_square_integral=2.29917e-07
+FV_V2_LAYER backend=cpu n=32 layer=3 volume_fraction=0.765625 u_L2=0.00537183 p_L2=0.00496483 p_square_integral=5.8976e-07
+FV_V2_BOUNDARY backend=cpu tet=0 n=32 interior_p_L2=-1 excluding_walls_p_L2=0.00546292 p_Linf=0.013832 at=0.796875,0.046875,0.015625 boundary=1 wall=0
+FV_V2 backend=cpu tet=0 n=32 iterations=260 u_L2=0.0055458 p_L2=0.00551192 ru=8.7372e-08 rv=8.58547e-08 rw=0 rc_raw=1.97051e-07 corrected_mass=2.80475e-08
+FV_V2_FORCE backend=cpu tet=0 n=32 pressure_x=-0.321563 viscous_y=-0.333101 viscous_x=0 pressure_error=0.00325357 viscous_error=0.000231936 total_error=0.00326183
+FV_V2_ORDER backend=cpu tet=0 n=32 u=1.89239 p=1.77999 momentum_operator=1.48554 wall_pressure=1.8646 wall_viscous=2.46322 wall_total=1.8693
+===============================================================================
+<checkout>/tests/fv/test_navier_stokes.cpp:164:
+TEST SUITE: slow
+TEST CASE:  FV V2 manufactured Navier Stokes hex refinement
+
+<checkout>/tests/fv/test_navier_stokes.cpp:154: ERROR: CHECK( ou>=1.9 ) is NOT correct!
+  values: CHECK( 1.89239 >= 1.9 )
+  logged: backend: cpu
+
+<checkout>/tests/fv/test_navier_stokes.cpp:156: ERROR: CHECK( op>=1.8 ) is NOT correct!
+  values: CHECK( 1.77999 >= 1.8 )
+  logged: backend: cpu
+
+FV_V2_PROGRESS backend=metal tet=0 n=8 iter=20 ru=0.000159985 rv=0.000160209 rc=0.0046546 rc_raw=8.0015e-05
+FV_V2_LAYER backend=metal n=8 layer=1 volume_fraction=0.4375 u_L2=0.0862567 p_L2=0.0529854 p_square_integral=0.000153533
+FV_V2_LAYER backend=metal n=8 layer=2 volume_fraction=0.3125 u_L2=0.068134 p_L2=0.0207534 p_square_integral=1.68244e-05
+FV_V2_LAYER backend=metal n=8 layer=3 volume_fraction=0.25 u_L2=0.0353716 p_L2=0.0873052 p_square_integral=0.000238194
+FV_V2_BOUNDARY backend=metal tet=0 n=8 interior_p_L2=-1 excluding_walls_p_L2=0.060224 p_Linf=0.120122 at=0.4375,0.5625,0.0625 boundary=1 wall=0
+FV_V2 backend=metal tet=0 n=8 iterations=80 u_L2=0.070842 p_L2=0.05717 ru=4.94105e-08 rv=4.37282e-08 rw=0 rc_raw=2.25846e-07 corrected_mass=3.83006e-08
+FV_V2_FORCE backend=metal tet=0 n=8 pressure_x=-0.359479 viscous_y=-0.326872 viscous_x=0 pressure_error=0.041169 viscous_error=0.00646087 total_error=0.0416729
+FV_V2_PROGRESS backend=metal tet=0 n=16 iter=20 ru=8.77029e-05 rv=8.7666e-05 rc=0.00436622 rc_raw=1.22187e-05
+FV_V2_LAYER backend=metal n=16 layer=1 volume_fraction=0.234375 u_L2=0.0235197 p_L2=0.0187517 p_square_integral=5.15075e-06
+FV_V2_LAYER backend=metal n=16 layer=2 volume_fraction=0.203125 u_L2=0.0233852 p_L2=0.0178895 p_square_integral=4.06295e-06
+FV_V2_LAYER backend=metal n=16 layer=3 volume_fraction=0.5625 u_L2=0.0180452 p_L2=0.0193631 p_square_integral=1.31811e-05
+FV_V2_BOUNDARY backend=metal tet=0 n=16 interior_p_L2=-1 excluding_walls_p_L2=0.0189833 p_Linf=0.042895 at=0.53125,0.53125,0.03125 boundary=1 wall=0
+FV_V2 backend=metal tet=0 n=16 iterations=180 u_L2=0.0205888 p_L2=0.0189293 ru=8.45342e-08 rv=8.51653e-08 rw=0 rc_raw=8.90141e-08 corrected_mass=3.17123e-08
+FV_V2_FORCE backend=metal tet=0 n=16 pressure_x=-0.330158 viscous_y=-0.332054 viscous_x=0 pressure_error=0.0118484 viscous_error=0.00127901 total_error=0.0119173
+FV_V2_ORDER backend=metal tet=0 n=16 u=1.78274 p=1.59464 momentum_operator=1.36247 wall_pressure=1.79686 wall_viscous=2.3367 wall_total=1.80605
+FV_V2_PROGRESS backend=metal tet=0 n=32 iter=20 ru=1.97928e-05 rv=1.97834e-05 rc=0.00150845 rc_raw=6.31862e-07
+FV_V2_PROGRESS backend=metal tet=0 n=32 iter=220 ru=1.50068e-07 rv=1.52289e-07 rc=0.000410694 rc_raw=1.72032e-07
+FV_V2_LAYER backend=metal n=32 layer=1 volume_fraction=0.121094 u_L2=0.00601079 p_L2=0.0058553 p_square_integral=1.29739e-07
+FV_V2_LAYER backend=metal n=32 layer=2 volume_fraction=0.113281 u_L2=0.00615209 p_L2=0.008059 p_square_integral=2.29917e-07
+FV_V2_LAYER backend=metal n=32 layer=3 volume_fraction=0.765625 u_L2=0.00537183 p_L2=0.00496483 p_square_integral=5.8976e-07
+FV_V2_BOUNDARY backend=metal tet=0 n=32 interior_p_L2=-1 excluding_walls_p_L2=0.00546292 p_Linf=0.013832 at=0.796875,0.046875,0.015625 boundary=1 wall=0
+FV_V2 backend=metal tet=0 n=32 iterations=260 u_L2=0.0055458 p_L2=0.00551192 ru=8.7372e-08 rv=8.58547e-08 rw=0 rc_raw=1.97051e-07 corrected_mass=2.80475e-08
+FV_V2_FORCE backend=metal tet=0 n=32 pressure_x=-0.321563 viscous_y=-0.333101 viscous_x=0 pressure_error=0.00325357 viscous_error=0.000231936 total_error=0.00326183
+FV_V2_ORDER backend=metal tet=0 n=32 u=1.89239 p=1.77999 momentum_operator=1.48554 wall_pressure=1.8646 wall_viscous=2.46322 wall_total=1.8693
+<checkout>/tests/fv/test_navier_stokes.cpp:154: ERROR: CHECK( ou>=1.9 ) is NOT correct!
+  values: CHECK( 1.89239 >= 1.9 )
+  logged: backend: metal
+
+<checkout>/tests/fv/test_navier_stokes.cpp:156: ERROR: CHECK( op>=1.8 ) is NOT correct!
+  values: CHECK( 1.77999 >= 1.8 )
+  logged: backend: metal
+
+FV_V2_PROGRESS backend=cpu tet=1 n=4 iter=20 ru=0.000333081 rv=0.000389866 rc=0.00555464 rc_raw=0.0044911
+FV_V2_BOUNDARY backend=cpu tet=1 n=4 interior_p_L2=0.148366 excluding_walls_p_L2=0.150135 p_Linf=0.413593 at=0.125,0.1875,0.8125 boundary=0 wall=0
+FV_V2 backend=cpu tet=1 n=4 iterations=100 u_L2=0.147464 p_L2=0.153895 ru=5.77463e-08 rv=5.1694e-08 rw=4.03503e-08 rc_raw=1.03256e-06 corrected_mass=3.85829e-07
+FV_V2_FORCE backend=cpu tet=1 n=4 pressure_x=-0.402985 viscous_y=-0.34475 viscous_x=0 pressure_error=0.0846754 viscous_error=0.0121698 total_error=0.0855455
+FV_V2_PROGRESS backend=cpu tet=1 n=8 iter=20 ru=0.000139957 rv=0.000143345 rc=0.00769135 rc_raw=0.00341154
+FV_V2_BOUNDARY backend=cpu tet=1 n=8 interior_p_L2=0.0815211 excluding_walls_p_L2=0.08271 p_Linf=0.284114 at=0.1875,0.09375,0.03125 boundary=1 wall=0
+FV_V2 backend=cpu tet=1 n=8 iterations=180 u_L2=0.0437303 p_L2=0.0793859 ru=5.66567e-08 rv=6.13274e-08 rw=3.53505e-08 rc_raw=1.61408e-06 corrected_mass=6.50656e-07
+FV_V2_FORCE backend=cpu tet=1 n=8 pressure_x=-0.335803 viscous_y=-0.341468 viscous_x=0 pressure_error=0.0174931 viscous_error=0.00836949 total_error=0.0193922
+FV_V2_ORDER backend=cpu tet=1 n=8 u=1.75366 p=0.954995 momentum_operator=1.02537 wall_pressure=2.27516 wall_viscous=0.540099 wall_total=2.14121
+FV_V2_PROGRESS backend=cpu tet=1 n=16 iter=20 ru=4.93234e-05 rv=4.94518e-05 rc=0.00869955 rc_raw=0.00195875
+FV_V2_PROGRESS backend=cpu tet=1 n=16 iter=220 ru=1.1462e-07 rv=2.68795e-07 rc=1.98143e-05 rc_raw=4.46129e-06
+FV_V2_BOUNDARY backend=cpu tet=1 n=16 interior_p_L2=0.0465728 excluding_walls_p_L2=0.0469529 p_Linf=0.188608 at=0.21875,0.046875,0.015625 boundary=1 wall=0
+FV_V2 backend=cpu tet=1 n=16 iterations=320 u_L2=0.0110478 p_L2=0.0456988 ru=5.20566e-08 rv=9.40018e-08 rw=9.62527e-08 rc_raw=3.31006e-06 corrected_mass=1.26964e-06
+FV_V2_FORCE backend=cpu tet=1 n=16 pressure_x=-0.321418 viscous_y=-0.334971 viscous_x=0 pressure_error=0.00310849 viscous_error=0.00185016 total_error=0.00361742
+FV_V2_ORDER backend=cpu tet=1 n=16 u=1.98487 p=0.796726 momentum_operator=1.01406 wall_pressure=2.4925 wall_viscous=2.17749 wall_total=2.42244
+===============================================================================
+<checkout>/tests/fv/test_navier_stokes.cpp:167:
+TEST SUITE: slow
+TEST CASE:  FV V2 manufactured Navier Stokes tet refinement
+
+<checkout>/tests/fv/test_navier_stokes.cpp:155: ERROR: CHECK( op>=operator_order-.1 ) is NOT correct!
+  values: CHECK( 0.796726 >= 0.914063 )
+  logged: backend: cpu
+
+FV_V2_PROGRESS backend=metal tet=1 n=4 iter=20 ru=0.000333081 rv=0.000389866 rc=0.00555464 rc_raw=0.0044911
+FV_V2_BOUNDARY backend=metal tet=1 n=4 interior_p_L2=0.148366 excluding_walls_p_L2=0.150135 p_Linf=0.413593 at=0.125,0.1875,0.8125 boundary=0 wall=0
+FV_V2 backend=metal tet=1 n=4 iterations=100 u_L2=0.147464 p_L2=0.153895 ru=5.77463e-08 rv=5.1694e-08 rw=4.03503e-08 rc_raw=1.03256e-06 corrected_mass=3.85829e-07
+FV_V2_FORCE backend=metal tet=1 n=4 pressure_x=-0.402985 viscous_y=-0.34475 viscous_x=0 pressure_error=0.0846754 viscous_error=0.0121698 total_error=0.0855455
+FV_V2_PROGRESS backend=metal tet=1 n=8 iter=20 ru=0.000139957 rv=0.000143345 rc=0.00769135 rc_raw=0.00341154
+FV_V2_BOUNDARY backend=metal tet=1 n=8 interior_p_L2=0.0815211 excluding_walls_p_L2=0.08271 p_Linf=0.284114 at=0.1875,0.09375,0.03125 boundary=1 wall=0
+FV_V2 backend=metal tet=1 n=8 iterations=180 u_L2=0.0437303 p_L2=0.0793859 ru=5.66567e-08 rv=6.13274e-08 rw=3.53505e-08 rc_raw=1.61408e-06 corrected_mass=6.50656e-07
+FV_V2_FORCE backend=metal tet=1 n=8 pressure_x=-0.335803 viscous_y=-0.341468 viscous_x=0 pressure_error=0.0174931 viscous_error=0.00836949 total_error=0.0193922
+FV_V2_ORDER backend=metal tet=1 n=8 u=1.75366 p=0.954995 momentum_operator=1.02537 wall_pressure=2.27516 wall_viscous=0.540099 wall_total=2.14121
+FV_V2_PROGRESS backend=metal tet=1 n=16 iter=20 ru=4.93234e-05 rv=4.94518e-05 rc=0.00869955 rc_raw=0.00195875
+FV_V2_PROGRESS backend=metal tet=1 n=16 iter=220 ru=1.1462e-07 rv=2.68795e-07 rc=1.98143e-05 rc_raw=4.46129e-06
+FV_V2_BOUNDARY backend=metal tet=1 n=16 interior_p_L2=0.0465728 excluding_walls_p_L2=0.0469529 p_Linf=0.188608 at=0.21875,0.046875,0.015625 boundary=1 wall=0
+FV_V2 backend=metal tet=1 n=16 iterations=320 u_L2=0.0110478 p_L2=0.0456988 ru=5.20566e-08 rv=9.40018e-08 rw=9.62527e-08 rc_raw=3.31006e-06 corrected_mass=1.26964e-06
+FV_V2_FORCE backend=metal tet=1 n=16 pressure_x=-0.321418 viscous_y=-0.334971 viscous_x=0 pressure_error=0.00310849 viscous_error=0.00185016 total_error=0.00361742
+FV_V2_ORDER backend=metal tet=1 n=16 u=1.98487 p=0.796726 momentum_operator=1.01406 wall_pressure=2.4925 wall_viscous=2.17749 wall_total=2.42244
+<checkout>/tests/fv/test_navier_stokes.cpp:155: ERROR: CHECK( op>=operator_order-.1 ) is NOT correct!
+  values: CHECK( 0.796726 >= 0.914063 )
+  logged: backend: metal
+
+===============================================================================
+[doctest] test cases:  2 |  0 passed | 2 failed | 214 skipped
+[doctest] assertions: 34 | 28 passed | 6 failed |
+[doctest] Status: FAILURE!
