@@ -30,3 +30,7 @@ __pycache__/
 /validation/data/ghia1982_cavity/raw/gist_ivan-pi_ghiau.txt
 /validation/data/ghia1982_cavity/raw/psiboil_Ghia-u.dat
 /validation/data/ghia1982_cavity/raw/psiboil_Ghia-v.dat
+
+# Derived by tools/prepare_tmr.py from checksum-verified bundled gzip fixtures.
+/validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt
+/validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.p2dfmt
