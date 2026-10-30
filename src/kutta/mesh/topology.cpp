@@ -1,5 +1,6 @@
 #include "kutta/mesh/topology.hpp"
 
+#include <algorithm>
 #include <map>
 #include <numeric>
 #include <queue>
@@ -181,40 +182,36 @@ MeshPermutation renumber_cells_rcm(PolyMesh& m) {
     }
   std::vector<Index> old_to_new(m.n_cells);
   for (Index c = 0; c < m.n_cells; ++c) old_to_new[p.cells_new_to_old[c]] = c;
-  std::vector<detail::Face> fs;
-  std::vector<Index> patch(m.n_faces(), -1);
+  // Faces are permuted in place of the CSR arrays: one detail::Face (and node
+  // vector) per face would cost millions of small allocations that macOS
+  // keeps resident after they are freed. The result equals detail::pack of
+  // the same faces: it would keep this order and these patch ranges.
+  const auto faces = m.n_faces(), internal = m.n_internal_faces();
+  std::vector<Index> patch(faces, -1), owner(faces), neighbour(faces, -1);
+  std::vector<bool> flipped(faces);
   for (Index i = 0; i < detail::index(m.patches.size()); ++i)
     for (Index f = m.patches[i].start;
          f < m.patches[i].start + m.patches[i].size; ++f)
       patch[f] = i;
-  for (Index f = 0; f < m.n_faces(); ++f) {
-    auto ns = detail::nodes(m, f);
-    detail::Face face{
-        {ns.begin(), ns.end()},
-        old_to_new[m.owner[f]],
-        f < m.n_internal_faces() ? old_to_new[m.neighbour[f]] : -1,
-        patch[f]};
-    if (face.neighbour >= 0 && face.owner > face.neighbour) {
-      std::swap(face.owner, face.neighbour);
-      std::reverse(face.nodes.begin(), face.nodes.end());
+  for (Index f = 0; f < faces; ++f) {
+    owner[f] = old_to_new[m.owner[f]];
+    if (f < internal) neighbour[f] = old_to_new[m.neighbour[f]];
+    if (neighbour[f] >= 0 && owner[f] > neighbour[f]) {
+      std::swap(owner[f], neighbour[f]);
+      flipped[f] = true;
     }
-    fs.push_back(std::move(face));
   }
-  p.faces_new_to_old.resize(m.n_faces());
+  p.faces_new_to_old.resize(faces);
   std::iota(p.faces_new_to_old.begin(), p.faces_new_to_old.end(), 0);
   std::stable_sort(
       p.faces_new_to_old.begin(), p.faces_new_to_old.end(),
       [&](Index a, Index b) {
-        const auto& x = fs[a];
-        const auto& y = fs[b];
-        return std::tuple(x.neighbour < 0, x.patch, x.owner, x.neighbour) <
-               std::tuple(y.neighbour < 0, y.patch, y.owner, y.neighbour);
+        return std::tuple(neighbour[a] < 0, patch[a], owner[a], neighbour[a]) <
+               std::tuple(neighbour[b] < 0, patch[b], owner[b], neighbour[b]);
       });
   auto zones = m.cell_zones;
   for (auto& z : zones)
     for (auto& c : z.cells) c = old_to_new[c];
-  std::vector<detail::Face> ordered;
-  for (auto f : p.faces_new_to_old) ordered.push_back(std::move(fs[f]));
   auto face_zones=std::move(m.internal_face_zones);
   std::vector<Index> inverse_faces(m.n_faces());
   for(Index f=0;f<m.n_faces();++f) inverse_faces[p.faces_new_to_old[f]]=f;
@@ -224,9 +221,27 @@ MeshPermutation renumber_cells_rcm(PolyMesh& m) {
     if(old_to_new[m.owner[f]]>old_to_new[m.neighbour[f]]) face.direction=-face.direction;
     face.face=inverse_faces[f];
   }
-  // Already sorted by the same internal owner/neighbour key used by pack.
-  m = detail::pack(std::move(m.points), m.n_cells, std::move(ordered),
-                   std::move(m.patches), std::move(zones));
+  PolyMesh r;
+  r.points = std::move(m.points);
+  r.n_cells = m.n_cells;
+  r.cell_zones = std::move(zones);
+  r.owner.resize(faces);
+  r.neighbour.resize(internal);
+  r.face_offsets.resize(std::size_t(faces) + 1);
+  r.face_nodes.resize(m.face_nodes.size());
+  Index cursor = 0;
+  for (Index i = 0; i < faces; ++i) {
+    const auto f = p.faces_new_to_old[i];
+    r.owner[i] = owner[f];
+    if (i < internal) r.neighbour[i] = neighbour[f];
+    const auto ns = detail::nodes(m, f);
+    if (flipped[f]) std::reverse_copy(ns.begin(), ns.end(), r.face_nodes.begin() + cursor);
+    else std::copy(ns.begin(), ns.end(), r.face_nodes.begin() + cursor);
+    cursor += detail::index(ns.size());
+    r.face_offsets[i + 1] = cursor;
+  }
+  r.patches = std::move(m.patches);
+  m = std::move(r);
   m.internal_face_zones=std::move(face_zones);
   validate(m);
   return p;
