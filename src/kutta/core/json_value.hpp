@@ -28,6 +28,7 @@ struct Json {
 inline bool operator==(const Json& a,const Json& b) {return a.value==b.value;}
 // Strict JSON: duplicate keys, nonfinite numbers, invalid escapes and trailing
 // text are rejected. Input is bounded by the setup-file boundary (1 MiB).
-Json parse_json(std::string_view);
+// Trusted internal files (the post cache) may raise the limit.
+Json parse_json(std::string_view,std::size_t limit=1024*1024);
 std::string dump_json(const Json&);
 }

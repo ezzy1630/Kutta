@@ -48,6 +48,6 @@ void dump(std::ostream& s,const Json& j){
   std::visit([&](const auto& v){using T=std::decay_t<decltype(v)>;if constexpr(std::is_same_v<T,std::nullptr_t>)s<<"null";else if constexpr(std::is_same_v<T,bool>)s<<(v?"true":"false");else if constexpr(std::is_same_v<T,double>)json_number(s,v);else if constexpr(std::is_same_v<T,std::string>)s<<json_string(v);else {s<<(std::is_same_v<T,Json::Object>?'{':'[');bool first=true;for(const auto& entry:v){if(!first)s<<',';first=false;if constexpr(std::is_same_v<T,Json::Object>){s<<json_string(entry.first)<<':';dump(s,entry.second);}else dump(s,entry);}s<<(std::is_same_v<T,Json::Object>?'}':']');}},j.value);
 }
 }
-Json parse_json(std::string_view text){KUTTA_REQUIRE(text.size()<=1024*1024,"setup JSON exceeds 1 MiB");return Parser(text).parse();}
+Json parse_json(std::string_view text,std::size_t limit){KUTTA_REQUIRE(text.size()<=limit,limit==1024*1024?"setup JSON exceeds 1 MiB":"JSON exceeds size limit");return Parser(text).parse();}
 std::string dump_json(const Json& j){std::ostringstream s;s.imbue(std::locale::classic());s<<std::setprecision(17);dump(s,j);return s.str();}
 }

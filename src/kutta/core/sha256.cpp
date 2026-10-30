@@ -36,14 +36,22 @@ void compress(std::array<std::uint32_t,8>& h,const unsigned char* block) {
   for(int i=0;i<8;++i) h[i]+=state[i];
 }
 }
+static std::string sha256_stream(std::istream&,const std::string&);
+std::string sha256(std::string_view text) {
+  std::istringstream in{std::string(text)};
+  return sha256_stream(in,"text");
+}
 std::string sha256_file(const std::filesystem::path& path) {
   std::ifstream in(path,std::ios::binary);
   KUTTA_REQUIRE(in,"cannot hash input: "+path.string());
+  return sha256_stream(in,path.string());
+}
+static std::string sha256_stream(std::istream& in,const std::string& name) {
   std::array<std::uint32_t,8> h{0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19};
   std::array<unsigned char,64> block{};
   std::uint64_t bytes=0;
   while(in.read(reinterpret_cast<char*>(block.data()),64)) {compress(h,block.data());bytes+=64;}
-  KUTTA_REQUIRE(in.eof(),"failed reading input hash: "+path.string());
+  KUTTA_REQUIRE(in.eof(),"failed reading input hash: "+name);
   const auto tail=static_cast<std::size_t>(in.gcount());bytes+=tail;
   block[tail]=0x80;
   std::fill(block.begin()+tail+1,block.end(),0);
