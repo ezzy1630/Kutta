@@ -1,4 +1,6 @@
 #include <doctest/doctest.h>
+#include <algorithm>
+#include <iterator>
 
 #include <iomanip>
 #include <iostream>
@@ -98,24 +100,34 @@ TEST_CASE("real Fluent external mesh acceptance") {
     MESSAGE("SKIP: external Fluent examples directory is absent");
     return;
   }
-  // Inventory prevents an added or missing fixture from silently escaping the
-  // concrete acceptance expectations. Data-only files cannot supply a mesh.
+  // Inventory prevents an added fixture from silently escaping the concrete
+  // acceptance expectations. Only two fixtures are tracked; the rest are
+  // gitignored downloads (SOURCE.md), so absent ones are reported and skipped.
+  // Data-only files cannot supply a mesh.
   std::set<std::string> expected = data_files, found;
   for (const auto& e : examples) expected.insert(e.file);
   for (const auto& entry : std::filesystem::recursive_directory_iterator(root))
     if (entry.is_regular_file() && entry.path().extension() != ".md" &&
         !entry.path().filename().string().starts_with("LICENSE"))
       found.insert(entry.path().lexically_relative(root).generic_string());
-  REQUIRE(found == expected);
+  std::vector<std::string> unexpected, absent;
+  std::set_difference(found.begin(), found.end(), expected.begin(), expected.end(),
+                      std::back_inserter(unexpected));
+  std::set_difference(expected.begin(), expected.end(), found.begin(), found.end(),
+                      std::back_inserter(absent));
+  for (const auto& file : unexpected) FAIL_CHECK("fixture without expectations: " << file);
+  for (const auto& file : absent) MESSAGE("SKIP: fixture absent (see SOURCE.md): " << file);
 
   std::optional<PolyMesh> mixer;
   double mixer_volume = 0;
-  int checked = 0;
+  int checked = 0, readable = 0;
   for (const auto& e : examples) {
     const auto path = root / e.file;
+    if (!found.contains(e.file)) continue;
 #if !KUTTA_HAS_HDF5
     if (path.extension() == ".h5") continue;
 #endif
+    ++readable;
     INFO(e.file);
     try {
       auto m = read_mesh(path);
@@ -182,9 +194,10 @@ TEST_CASE("real Fluent external mesh acceptance") {
       FAIL_CHECK(std::string(error.what()));
     }
   }
+  CHECK(checked == readable);
 #if KUTTA_HAS_HDF5
-  CHECK(checked == 10);
   for (const auto& file : data_files) {
+    if (!found.contains(file)) continue;
     INFO(file);
     CHECK_THROWS_WITH_AS(read_mesh(root / file),
                          doctest::Contains("Unsupported mesh extension"), Error);
@@ -192,7 +205,6 @@ TEST_CASE("real Fluent external mesh acceptance") {
                          doctest::Contains("no /meshes/1 mesh"), Error);
   }
 #else
-  CHECK(checked == 4);
-  MESSAGE("SKIP: six CFF mesh cases and two data-only files require HDF5");
+  MESSAGE("SKIP: CFF mesh cases and data-only files require HDF5");
 #endif
 }

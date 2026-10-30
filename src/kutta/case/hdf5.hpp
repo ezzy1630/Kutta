@@ -51,8 +51,13 @@ inline void local_link(hid_t file, const std::string &path) {
   while (end < path.size()) {
     end = path.find('/', end);
     auto prefix = path.substr(0, end);
+#if H5_VERSION_GE(1, 12, 0)
     H5L_info2_t info{};
     check(H5Lget_info2(file, prefix.c_str(), &info, H5P_DEFAULT), prefix);
+#else  // Ubuntu 24.04 ships HDF5 1.10
+    H5L_info_t info{};
+    check(H5Lget_info(file, prefix.c_str(), &info, H5P_DEFAULT), prefix);
+#endif
     if (info.type != H5L_TYPE_HARD)
       throw std::runtime_error("non-local HDF5 link: " + prefix);
     if (end == std::string::npos)

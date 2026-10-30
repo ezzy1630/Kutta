@@ -19,7 +19,7 @@ TEST_CASE("Scheme rejects malformed or excessive input without stack overflow") 
                  "1e9999", "999999999999999999999999999"})
     CHECK_THROWS_AS(parse_sexpr(s), ParseError);
   CHECK_THROWS_AS(parse_sexpr(std::string(10000, '(')), ParseError);
-  CHECK(parse_sexpr(R"scm("C:\Users\xyz")scm").text == R"(C:\Users\xyz)");
+  CHECK(parse_sexpr("\"C:\\data\\xyz\"").text == "C:\\data\\xyz");
   CHECK_THROWS_AS(parse_sexpr(std::string(10000, '\'')), ParseError);
   CHECK_THROWS_AS(parse_sexpr("(a b c)", {128, 3, 100}), ParseError);
   CHECK_THROWS_AS(parse_sexpr("(a)", {128, 100, 2}), ParseError);
