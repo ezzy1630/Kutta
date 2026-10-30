@@ -5,7 +5,7 @@
 int main(int argc,char** argv) {
   using namespace kutta;using namespace validation::tmr;
   try {
-    KUTTA_REQUIRE(argc>=5,"usage: bench_tmr <data-root> <plate|bump> <cpu|metal|cuda> <level 0..2> [iterations] [output-dir] [default|2003|1994|vorticity|no-wall-production|no-cross-clip|symmetry-top]");
+    KUTTA_REQUIRE(argc>=5,"usage: bench_tmr <data-root> <plate|bump> <cpu|metal|cuda> <level 0..2> [iterations] [output-dir] [default|2003|1994|vorticity|no-wall-production|no-cross-clip|symmetry-top] [max-seconds]");
     auto integer=[](const char* s){int value=0;const auto [end,error]=std::from_chars(s,s+std::char_traits<char>::length(s),value);KUTTA_REQUIRE(error==std::errc{} && *end=='\0' && value>0,"invalid positive integer");return value;};
     const std::string_view name=argv[2],backend=argv[3];
     KUTTA_REQUIRE(name=="plate" || name=="bump","unknown TMR case");KUTTA_REQUIRE(backend=="cpu" || backend=="metal" || backend=="cuda","unknown backend");
@@ -19,9 +19,10 @@ int main(int argc,char** argv) {
     else if(mode=="no-cross-clip") o.model.limit_cross_diffusion=false;
     else if(mode=="symmetry-top") o.symmetry_top=true;
     else KUTTA_REQUIRE(mode=="default","unknown model/BC diagnostic");
+    if(argc>8) o.max_seconds=integer(argv[8]);
     auto dev=Device::create(backend=="cpu"?Backend::Cpu:(backend=="metal"?Backend::Metal:Backend::Cuda));
     const auto r=run(*dev,argv[1],name=="plate"?Case::FlatPlate:Case::Bump,level,o);
-    std::cout<<std::setprecision(12)<<"RESULT source="<<KUTTA_BENCH_COMMIT<<" device="<<dev->name()<<" mode="<<mode<<" cells="<<r.cells<<" iterations="<<r.iterations<<" setup_s="<<r.setup_seconds<<" solve_s="<<r.solve_seconds<<" converged="<<r.converged<<" defect="<<defect(r.residual)<<" change="<<r.load_change<<" continuity_raw="<<r.residual.continuity.raw<<" continuity_scale="<<r.residual.continuity.fluent_normalization<<" corrected_mass="<<r.residual.corrected_mass_imbalance<<" ru="<<r.residual.u.scaled<<" rv="<<r.residual.v.scaled<<" rk="<<r.residual.k.scaled<<" rw="<<r.residual.omega.scaled<<" drag="<<r.values.drag<<" ymaxplus="<<r.values.max_yplus;
+    std::cout<<std::setprecision(12)<<"RESULT source="<<KUTTA_BENCH_COMMIT<<" device="<<dev->name()<<" mode="<<mode<<" cells="<<r.cells<<" iterations="<<r.iterations<<" setup_s="<<r.setup_seconds<<" solve_s="<<r.solve_seconds<<" budget="<<r.stopped_for_budget<<" converged="<<r.converged<<" defect="<<defect(r.residual)<<" change="<<r.load_change<<" continuity_raw="<<r.residual.continuity.raw<<" continuity_scale="<<r.residual.continuity.fluent_normalization<<" corrected_mass="<<r.residual.corrected_mass_imbalance<<" ru="<<r.residual.u.scaled<<" rv="<<r.residual.v.scaled<<" rk="<<r.residual.k.scaled<<" rw="<<r.residual.omega.scaled<<" drag="<<r.values.drag<<" ymaxplus="<<r.values.max_yplus;
     for(auto q:r.values.cf) std::cout<<" cf="<<q;for(auto q:r.values.cp) std::cout<<" cp="<<q;std::cout<<'\n';
     if(!r.failure.empty()) std::cout<<"FAILURE completed_iterations="<<r.iterations<<" reason="<<r.failure<<'\n';
     return r.converged?0:2;

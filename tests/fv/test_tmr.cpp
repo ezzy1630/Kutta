@@ -32,9 +32,9 @@ TEST_CASE("V5 TMR flat plate SST accuracy and three-grid trend" * doctest::test_
       if(!r.failure.empty()) {error[level]=std::numeric_limits<double>::infinity();if(level<2) continue;}
       error[level]=std::max(relative(r.values.cf[0],ref_cf),relative(r.values.drag,ref_cd));
       if(level==2) {CHECK(relative(r.values.cf[0],ref_cf)<=.05);CHECK(relative(r.values.drag,ref_cd)<=.07);}
-      std::cout<<"V5 plate backend="<<backend_name(dev->backend())<<" cells="<<r.cells<<" iterations="<<r.iterations<<" seconds="<<r.solve_seconds<<" error="<<error[level]<<std::endl;
+      std::cout<<"V5 plate backend="<<backend_name(dev->backend())<<" cells="<<r.cells<<" iterations="<<r.iterations<<" seconds="<<r.solve_seconds<<" setup_s="<<r.setup_seconds<<" converged="<<r.converged<<" budget="<<r.stopped_for_budget<<" change="<<r.load_change<<" error="<<error[level]<<" cf="<<r.values.cf[0]<<" drag="<<r.values.drag<<" continuity="<<r.residual.continuity.scaled<<" continuity_raw="<<r.residual.continuity.raw<<" corrected_mass="<<r.residual.corrected_mass_imbalance<<" ru="<<r.residual.u.scaled<<" rv="<<r.residual.v.scaled<<" rk="<<r.residual.k.scaled<<" rw="<<r.residual.omega.scaled<<std::endl;
     }
-    CHECK(error[2]<error[0]);
+    CHECK((std::all_of(error.begin(),error.end(),[](double value){return std::isfinite(value);}) && error[2]<error[0]));
   }
 }
 TEST_CASE("V5 TMR bump SST station accuracy and three-grid trend" * doctest::test_suite("slow")) {
@@ -46,6 +46,10 @@ TEST_CASE("V5 TMR bump SST station accuracy and three-grid trend" * doctest::tes
     std::array<double,3> error{};
     for(int level=0;level<3;++level) {
       INFO("level: "<<level);const auto r=run(*dev,root,Case::Bump,level);
+      std::cout<<"V5 bump measurement backend="<<backend_name(dev->backend())<<" cells="<<r.cells<<" iterations="<<r.iterations<<" seconds="<<r.solve_seconds<<" setup_s="<<r.setup_seconds<<" converged="<<r.converged<<" budget="<<r.stopped_for_budget<<" change="<<r.load_change<<" drag="<<r.values.drag;
+      for(auto value:r.values.cf) std::cout<<" cf="<<value;
+      for(auto value:r.values.cp) std::cout<<" cp="<<value;
+      std::cout<<" continuity="<<r.residual.continuity.scaled<<" failure="<<r.failure<<std::endl;
       CHECK_MESSAGE(r.failure.empty(),r.failure);CHECK(r.converged);CHECK(r.iterations<=3000);CHECK(std::isfinite(r.values.drag));
       if(!r.failure.empty()) {error[level]=std::numeric_limits<double>::infinity();if(level<2) continue;}
       for(int station=0;station<3;++station) {
@@ -54,8 +58,8 @@ TEST_CASE("V5 TMR bump SST station accuracy and three-grid trend" * doctest::tes
         error[level]=std::max({error[level],cf_error,cp_error/.03});
         if(level==2) {INFO("station: "<<bump_stations[station]);CHECK(cf_error<=.1);CHECK(cp_error<=.03);}
       }
-      std::cout<<"V5 bump backend="<<backend_name(dev->backend())<<" cells="<<r.cells<<" iterations="<<r.iterations<<" seconds="<<r.solve_seconds<<" error="<<error[level]<<std::endl;
+      std::cout<<"V5 bump backend="<<backend_name(dev->backend())<<" cells="<<r.cells<<" iterations="<<r.iterations<<" seconds="<<r.solve_seconds<<" setup_s="<<r.setup_seconds<<" converged="<<r.converged<<" budget="<<r.stopped_for_budget<<" change="<<r.load_change<<" error="<<error[level]<<std::endl;
     }
-    CHECK(error[2]<error[0]);
+    CHECK((std::all_of(error.begin(),error.end(),[](double value){return std::isfinite(value);}) && error[2]<error[0]));
   }
 }

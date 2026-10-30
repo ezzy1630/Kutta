@@ -60,6 +60,7 @@ inline std::filesystem::path grid(const std::filesystem::path& root,Case c,int l
 }
 struct Options {
   int max_iterations=3000;
+  double max_seconds=600;
   bool symmetry_top=false;
   SstOptions model;
   std::filesystem::path output;
@@ -104,7 +105,7 @@ inline double defect(const IterationReport& r) {
 }
 struct Result {
   Index cells=0;int iterations=0;double setup_seconds=0,solve_seconds=0,load_change=0;
-  bool converged=false;std::string failure;Sample values;IterationReport residual;
+  bool converged=false,stopped_for_budget=false;std::string failure;Sample values;IterationReport residual;
 };
 inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level,const Options& options={}) {
   using Clock=std::chrono::steady_clock;auto start=Clock::now();
@@ -151,9 +152,10 @@ inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level
       for(auto q:result.values.cp) history<<','<<q;
       history<<','<<r.pressure.final_residual/std::max(r.pressure.initial_residual,1e-30)<<','<<r.continuity.raw<<','<<r.continuity.fluent_normalization<<','<<r.corrected_mass_imbalance<<','<<r.maximum_velocity<<','<<r.pressure.iterations<<'\n';history.flush();
     }
-    std::cout<<"TMR progress "<<backend_name(dev.backend())<<' '<<(c==Case::FlatPlate?"plate":"bump")<<' '<<level<<" it="<<result.iterations<<" defect="<<defect(result.residual)<<" change="<<result.load_change<<" cf="<<result.values.cf[0]<<" drag="<<result.values.drag<<std::endl;
+    std::cout<<std::setprecision(12)<<"TMR progress "<<backend_name(dev.backend())<<' '<<(c==Case::FlatPlate?"plate":"bump")<<' '<<level<<" it="<<result.iterations<<" defect="<<defect(result.residual)<<" change="<<result.load_change<<" cf="<<result.values.cf[0]<<" drag="<<result.values.drag<<std::endl;
     if(!std::isfinite(defect(result.residual)) || !std::isfinite(result.values.drag)) break;
     if(result.converged) break;
+    if(std::chrono::duration<double>(Clock::now()-start).count()>=options.max_seconds) {result.stopped_for_budget=true;break;}
     previous=result.values;has_previous=true;
   }
   dev.synchronize();result.solve_seconds=std::chrono::duration<double>(Clock::now()-start).count();
