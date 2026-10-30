@@ -105,3 +105,32 @@ TEST_CASE("FV fused velocity gradients equal scalar gradient kernels") {
     CHECK(dev->max_abs(w.x,m.n_cells)==0);CHECK(dev->max_abs(w.y,m.n_cells)==0);CHECK(dev->max_abs(w.z,m.n_cells)==0);
   }
 }
+
+TEST_CASE("FV extrapolated boundaries cannot preserve seeded null-space gradients") {
+  using namespace kutta::detail;
+  auto host=make_box_tet(4,4,4,{0,0,0},{1,1,1});
+  const auto geom=compute_geometry(host);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=upload_mesh(*dev,host,geom);auto s=fv::make_stencil(*dev,host,geom);
+    auto cell=dev->alloc<float>(m.n_cells);dev->fill(cell,3);
+    auto bc=dev->alloc<float>(m.n_boundary_faces());
+    auto grad=fv::vector_field(*dev,m.n_cells,1);
+    std::vector<float> boundary(m.n_boundary_faces());
+    // Reproduce the former feedback loop on a constant field.
+    for(int step=0;step<200;++step) {
+      const auto x=dev->download(grad.x),y=dev->download(grad.y),z=dev->download(grad.z);
+      for(Index f=m.n_internal_faces;f<m.n_faces;++f) {
+        const auto c=host.owner[f];const auto d=geom.face_centroid[f]-geom.cell_centroid[c];
+        boundary[f-m.n_internal_faces]=float(3+x[c]*d.x+y[c]*d.y+z[c]*d.z);
+      }
+      dev->upload<float>(bc,boundary);fv::gradient(*dev,m,s,cell,bc,grad);
+    }
+    CHECK(dev->max_abs(grad.x,m.n_cells)>.01);
+    const std::vector<Index> independent(m.n_boundary_faces(),0);
+    auto lsq=fv::boundary_least_squares(*dev,host,geom,independent);
+    fv::gradient(*dev,m,s,lsq,cell,bc,grad);
+    CHECK(dev->max_abs(grad.x,m.n_cells)==0);
+    CHECK(dev->max_abs(grad.y,m.n_cells)==0);
+    CHECK(dev->max_abs(grad.z,m.n_cells)==0);
+  }
+}

@@ -73,6 +73,71 @@ Stencil make_stencil(Device& dev, const PolyMesh& m, const MeshGeometry& g) {
   return s;
 }
 
+BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
+    const MeshGeometry& g,std::span<const Index> independent) {
+  KUTTA_REQUIRE(independent.size()==std::size_t(m.n_faces()-m.n_internal_faces()),
+                "FV LSQ boundary mask size mismatch");
+  const auto cf=build_cell_faces(m);
+  std::vector<Vec3d> delta;
+  std::vector<float> inverse(6*m.n_cells);
+  for(Index c=0;c<m.n_cells;++c) {
+    double a[3][3]{},q[3][3]{{1,0,0},{0,1,0},{0,0,1}};
+    for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
+      const auto f=cf.faces[j];
+      const bool internal=f<m.n_internal_faces();
+      if(!internal && !independent[f-m.n_internal_faces()]) {delta.push_back({});continue;}
+      const auto n=internal?(m.owner[f]==c?m.neighbour[f]:m.owner[f]):-1;
+      const auto d=(internal?g.cell_centroid[n]:g.face_centroid[f])-g.cell_centroid[c];
+      const double weight=1/dot(d,d),x[]{d.x,d.y,d.z};
+      delta.push_back(d*weight);
+      for(int r=0;r<3;++r) for(int k=0;k<3;++k) a[r][k]+=weight*x[r]*x[k];
+    }
+    // Symmetric Jacobi eigensolve. An inverse with unit eigenvalues only in
+    // deficient directions is equivalent to adding orthogonal zero rows there;
+    // unlike a diagonal ridge it does not bias any resolved gradient direction.
+    for(int sweep=0;sweep<24;++sweep) {
+      int p=0,r=1;
+      for(int i=0;i<3;++i) for(int j=i+1;j<3;++j)
+        if(std::abs(a[i][j])>std::abs(a[p][r])) {p=i;r=j;}
+      if(std::abs(a[p][r])<1e-14) break;
+      const double angle=.5*std::atan2(2*a[p][r],a[r][r]-a[p][p]);
+      const double cs=std::cos(angle),sn=std::sin(angle);
+      const double app=a[p][p],arr=a[r][r],apr=a[p][r];
+      a[p][p]=cs*cs*app-2*cs*sn*apr+sn*sn*arr;
+      a[r][r]=sn*sn*app+2*cs*sn*apr+cs*cs*arr;a[p][r]=a[r][p]=0;
+      for(int i=0;i<3;++i) {
+        if(i!=p && i!=r) {
+          const double x=a[i][p],y=a[i][r];
+          a[i][p]=a[p][i]=cs*x-sn*y;a[i][r]=a[r][i]=sn*x+cs*y;
+        }
+        const double x=q[i][p],y=q[i][r];q[i][p]=cs*x-sn*y;q[i][r]=sn*x+cs*y;
+      }
+    }
+    double inv[3][3]{};
+    for(int k=0;k<3;++k) {
+      const double eigen=a[k][k]>1e-10?1/a[k][k]:1;
+      for(int r=0;r<3;++r) for(int j=0;j<3;++j) inv[r][j]+=q[r][k]*eigen*q[j][k];
+    }
+    const double v[]{inv[0][0],inv[0][1],inv[0][2],inv[1][1],inv[1][2],inv[2][2]};
+    for(int k=0;k<6;++k) inverse[c+k*m.n_cells]=float(v[k]);
+  }
+  return {vectors(dev,delta),dev.upload<float>(inverse)};
+}
+
+void gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
+    const BoundaryLeastSquares& lsq,const Buffer<float>& cell,
+    const Buffer<float>& bc,DeviceVec3& out) {
+  kern::fv_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,
+    lsq.delta.x,lsq.delta.y,lsq.delta.z,lsq.inverse,cell,bc,out.x,out.y,out.z,m.n_cells);
+}
+void vector_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
+    const BoundaryLeastSquares& lsq,const DeviceVec3& cell,const DeviceVec3& bc,
+    DeviceVec3& u,DeviceVec3& v,DeviceVec3& w) {
+  kern::fv_vector_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,
+    lsq.delta.x,lsq.delta.y,lsq.delta.z,lsq.inverse,cell.x,cell.y,cell.z,bc.x,bc.y,bc.z,
+    u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,m.n_cells);
+}
+
 void gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
               const Buffer<float>& cell, const Buffer<float>& boundary, DeviceVec3& out) {
   KUTTA_REQUIRE(cell.size()==std::size_t(m.n_cells) && boundary.size()==std::size_t(m.n_boundary_faces()) &&
