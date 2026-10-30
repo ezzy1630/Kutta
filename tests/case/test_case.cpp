@@ -345,9 +345,11 @@ TEST_CASE("Case support is an allowlist for authoritative physics flags") {
   CHECK(issue_at(c, "rp/ke-easm-on?"));
   CHECK(issue_at(c, "rp/gravity?"));
 }
-TEST_CASE("Unsupported k epsilon retains its active equation schemes") {
+TEST_CASE("Standard k epsilon is admitted and retains its active equation schemes") {
   auto c = synthetic(config(true, false) + "(rng-ke-on? #f) (realizable-epsilon? #f) (epsilon/scheme 0) (epsilon/relax 0.8) (epsilon/pseudo-relax 0.75)");
-  CHECK(issue_at(c, "viscous-model"));
+  CHECK_FALSE(issue_at(c, "viscous-model"));
+  // Other k-epsilon variants remain outside the model allowlist.
+  CHECK(issue_at(synthetic(config(true, false) + "(rng-ke-on? #t) (realizable-epsilon? #f)"), "viscous-model"));
   CHECK(c.variables.interpreted.contains("epsilon/scheme"));
   CHECK(c.variables.interpreted.contains("epsilon/relax"));
   CHECK(c.variables.interpreted.contains("epsilon/pseudo-relax"));

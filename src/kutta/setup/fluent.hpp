@@ -29,6 +29,10 @@ struct FluentSetup {
   std::vector<std::string> convergence_notes;
   std::vector<Approximation> approximations;
 };
+// pseudo-transient-formulation? is the switch when stored (V6 and the PPTX
+// elbow, both 22.2, differ only in the later dt-method selector, which is then
+// stale); otherwise the selector decides (0 off, 1 global time step).
+bool uses_pseudo_time(const fluent::FluentCase& input);
 // Strict by default: collect every unrepresentable setting path and reason.
 // Named opt-ins permit only the setup allowlist; all other failures remain.
 // Coupled runs the coupled solver; SIMPLE/PISO -> SIMPLEC is a reported
@@ -38,9 +42,11 @@ FluentSetup fluent_setup(const fluent::FluentCase& input,const PolyMesh& mesh,
                          std::span<const Approximation> allowed = {});
 fv::TurbulenceValues turbulence_values(const fv::TurbulenceCondition& spec,
     double speed,double density,double viscosity);
+// Turbulence vectors are empty when the closure does not transport them:
+// SST fills k/omega, standard k-epsilon fills k/epsilon, laminar neither.
 struct CellFields {
   std::vector<Vec3d> velocity;
-  std::vector<double> pressure,k,omega;
+  std::vector<double> pressure,k,omega,epsilon;
 };
 CellFields fluent_fields(const fluent::FluentCase& input,const fluent::FluentData& data,
                         const PolyMesh& original_mesh);

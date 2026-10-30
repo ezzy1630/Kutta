@@ -225,9 +225,26 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     b.consume(c.variables,"flow/scheme");
   }
   b.number("controls/pseudo-time-scale-factor","Pseudo-time scale factor","Controls",c.numerics.pseudo.scale_factor,"1",true,positive,1e15);b.consume(c.variables,"pseudo-auto-time-step-scale-factor");
-  const bool coupled=c.numerics.coupling==Coupling::coupled;
-  for(auto eq:{"mom","pressure","k","omega"}) {
-    const std::string key=coupled && (std::string_view(eq)=="mom" || std::string_view(eq)=="pressure")?"pressure-coupled/"+std::string(eq)+"/pseudo-explicit-relax":std::string(eq)+"/pseudo-relax";
+  const bool coupled=c.numerics.coupling==Coupling::coupled,pseudo=uses_pseudo_time(c);
+  const auto dissipation=c.viscous.model==ViscousModel::ke_standard?"epsilon":"omega";
+  for(auto eq:{"mom","pressure","k",dissipation}) {
+    const bool flow=std::string_view(eq)=="mom" || std::string_view(eq)=="pressure";
+    // The factors the solve adapter uses: pseudo-time factors, classic
+    // under-relaxation, or (Coupled without pseudo time) the stored explicit
+    // relaxation, which the adapter reads directly and so stays read-only.
+    if(!pseudo && coupled && flow) {
+      const auto key="pressure-coupled/"+std::string(eq)+"/explicit-relax";const auto* v=c.variables.value(key);
+      auto& s=b.add("controls/"+std::string(eq)+"-relaxation",std::string(eq)+" relaxation","Controls",v && v->number()?Json(*v->number()):Json(nullptr),"1","number");
+      s.reason="Coupled explicit relaxation is not yet configurable in Kutta";b.consume(c.variables,key);
+      continue;
+    }
+    if(!pseudo) {
+      const auto it=c.numerics.relaxation.find(eq);auto& s=b.add("controls/"+std::string(eq)+"-relaxation",std::string(eq)+" relaxation","Controls",it!=c.numerics.relaxation.end()?Json(it->second):Json(nullptr),"1","number");
+      if(it!=c.numerics.relaxation.end())b.editable(s,[target=&it->second](const Json& j){*target=std::get<double>(j.value);},positive,1);
+      b.consume(c.variables,std::string(eq)+"/relax");
+      continue;
+    }
+    const std::string key=coupled && flow?"pressure-coupled/"+std::string(eq)+"/pseudo-explicit-relax":std::string(eq)+"/pseudo-relax";
     const auto it=c.numerics.pseudo_relaxation.find(key);auto& s=b.add("controls/"+std::string(eq)+"-relaxation",std::string(eq)+" relaxation","Controls",it!=c.numerics.pseudo_relaxation.end()?Json(it->second):Json(nullptr),"1","number");
     if(it!=c.numerics.pseudo_relaxation.end())b.editable(s,[target=&it->second](const Json& j){*target=std::get<double>(j.value);},positive,1);
     b.consume(c.variables,key);
@@ -238,7 +255,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   // Convergence conditions are run controls: residual criteria come from the
   // case, report conditions use Kutta's defaults (docs/app-protocol.md).
   auto& conv=run.convergence;conv=ConvergenceControls{};
-  for(auto eq:residual_equations)conv.residuals.push_back({std::string(eq)});
+  for(auto eq:solved_residuals(c.viscous.model))conv.residuals.push_back({std::string(eq)});
   if(residual_criteria(c.variables.value("residuals/settings"),conv.residuals))b.consume(c.variables,"residuals/settings");
   for(const auto& r:c.reports)conv.reports.push_back({r.name});
   b.editable(b.add("monitors/check-convergence","Check convergence","Monitors",conv.check),[t=&conv.check](const Json& j){*t=std::get<bool>(j.value);});

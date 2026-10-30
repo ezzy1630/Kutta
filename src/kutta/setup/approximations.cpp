@@ -5,15 +5,29 @@
 
 namespace kutta::setup {
 namespace {
-// This is the complete opt-in allowlist. Evidence is a case comparison, not
-// an isolated WFGC error estimate or a bound for other meshes.
+// This is the complete opt-in allowlist. Evidence is a case comparison or a
+// case-specific bound, not an isolated error estimate for other meshes.
 constexpr std::array allowlist{ApproximationInfo{
   Approximation::wfgc,"wfgc","recon/cell-lsf?","#t",
   "run without warped-face gradient correction (WFGC off, #f)",
   "src/kutta/fv/VERIFICATION.md#v6-initialization-comparison",
   "V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, "
   "k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; "
-  "combined solver discrepancy, not isolated WFGC error or a general bound"}};
+  "combined solver discrepancy, not isolated WFGC error or a general bound"},
+  ApproximationInfo{
+  Approximation::compressibility,"compressibility","turb-compress-mod?","#t",
+  "run without the turbulence compressibility (dilatation dissipation) correction",
+  "validation/results/case_coverage/REPORT.md#compressibility-bound",
+  "the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); "
+  "for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound "
+  "speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound"},
+  ApproximationInfo{
+  Approximation::ke_options,"ke-options","ke-source-mod/ke-time-marching?","#t",
+  "run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches",
+  "validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows",
+  "not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged "
+  "saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, "
+  "epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound"}};
 }
 const ApproximationInfo& approximation_info(Approximation id) {
   const auto it=std::find_if(allowlist.begin(),allowlist.end(),[&](const auto& info){return info.id==id;});

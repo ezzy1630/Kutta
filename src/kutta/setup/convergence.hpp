@@ -9,6 +9,9 @@
 namespace kutta::setup {
 // The scaled residuals the solver reports, in iteration-event order.
 inline constexpr std::array<std::string_view,6> residual_equations{"continuity","x-velocity","y-velocity","z-velocity","k","omega"};
+// The residuals reported for a closure: residual_equations for SST, k and
+// epsilon for k-epsilon, continuity and momentum only for laminar flow.
+std::vector<std::string_view> solved_residuals(std::optional<fluent::ViscousModel>);
 struct ResidualCriterion {
   std::string equation;
   bool check=false;

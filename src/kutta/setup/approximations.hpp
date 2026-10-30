@@ -7,7 +7,7 @@
 
 namespace kutta::setup {
 // Permission is per named approximation, never a blanket ignore-unsupported mode.
-enum class Approximation { wfgc };
+enum class Approximation { wfgc, compressibility, ke_options };
 struct ApproximationInfo {
   Approximation id;
   std::string_view name,setting,fluent_value,kutta_action,effect_documentation,measured_effect;

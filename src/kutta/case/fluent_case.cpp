@@ -73,7 +73,9 @@ std::optional<double> constant_expression(std::string_view definition) {
     scale = 0.0254;
   else if (unit == "mm")
     scale = 0.001;
-  else if (unit != "m/s" && unit != "m" && unit != "Pa" && unit != "kg/m^3" && unit != "rad/s")
+  // Fluent writes SI units either with a slash or as exponents ("m s^-1").
+  else if (unit != "m/s" && unit != "m s^-1" && unit != "m" && unit != "Pa" && unit != "kg/m^3" &&
+           unit != "kg m^-3" && unit != "rad/s" && unit != "rad s^-1")
     return {};
   auto value = *number * scale;
   return std::isfinite(value) ? std::optional<double>{value} : std::nullopt;
@@ -221,6 +223,12 @@ public:
     } else if (tag == "expression") {
       result.kind = ScalarValue::Kind::expression;
       result.binding = text(mv).value_or(to_string(*method));
+    } else if (tag == "profile" && method->elements.size() == 3 &&
+               method->elements[1].atom_text() == "__expr__" && text(&method->elements[2])) {
+      // Fluent stores an expression-valued input as the pseudo-profile
+      // (profile __expr__ "name"); it binds the named expression.
+      result.kind = ScalarValue::Kind::expression;
+      result.binding = *text(&method->elements[2]);
     } else if (tag == "profile") {
       result.kind = ScalarValue::Kind::profile;
       result.binding = to_string(*method);
@@ -411,6 +419,15 @@ void config_support(FluentCase &c) {
       c.config.interpreted.insert(key);
       continue;
     }
+    // Some writers store the structural time-integration selector as an
+    // integer. It is inert while the structural model itself is held off.
+    if (key == "rp-structure-time?" && value && value->number()) {
+      const auto *structure = c.config.value("rp-structure?");
+      if (structure && boolean(structure) == false) {
+        c.config.interpreted.insert(key);
+        continue;
+      }
+    }
     auto it = expected.find(key);
     if (value && it != expected.end() && *value == it->second)
       c.config.interpreted.insert(key);
@@ -489,7 +506,8 @@ void model(FluentCase &c) {
         {"viscous-model", "unparsed: absent, conflicting or unsupported case-config/model flags"});
   config_support(c);
   const bool epsilon = epsilon_model(c);
-  if (t.model && t.model != ViscousModel::laminar && t.model != ViscousModel::kw_sst)
+  if (t.model && t.model != ViscousModel::laminar && t.model != ViscousModel::kw_sst &&
+      t.model != ViscousModel::ke_standard)
     c.issues.push_back({"viscous-model", "unsupported model: " + std::string(name(*t.model))});
   for (auto key : {"ke-easm-on?", "kw-geko-on?", "kw-easm-on?", "kw-wj-bsl-earsm-on?"})
     if (auto v = x.flag(key, false); v == true)
@@ -663,6 +681,14 @@ void reference(FluentCase &c) {
 // held even when false; a future writer must not silently expand solver support.
 void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t id) {
   std::map<std::string, SExpr> neutral;
+  // Switches of a model that the case-config allowlist or the solve adapter
+  // proves inactive. Writers store either value (V6 has #t, older and segregated
+  // cases #f), and neither value changes the equations while that model is off.
+  std::set<std::string> either;
+  auto inert = [&](std::string_view keys) {
+    std::istringstream words{std::string(keys)};
+    for (std::string key; words >> key;) either.insert(key);
+  };
   auto flags = [&](std::string_view keys, bool value) {
     std::istringstream words{std::string(keys)};
     for (std::string key; words >> key;) {
@@ -682,7 +708,10 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
           "beach-multi-dir? porous-structure? anisotropic-spe-diff? axis-origin-component "
           "axis-direction-component moving-mesh-velocity-components moving-mesh-axis-origin-components "
           "solid-motion-velocity-components solid-motion-axis-origin-components "
-          "solid-motion-axis-direction-components none", false);
+          "solid-motion-axis-direction-components none forcemrf forcemsolid", false);
+    // electrolyte?: rp-electro-chem?, rp-electrolysis? and rp-lithium? are
+    // allowlisted off. read-fan-curve: fanzone? is held at #f above.
+    inert("electrolyte? read-fan-curve");
     // Radiation/chemistry/multiphase switches are inactive in the globally
     // allowlisted single-phase, nonreacting problem. Their model flags are checked.
     flags("radiating? laminar-mut-zero? none? equib-thermal? react? electrolyte? "
@@ -700,6 +729,8 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
           "targeted-mf-boundary? flow-direction-component velocity-component velocity-components", false);
     flags("vm-streamwise-fluct? parallel-collimated-beam? fensapice/drop/vrh? "
           "solar-fluxes? radiating-s2s-surface?", true);
+    // Radiation boundary option; radiation models are allowlisted off.
+    inert("parallel-collimated-beam?");
   }
   if (type == ZoneType::wall) {
     flags("planar-conduction? moving? wall-translation-vector velocity-components int-rad? rough-nasa? rough-shin-et-al? rough-data? inactive "
@@ -716,9 +747,15 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
           "dpm/bc-erosion-oka? dpm/bc-erosion-dnv? dpm/bc-erosion-dnv-ductile? dpm/bc-erosion-shear? "
           "dpm/bc-erosion-shielding? dpm/allow-lwf-to-vof? dpm/allow-vof-to-lwf? "
           "radiating-s2s-surface? parallel-collimated-beam? solar-fluxes?", true);
+    // rough-option? selects the roughness law; the adapter requires
+    // rough-bc=0 and zero roughness height, where every law is smooth.
+    inert("parallel-collimated-beam? rough-option?");
   }
-  if (type == ZoneType::interior)
+  if (type == ZoneType::interior) {
     flags("is-not-a-rans-les-interface", true);
+    // Embedded-LES interface flag; rp-les? and les-embedded? are held off.
+    inert("is-not-a-rans-les-interface");
+  }
   auto selector = [&](std::string key, int value = 0) {
     SExpr v;
     v.kind = K::integer;
@@ -748,8 +785,8 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
     const bool is_switch = boolean(v).has_value() || key.ends_with('?') || it != neutral.end();
     if (!is_switch)
       continue;
-    const bool equal = v && it != neutral.end() &&
-        (*v == it->second || (v->number() && it->second.number() && v->number() == it->second.number()));
+    const bool equal = (v && either.contains(key)) || (v && it != neutral.end() &&
+        (*v == it->second || (v->number() && it->second.number() && v->number() == it->second.number())));
     if (equal)
       raw.interpreted.insert(key);
     else
