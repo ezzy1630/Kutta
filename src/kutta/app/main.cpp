@@ -397,6 +397,7 @@ int main(int argc, char **argv) {
   if(argc>=2 && std::string_view(argv[1])=="solve") return solve(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="export-view") return kutta::app::export_view(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="export-geometry") return kutta::app::export_geometry(argc,argv);
+  if(argc>=2 && std::string_view(argv[1])=="aero") return kutta::app::aero(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="devices") return kutta::app::devices(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="inspect")
     for(int i=2;i<argc;++i) if(std::string_view(argv[i])=="--json") return kutta::app::inspect_json(argc,argv);

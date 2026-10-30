@@ -51,6 +51,26 @@ std::string viscous_label(ViscousModel m) {
     case ViscousModel::ke_rng:return "k-epsilon RNG";case ViscousModel::ke_realizable:return "k-epsilon Realizable";case ViscousModel::spalart_allmaras:return "Spalart-Allmaras";case ViscousModel::laminar:return "Laminar";}
   return "";
 }
+// residuals/settings rows as Fluent 22.2 saves them (the mixing elbow):
+// (equation monitor? <number> check-convergence? absolute-criterion <number> <number>).
+// Only that layout is read; any other shape leaves every check off and every
+// criterion unknown rather than guessing. Returns whether every row maps to a
+// residual Kutta reports, i.e. whether the raw value is fully represented.
+bool residual_criteria(const SExpr* v,std::vector<ResidualCriterion>& out) {
+  if(!v || v->kind!=SExpr::Kind::list || v->tail)return false;
+  std::map<std::string,std::pair<bool,double>> rows;
+  for(const auto& e:v->elements) {
+    if(e.kind!=SExpr::Kind::list || e.tail || e.elements.size()!=7 || !e.elements[0].atom_text() || e.elements[3].kind!=SExpr::Kind::boolean)return false;
+    const auto criterion=e.elements[4].number();
+    if(!criterion || !std::isfinite(*criterion) || *criterion<0 || !rows.emplace(std::string(*e.elements[0].atom_text()),std::pair{e.elements[3].boolean,*criterion}).second)return false;
+  }
+  bool complete=true;
+  for(const auto& [name,row]:rows) {
+    const auto it=std::find_if(out.begin(),out.end(),[&](const auto& r){return r.equation==name;});
+    if(it==out.end())complete=false;else{it->check=row.first;it->absolute=row.second;}
+  }
+  return complete;
+}
 // Label the current value from the parallel option lists.
 void label_value(Setting& s) {for(std::size_t i=0;i<s.options.size() && i<s.option_labels.size();++i)if(s.options[i]==s.value)s.value_label=std::get<std::string>(s.option_labels[i].value);}
 class Inventory {
@@ -174,7 +194,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     b.raw(z.raw,prefix+"raw/","Boundary Conditions");
   }
   for(auto [key,label,unit,v,editable]:std::vector<std::tuple<std::string,std::string,std::string,std::optional<double>*,bool>>{
-      {"area","Reference area","m^2",&c.reference.area,true},{"length","Reference length","m",&c.reference.length,false},
+      {"area","Reference area","m^2",&c.reference.area,true},{"length","Reference length","m",&c.reference.length,true},
       {"density","Reference density","kg/m^3",&c.reference.density,true},{"velocity","Reference velocity","m/s",&c.reference.velocity,true},
       {"pressure","Reference pressure","Pa",&c.reference.pressure,true},{"viscosity","Reference viscosity","Pa s",&c.reference.viscosity,false}}) {
     b.number("reference/"+key,label,"Reference Values",*v,unit,editable,key=="pressure"?-1e30:positive,1e30);b.consume(c.variables,"reference-"+key);
@@ -204,7 +224,33 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   for(auto [key,label,target,max]:std::vector<std::tuple<std::string,std::string,int*,double>>{{"iterations","Number of iterations",&run.iterations,1e9},{"monitor-interval","Monitor interval",&run.monitor_interval,100000}}) {
     auto& s=b.add("run/"+key,label,"Run Calculation",*target,"","integer");b.editable(s,[target](const Json& j){*target=int(std::get<double>(j.value));},1,max);
   }
-  b.add("monitors/convergence-criteria","Convergence criteria","Monitors",nullptr,"","string");
+  // Convergence conditions are run controls: residual criteria come from the
+  // case, report conditions use Kutta's defaults (docs/app-protocol.md).
+  auto& conv=run.convergence;conv=ConvergenceControls{};
+  for(auto eq:residual_equations)conv.residuals.push_back({std::string(eq)});
+  if(residual_criteria(c.variables.value("residuals/settings"),conv.residuals))b.consume(c.variables,"residuals/settings");
+  for(const auto& r:c.reports)conv.reports.push_back({r.name});
+  b.editable(b.add("monitors/check-convergence","Check convergence","Monitors",conv.check),[t=&conv.check](const Json& j){*t=std::get<bool>(j.value);});
+  auto& combine=b.add("monitors/condition","Condition","Monitors","all","","enum");
+  combine.options={"all","any"};combine.option_labels={"All Conditions are Met","Any Condition is Met"};label_value(combine);
+  b.editable(combine,[t=&conv.combine](const Json& j){*t=std::get<std::string>(j.value)=="any"?ConvergenceControls::Combine::any:ConvergenceControls::Combine::all;});
+  for(auto& r:conv.residuals) {
+    const auto prefix="monitors/residual/"+segment(r.equation)+"/";
+    b.editable(b.add(prefix+"check","Check Convergence ("+r.equation+")","Monitors",r.check),[t=&r.check](const Json& j){*t=std::get<bool>(j.value);});
+    b.editable(b.add(prefix+"absolute-criterion","Absolute Criteria ("+r.equation+")","Monitors",r.absolute?Json(*r.absolute):Json(nullptr),"1","number"),[t=&r.absolute](const Json& j){*t=std::get<double>(j.value);},0,1e30);
+  }
+  for(std::size_t i=0;i<c.reports.size();++i) {
+    using Kind=ReportDefinition::Kind;auto& r=conv.reports[i];const auto kind=c.reports[i].kind;
+    const bool force=kind==Kind::force || kind==Kind::drag || kind==Kind::lift || kind==Kind::downforce;
+    const auto prefix="monitors/report/"+segment(r.report)+"/";
+    const auto bind=[&](Setting& s,std::function<void(const Json&)> setter,std::optional<double> min={},std::optional<double> max={}) {
+      if(force)b.editable(s,std::move(setter),min,max);else s.reason="only force, drag, lift and downforce reports can be convergence conditions in Kutta";
+    };
+    bind(b.add(prefix+"active","Active ("+r.report+")","Monitors",r.active),[t=&r.active](const Json& j){*t=std::get<bool>(j.value);});
+    bind(b.add(prefix+"stop-criterion","Stop Criterion ("+r.report+")","Monitors",r.stop,"1","number"),[t=&r.stop](const Json& j){*t=std::get<double>(j.value);},positive,1e30);
+    bind(b.add(prefix+"previous-values","Use Iterations ("+r.report+")","Monitors",r.previous_values,"","integer"),[t=&r.previous_values](const Json& j){*t=int(std::get<double>(j.value));},1,100000);
+    bind(b.add(prefix+"ignore-before","Ignore Iterations Before ("+r.report+")","Monitors",r.ignore_before,"","integer"),[t=&r.ignore_before](const Json& j){*t=int(std::get<double>(j.value));},0,1e9);
+  }
   const auto* hybrid=c.variables.value("hyb-init?");
   auto& init=b.add("initialization/method","Initialization method","Initialization",seeded?"fluent-data":hybrid && hybrid->kind==SExpr::Kind::boolean?(hybrid->boolean?"hybrid":"standard"):"unparsed","","enum");
   init.options={"standard","hybrid","fluent-data"};init.option_labels={"Standard Initialization","Hybrid Initialization","From Fluent data file"};label_value(init);b.consume(c.variables,"hyb-init?");

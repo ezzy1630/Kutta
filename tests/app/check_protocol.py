@@ -89,9 +89,13 @@ for name, data, approximate in [("tiny", False, False), ("tiny", True, False), (
     assert events[0]["event"] == "setup" and events[-1]["event"] == "done", events
     assert events[0]["init"] == ("fluent-data" if data else "hybrid" if name == "hybrid" else "standard")
     assert events[0]["approximations"] == (["wfgc"] if approximate else [])
+    assert events[0]["convergence"] == {"enabled": False, "condition": "all", "residuals": {}, "reports": []}
+    assert "Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit." in [e.get("message") for e in events if e["event"] == "warning"]
+    assert events[-1]["converged"] is False and events[-1]["convergence"]["met_by"] == [] and events[-1]["convergence"]["iteration"] is None
     iterations = [e for e in events if e["event"] == "iteration"]
     assert [e["iter"] for e in iterations] == [20, 21]
     for e in iterations:
+        assert "convergence" not in e
         assert set(e["residuals"]) == {"continuity", "x-velocity", "y-velocity", "z-velocity", "k", "omega"}
         assert all(math.isfinite(v) and v >= 0 for v in e["residuals"].values())
         assert e["sec_per_iter"] > 0 and e["elapsed"] > 0
@@ -205,11 +209,11 @@ def read_fluxes(out):
         return {r["name"]: float(r["mass_flow_outward"]) for r in csv.DictReader(line for line in f if not line.startswith("#"))}
 
 
-def solve_setup(overrides, name, *, reject=False):
+def solve_setup(overrides, name, *, reject=False, case="inlet"):
     setup_file = root / ("setup-" + name + ".json")
     setup_file.write_text(json.dumps({"v": 1, "overrides": overrides}))
     out = root / ("overridden-" + name)
-    p = subprocess.Popen([cli, "solve", str(root / "inlet.cas.h5"), "--backend", "cpu", "--iterations", "1", "--setup", str(setup_file), "--out", str(out), "--progress", "jsonl"],
+    p = subprocess.Popen([cli, "solve", str(root / (case + ".cas.h5")), "--backend", "cpu", "--iterations", "1", "--setup", str(setup_file), "--out", str(out), "--progress", "jsonl"],
                          stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if reject:
         stdout, stderr = p.communicate(timeout=15)
@@ -222,7 +226,7 @@ def solve_setup(overrides, name, *, reject=False):
     events = finish(p)
     p.stdin.close()
     # Run controls are applied and echoed, but only case changes are MODIFIED.
-    controls = {k: v for k, v in overrides.items() if k.startswith("run/")}
+    controls = {k: v for k, v in overrides.items() if k.startswith(("run/", "monitors/"))}
     modified = len(controls) < len(overrides)
     assert events[0]["overrides"] == overrides and events[0]["run_controls"] == controls and events[0]["modified"] is modified
     summary = json.loads((out / "summary.json").read_text())
@@ -232,7 +236,7 @@ def solve_setup(overrides, name, *, reject=False):
     for text in [(out / "result.vtu").read_text(), (out / "fluxes.csv").read_text(), (out / "residuals.csv").read_text(),
                  json.loads((out / "view/manifest.json").read_text())["provenance"]]:
         assert ("MODIFIED RESULT" in text) is modified
-        assert "run/iterations" not in text and "run/monitor-interval" not in text
+        assert "run/iterations" not in text and "run/monitor-interval" not in text and "monitors/" not in text
     return out, events
 
 
@@ -260,6 +264,48 @@ solve_setup({"missing/setting": 1, "general/operating-pressure": 10, "run/iterat
              "run/monitor-interval": "ten", "boundary/inlet/direction": [0, 0, 0]}, "invalid", reject=True)
 solve_setup({"run/iterations": True}, "bool-is-not-integer", reject=True)
 solve_setup({"boundary/inlet/direction": [1, 0]}, "bad-vector", reject=True)
+
+# Convergence conditions are run controls. A report condition with Np=1 and no
+# ignored samples has its first lag residual at the second sample.
+tiny_settings = {s["path"]: s for s in json.loads(command("inspect", root / "tiny.cas.h5", "--json").stdout)["settings"]}
+for report in ("drag", "lift", "force"):
+    for key, kind, value in [("active", "bool", False), ("stop-criterion", "number", .001), ("previous-values", "integer", 5), ("ignore-before", "integer", 100)]:
+        entry = tiny_settings[f"monitors/report/{report}/{key}"]
+        assert entry["editable"] and entry["kind"] == kind and entry["value"] == value and entry["group"] == "Monitors", entry
+# The generated case saves no residual criteria: checks are off and unknown.
+assert tiny_settings["monitors/residual/continuity/check"]["value"] is False
+assert tiny_settings["monitors/residual/continuity/absolute-criterion"]["value"] is None
+assert tiny_settings["monitors/residual/continuity/absolute-criterion"]["editable"]
+converged_out, events = solve_setup({"run/iterations": 10, "run/monitor-interval": 1, "monitors/check-convergence": True,
+                                     "monitors/report/drag/active": True, "monitors/report/drag/stop-criterion": 1e30,
+                                     "monitors/report/drag/previous-values": 1, "monitors/report/drag/ignore-before": 0}, "report-converged", case="tiny")
+assert events[0]["convergence"] == {"enabled": True, "condition": "all", "residuals": {},
+                                    "reports": [{"report": "drag", "stop_criterion": 1e30, "previous_values": 1, "ignore_before": 0}]}
+assert not [e for e in events if e["event"] == "warning" and "Convergence checking" in e["message"]]
+samples = [e for e in events if e["event"] == "iteration"]
+assert [e["iter"] for e in samples] == [1, 2], samples
+first, second = (e["convergence"] for e in samples)
+assert first == {"met": False, "conditions": [{"kind": "report", "report": "drag", "value": None, "criterion": 1e30, "met": False}]}
+drag = [e["reports"]["drag"]["force"] for e in samples]
+assert second["met"] and math.isclose(second["conditions"][0]["value"], abs(drag[1] - drag[0]) / abs(drag[1]), rel_tol=1e-12)
+done = events[-1]
+assert done["converged"] is True and done["stop_reason"] == "converged" and done["iterations"] == 2
+assert done["convergence"]["met_by"] == ["report:drag"] and done["convergence"]["iteration"] == 2
+summary = json.loads((converged_out / "summary.json").read_text())
+assert summary["converged"] is True and summary["stop_reason"] == "converged" and summary["convergence"] == done["convergence"]
+# Checking on with nothing to check warns and runs to the limit.
+_, events = solve_setup({"run/iterations": 2, "run/monitor-interval": 1, "monitors/check-convergence": True, "monitors/condition": "any"}, "no-conditions", case="tiny")
+assert "Convergence checking is on but no residual is checked and no report condition is active; stopping at the requested iteration limit." in [e.get("message") for e in events]
+assert [e["convergence"] for e in events if e["event"] == "iteration"] == [{"met": False, "conditions": []}] * 2
+assert events[-1]["converged"] is False and events[-1]["stop_reason"] == "iteration_limit"
+# A checked residual needs a criterion; an out-of-range report setting is rejected.
+(root / "setup-missing-criterion.json").write_text(json.dumps({"v": 1, "overrides": {"monitors/residual/continuity/check": True}}))
+result = command("solve", root / "tiny.cas.h5", "--backend", "cpu", "--setup", root / "setup-missing-criterion.json",
+                 "--out", root / "missing-criterion", "--progress", "jsonl", code=1)
+[error] = map(json.loads, result.stdout.splitlines())
+assert error["event"] == "error" and [i["path"] for i in error["issues"]] == ["monitors/residual/continuity/absolute-criterion"], error
+assert not (root / "missing-criterion").exists()
+solve_setup({"monitors/report/drag/previous-values": 0, "monitors/report/drag/stop-criterion": 0, "monitors/condition": "most"}, "bad-report", case="tiny", reject=True)
 print(f"Setup overrides: actual inlet mass flux {base_flux['inlet']} -> {changed_flux['inlet']} kg/s; rejections and provenance passed")
 
 # Read linked files at the event boundary, while the child is still running.

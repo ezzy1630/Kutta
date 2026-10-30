@@ -29,7 +29,8 @@ def check_outputs(directory, data=False, iterations=21, case_name="tiny.cas.h5",
     assert summary["cells"] == 4 and summary["iterations"] == iterations
     assert summary["wall_time_seconds"] > 0 and summary["setup_time_seconds"] > 0
     assert summary["converged"] is False and summary["stop_reason"] == "iteration_limit"
-    assert summary["convergence_criteria_available"] is False
+    assert summary["convergence_criteria_available"] is True
+    assert summary["convergence"] == {"enabled": False, "condition": "all", "residuals": {}, "reports": [], "met_by": [], "iteration": None}
     assert summary["peak_device_memory_bytes"] is None
     assert summary["kutta_version"] and summary["kutta_commit"]
     assert summary["approximate"] is approximate
@@ -78,6 +79,21 @@ def check_outputs(directory, data=False, iterations=21, case_name="tiny.cas.h5",
             assert math.isclose(float(row["coefficient"]), float(row["total_projection"]) / 6, abs_tol=1e-12)
         else:
             assert row["coefficient"] == ""
+    # loads.json integrates the same wall data per zone as the forces.csv rows.
+    loads = json.loads((directory / "loads.json").read_text())
+    assert loads["v"] == 1 and loads["origin"] == [0, 0, 0] and loads["iterations"] == iterations
+    assert loads["reference"] == {"area": 3, "length": 1, "density": 1, "velocity": 2, "pressure": 0}
+    assert loads["report_zones"] == ["shell"] and loads["approximate"] is approximate and loads["modified"] is False
+    assert bool(loads["provenance"]) is approximate
+    [wall] = [r for r in rows if r["kind"] == "wall"]
+    [zone] = loads["zones"]
+    assert zone["name"] == "shell" and zone["zone_id"] == int(wall["zone_id"]) and math.isclose(zone["area"], 10)
+    # forces.csv sums float face products on the device; compare at the scale
+    # of the largest component, since a closed box nearly cancels some.
+    scale = max(abs(float(wall[f"{part}_{axis}"])) for part in ("pressure", "viscous") for axis in "xyz")
+    for part in ("pressure", "viscous"):
+        for i, axis in enumerate("xyz"):
+            assert math.isclose(zone[part][i], float(wall[f"{part}_{axis}"]), abs_tol=1e-5 * scale), (part, zone, wall)
     return arrays
 
 
@@ -93,6 +109,7 @@ approximate_fields = check_outputs(root / "approximate", iterations=1, case_name
 case = root / "tiny.cas.h5"
 log = run(case, "--backend", "cpu", "--iterations", 21, "--out", root / "standard")
 assert all(s in log for s in ["continuity", "x-velocity", "y-velocity", "z-velocity", "omega", "sec/iter"])
+assert "Convergence checking is off (monitors/check-convergence)" in log and "Reached the iteration limit (21 iterations)." in log, log
 check_outputs(root / "standard")
 run(case, "--approximate", "wfgc", "--backend", "cpu", "--iterations", 1, "--out", root / "unused-opt-in")
 check_outputs(root / "unused-opt-in", iterations=1)

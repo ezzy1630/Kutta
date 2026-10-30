@@ -1,10 +1,15 @@
 #pragma once
 #include "kutta/core/json_value.hpp"
+#include "kutta/setup/convergence.hpp"
 #include "kutta/setup/fluent.hpp"
 #include <functional>
 
 namespace kutta::setup {
-struct RunControls { int iterations=1000,monitor_interval=20; };
+struct RunControls {
+  int iterations=1000,monitor_interval=20;
+  // settings_inventory fills this from the case and binds its monitors/ entries.
+  ConvergenceControls convergence;
+};
 struct Setting {
   std::string path,label,group,unit,kind;
   Json value;
@@ -25,10 +30,10 @@ struct Setting {
   std::function<void(const Json&)> apply;
   std::function<std::string(const Json&)> validate;
 };
-// Run controls (run/iterations, run/monitor-interval) say how long and how
-// often to report, not what case is solved, so they never mark a result
-// modified.
-inline bool run_control(std::string_view path) {return path.starts_with("run/");}
+// Run controls (run/iterations, run/monitor-interval and the monitors/
+// convergence conditions) say how long and how often to report and when to
+// stop, not what case is solved, so they never mark a result modified.
+inline bool run_control(std::string_view path) {return path.starts_with("run/") || path.starts_with("monitors/");}
 std::vector<Setting> settings_inventory(fluent::FluentCase&,RunControls&,bool seeded=false);
 Json settings_json(std::span<const Setting>);
 // Validate every entry first, then apply atomically to the in-memory case.

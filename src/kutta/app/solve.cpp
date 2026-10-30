@@ -5,6 +5,7 @@
 #include "live.hpp"
 #include "kutta/io/live_view.hpp"
 #include "kutta/setup/settings.hpp"
+#include "kutta/post/aero.hpp"
 #include "kutta/core/json.hpp"
 #include "kutta/core/path.hpp"
 #include "kutta/core/sha256.hpp"
@@ -19,6 +20,7 @@
 #include <iomanip>
 #include <iostream>
 #include <locale>
+#include <map>
 #include <optional>
 #include <sstream>
 #include <set>
@@ -109,6 +111,12 @@ int solve(int argc,char** argv) {
     // Only case-changing overrides make a result MODIFIED; run controls are
     // still applied and echoed.
     Json::Object changes,run_controls;for(const auto& [path,v]:applied)(setup::run_control(path)?run_controls:changes).emplace(path,v);
+    if(auto missing=setup::criteria_issues(controls.convergence);!missing.empty())throw setup::RejectedSettings(std::move(missing));
+    const auto& convergence=controls.convergence;
+    std::string convergence_warning;
+    if(!convergence.check)convergence_warning="Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.";
+    else if(!convergence.has_conditions())convergence_warning="Convergence checking is on but no residual is checked and no report condition is active; stopping at the requested iteration limit.";
+    const bool report_conditions=convergence.check && std::any_of(convergence.reports.begin(),convergence.reports.end(),[](const auto& r){return r.active;});
     o.iterations=controls.iterations;
     auto mesh=read_mesh(o.input);
     std::optional<setup::FluentSetup> setup;std::optional<setup::Initialization> fields;
@@ -134,7 +142,7 @@ int solve(int argc,char** argv) {
     }
     if(!notice.empty() && !jsonl) human<<notice<<std::endl;
     if(!jsonl)for(const auto& note:setup->convergence_notes) human<<"Setup: "<<note<<'\n';
-    if(!jsonl)human<<"Case convergence criteria are not exposed by the adapter; using iteration limit "<<o.iterations<<".\n";
+    if(!jsonl && !convergence_warning.empty())human<<convergence_warning<<'\n';
     auto dev=device(o.backend);
     fv::SteadySolver solver(*dev,std::move(mesh),setup->boundaries,setup->settings);
     setup::initialize(solver,*fields);
@@ -153,24 +161,28 @@ int solve(int argc,char** argv) {
         <<",\"device\":"<<json_string(dev->name())<<",\"approximations\":[";
       for(std::size_t i=0;i<setup->approximations.size();++i){if(i)std::cout<<',';std::cout<<json_string(setup::approximation_info(setup->approximations[i]).name);}
       const auto init=!o.data.empty()?"fluent-data":std::holds_alternative<fv::HybridInitialization>(*fields)?"hybrid":"standard";
-      std::cout<<"],\"init\":"<<json_string(init)<<",\"overrides\":"<<dump_json(applied)<<",\"run_controls\":"<<dump_json(run_controls)<<",\"modified\":"<<(changes.empty()?"false":"true");
+      std::cout<<"],\"init\":"<<json_string(init)<<",\"overrides\":"<<dump_json(applied)<<",\"run_controls\":"<<dump_json(run_controls)<<",\"modified\":"<<(changes.empty()?"false":"true")<<",\"convergence\":"<<dump_json(convergence.json());
       if(live)std::cout<<",\"live_view\":"<<dump_json(live_configuration());
       std::cout<<'}'<<std::endl;
       if(!notice.empty())warning(notice);
       for(const auto& note:setup->convergence_notes)warning(note);
-      warning("Case convergence criteria are not exposed by the adapter; stopping at the requested iteration limit.");
+      if(!convergence_warning.empty())warning(convergence_warning);
     }
     std::filesystem::create_directories(o.out);
     // A failed replacement run must not leave a previous success summary next
     // to partially replaced outputs. The summary is the completion marker.
     std::filesystem::remove(o.out/"summary.json");
+    // Loads and aero results derived from a previous run would describe a
+    // different solution.
+    std::filesystem::remove(o.out/"loads.json");std::filesystem::remove(o.out/"aero.json");
     auto residuals=output(o.out/"residuals.csv");
     if(!notice.empty()) residuals<<"# "<<notice<<'\n';
     residuals<<"iteration,continuity,x-velocity,y-velocity,z-velocity,k,omega,seconds_per_iteration\n";
     if(!jsonl)human<<"Backend: "<<backend_name(dev->backend())<<"; device: "<<dev->name()<<"\n"
              <<"  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter\n";
     const auto run_start=Clock::now();
-    bool stopped=false;
+    bool stopped=false,converged=false;
+    setup::ConvergenceMonitor monitor(convergence);std::vector<std::string> met_by;
     auto batch=Clock::now();int batch_count=0;double batch_snapshot_time=0;
     while(solver.report().iteration<o.iterations) {
       if(stop.requested()){stopped=true;if(batch_count==0)break;}
@@ -205,6 +217,7 @@ int solve(int argc,char** argv) {
       const auto r=solver.report().residual_iteration==iter?solver.report():solver.monitor();
       dev->synchronize();const auto per_iteration=(seconds(batch)-batch_snapshot_time)/batch_count;
       const double values[]={r.continuity.fluent_scaled,r.u.fluent_scaled,r.v.fluent_scaled,r.w.fluent_scaled,r.k.fluent_scaled,r.omega.fluent_scaled};
+      static_assert(std::size(values)==setup::residual_equations.size());
       residuals<<r.iteration;
       if(!jsonl)human<<std::setw(6)<<r.iteration<<std::scientific<<std::setprecision(6);
       for(double v:values) {
@@ -212,16 +225,26 @@ int solve(int argc,char** argv) {
         residuals<<','<<v;if(!jsonl)human<<std::setw(14)<<v;
       }
       residuals<<','<<per_iteration<<'\n';
+      // One force evaluation per report and sample serves the event and the
+      // convergence conditions.
+      std::vector<fv::ForceReport> report_forces;
+      if(jsonl || report_conditions)for(const auto& d:reports)report_forces.push_back(solver.forces(d.patches,c.reference.pressure.value_or(0)));
+      std::optional<setup::ConvergenceSample> state;
+      if(convergence.check) {
+        std::map<std::string,double> residual_values,report_values;
+        for(std::size_t i=0;i<std::size(values);++i)residual_values.emplace(setup::residual_equations[i],values[i]);
+        for(std::size_t i=0;i<report_forces.size();++i)report_values.emplace(reports[i].name,dot(report_forces[i].force(),*reports[i].direction));
+        state=monitor.sample(r.iteration,residual_values,report_values);
+      }
       if(!jsonl)human<<std::setw(15)<<per_iteration<<std::endl;
       else {
         std::ostringstream event;event.imbue(std::locale::classic());event<<std::setprecision(17);
         event<<"{\"v\":1,\"event\":\"iteration\",\"iter\":"<<r.iteration<<",\"residuals\":{";
-        const char* names[]={"continuity","x-velocity","y-velocity","z-velocity","k","omega"};
-        for(int i=0;i<6;++i){if(i)event<<',';event<<json_string(names[i])<<':'<<values[i];}
+        for(std::size_t i=0;i<std::size(values);++i){if(i)event<<',';event<<json_string(setup::residual_equations[i])<<':'<<values[i];}
         event<<"},\"reports\":{";
         for(std::size_t i=0;i<reports.size();++i) {
           const auto& d=reports[i];if(i)event<<',';
-          const auto f=solver.forces(d.patches,c.reference.pressure.value_or(0));
+          const auto& f=report_forces[i];
           const auto force=dot(f.force(),*d.direction);KUTTA_REQUIRE(std::isfinite(force),"non-finite report: "+d.name);
           event<<json_string(d.name)<<":{\"force\":"<<force;
           if(c.reference.density && *c.reference.density>0 && c.reference.velocity && *c.reference.velocity>0 && c.reference.area && *c.reference.area>0) {
@@ -231,9 +254,13 @@ int solve(int argc,char** argv) {
           }
           event<<'}';
         }
-        event<<"},\"sec_per_iter\":"<<per_iteration<<",\"elapsed\":"<<seconds(run_start)<<'}';
+        event<<"},\"sec_per_iter\":"<<per_iteration<<",\"elapsed\":"<<seconds(run_start);
+        if(state)event<<",\"convergence\":"<<dump_json(state->json);
+        event<<'}';
         std::cout<<event.str()<<std::endl;
       }
+      // Met conditions win over a stop requested during the same sample.
+      if(state && state->met){converged=true;met_by=state->met_by;break;}
       if(stopped)break;
       batch=Clock::now();batch_count=0;batch_snapshot_time=0;
     }
@@ -269,6 +296,32 @@ int solve(int argc,char** argv) {
     }
     fluxes.close();
     app::save_view_input(o.out/"view-input.bin",*dev,solver,c,reference?&*reference:nullptr,*setup,notice);
+    {
+      // The boundary pressure and wall shear the view snapshot holds, after
+      // the forces.csv evaluation refreshed them; totals match its wall rows.
+      post::Loads loads;loads.reference={c.reference.area,c.reference.density,c.reference.velocity,c.reference.length,c.reference.pressure};
+      for(const auto& d:reports)for(const auto& p:d.patches)if(std::find(loads.report_zones.begin(),loads.report_zones.end(),p)==loads.report_zones.end())loads.report_zones.push_back(p);
+      const auto pressure=dev->download(solver.boundary_pressure());const auto& shear=solver.turbulence().wall_shear;
+      const auto sx=dev->download(shear.x),sy=dev->download(shear.y),sz=dev->download(shear.z);
+      const auto& g=solver.geometry();const auto& m=solver.mesh();const double p_ref=c.reference.pressure.value_or(0);
+      for(const auto& p:m.patches)if(p.kind==PatchKind::Wall) {
+        post::ZoneLoads z{p.name,p.source_zone_id};
+        for(Index f=p.start;f<p.start+p.size;++f) {
+          const auto b=std::size_t(f-m.n_internal_faces());const auto area=g.face_area[f];const double a=norm(area);
+          const auto on_pressure=area*(double(pressure[b])-p_ref),on_shear=Vec3d{sx[b],sy[b],sz[b]}*(-a);
+          z.area+=a;z.pressure=z.pressure+on_pressure;z.viscous=z.viscous+on_shear;
+          z.pressure_moment=z.pressure_moment+cross(g.face_centroid[f],on_pressure);z.viscous_moment=z.viscous_moment+cross(g.face_centroid[f],on_shear);
+        }
+        KUTTA_REQUIRE(finite(z.pressure) && finite(z.viscous) && finite(z.pressure_moment) && finite(z.viscous_moment),"non-finite wall loads: "+p.name);
+        loads.zones.push_back(std::move(z));
+      }
+      loads.provenance=notice;loads.approximate=!setup->approximations.empty();loads.modified=!changes.empty();loads.iterations=solver.report().iteration;
+      auto file=output(o.out/"loads.json");file<<dump_json(post::loads_json(loads))<<'\n';file.close();
+    }
+    auto summary_convergence=convergence.json();
+    summary_convergence.emplace("met_by",Json::Array(met_by.begin(),met_by.end()));
+    summary_convergence.emplace("iteration",converged?Json(solver.report().iteration):Json(nullptr));
+    const auto stop_reason=converged?"converged":stopped?"stopped":"iteration_limit";
     auto summary=output(o.out/"summary.json");
     summary<<"{\n  \"v\": 1,\n  \"modified\": "<<(changes.empty()?"false":"true")<<",\n  \"overrides\": "<<dump_json(applied)<<",\n  \"run_controls\": "<<dump_json(run_controls)<<",\n  \"approximate\": "<<(setup->approximations.empty()?"false":"true")<<",\n  \"approximation_notice\": "<<json_string(setup::approximation_notice(setup->approximations))
       <<",\n  \"approximations\": [";
@@ -286,11 +339,20 @@ int solve(int argc,char** argv) {
       <<",\n  \"cells\": "<<solver.mesh().n_cells<<",\n  \"iterations\": "<<solver.report().iteration
       <<",\n  \"wall_time_seconds\": "<<wall_time<<",\n  \"setup_time_seconds\": "<<setup_time;
     if(live)summary<<",\n  \"live_view\": "<<dump_json(live_statistics(wall_time));
-    summary<<",\n  \"peak_device_memory_bytes\": null,\n  \"converged\": false,\n  \"stop_reason\": "<<json_string(stopped?"stopped":"iteration_limit")<<",\n  \"convergence_criteria_available\": false,\n  \"boundary_wall_shear_available\": true\n}\n";
+    summary<<",\n  \"peak_device_memory_bytes\": null,\n  \"converged\": "<<(converged?"true":"false")<<",\n  \"stop_reason\": "<<json_string(stop_reason)
+      <<",\n  \"convergence\": "<<dump_json(summary_convergence)<<",\n  \"convergence_criteria_available\": true,\n  \"boundary_wall_shear_available\": true\n}\n";
     summary.close();
-    if(jsonl)std::cout<<"{\"v\":1,\"event\":\"done\",\"converged\":false,\"iterations\":"<<solver.report().iteration<<",\"elapsed\":"<<wall_time<<",\"out\":"<<json_string(utf8_path(o.out))<<",\"stop_reason\":"<<json_string(stopped?"stopped":"iteration_limit");
+    if(jsonl)std::cout<<"{\"v\":1,\"event\":\"done\",\"converged\":"<<(converged?"true":"false")<<",\"iterations\":"<<solver.report().iteration<<",\"elapsed\":"<<wall_time<<",\"out\":"<<json_string(utf8_path(o.out))<<",\"stop_reason\":"<<json_string(stop_reason)<<",\"convergence\":"<<dump_json(summary_convergence);
     if(jsonl){if(live)std::cout<<",\"live_view\":"<<dump_json(live_statistics(wall_time));std::cout<<'}'<<std::endl;}
-    else human<<"Wrote "<<o.out.string()<<" ("<<solver.report().iteration<<" iterations, "<<wall_time<<" s solve).\n";
+    else {
+      if(converged) {
+        human<<"Converged at iteration "<<solver.report().iteration<<" (met:";
+        for(const auto& m:met_by)human<<' '<<m;
+        human<<").\n";
+      } else if(stopped)human<<"Stopped on request at iteration "<<solver.report().iteration<<".\n";
+      else human<<"Reached the iteration limit ("<<solver.report().iteration<<" iterations)"<<(convergence.check && convergence.has_conditions()?" before the convergence conditions were met":"")<<".\n";
+      human<<"Wrote "<<o.out.string()<<" ("<<solver.report().iteration<<" iterations, "<<wall_time<<" s solve).\n";
+    }
     if(!notice.empty() && !jsonl) human<<notice<<std::endl;
     return 0;
   } catch(const setup::RejectedSettings& e) {
