@@ -190,6 +190,10 @@ KUTTA_KERNEL void fv_monitor_cell(int i,KIn(int) offsets,KIn(int) faces,
   ru[i]=kabs(residual_u[i]);rv[i]=kabs(residual_v[i]);rw[i]=kabs(residual_w[i]);
 }
 
+KUTTA_KERNEL void fv_speed(int i,KIn(float) u,KIn(float) v,KIn(float) w,KOut(float) speed) {
+  speed[i]=ksqrt(u[i]*u[i]+v[i]*v[i]+w[i]*w[i]);
+}
+
 KUTTA_KERNEL void fv_continuity(int i,KIn(int) offsets,KIn(int) faces,
     KIn(float) sign,KIn(float) flux,KOut(float) result) {
   float mass=0.0f;

@@ -37,14 +37,15 @@ boundary without a run (0.16 s on the elbow), and zones carry a KUTL edges
 file of their polygon edges, so the app shows the mesh as soon as a case
 opens, with face edges rather than triangle diagonals.
 
-## Open
+## Resolved since
 
-- **The monitor interval changes the solution.** Found while testing request
-  4: two 40-iteration elbow runs at interval 20 and interval 1 differ by up to
-  0.0084 m/s in u (of 1.61) and 3e-4 in k (of 0.030); two runs at interval 20
-  are bit-identical. `SteadySolver::monitor()` changes solver state, so the
-  interval is not yet a pure run control. Until the solver lane fixes it,
-  compare runs at equal intervals; the app does not mark this difference.
+- **The monitor interval changed the solution.** Found while testing request
+  4: 40-iteration elbow runs at interval 20 and interval 1 differed by up to
+  0.0084 m/s in u (of 1.61). The automatic pseudo time step was refreshed only
+  in `SteadySolver::monitor()`, so it followed the monitor cadence. It is now
+  refreshed every outer iteration, and runs at intervals 1 and 20 write
+  bit-identical results on CPU and Metal
+  (`tests/fv/test_monitor_cadence.cpp` covers SST, SA and realizable k-ε).
 
 ## Observations
 

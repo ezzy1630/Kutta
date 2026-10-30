@@ -500,6 +500,12 @@ struct SteadySolver::Impl {
   }
 
   void step() {
+    // The automatic pseudo time step follows the flow every outer iteration.
+    // Updating it only in monitor() made the solution depend on the interval.
+    if(settings.pseudo_time_step<=0) {
+      kern::fv_speed(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,speed);
+      update_time(dev.max_abs(speed,mesh.n_cells));
+    }
     update_boundaries();update_pressure();
     update_turbulence();
     kern::fv_momentum_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
@@ -586,7 +592,6 @@ struct SteadySolver::Impl {
     report.maximum_velocity=dev.max_abs(speed,mesh.n_cells);
     report.pseudo_time_step=time_step;
     monitor_turbulence();
-    update_time(report.maximum_velocity);
     report.residual_iteration=report.iteration;
     return report;
   }
