@@ -1,4 +1,5 @@
 #include "export.hpp"
+#include "kutta/post/post.hpp"
 #include "kutta/mesh/detail.hpp"
 #include <algorithm>
 #include <chrono>
@@ -35,6 +36,7 @@ void add_derived(std::vector<Field>& fields,std::optional<double> pressure,doubl
 void save_view_input(const std::filesystem::path& path,Device& dev,const fv::SteadySolver& solver,
                      const fluent::FluentCase& c,const fluent::FluentData* reference,const setup::FluentSetup& setup,std::string_view provenance) {
   view::Fields s;s.reference=reference!=nullptr;s.provenance=provenance;
+  s.properties={setup.settings.density,setup.settings.viscosity,c.reference.density,c.reference.velocity,c.reference.pressure,c.reference.area,c.reference.length};
   const auto& m=solver.mesh();const auto nb=m.n_faces()-m.n_internal_faces();
   const auto& t=solver.turbulence();
   s.cells.push_back(vector_field(dev,"velocity","m/s",solver.velocity()));
@@ -60,6 +62,8 @@ void save_view_input(const std::filesystem::path& path,Device& dev,const fv::Ste
     }
   }
   s.boundary.push_back(std::move(velocity));
+  const auto mass_flux=dev.download(solver.mass_flux());
+  s.boundary.push_back({"mass_flux","kg/s",1,std::vector<float>(mass_flux.begin()+m.n_internal_faces(),mass_flux.end())});
   if(reference) {
     // Cell-zone vectors retain original Fluent-ID order through RCM; their
     // stored indices are updated by the mesh permutation.
@@ -109,14 +113,21 @@ void save_view_input(const std::filesystem::path& path,Device& dev,const fv::Ste
   view::write_snapshot(path,m,s);
 }
 int export_view(int argc,char** argv) {
-  if(argc<3){std::cerr<<"Usage: kutta export-view DIR [--slice ox,oy,oz,nx,ny,nz]...\n";return 2;}
-  std::vector<view::Plane> planes;
-  try {for(int i=3;i<argc;i+=2){KUTTA_REQUIRE(i+1<argc && std::string_view(argv[i])=="--slice","expected --slice ox,oy,oz,nx,ny,nz");planes.push_back(view::parse_plane(argv[i+1]));}}
+  if(argc<3){std::cerr<<"Usage: kutta export-view DIR [--slice ox,oy,oz,nx,ny,nz]... [--post spec.json | --streamlines spec.json]\n";return 2;}
+  std::vector<view::Plane> planes;std::optional<post::Request> request;
+  try {for(int i=3;i<argc;i+=2){
+    KUTTA_REQUIRE(i+1<argc,"missing export option value");const std::string_view key=argv[i];
+    if(key=="--slice")planes.push_back(view::parse_plane(argv[i+1]));
+    else if(key=="--post" || key=="--streamlines"){KUTTA_REQUIRE(!request,"only one post-processing specification is allowed");request=post::read_request(argv[i+1],key=="--streamlines");}
+    else throw Error("unknown export option: "+std::string(key));
+  }}
   catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 2;}
   try {
     const auto start=std::chrono::steady_clock::now();const std::filesystem::path directory=argv[2];
     KUTTA_REQUIRE(std::filesystem::exists(directory/"summary.json"),"run has no completion marker summary.json");
-    auto snapshot=view::read_snapshot(directory/"view-input.bin");view::export_view(directory,snapshot,planes);
+    auto snapshot=view::read_snapshot(directory/"view-input.bin");
+    if(request)post::enrich(snapshot,*request);
+    view::export_view(directory,snapshot,planes,request?&*request:nullptr);
     std::cout<<"Wrote "<<(directory/"view").string()<<" in "<<std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count()<<" s\n";return 0;
   }catch(const std::exception& e){std::cerr<<"kutta export-view: "<<e.what()<<'\n';return 1;}
 }

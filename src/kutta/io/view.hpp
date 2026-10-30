@@ -3,6 +3,8 @@
 #include "kutta/io/mesh_io.hpp"
 #include <optional>
 
+namespace kutta::post { struct Request; }
+
 namespace kutta::view {
 // Snapshot fields use solver mesh order. Boundary fields index f-n_internal.
 // NaN means unavailable reference coverage; it is never turned into zero.
@@ -29,5 +31,5 @@ inline void write_snapshot(const std::filesystem::path& path,const Snapshot& s) 
 Snapshot read_snapshot(const std::filesystem::path&);
 // Ordinary surfaces/slices keep storage proportional to visible geometry.
 // Optional post requests may construct volume gradients and nodal caches.
-void export_view(const std::filesystem::path& directory,const Snapshot&,std::span<const Plane> planes={});
+void export_view(const std::filesystem::path& directory,const Snapshot&,std::span<const Plane> planes={},const post::Request* request=nullptr);
 } // namespace kutta::view

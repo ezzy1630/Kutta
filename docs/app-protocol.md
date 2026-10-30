@@ -12,7 +12,7 @@ the app only presents it. Every message carries `"v": 1`.
 | `kutta devices --json` | one JSON object: `{"v":1,"devices":[{"backend":"cuda","name":"NVIDIA GeForce RTX 4070","memory_bytes":12884901888,"default":true}, ...]}` |
 | `kutta inspect <case> [--data <dat>] --json` | one JSON object: case summary (below) |
 | `kutta solve <case> [--data <dat>] [--approximate a,b] [--backend b] [--iterations n] --out DIR --progress jsonl` | JSON lines on stdout while running; files in DIR |
-| `kutta export-view DIR [--slice origin,normal]...` | writes `DIR/view/` (below) from a finished run |
+| `kutta export-view DIR [--slice origin,normal]... [--post spec.json]` | writes `DIR/view/` (below) from a finished run |
 
 Human-readable output without `--json` / `--progress` is unchanged.
 
@@ -189,3 +189,214 @@ wins over `--iterations`. `setup` and `summary.json` echo the applied object as
 and view provenance carry `MODIFIED RESULT`, separately from approximation state.
 `fluxes.csv` gives each boundary zone's integrated outward mass flow in kg/s,
 using the solver's final mass flux, and carries the same provenance notice.
+
+## Volume post-processing (v1 additive)
+
+```sh
+kutta export-view DIR --post post.json [--slice ox,oy,oz,nx,ny,nz]...
+kutta export-view DIR --streamlines seeds.json
+```
+
+`--post` batches streamlines/pathlines, iso-surfaces, XY probes and surface
+reports into the same atomic `view/` publication as ordinary surfaces/slices.
+`--streamlines` accepts either a complete batch or one trace object with `v:1`.
+Only one specification may be passed. The CLI reads the volume snapshot; the app
+reads the manifest, compact geometry, probe CSVs and reports. No volume mesh is
+sent to the app. Invalid request syntax is exit 2; unavailable fields, mismatched
+frames or run-data failures are exit 1. A failed export preserves the old view.
+
+```json
+{"v":1,
+ "fields":["pressure_coefficient","total_pressure_coefficient","vorticity","q_criterion","helicity","velocity_x","velocity_y","velocity_z","skin_friction"],
+ "streamlines":[{
+   "name":"inlet-rake","mode":"streamline",
+   "seeds":{"type":"rake","start":[0,0,0],"end":[0,1,0],"count":20},
+   "direction":"forward","max_steps":10000,"max_length":10,"max_time":100,
+   "step_length":0.01,"relative_tolerance":0.00001,"absolute_tolerance":0.0000001,
+   "fields":["velocity_magnitude","pressure","total_pressure_coefficient"]}],
+ "isosurfaces":[{"name":"wake","field":"total_pressure_coefficient","value":0,
+                  "fields":["pressure","velocity_magnitude"]},
+                 {"name":"vortices","field":"q_criterion","value":100}],
+ "probes":[{"name":"wake-line","type":"line","start":[0,0,0],"end":[1,0,0],"count":100,
+            "fields":["pressure_coefficient","velocity_x"]},
+           {"name":"wing-section","type":"section","zones":["wing"],
+            "origin":[0,0,0.5],"normal":[0,0,1],"fields":["pressure_coefficient"]}],
+ "integrals":[{"name":"aero","zones":["wing"],"fields":["pressure_coefficient","skin_friction"],
+               "origin":[0,0,0],"drag":[1,0,0],"lift":[0,0,1],"side":[0,1,0],
+               "pressure_plane":{"origin":[0,0,0],"normal":[1,0,0]}}]}
+```
+
+Names identify operations; filenames use ordinals, so arbitrary names cannot
+escape `view/`. Names must be unique across a batch. Specifications are strict
+JSON, at most 1 MiB and 256 operations. Unknown keys, duplicate keys/names,
+nonfinite values, degenerate planes/directions, and invalid ranges are rejected.
+Counts and maximum steps are positive integers no larger than 1,000,000.
+
+The global `fields` list adds selected fields to the ordinary surfaces and
+slices. When omitted/empty, all available derived fields below are added. The
+manifest's `available_fields` describes every sampleable primitive, derived and
+Fluent/delta field, with unit, components and `volume` or `boundary` location.
+Boundary-only fields cannot be used on volume iso-surfaces or volume line probes.
+Missing source/reference data is reported rather than invented. Raw saved fields
+are also selectable by their exact exported name.
+
+### Reconstruction and tracing
+
+Post-processing uses unlimited inverse-square least-squares cell reconstruction
+with face-neighbour cell values and available boundary values. A rank-aware
+pseudoinverse preserves resolved directions on one-layer meshes. This is a
+post-processing reconstruction; it does not alter the solver's transport limiter.
+Velocity derivatives use this same reconstruction. Initial point location uses a
+cell BVH; subsequent integration stages walk across the actual owner/neighbour
+faces. Face intersections use their triangulated 3D geometry. Boundaries terminate
+traces; no periodic wrapping, wall reflection or particle-force model is implied.
+
+Trace seed variants are:
+
+```json
+{"type":"rake","start":[0,0,0],"end":[0,1,0],"count":20}
+{"type":"plane","origin":[0,0,0],"u":[0,1,0],"v":[0,0,1],"nu":10,"nv":10}
+{"type":"surface","zones":["inlet"],"count":100,"distribution":"uniform","offset":0}
+{"type":"surface","zones":["inlet"],"count":100,"distribution":"random","random_seed":42,"offset":0.001}
+```
+
+Rakes include endpoints; a count of one chooses the midpoint. Plane `u` and `v`
+span the entire grid; an axis with count one chooses its midpoint. The total
+plane-grid count cannot exceed 1,000,000. Surface sampling is weighted by triangle
+area. `uniform` is deterministic stratified area selection with low-discrepancy
+barycentric samples; `random` uses a reproducible seed. `offset` is a nonnegative
+inward distance in metres. Seeds outside the volume are retained as one-point
+traces with `stop_reason:"outside"`. A zero-speed seed terminates as `stagnation`.
+
+Integration uses RK4 step doubling, with adaptive step control and cell-to-cell
+walking at each stage. A zero/omitted `step_length` chooses 0.4 times the local
+cube-root cell volume; otherwise it is the maximum proposed travel distance in
+metres. Tolerances bound the estimated spatial integration error. Defaults are
+10,000 steps, 1,000 m maximum length, 1,000,000 s maximum travel time, relative
+error 1e-5 and an absolute tolerance scaled to mesh size. `direction` is `forward`,
+`backward` or `both`; both emits two independently identified curves per seed.
+Each vertex includes requested fields, `arc_length` (m) and physical `time` (s).
+Line metadata gives seed ID, direction, accepted steps, length, time and stop
+reason: `boundary`, `outside`, `stagnation`, `max_steps`, `max_length`, `max_time`,
+`time_range`, `missing_velocity` or `step_underflow`. Boundary endpoints are snapped
+within the integration tolerance; failed integration is never extended outside.
+
+For a steady run, `mode:"pathline"` and `mode:"streamline"` follow the same
+velocity field. Time-dependent pathlines additionally accept:
+
+```json
+{"name":"particles","mode":"pathline","start_time":0,
+ "frames":[{"time":0,"run":"run-000"},{"time":0.1,"run":"run-001"}],
+ "seeds":{"type":"rake","start":[0,0,0],"end":[0,1,0],"count":20}}
+```
+
+Frame paths are relative to the specification file. At least two strictly
+increasing frame times must bracket `start_time`. Every frame must have exactly
+the same mesh coordinates/connectivity and cell order; counts alone do not prove
+identity. Reconstructed fields are interpolated linearly in time, and integration
+stops at the saved time range. Only two frames are resident. These are massless
+advected pathlines, not inertial discrete particles.
+
+### Iso-surfaces and XY probes
+
+Iso-surfaces use marching tetrahedra, decomposing each cell into its centre and
+triangulated faces. Shared mesh-node values are inverse-distance-weighted means
+of neighbouring cell reconstructions, making face edges consistent between cells.
+Concave faces are ear-clipped in their dominant projection. For warped faces,
+the exporter selects a shared diagonalization that favours positive tetrahedra
+for both neighbouring cells. If necessary, it finds an interior point in the
+triangulated cell kernel instead of using the Fluent face-pyramid centroid.
+A cell without a positive kernel fails explicitly; inverted or overlapping
+tetrahedra are never silently accepted. Vertices
+are welded by topological edge identity, duplicate triangles are removed, and
+winding points toward increasing iso value. A scalar `field` uses its value;
+a vector uses magnitude by default, or `component:0|1|2` for x/y/z. Requested
+vertex fields use the same tetrahedral interpolation. A constant-valued volume
+at the iso value has no unique two-dimensional level surface and emits no faces.
+No crossing also produces an empty geometry, with null field ranges.
+
+Line probes sample exactly `count` positions along the line, including endpoints.
+They reconstruct fields within each located volume cell. Outside points retain
+their positions, `valid:0`, and NaN values; valid segments remain separate curves.
+Section probes intersect the selected boundary zones with a plane and interpolate
+the zone's face-area-weighted vertex values onto the intersection. Segments are
+connected into ordered curves; closed curves include their closing point and
+are oriented with the plane normal. Multiple zones retain separate curves and
+zone identity. Coplanar triangles contribute their outer perimeter. Each curve
+has an `arc_length` axis. CSV columns include sample, x/y/z, arc length, valid and
+requested fields (vectors use `.x`, `.y`, `.z` suffixes, avoiding collisions
+with scalar `velocity_x` fields); missing values are empty CSV cells. This
+supports Cp against chord coordinate or distance around a wing section.
+
+### Derived fields and references
+
+Reference density, velocity, pressure, area and length, and actual material
+density/viscosity are saved after `solve --setup` overrides are applied. No case
+file needs to be reopened. Private snapshot v2 adds these values and the solver's
+boundary mass fluxes; the reader still accepts v1 snapshots. For old snapshots,
+`reference` in a post request may supply missing values. It may also change the
+normalizing reference values for an existing run. It cannot change a known
+solved density or viscosity; use `solve --setup` for those physical changes.
+The view records the values used and post-reference overrides in provenance.
+
+Let `q_ref = 0.5 rho_ref U_ref^2`, `G_ij = dU_i/dx_j`, `S=(G+G^T)/2` and
+`Omega=(G-G^T)/2`. Additional fields are:
+
+| Name | Unit | Definition |
+| --- | --- | --- |
+| `pressure_coefficient` | 1 | `(p - p_ref) / q_ref` |
+| `total_pressure` | Pa | incompressible gauge `p + 0.5 rho |U|^2` |
+| `total_pressure_coefficient` | 1 | `(total_pressure - p_ref) / q_ref`; static reference pressure |
+| `velocity_x`, `velocity_y`, `velocity_z` | m/s | reconstructed velocity components |
+| `vorticity` | 1/s | `curl(U)`, xyz vector |
+| `vorticity_magnitude` | 1/s | `|curl(U)|` |
+| `q_criterion` | 1/s^2 | `0.5 (||Omega||_F^2 - ||S||_F^2)` |
+| `helicity` | m/s^2 | `U dot curl(U)` |
+| `wall_shear`, `wall_shear_magnitude` | Pa | saved SST stress on fluid, vector/magnitude |
+| `y_plus` | 1 | saved SST u-star wall diagnostic |
+| `skin_friction`, `skin_friction_vector` | 1 | wall shear magnitude/vector divided by `q_ref`, on fluid |
+
+The existing `@fluent` and `@delta` conventions apply. Derivatives are reconstructed
+from each solution independently; nonlinear delta fields are Kutta's derived
+quantity minus Fluent's derived quantity. No derivative of a difference is
+substituted for a difference of nonlinear diagnostics.
+
+### Surface reports
+
+Each integral request emits each exact selected zone and a combined total. Empty
+`zones` selects all boundary zones. Outputs include area, signed outward mass
+flow, absolute mass flow, field area integrals, area-weighted and absolute-mass-
+flow-weighted averages, coverage, pressure/viscous/total force and moment, split
+lift/drag/side coefficients, vector moment coefficients and centre of pressure.
+Directions are normalized; defaults are drag x, lift y, side z. The actual axes
+and moment origin are echoed. Undefined zero-flow averages and coefficients with
+missing references are JSON null. NaN reference samples carry explicit coverage.
+
+New snapshots use the solver's saved mass flux. Old snapshots may instead use
+`rho U_boundary dot S_face`, and reports identify that source. Pressure force on
+the body is `(p-p_ref) S_face`; viscous wall load is minus saved stress-on-fluid
+times area. Non-wall viscous traction uses the reconstructed symmetric velocity
+gradient and effective dynamic viscosity. Moments use the face centroid relative
+to `origin`. Force coefficients divide by `q_ref A_ref`, moment coefficients by
+`q_ref A_ref L_ref`. These are discrete face-field integrals, consistent with the
+saved solution, rather than a re-solve of boundary layers.
+
+Centre of pressure uses pressure force/moment only. It is the closest point of
+the pressure-resultant line to the moment origin unless `pressure_plane` is
+specified, in which case it is that line's intersection with the plane. The
+report includes the residual pressure couple and `zero_moment`; a general 3D
+load can retain a couple parallel to its force. Zero pressure force or a
+nonintersecting parallel plane produces a null location and an explicit status.
+These choices follow [Fluent's force/moment conventions](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_report_force_moment.html)
+and [absolute mass-flow weighting](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_compute_surfint.html).
+
+### App artifacts
+
+The manifest adds `streamlines`, `isosurfaces`, `probes`, `reports`,
+`available_fields` and `reference_values`. Every geometry descriptor has its
+operation `name`, primitive, file, vertex/index counts, field offsets/units/ranges
+and operation-specific metadata. Iso-surfaces use KUTV triangles. Traces and
+probes use KUTL polylines in the same little-endian float32/uint32 family; its
+layout is documented [next to the writer](../src/kutta/io/VIEW_FORMAT.md).
+Probe descriptors link a CSV, and `reports_file` links `view/reports.json`, whose
+root is `{"v":1,"reports":[...]}`. All outputs carry the run/view provenance.

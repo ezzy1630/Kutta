@@ -1,5 +1,6 @@
 #include "view.hpp"
 #include "view_geometry.hpp"
+#include "kutta/post/post.hpp"
 #include "binary.hpp"
 #include "kutta/core/json.hpp"
 #include "kutta/mesh/detail.hpp"
@@ -131,7 +132,7 @@ void payload(const std::filesystem::path& path,const Geometry& g,std::ostream& m
   const auto text=dump_json(artifact.descriptor);manifest<<','<<text.substr(1);
 }
 }
-void export_view(const std::filesystem::path& directory,const Snapshot& s,std::span<const Plane> planes) {
+void export_view(const std::filesystem::path& directory,const Snapshot& s,std::span<const Plane> planes,const post::Request* request) {
   KUTTA_REQUIRE(!s.mesh.points.empty(),"view snapshot has no points");
   const auto token=std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
   const auto stage=directory/(".view-"+token),target=directory/"view",old=directory/(".view-old-"+token);
@@ -160,6 +161,11 @@ void export_view(const std::filesystem::path& directory,const Snapshot& s,std::s
       }
     }
     manifest<<']';
+    if(request) {
+      const auto extra=post::write_outputs(stage,s,*request);
+      for(const auto& [key,value]:extra.manifest)manifest<<','<<json_string(key)<<':'<<dump_json(value);
+      for(const auto& r:extra.fields){auto& entry=catalog[r.name];entry.first={r.name,r.unit,r.components,{}};if(r.min)entry.second.add(*r.min);if(r.max)entry.second.add(*r.max);}
+    }
     manifest<<",\"fields\":[";first=true;
     for(const auto& [name,entry]:catalog){if(!first)manifest<<',';
     first=false;manifest<<"{\"name\":"<<json_string(name)<<",\"unit\":"<<json_string(entry.first.unit)<<",\"components\":"<<entry.first.components<<",\"location\":\"vertex\"";range_json(manifest,entry.second);manifest<<'}';}
