@@ -5,10 +5,12 @@
 #include <iostream>
 #include <set>
 #include <type_traits>
+#include <fstream>
 
 #include "kernels.hpp"
 
 #include "../validation/cases/cavity.hpp"
+#include "sst_channel.hpp"
 
 #ifndef KUTTA_BENCH_COMMIT
 #define KUTTA_BENCH_COMMIT "unknown"
@@ -43,21 +45,27 @@ class MeasuredDevice final:public kutta::Device {
   }
  public:
   bool timing=false;
+  std::size_t reductions=0,downloads=0,uploads=0,allocations=0,allocated_bytes=0,launches=0,syncs=0;
+  void reset_counts() { reductions=downloads=uploads=allocations=allocated_bytes=launches=syncs=0; }
   std::map<std::string,KernelMeasurement> measurements;
   explicit MeasuredDevice(kutta::Backend backend):native_(kutta::Device::create(backend)) {}
   kutta::Backend backend() const override {return native_->backend();}
   std::string name() const override {return native_->name();}
-  void synchronize() override {native_->synchronize();}
+  void synchronize() override {++syncs;native_->synchronize();}
   double sum(const kutta::Buffer<float>& x,std::size_t n) override {
+    ++reductions;
     return measured("reduce.sum",4*n,[&]{return native_->sum(storage(*x.handle()).native,n);});
   }
   double dot(const kutta::Buffer<float>& x,const kutta::Buffer<float>& y,std::size_t n) override {
+    ++reductions;
     return measured("reduce.dot",8*n,[&]{return native_->dot(storage(*x.handle()).native,storage(*y.handle()).native,n);});
   }
   double max_abs(const kutta::Buffer<float>& x,std::size_t n) override {
+    ++reductions;
     return measured("reduce.max",4*n,[&]{return native_->max_abs(storage(*x.handle()).native,n);});
   }
   void launch(kutta::KernelId id,std::size_t n,std::span<const kutta::KernelArg> args) override {
+    ++launches;
     KUTTA_REQUIRE(args.size()<=32,"FV profiler argument capacity exceeded");
     std::array<kutta::KernelArg,32> translated;
     std::size_t bytes=0;
@@ -83,14 +91,17 @@ class MeasuredDevice final:public kutta::Device {
       storage(*v.handle()).native,n,out,offset);});
   }
   std::unique_ptr<kutta::BufferHandle> alloc_bytes(std::size_t bytes) override {
+    ++allocations;allocated_bytes+=bytes;
     KUTTA_REQUIRE(bytes%4==0,"FV profiler requires four-byte elements");
     return std::make_unique<Storage>(native_->alloc<float>(bytes/4));
   }
   void upload_bytes(kutta::BufferHandle& dst,const void* source,std::size_t bytes) override {
+    ++uploads;
     std::vector<float> bits(bytes/4);if(bytes) std::memcpy(bits.data(),source,bytes);
     native_->upload<float>(storage(dst).native,bits);
   }
   void download_bytes(const kutta::BufferHandle& source,void* dst,std::size_t bytes) override {
+    ++downloads;
     auto bits=native_->download(storage(source).native);if(bytes) std::memcpy(dst,bits.data(),bytes);
   }
   void copy_bytes(kutta::BufferHandle& dst,const kutta::BufferHandle& src,std::size_t bytes) override {
@@ -150,6 +161,80 @@ void performance(kutta::Backend backend,int size,int repeats) {
   }
 }
 
+void sst_performance(kutta::Backend backend,int nx,int ny,int nz,int repeats,int warmup,
+    bool profile,int converge,const std::string& output) {
+  MeasuredDevice dev(backend);
+  auto mesh=kutta::bench::sst_channel(nx,ny,nz);
+  auto bc=kutta::bench::channel_boundaries(mesh);
+  const auto settings=kutta::bench::channel_settings();
+  const auto setup=Clock::now();
+  kutta::fv::SteadySolver solver(dev,std::move(mesh),bc,settings);
+  kutta::bench::initialize_channel(solver);
+  dev.synchronize();
+  const auto cells=solver.mesh().n_cells;
+  std::cout<<std::setprecision(12)<<"FV_CASE case=sst-tet backend="<<kutta::backend_name(backend)
+    <<" device=\""<<dev.name()<<"\" source="<<KUTTA_BENCH_COMMIT<<" cells="<<cells
+    <<" faces="<<solver.mesh().n_faces()<<" nx="<<nx<<" ny="<<ny<<" nz="<<nz
+    <<" setup_s="<<std::chrono::duration<double>(Clock::now()-setup).count()<<std::endl;
+  if(converge>0) {
+    const auto start=Clock::now();bool converged=false;
+    while(solver.report().iteration<converge) {
+      solver.iterate(std::min(20,converge-solver.report().iteration));
+      const auto r=solver.monitor();
+      converged=std::max({r.u.scaled,r.v.scaled,r.w.scaled,r.k.scaled,r.omega.scaled})<1e-5 &&
+        r.continuity.scaled<1e-5;
+      std::cout<<"FV_CONVERGENCE backend="<<kutta::backend_name(backend)<<" iteration="<<r.iteration
+        <<" u="<<r.u.scaled<<" v="<<r.v.scaled<<" w="<<r.w.scaled<<" k="<<r.k.scaled
+        <<" omega="<<r.omega.scaled<<" continuity="<<r.continuity.scaled<<" converged="<<converged<<std::endl;
+      if(converged) break;
+    }
+    dev.synchronize();
+    const std::vector<std::string> walls{"ymin","ymax"};const auto force=solver.forces(walls);
+    std::cout<<"FV_CONVERGED backend="<<kutta::backend_name(backend)<<" converged="<<converged
+      <<" iterations="<<solver.report().iteration<<" wall_s="<<std::chrono::duration<double>(Clock::now()-start).count()
+      <<" wall_force_x="<<force.force().x<<std::endl;
+  } else {
+    solver.iterate(warmup);dev.synchronize();
+    // Timed throughput and intrusive kernel profiling start from the same
+    // saved iteration in separate runs (--profile 0 versus 1).
+    dev.reset_counts();dev.measurements.clear();dev.timing=profile;
+    const auto start=Clock::now();solver.iterate(repeats);dev.synchronize();
+    const double seconds=std::chrono::duration<double>(Clock::now()-start).count();dev.timing=false;
+    std::size_t fv_bytes=0,total_bytes=0;double profiled=0;
+    for(const auto& [name,r]:dev.measurements) {
+      total_bytes+=r.bytes;if(name.starts_with("fv_") || name.starts_with("sst_")) fv_bytes+=r.bytes;
+      profiled+=r.seconds;
+      std::cout<<"FV_KERNEL backend="<<kutta::backend_name(backend)<<" kernel="<<name
+        <<" calls_per_outer="<<double(r.calls)/repeats<<" us_per_call="<<1e6*r.seconds/r.calls
+        <<" logical_bytes_per_cell_per_outer="<<double(r.bytes)/cells/repeats<<std::endl;
+    }
+    const auto& r=solver.report();
+    std::cout<<"FV_PERFORMANCE case=sst-tet backend="<<kutta::backend_name(backend)<<" source="<<KUTTA_BENCH_COMMIT
+      <<" cells="<<cells<<" warmup="<<warmup<<" outer_iterations="<<repeats<<" profile="<<profile
+      <<" wall_s_per_outer="<<seconds/repeats<<" outer_iterations_per_s="<<repeats/seconds
+      <<" host_norms_per_outer="<<double(dev.reductions)/repeats
+      <<" downloads_per_outer="<<double(dev.downloads)/repeats<<" uploads_per_outer="<<double(dev.uploads)/repeats
+      <<" explicit_syncs="<<dev.syncs<<" allocations_per_outer="<<double(dev.allocations)/repeats
+      <<" allocated_bytes_per_outer="<<double(dev.allocated_bytes)/repeats
+      <<" launches_per_outer="<<double(dev.launches)/repeats
+      <<" fv_logical_bytes_per_cell="<<double(fv_bytes)/cells/repeats
+      <<" all_logical_bytes_per_cell="<<double(total_bytes)/cells/repeats
+      <<" profile_s_per_outer="<<profiled/repeats
+      <<" u_iterations="<<r.momentum[0].iterations<<" v_iterations="<<r.momentum[1].iterations
+      <<" w_iterations="<<r.momentum[2].iterations<<" pressure_iterations="<<r.pressure.iterations
+      <<" k_iterations="<<r.turbulence[0].iterations<<" omega_iterations="<<r.turbulence[1].iterations<<std::endl;
+  }
+  if(!output.empty()) {
+    std::ofstream file(output+"-"+kutta::backend_name(backend)+".bin",std::ios::binary);
+    KUTTA_REQUIRE(file.good(),"Cannot write SST benchmark fields");
+    for(const auto* q:{&solver.velocity().x,&solver.velocity().y,&solver.velocity().z,&solver.pressure(),
+        &solver.kinetic_energy(),&solver.specific_dissipation(),&solver.mass_flux()}) {
+      const auto field=dev.download(*q);
+      file.write(reinterpret_cast<const char*>(field.data()),std::streamsize(field.size()*sizeof(float)));
+    }
+  }
+}
+
 void save_profiles(const kutta::validation::CavityResult& result,const std::string& stem) {
   std::ofstream output(stem+".csv");KUTTA_REQUIRE(output.good(),"Cannot write cavity profile: "+stem);
   output<<"component,coordinate,velocity\n"<<std::setprecision(12);
@@ -168,7 +253,7 @@ double profile_difference(const kutta::validation::Profile& a,const kutta::valid
 int main(int argc,char** argv) {
   try {
     int reynolds=100,nx=129,ny=129,iterations=6000,size=100,repeats=3;
-    bool run_cavity=false;
+    bool run_cavity=false,sst=false,profile=false;int nz=40,warmup=5,converge=0;std::string output;
     std::string backend_filter;std::filesystem::path fluent;
     for(int i=1;i<argc;++i) {
       std::string arg=argv[i];
@@ -177,6 +262,12 @@ int main(int argc,char** argv) {
       if(arg=="--cavity") {reynolds=std::stoi(value);run_cavity=true;}
       else if(arg=="--nx") nx=std::stoi(value);
       else if(arg=="--ny") ny=std::stoi(value);
+      else if(arg=="--nz") nz=std::stoi(value);
+      else if(arg=="--case") {KUTTA_REQUIRE(value=="sst-tet","Unknown FV case");sst=true;}
+      else if(arg=="--profile") profile=std::stoi(value)!=0;
+      else if(arg=="--warmup") warmup=std::stoi(value);
+      else if(arg=="--converge") converge=std::stoi(value);
+      else if(arg=="--output") output=value;
       else if(arg=="--iterations") iterations=std::stoi(value);
       else if(arg=="--backend") backend_filter=value;
       else if(arg=="--fluent") {fluent=value;run_cavity=true;}
@@ -193,6 +284,10 @@ int main(int argc,char** argv) {
     for(auto backend:kutta::Device::available()) {
       if(!backend_filter.empty() && backend_filter!=kutta::backend_name(backend)) continue;
       ran=true;
+      if(sst) {
+        KUTTA_REQUIRE(nx>1 && ny>1 && nz>0 && warmup>=0 && converge>=0,"Invalid SST benchmark dimensions");
+        sst_performance(backend,nx,ny,nz,repeats,warmup,profile,converge,output);continue;
+      }
       if(!run_cavity) {performance(backend,size,repeats);continue;}
       auto dev=kutta::Device::create(backend);
       std::cout<<"FV device="<<dev->name()<<std::endl;
