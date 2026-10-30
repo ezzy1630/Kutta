@@ -14,6 +14,7 @@ the app only presents it. Every message carries `"v": 1`.
 | `kutta solve <case> [--data <dat>] [--approximate a,b] [--backend b] [--iterations n] [--live-view DIR] [--live-every N] --out DIR --progress jsonl` | JSON lines on stdout while running; files in DIR |
 | `kutta export-view DIR [--slice origin,normal]... [--post spec.json]` | writes `DIR/view/` (below) from a finished run |
 | `kutta export-geometry CASE --out DIR [--json]` | writes `DIR/geometry/` (case surfaces without a run); with `--json` one `geometry` event line |
+| `kutta aero DIR [--aero spec.json] [--json]` | aero coefficients, groups, balance and centre of pressure of a finished run from its `loads.json`; writes `DIR/aero.json`, with `--json` one `aero` event line |
 
 Human-readable output without `--json` / `--progress` is unchanged.
 
@@ -146,9 +147,9 @@ Directions are used as saved, without changing their sign or magnitude.
 Cancellation is checked between **outer iterations**, including inside a monitor
 interval. The final partial interval emits an iteration event when at least one
 iteration ran. A request during setup completes initialization before writing
-a zero-iteration run. `done` and `summary.json` add `stop_reason: "stopped"` or
-`"iteration_limit"`. `converged` remains false until the adapter exposes case
-convergence criteria. JSONL mode watches stdin EOF only when stdin is a pipe
+a zero-iteration run. `done` and `summary.json` add `stop_reason: "stopped"`, `"iteration_limit"`
+or `"converged"`; `converged` is true only for the last, when convergence
+checking is on (see Convergence criteria below). JSONL mode watches stdin EOF only when stdin is a pipe
 at startup; the app keeps the child process's stdin pipe open while it runs. Any received
 bytes are ignored. A file, `/dev/null`, a terminal or absent stdin never stops a run. Human mode retains
 normal redirected-stdin behavior and responds to SIGINT / CTRL_BREAK. Neither
@@ -206,13 +207,14 @@ required adapter controls also appear, with null values.
 Only entries with `editable: true` may be changed. Initial editable controls are:
 active inlet speed/components/direction, inlet/outlet turbulence values and
 turbulence specification (k-omega models), outlet gauge pressure, active
-constant material density/viscosity, used reference area/density/speed/pressure,
+constant material density/viscosity, reference area/density/speed/pressure and
+length (length scales moment coefficients in `kutta aero`),
 implemented momentum/k/omega upwind schemes, gradient limiting, pseudo-time
 scale and active equation relaxation, standard numeric initialization values
 when not seeded, force-report directions, and run iteration and monitor
-intervals. Changing the initialization method, operating pressure, unused
-reference length/viscosity, model selection, velocity specification, wall
-motion or convergence criteria is read-only. A displayed Fluent value is not
+intervals, and the convergence controls under `monitors/` (below). Changing the
+initialization method, operating pressure, reference viscosity, model
+selection, velocity specification or wall motion is read-only. A displayed Fluent value is not
 evidence that Kutta can edit it.
 
 The turbulence specification's `options` are restricted to the methods whose
@@ -583,3 +585,191 @@ solve time). Ordinary iteration `sec_per_iter` excludes measured snapshot time;
 progress `elapsed` and run `wall_time_seconds` include it. Cancellation finishes
 any active snapshot publication and the current iteration before normal output
 closure. Live views are intermediate solutions, not convergence certificates.
+
+## Convergence criteria (v1 additive)
+
+Fluent stops a steady run when its residual criteria and report convergence
+conditions are met. `kutta solve` does the same when convergence checking is
+on. It is **off by default**, so an existing script still runs to its
+iteration limit; the app's Monitors page turns it on. Every control below is a
+settings-inventory entry in group `Monitors`, editable through `solve --setup`.
+They are run controls like `run/iterations`: they say when to stop, not what
+case is solved, so they never mark a result MODIFIED and are echoed under
+`run_controls`. (`setup::run_control` covers the `run/` and `monitors/`
+prefixes.)
+
+| Path | Kind | Default | Meaning |
+| --- | --- | --- | --- |
+| `monitors/check-convergence` | bool | `false` | Stop when the conditions below are met |
+| `monitors/condition` | enum `"all"`, `"any"` | `"all"` | "All conditions are met" / "Any condition is met" |
+| `monitors/residual/<equation>/check` | bool | case value | Fluent's Check Convergence for that residual |
+| `monitors/residual/<equation>/absolute-criterion` | number ≥ 0 | case value | Fluent's Absolute Criteria (scaled residual) |
+| `monitors/report/<report>/active` | bool | `false` | Use this report definition as a convergence condition |
+| `monitors/report/<report>/stop-criterion` | number > 0 | `0.001` | Fluent's Stop Criterion (relative change) |
+| `monitors/report/<report>/previous-values` | integer ≥ 1 | `5` | Np: report values to include (Fluent's Use Iterations, counted in monitor samples) |
+| `monitors/report/<report>/ignore-before` | integer ≥ 0 | `100` | Fluent's Ignore Iterations Before |
+
+`<equation>` is each residual name the solver reports (`continuity`,
+`x-velocity`, `y-velocity`, `z-velocity`, `k`, `omega`). Residual `check` and
+`absolute-criterion` come from the case's `residuals/settings` when they parse,
+otherwise `check` is `false` and the criterion is null (an enabled check needs a
+value: an override must supply one). Report entries exist for each force-type
+report definition (`force`, `drag`, `lift`, `downforce`); other report kinds are
+listed read-only. Report defaults are Kutta's, not read from the case.
+
+Evaluation happens at every monitor sample (each `iteration` event, including
+the final partial interval):
+
+- **Residuals** are one condition: met when at least one equation is checked
+  and every checked equation's scaled residual is at or below its criterion.
+- **A report** with value history m (the projected total `force` in N at each
+  monitor sample, in order) is met at sample n when n's iteration is greater
+  than `ignore-before`, at least Np+1 samples after `ignore-before` exist, and
+  `max over k=1..Np of |m(n-k+1) - m(n-k)| / |m(n)|` is **below** the stop
+  criterion (Fluent's lag residuals; [Fluent 24.2 User's Guide §36.16](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_ug/flu_ug_convergence_conditions.html)).
+  m(n) = 0 is never met. Coefficients differ from forces by a constant factor,
+  so the relative change is the same. Kutta evaluates reports at the monitor
+  interval, so consecutive values are `run/monitor-interval` iterations apart;
+  with interval 1 Np is exactly Fluent's Use Iterations, with a larger interval
+  the check is stricter than Fluent's for the same Np.
+- **Combination**: the conditions are the residual condition (when any residual
+  is checked) and each active report. `all` needs every condition met at the
+  same sample, `any` needs one. Checking on with no condition emits a warning
+  and runs to the iteration limit.
+
+When met, the run stops after that iteration and writes its outputs normally.
+`done` and `summary.json` then carry `"converged": true` and
+`"stop_reason": "converged"`. A user stop or the iteration limit keeps
+`converged: false`.
+
+The `setup` event adds `convergence` (always present):
+
+```json
+"convergence":{"enabled":true,"condition":"all",
+  "residuals":{"continuity":0.001,"x-velocity":0.001},
+  "reports":[{"report":"drag","stop_criterion":0.001,"previous_values":5,"ignore_before":100}]}
+```
+
+`residuals` lists checked equations only. With checking on, each `iteration`
+event adds the state of every condition at that sample:
+
+```json
+"convergence":{"met":false,"conditions":[
+  {"kind":"residuals","met":false,"equations":{"continuity":{"value":0.0021,"criterion":0.001,"met":false}}},
+  {"kind":"report","report":"drag","value":0.0042,"criterion":0.001,"met":false}]}
+```
+
+A report's `value` is null until it has enough samples. `done` and
+`summary.json` add `convergence`: the setup object plus `met_by` (the met
+conditions at the stopping sample, as `"residuals"` or `"report:<name>"`, empty
+unless converged) and `iteration` (the stopping iteration, null unless
+converged). `summary.json` sets `convergence_criteria_available: true`.
+Without checking, the warning reads "Convergence checking is off
+(monitors/check-convergence); stopping at the requested iteration limit."
+
+## Aero loads and coefficients (v1 additive)
+
+Every successful `solve` also writes `DIR/loads.json`: the force and moment on
+each wall zone, integrated from the same final boundary pressure and wall
+shear stress that `export-view` reports use, about the origin of the case
+coordinates:
+
+```json
+{"v":1,"origin":[0,0,0],"units":{"force":"N","moment":"N m","area":"m^2"},
+ "reference":{"area":1.0,"density":1.225,"velocity":16.0,"length":1.53,"pressure":0.0},
+ "report_zones":["monocoque","front-wing"],
+ "zones":[{"name":"front-wing","zone_id":12,"area":0.91,
+           "pressure":[fx,fy,fz],"viscous":[fx,fy,fz],
+           "pressure_moment":[mx,my,mz],"viscous_moment":[mx,my,mz]}],
+ "provenance":"","approximate":false,"modified":false,"iterations":600}
+```
+
+Pressure force is `(p - p_ref) S_face` on the body; viscous load is minus the
+stress on the fluid times face area, as in surface reports. `reference` holds
+the values the run solved with (case values after setup overrides; null when
+absent). `report_zones` is the union of the zones of the case's force report
+definitions, in report order (empty when there are none). The per-zone totals
+equal the wall rows of `forces.csv` to floating-point summation order.
+
+`kutta aero DIR [--aero spec.json] [--json]` reads only `loads.json`, so it
+takes milliseconds and never re-solves; changing groups, axes or vehicle
+geometry is post-processing. It writes `DIR/aero.json` (staged and renamed) and
+with `--json` prints `{"v":1,"event":"aero", ...the same object}`. A run
+without `loads.json` (solved before this addition) is exit 1 with an `error`
+event; invalid specs are exit 2.
+
+The spec is strict JSON (`v:1`, at most 1 MiB, unknown or duplicate keys
+rejected); every key is optional:
+
+```json
+{"v":1,
+ "axes":{"drag":[1,0,0],"lift":[0,0,1]},
+ "moment_centre":[0,0,0],
+ "car_zones":["monocoque","sidepods","front-wing","rear-wing","tyre-front","tyre-rear"],
+ "groups":[{"name":"Front wing","zones":["front-wing"]},{"name":"Wheels","zones":["tyre-front","tyre-rear"]}],
+ "vehicle":{"front_axle":[0,0,0],"wheelbase":1.53}}
+```
+
+- `axes.drag` is the free-stream direction (default +x), `axes.lift` points up
+  (default +z). Both are normalized and must be nonzero and orthogonal
+  (|cos| ≤ 1e-6). The side axis is `lift × drag` (+y for the defaults).
+- `moment_centre` (m, default origin) is where moments and moment
+  coefficients are taken.
+- `car_zones` defaults to `report_zones`, or every wall zone when the case has
+  no force reports, so the total matches the case's own force reports. Names
+  must be wall zones in `loads.json`.
+- `groups` have unique nonempty names; their zones must be car zones and each
+  zone may be in at most one group. Car zones in no group are listed in
+  `ungrouped`.
+- `vehicle.front_axle` is the front tyre contact point (m) and `wheelbase` (m,
+  > 0) the distance to the rear contact point along the drag axis. Without a
+  vehicle there is no balance.
+
+`aero.json`:
+
+```json
+{"v":1,"provenance":"…","approximate":false,"modified":false,"iterations":600,
+ "reference":{"area":1.0,"density":1.225,"velocity":16.0,"length":1.53,"dynamic_pressure":156.8},
+ "axes":{"drag":[1,0,0],"lift":[0,0,1],"side":[0,1,0]},"moment_centre":[0,0,0],
+ "rows":[{"name":"front-wing","kind":"zone","zones":["front-wing"],
+          "force":{"pressure":{"drag":12.1,"lift":-180.2,"side":0.3},
+                   "viscous":{"drag":1.9,"lift":-0.1,"side":0.0},
+                   "total":{"drag":14.0,"lift":-180.3,"side":0.3}},
+          "downforce":180.3,
+          "moment":{"pitch":-41.0,"roll":0.2,"yaw":-0.1},
+          "coefficients":{"cd":0.089,"cl":-1.150,"cs":0.002,
+                          "cd_pressure":0.077,"cd_viscous":0.012,"cl_pressure":-1.149,"cl_viscous":-0.001,
+                          "cla":-1.150,"cda":0.089,
+                          "cm_pitch":-0.171,"cm_roll":0.001,"cm_yaw":0.0},
+          "downforce_share":0.31}],
+ "ungrouped":["monocoque"],
+ "lift_to_drag":3.1,
+ "balance":{"status":"defined","front_axle":[0,0,0],"wheelbase":1.53,
+            "front_load":250.0,"rear_load":330.0,"front_percent":43.1,
+            "cop_from_front_axle":0.870}}
+```
+
+- Rows: each car zone (`kind:"zone"`, in `loads.json` order), then each group
+  (`"group"`, in spec order), then the car total (`"total"`, name `"Total"`).
+  Forces are projected on the axes in N; `downforce` is `-lift`.
+- Moments (N m) are about `moment_centre` and projected: `pitch` on the side
+  axis, `roll` on the drag axis, `yaw` on the lift axis. With the defaults a
+  positive pitch raises the front (the nose, upstream) of the car.
+- Coefficients divide forces by `q A` and moments by `q A L`, with `q = ½ ρ V²`
+  from the run's reference values. They are null when density, velocity or area
+  is missing or not positive; moment coefficients are also null without a
+  positive length. `cla` and `cda` are `cl·A` and `cd·A` in m², independent of
+  the reference area. `downforce_share` is the row's share of the total
+  downforce (null when the total is zero).
+- `lift_to_drag` is total downforce over total drag (null for zero drag).
+- `balance`: with F the total force and M_C the total moment about the moment
+  centre C, the moment about the front contact point P_f is
+  `M_f = M_C + (C - P_f) × F`. The rear tyres carry
+  `rear_load = (M_f · side) / wheelbase` and the front
+  `front_load = downforce - rear_load` (N, positive pushing the tyres down),
+  so drag acting above the ground is included. `front_percent` is
+  `100 front_load / downforce` and `cop_from_front_axle` is
+  `wheelbase · rear_load / downforce`, the distance behind the front axle at
+  which the total downforce alone would give the same split. `status` is
+  `"defined"`, `"needs_vehicle"` (no vehicle in the spec; numbers null) or
+  `"no_downforce"` (total downforce ≤ 0: loads given, percentage and CoP null).
