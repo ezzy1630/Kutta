@@ -7,6 +7,7 @@
 // A mesh file keeps its patches: walls, velocity inlets and pressure outlets
 // keep their kind, anything else becomes a wall.
 #include <chrono>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <map>
