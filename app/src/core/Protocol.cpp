@@ -267,6 +267,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
         s.liveRunId = o.value("live_view").toObject().value("run_id").toString();
         s.overrides = o.value("overrides").toObject();
         s.modified = o.value("modified").toBool();
+        s.convergence = parseConvergenceSetup(o.value("convergence").toObject());
         return ProgressEvent{s};
     }
     if (ev == "iteration") {
@@ -282,6 +283,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
         }
         it.secPerIter = num(o.value("sec_per_iter"));
         it.elapsed = num(o.value("elapsed"));
+        if (o.value("convergence").isObject()) it.convergence = parseConvergenceState(o.value("convergence").toObject());
         return ProgressEvent{it};
     }
     if (ev == "warning") return ProgressEvent{WarningEvent{o.value("message").toString()}};
@@ -292,6 +294,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
         d.elapsed = o.value("elapsed").toDouble();
         d.out = o.value("out").toString();
         d.stopReason = o.value("stop_reason").toString();
+        d.metBy = strings(o.value("convergence").toObject().value("met_by"));
         return ProgressEvent{d};
     }
     if (ev == "error") {
@@ -475,7 +478,198 @@ Result<RunSummary> parseRunSummary(const QJsonObject& o)
     s.wallSeconds = o.value("wall_time_seconds").toDouble();
     s.setupSeconds = o.value("setup_time_seconds").toDouble();
     s.synthetic = o.value("synthetic").toBool();
+    const QJsonObject conv = o.value("convergence").toObject();
+    s.convergence = parseConvergenceSetup(conv);
+    s.metBy = strings(conv.value("met_by"));
+    if (conv.value("iteration").isDouble()) s.convergedIteration = conv.value("iteration").toInt();
     return s;
+}
+
+// ---- convergence ------------------------------------------------------------------------
+
+ConvergenceSetup parseConvergenceSetup(const QJsonObject& o)
+{
+    ConvergenceSetup c;
+    c.enabled = o.value("enabled").toBool();
+    c.condition = o.value("condition").toString("all");
+    const QJsonObject res = o.value("residuals").toObject();
+    for (auto it = res.begin(); it != res.end(); ++it)
+        if (auto v = num(it.value())) c.residuals[it.key()] = *v;
+    for (const QJsonValue& rv : o.value("reports").toArray()) {
+        const QJsonObject r = rv.toObject();
+        c.reports.push_back({r.value("report").toString(), r.value("stop_criterion").toDouble(), r.value("previous_values").toInt(),
+                             r.value("ignore_before").toInt()});
+    }
+    return c;
+}
+
+ConvergenceState parseConvergenceState(const QJsonObject& o)
+{
+    ConvergenceState s;
+    s.met = o.value("met").toBool();
+    for (const QJsonValue& cv : o.value("conditions").toArray()) {
+        const QJsonObject c = cv.toObject();
+        ConditionState st;
+        st.kind = c.value("kind").toString();
+        st.report = c.value("report").toString();
+        st.met = c.value("met").toBool();
+        st.value = num(c.value("value"));
+        st.criterion = num(c.value("criterion"));
+        const QJsonObject eq = c.value("equations").toObject();
+        for (auto it = eq.begin(); it != eq.end(); ++it) {
+            const QJsonObject e = it.value().toObject();
+            st.equations[it.key()] = {e.value("value").toDouble(), e.value("criterion").toDouble(), e.value("met").toBool()};
+        }
+        s.conditions.push_back(std::move(st));
+    }
+    return s;
+}
+
+QString describeCondition(const QString& id, const ConvergenceSetup& setup)
+{
+    if (id == "residuals") return QStringLiteral("every checked residual reached its criterion");
+    const QString name = id.startsWith("report:") ? id.mid(7) : id;
+    for (const auto& r : setup.reports)
+        if (r.report == name)
+            return QStringLiteral("%1 changed less than %2 % between each of its last %3 values")
+                .arg(name, QLocale::c().toString(r.stopCriterion * 100, 'g', 3)).arg(r.previousValues);
+    return name;
+}
+
+// ---- aero -------------------------------------------------------------------------------
+
+namespace {
+
+QJsonArray vec3(const QVector3D& v) { return {double(v.x()), double(v.y()), double(v.z())}; }
+
+} // namespace
+
+QJsonObject AeroSpec::toJson() const
+{
+    QJsonObject o{{"v", 1}, {"axes", QJsonObject{{"drag", vec3(drag)}, {"lift", vec3(lift)}}}, {"moment_centre", vec3(momentCentre)}};
+    if (!carZones.isEmpty()) o["car_zones"] = QJsonArray::fromStringList(carZones);
+    QJsonArray g;
+    for (const Group& x : groups)
+        if (!x.zones.isEmpty()) g.append(QJsonObject{{"name", x.name}, {"zones", QJsonArray::fromStringList(x.zones)}});
+    if (!g.isEmpty()) o["groups"] = g;
+    if (hasVehicle()) o["vehicle"] = QJsonObject{{"front_axle", vec3(*frontAxle)}, {"wheelbase", *wheelbase}};
+    return o;
+}
+
+AeroSpec AeroSpec::fromJson(const QJsonObject& o)
+{
+    AeroSpec s;
+    const QJsonObject axes = o.value("axes").toObject();
+    if (auto d = vec3(axes.value("drag"))) s.drag = *d;
+    if (auto l = vec3(axes.value("lift"))) s.lift = *l;
+    if (auto c = vec3(o.value("moment_centre"))) s.momentCentre = *c;
+    s.carZones = strings(o.value("car_zones"));
+    for (const QJsonValue& gv : o.value("groups").toArray())
+        s.groups.push_back({gv.toObject().value("name").toString(), strings(gv.toObject().value("zones"))});
+    const QJsonObject v = o.value("vehicle").toObject();
+    s.frontAxle = vec3(v.value("front_axle"));
+    s.wheelbase = num(v.value("wheelbase"));
+    return s;
+}
+
+std::vector<AeroSpec::Group> suggestAeroGroups(const QStringList& zones)
+{
+    struct Rule { QString name; QRegularExpression pattern; };
+    // First match wins: "front-wing-endplate" is front wing, "rear-tyre" a wheel.
+    static const std::vector<Rule> rules{
+        {"Front wing", QRegularExpression(R"((^|[^a-z])(fw|front[-_ ]?wing|nose[-_ ]?wing))", QRegularExpression::CaseInsensitiveOption)},
+        {"Rear wing", QRegularExpression(R"((^|[^a-z])(rw|rear[-_ ]?wing|drs))", QRegularExpression::CaseInsensitiveOption)},
+        {"Undertray / diffuser", QRegularExpression(R"(undertray|under[-_ ]?tray|diffuser|floor|underbody|splitter)", QRegularExpression::CaseInsensitiveOption)},
+        {"Wheels", QRegularExpression(R"(wheel|tyre|tire|rim)", QRegularExpression::CaseInsensitiveOption)},
+    };
+    std::vector<AeroSpec::Group> out;
+    for (const Rule& r : rules) out.push_back({r.name, {}});
+    out.push_back({"Body", {}});
+    for (const QString& z : zones) {
+        auto it = std::find_if(rules.begin(), rules.end(), [&](const Rule& r) { return r.pattern.match(z).hasMatch(); });
+        out[std::size_t(it - rules.begin())].zones << z;
+    }
+    std::erase_if(out, [](const AeroSpec::Group& g) { return g.zones.isEmpty(); });
+    return out;
+}
+
+const AeroRow* AeroResult::total() const
+{
+    auto it = std::find_if(rows.begin(), rows.end(), [](const AeroRow& r) { return r.kind == "total"; });
+    return it == rows.end() ? nullptr : &*it;
+}
+
+Result<AeroResult> parseAero(const QJsonObject& o)
+{
+    using R = Result<AeroResult>;
+    if (!versionOk(o)) return R::failure("aero: unsupported protocol version");
+    AeroResult a;
+    a.provenance = o.value("provenance").toString();
+    a.approximate = o.value("approximate").toBool();
+    a.modified = o.value("modified").toBool();
+    a.iterations = o.value("iterations").toInt();
+    const QJsonObject ref = o.value("reference").toObject();
+    a.area = num(ref.value("area"));
+    a.density = num(ref.value("density"));
+    a.velocity = num(ref.value("velocity"));
+    a.length = num(ref.value("length"));
+    a.dynamicPressure = num(ref.value("dynamic_pressure"));
+    const QJsonObject axes = o.value("axes").toObject();
+    a.drag = vec3(axes.value("drag")).value_or(QVector3D(1, 0, 0));
+    a.lift = vec3(axes.value("lift")).value_or(QVector3D(0, 0, 1));
+    a.side = vec3(axes.value("side")).value_or(QVector3D::crossProduct(a.lift, a.drag));
+    a.momentCentre = vec3(o.value("moment_centre")).value_or(QVector3D());
+    auto comps = [](const QJsonValue& v) {
+        const QJsonObject c = v.toObject();
+        return AeroComponents{c.value("drag").toDouble(), c.value("lift").toDouble(), c.value("side").toDouble()};
+    };
+    for (const QJsonValue& rv : o.value("rows").toArray()) {
+        const QJsonObject r = rv.toObject();
+        AeroRow row;
+        row.name = r.value("name").toString();
+        row.kind = r.value("kind").toString();
+        row.zones = strings(r.value("zones"));
+        const QJsonObject f = r.value("force").toObject();
+        row.pressure = comps(f.value("pressure"));
+        row.viscous = comps(f.value("viscous"));
+        row.total = comps(f.value("total"));
+        row.downforce = r.value("downforce").toDouble(-row.total.lift);
+        const QJsonObject m = r.value("moment").toObject();
+        row.pitch = m.value("pitch").toDouble();
+        row.roll = m.value("roll").toDouble();
+        row.yaw = m.value("yaw").toDouble();
+        // Every key is present; nulls mark the references the run lacks.
+        const QJsonObject c = r.value("coefficients").toObject();
+        if (c.value("cd").isDouble()) {
+            AeroCoefficients k;
+            k.cd = c.value("cd").toDouble();
+            k.cl = c.value("cl").toDouble();
+            k.cs = c.value("cs").toDouble();
+            k.cdPressure = c.value("cd_pressure").toDouble();
+            k.cdViscous = c.value("cd_viscous").toDouble();
+            k.clPressure = c.value("cl_pressure").toDouble();
+            k.clViscous = c.value("cl_viscous").toDouble();
+            k.cmPitch = num(c.value("cm_pitch"));
+            k.cmRoll = num(c.value("cm_roll"));
+            k.cmYaw = num(c.value("cm_yaw"));
+            row.coefficients = k;
+        }
+        row.cla = num(c.value("cla"));
+        row.cda = num(c.value("cda"));
+        row.downforceShare = num(r.value("downforce_share"));
+        a.rows.push_back(std::move(row));
+    }
+    if (!a.total()) return R::failure("aero: no total row");
+    a.ungrouped = strings(o.value("ungrouped"));
+    a.liftToDrag = num(o.value("lift_to_drag"));
+    const QJsonObject b = o.value("balance").toObject();
+    a.balance.status = b.value("status").toString("needs_vehicle");
+    a.balance.wheelbase = num(b.value("wheelbase"));
+    a.balance.frontLoad = num(b.value("front_load"));
+    a.balance.rearLoad = num(b.value("rear_load"));
+    a.balance.frontPercent = num(b.value("front_percent"));
+    a.balance.copFromFrontAxle = num(b.value("cop_from_front_axle"));
+    return a;
 }
 
 } // namespace kapp

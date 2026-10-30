@@ -201,10 +201,19 @@ QJsonObject SettingsModel::caseOverrides() const
     return o;
 }
 
-QJsonObject SettingsModel::setupJson() const
+QJsonObject SettingsModel::runControls() const
 {
-    QJsonObject o = caseOverrides();
-    if (auto it = m_overrides.find("run/monitor-interval"); it != m_overrides.end()) o.insert(it.key(), *it);
+    QJsonObject o;
+    for (auto it = m_overrides.begin(); it != m_overrides.end(); ++it)
+        if (isRunControl(it.key())) o.insert(it.key(), *it);
+    return o;
+}
+
+QJsonObject SettingsModel::setupJsonFor(const QJsonObject& caseOverrides, const QJsonObject& runControls)
+{
+    QJsonObject o = caseOverrides;
+    for (auto it = runControls.begin(); it != runControls.end(); ++it)
+        if (it.key() != QLatin1String("run/iterations")) o.insert(it.key(), *it);
     return QJsonObject{{"v", 1}, {"overrides", o}};
 }
 

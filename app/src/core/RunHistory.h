@@ -17,6 +17,10 @@ namespace kapp {
 
 enum class RunStatus { Running, Completed, Stopped, Failed, Interrupted };
 QString runStatusLabel(RunStatus s);
+struct RunRecord;
+// The status as the user reads it: a completed run that met its convergence
+// criteria says "Converged".
+QString runStatusText(const RunRecord& r);
 
 struct RunRecord {
     QString id;            // "run-0003"
@@ -24,8 +28,11 @@ struct RunRecord {
     QString dir;           // absolute: the CLI's --out directory
     QString note;          // user label
     QString casePath, caseSha, dataPath;
-    QJsonObject overrides;
+    QJsonObject overrides;     // case-changing overrides (MODIFIED)
+    QJsonObject runControls;   // iterations, monitor interval, convergence criteria
     QStringList approximations;
+    QStringList convergedBy;   // conditions met when it stopped converged
+    QString studyId;
     QString backend, device;
     int iterationsRequested = 0;
     int liveViewInterval = 0;
@@ -42,6 +49,7 @@ struct RunRecord {
     QString title() const;  // "Run 3" or "Run 3 · note"
     bool approximate() const { return !approximations.isEmpty(); }
     bool modified() const { return !overrides.isEmpty(); }
+    bool converged() const { return stopReason == QLatin1String("converged"); }
     QJsonObject toJson() const;
     static std::optional<RunRecord> fromJson(const QJsonObject& o, const QString& dir);
 };

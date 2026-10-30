@@ -54,13 +54,18 @@ public:
     // fields the selected method does not use change nothing.
     QJsonObject caseOverrides() const;
     int caseModifiedCount() const { return int(caseOverrides().size()); }
+    // Run controls say how long to run and when to stop (iterations, monitor
+    // interval, convergence criteria), never what case is solved.
     static bool isRunControl(const QString& path)
     {
-        return path == QLatin1String("run/iterations") || path == QLatin1String("run/monitor-interval");
+        return path.startsWith(QLatin1String("run/")) || path.startsWith(QLatin1String("monitors/"));
     }
+    // Overridden run controls (iterations, monitor interval, convergence).
+    QJsonObject runControls() const;
     // {"v":1,"overrides":{case overrides + run controls without a CLI flag}}.
     // The iteration count travels as --iterations instead.
-    QJsonObject setupJson() const;
+    QJsonObject setupJson() const { return setupJsonFor(caseOverrides(), runControls()); }
+    static QJsonObject setupJsonFor(const QJsonObject& caseOverrides, const QJsonObject& runControls);
     bool needsSetupFile() const { return !setupJson().value("overrides").toObject().isEmpty(); }
 
     QUndoStack* undoStack() { return &m_undo; }

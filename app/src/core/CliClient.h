@@ -53,6 +53,8 @@ public:
     QStringList arguments() const;
 
 signals:
+    // Each protocol line verbatim (the run keeps them in progress.jsonl), then parsed.
+    void progressLine(const QByteArray& line);
     void progress(const kapp::ProgressEvent& e);
     void stderrText(const QString& text);
     void protocolError(const QString& message);
@@ -83,6 +85,10 @@ public:
     // The case's boundary zones without a run (export-geometry), published
     // atomically under outDir/geometry/.
     void exportGeometry(const QString& casePath, const QString& outDir, std::function<void(Result<ViewManifest>)> done);
+
+    // Aero coefficients, breakdown and balance of a finished run (kutta aero);
+    // reads the run's loads.json, never re-solves.
+    void aero(const QString& runDir, const QString& specFile, std::function<void(Result<AeroResult>)> done);
 
     SolveProcess* solve(const SolveRequest& req, QObject* parent);
 

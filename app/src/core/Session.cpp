@@ -10,7 +10,9 @@
 #include <QJsonDocument>
 #include <QLocale>
 #include <QSaveFile>
+#include <QRegularExpression>
 #include <QSettings>
+#include <QTimer>
 
 #include <cmath>
 
@@ -99,6 +101,18 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
         m_scenes.clear();
         m_settings.reset(m_case->settings);
         m_history.setCase(casePath, m_case->sha256);
+        m_studyStore.setDir(m_history.caseDir());
+        m_studies = m_studyStore.load();
+        m_activeStudy.clear();
+        m_aero.clear();
+        m_aeroSpec = {};
+        m_aeroSpecSaved = false;
+        if (QFile f(QDir(m_history.caseDir()).filePath("aero-spec.json")); f.open(QIODevice::ReadOnly)) {
+            m_aeroSpec = AeroSpec::fromJson(QJsonDocument::fromJson(f.readAll()).object());
+            m_aeroSpecSaved = true;
+        } else {
+            m_aeroSpec.groups = suggestAeroGroups(carZones());
+        }
         QSettings s;
         QStringList recent = s.value("recentCases").toStringList();
         recent.removeAll(casePath);
@@ -115,6 +129,8 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
                                  QStringLiteral("%1 (%2): %3").arg(i.label, i.setting, i.explanation));
         emit caseOpened();
         emit historyChanged();
+        emit studiesChanged();
+        emit aeroSpecChanged();
         emit approvalsChanged();
     });
 }
@@ -156,13 +172,24 @@ QString Session::run()
         emit runRefused(why);
         return {};
     }
+    return start(m_settings.caseOverrides(), m_settings.runControls(), m_approved, {});
+}
+
+QString Session::start(const QJsonObject& caseOverrides, const QJsonObject& runControls, const QStringList& approximations,
+                       const QString& studyId)
+{
     RunRecord rec = m_history.create();
     rec.casePath = m_casePath;
     rec.caseSha = m_case->sha256;
     rec.dataPath = m_dataPath;
-    rec.overrides = m_settings.caseOverrides();
-    rec.approximations = m_approved;
-    rec.iterationsRequested = requestedIterations();
+    rec.overrides = caseOverrides;
+    rec.runControls = runControls;
+    rec.approximations = approximations;
+    rec.studyId = studyId;
+    const Setting* iterations = m_settings.find("run/iterations");
+    rec.iterationsRequested = runControls.contains("run/iterations") ? runControls.value("run/iterations").toInt()
+                              : iterations && iterations->value.isDouble() ? iterations->value.toInt()
+                                                                           : 1000;
     rec.liveViewInterval = m_liveView;
     rec.fixture = cliInfo().fixture;
     rec.synthetic = m_case->synthetic;
@@ -185,15 +212,16 @@ QString Session::run()
     SolveRequest req;
     req.casePath = m_casePath;
     req.dataPath = m_dataPath;
-    req.approximations = m_approved;
+    req.approximations = approximations;
     req.backend = m_backend;
     req.outDir = rec.dir;
     req.liveViewInterval = m_liveView;
     req.iterations = rec.iterationsRequested;
-    if (m_settings.needsSetupFile()) {
+    const QJsonObject setup = SettingsModel::setupJsonFor(caseOverrides, runControls);
+    if (!setup.value("overrides").toObject().isEmpty()) {
         req.setupFile = QDir(rec.dir).filePath("setup.json");
         QSaveFile f(req.setupFile);
-        if (!f.open(QIODevice::WriteOnly) || f.write(QJsonDocument(m_settings.setupJson()).toJson(QJsonDocument::Indented)) < 0 || !f.commit())
+        if (!f.open(QIODevice::WriteOnly) || f.write(QJsonDocument(setup).toJson(QJsonDocument::Indented)) < 0 || !f.commit())
             return refuse(tr("the changed settings (setup.json)"));
     }
     m_history.save(rec);
@@ -208,6 +236,12 @@ QString Session::run()
 
     auto* proc = m_cli->solve(req, this);
     m_proc = proc;
+    // The CLI's own lines, verbatim: history plots and the study table read them back.
+    connect(proc, &SolveProcess::progressLine, this, [this](const QByteArray& line) {
+        if (!m_current) return;
+        QFile log(QDir(m_current->dir).filePath("progress.jsonl"));
+        if (log.open(QIODevice::Append)) log.write(line + "\n");
+    });
     connect(proc, &SolveProcess::progress, this, &Session::onProgress);
     connect(proc, &SolveProcess::stderrText, this, [this](const QString& t) {
         for (const QString& l : t.split('\n', Qt::SkipEmptyParts)) emit consoleLine(ConsoleLevel::Info, l);
@@ -252,11 +286,6 @@ void Session::printResidualRow(const IterationEvent& e)
 void Session::onProgress(const ProgressEvent& ev)
 {
     if (!m_current) return;
-    QFile log(QDir(m_current->dir).filePath("progress.jsonl"));
-    // Keep the CLI's own events: history plots read them back.
-    auto record = [&](const QJsonObject& o) {
-        if (log.open(QIODevice::Append)) log.write(QJsonDocument(o).toJson(QJsonDocument::Compact) + "\n");
-    };
     std::visit([&](const auto& e) {
         using T = std::decay_t<decltype(e)>;
         if constexpr (std::is_same_v<T, SetupEvent>) {
@@ -268,42 +297,35 @@ void Session::onProgress(const ProgressEvent& ev)
             emit runStateChanged(m_state);
             emit consoleLine(ConsoleLevel::Info, QStringLiteral("Solving on %1 (%2), %3 cells, initialization: %4")
                                  .arg(e.device, e.backend, QLocale().toString(e.cells), e.init));
-            record({{"v", 1}, {"event", "setup"}, {"cells", double(e.cells)}, {"backend", e.backend}, {"device", e.device},
-                    {"approximations", QJsonArray::fromStringList(e.approximations)}, {"init", e.init},
-                    {"overrides", e.overrides}, {"modified", e.modified}});
         } else if constexpr (std::is_same_v<T, IterationEvent>) {
             appendIteration(m_live.progress, e);
             m_live.last = e;
             m_current->iterationsDone = e.iter;
             printResidualRow(e);
-            QJsonObject res, reps;
-            for (auto r = e.residuals.begin(); r != e.residuals.end(); ++r) res[r.key()] = r.value();
-            for (auto r = e.reports.begin(); r != e.reports.end(); ++r) {
-                QJsonObject v;
-                if (r.value().force) v["force"] = *r.value().force;
-                if (r.value().coefficient) v["coefficient"] = *r.value().coefficient;
-                reps[r.key()] = v;
-            }
-            QJsonObject o{{"v", 1}, {"event", "iteration"}, {"iter", e.iter}, {"residuals", res}, {"reports", reps}};
-            if (e.secPerIter) o["sec_per_iter"] = *e.secPerIter;
-            if (e.elapsed) o["elapsed"] = *e.elapsed;
-            record(o);
             emit iteration(e);
         } else if constexpr (std::is_same_v<T, WarningEvent>) {
             m_live.progress.warnings << e.message;
             emit consoleLine(ConsoleLevel::Warning, e.message);
-            record({{"v", 1}, {"event", "warning"}, {"message", e.message}});
         } else if constexpr (std::is_same_v<T, DoneEvent>) {
             m_live.progress.done = e;
             m_current->stopReason = e.stopReason;
             m_current->elapsed = e.elapsed;
             m_current->iterationsDone = e.iterations;
-            emit consoleLine(ConsoleLevel::Success,
-                             QStringLiteral("Done: %1 iterations in %2 s (%3). Not converged: this case exposes no convergence criteria.")
-                                 .arg(e.iterations).arg(e.elapsed, 0, 'f', 1)
-                                 .arg(e.stopReason == "stopped" ? "stopped by you" : "iteration limit"));
-            record({{"v", 1}, {"event", "done"}, {"converged", e.converged}, {"iterations", e.iterations},
-                    {"elapsed", e.elapsed}, {"out", e.out}, {"stop_reason", e.stopReason}});
+            m_current->convergedBy = e.metBy;
+            const ConvergenceSetup conv = m_live.setup ? m_live.setup->convergence : ConvergenceSetup{};
+            QString why;
+            if (e.stopReason == "converged") {
+                QStringList met;
+                for (const QString& id : e.metBy) met << describeCondition(id, conv);
+                why = QStringLiteral("Converged: %1").arg(met.join("; "));
+            } else if (e.stopReason == "stopped") {
+                why = QStringLiteral("Stopped by you; not converged");
+            } else {
+                why = conv.enabled ? QStringLiteral("Iteration limit; convergence criteria not met")
+                                   : QStringLiteral("Iteration limit; convergence checking was off");
+            }
+            emit consoleLine(e.stopReason == "converged" ? ConsoleLevel::Success : ConsoleLevel::Info,
+                             QStringLiteral("Done: %1 iterations in %2 s. %3.").arg(e.iterations).arg(e.elapsed, 0, 'f', 1).arg(why));
         } else if constexpr (std::is_same_v<T, ErrorEvent>) {
             m_live.progress.error = e;
             m_current->error = e.message;
@@ -311,7 +333,6 @@ void Session::onProgress(const ProgressEvent& ev)
             for (const auto& i : e.issues)
                 if (i.cls != IssueClass::Informational)
                     emit consoleLine(ConsoleLevel::Error, QStringLiteral("  %1: %2").arg(i.setting, i.explanation));
-            record({{"v", 1}, {"event", "error"}, {"message", e.message}});
         } else if constexpr (std::is_same_v<T, SnapshotEvent>) {
             // Snapshots are immutable and sequenced; skip another run's or an older one.
             const QString expected = m_live.setup ? m_live.setup->liveRunId : QString();
@@ -350,16 +371,179 @@ void Session::finishRun(int exitCode, bool crashed)
     }
     m_history.save(r);
     const QString id = r.id;
+    const RunStatus status = r.status;
     m_current.reset();
     m_state = RunState::Idle;
     if (m_proc) m_proc->deleteLater();
     emit runStateChanged(m_state);
     emit historyChanged();
     emit runFinished(id);
+    if (m_activeStudy.isEmpty()) return;
+    auto it = std::find_if(m_studies.begin(), m_studies.end(), [this](const Study& x) { return x.id == m_activeStudy; });
+    if (it == m_studies.end()) return;
+    markFinished(*it, id, status == RunStatus::Completed ? VariantStatus::Done
+                          : status == RunStatus::Stopped ? VariantStatus::Stopped
+                                                         : VariantStatus::Failed);
+    saveStudy(*it);
+    // The next variant starts once this run's process has gone.
+    QTimer::singleShot(0, this, [this] { startNextVariant(); });
+}
+
+// ---- studies ----------------------------------------------------------------------------
+
+const Study* Session::study(const QString& id) const
+{
+    auto it = std::find_if(m_studies.begin(), m_studies.end(), [&](const Study& s) { return s.id == id; });
+    return it == m_studies.end() ? nullptr : &*it;
+}
+
+void Session::saveStudy(const Study& s)
+{
+    if (!m_studyStore.save(s))
+        emit consoleLine(ConsoleLevel::Warning, tr("Could not save %1 in %2.").arg(s.title(), QDir::toNativeSeparators(m_history.caseDir())));
+    emit studiesChanged();
+}
+
+QString Session::addStudy(Study s, QString* error)
+{
+    if (!m_case) {
+        if (error) *error = tr("Open a case first.");
+        return {};
+    }
+    s.number = std::max(m_studyStore.nextNumber(), m_studies.empty() ? 1 : m_studies.back().number + 1);
+    s.id = QStringLiteral("study-%1").arg(s.number, 4, 10, QChar('0'));
+    s.approximations = m_approved;
+    if (!m_studyStore.save(s)) {
+        if (error) *error = tr("Kutta cannot write the study in %1.").arg(QDir::toNativeSeparators(m_history.caseDir()));
+        return {};
+    }
+    m_studies.push_back(s);
+    emit studiesChanged();
+    return s.id;
+}
+
+void Session::deleteStudy(const QString& id)
+{
+    if (id == m_activeStudy) return;
+    m_studyStore.remove(id);
+    std::erase_if(m_studies, [&](const Study& s) { return s.id == id; });
+    emit studiesChanged();
+}
+
+bool Session::startStudy(const QString& id, QString* why)
+{
+    auto no = [&](const QString& r) { if (why) *why = r; return false; };
+    auto it = std::find_if(m_studies.begin(), m_studies.end(), [&](const Study& s) { return s.id == id; });
+    if (it == m_studies.end()) return no(tr("No such study."));
+    if (running()) return no(tr("A calculation is already running."));
+    if (!m_case) return no(tr("Open a Fluent case first."));
+    const auto blocking = m_case->blocking(it->approximations);
+    if (!blocking.empty()) return no(tr("This study's runs need approvals the case requires: %1.").arg(blocking.front()->label));
+    requeue(*it);
+    if (it->nextQueued() < 0) return no(tr("Every variant already ran."));
+    m_activeStudy = id;
+    saveStudy(*it);
+    emit consoleLine(ConsoleLevel::Info, tr("%1: %n variant(s) of %2, one after another", nullptr, int(it->variants.size()))
+                                             .arg(it->title(), it->parameterLabel));
+    startNextVariant();
+    return true;
+}
+
+void Session::startNextVariant()
+{
+    auto it = std::find_if(m_studies.begin(), m_studies.end(), [this](const Study& x) { return x.id == m_activeStudy; });
+    if (it == m_studies.end() || running()) return;
+    const int next = it->nextQueued();
+    if (next < 0) {
+        emit consoleLine(ConsoleLevel::Success, tr("%1 finished.").arg(it->title()));
+        m_activeStudy.clear();
+        emit studiesChanged();
+        return;
+    }
+    const StudyVariant& v = it->variants[std::size_t(next)];
+    emit consoleLine(ConsoleLevel::Info, tr("%1: %2 = %3 (%4 of %5)").arg(it->title(), it->parameterLabel, QLocale().toString(v.value, 'g', 8))
+                                             .arg(next + 1).arg(it->variants.size()));
+    const QString runId = start(it->overridesFor(v), it->runControls, it->approximations, it->id);
+    if (runId.isEmpty()) {
+        cancelQueued(*it);
+        m_activeStudy.clear();
+        saveStudy(*it);
+        return;
+    }
+    markStarted(*it, next, runId);
+    // The run's label says which variant it is, in Run History and every viewport.
+    const QString note = QStringLiteral("%1 · %2").arg(it->title(), QLocale().toString(v.value, 'g', 8));
+    m_history.setNote(runId, note);
+    if (m_current) m_current->note = note;
+    saveStudy(*it);
+}
+
+void Session::stopStudy()
+{
+    auto it = std::find_if(m_studies.begin(), m_studies.end(), [this](const Study& x) { return x.id == m_activeStudy; });
+    if (it == m_studies.end()) return;
+    cancelQueued(*it);
+    saveStudy(*it);
+    stop();
+    if (!running()) m_activeStudy.clear();
+}
+
+// ---- aero -------------------------------------------------------------------------------
+
+QStringList Session::carZones() const
+{
+    QStringList out;
+    if (!m_case) return out;
+    for (const auto& r : m_case->reports)
+        if (r.kind == "drag" || r.kind == "lift" || r.kind == "downforce" || r.kind == "force")
+            for (const QString& z : r.zones)
+                if (!out.contains(z)) out << z;
+    if (!out.isEmpty()) return out;
+    static const QRegularExpression ground(QStringLiteral("ground|road|belt"), QRegularExpression::CaseInsensitiveOption);
+    for (const auto& z : m_case->zones)
+        if (z.type == "wall" && !ground.match(z.name).hasMatch()) out << z.name;
+    return out;
+}
+
+void Session::setAeroSpec(const AeroSpec& spec)
+{
+    m_aeroSpec = spec;
+    QSaveFile f(QDir(m_history.caseDir()).filePath("aero-spec.json"));
+    QDir().mkpath(m_history.caseDir());
+    m_aeroSpecSaved = f.open(QIODevice::WriteOnly) && f.write(QJsonDocument(spec.toJson()).toJson(QJsonDocument::Indented)) >= 0 && f.commit();
+    if (!m_aeroSpecSaved) emit consoleLine(ConsoleLevel::Warning, tr("Could not save the aero settings in %1.").arg(QDir::toNativeSeparators(m_history.caseDir())));
+    m_aero.clear();
+    emit aeroSpecChanged();
+}
+
+std::optional<AeroResult> Session::aeroIfComputed(const QString& runId) const
+{
+    auto it = m_aero.find(runId);
+    return it == m_aero.end() ? std::nullopt : std::optional<AeroResult>(*it);
+}
+
+void Session::aero(const QString& runId, std::function<void(Result<AeroResult>)> done)
+{
+    if (auto it = m_aero.find(runId); it != m_aero.end()) return done(*it);
+    const RunRecord* r = m_history.find(runId);
+    if (!r) return done(Result<AeroResult>::failure(tr("No such run.")));
+    auto& waiting = m_aeroPending[runId];
+    waiting.push_back(std::move(done));
+    if (waiting.size() > 1) return;
+    // The spec the CLI reads is the case's saved one; write it if it never was.
+    const QString spec = QDir(m_history.caseDir()).filePath("aero-spec.json");
+    if (!QFileInfo::exists(spec)) setAeroSpec(m_aeroSpec);
+    m_cli->aero(r->dir, spec, [this, runId](Result<AeroResult> res) {
+        if (res) m_aero.insert(runId, res.value());
+        const auto callbacks = m_aeroPending.take(runId);
+        for (const auto& cb : callbacks) cb(res);
+        if (res) emit aeroComputed(runId);
+    });
 }
 
 void Session::deleteRun(const QString& id)
 {
+    m_aero.remove(id);
     if (m_history.remove(id)) {
         for (const QString& k : m_scenes.keys())
             if (k.contains(id)) m_scenes.remove(k);

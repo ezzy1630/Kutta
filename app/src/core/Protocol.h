@@ -112,6 +112,31 @@ Result<CaseSummary> parseCaseSummary(const QJsonObject& json);
 
 struct ReportValue { std::optional<double> force, coefficient; };
 
+// Convergence criteria as the solve applies them (setup event, done, summary).
+struct ReportCriterion { QString report; double stopCriterion = 0; int previousValues = 0, ignoreBefore = 0; };
+struct ConvergenceSetup {
+    bool enabled = false;
+    QString condition = "all";              // "all" | "any"
+    QMap<QString, double> residuals;        // checked equations and their absolute criteria
+    std::vector<ReportCriterion> reports;
+    bool hasConditions() const { return !residuals.isEmpty() || !reports.empty(); }
+};
+// One condition's state at a monitor sample.
+struct ConditionState {
+    QString kind;                           // "residuals" | "report"
+    QString report;                         // for reports
+    bool met = false;
+    std::optional<double> value, criterion; // reports: lag residual and stop criterion
+    struct Equation { double value = 0, criterion = 0; bool met = false; };
+    QMap<QString, Equation> equations;      // residuals
+    QString id() const { return kind == "report" ? "report:" + report : kind; }
+};
+struct ConvergenceState { bool met = false; std::vector<ConditionState> conditions; };
+ConvergenceSetup parseConvergenceSetup(const QJsonObject& o);
+ConvergenceState parseConvergenceState(const QJsonObject& o);
+// "drag changed less than 0.1 % over 5 values"; "every checked residual reached its criterion".
+QString describeCondition(const QString& id, const ConvergenceSetup& setup);
+
 struct SetupEvent {
     qint64 cells = 0;
     QString backend, device, init;
@@ -119,12 +144,14 @@ struct SetupEvent {
     QJsonObject overrides;
     bool modified = false;
     QString liveRunId;  // live_view.run_id: snapshots from any other run are stale
+    ConvergenceSetup convergence;
 };
 struct IterationEvent {
     int iter = 0;
     QMap<QString, double> residuals;  // ordered by name; display order is the app's
     QMap<QString, ReportValue> reports;
     std::optional<double> secPerIter, elapsed;
+    std::optional<ConvergenceState> convergence;  // only when checking is on
 };
 struct WarningEvent { QString message; };
 struct DoneEvent {
@@ -132,6 +159,7 @@ struct DoneEvent {
     int iterations = 0;
     double elapsed = 0;
     QString out, stopReason;
+    QStringList metBy;  // conditions met at the stopping sample ("residuals", "report:<name>")
 };
 struct ErrorEvent { QString message; std::vector<SupportIssue> issues; QStringList paths; };
 // Proposed: a field snapshot written during the solve (docs/app-protocol-requests.md).
@@ -186,8 +214,64 @@ struct RunSummary {
     int iterations = 0;
     double wallSeconds = 0, setupSeconds = 0;
     bool synthetic = false;
+    ConvergenceSetup convergence;
+    QStringList metBy;
+    std::optional<int> convergedIteration;
 };
 Result<RunSummary> parseRunSummary(const QJsonObject& json);
+
+// ---- kutta aero ------------------------------------------------------------------------
+
+// Post-processing inputs, stored per case by the app and passed as --aero.
+struct AeroSpec {
+    struct Group { QString name; QStringList zones; };
+    QVector3D drag{1, 0, 0}, lift{0, 0, 1};
+    QVector3D momentCentre;
+    QStringList carZones;  // empty: the CLI's default (report zones)
+    std::vector<Group> groups;
+    std::optional<QVector3D> frontAxle;
+    std::optional<double> wheelbase;
+    bool hasVehicle() const { return frontAxle && wheelbase && *wheelbase > 0; }
+    QJsonObject toJson() const;
+    static AeroSpec fromJson(const QJsonObject& o);
+};
+// Groups FSAE teams talk about, from zone names: front wing, rear wing,
+// undertray/diffuser, wheels, body for the rest. Zones are the car's walls.
+std::vector<AeroSpec::Group> suggestAeroGroups(const QStringList& zones);
+
+struct AeroComponents { double drag = 0, lift = 0, side = 0; };
+// Present when the run has positive reference density, velocity and area.
+struct AeroCoefficients {
+    double cd = 0, cl = 0, cs = 0, cdPressure = 0, cdViscous = 0, clPressure = 0, clViscous = 0;
+    std::optional<double> cmPitch, cmRoll, cmYaw;  // also need the reference length
+};
+struct AeroRow {
+    QString name, kind;  // kind: "zone" | "group" | "total"
+    QStringList zones;
+    AeroComponents pressure, viscous, total;
+    double downforce = 0;
+    double pitch = 0, roll = 0, yaw = 0;
+    std::optional<AeroCoefficients> coefficients;
+    std::optional<double> cla, cda;  // m², need only density and velocity
+    std::optional<double> downforceShare;
+};
+struct AeroBalance {
+    QString status;  // "defined" | "needs_vehicle" | "no_downforce"
+    std::optional<double> wheelbase, frontLoad, rearLoad, frontPercent, copFromFrontAxle;
+};
+struct AeroResult {
+    QString provenance;
+    bool approximate = false, modified = false;
+    int iterations = 0;
+    std::optional<double> area, density, velocity, length, dynamicPressure;
+    QVector3D drag, lift, side, momentCentre;
+    std::vector<AeroRow> rows;
+    QStringList ungrouped;
+    std::optional<double> liftToDrag;
+    AeroBalance balance;
+    const AeroRow* total() const;
+};
+Result<AeroResult> parseAero(const QJsonObject& json);
 
 // Split one CSV line honouring double quotes.
 QStringList splitCsvLine(const QString& line);

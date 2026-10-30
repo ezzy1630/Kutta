@@ -24,6 +24,11 @@ QString runStatusLabel(RunStatus s)
     return {};
 }
 
+QString runStatusText(const RunRecord& r)
+{
+    return r.status == RunStatus::Completed && r.converged() ? QStringLiteral("Converged") : runStatusLabel(r.status);
+}
+
 QString runOutcomeAdvice(const RunRecord& r)
 {
     const QString e = r.error.toLower();
@@ -99,7 +104,10 @@ QJsonObject RunRecord::toJson() const
             {"case_sha", caseSha},
             {"data_path", dataPath},
             {"overrides", overrides},
+            {"run_controls", runControls},
             {"approximations", QJsonArray::fromStringList(approximations)},
+            {"converged_by", QJsonArray::fromStringList(convergedBy)},
+            {"study", studyId},
             {"backend", backend},
             {"device", device},
             {"iterations_requested", iterationsRequested},
@@ -129,7 +137,10 @@ std::optional<RunRecord> RunRecord::fromJson(const QJsonObject& o, const QString
     r.caseSha = o.value("case_sha").toString();
     r.dataPath = o.value("data_path").toString();
     r.overrides = o.value("overrides").toObject();
+    r.runControls = o.value("run_controls").toObject();
     for (const QJsonValue& a : o.value("approximations").toArray()) r.approximations << a.toString();
+    for (const QJsonValue& a : o.value("converged_by").toArray()) r.convergedBy << a.toString();
+    r.studyId = o.value("study").toString();
     r.backend = o.value("backend").toString();
     r.device = o.value("device").toString();
     r.iterationsRequested = o.value("iterations_requested").toInt();

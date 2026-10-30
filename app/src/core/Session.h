@@ -8,6 +8,7 @@
 #include "core/RunHistory.h"
 #include "core/SceneData.h"
 #include "core/SettingsModel.h"
+#include "core/Study.h"
 
 #include <QElapsedTimer>
 #include <QHash>
@@ -90,6 +91,29 @@ public:
     const LiveRun& live() const { return m_live; }
     bool running() const { return m_state != RunState::Idle; }
 
+    // Design studies: variants of the case run back to back.
+    const std::vector<Study>& studies() const { return m_studies; }
+    const Study* study(const QString& id) const;
+    // Saves a new study made by makeSweep; returns its id, or empty with why.
+    QString addStudy(Study s, QString* error = nullptr);
+    void deleteStudy(const QString& id);
+    // Runs the study's queued variants one after another (one GPU).
+    bool startStudy(const QString& id, QString* why = nullptr);
+    // Stops the running variant and cancels the queued ones.
+    void stopStudy();
+    QString activeStudy() const { return m_activeStudy; }
+
+    // Aero post-processing inputs, kept with the case's runs (aero-spec.json).
+    const AeroSpec& aeroSpec() const { return m_aeroSpec; }
+    bool aeroSpecSaved() const { return m_aeroSpecSaved; }
+    void setAeroSpec(const AeroSpec& spec);
+    // Coefficients, breakdown and balance of a finished run (kutta aero, cached
+    // until the spec changes).
+    void aero(const QString& runId, std::function<void(Result<AeroResult>)> done);
+    std::optional<AeroResult> aeroIfComputed(const QString& runId) const;
+    // Car walls: the case's force-report zones, else every wall but the ground.
+    QStringList carZones() const;
+
     // History
     RunHistory& history() { return m_history; }
     const RunHistory& history() const { return m_history; }
@@ -128,10 +152,17 @@ signals:
     void liveSceneChanged(int iter);
     void sceneChanged(const QString& key);
     void historyChanged();
+    void studiesChanged();
+    void aeroSpecChanged();
+    void aeroComputed(const QString& runId);
     void approvalsChanged();
     void consoleLine(kapp::ConsoleLevel level, const QString& text);
 
 private:
+    QString start(const QJsonObject& caseOverrides, const QJsonObject& runControls, const QStringList& approximations,
+                  const QString& studyId);
+    void startNextVariant();
+    void saveStudy(const Study& s);
     void failOpen(const QString& casePath, const QString& message);
     void onProgress(const ProgressEvent& e);
     void finishRun(int exitCode, bool crashed);
@@ -162,6 +193,13 @@ private:
     QHash<QString, ViewManifest> m_views;  // run id -> last published view
     // One export-view per run directory at a time: it republishes view/.
     QHash<QString, std::vector<std::function<void()>>> m_exportQueue;
+    std::vector<Study> m_studies;
+    StudyStore m_studyStore;
+    QString m_activeStudy;
+    AeroSpec m_aeroSpec;
+    bool m_aeroSpecSaved = false;
+    QHash<QString, AeroResult> m_aero;
+    QHash<QString, std::vector<std::function<void(Result<AeroResult>)>>> m_aeroPending;
     int m_tableRows = 0;
     QStringList m_tableNames;
 };

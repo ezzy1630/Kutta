@@ -98,6 +98,7 @@ SolveProcess::SolveProcess(const CliInfo& cli, const SolveRequest& req, QObject*
         m_stopEscalation.stop();
         readStdout();
         if (!m_partial.trimmed().isEmpty()) {
+            emit progressLine(m_partial.trimmed());
             auto ev = parseProgressLine(m_partial);
             if (ev) emit progress(ev.value());
             m_partial.clear();
@@ -167,6 +168,7 @@ void SolveProcess::readStdout()
         const QByteArray line = m_partial.left(nl).trimmed();
         m_partial.remove(0, nl + 1);
         if (line.isEmpty()) continue;
+        emit progressLine(line);
         auto ev = parseProgressLine(line);
         if (ev) emit progress(ev.value());
         else emit protocolError(QStringLiteral("Unreadable progress line (%1): %2")
@@ -265,6 +267,22 @@ void CliClient::exportGeometry(const QString& casePath, const QString& outDir, s
         if (code == 2) return done(Result<ViewManifest>::failure("this kutta CLI cannot show a case's mesh before a run (no export-geometry)"));
         if (code != 0) return done(Result<ViewManifest>::failure(failureText(code, out, err)));
         done(loadViewManifest(QDir(outDir).filePath("geometry/manifest.json")));
+    });
+}
+
+void CliClient::aero(const QString& runDir, const QString& specFile, std::function<void(Result<AeroResult>)> done)
+{
+    QStringList args{"aero", runDir};
+    if (!specFile.isEmpty()) args << "--aero" << specFile;
+    args << "--json";
+    run(args, [done](int code, const QByteArray& out, const QByteArray& err) {
+        // Exit 2 from a CLI without the command reads as a usage message.
+        if (code != 0) return done(Result<AeroResult>::failure(failureText(code, out, err)));
+        for (const QByteArray& line : out.split('\n')) {
+            const QJsonObject o = QJsonDocument::fromJson(line).object();
+            if (o.value("event").toString() == "aero") return done(parseAero(o));
+        }
+        done(Result<AeroResult>::failure("kutta aero printed no result"));
     });
 }
 
