@@ -1,0 +1,13 @@
+-- Kutta HDF5 mesh reader: ON
+CMake Deprecation Warning at build/_deps/doctest-src/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Configuring done (0.8s)
+-- Generating done (0.0s)
+-- Build files have been written to: /content/Kutta/build

@@ -1,0 +1,6 @@
+STREAM: 256 MiB/array, 3 arrays, best of 7; decimal GB/s; wall-clock including completion. Commit a0c5caa6079cdd7ccd299ac093d9c9b18373c989
+backend   copy     scale    add      triad    sum      dot      maxabs   small-sync-us small-batch-us zero-us
+cpu       9.37     9.65     10.14    10.25    3.02     5.63     2.04     0.02     0.02     0.02     
+{"device":"CPU reference (serial)","backend":"cpu","commit":"a0c5caa6079cdd7ccd299ac093d9c9b18373c989","array_bytes":268435456,"trials":7,"dispatches_per_stream_trial":8,"copy_GB_s":9.370639,"scale_GB_s":9.645837,"add_GB_s":10.140222,"triad_GB_s":10.253711,"sum_GB_s":3.020366,"dot_GB_s":5.634042,"max_abs_GB_s":2.037419,"small_synchronized_us":0.020614,"small_batched_us":0.018329,"zero_launch_us":0.017306}
+cuda      238.37   251.47   262.61   257.40   107.92   109.15   104.88   7.01     2.64     0.01     
+{"device":"Tesla T4","backend":"cuda","commit":"a0c5caa6079cdd7ccd299ac093d9c9b18373c989","array_bytes":268435456,"trials":7,"dispatches_per_stream_trial":8,"copy_GB_s":238.367431,"scale_GB_s":251.470825,"add_GB_s":262.613790,"triad_GB_s":257.397799,"sum_GB_s":107.924381,"dot_GB_s":109.150143,"max_abs_GB_s":104.875994,"small_synchronized_us":7.012009,"small_batched_us":2.636459,"zero_launch_us":0.007321}

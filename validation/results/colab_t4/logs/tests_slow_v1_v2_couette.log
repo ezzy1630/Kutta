@@ -1,0 +1,195 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FV_V2_PROGRESS backend=cpu tet=0 n=8 iter=20 ru=9.20597e-05 rv=9.19983e-05 rc=0.0100271 rc_raw=4.00959e-05
+FV_V2_LAYER backend=cpu n=8 layer=1 volume_fraction=0.4375 u_L2=0.0718407 p_L2=0.0356516 p_square_integral=6.95097e-05
+FV_V2_LAYER backend=cpu n=8 layer=2 volume_fraction=0.3125 u_L2=0.0429708 p_L2=0.0143085 p_square_integral=7.99737e-06
+FV_V2_LAYER backend=cpu n=8 layer=3 volume_fraction=0.25 u_L2=0.0209793 p_L2=0.0352314 p_square_integral=3.87892e-05
+FV_V2_BOUNDARY backend=cpu tet=0 n=8 interior_p_L2=-1 excluding_walls_p_L2=0.0257955 p_Linf=0.0723352 at=0.1875,0.9375,0.0625 boundary=1 wall=1
+FV_V2 backend=cpu tet=0 n=8 iterations=80 u_L2=0.0542682 p_L2=0.030502 ru=3.64842e-08 rv=3.54954e-08 rw=0 rc_raw=7.26432e-08 corrected_mass=2.37487e-08
+FV_V2_FORCE backend=cpu tet=0 n=8 pressure_x=-0.35929 viscous_y=-0.312592 viscous_x=0.0704076 pressure_error=0.0409805 viscous_error=0.073399 total_error=0.036002
+FV_V2_PROGRESS backend=cpu tet=0 n=16 iter=20 ru=6.20469e-05 rv=6.20606e-05 rc=0.00721252 rc_raw=8.12174e-06
+FV_V2_LAYER backend=cpu n=16 layer=1 volume_fraction=0.234375 u_L2=0.0222439 p_L2=0.0132055 p_square_integral=2.55446e-06
+FV_V2_LAYER backend=cpu n=16 layer=2 volume_fraction=0.203125 u_L2=0.0169333 p_L2=0.00903876 p_square_integral=1.0372e-06
+FV_V2_LAYER backend=cpu n=16 layer=3 volume_fraction=0.5625 u_L2=0.0115119 p_L2=0.00991797 p_square_integral=3.45818e-06
+FV_V2_BOUNDARY backend=cpu tet=0 n=16 interior_p_L2=-1 excluding_walls_p_L2=0.00969249 p_Linf=0.0249698 at=0.21875,0.96875,0.03125 boundary=1 wall=1
+FV_V2 backend=cpu tet=0 n=16 iterations=120 u_L2=0.015772 p_L2=0.0106206 ru=7.97757e-08 rv=7.33343e-08 rw=0 rc_raw=1.09871e-07 corrected_mass=2.73321e-08
+FV_V2_FORCE backend=cpu tet=0 n=16 pressure_x=-0.330562 viscous_y=-0.327715 viscous_x=0.019915 pressure_error=0.0122519 viscous_error=0.0206925 total_error=0.0095023
+FV_V2_ORDER backend=cpu tet=0 n=16 u=1.78275 p=1.52203 momentum_operator=1.36247 wall_pressure=1.74193 wall_viscous=1.82666 wall_total=1.92173
+FV_V2_PROGRESS backend=cpu tet=0 n=32 iter=20 ru=1.4281e-05 rv=1.42961e-05 rc=0.0020731 rc_raw=5.77319e-07
+FV_V2_PROGRESS backend=cpu tet=0 n=32 iter=220 ru=9.90915e-08 rv=9.9775e-08 rc=0.000176879 rc_raw=4.92576e-08
+FV_V2_LAYER backend=cpu n=32 layer=1 volume_fraction=0.121094 u_L2=0.00613299 p_L2=0.00389705 p_square_integral=5.74702e-08
+FV_V2_LAYER backend=cpu n=32 layer=2 volume_fraction=0.113281 u_L2=0.00525466 p_L2=0.00327048 p_square_integral=3.78643e-08
+FV_V2_LAYER backend=cpu n=32 layer=3 volume_fraction=0.765625 u_L2=0.00357306 p_L2=0.00279539 p_square_integral=1.86961e-07
+FV_V2_BOUNDARY backend=cpu tet=0 n=32 interior_p_L2=-1 excluding_walls_p_L2=0.00286106 p_Linf=0.00739073 at=0.796875,0.015625,0.015625 boundary=1 wall=1
+FV_V2 backend=cpu tet=0 n=32 iterations=220 u_L2=0.00417818 p_L2=0.00300557 ru=9.90915e-08 rv=9.9775e-08 rw=0 rc_raw=4.92576e-08 corrected_mass=2.738e-08
+FV_V2_FORCE backend=cpu tet=0 n=32 pressure_x=-0.321559 viscous_y=-0.331912 viscous_x=0.00512813 pressure_error=0.00324958 viscous_error=0.00532153 total_error=0.00235581
+FV_V2_ORDER backend=cpu tet=0 n=32 u=1.91642 p=1.82116 momentum_operator=1.48554 wall_pressure=1.91468 wall_viscous=1.95919 wall_total=2.01205
+FV_V2_PROGRESS backend=cuda tet=0 n=8 iter=20 ru=9.20831e-05 rv=9.20203e-05 rc=0.0100266 rc_raw=4.00936e-05
+FV_V2_LAYER backend=cuda n=8 layer=1 volume_fraction=0.4375 u_L2=0.0718407 p_L2=0.0356514 p_square_integral=6.95089e-05
+FV_V2_LAYER backend=cuda n=8 layer=2 volume_fraction=0.3125 u_L2=0.0429709 p_L2=0.0143084 p_square_integral=7.99727e-06
+FV_V2_LAYER backend=cuda n=8 layer=3 volume_fraction=0.25 u_L2=0.0209794 p_L2=0.0352312 p_square_integral=3.87887e-05
+FV_V2_BOUNDARY backend=cuda tet=0 n=8 interior_p_L2=-1 excluding_walls_p_L2=0.0257954 p_Linf=0.0723351 at=0.8125,0.0625,0.0625 boundary=1 wall=1
+FV_V2 backend=cuda tet=0 n=8 iterations=80 u_L2=0.0542682 p_L2=0.0305018 ru=5.74425e-08 rv=5.49515e-08 rw=0 rc_raw=8.47504e-08 corrected_mass=2.99187e-08
+FV_V2_FORCE backend=cuda tet=0 n=8 pressure_x=-0.35929 viscous_y=-0.312592 viscous_x=0.0704076 pressure_error=0.0409801 viscous_error=0.073399 total_error=0.0360024
+FV_V2_PROGRESS backend=cuda tet=0 n=16 iter=20 ru=6.20606e-05 rv=6.20807e-05 rc=0.00719255 rc_raw=8.09923e-06
+FV_V2_LAYER backend=cuda n=16 layer=1 volume_fraction=0.234375 u_L2=0.0222441 p_L2=0.0132049 p_square_integral=2.55423e-06
+FV_V2_LAYER backend=cuda n=16 layer=2 volume_fraction=0.203125 u_L2=0.016934 p_L2=0.00903983 p_square_integral=1.03744e-06
+FV_V2_LAYER backend=cuda n=16 layer=3 volume_fraction=0.5625 u_L2=0.0115132 p_L2=0.00991898 p_square_integral=3.45889e-06
+FV_V2_BOUNDARY backend=cuda tet=0 n=16 interior_p_L2=-1 excluding_walls_p_L2=0.00969351 p_Linf=0.0249696 at=0.21875,0.96875,0.03125 boundary=1 wall=1
+FV_V2 backend=cuda tet=0 n=16 iterations=140 u_L2=0.0157727 p_L2=0.0106212 ru=4.61479e-08 rv=4.48107e-08 rw=0 rc_raw=7.38764e-08 corrected_mass=2.68155e-08
+FV_V2_FORCE backend=cuda tet=0 n=16 pressure_x=-0.33056 viscous_y=-0.327715 viscous_x=0.019915 pressure_error=0.0122503 viscous_error=0.0206924 total_error=0.0095034
+FV_V2_ORDER backend=cuda tet=0 n=16 u=1.78268 p=1.52195 momentum_operator=1.36247 wall_pressure=1.74211 wall_viscous=1.82666 wall_total=1.92158
+FV_V2_PROGRESS backend=cuda tet=0 n=32 iter=20 ru=1.42738e-05 rv=1.43006e-05 rc=0.0016048 rc_raw=4.4691e-07
+FV_V2_PROGRESS backend=cuda tet=0 n=32 iter=220 ru=1.34012e-07 rv=1.36182e-07 rc=0.000373991 rc_raw=1.0415e-07
+FV_V2_LAYER backend=cuda n=32 layer=1 volume_fraction=0.121094 u_L2=0.00613352 p_L2=0.00389834 p_square_integral=5.75084e-08
+FV_V2_LAYER backend=cuda n=32 layer=2 volume_fraction=0.113281 u_L2=0.00525626 p_L2=0.00327359 p_square_integral=3.79364e-08
+FV_V2_LAYER backend=cuda n=32 layer=3 volume_fraction=0.765625 u_L2=0.00357823 p_L2=0.00280061 p_square_integral=1.8766e-07
+FV_V2_BOUNDARY backend=cuda tet=0 n=32 interior_p_L2=-1 excluding_walls_p_L2=0.00286596 p_Linf=0.00739108 at=0.796875,0.015625,0.015625 boundary=1 wall=1
+FV_V2 backend=cuda tet=0 n=32 iterations=240 u_L2=0.00418188 p_L2=0.00300988 ru=6.30638e-08 rv=6.93748e-08 rw=0 rc_raw=4.85817e-08 corrected_mass=2.70171e-08
+FV_V2_FORCE backend=cuda tet=0 n=32 pressure_x=-0.321558 viscous_y=-0.331913 viscous_x=0.0051281 pressure_error=0.00324861 viscous_error=0.00532117 total_error=0.00235584
+FV_V2_ORDER backend=cuda tet=0 n=32 u=1.91521 p=1.81916 momentum_operator=1.48554 wall_pressure=1.91492 wall_viscous=1.95928 wall_total=2.0122
+===============================================================================
+/content/Kutta/tests/fv/test_navier_stokes.cpp:164:
+TEST SUITE: slow
+TEST CASE:  FV V2 manufactured Navier Stokes hex refinement
+
+10.206432 s: FV V2 manufactured Navier Stokes hex refinement
+FV_V2_PROGRESS backend=cpu tet=1 n=4 iter=20 ru=0.001312 rv=0.001286 rc=0.027333 rc_raw=0.026369
+FV_V2_BOUNDARY backend=cpu tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.062500,0.125000,0.937500 boundary=1 wall=1
+FV_V2 backend=cpu tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.258420 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000001 corrected_mass=0.000000
+FV_V2_FORCE backend=cpu tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.167080 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+FV_V2_PROGRESS backend=cpu tet=1 n=8 iter=20 ru=0.000470 rv=0.000468 rc=0.029970 rc_raw=0.017054
+FV_V2_BOUNDARY backend=cpu tet=1 n=8 interior_p_L2=0.126227 excluding_walls_p_L2=0.136680 p_Linf=0.575178 at=0.937500,0.906250,0.968750 boundary=1 wall=0
+FV_V2 backend=cpu tet=1 n=8 iterations=180 u_L2=0.051705 p_L2=0.144609 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000002 corrected_mass=0.000001
+FV_V2_FORCE backend=cpu tet=1 n=8 pressure_x=-0.393272 viscous_y=-0.382532 viscous_x=0.123754 pressure_error=0.074962 viscous_error=0.137119 total_error=0.076599
+FV_V2_ORDER backend=cpu tet=1 n=8 u=1.736003 p=0.837558 momentum_operator=1.025370 wall_pressure=1.045943 wall_viscous=0.590305 wall_total=0.670034
+FV_V2_PROGRESS backend=cpu tet=1 n=16 iter=20 ru=0.000118 rv=0.000116 rc=0.025236 rc_raw=0.007663
+FV_V2_PROGRESS backend=cpu tet=1 n=16 iter=220 ru=0.000000 rv=0.000001 rc=0.000015 rc_raw=0.000005
+FV_V2_BOUNDARY backend=cpu tet=1 n=16 interior_p_L2=0.070079 excluding_walls_p_L2=0.075262 p_Linf=0.413610 at=0.156250,0.046875,0.015625 boundary=1 wall=0
+FV_V2 backend=cpu tet=1 n=16 iterations=400 u_L2=0.013127 p_L2=0.076424 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000004 corrected_mass=0.000001
+FV_V2_FORCE backend=cpu tet=1 n=16 pressure_x=-0.355606 viscous_y=-0.350562 viscous_x=0.071532 pressure_error=0.037296 viscous_error=0.075476 total_error=0.041855
+FV_V2_ORDER backend=cpu tet=1 n=16 u=1.977786 p=0.920060 momentum_operator=1.014063 wall_pressure=1.007147 wall_viscous=0.861349 wall_total=0.871920
+===============================================================================
+/content/Kutta/tests/fv/test_navier_stokes.cpp:167:
+TEST SUITE: slow
+TEST CASE:  FV V2 manufactured Navier Stokes tet refinement
+
+/content/Kutta/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+  values: CHECK( 1.00715 >= 1.8 )
+  logged: backend: cpu
+
+/content/Kutta/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+  values: CHECK( 0.861349 >= 1.8 )
+  logged: backend: cpu
+
+/content/Kutta/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+  values: CHECK( 0.87192 >= 1.8 )
+  logged: backend: cpu
+
+FV_V2_PROGRESS backend=cuda tet=1 n=4 iter=20 ru=0.001312 rv=0.001286 rc=0.027333 rc_raw=0.026369
+FV_V2_BOUNDARY backend=cuda tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.062500,0.125000,0.937500 boundary=1 wall=1
+FV_V2 backend=cuda tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.258420 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000001 corrected_mass=0.000000
+FV_V2_FORCE backend=cuda tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.167080 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+FV_V2_PROGRESS backend=cuda tet=1 n=8 iter=20 ru=0.000470 rv=0.000468 rc=0.029970 rc_raw=0.017054
+FV_V2_BOUNDARY backend=cuda tet=1 n=8 interior_p_L2=0.126227 excluding_walls_p_L2=0.136680 p_Linf=0.575180 at=0.062500,0.093750,0.031250 boundary=1 wall=0
+FV_V2 backend=cuda tet=1 n=8 iterations=180 u_L2=0.051705 p_L2=0.144609 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000002 corrected_mass=0.000001
+FV_V2_FORCE backend=cuda tet=1 n=8 pressure_x=-0.393272 viscous_y=-0.382532 viscous_x=0.123754 pressure_error=0.074962 viscous_error=0.137119 total_error=0.076599
+FV_V2_ORDER backend=cuda tet=1 n=8 u=1.736003 p=0.837558 momentum_operator=1.025370 wall_pressure=1.045938 wall_viscous=0.590306 wall_total=0.670039
+FV_V2_PROGRESS backend=cuda tet=1 n=16 iter=20 ru=0.000118 rv=0.000116 rc=0.025237 rc_raw=0.007663
+FV_V2_PROGRESS backend=cuda tet=1 n=16 iter=220 ru=0.000000 rv=0.000001 rc=0.000015 rc_raw=0.000005
+FV_V2_BOUNDARY backend=cuda tet=1 n=16 interior_p_L2=0.070079 excluding_walls_p_L2=0.075262 p_Linf=0.413606 at=0.843750,0.953125,0.984375 boundary=1 wall=0
+FV_V2 backend=cuda tet=1 n=16 iterations=400 u_L2=0.013127 p_L2=0.076424 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000002 corrected_mass=0.000001
+FV_V2_FORCE backend=cuda tet=1 n=16 pressure_x=-0.355602 viscous_y=-0.350562 viscous_x=0.071533 pressure_error=0.037292 viscous_error=0.075476 total_error=0.041858
+FV_V2_ORDER backend=cuda tet=1 n=16 u=1.977786 p=0.920060 momentum_operator=1.014063 wall_pressure=1.007288 wall_viscous=0.861342 wall_total=0.871808
+/content/Kutta/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+  values: CHECK( 1.00729 >= 1.8 )
+  logged: backend: cuda
+
+/content/Kutta/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+  values: CHECK( 0.861342 >= 1.8 )
+  logged: backend: cuda
+
+/content/Kutta/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+  values: CHECK( 0.871808 >= 1.8 )
+  logged: backend: cuda
+
+225.195982 s: FV V2 manufactured Navier Stokes tet refinement
+FV_V1 backend=cpu tet=0 n=8 speed=0.000000 scheme=2 iterations=3 L2=0.004579
+FV_V1 backend=cpu tet=0 n=16 speed=0.000000 scheme=2 iterations=3 L2=0.001138
+FV_V1_ORDER backend=cpu tet=0 mode=0 n=16 slope=2.008322
+FV_V1 backend=cpu tet=0 n=32 speed=0.000000 scheme=2 iterations=3 L2=0.000284
+FV_V1_ORDER backend=cpu tet=0 mode=0 n=32 slope=2.002237
+FV_V1 backend=cpu tet=0 n=8 speed=4.000000 scheme=1 iterations=3 L2=0.019031
+FV_V1 backend=cpu tet=0 n=16 speed=4.000000 scheme=1 iterations=3 L2=0.011405
+FV_V1_ORDER backend=cpu tet=0 mode=1 n=16 slope=0.738658
+FV_V1 backend=cpu tet=0 n=32 speed=4.000000 scheme=1 iterations=3 L2=0.006307
+FV_V1_ORDER backend=cpu tet=0 mode=1 n=32 slope=0.854662
+FV_V1 backend=cpu tet=0 n=8 speed=4.000000 scheme=2 iterations=8 L2=0.003348
+FV_V1 backend=cpu tet=0 n=16 speed=4.000000 scheme=2 iterations=7 L2=0.000939
+FV_V1_ORDER backend=cpu tet=0 mode=2 n=16 slope=1.835007
+FV_V1 backend=cpu tet=0 n=32 speed=4.000000 scheme=2 iterations=6 L2=0.000249
+FV_V1_ORDER backend=cpu tet=0 mode=2 n=32 slope=1.912024
+FV_V1 backend=cpu tet=1 n=8 speed=0.000000 scheme=2 iterations=14 L2=0.003899
+FV_V1 backend=cpu tet=1 n=16 speed=0.000000 scheme=2 iterations=15 L2=0.001101
+FV_V1_ORDER backend=cpu tet=1 mode=0 n=16 slope=1.824032
+FV_V1 backend=cpu tet=1 n=32 speed=0.000000 scheme=2 iterations=15 L2=0.000289
+FV_V1_ORDER backend=cpu tet=1 mode=0 n=32 slope=1.931965
+FV_V1 backend=cpu tet=1 n=8 speed=4.000000 scheme=1 iterations=14 L2=0.016234
+FV_V1 backend=cpu tet=1 n=16 speed=4.000000 scheme=1 iterations=15 L2=0.008203
+FV_V1_ORDER backend=cpu tet=1 mode=1 n=16 slope=0.984860
+FV_V1 backend=cpu tet=1 n=32 speed=4.000000 scheme=1 iterations=15 L2=0.004121
+FV_V1_ORDER backend=cpu tet=1 mode=1 n=32 slope=0.993211
+FV_V1 backend=cpu tet=1 n=8 speed=4.000000 scheme=2 iterations=15 L2=0.004031
+FV_V1 backend=cpu tet=1 n=16 speed=4.000000 scheme=2 iterations=16 L2=0.001108
+FV_V1_ORDER backend=cpu tet=1 mode=2 n=16 slope=1.863583
+FV_V1 backend=cpu tet=1 n=32 speed=4.000000 scheme=2 iterations=15 L2=0.000287
+FV_V1_ORDER backend=cpu tet=1 mode=2 n=32 slope=1.949099
+FV_V1 backend=cuda tet=0 n=8 speed=0.000000 scheme=2 iterations=3 L2=0.004579
+FV_V1 backend=cuda tet=0 n=16 speed=0.000000 scheme=2 iterations=3 L2=0.001138
+FV_V1_ORDER backend=cuda tet=0 mode=0 n=16 slope=2.008318
+FV_V1 backend=cuda tet=0 n=32 speed=0.000000 scheme=2 iterations=3 L2=0.000284
+FV_V1_ORDER backend=cuda tet=0 mode=0 n=32 slope=2.001862
+FV_V1 backend=cuda tet=0 n=8 speed=4.000000 scheme=1 iterations=3 L2=0.019031
+FV_V1 backend=cuda tet=0 n=16 speed=4.000000 scheme=1 iterations=3 L2=0.011405
+FV_V1_ORDER backend=cuda tet=0 mode=1 n=16 slope=0.738660
+FV_V1 backend=cuda tet=0 n=32 speed=4.000000 scheme=1 iterations=3 L2=0.006307
+FV_V1_ORDER backend=cuda tet=0 mode=1 n=32 slope=0.854671
+FV_V1 backend=cuda tet=0 n=8 speed=4.000000 scheme=2 iterations=8 L2=0.003348
+FV_V1 backend=cuda tet=0 n=16 speed=4.000000 scheme=2 iterations=7 L2=0.000939
+FV_V1_ORDER backend=cuda tet=0 mode=2 n=16 slope=1.834975
+FV_V1 backend=cuda tet=0 n=32 speed=4.000000 scheme=2 iterations=6 L2=0.000249
+FV_V1_ORDER backend=cuda tet=0 mode=2 n=32 slope=1.912055
+FV_V1 backend=cuda tet=1 n=8 speed=0.000000 scheme=2 iterations=14 L2=0.003899
+FV_V1 backend=cuda tet=1 n=16 speed=0.000000 scheme=2 iterations=15 L2=0.001101
+FV_V1_ORDER backend=cuda tet=1 mode=0 n=16 slope=1.824030
+FV_V1 backend=cuda tet=1 n=32 speed=0.000000 scheme=2 iterations=15 L2=0.000289
+FV_V1_ORDER backend=cuda tet=1 mode=0 n=32 slope=1.931947
+FV_V1 backend=cuda tet=1 n=8 speed=4.000000 scheme=1 iterations=14 L2=0.016234
+FV_V1 backend=cuda tet=1 n=16 speed=4.000000 scheme=1 iterations=15 L2=0.008203
+FV_V1_ORDER backend=cuda tet=1 mode=1 n=16 slope=0.984862
+FV_V1 backend=cuda tet=1 n=32 speed=4.000000 scheme=1 iterations=14 L2=0.004121
+FV_V1_ORDER backend=cuda tet=1 mode=1 n=32 slope=0.993199
+FV_V1 backend=cuda tet=1 n=8 speed=4.000000 scheme=2 iterations=15 L2=0.004031
+FV_V1 backend=cuda tet=1 n=16 speed=4.000000 scheme=2 iterations=16 L2=0.001108
+FV_V1_ORDER backend=cuda tet=1 mode=2 n=16 slope=1.863612
+FV_V1 backend=cuda tet=1 n=32 speed=4.000000 scheme=2 iterations=15 L2=0.000287
+FV_V1_ORDER backend=cuda tet=1 mode=2 n=32 slope=1.949134
+===============================================================================
+/content/Kutta/tests/fv/test_scalar.cpp:53:
+TEST SUITE: slow
+TEST CASE:  FV V1 manufactured scalar diffusion and upwind refinement
+
+225.094112 s: FV V1 manufactured scalar diffusion and upwind refinement
+FV_COUETTE backend=cpu max_error=0.000000 residual=0.000000
+FV_COUETTE backend=cuda max_error=0.000000 residual=0.000000
+===============================================================================
+/content/Kutta/tests/fv/test_steady.cpp:51:
+TEST SUITE: slow
+TEST CASE:  FV SIMPLEC develops planar Couette flow with moving and slip walls
+
+3.588084 s: FV SIMPLEC develops planar Couette flow with moving and slip walls
+===============================================================================
+[doctest] test cases:  4 |  3 passed | 1 failed | 171 skipped
+[doctest] assertions: 96 | 90 passed | 6 failed |
+[doctest] Status: FAILURE!
+slow_v1_v2_couette_exit=1 seconds=464

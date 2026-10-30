@@ -1,0 +1,15 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+/content/Kutta/tests/fv/test_cavity.cpp:38:
+TEST SUITE: slow
+TEST CASE:  FV V3 Re1000 cavity refinement against Erturk
+
+/content/Kutta/tests/fv/test_cavity.cpp:38: FATAL ERROR: test case CRASHED: SIGTERM - Termination request signal
+
+3.839368 s: FV V3 Re1000 cavity refinement against Erturk
+===============================================================================
+[doctest] test cases: 1 | 0 passed | 1 failed | 174 skipped
+[doctest] assertions: 0 | 0 passed | 0 failed |
+[doctest] Status: FAILURE!
+slow_v3_re1000_exit=143 seconds=4

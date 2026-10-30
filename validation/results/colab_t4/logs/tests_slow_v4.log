@@ -1,0 +1,75 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=100 ru=2.32765e-05 rv=3.96839e-05 rc=0.0102623 mass=4.42289e-06 update=1
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=200 ru=4.54797e-06 rv=8.74197e-06 rc=0.00262421 mass=1.51274e-06 update=0.00319827
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=300 ru=1.4226e-06 rv=2.62345e-06 rc=0.000821576 mass=5.96976e-07 update=0.000657517
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=400 ru=4.96255e-07 rv=8.51729e-07 rc=0.000286058 mass=4.25684e-07 update=0.000173442
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=500 ru=1.87322e-07 rv=3.03841e-07 rc=0.000107148 mass=3.81625e-07 update=5.07459e-05
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=600 ru=8.64652e-08 rv=1.18926e-07 rc=4.26382e-05 mass=4.03623e-07 update=1.5907e-05
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=100 ru=2.32682e-05 rv=3.96892e-05 rc=0.0102616 mass=5.67016e-06 update=1
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=200 ru=4.54489e-06 rv=8.74368e-06 rc=0.00262409 mass=1.49578e-06 update=0.00319683
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=300 ru=1.42748e-06 rv=2.6263e-06 rc=0.00082185 mass=6.8043e-07 update=0.000657212
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=400 ru=4.95431e-07 rv=8.51611e-07 rc=0.000286348 mass=4.47418e-07 update=0.000173409
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=500 ru=1.87767e-07 rv=3.05202e-07 rc=0.000107518 mass=4.15946e-07 update=5.08651e-05
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=600 ru=8.78689e-08 rv=1.20536e-07 rc=4.29592e-05 mass=4.37123e-07 update=1.58884e-05
+FV_CAVITY_RESULT backend=cpu case=Fluent Re=100 iterations=600 converged=1 Ghia_u_max=0.00530366 Ghia_v_max=0.00904202
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=100 ru=1.21311e-05 rv=1.08607e-05 rc=0.00461028 mass=1.4396e-06 update=1
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=200 ru=1.23094e-07 rv=1.59271e-07 rc=7.80811e-05 mass=4.97749e-07 update=0.0016149
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=300 ru=4.36372e-08 rv=3.5126e-08 rc=1.35746e-05 mass=4.99609e-07 update=1.12019e-05
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=100 ru=1.21334e-05 rv=1.08322e-05 rc=0.00459865 mass=9.33374e-07 update=1
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=200 ru=1.24851e-07 rv=1.58244e-07 rc=7.81388e-05 mass=5.19698e-07 update=0.00161381
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=300 ru=4.02505e-08 rv=3.42505e-08 rc=1.35677e-05 mass=4.92036e-07 update=1.13808e-05
+FV_CAVITY_RESULT backend=cpu case=Fluent Re=400 iterations=300 converged=1 Ghia_u_max=0.00328893 Ghia_v_max=0.00343596
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=100 ru=7.70708e-05 rv=6.26409e-05 rc=0.0177555 mass=1.69226e-06 update=1
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=200 ru=7.29808e-07 rv=5.94574e-07 rc=0.000153704 mass=5.51443e-07 update=0.014356
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=300 ru=1.14224e-07 rv=9.73326e-08 rc=2.25944e-05 mass=5.21453e-07 update=0.000230595
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=400 ru=5.37087e-08 rv=3.86955e-08 rc=1.52294e-05 mass=5.06021e-07 update=3.48091e-05
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=500 ru=5.10038e-08 rv=3.60491e-08 rc=1.27314e-05 mass=5.18947e-07 update=5.78165e-06
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=100 ru=7.704e-05 rv=6.26232e-05 rc=0.0177496 mass=2.20568e-06 update=1
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=200 ru=7.23237e-07 rv=5.89534e-07 rc=0.000153379 mass=5.59504e-07 update=0.0143472
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=300 ru=1.11353e-07 rv=9.66388e-08 rc=2.27635e-05 mass=5.48089e-07 update=0.000228271
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=400 ru=5.65378e-08 rv=4.00707e-08 rc=1.6211e-05 mass=5.42051e-07 update=3.44217e-05
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=500 ru=4.85049e-08 rv=3.61639e-08 rc=1.35673e-05 mass=5.68183e-07 update=5.66244e-06
+FV_CAVITY_RESULT backend=cpu case=Fluent Re=1000 iterations=500 converged=1 Ghia_u_max=0.00893407 Ghia_v_max=0.00405481 Erturk_u_max=0.0118476 Erturk_v_max=0.0212033
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=100 ru=2.3275e-05 rv=3.96844e-05 rc=0.0102624 mass=4.33244e-06 update=1
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=200 ru=4.5459e-06 rv=8.74168e-06 rc=0.00262446 mass=1.48676e-06 update=0.00319813
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=300 ru=1.41645e-06 rv=2.62084e-06 rc=0.000821225 mass=7.2247e-07 update=0.000657599
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=400 ru=4.96175e-07 rv=8.53611e-07 rc=0.000286199 mass=4.58782e-07 update=0.000173479
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=500 ru=1.86828e-07 rv=3.03725e-07 rc=0.000106807 mass=3.94714e-07 update=5.07534e-05
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=600 ru=8.83374e-08 rv=1.21051e-07 rc=4.23821e-05 mass=4.0851e-07 update=1.58399e-05
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=100 ru=2.32707e-05 rv=3.96899e-05 rc=0.0102619 mass=5.68163e-06 update=1
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=200 ru=4.54586e-06 rv=8.74251e-06 rc=0.00262409 mass=1.50305e-06 update=0.00319686
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=300 ru=1.42586e-06 rv=2.62296e-06 rc=0.00082146 mass=6.47823e-07 update=0.000657238
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=400 ru=4.9705e-07 rv=8.51309e-07 rc=0.000286016 mass=4.54495e-07 update=0.000173613
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=500 ru=1.87673e-07 rv=3.04999e-07 rc=0.000106964 mass=4.2334e-07 update=5.07608e-05
+FV_CAVITY_PROGRESS backend=cuda Re=100 cells=3550 iterations=600 ru=8.69608e-08 rv=1.19786e-07 rc=4.2471e-05 mass=4.36393e-07 update=1.5758e-05
+FV_CAVITY_RESULT backend=cuda case=Fluent Re=100 iterations=600 converged=1 Ghia_u_max=0.00530363 Ghia_v_max=0.00904201
+FV_CAVITY_PROGRESS backend=cuda Re=400 cells=3550 iterations=100 ru=1.21522e-05 rv=1.08772e-05 rc=0.00459436 mass=1.44366e-06 update=1
+FV_CAVITY_PROGRESS backend=cuda Re=400 cells=3550 iterations=200 ru=1.24132e-07 rv=1.5833e-07 rc=7.86634e-05 mass=5.00863e-07 update=0.0016183
+FV_CAVITY_PROGRESS backend=cuda Re=400 cells=3550 iterations=300 ru=4.1668e-08 rv=3.34891e-08 rc=1.29407e-05 mass=5.08218e-07 update=1.14553e-05
+FV_CAVITY_PROGRESS backend=cuda Re=400 cells=3550 iterations=100 ru=1.21425e-05 rv=1.08701e-05 rc=0.00461623 mass=9.15358e-07 update=1
+FV_CAVITY_PROGRESS backend=cuda Re=400 cells=3550 iterations=200 ru=1.26271e-07 rv=1.58363e-07 rc=7.86137e-05 mass=5.27801e-07 update=0.0016187
+FV_CAVITY_PROGRESS backend=cuda Re=400 cells=3550 iterations=300 ru=4.40358e-08 rv=3.57847e-08 rc=1.32316e-05 mass=5.12841e-07 update=1.14553e-05
+FV_CAVITY_RESULT backend=cuda case=Fluent Re=400 iterations=300 converged=1 Ghia_u_max=0.00328896 Ghia_v_max=0.00343601
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=100 ru=7.7072e-05 rv=6.26283e-05 rc=0.017749 mass=1.66084e-06 update=1
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=200 ru=7.28064e-07 rv=5.92229e-07 rc=0.000153431 mass=5.36942e-07 update=0.0143545
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=300 ru=1.11342e-07 rv=9.45201e-08 rc=2.26108e-05 mass=5.22834e-07 update=0.000229821
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=400 ru=5.59017e-08 rv=3.99397e-08 rc=1.53251e-05 mass=5.41449e-07 update=3.46005e-05
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=500 ru=4.71202e-08 rv=3.32028e-08 rc=1.37228e-05 mass=5.08655e-07 update=5.84126e-06
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=100 ru=7.69992e-05 rv=6.25879e-05 rc=0.0177405 mass=2.1919e-06 update=1
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=200 ru=7.48694e-07 rv=6.06143e-07 rc=0.000159653 mass=5.51632e-07 update=0.014341
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=300 ru=1.13638e-07 rv=9.63342e-08 rc=2.21679e-05 mass=5.67256e-07 update=0.000232458
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=400 ru=5.10447e-08 rv=3.69067e-08 rc=1.51418e-05 mass=5.58748e-07 update=3.48091e-05
+FV_CAVITY_PROGRESS backend=cuda Re=1000 cells=3550 iterations=500 ru=4.64083e-08 rv=3.42033e-08 rc=1.23623e-05 mass=5.57458e-07 update=5.75185e-06
+FV_CAVITY_RESULT backend=cuda case=Fluent Re=1000 iterations=500 converged=1 Ghia_u_max=0.00893408 Ghia_v_max=0.00405482 Erturk_u_max=0.0118476 Erturk_v_max=0.0212033
+===============================================================================
+/content/Kutta/tests/fv/test_cavity.cpp:87:
+TEST SUITE: slow
+TEST CASE:  FV V4 Fluent cavity matches its actual grid
+
+147.704213 s: FV V4 Fluent cavity matches its actual grid
+===============================================================================
+[doctest] test cases:   1 |   1 passed | 0 failed | 174 skipped
+[doctest] assertions: 763 | 763 passed | 0 failed |
+[doctest] Status: SUCCESS!
+slow_v4_exit=0 seconds=148

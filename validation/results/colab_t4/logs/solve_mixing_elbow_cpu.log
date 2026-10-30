@@ -1,0 +1,41 @@
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: flow/scheme: SIMPLEC replaces Coupled; convergence path only, Majumdar physical diagonal
+Setup: kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+Case convergence criteria are not exposed by the adapter; using iteration limit 600.
+Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter
+    20  1.079445e-01  9.711473e-04  1.026521e-03  3.879727e-04  8.880095e-03  6.972336e-03   4.731176e-01
+    40  3.672673e-02  6.443497e-04  6.843900e-04  2.925946e-04  4.720211e-03  2.990092e-03   4.487747e-01
+    60  1.543809e-02  4.883186e-04  5.763720e-04  2.388686e-04  3.225805e-03  1.831381e-03   3.908973e-01
+    80  1.783289e-02  3.809840e-04  5.763771e-04  2.110116e-04  3.097202e-03  1.265455e-03   4.042694e-01
+   100  1.440871e-02  2.671208e-04  5.176148e-04  1.609732e-04  2.814046e-03  9.506869e-04   3.998158e-01
+   120  9.568382e-03  1.589669e-04  3.930217e-04  1.079458e-04  1.851839e-03  6.188889e-04   4.319667e-01
+   140  7.298192e-03  9.401817e-05  2.936889e-04  6.968406e-05  1.291259e-03  4.129047e-04   4.016820e-01
+   160  5.809073e-03  5.798416e-05  2.126816e-04  4.902772e-05  8.887466e-04  2.746836e-04   4.046803e-01
+   180  3.862307e-03  3.545844e-05  1.383705e-04  3.134344e-05  5.609369e-04  1.731809e-04   4.033001e-01
+   200  2.542195e-03  2.198631e-05  8.320341e-05  1.929322e-05  3.515350e-04  1.075064e-04   3.779049e-01
+   220  1.730715e-03  1.418866e-05  4.918635e-05  1.258311e-05  2.180199e-04  6.615868e-05   3.752341e-01
+   240  1.012418e-03  9.749994e-06  2.868668e-05  8.764214e-06  1.357127e-04  4.100152e-05   4.126259e-01
+   260  6.257811e-04  6.253912e-06  1.625295e-05  5.391957e-06  8.440934e-05  2.536442e-05   4.163735e-01
+   280  2.893736e-04  4.038733e-06  9.786475e-06  3.128926e-06  5.581038e-05  1.649917e-05   4.071549e-01
+   300  3.028044e-04  2.803859e-06  6.918195e-06  2.127459e-06  4.009933e-05  1.143667e-05   4.003755e-01
+   320  2.979911e-04  2.032713e-06  5.245466e-06  1.532973e-06  2.762553e-05  8.097089e-06   4.307409e-01
+   340  2.798456e-04  1.487467e-06  4.095771e-06  1.137627e-06  1.978224e-05  5.937560e-06   4.381051e-01
+   360  2.028482e-04  1.092128e-06  3.180934e-06  8.431622e-07  1.415543e-05  4.368865e-06   4.577441e-01
+   380  1.807147e-04  8.075372e-07  2.453704e-06  6.427360e-07  9.769398e-06  3.175026e-06   4.868601e-01
+   400  9.940170e-05  5.804044e-07  1.820412e-06  4.745376e-07  6.945604e-06  2.266416e-06   5.168989e-01
+   420  6.871575e-05  4.092161e-07  1.302248e-06  3.303342e-07  4.871361e-06  1.595259e-06   5.205226e-01
+   440  6.951797e-05  2.878066e-07  9.063193e-07  2.211041e-07  3.279638e-06  1.113501e-06   5.382071e-01
+   460  2.682918e-05  2.282213e-07  6.926687e-07  2.190023e-07  2.233406e-06  7.778489e-07   6.076256e-01
+   480  2.486244e-05  1.475063e-07  4.484284e-07  1.217443e-07  1.518429e-06  5.459180e-07   6.007624e-01
+   500  2.244486e-05  1.236281e-07  3.497408e-07  1.331722e-07  1.023785e-06  3.762337e-07   6.286950e-01
+   520  2.067430e-05  1.009984e-07  2.623295e-07  1.185074e-07  6.789286e-07  2.580463e-07   6.658838e-01
+   540  1.620193e-05  5.584438e-08  1.411165e-07  4.051266e-08  4.481054e-07  1.836547e-07   6.623071e-01
+   560  4.072399e-05  4.673032e-08  9.763621e-08  3.353576e-08  2.960352e-07  1.337973e-07   6.545503e-01
+   580  1.400675e-05  7.096715e-08  1.301874e-07  1.014772e-07  1.982832e-07  9.487264e-08   6.488493e-01
+   600  1.039860e-05  7.264100e-08  1.132338e-07  1.084201e-07  1.307580e-07  7.769474e-08   6.488379e-01
+Wrote /content/results/mixing_elbow_cpu (600 iterations, 2.930970e+02 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+solve_cpu_exit=0 seconds=336

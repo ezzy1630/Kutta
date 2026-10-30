@@ -1,0 +1,22 @@
+== g++ -O3 a*b+c
+	mulss	%xmm1, %xmm0
+	addss	%xmm2, %xmm0
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+== nvcc default a*b+c (sm_75 SASS)
+      1 FFMA
+== nvcc --fmad=false
+      1 FADD
+      1 FMUL
+== CMakeCache flags
+/content/Kutta/build/CMakeCache.txt:CMAKE_BUILD_TYPE:STRING=
+/content/Kutta/build/CMakeCache.txt:CMAKE_CUDA_ARCHITECTURES:UNINITIALIZED=75
+/content/Kutta/build/CMakeCache.txt:CMAKE_CUDA_FLAGS:STRING=
+/content/Kutta/build/CMakeCache.txt:CMAKE_CUDA_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
+/content/Kutta/build/CMakeCache.txt:CMAKE_CXX_FLAGS:STRING=
+/content/Kutta/build/CMakeCache.txt:CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
+/content/Kutta/build-nofmad/CMakeCache.txt:CMAKE_BUILD_TYPE:STRING=
+/content/Kutta/build-nofmad/CMakeCache.txt:CMAKE_CUDA_ARCHITECTURES:UNINITIALIZED=75
+/content/Kutta/build-nofmad/CMakeCache.txt:CMAKE_CUDA_FLAGS:STRING=--fmad=false
+/content/Kutta/build-nofmad/CMakeCache.txt:CMAKE_CUDA_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
+/content/Kutta/build-nofmad/CMakeCache.txt:CMAKE_CXX_FLAGS:STRING=
+/content/Kutta/build-nofmad/CMakeCache.txt:CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG

@@ -1,0 +1,109 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Python3: /usr/local/bin/python (found version "3.13.16") found components: Interpreter
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found suitable version "1.3", minimum required is "1.2.9")
+-- Kutta HDF5 mesh reader: ON
+-- The CUDA compiler identification is NVIDIA 13.0.88 with host compiler GNU 13.3.0
+-- Detecting CUDA compiler ABI info
+-- Detecting CUDA compiler ABI info - done
+-- Check for working CUDA compiler: /usr/local/cuda/bin/nvcc - skipped
+-- Detecting CUDA compile features
+-- Detecting CUDA compile features - done
+-- Found CUDAToolkit: /usr/local/cuda/targets/x86_64-linux/include;/usr/local/cuda/targets/x86_64-linux/include/cccl (found version "13.0.88")
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+CMake Deprecation Warning at build-nofmad/_deps/doctest-src/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Configuring done (4.8s)
+-- Generating done (0.0s)
+-- Build files have been written to: /content/Kutta/build-nofmad
+[0/2] Re-checking globbed directories...
+[1/70] Generating kernel entry points
+[2/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/case/case_file.cpp.o
+[3/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/case/fluent_case.cpp.o
+[4/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/case/fluent_data.cpp.o
+[5/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/core/parse.cpp.o
+[6/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/core/sha256.cpp.o
+[7/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/case/sexpr.cpp.o
+[8/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/device_mesh.cpp.o
+[9/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/operators.cpp.o
+[10/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/transport.cpp.o
+[11/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/turbulence/sst.cpp.o
+[12/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/steady_solver.cpp.o
+[13/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/fluent_cff.cpp.o
+[14/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/fluent_common.cpp.o
+[15/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/fluent_msh.cpp.o
+[16/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/generators.cpp.o
+[17/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/mesh_io.cpp.o
+[18/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/plot3d.cpp.o
+[19/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/plot3d_nmf.cpp.o
+[20/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/vtu.cpp.o
+[21/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/csr.cpp.o
+[22/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/amg.cpp.o
+[23/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/solver.cpp.o
+[24/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/mesh/mesh.cpp.o
+[25/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/setup/approximations.cpp.o
+[26/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/mesh/topology.cpp.o
+[27/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/runtime/device.cpp.o
+[28/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/runtime/cpu/cpu_device.cpp.o
+[29/70] Building CXX object CMakeFiles/kutta.dir/src/kutta/setup/fluent.cpp.o
+[30/70] Building CXX object CMakeFiles/kutta.dir/generated/kernels_host.cpp.o
+[31/70] Building CXX object CMakeFiles/kutta.dir/generated/kernels_cpu.cpp.o
+[32/70] Building CUDA object CMakeFiles/kutta.dir/src/kutta/runtime/cuda/cuda_device.cu.o
+[33/70] Building CXX object CMakeFiles/kutta-cli.dir/src/kutta/app/main.cpp.o
+[34/70] Building CUDA object CMakeFiles/kutta.dir/generated/kernels_cuda.cu.o
+[35/70] Linking CXX static library libkutta.a
+[36/70] Building CXX object CMakeFiles/kutta-cli.dir/src/kutta/app/solve.cpp.o
+[37/70] Linking CXX executable kutta
+[38/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/app/test_inspect.cpp.o
+[39/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/app/test_solve.cpp.o
+[40/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/case/test_case.cpp.o
+[41/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/case/test_data.cpp.o
+[42/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/case/test_sexpr.cpp.o
+[43/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/core/test_parse.cpp.o
+[44/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/case/test_real_data.cpp.o
+[45/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_device_mesh.cpp.o
+[46/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_cavity.cpp.o
+[47/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_flow_kernels.cpp.o
+[48/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_gradient.cpp.o
+[49/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_fluent_elbow.cpp.o
+[50/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_hybrid.cpp.o
+[51/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_pressure_gradient.cpp.o
+[52/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_navier_stokes.cpp.o
+[53/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_pressure_matrix.cpp.o
+[54/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_rans.cpp.o
+[55/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_scalar.cpp.o
+[56/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_steady.cpp.o
+[57/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_tmr.cpp.o
+[58/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/io/test_cff.cpp.o
+[59/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/io/test_fluent_real.cpp.o
+[60/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/io/test_plot3d_nmf.cpp.o
+[61/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/linalg/test_kernels.cpp.o
+[62/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/io/test_io.cpp.o
+[63/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/main.cpp.o
+[64/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/linalg/test_solvers.cpp.o
+[65/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/mesh/test_mesh.cpp.o
+[66/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/runtime/test_backends.cpp.o
+[67/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/runtime/test_device.cpp.o
+[68/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/turbulence/test_sst.cpp.o
+[69/70] Building CXX object CMakeFiles/kutta-tests.dir/tests/turbulence/test_fluent_sst.cpp.o
+[70/70] Linking CXX executable kutta-tests
+build_nofmad_exit=0

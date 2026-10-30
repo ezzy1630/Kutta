@@ -1,0 +1,81 @@
+# cell 1 (execution_count=1)
+!nvidia-smi; nvcc --version; ls -d /usr/local/cuda*; cmake --version; nproc; free -g; df -h /content; lsb_release -a; gcc --version | head -1
+
+# cell 2 (execution_count=2)
+!apt-get update -qq > /tmp/apt.log 2>&1; apt-get install -y -qq ninja-build libhdf5-dev zlib1g-dev >> /tmp/apt.log 2>&1; echo apt=$?; dpkg -l ninja-build libhdf5-dev zlib1g-dev | tail -3; rm -rf /content/Kutta; git clone -q https://github.com/ezzy1630/Kutta /content/Kutta && cd /content/Kutta && git checkout -q a0c5caa6079cdd7ccd299ac093d9c9b18373c989 && git log -1 --format='%H %s' && cmake -S . -B build -G Ninja -DKUTTA_ENABLE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75 -DKUTTA_REQUIRE_HDF5=ON 2>&1 | tail -25
+
+# cell 3 (execution_count=3)
+!mkdir -p /content/logs; cd /content/Kutta && (cmake -S . -B build -G Ninja -DKUTTA_ENABLE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75 -DKUTTA_REQUIRE_HDF5=ON > /content/logs/configure.log 2>&1; /usr/bin/time -v cmake --build build -j 2 > /content/logs/build.log 2>&1; echo build_exit=$? >> /content/logs/build.log); tail -5 /content/logs/build.log; grep -E 'Elapsed|Maximum resident' /content/logs/build.log; ls -la build | grep -E 'kutta|bench'
+
+# cell 4 (execution_count=4)
+!cd /content/Kutta && (date -u; s=$(date +%s); cmake --build build -j 2 > /content/logs/build.log 2>&1; echo build_exit=$? build_seconds=$(( $(date +%s) - s )) >> /content/logs/build.log); tail -4 /content/logs/build.log; ls -la build | grep -E 'kutta|bench'
+
+# cell 5 (execution_count=5)
+!cd /content/Kutta/validation/fluent_examples && awk -F'|' '/[.](h5|msh|cas) /{gsub(/ /,""); print $4"  "$2}' SOURCE.md > /content/fluent.sha256 && wc -l /content/fluent.sha256 && while read s p; do curl -sSfL -o "$p" "https://github.com/ansys/example-data/raw/main/pyfluent/$p" || echo FAIL $p; done < /content/fluent.sha256; sha256sum -c /content/fluent.sha256 2>&1 | tee /content/logs/fluent_sha256.log
+
+# cell 6 (execution_count=6)
+!cd /content/Kutta && date -u && s=$(date +%s); ./build/kutta-tests --test-suite-exclude=slow > /content/logs/tests_fast.log 2>&1; echo tests_exit=$? seconds=$(( $(date +%s) - s )) | tee -a /content/logs/tests_fast.log; tail -15 /content/logs/tests_fast.log
+
+# cell 7 (execution_count=7)
+st.log /content/logs/tests_fast_without_fixtures.log; cd /content/Kutta && date -u && s=$(date +%s); ./build/kutta-tests --test-suite-exclude=slow > /content/logs/tests_fast.log 2>&1; echo tests_exit=$? seconds=$(( $(date +%s) - s )) | tee -a /content/logs/tests_fast.log; grep -E '^TEST CASE|ERROR|CHECK|REQUIRE|values|doctest' /content/logs/tests_fast.log | head -80
+
+# cell 8 (execution_count=8)
+!mv /content/logs/tests_fast.log /content/logs/tests_fast_without_fixtures.log; cd /content/Kutta && date -u && s=$(date +%s); ./build/kutta-tests --test-suite-exclude=slow > /content/logs/tests_fast.log 2>&1; echo tests_exit=$? seconds=$(( $(date +%s) - s )) | tee -a /content/logs/tests_fast.log; grep -E '^TEST CASE|ERROR|CHECK|REQUIRE|values|doctest' /content/logs/tests_fast.log | head -80
+
+# cell 9 (execution_count=9)
+!wc -c /content/logs/*.log; cat /content/logs/tests_fast.log
+
+# cell 10 (execution_count=10)
+!cd /content && head -c 300000 /dev/urandom > /tmp/pad.bin && tar czf /tmp/bundle.tgz logs -C /tmp pad.bin && sha256sum /tmp/bundle.tgz && echo BUNDLE_BEGIN && base64 -w 0 /tmp/bundle.tgz && echo && echo BUNDLE_END
+
+# cell 11 (execution_count=11)
+!cd /content/Kutta && (cmake -S . -B build-nofmad -G Ninja -DKUTTA_ENABLE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75 -DKUTTA_REQUIRE_HDF5=ON -DCMAKE_CUDA_FLAGS=--fmad=false && cmake --build build-nofmad -j 2 --target kutta-tests) > /content/logs/build_nofmad.log 2>&1; echo build_nofmad_exit=$? | tee -a /content/logs/build_nofmad.log; ./build-nofmad/kutta-tests -tc='FV momentum face interpolation*,FV SIMPLEC preserves rest*,CPU and Metal solves*' > /content/logs/tests_parity_nofmad.log 2>&1; echo exit=$? | tee -a /content/logs/tests_parity_nofmad.log; tail -5 /content/logs/tests_parity_nofmad.log
+
+# cell 12 (execution_count=12)
+!cd /content/Kutta && nvidia-smi --query-gpu=name,driver_version,clocks.sm,clocks.max.sm,clocks.mem,temperature.gpu,power.draw --format=csv > /content/logs/gpu_state_before_bench.log; cat /proc/cpuinfo | grep -m1 'model name' >> /content/logs/gpu_state_before_bench.log; for b in bench_bandwidth bench_linalg bench_fv; do date -u; s=$(date +%s); ./build/$b > /content/logs/$b.log 2>&1; echo ${b}_exit=$? seconds=$(( $(date +%s) - s )) | tee -a /content/logs/$b.log; done; cat /content/logs/gpu_state_before_bench.log /content/logs/bench_bandwidth.log
+
+# cell 13 (execution_count=13)
+!cd /content/Kutta && E=validation/fluent_examples/mixing_elbow && for be in cuda cpu; do date -u; s=$(date +%s); ./build/kutta solve $E/mixing_elbow.cas.h5 --approximate wfgc --backend $be --iterations 600 --out /content/results/mixing_elbow_$be > /content/logs/solve_mixing_elbow_$be.log 2>&1; echo solve_${be}_exit=$? seconds=$(( $(date +%s) - s )) | tee -a /content/logs/solve_mixing_elbow_$be.log; ls -la /content/results/mixing_elbow_$be; done; head -c 1500 /content/logs/solve_mixing_elbow_cuda.log
+
+# cell 14 (execution_count=14)
+ && date -u && s=$(date +%s); ./build-nofmad/kutta-tests --test-suite-exclude=slow > /content/logs/tests_fast_nofmad.log 2>&1; echo tests_nofmad_exit=$? seconds=$(( $(date +%s) - s )) | tee -a /content/logs/tests_fast_nofmad.log; tail -4 /content/logs/tests_fast_nofmad.log
+
+# cell 15 (execution_count=15)
+!cd /content && mkdir -p results && cp -r Kutta/build/fv-cavity-* results/ 2>/dev/null; tar czf /tmp/bundle1.tgz --exclude='*.vtu' logs results && sha256sum /tmp/bundle1.tgz && echo BUNDLE_BEGIN && base64 -w 0 /tmp/bundle1.tgz && echo && echo BUNDLE_END
+
+# cell 16 (execution_count=16)
+!cd /content/Kutta && for part in 'v1_v2_couette:*V1*,*V2*,*Couette*' 'v4:*V4*' 'v3_re100_400:FV V3 Re100*'; do name=${part%%:*}; filt=${part#*:}; date -u; s=$(date +%s); ./build/kutta-tests -ts=slow -tc="$filt" --duration=true > /content/logs/tests_slow_$name.log 2>&1; echo slow_${name}_exit=$? seconds=$(( $(date +%s) - s )) | tee -a /content/logs/tests_slow_$name.log; grep -E '^TEST CASE|ERROR|^\[doctest\] (test cases|assertions)' /content/logs/tests_slow_$name.log | tail -12; done
+
+# cell 17 (execution_count=17)
+!cd /content && tar czf /tmp/bundle2.tgz --exclude='*.vtu' logs results && sha256sum /tmp/bundle2.tgz && echo BUNDLE_BEGIN && base64 -w 0 /tmp/bundle2.tgz && echo && echo BUNDLE_END
+
+# cell 18 (execution_count=18)
+!cd /content/Kutta && date -u && s=$(date +%s); ./build/kutta-tests -ts=slow -tc='FV V3 Re1000*' --duration=true > /content/logs/tests_slow_v3_re1000.log 2>&1; echo slow_v3_re1000_exit=$? seconds=$(( $(date +%s) - s )) | tee -a /content/logs/tests_slow_v3_re1000.log; grep -E '^TEST CASE|ERROR|^\[doctest\] (test cases|assertions)' /content/logs/tests_slow_v3_re1000.log | tail -12; cd /content && tar czf /tmp/bundle3.tgz --exclude='*.vtu' logs results && sha256sum /tmp/bundle3.tgz && echo BUNDLE_BEGIN && base64 -w 0 /tmp/bundle3.tgz && echo && echo BUNDLE_END
+
+# cell 19 (execution_count=19)
+ !cd /content/Kutta && cmake --build build-nofmad -j 2 --target bench_bandwidth bench_linalg bench_fv > /content/logs/build_nofmad_bench.log 2>&1; echo build_exit=$? | tee -a /content/logs/build_nofmad_bench.log; ./build-nofmad/bench_bandwidth > /content/logs/bench_bandwidth_nofmad.log 2>&1; ./build-nofmad/bench_linalg --backend cuda > /content/logs/bench_linalg_nofmad_cuda.log 2>&1; ./build-nofmad/bench_fv --backend cuda > /content/logs/bench_fv_nofmad_cuda.log 2>&1; ./build/bench_fv --backend cuda > /content/logs/bench_fv_fmad_cuda_rerun.log 2>&1; grep -h FV_PERFORMANCE /content/logs/bench_fv_*cuda*.log | cut -c1-200
+
+# cell 20 (execution_count=20)
+!cd /content && tar czf /tmp/bundle4.tgz --exclude='*.vtu' logs results && sha256sum /tmp/bundle4.tgz && echo BUNDLE_BEGIN && base64 -w 0 /tmp/bundle4.tgz && echo && echo BUNDLE_END
+
+# cell 21 (execution_count=None)
+
+
+# Commands run from the Colab terminal (not notebook cells)
+
+# 1. After cell 5 failed to write into missing directories: stop the first test run, fetch fixtures with --create-dirs.
+pkill -f kutta-tests; cd /content/Kutta/validation/fluent_examples && while read s p; do curl -sSfL --create-dirs -o "$p" "https://github.com/ansys/example-data/raw/main/pyfluent/$p" || echo FAIL $p; done < /content/fluent.sha256; sha256sum -c /content/fluent.sha256 2>&1 | tee /content/logs/fluent_sha256.log
+# (The first test run had already finished; its log was kept as tests_fast_without_fixtures.log.)
+
+# Cells 7 and 14 lost their leading characters while typing and raised a SyntaxError, so nothing ran (cell 8 reran cell 7).
+# 2. Cell 14's command was run here instead, while the slow tier was starting.
+cd /content/Kutta && date -u && s=$(date +%s); ./build-nofmad/kutta-tests --test-suite-exclude=slow > /content/logs/tests_fast_nofmad.log 2>&1; echo tests_nofmad_exit=$? seconds=$(( $(date +%s) - s )) ran_from=terminal_concurrent_with_slow_v1 | tee -a /content/logs/tests_fast_nofmad.log
+
+# 3. Contraction probe (output in fma_probe.log).
+(echo '== g++ -O3 a*b+c'; printf 'float f(float a,float b,float c){return a*b+c;}\n' | g++ -O3 -std=c++20 -S -x c++ - -o - | grep -E 'fma|mulss|addss'; g++ --version | head -1; echo '== nvcc default a*b+c (sm_75 SASS)'; printf '__global__ void k(float*o,const float*a,const float*b,const float*c){o[0]=a[0]*b[0]+c[0];}\n' > /tmp/p.cu && nvcc -arch=sm_75 -cubin -o /tmp/p.cubin /tmp/p.cu && cuobjdump -sass /tmp/p.cubin | grep -oE 'FFMA|FMUL|FADD' | sort | uniq -c; echo '== nvcc --fmad=false'; nvcc -arch=sm_75 --fmad=false -cubin -o /tmp/p2.cubin /tmp/p.cu && cuobjdump -sass /tmp/p2.cubin | grep -oE 'FFMA|FMUL|FADD' | sort | uniq -c; echo '== CMakeCache flags'; grep -E '^CMAKE_(CXX|CUDA)_FLAGS(_RELEASE)?:|^CMAKE_BUILD_TYPE:|^CMAKE_CUDA_ARCHITECTURES:' /content/Kutta/build/CMakeCache.txt /content/Kutta/build-nofmad/CMakeCache.txt) > /content/logs/fma_probe.log 2>&1
+
+# 4. The 'FV V3 Re100*' filter in cell 16 also matched 'FV V3 Re1000 ...', so that cell ran the whole V3 study.
+#    The duplicate Re1000 run in cell 18 was killed 4 s after it started (tests_slow_v3_re1000.log shows SIGTERM).
+while [ ! -f /content/logs/tests_slow_v3_re1000.log ]; do sleep 3; done; sleep 2; pkill -f 'tc=FV V3 Re1000'
+
+# Cell 10 tested the transport (random padding). Cells 15, 17, 18 (after the kill) and 20 print base64 tarballs of /content/logs and /content/results; logs/ here is cell 20's tarball.

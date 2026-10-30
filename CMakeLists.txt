@@ -96,6 +96,10 @@ if(KUTTA_ENABLE_CUDA)
   set_target_properties(kutta PROPERTIES CUDA_STANDARD 20 CUDA_STANDARD_REQUIRED ON)
   file(GLOB KUTTA_CUDA_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/kutta/runtime/cuda/*.cu)
   target_sources(kutta PRIVATE ${KUTTA_CUDA_SOURCES} ${KUTTA_GEN_DIR}/kernels_cuda.cu)
+  # nvcc fuses a*b+c into FMA by default; the CPU oracle on x86 (GCC, MSVC)
+  # does not, so CPU==CUDA bitwise parity fails. Measured on a T4: FV and AMG
+  # throughput unchanged (src/kutta/runtime/cuda/GPU-RUN-2026-10-30.md).
+  target_compile_options(kutta PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--fmad=false>)
   target_link_libraries(kutta PUBLIC CUDA::cudart_static)
   target_compile_definitions(kutta PUBLIC KUTTA_HAS_CUDA=1)
 endif()

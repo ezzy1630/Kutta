@@ -1,0 +1,102 @@
+FV source=a0c5caa6079cdd7ccd299ac093d9c9b18373c989
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=amg_coarse_solve calls_per_outer=25 us_per_call=6.50052 logical_bytes_per_cell_per_outer=0.0094 logical_GB_s=0.0578415265
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=amg_galerkin calls_per_outer=6 us_per_call=3276.93367 logical_bytes_per_cell_per_outer=71.213652 logical_GB_s=3.6219659
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=amg_m_matrix_diagonal calls_per_outer=6 us_per_call=6572.0615 logical_bytes_per_cell_per_outer=51.03562 logical_GB_s=1.29425701
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=amg_prolong_guarded calls_per_outer=150 us_per_call=145.807493 logical_bytes_per_cell_per_outer=242.8605 logical_GB_s=11.1041618
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=amg_restrict_guarded calls_per_outer=150 us_per_call=261.127207 logical_bytes_per_cell_per_outer=257.1477 logical_GB_s=6.5650685
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=amg_smooth calls_per_outer=1500 us_per_call=5801.81877 logical_bytes_per_cell_per_outer=21556 logical_GB_s=2.47692443
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=csr_residual calls_per_outer=12 us_per_call=42502.9889 logical_bytes_per_cell_per_outer=858.240048 logical_GB_s=1.68270528
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=csr_residual_guarded calls_per_outer=150 us_per_call=6151.80301 logical_bytes_per_cell_per_outer=2041.314 logical_GB_s=2.21215796
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=csr_spmv_guarded calls_per_outer=168 us_per_call=11426.0041 logical_bytes_per_cell_per_outer=11343.3627 logical_GB_s=5.90932889
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_backflow_pressure calls_per_outer=2 us_per_call=98.688 logical_bytes_per_cell_per_outer=73.44 logical_GB_s=372.081712
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_boundary_momentum calls_per_outer=3 us_per_call=7838.63167 logical_bytes_per_cell_per_outer=329.400012 logical_GB_s=14.0075473
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_continuity calls_per_outer=1 us_per_call=7618.266 logical_bytes_per_cell_per_outer=68.120004 logical_GB_s=8.94166783
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_correct_flux calls_per_outer=1 us_per_call=5013.495 logical_bytes_per_cell_per_outer=52.24 logical_GB_s=10.4198768
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_correct_velocity calls_per_outer=1 us_per_call=5502.857 logical_bytes_per_cell_per_outer=44 logical_GB_s=7.99584652
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_gradient calls_per_outer=2 us_per_call=15075.759 logical_bytes_per_cell_per_outer=280.480008 logical_GB_s=9.30235115
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_limiter calls_per_outer=6 us_per_call=57375.2068 logical_bytes_per_cell_per_outer=721.440024 logical_GB_s=2.09567879
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_momentum_diagonal calls_per_outer=1 us_per_call=2788.334 logical_bytes_per_cell_per_outer=32 logical_GB_s=11.476387
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_momentum_faces calls_per_outer=1 us_per_call=78891.6 logical_bytes_per_cell_per_outer=185.32 logical_GB_s=2.34904603
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_momentum_source calls_per_outer=1 us_per_call=18022.203 logical_bytes_per_cell_per_outer=128.480004 logical_GB_s=7.1289844
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_pressure_assemble calls_per_outer=1 us_per_call=54121.407 logical_bytes_per_cell_per_outer=164.000008 logical_GB_s=3.0302244
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_pressure_boundary calls_per_outer=3 us_per_call=1158.51733 logical_bytes_per_cell_per_outer=195.6 logical_GB_s=56.27883
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_pressure_faces calls_per_outer=1 us_per_call=44988.306 logical_bytes_per_cell_per_outer=136.48 logical_GB_s=3.03367724
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_rhie_chow calls_per_outer=1 us_per_call=40626.374 logical_bytes_per_cell_per_outer=157.44 logical_GB_s=3.87531508
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_scale_gradient calls_per_outer=3 us_per_call=2447.987 logical_bytes_per_cell_per_outer=84 logical_GB_s=11.4379692
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_transport_assemble calls_per_outer=3 us_per_call=123726.178 logical_bytes_per_cell_per_outer=662.160024 logical_GB_s=1.78393944
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_transport_faces calls_per_outer=3 us_per_call=24114.258 logical_bytes_per_cell_per_outer=590.52 logical_GB_s=8.16280559
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_vector_gradient calls_per_outer=2 us_per_call=36110.1035 logical_bytes_per_cell_per_outer=345.440008 logical_GB_s=4.78314896
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=fv_velocity_boundary calls_per_outer=2 us_per_call=1008.229 logical_bytes_per_cell_per_outer=149.04 logical_GB_s=73.91178
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=krylov_diagonal calls_per_outer=10 us_per_call=6918.2667 logical_bytes_per_cell_per_outer=181.249388 logical_GB_s=2.61986703
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=krylov_multiply_guarded calls_per_outer=144 us_per_call=670.065347 logical_bytes_per_cell_per_outer=1728.00173 logical_GB_s=17.908719
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=reduce.dot calls_per_outer=20 us_per_call=1344.6183 logical_bytes_per_cell_per_outer=160 logical_GB_s=5.94964385
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=reduce.max calls_per_outer=10 us_per_call=827.9561 logical_bytes_per_cell_per_outer=16.571468 logical_GB_s=2.00149114
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=reduce_into.dot calls_per_outer=361 us_per_call=1341.06445 logical_bytes_per_cell_per_outer=2888 logical_GB_s=5.96541055
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=reduce_into.dot2 calls_per_outer=72 us_per_call=1417.3831 logical_bytes_per_cell_per_outer=1152 logical_GB_s=11.2884089
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=runtime.copy calls_per_outer=12 us_per_call=762.098583 logical_bytes_per_cell_per_outer=96 logical_GB_s=10.4973296
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=runtime.fill calls_per_outer=185 us_per_call=576.38833 logical_bytes_per_cell_per_outer=154.2867 logical_GB_s=1.44691022
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_bicg_alpha calls_per_outer=72 us_per_call=0.664319444 logical_bytes_per_cell_per_outer=0.007776 logical_GB_s=0.16257239
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_bicg_beta calls_per_outer=72 us_per_call=0.725166667 logical_bytes_per_cell_per_outer=0.007776 logical_GB_s=0.14893128
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_bicg_difference calls_per_outer=72 us_per_call=735.214972 logical_bytes_per_cell_per_outer=864.007776 logical_GB_s=16.3219037
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_bicg_direction calls_per_outer=72 us_per_call=1141.95032 logical_bytes_per_cell_per_outer=864.007776 logical_GB_s=10.5084326
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_bicg_omega calls_per_outer=72 us_per_call=0.706013889 logical_bytes_per_cell_per_outer=0.007776 logical_GB_s=0.152971495
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_bicg_s calls_per_outer=72 us_per_call=0.357819444 logical_bytes_per_cell_per_outer=0.007776 logical_GB_s=0.301828203
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_bicg_step calls_per_outer=72 us_per_call=1722.90846 logical_bytes_per_cell_per_outer=1728.00778 logical_GB_s=13.929996
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_check calls_per_outer=96 us_per_call=0.464604167 logical_bytes_per_cell_per_outer=0.010368 logical_GB_s=0.232455944
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_direction calls_per_outer=24 us_per_call=913.409375 logical_bytes_per_cell_per_outer=192.002592 logical_GB_s=8.75851313
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_pcg_alpha calls_per_outer=24 us_per_call=0.945625 logical_bytes_per_cell_per_outer=0.002592 logical_GB_s=0.114210178
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_pcg_beta calls_per_outer=24 us_per_call=1.35220833 logical_bytes_per_cell_per_outer=0.002592 logical_GB_s=0.0798693495
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_reset calls_per_outer=8 us_per_call=0.533125 logical_bytes_per_cell_per_outer=0.000864 logical_GB_s=0.202579132
+FV_KERNEL backend=cpu device="CPU reference (serial)" cells=1000000 kernel=solver_step calls_per_outer=24 us_per_call=1038.79687 logical_bytes_per_cell_per_outer=384.002592 logical_GB_s=15.4025377
+FV_PERFORMANCE backend=cpu device="CPU reference (serial)" source=a0c5caa6079cdd7ccd299ac093d9c9b18373c989 cells=1000000 measured_outer_iterations=3 outer_iterations_per_s=0.0700376642 fv_logical_bytes_per_cell=4399.60009 all_logical_bytes_per_cell=51228.969 fv_ideal_ms_at_240GB_s=18.3316671 last_pressure_iterations=16 last_pressure_converged=1
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=amg_coarse_solve calls_per_outer=25 us_per_call=77.71052 logical_bytes_per_cell_per_outer=0.0094 logical_GB_s=0.00483846975
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=amg_galerkin calls_per_outer=6 us_per_call=67.4146667 logical_bytes_per_cell_per_outer=71.213652 logical_GB_s=176.058751
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=amg_m_matrix_diagonal calls_per_outer=6 us_per_call=99.4113333 logical_bytes_per_cell_per_outer=51.03562 logical_GB_s=85.5630478
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=amg_prolong_guarded calls_per_outer=150 us_per_call=13.9305 logical_bytes_per_cell_per_outer=242.8605 logical_GB_s=116.22483
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=amg_restrict_guarded calls_per_outer=150 us_per_call=13.6218467 logical_bytes_per_cell_per_outer=257.1477 logical_GB_s=125.850631
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=amg_smooth calls_per_outer=1500 us_per_call=50.2515153 logical_bytes_per_cell_per_outer=21556 logical_GB_s=285.974792
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=csr_residual calls_per_outer=12 us_per_call=297.850917 logical_bytes_per_cell_per_outer=858.240048 logical_GB_s=240.120141
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=csr_residual_guarded calls_per_outer=150 us_per_call=48.4423933 logical_bytes_per_cell_per_outer=2041.314 logical_GB_s=280.926665
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=csr_spmv_guarded calls_per_outer=168 us_per_call=236.648696 logical_bytes_per_cell_per_outer=11343.3627 logical_GB_s=285.317507
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_backflow_pressure calls_per_outer=2 us_per_call=10.4235 logical_bytes_per_cell_per_outer=73.44 logical_GB_s=3522.80904
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_boundary_momentum calls_per_outer=3 us_per_call=173.387 logical_bytes_per_cell_per_outer=329.400012 logical_GB_s=633.265493
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_continuity calls_per_outer=1 us_per_call=279.842 logical_bytes_per_cell_per_outer=68.120004 logical_GB_s=243.423089
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_correct_flux calls_per_outer=1 us_per_call=259.179 logical_bytes_per_cell_per_outer=52.24 logical_GB_s=201.55954
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_correct_velocity calls_per_outer=1 us_per_call=236.579 logical_bytes_per_cell_per_outer=44 logical_GB_s=185.984386
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_gradient calls_per_outer=2 us_per_call=600.1645 logical_bytes_per_cell_per_outer=280.480008 logical_GB_s=233.669276
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_limiter calls_per_outer=6 us_per_call=503.881 logical_bytes_per_cell_per_outer=721.440024 logical_GB_s=238.627779
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_momentum_diagonal calls_per_outer=1 us_per_call=127.15 logical_bytes_per_cell_per_outer=32 logical_GB_s=251.671254
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_momentum_faces calls_per_outer=1 us_per_call=757.297 logical_bytes_per_cell_per_outer=185.32 logical_GB_s=244.712444
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_momentum_source calls_per_outer=1 us_per_call=545.155 logical_bytes_per_cell_per_outer=128.480004 logical_GB_s=235.676099
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_pressure_assemble calls_per_outer=1 us_per_call=2005.436 logical_bytes_per_cell_per_outer=164.000008 logical_GB_s=81.7777321
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_pressure_boundary calls_per_outer=3 us_per_call=64.052 logical_bytes_per_cell_per_outer=195.6 logical_GB_s=1017.92294
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_pressure_faces calls_per_outer=1 us_per_call=576.741 logical_bytes_per_cell_per_outer=136.48 logical_GB_s=236.640017
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_rhie_chow calls_per_outer=1 us_per_call=661.71 logical_bytes_per_cell_per_outer=157.44 logical_GB_s=237.929002
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_scale_gradient calls_per_outer=3 us_per_call=116.521 logical_bytes_per_cell_per_outer=84 logical_GB_s=240.300032
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_transport_assemble calls_per_outer=3 us_per_call=4224.52767 logical_bytes_per_cell_per_outer=662.160024 logical_GB_s=52.247263
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_transport_faces calls_per_outer=3 us_per_call=786.129667 logical_bytes_per_cell_per_outer=590.52 logical_GB_s=250.391263
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_vector_gradient calls_per_outer=2 us_per_call=888.904 logical_bytes_per_cell_per_outer=345.440008 logical_GB_s=194.306701
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=fv_velocity_boundary calls_per_outer=2 us_per_call=40.7135 logical_bytes_per_cell_per_outer=149.04 logical_GB_s=1830.35111
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=krylov_diagonal calls_per_outer=10 us_per_call=78.8283 logical_bytes_per_cell_per_outer=181.249388 logical_GB_s=229.929338
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=krylov_multiply_guarded calls_per_outer=144 us_per_call=43.1221111 logical_bytes_per_cell_per_outer=1728.00173 logical_GB_s=278.279789
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=reduce.dot calls_per_outer=20 us_per_call=113.68025 logical_bytes_per_cell_per_outer=160 logical_GB_s=70.372822
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=reduce.max calls_per_outer=10 us_per_call=59.4093 logical_bytes_per_cell_per_outer=16.571468 logical_GB_s=27.8937271
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=reduce_into.dot calls_per_outer=361 us_per_call=105.695238 logical_bytes_per_cell_per_outer=2888 logical_GB_s=75.6893133
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=reduce_into.dot2 calls_per_outer=72 us_per_call=104.681444 logical_bytes_per_cell_per_outer=1152 logical_GB_s=152.844662
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=runtime.copy calls_per_outer=12 us_per_call=39.16975 logical_bytes_per_cell_per_outer=96 logical_GB_s=204.239241
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=runtime.fill calls_per_outer=185 us_per_call=9.93447568 logical_bytes_per_cell_per_outer=154.2867 logical_GB_s=83.9482817
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_bicg_alpha calls_per_outer=72 us_per_call=8.76661111 logical_bytes_per_cell_per_outer=0.007776 logical_GB_s=0.0123194697
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_bicg_beta calls_per_outer=72 us_per_call=9.53156944 logical_bytes_per_cell_per_outer=0.007776 logical_GB_s=0.0113307678
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_bicg_difference calls_per_outer=72 us_per_call=39.6034444 logical_bytes_per_cell_per_outer=864.007776 logical_GB_s=303.006675
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_bicg_direction calls_per_outer=72 us_per_call=52.0646528 logical_bytes_per_cell_per_outer=864.007776 logical_GB_s=230.484741
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_bicg_omega calls_per_outer=72 us_per_call=8.74231944 logical_bytes_per_cell_per_outer=0.007776 logical_GB_s=0.0123537009
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_bicg_s calls_per_outer=72 us_per_call=8.16131944 logical_bytes_per_cell_per_outer=0.007776 logical_GB_s=0.0132331544
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_bicg_step calls_per_outer=72 us_per_call=88.6694167 logical_bytes_per_cell_per_outer=1728.00778 logical_GB_s=270.669515
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_check calls_per_outer=96 us_per_call=8.469875 logical_bytes_per_cell_per_outer=0.010368 logical_GB_s=0.0127510737
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_direction calls_per_outer=24 us_per_call=33.917625 logical_bytes_per_cell_per_outer=192.002592 logical_GB_s=235.868756
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_pcg_alpha calls_per_outer=24 us_per_call=8.65929167 logical_bytes_per_cell_per_outer=0.002592 logical_GB_s=0.0124721518
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_pcg_beta calls_per_outer=24 us_per_call=8.70775 logical_bytes_per_cell_per_outer=0.002592 logical_GB_s=0.0124027447
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_reset calls_per_outer=8 us_per_call=8.082625 logical_bytes_per_cell_per_outer=0.000864 logical_GB_s=0.0133619956
+FV_KERNEL backend=cuda device="Tesla T4" cells=1000000 kernel=solver_step calls_per_outer=24 us_per_call=69.1985417 logical_bytes_per_cell_per_outer=384.002592 logical_GB_s=231.220306
+FV_PERFORMANCE backend=cuda device="Tesla T4" source=a0c5caa6079cdd7ccd299ac093d9c9b18373c989 cells=1000000 measured_outer_iterations=3 outer_iterations_per_s=4.63950558 fv_logical_bytes_per_cell=4399.60009 all_logical_bytes_per_cell=51228.969 fv_ideal_ms_at_240GB_s=18.3316671 last_pressure_iterations=16 last_pressure_converged=1
+bench_fv_exit=0 seconds=183

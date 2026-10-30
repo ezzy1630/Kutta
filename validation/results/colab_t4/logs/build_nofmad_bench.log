@@ -1,0 +1,8 @@
+[0/2] Re-checking globbed directories...
+[1/6] Building CXX object CMakeFiles/bench_bandwidth.dir/bench/bench_bandwidth.cpp.o
+[2/6] Linking CXX executable bench_bandwidth
+[3/6] Building CXX object CMakeFiles/bench_fv.dir/bench/bench_fv.cpp.o
+[4/6] Linking CXX executable bench_fv
+[5/6] Building CXX object CMakeFiles/bench_linalg.dir/bench/bench_linalg.cpp.o
+[6/6] Linking CXX executable bench_linalg
+build_exit=0
