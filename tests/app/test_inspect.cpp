@@ -7,10 +7,14 @@
 
 namespace {
 std::string shell_quote(const std::filesystem::path &path) {
+#ifdef _WIN32
+  return '"' + std::filesystem::path(path).make_preferred().string() + '"';  // paths cannot contain '"'
+#else
   std::string result = "'";
   for (char ch : path.string())
     result += ch == '\'' ? "'\\''" : std::string(1, ch);
   return result + "'";
+#endif
 }
 struct InspectFixture {
   std::filesystem::path path = std::filesystem::temp_directory_path() /
@@ -23,6 +27,9 @@ struct InspectFixture {
   }
   std::string inspect(const std::filesystem::path &input) {
     auto command = shell_quote(KUTTA_CLI_PATH) + " inspect " + shell_quote(input) + " > " + shell_quote(output);
+#ifdef _WIN32
+    command = '"' + command + '"';  // cmd /c strips one outer pair of quotes
+#endif
     REQUIRE(std::system(command.c_str()) == 0);
     std::ifstream f(output);
     std::ostringstream text;
