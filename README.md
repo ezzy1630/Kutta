@@ -25,7 +25,7 @@ cmake -S . -B build -G Ninja && cmake --build build && ./build/kutta-tests
 For quick local checks (and CI), exclude the `slow` doctest suite:
 
 ```sh
-./build/kutta-tests --test-suite-exclude=slow
+./build/kutta-tests --test-suite-exclude=slow   # or: ctest --test-dir build -LE slow
 ```
 
 The build command above runs **all** tests, including the V1/V2 refinement

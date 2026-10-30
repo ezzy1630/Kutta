@@ -14,6 +14,32 @@ The V1, V4 and performance tables retained below originally used source
 `5e527dc856280e6e69f436f0fc7438b5340a903d`; they are historical measurements,
 not fresh performance claims. Current correctness runs are listed at the end.
 
+## Update after review fixes (2026-10-30)
+
+The automatic pseudo-time length scale now uses the domain volume, as Fluent's
+conservative method does, instead of the mean cell volume (about N^(1/3) smaller).
+Tests and `bench_fv` now use Fluent's default time scale factor 1; the former
+factors 3 and 5 compensated for that error. Closed domains pin the cell containing
+`reference_point` instead of internal cell 0. Tables below that report iteration
+counts or wall times predate this change; their accuracy values are unchanged
+to the printed digits except where listed here.
+
+Fresh slow tier (same machine): 6/7 cases pass in 1,261 s (was 2,891 s), and in 1,012 s after rebasing onto the device-resident linear solvers (same iteration counts). The
+only failures are the six retained tet wall-force ≥1.8 assertions; the measured
+orders are the same as below.
+
+| Case | Outer iterations before | after |
+| --- | ---: | ---: |
+| V3 Re=1000, 65² / 129² / 257² (CPU) | 1,400 / 1,900 / 3,300 | 700 / 600 / 1,000 |
+| V3 Re=100 / Re=400, 129² | 400 / 800 | 1,000 / 500 |
+| V4 Fluent mesh Re=100 / 400 / 1000 | 300 / 600 / 900 | 600 / 300 / 500 |
+| V2 tet n=16 | 500 | 440 |
+
+On the 3,550-cell Fluent cavity mesh (Metal, relaxation 1) the outer iterations
+to the driver's steady criterion for time scale factors 0.1 / 0.3 / 1 / 5 were
+700 / 300 / 600 / 2,200 at Re=100 and 2,700 / 1,000 / 500 / 700 at Re=1000: the
+best factor depends on the flow, and Fluent's default is a reasonable middle.
+
 ## Mesh, gradients and flow checks
 
 CPU and Metal pass analytic wall-distance tests on hex/tet boxes translated by

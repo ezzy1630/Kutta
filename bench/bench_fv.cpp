@@ -71,6 +71,17 @@ class MeasuredDevice final:public kutta::Device {
     measured(kutta::kernel_name(id),bytes,[&]{native_->launch(id,n,{translated.data(),args.size()});});
   }
  protected:
+  void reduce_into(const kutta::Buffer<float>& x,const kutta::Buffer<float>& y,
+      const kutta::Buffer<float>& u,const kutta::Buffer<float>& v,std::size_t n,
+      kutta::Buffer<float>& dst,std::size_t offset,Reduction mode) override {
+    check_reduction(x,y,u,v,n,dst,offset,mode);
+    const auto& a=storage(*x.handle()).native;const auto& b=storage(*y.handle()).native;
+    auto& out=storage(*dst.handle()).native;
+    if(mode==Reduction::Sum) measured("reduce_into.sum",4*n,[&]{native_->sum_into(a,n,out,offset);});
+    else if(mode==Reduction::Dot) measured("reduce_into.dot",8*n,[&]{native_->dot_into(a,b,n,out,offset);});
+    else measured("reduce_into.dot2",16*n,[&]{native_->dot2_into(a,b,storage(*u.handle()).native,
+      storage(*v.handle()).native,n,out,offset);});
+  }
   std::unique_ptr<kutta::BufferHandle> alloc_bytes(std::size_t bytes) override {
     KUTTA_REQUIRE(bytes%4==0,"FV profiler requires four-byte elements");
     return std::make_unique<Storage>(native_->alloc<float>(bytes/4));
