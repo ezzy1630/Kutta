@@ -261,13 +261,16 @@ private slots:
         QVERIFY(s);
         s->setApproximationApproved("wfgc", true);
         QCOMPARE(s->settings()->setValue("boundary/cold-inlet/velocity-magnitude", 1.2), QString());
+        // A file where the case's run folder belongs blocks the run on every
+        // OS; a read-only directory does not on Windows.
         const QString caseDir = s->history().caseDir();
-        QVERIFY(QDir().mkpath(caseDir));
-        const auto perms = QFile::permissions(caseDir);
-        QVERIFY(QFile::setPermissions(caseDir, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+        QVERIFY(QDir(caseDir).removeRecursively());
+        QFile blocker(caseDir);
+        QVERIFY(blocker.open(QIODevice::WriteOnly));
+        blocker.close();
         QSignalSpy refused(s.get(), &Session::runRefused);
         const QString id = s->run();
-        QFile::setPermissions(caseDir, perms);
+        QVERIFY(blocker.remove());
         QVERIFY(id.isEmpty());
         QCOMPARE(refused.count(), 1);
         QVERIFY(refused.first().first().toString().contains("Could not start the run"));
