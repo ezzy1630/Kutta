@@ -1,3 +1,4 @@
+#include "kutta/core/path.hpp"
 #include <doctest/doctest.h>
 
 #include "kutta/io/mesh_io.hpp"
@@ -65,7 +66,7 @@ TEST_CASE(
   CHECK(compute_geometry(q).cell_volume[0] == doctest::Approx(.4));
   CHECK(q.patches[1].kind == PatchKind::Symmetry);
   CHECK(q.patches[2].name == "back");
-  auto f = H5Fopen(path.string().c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+  auto f = H5Fopen(kutta::utf8_path(path).c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
   REQUIRE(f >= 0);
   REQUIRE(H5Ldelete(f, "/meshes/1/faces/nodes/1/nnodes", H5P_DEFAULT) >= 0);
   dataset(f, "/meshes/1/faces/nodes/1/nnodes", {99});
@@ -80,7 +81,7 @@ TEST_CASE("CFF cell type sections use ranges, with complete coverage and count c
   MeshTemp temp;
   auto path = temp.path("sections.msh.h5");
   synthetic(path, make_box_hex(2, 1, 1, {0, 0, 0}, {2, 1, 1}), false);
-  auto f = H5Fopen(path.string().c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+  auto f = H5Fopen(kutta::utf8_path(path).c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
   REQUIRE(f >= 0);
   const std::string base = "/meshes/1/cells/ctype";
   REQUIRE(H5Ldelete(f, (base + "/1").c_str(), H5P_DEFAULT) >= 0);
@@ -166,7 +167,7 @@ TEST_CASE("CFF legacy deflate partial chunks preserve numeric conversion and rej
   auto path = temp.path("partial.msh.h5");
   auto original = make_box_hex(2, 1, 1, {0, 0, 0}, {2, 1, 1});
   synthetic(path, original, false);
-  auto f = H5Fopen(path.string().c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+  auto f = H5Fopen(kutta::utf8_path(path).c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
   REQUIRE(f >= 0);
   const std::string coords = "/meshes/1/nodes/coords/1";
   REQUIRE(H5Ldelete(f, coords.c_str(), H5P_DEFAULT) >= 0);
@@ -254,6 +255,18 @@ TEST_CASE("CFF legacy deflate partial chunks preserve numeric conversion and rej
     for (std::size_t i = 0; i < mesh.points.size(); ++i)
       CHECK(norm(mesh.points[i] - original.points[i]) == 0);
   }
+}
+TEST_CASE("CFF reads a file whose name is not ASCII") {
+  // Windows passes HDF5 the UTF-8 bytes, not the ANSI code page conversion.
+  const std::filesystem::path source =
+      KUTTA_SOURCE_DIR "/validation/fluent_examples/simple_duct/simple-duct.msh.h5";
+  const auto dir = std::filesystem::temp_directory_path() / std::filesystem::path(u8"kutta-ü-网格");
+  std::filesystem::create_directories(dir);
+  const auto copy = dir / std::filesystem::path(u8"düct-网格.msh.h5");
+  std::filesystem::copy_file(source, copy, std::filesystem::copy_options::overwrite_existing);
+  const auto mesh = read_mesh(copy);
+  CHECK(mesh.n_cells == read_mesh(source).n_cells);
+  std::filesystem::remove_all(dir);
 }
 #else
 TEST_CASE("CFF disabled build explains missing HDF5") {

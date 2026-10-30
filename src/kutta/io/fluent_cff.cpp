@@ -1,3 +1,4 @@
+#include "kutta/core/path.hpp"
 #include "kutta/io/fluent_detail.hpp"
 #if KUTTA_HAS_HDF5
 #include <hdf5.h>
@@ -310,7 +311,7 @@ void sections(hid_t file, const std::string& base, bool datasets, F callback,
 }
 }  // namespace
 PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
-  H5 file(H5Fopen(path.string().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT), H5Fclose,
+  H5 file(H5Fopen(kutta::utf8_path(path).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT), H5Fclose,
           path.string());
   const std::string root = "/meshes/1";
   KUTTA_REQUIRE(exists(file, root), "CFF: file contains no /meshes/1 mesh");

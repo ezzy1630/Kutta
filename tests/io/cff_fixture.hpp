@@ -1,4 +1,5 @@
 #pragma once
+#include "kutta/core/path.hpp"
 #include <doctest/doctest.h>
 #include "kutta/io/mesh_io.hpp"
 #include "kutta/mesh/detail.hpp"
@@ -93,7 +94,7 @@ inline void topology(hid_t f, const std::string& base,
 inline void synthetic(const std::filesystem::path& path, const PolyMesh& m,
                bool variable, bool planar = false) {
   auto f =
-      H5Fcreate(path.string().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+      H5Fcreate(kutta::utf8_path(path).c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   REQUIRE(f >= 0);
   const std::string root = "/meshes/1";
   group(f, root);

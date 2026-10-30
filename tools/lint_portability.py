@@ -7,6 +7,9 @@ kutta::parse_double instead. Integer from_chars is fine everywhere.
 
 Absolute home-directory paths only resolve on the machine that wrote them, so
 fixture tests elsewhere silently skip. Build paths from KUTTA_SOURCE_DIR.
+
+HDF5 takes char* file names and expects UTF-8; path::c_str() is wchar_t on
+Windows and path::string() uses the ANSI code page there. Use kutta::utf8_path.
 """
 
 import pathlib
@@ -18,6 +21,7 @@ SOURCE_DIRS = ("src", "tests", "bench", "tools")
 SUFFIXES = {".cpp", ".hpp", ".h", ".cu", ".mm"}
 # Third argument of from_chars(first, last, value[, base_or_format]).
 CALL = re.compile(r"from_chars\s*\([^;]*?,[^;]*?,\s*(\w+)\s*[,)]")
+H5_FILE = re.compile(r"\bH5F(?:open|create|is_accessible)\s*\(\s*(?!kutta::utf8_path\()")
 HOME_PATH = re.compile(r"[\"']((?:/Users|/home)/[^\"']*|[A-Za-z]:\\\\Users\\\\[^\"']*)")
 
 
@@ -39,6 +43,9 @@ def main() -> int:
                 line = text.count("\n", 0, m.start()) + 1
                 bad.append(f"{path.relative_to(ROOT)}:{line}: absolute home path '{m.group(1)}'; "
                            f"build it from KUTTA_SOURCE_DIR")
+            for m in H5_FILE.finditer(text) if path.suffix != ".py" else ():
+                line = text.count("\n", 0, m.start()) + 1
+                bad.append(f"{path.relative_to(ROOT)}:{line}: HDF5 file name must be kutta::utf8_path(...)")
             if path.suffix == ".py" or path.name == "parse.cpp":
                 continue
             for m in CALL.finditer(text):

@@ -1,3 +1,4 @@
+#include "kutta/core/path.hpp"
 #include "kutta/case/fluent_data.hpp"
 #include <doctest/doctest.h>
 #include <algorithm>
@@ -13,7 +14,7 @@ struct Fixture {
       ("kutta-e-data-" +
        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + "-" +
        std::to_string(std::random_device{}()) + ".h5");
-  h5::Handle file{H5Fcreate(path.string().c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT),
+  h5::Handle file{H5Fcreate(kutta::utf8_path(path).c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT),
                   H5Fclose};
   ~Fixture() {
     std::error_code ec;

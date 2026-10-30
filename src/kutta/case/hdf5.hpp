@@ -1,6 +1,7 @@
 #pragma once
 // Private HDF5 boundary shared by the case and data readers.
 #if KUTTA_HAS_HDF5
+#include "kutta/core/path.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
@@ -35,7 +36,7 @@ inline bool exists(hid_t file, const std::string &path) {
 }
 inline Handle open(const std::filesystem::path &path) {
   hid_t id = -1;
-  H5E_BEGIN_TRY { id = H5Fopen(path.string().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT); }
+  H5E_BEGIN_TRY { id = H5Fopen(kutta::utf8_path(path).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT); }
   H5E_END_TRY;
   if (id < 0)
     throw std::runtime_error("cannot open HDF5 file: " + path.string());

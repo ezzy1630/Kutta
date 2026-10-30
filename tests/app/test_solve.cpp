@@ -1,3 +1,4 @@
+#include "kutta/core/path.hpp"
 #include <doctest/doctest.h>
 #include "kutta/core/sha256.hpp"
 #include "../io/test_support.hpp"
@@ -70,7 +71,7 @@ std::string variables(bool unsupported,bool include_reports) {
 void case_file(const std::filesystem::path& path,bool unsupported,bool include_reports=true) {
   // Asymmetric dimensions and multiple cells exercise mesh/field ordering.
   synthetic(path,make_box_hex(2,2,1,{0,0,0},{2,1,1}),false);
-  h5::Handle f(H5Fopen(path.string().c_str(),H5F_ACC_RDWR,H5P_DEFAULT),H5Fclose);
+  h5::Handle f(H5Fopen(kutta::utf8_path(path).c_str(),H5F_ACC_RDWR,H5P_DEFAULT),H5Fclose);
   group(f,"/settings");text(f,"/settings/Rampant Variables",variables(unsupported,include_reports));
   text(f,"/settings/Thread Variables",R"(
     (39 (2 interior interior 1) ())
@@ -85,7 +86,7 @@ void case_file(const std::filesystem::path& path,bool unsupported,bool include_r
   text(f,"/settings/Version","24.1.0");
 }
 void data_file(const std::filesystem::path& path) {
-  h5::Handle f(H5Fcreate(path.string().c_str(),H5F_ACC_TRUNC,H5P_DEFAULT,H5P_DEFAULT),H5Fclose);
+  h5::Handle f(H5Fcreate(kutta::utf8_path(path).c_str(),H5F_ACC_TRUNC,H5P_DEFAULT,H5P_DEFAULT),H5Fclose);
   group(f,"/settings");text(f,"/settings/Data Variables","(37 ((number-of-iterations 10)))");
   for(const auto& [name,value]:std::map<std::string,double>{{"SV_U",0},{"SV_V",0},{"SV_W",0},{"SV_P",0},{"SV_K",.2},{"SV_O",10}}) {
     const auto base="/results/1/phase-1/cells/"+name;group(f,base);

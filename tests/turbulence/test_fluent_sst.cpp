@@ -1,3 +1,4 @@
+#include "kutta/core/path.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -200,8 +201,8 @@ TEST_CASE("SST reproduces Fluent mixing-elbow saved viscosity and wall fields") 
   // the wall-omega/y+ tolerances below fail by ~1% otherwise.
   const auto geometry = compute_geometry(poly);
   REQUIRE(poly.n_cells == 17822); REQUIRE(poly.n_faces() == 91581);
-  H5 cas(H5Fopen(case_path.c_str(),H5F_ACC_RDONLY,H5P_DEFAULT),H5Fclose);
-  H5 dat(H5Fopen(data_path.c_str(),H5F_ACC_RDONLY,H5P_DEFAULT),H5Fclose);
+  H5 cas(H5Fopen(kutta::utf8_path(case_path).c_str(),H5F_ACC_RDONLY,H5P_DEFAULT),H5Fclose);
+  H5 dat(H5Fopen(kutta::utf8_path(data_path).c_str(),H5F_ACC_RDONLY,H5P_DEFAULT),H5Fclose);
   const auto ids = boundary_source_ids(cas,poly);
   auto cell = [&](const char* name) {
     auto v = sections(dat,std::string("/results/1/phase-1/cells/")+name,poly.n_cells);
