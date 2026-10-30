@@ -247,8 +247,9 @@ void ViewportPanel::sceneArrived(std::shared_ptr<const SceneData> scene)
     ViewDisplay d = m_view->display();
     // The mesh and a solution are displayed differently (zones coloured and
     // edged versus a field), so moving between them starts from each one's defaults.
-    const bool wasMesh = m_view->scene() && m_view->scene()->geometryOnly;
+    const bool wasMesh = m_showedMesh;
     const bool isMesh = scene && scene->geometryOnly;
+    if (scene) m_showedMesh = isMesh;
     if (scene && (wasMesh != isMesh || (isMesh && first))) {
         d.visibleInitialized = false;
         d.zoneColors = isMesh;

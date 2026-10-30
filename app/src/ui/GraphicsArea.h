@@ -61,6 +61,9 @@ private:
     QStringList m_knownItems;
     bool m_active = false;
     bool m_fieldChosen = false;  // the user (or a page) picked the field
+    // What the panel last displayed. The view's scene is cleared while the
+    // next dataset loads, so it cannot tell a mesh-to-results switch.
+    bool m_showedMesh = false;
 };
 
 class GraphicsArea : public QWidget {

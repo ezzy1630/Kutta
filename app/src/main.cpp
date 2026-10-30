@@ -351,7 +351,7 @@ int main(int argc, char** argv)
         sc->add(showScene(0, "run:run-0001"));
         sc->add(post(PostKind::Streamlines,
                      {{"name", "Pathlines"}, {"mode", "streamline"}, {"direction", "forward"},
-                      {"seeds", QJsonObject{{"type", "surface"}, {"zones", QJsonArray{"cold-inlet", "hot-inlet"}}, {"count", 80}, {"distribution", "uniform"}, {"offset", 0}}},
+                      {"seeds", QJsonObject{{"type", "surface"}, {"zones", QJsonArray{"cold-inlet", "hot-inlet"}}, {"count", 36}, {"distribution", "uniform"}, {"offset", 0}}},
                       {"fields", QJsonArray{"velocity_magnitude", "pressure"}}}));
         sc->add(post(PostKind::IsoSurface,
                      {{"name", "Velocity Magnitude = 0.9"}, {"field", "velocity_magnitude"}, {"value", 0.9}, {"fields", QJsonArray{"pressure"}}}));
@@ -588,6 +588,13 @@ int main(int argc, char** argv)
                 std::printf("viewport %d: %lld sampled colours\n", i, qlonglong(colours.size()));
                 if (colours.size() < 16) {
                     std::fprintf(stderr, "viewport %d rendered blank\n", i);
+                    QCoreApplication::exit(3);
+                    return;
+                }
+                // Every scenario colours results by a field; grey results mean
+                // the display lost it (once: the mesh's display carried over).
+                if (!p->scene()->geometryOnly && !p->view()->fieldShown()) {
+                    std::fprintf(stderr, "viewport %d shows results without their field\n", i);
                     QCoreApplication::exit(3);
                     return;
                 }
