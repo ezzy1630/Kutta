@@ -17,9 +17,9 @@ def run(*args, success=True):
     return result.stdout + result.stderr
 
 
-def check_outputs(directory, data=False, iterations=21):
+def check_outputs(directory, data=False, iterations=21, case_name="tiny.cas.h5"):
     summary = json.loads((directory / "summary.json").read_text())
-    assert summary["case_sha256"] == hashlib.sha256((root / "tiny.cas.h5").read_bytes()).hexdigest()
+    assert summary["case_sha256"] == hashlib.sha256((root / case_name).read_bytes()).hexdigest()
     assert summary["backend"] == "cpu" and summary["device"]
     assert summary["cells"] == 4 and summary["iterations"] == iterations
     assert summary["wall_time_seconds"] > 0 and summary["setup_time_seconds"] > 0
@@ -67,6 +67,10 @@ run(case, "--data", root / "tiny.dat.h5", "--backend", "cpu", "--iterations", 1,
 seeded = check_outputs(root / "seeded", data=True, iterations=1)
 assert max(map(abs, cold["u"])) > 1e-6 and max(map(abs, seeded["u"])) < 1e-10
 assert max(seeded["k"]) > 5 * max(cold["k"]), "--data did not seed turbulence fields"
+log = run(root / "hybrid.cas.h5", "--backend", "cpu", "--iterations", 1, "--out", root / "hybrid")
+assert "Initialization: hybrid" in log
+hybrid = check_outputs(root / "hybrid", iterations=1, case_name="hybrid.cas.h5")
+assert max(map(abs, hybrid["u"])) < 1e-10, "hybrid dispatch used standard velocity defaults"
 run(root / "no-reports.cas.h5", "--backend", "cpu", "--iterations", 1, "--out", root / "no-reports")
 with (root / "no-reports" / "forces.csv").open(newline="") as f:
     rows = list(csv.DictReader(f))

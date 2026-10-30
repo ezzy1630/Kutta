@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iomanip>
+#include <fstream>
 #include <iostream>
 #include <numeric>
 
@@ -89,7 +90,7 @@ TEST_CASE("Fluent setup converts SST inlet specifications and rejects unsupporte
   c.numerics.warped_face_correction=false;
   const auto problem=setup::fluent_setup(c,mesh);
   CHECK(problem.settings.density==1.225);CHECK(problem.settings.viscosity==1.7894e-5);
-  CHECK_THROWS_WITH(setup::initial_fields(c,mesh),doctest::Contains("hyb-init?"));
+  CHECK(std::holds_alternative<HybridInitialization>(setup::initial_fields(c,mesh)));
 #endif
 }
 
@@ -109,12 +110,14 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
     const auto row=h.rows.back();std::cout<<"V6_FLUENT_RESIDUAL "<<name<<" raw="<<row[0]<<" scale="<<row[1]<<" scaled="<<row[0]/row[1]<<'\n';
   }
   // Keep the strict original-case error visible AND failing. Diagnostic runs
-  // below change one discrete setting and the initializer explicitly; they are
+  // below change one discrete setting explicitly; they are
   // not a claim that the requested same-settings solve has been achieved.
   CHECK_NOTHROW(setup::fluent_setup(c,mesh));
   CHECK_NOTHROW(setup::initial_fields(c,mesh));
-  std::cout<<"V6_DIAGNOSTIC approximations: recon/cell-lsf? disabled; cold start uses stored standard defaults instead of hybrid initialization"<<std::endl;
-  auto diagnostic=c;diagnostic.numerics.warped_face_correction=false;raw_flag(diagnostic.variables,"hyb-init?",false);
+  std::cout<<"V6_DIAGNOSTIC approximations: recon/cell-lsf? disabled; cold start uses stored hybrid initialization settings"<<std::endl;
+  auto diagnostic=c;diagnostic.numerics.warped_face_correction=false;
+  const bool standard_proxy=std::getenv("KUTTA_V6_STANDARD_PROXY")!=nullptr;
+  if(standard_proxy) raw_flag(diagnostic.variables,"hyb-init?",false);
   const auto setup=setup::fluent_setup(diagnostic,mesh);const auto cold=setup::initial_fields(diagnostic,mesh);
   int limit=4000;
   if(const auto* value=std::getenv("KUTTA_V6_ITERATIONS")) {const auto parsed=parse_double(value);REQUIRE(parsed);REQUIRE(*parsed>0);REQUIRE(*parsed<=100000);REQUIRE(std::floor(*parsed)==*parsed);limit=int(*parsed);}
@@ -123,10 +126,10 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
     if(const auto* selected=std::getenv("KUTTA_V6_BACKEND");selected && std::string_view(backend_name(dev->backend()))!=selected) continue;
     for(bool seeded:{true,false}) {
       ++solved;
-      const auto mode=seeded?"seeded":"cold-standard-proxy";
+      const auto mode=seeded?"seeded":(standard_proxy?"cold-standard-proxy":"cold-hybrid");
       auto settings=setup.settings;settings.monitor_interval=50;
-      SteadySolver solver(*dev,mesh,setup.boundaries,settings);const auto& init=seeded?saved:cold;
-      solver.initialize_fields(init.velocity,init.pressure,init.k,init.omega);
+      SteadySolver solver(*dev,mesh,setup.boundaries,settings);
+      setup::initialize(solver,seeded?setup::Initialization{saved}:cold);
       const auto r0=solver.monitor();
       if(seeded) {
         // This fixture has one contiguous source cell zone, independently
@@ -200,6 +203,20 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
       const auto drop=inlet/inlet_area-outlet/outlet_area,reference=inlet_ref/inlet_area-outlet_ref/outlet_area;
       std::cout<<"V6_PRESSURE_DROP ours="<<drop<<" Fluent="<<reference<<" relative="<<std::abs(drop/reference-1)<<std::endl;
       CHECK(std::abs(drop/reference-1)<.005);
+      // Optional fixed-point comparison, after (and separate from) every
+      // unchanged V6 gate above. Both cold starts reach the same 1,200 steps.
+      if(const auto* directory=std::getenv("KUTTA_V6_COMPARE_DIR")) {
+        solver.iterate(std::max(0,1200-solver.report().iteration));const auto r=solver.monitor();
+        std::filesystem::create_directories(directory);
+        auto path=std::filesystem::path(directory)/(std::string(backend_name(dev->backend()))+"-"+mode+".csv");
+        std::ofstream out(path);REQUIRE(out);out<<std::setprecision(17)<<"u,v,w,p,k,omega\n";
+        const auto u=dev->download(solver.velocity().x),v=dev->download(solver.velocity().y),w=dev->download(solver.velocity().z);
+        const auto p=dev->download(solver.pressure()),k=dev->download(solver.kinetic_energy()),omega=dev->download(solver.specific_dissipation());
+        for(std::size_t c=0;c<p.size();++c) out<<u[c]<<','<<v[c]<<','<<w[c]<<','<<p[c]<<','<<k[c]<<','<<omega[c]<<'\n';
+        std::cout<<"V6_PLATEAU backend="<<backend_name(dev->backend())<<" mode="<<mode<<" iteration="<<r.iteration
+          <<" u="<<r.u.scaled<<" v="<<r.v.scaled<<" w="<<r.w.scaled<<" k="<<r.k.scaled<<" omega="<<r.omega.scaled
+          <<" continuity="<<r.continuity.raw<<std::endl;
+      }
     }
   }
   CHECK(solved>0);

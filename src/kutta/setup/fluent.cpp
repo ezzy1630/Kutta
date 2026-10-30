@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <type_traits>
 
 #include "kutta/mesh/detail.hpp"
 
@@ -243,15 +244,59 @@ CellFields fluent_fields(const FluentCase& c,const FluentData& d,const PolyMesh&
   }
   return out;
 }
-CellFields initial_fields(const FluentCase& c,const PolyMesh& mesh) {
+Initialization initial_fields(const FluentCase& c,const PolyMesh& mesh) {
   SetupValidation v;
-  v.require(!v.flag(c.variables,"hyb-init?"),"hyb-init? (hybrid initialization)");
+  const bool hybrid=v.flag(c.variables,"hyb-init?");
   v.require(!v.flag(c.variables,"fmg-init/enable?"),"fmg-init/enable?");
+  if(hybrid) {
+    HybridInitialization h;
+    const auto pair=[&](const std::string& key,auto& out) {
+      const auto* value=c.variables.value(key);
+      v.require(value && value->kind==SExpr::Kind::list && value->elements.size()==2,key,"requires two scalar equation controls");
+      if(!value || value->elements.size()!=2) return;
+      for(int j=0;j<2;++j) {
+        using T=typename std::remove_reference_t<decltype(out)>::value_type;
+        if constexpr(std::is_same_v<T,bool>) {
+          v.require(value->elements[j].kind==SExpr::Kind::boolean,key,"requires booleans");
+          out[j]=value->elements[j].boolean;
+        } else {
+          const auto n=value->elements[j].number();
+          v.require(n && std::isfinite(*n),key,"requires finite numbers");out[j]=n.value_or(0);
+        }
+      }
+    };
+    const double count=v.number(c.variables,"hyb-init/niter");
+    v.require(count>=1 && count<=100000 && count==std::floor(count),"hyb-init/niter","requires a positive integer <=100000");
+    if(count>=1 && count<=100000) h.iterations=int(count);
+    pair("hyb-init/explicit-relax",h.explicit_relaxation);pair("hyb-init/relax",h.implicit_relaxation);
+    pair("hyb-init/residual-tolerance",h.tolerance);pair("hyb-init/solve?",h.solve);pair("hyb-init/patch",h.initial_scalar);
+    for(int j=0;j<2;++j) {
+      v.require(h.explicit_relaxation[j]>0 && h.explicit_relaxation[j]<=1,"hyb-init/explicit-relax");
+      v.require(h.implicit_relaxation[j]>0 && h.implicit_relaxation[j]<=1,"hyb-init/relax");
+      v.require(h.tolerance[j]>0 && h.tolerance[j]<1,"hyb-init/residual-tolerance");
+    }
+    h.averaged_turbulence=v.flag(c.variables,"hyb-init/turb-domain-averaged?");
+    h.linear_potential=v.flag(c.variables,"hyb-init/patch-ads?");
+    h.constant_speed=v.flag(c.variables,"hyb-init/constant-vel-vector?");
+    h.turbulence_intensity=v.number(c.variables,"hyb-init/turb-intens");
+    h.turbulence_viscosity_ratio=v.number(c.variables,"hyb-init/turb-vr");
+    v.require(h.turbulence_intensity>=0 && h.turbulence_viscosity_ratio>0,"hyb-init/turb-intens/turb-vr");
+    if(v.flag(c.variables,"hyb-init/pressure-from-bc?")) {
+      for(const auto& z:c.boundaries) if(z.type==ZoneType::velocity_inlet)
+        h.inlet_pressure.emplace_back(z.name,v.scalar(z.gauge_pressure,"zone/"+std::to_string(z.id)+"/p"));
+    }
+    v.finish();return h;
+  }
   CellFields out;out.velocity.assign(mesh.n_cells,{v.number(c.variables,"x-velocity/default"),v.number(c.variables,"y-velocity/default"),v.number(c.variables,"z-velocity/default")});
   out.pressure.assign(mesh.n_cells,v.number(c.variables,"pressure/default"));
   out.k.assign(mesh.n_cells,v.number(c.variables,"k/default"));out.omega.assign(mesh.n_cells,v.number(c.variables,"omega/default"));
   v.require(out.k.empty() || out.k.front()>=0,"k/default","requires nonnegative turbulent kinetic energy");
   v.require(out.omega.empty() || out.omega.front()>0,"omega/default","requires positive specific dissipation");
   v.finish();return out;
+}
+void initialize(SteadySolver& solver,const Initialization& init) {
+  if(const auto* fields=std::get_if<CellFields>(&init))
+    solver.initialize_fields(fields->velocity,fields->pressure,fields->k,fields->omega);
+  else solver.initialize_hybrid(std::get<HybridInitialization>(init));
 }
 } // namespace kutta::setup

@@ -12,9 +12,10 @@ A local, GPU-native CFD solver for car aerodynamics. Its first goal is to reprod
 
 SST transport, effective momentum stress and wall shear are coupled into the
 steady solver. The strict Fluent setup adapter rejects unsupported spatial
-settings and initializers. V6 currently retains failing accuracy gates; its
-explicitly labelled elbow diagnostic disables Fluent's undocumented warped-face
-correction and substitutes standard initialization for hybrid initialization.
+settings. Hybrid initialization solves the velocity-potential and pressure
+Laplace problems using stored case controls. V6 retains failing accuracy gates;
+its explicitly labelled elbow diagnostic disables Fluent's undocumented
+warped-face correction.
 See [the measured results](src/kutta/fv/VERIFICATION.md#v6-mixing-elbow-sst)
 and the gates in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -51,7 +52,7 @@ wall-face omega value for gradient/reconstruction. See the
 ./build/kutta solve car.cas.h5 --data car.dat.h5 --backend cuda --iterations 2000 --out results
 ```
 
-Omit `--data` for the case's standard initialization. `--backend auto` (the
+Omit `--data` for the case's selected standard or hybrid initialization. `--backend auto` (the
 default) tries CUDA, Metal, then CPU. Unsupported settings are listed together
 and cause a nonzero exit before solving. No case settings are silently replaced;
 convergence-path changes already allowed by the adapter are printed.

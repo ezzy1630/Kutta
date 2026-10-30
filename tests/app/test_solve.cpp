@@ -18,7 +18,7 @@ void text(hid_t f,const std::string& path,const std::string& value) {
   h5::Handle d(H5Dcreate2(f,path.c_str(),type,space,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT),H5Dclose);
   h5::check(H5Dwrite(d,type,H5S_ALL,H5S_ALL,H5P_DEFAULT,value.c_str()),path);
 }
-std::string variables(bool unsupported,bool include_reports) {
+std::string variables(bool unsupported,bool include_reports,bool hybrid) {
   std::string rp=R"((37 (
   (case-config ((rp-3d? . #t) (rp-double? . #t) (rp-seg? . #t) (rp-unsteady? . #f)
     (rp-lam? . #f) (rp-ke? . #f) (rp-kw? . #t) (rf-energy? . #f) (rp-des? . #f)))
@@ -52,6 +52,14 @@ std::string variables(bool unsupported,bool include_reports) {
     ((name "lift") (report-definition force-lift (zone-names "shell") (force-vector 0 1 0) (scaled? #f)))
     ((name "force") (report-definition force (zone-names "shell") (force-vector 0 0 1) (scaled? #f)))))
   )))";
+  if(hybrid) {
+    const auto start=rp.find("(hyb-init? #f)");
+    rp.replace(start,std::string("(hyb-init? #f)").size(),R"((hyb-init? #t)
+      (hyb-init/niter 3) (hyb-init/explicit-relax (1 1)) (hyb-init/relax (1 1))
+      (hyb-init/residual-tolerance (1e-6 1e-6)) (hyb-init/solve? (#t #t)) (hyb-init/patch (0 0))
+      (hyb-init/turb-domain-averaged? #t) (hyb-init/patch-ads? #f) (hyb-init/constant-vel-vector? #f)
+      (hyb-init/turb-intens .05) (hyb-init/turb-vr 10) (hyb-init/pressure-from-bc? #f))");
+  }
   if(unsupported) {
     auto p=rp.find("(recon/cell-lsf? #f)");rp.replace(p,std::string("(recon/cell-lsf? #f)").size(),"(recon/cell-lsf? #t)");
     p=rp.find("(curvature-correction? #f)");rp.replace(p,std::string("(curvature-correction? #f)").size(),"(curvature-correction? #t)");
@@ -68,11 +76,11 @@ std::string variables(bool unsupported,bool include_reports) {
   }
   return rp;
 }
-void case_file(const std::filesystem::path& path,bool unsupported,bool include_reports=true) {
+void case_file(const std::filesystem::path& path,bool unsupported,bool include_reports=true,bool hybrid=false) {
   // Asymmetric dimensions and multiple cells exercise mesh/field ordering.
   synthetic(path,make_box_hex(2,2,1,{0,0,0},{2,1,1}),false);
   h5::Handle f(H5Fopen(kutta::utf8_path(path).c_str(),H5F_ACC_RDWR,H5P_DEFAULT),H5Fclose);
-  group(f,"/settings");text(f,"/settings/Rampant Variables",variables(unsupported,include_reports));
+  group(f,"/settings");text(f,"/settings/Rampant Variables",variables(unsupported,include_reports,hybrid));
   text(f,"/settings/Thread Variables",R"(
     (39 (2 interior interior 1) ())
     (39 (20 fluid water 1) ((material . water) (mrf-motion? . #f) (porous? . #f) (laminar? . #f)
@@ -110,6 +118,7 @@ TEST_CASE("Solve CLI runs generated CFF cases and data, rejects settings, and em
   MeshTemp t;
   case_file(t.path("tiny.cas.h5"),false);case_file(t.path("unsupported.cas.h5"),true);
   case_file(t.path("no-reports.cas.h5"),false,false);
+  case_file(t.path("hybrid.cas.h5"),false,true,true);
   data_file(t.path("tiny.dat.h5"));
   std::string command=quote(KUTTA_PYTHON_PATH)+" "+quote(std::filesystem::path(KUTTA_SOURCE_DIR)/"tests/app/check_solve.py")+" "+quote(KUTTA_CLI_PATH)+" "+quote(t.directory);
 #ifdef _WIN32

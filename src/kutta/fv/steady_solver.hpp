@@ -1,9 +1,11 @@
 #pragma once
 
 #include <functional>
+#include <array>
 #include <optional>
 #include <span>
 #include <variant>
+#include <utility>
 
 #include "kutta/fv/transport.hpp"
 #include "kutta/fv/turbulence/sst.hpp"
@@ -32,6 +34,18 @@ struct PressureOutlet {
 struct Symmetry {};
 using BoundaryCondition=std::variant<Wall,VelocityInlet,PressureOutlet,Symmetry>;
 struct PatchCondition { std::string patch; BoundaryCondition condition; };
+
+// Initialization controls affect no steady equation. The adapter validates
+// stored Fluent settings before constructing this value.
+struct HybridInitialization {
+  int iterations=10;
+  std::array<double,2> explicit_relaxation{1,1},implicit_relaxation{1,1},tolerance{1e-6,1e-6},initial_scalar{0,0};
+  std::array<bool,2> solve{true,true};
+  bool averaged_turbulence=true,linear_potential=false,constant_speed=false;
+  double turbulence_intensity=.05,turbulence_viscosity_ratio=10;
+  // Only populated when the case requests specified initial inlet pressures.
+  std::vector<std::pair<std::string,double>> inlet_pressure;
+};
 
 struct SstSettings {
   SstOptions model;
@@ -95,6 +109,7 @@ class SteadySolver {
   // Arrays follow the ORIGINAL input mesh cell order, before owned RCM.
   void initialize_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
       std::span<const double> k={},std::span<const double> omega={});
+  void initialize_hybrid(const HybridInitialization& settings);
   // Force per unit volume, not acceleration. Called once at case setup.
   void set_source(const std::function<Vec3d(Vec3d)>& source);
   void iterate(int count);

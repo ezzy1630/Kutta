@@ -522,6 +522,118 @@ void SteadySolver::initialize_fields(std::span<const Vec3d> velocity,std::span<c
     s.update_boundaries();s.update_pressure();
   }
 }
+void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
+  auto& s=*impl_;auto& dev=s.dev;
+  KUTTA_REQUIRE(h.iterations>0,"FV hybrid initialization needs positive iteration count");
+  const auto n=s.mesh.n_cells,nb=s.mesh.n_boundary_faces();
+  const auto volume=std::accumulate(s.geom.cell_volume.begin(),s.geom.cell_volume.end(),0.);
+  std::vector<Index> kind(nb,1),pkind(nb,1);
+  std::vector<float> value(nb,0),pvalue(nb,0),normal(nb,0),flux(nb,0),source(n,0),seed(n,float(h.initial_scalar[0]));
+  double inlet_area=0,outlet_area=0,pressure_sum=0,pressure_area=0,speed_sum=0;
+  Vec3d direction,outlet_center;
+  // Turbulence recipes: k=k0+k2*|u|^2, omega=w0+w1*|u|+w2*|u|^2.
+  std::array<double,5> recipe{};
+  const auto add_recipe=[&](const TurbulenceCondition& spec,double area) {
+    if(const auto* v=std::get_if<TurbulenceValues>(&spec)) {recipe[0]+=area*v->k;recipe[2]+=area*v->omega;}
+    else if(const auto* v=std::get_if<IntensityLength>(&spec)) {
+      recipe[1]+=area*1.5*v->intensity*v->intensity;
+      recipe[3]+=area*std::sqrt(1.5)*v->intensity/(std::pow(.09,.25)*v->length);
+    } else {
+      const auto& ratio=std::get<IntensityViscosityRatio>(spec);
+      recipe[1]+=area*1.5*ratio.intensity*ratio.intensity;
+      recipe[4]+=area*s.settings.density*1.5*ratio.intensity*ratio.intensity/(s.settings.viscosity*ratio.ratio);
+    }
+  };
+  for(const auto& patch:s.host.patches) {
+    const auto& bc=s.boundaries.at(patch.name);
+    const auto initial_pressure=std::find_if(h.inlet_pressure.begin(),h.inlet_pressure.end(),[&](const auto& p){return p.first==patch.name;});
+    for(Index f=patch.start;f<patch.start+patch.size;++f) {
+      const auto b=f-s.mesh.n_internal_faces,c=s.host.owner[f];
+      const auto area_vector=s.geom.face_area[f];const auto area=norm(area_vector);
+      if(const auto* in=std::get_if<VelocityInlet>(&bc)) {
+        const auto u=evaluate(in->velocity,s.geom.face_centroid[f]);
+        flux[b]=float(dot(u,area_vector));source[c]+=flux[b]/float(s.geom.cell_volume[c]);
+        normal[b]=float(dot(u,area_vector)/area*dot(s.geom.face_centroid[f]-s.geom.cell_centroid[c],area_vector)/area);
+        inlet_area+=area;direction=direction+u*area;speed_sum+=norm(u)*area;
+        if(s.sst) add_recipe(*in->turbulence,area);
+        if(initial_pressure!=h.inlet_pressure.end()) {pkind[b]=0;pvalue[b]=float(initial_pressure->second);pressure_sum+=area*initial_pressure->second;pressure_area+=area;}
+      }
+      if(const auto* out=std::get_if<PressureOutlet>(&bc)) {
+        kind[b]=0;pkind[b]=0;pvalue[b]=float(out->pressure);outlet_area+=area;
+        outlet_center=outlet_center+s.geom.face_centroid[f]*area;
+        pressure_sum+=area*out->pressure;pressure_area+=area;
+      }
+    }
+  }
+  KUTTA_REQUIRE(inlet_area==0 || outlet_area>0,"FV hybrid velocity inlets require a pressure outlet");
+  if(inlet_area>0) {direction=direction/inlet_area;speed_sum/=inlet_area;for(auto& r:recipe) r/=inlet_area;}
+  else if(s.sst) {add_recipe(IntensityViscosityRatio{h.turbulence_intensity,h.turbulence_viscosity_ratio},1);}
+  if(outlet_area>0) outlet_center=outlet_center/outlet_area;
+  std::fill(source.begin(),source.end(),0);
+  for(Index f=s.mesh.n_internal_faces;f<s.mesh.n_faces;++f) {
+    const auto b=f-s.mesh.n_internal_faces,c=s.host.owner[f];const auto area=s.geom.face_area[f];
+    const auto r=s.geom.face_centroid[f]-s.geom.cell_centroid[c];
+    if(kind[b]==0) value[b]=float(-dot(direction,s.geom.face_centroid[f]-outlet_center));
+    else {
+      const double q=flux[b]-dot(direction,area);
+      source[c]+=float(q/s.geom.cell_volume[c]);
+      normal[b]=float(q*dot(r,area)/dot(area,area));
+    }
+  }
+  if(!h.linear_potential) for(Index c=0;c<n;++c)
+    seed[c]=float(h.initial_scalar[0]-dot(direction,s.geom.cell_centroid[c]-outlet_center));
+  auto potential=dev.upload<float>(seed),zero=dev.alloc<float>(s.mesh.n_faces),one=dev.alloc<float>(s.mesh.n_faces);
+  dev.fill(zero,0);dev.fill(one,1);
+  auto boundary=dev.alloc<float>(nb),old=dev.alloc<float>(n);
+  TransportEquation equation(dev,s.mesh,s.stencil,s.host,s.geom);
+  auto solve_scalar=[&](Buffer<float>& field,const std::vector<Index>& kinds,const std::vector<float>& values,
+      const std::vector<float>& deltas,const std::vector<float>& sources,int scalar) {
+    auto bk=dev.upload<Index>(kinds);auto bv=dev.upload<float>(values),bd=dev.upload<float>(deltas),rhs=dev.upload<float>(sources);
+    std::vector<BoundaryObservation> observations(nb);
+    for(Index b=0;b<nb;++b) observations[b]=kinds[b]==0?BoundaryObservation::FaceValue:BoundaryObservation::NormalFootValue;
+    const auto lsq=boundary_least_squares(dev,s.host,s.geom,observations);
+    TransportSettings t;t.convection=ConvectionScheme::FirstOrderUpwind;t.limit=false;t.relaxation=float(h.implicit_relaxation[scalar]);
+    for(int i=0;i<h.iterations && h.solve[scalar];++i) {
+      dev.copy(old,field);
+      kern::fv_hybrid_boundary(dev,nb,s.mesh.owner,bk,field,bv,bd,boundary,s.mesh.n_internal_faces);
+      gradient(dev,s.mesh,s.stencil,lsq,field,boundary,equation.grad);
+      equation.assemble_reconstructed(field,boundary,bk,zero,one,rhs,t);
+      s.pressure_solver->refresh(dev,equation.matrix);
+      s.pressure_solver->solve(dev,equation.matrix,field,equation.rhs,{h.tolerance[scalar],1e-12,300});
+      kern::axpbyz(dev,n,field,field,old,float(h.explicit_relaxation[scalar]),float(1-h.explicit_relaxation[scalar]));
+    }
+    kern::fv_hybrid_boundary(dev,nb,s.mesh.owner,bk,field,bv,bd,boundary,s.mesh.n_internal_faces);
+    gradient(dev,s.mesh,s.stencil,lsq,field,boundary,equation.grad);
+  };
+  if(outlet_area>0) solve_scalar(potential,kind,value,normal,source,0);
+  else {dev.fill(equation.grad.x,0);dev.fill(equation.grad.y,0);dev.fill(equation.grad.z,0);}
+  kern::fv_hybrid_velocity(dev,n,equation.grad.x,equation.grad.y,equation.grad.z,
+    s.velocity.x,s.velocity.y,s.velocity.z,float(direction.x),float(direction.y),float(direction.z),float(speed_sum),h.constant_speed?1:0);
+  // Preserve the potential operator's conservative face flux when setting up
+  // the first momentum equation. The gradient velocity alone is not solenoidal.
+  auto potential_kind=dev.upload<Index>(kind);auto prescribed_flux=dev.upload<float>(flux);
+  auto potential_flux=dev.alloc<float>(s.mesh.n_faces);
+  TransportSettings t;t.convection=ConvectionScheme::FirstOrderUpwind;t.limit=false;
+  auto source_device=dev.upload<float>(source);auto potential_value=dev.upload<float>(value);
+  equation.assemble_reconstructed(potential,boundary,potential_kind,zero,one,source_device,t);
+  kern::fv_hybrid_flux(dev,s.mesh.n_faces,s.mesh.owner,s.mesh.neighbour,potential_kind,potential,s.stencil.diffusion,
+    equation.face_correction,prescribed_flux,potential_value,s.mesh.area.x,s.mesh.area.y,s.mesh.area.z,
+    potential_flux,s.mesh.n_internal_faces,float(s.settings.density),float(direction.x),float(direction.y),float(direction.z));
+  dev.fill(s.pressure,float(h.solve[1] && pressure_area>0?pressure_sum/pressure_area:h.initial_scalar[1]));
+  if(h.solve[1] && !h.inlet_pressure.empty() && outlet_area>0)
+    solve_scalar(s.pressure,pkind,pvalue,std::vector<float>(nb,0),std::vector<float>(n,0),1);
+  if(s.sst) {
+    kern::fv_hybrid_turbulence(dev,n,s.velocity.x,s.velocity.y,s.velocity.z,s.mesh.volume,s.kinetic,s.omega,old,s.scale,
+      float(recipe[0]),float(recipe[1]),float(recipe[2]),float(recipe[3]),float(recipe[4]),
+      s.settings.sst->model.k_floor,s.settings.sst->model.omega_floor);
+    if(h.averaged_turbulence) {const auto k=dev.sum(old,n)/volume,w=dev.sum(s.scale,n)/volume;dev.fill(s.kinetic,float(k));dev.fill(s.omega,float(w));}
+  }
+  s.dev.fill(s.physical_diagonal,1);s.dev.fill(s.consistent_inverse,0);
+  s.update_boundaries();s.update_pressure();s.update_flux();s.update_turbulence();
+  for(int pass=0;pass<3;++pass) {s.monitor();s.update_flux();s.update_boundaries();s.update_pressure();}
+  if(!h.constant_speed && h.solve[0]) dev.copy(s.mass,potential_flux);
+  kern::fv_continuity(dev,n,s.mesh.cell_face_offsets,s.mesh.cell_faces,s.mesh.cell_face_sign,s.mass,s.provisional_continuity);
+}
 void SteadySolver::set_source(const std::function<Vec3d(Vec3d)>& source) {
   std::vector<Vec3d> values;for(auto p:impl_->geom.cell_centroid) values.push_back(source(p));
   upload_vectors(impl_->dev,impl_->body,values);

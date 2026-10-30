@@ -119,18 +119,20 @@ int solve(int argc,char** argv) {
     const auto o=parse(argc,argv);const auto start=Clock::now();
     const auto case_hash=sha256_file(o.input),data_hash=o.data.empty()?std::string{}:sha256_file(o.data);
     const auto c=fluent::read_case(o.input);auto mesh=read_mesh(o.input);
-    std::optional<setup::FluentSetup> setup;std::optional<setup::CellFields> fields;
+    std::optional<setup::FluentSetup> setup;std::optional<setup::Initialization> fields;
     std::vector<ForceDefinition> reports;std::string errors;
     const auto check=[&](auto fn) {try {fn();} catch(const std::exception& e) {errors+=std::string(e.what())+'\n';}};
     check([&]{setup=setup::fluent_setup(c,mesh);});
-    check([&]{fields=o.data.empty()?setup::initial_fields(c,mesh):setup::fluent_fields(c,fluent::read_data(o.data,c),mesh);});
+    check([&]{fields=o.data.empty()?setup::initial_fields(c,mesh):setup::Initialization{setup::fluent_fields(c,fluent::read_data(o.data,c),mesh)};});
     check([&]{reports=definitions(c,mesh);});
     if(!errors.empty()) throw Error(errors);
     for(const auto& note:setup->convergence_notes) std::cout<<"Setup: "<<note<<'\n';
     std::cout<<"Case convergence criteria are not exposed by the adapter; using iteration limit "<<o.iterations<<".\n";
     auto dev=device(o.backend);
     fv::SteadySolver solver(*dev,std::move(mesh),setup->boundaries,setup->settings);
-    solver.initialize_fields(fields->velocity,fields->pressure,fields->k,fields->omega);
+    setup::initialize(solver,*fields);
+    if(std::holds_alternative<fv::HybridInitialization>(*fields))
+      std::cout<<"Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).\n";
     dev->synchronize();const auto setup_time=seconds(start);
     std::filesystem::create_directories(o.out);
     // A failed replacement run must not leave a previous success summary next

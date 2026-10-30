@@ -21,6 +21,8 @@ struct CellFields {
 };
 CellFields fluent_fields(const fluent::FluentCase& input,const fluent::FluentData& data,
                         const PolyMesh& original_mesh);
-// Standard initialization only. Hybrid/FMG are explicitly rejected.
-CellFields initial_fields(const fluent::FluentCase& input,const PolyMesh& original_mesh);
+using Initialization=std::variant<CellFields,fv::HybridInitialization>;
+// Parse initialization independently of the selected Device. FMG is unsupported.
+Initialization initial_fields(const fluent::FluentCase& input,const PolyMesh& original_mesh);
+void initialize(fv::SteadySolver& solver,const Initialization& initialization);
 } // namespace kutta::setup
