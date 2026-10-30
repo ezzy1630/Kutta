@@ -12,6 +12,7 @@
 #include <QVector3D>
 
 #include <array>
+#include <memory>
 #include <cstdint>
 #include <optional>
 #include <vector>
@@ -50,6 +51,9 @@ struct ViewPart {
     QVector3D origin, normal;           // slices
     std::vector<FieldDesc> fields;
     QJsonObject meta;     // the whole descriptor (iso value, trace lines, probe csv, ...)
+    // Zones: the KUTL file of the zone's polygon edges (no triangle diagonals),
+    // indexing the same vertices as the zone file. Absent in older views.
+    std::shared_ptr<const ViewPart> edges;
     const FieldDesc* field(const QString& name) const;
 };
 
@@ -65,12 +69,15 @@ struct ViewManifest {
     bool reference = false;
     QString provenance;    // approximation/modified notice; empty when faithful
     bool synthetic = false;
+    bool geometryOnly = false;  // export-geometry: a case's boundary without a solution
     Bounds bounds;
     std::vector<ViewPart> zones, slices;
     std::vector<ViewPart> streamlines, isosurfaces, probes;  // export-view --post
     std::vector<AvailableField> availableFields;
     QString reportsFile;            // reports.json beside the manifest, when integrals ran
     QJsonObject referenceValues;
+    QStringList unavailableFields;  // requested fields kutta skipped (fields_policy "available")
+    QJsonObject postCache;          // {"reused","computed","seconds"} when the CLI reused earlier work
     std::vector<FieldDesc> fields;  // combined ranges across files
     const FieldDesc* field(const QString& name) const;
 };
@@ -92,6 +99,10 @@ struct MeshData {
     const Field* field(const QString& name) const;
     Bounds bounds() const;
 };
+
+// A zone's polygon edges as a line list (index pairs) into its `vertices`
+// vertices, read from the zone's KUTL edges file.
+Result<std::vector<std::uint32_t>> readEdgeLines(const QByteArray& bytes, const ViewPart& edges, quint32 zoneVertices);
 
 // The magic decides triangles (KUTV) versus polylines (KUTL).
 Result<MeshData> readMeshFile(const QString& path, const ViewPart& part);

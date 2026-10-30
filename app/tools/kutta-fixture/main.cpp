@@ -688,11 +688,13 @@ QJsonObject readBatch(const QString& path)
     if (!doc.isObject()) badRequest("post specification: " + pe.errorString());
     const QJsonObject b = doc.object();
     if (b.value("v").toInt() != 1) badRequest("post specification must have v: 1");
-    static const QStringList keys{"v", "fields", "streamlines", "isosurfaces", "probes", "integrals", "reference"};
+    static const QStringList keys{"v", "fields", "fields_policy", "streamlines", "isosurfaces", "probes", "integrals", "reference"};
     QStringList names;
     for (const QString& k : b.keys()) {
         if (!keys.contains(k)) badRequest("unknown post specification key " + k);
-        if (k == "v" || k == "fields" || k == "reference") continue;
+        if (k == "fields_policy" && b.value(k).toString() != "strict" && b.value(k).toString() != "available")
+            badRequest("fields_policy must be \"strict\" or \"available\"");
+        if (k == "v" || k == "fields" || k == "fields_policy" || k == "reference") continue;
         for (const QJsonValue& op : b.value(k).toArray()) {
             const QString n = op.toObject().value("name").toString();
             if (n.isEmpty() || names.contains(n)) badRequest("operation names must be present and unique: '" + n + "'");

@@ -62,8 +62,8 @@ Result<ViewPart> parsePart(const QJsonObject& o, PartKind kind, int index)
     p.id = o.value("id").toInt(-1);
     p.type = o.value("type").toString();
     p.file = o.value("file").toString();
-    p.vertices = quint32(o.value("vertices").toDouble());
-    p.indices = quint32(o.value("indices").toDouble());
+    p.vertices = quint32(o.value("vertices").toDouble(o.value("vertex_count").toDouble()));
+    p.indices = quint32(o.value("indices").toDouble(o.value("index_count").toDouble()));
     p.lineCount = quint32(o.value("line_count").toDouble());
     p.meta = o;
     if (p.file.isEmpty() || p.file.contains('/') || p.file.contains('\\') || p.file.startsWith('.'))
@@ -80,6 +80,11 @@ Result<ViewPart> parsePart(const QJsonObject& o, PartKind kind, int index)
         auto f = parseField(fv.toObject(), true);
         if (!f) return Result<ViewPart>::failure(p.file + ": " + f.error());
         p.fields.push_back(std::move(f).value());
+    }
+    if (kind == PartKind::Zone && o.value("edges").isObject()) {
+        auto e = parsePart(o.value("edges").toObject(), PartKind::Probe, index);
+        if (!e) return Result<ViewPart>::failure(p.file + " edges: " + e.error());
+        p.edges = std::make_shared<const ViewPart>(std::move(e).value());
     }
     return p;
 }
@@ -150,6 +155,7 @@ Result<ViewManifest> parseViewManifest(const QJsonObject& json, const QString& d
     m.reference = json.value("reference").toBool();
     m.provenance = json.value("provenance").toString();
     m.synthetic = json.value("synthetic").toBool();
+    m.geometryOnly = json.value("geometry_only").toBool();
     const QJsonArray b = json.value("bounds").toArray();
     if (b.size() == 2) {
         m.bounds.min = vec3(b[0]);
@@ -190,6 +196,11 @@ Result<ViewManifest> parseViewManifest(const QJsonObject& json, const QString& d
     if (m.reportsFile.contains('/') || m.reportsFile.contains('\\') || m.reportsFile.startsWith('.'))
         return Result<ViewManifest>::failure("unsafe reports file name");
     m.referenceValues = json.value("reference_values").toObject();
+    for (const QJsonValue& u : json.value("unavailable_fields").toArray()) {
+        const QString name = u.isObject() ? u.toObject().value("name").toString() : u.toString();
+        if (!name.isEmpty() && !m.unavailableFields.contains(name)) m.unavailableFields << name;
+    }
+    m.postCache = json.value("post_cache").toObject();
     for (const QJsonValue& fv : json.value("fields").toArray()) {
         auto f = parseField(fv.toObject(), false);
         if (!f) return Result<ViewManifest>::failure(f.error());
@@ -284,6 +295,37 @@ Result<MeshData> readMeshBytes(const QByteArray& bytes, const ViewPart& part)
     }
     if (expectedOffset != size) return R::failure(part.file + ": trailing bytes after the last field");
     return m;
+}
+
+Result<std::vector<std::uint32_t>> readEdgeLines(const QByteArray& bytes, const ViewPart& part, quint32 zoneVertices)
+{
+    using R = Result<std::vector<std::uint32_t>>;
+    const auto size = quint64(bytes.size());
+    if (size < kHeaderBytes || std::memcmp(bytes.constData(), kLineMagic, 4) != 0) return R::failure(part.file + ": not a KUTL edges file");
+    const char* d = bytes.constData();
+    auto u32 = [d](int off) { return qFromLittleEndian<quint32>(d + off); };
+    if (u32(4) != 1 || u32(8) != kHeaderBytes) return R::failure(part.file + ": unsupported version");
+    const quint64 V = u32(12), I = u32(16), F = u32(20), L = u32(24);
+    if (V != part.vertices || I != part.indices || L != part.lineCount || F != 0)
+        return R::failure(part.file + ": counts disagree with the manifest");
+    if (V != zoneVertices) return R::failure(part.file + ": edges do not index the zone's vertices");
+    const quint64 posEnd = kHeaderBytes + 12 * V, offEnd = posEnd + 4 * I, end = offEnd + 4 * (L + 1);
+    if (end != size) return R::failure(part.file + ": size disagrees with its counts");
+    std::vector<std::uint32_t> index(I), offsets(L + 1);
+    std::memcpy(index.data(), d + posEnd, 4 * I);
+    std::memcpy(offsets.data(), d + offEnd, 4 * (L + 1));
+    if (offsets.front() != 0 || offsets.back() != I) return R::failure(part.file + ": line offsets do not span the indices");
+    std::vector<std::uint32_t> out;
+    out.reserve(2 * I);
+    for (quint64 l = 0; l < L; ++l) {
+        if (offsets[l + 1] < offsets[l]) return R::failure(part.file + ": line offsets decrease");
+        for (quint64 k = offsets[l]; k + 1 < offsets[l + 1]; ++k) {
+            if (index[k] >= V || index[k + 1] >= V) return R::failure(part.file + ": index out of range");
+            out.push_back(index[k]);
+            out.push_back(index[k + 1]);
+        }
+    }
+    return out;
 }
 
 Result<MeshData> readMeshFile(const QString& path, const ViewPart& part)

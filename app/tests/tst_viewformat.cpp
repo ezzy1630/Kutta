@@ -57,6 +57,51 @@ private slots:
         QVERIFY(!readMeshBytes(badIndex, part));
     }
 
+    // Zone edge files list the polygon edges (no triangle diagonals) as
+    // polylines over the zone's own vertices.
+    void readsZoneEdgeLines()
+    {
+        auto kutl = [](quint32 V, std::vector<quint32> idx, std::vector<quint32> off) {
+            QByteArray b("KUTL", 4);
+            const quint32 head[] = {1, 32, V, quint32(idx.size()), 0, quint32(off.size() - 1), 0};
+            b.append(reinterpret_cast<const char*>(head), sizeof head);
+            b.append(QByteArray(int(12 * V), 0));
+            b.append(reinterpret_cast<const char*>(idx.data()), int(4 * idx.size()));
+            b.append(reinterpret_cast<const char*>(off.data()), int(4 * off.size()));
+            return b;
+        };
+        ViewPart e;
+        e.kind = PartKind::Probe;
+        e.file = "zone-0.edges.bin";
+        e.vertices = 5;
+        e.indices = 7;
+        e.lineCount = 2;
+        // A closed quad 0-1-2-3-0 and a separate edge 1-4.
+        const QByteArray bytes = kutl(5, {0, 1, 2, 3, 0, 1, 4}, {0, 5, 7});
+        auto lines = readEdgeLines(bytes, e, 5);
+        QVERIFY2(lines.ok(), qPrintable(lines ? QString() : lines.error()));
+        QCOMPARE(lines.value(), (std::vector<std::uint32_t>{0, 1, 1, 2, 2, 3, 3, 0, 1, 4}));
+        QVERIFY(!readEdgeLines(bytes, e, 6));                                    // not the zone's vertices
+        QVERIFY(!readEdgeLines(kutl(5, {0, 1, 2, 3, 0, 1, 9}, {0, 5, 7}), e, 5)); // index out of range
+        QVERIFY(!readEdgeLines(kutl(5, {0, 1, 2, 3, 0, 1, 4}, {0, 6, 7}).left(bytes.size() - 4), e, 5));
+
+        // The manifest carries them per zone; geometry-only views say so.
+        const QJsonObject zone{{"id", 3}, {"name", "wall"}, {"type", "wall"}, {"file", "zone-0.surface.bin"}, {"vertices", 5}, {"indices", 6},
+                               {"fields", QJsonArray{}},
+                               {"edges", QJsonObject{{"file", "zone-0.edges.bin"}, {"primitive", "polylines"}, {"vertices", 5}, {"indices", 7},
+                                                     {"line_count", 2}, {"fields", QJsonArray{}}}}};
+        auto m = parseViewManifest({{"v", 1}, {"geometry_only", true}, {"zones", QJsonArray{zone}},
+                                    {"unavailable_fields", QJsonArray{QJsonObject{{"name", "skin_friction"}, {"operation", QJsonValue()}}}}}, "/tmp");
+        QVERIFY2(m.ok(), qPrintable(m ? QString() : m.error()));
+        QVERIFY(m.value().geometryOnly);
+        QVERIFY(m.value().zones.front().edges);
+        QCOMPARE(m.value().zones.front().edges->lineCount, 2u);
+        QCOMPARE(m.value().unavailableFields, QStringList{"skin_friction"});
+        QJsonObject unsafe = zone;
+        unsafe["edges"] = QJsonObject{{"file", "../x.bin"}, {"vertices", 5}, {"indices", 7}, {"line_count", 2}};
+        QVERIFY(!parseViewManifest({{"v", 1}, {"zones", QJsonArray{unsafe}}}, "/tmp"));
+    }
+
     void polylinesRoundTrip()
     {
         MeshData m;

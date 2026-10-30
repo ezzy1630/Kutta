@@ -398,8 +398,8 @@ std::vector<Plane> Session::slices(const QString& runId) const
 namespace {
 
 // Derived fields added to every exported surface and slice. Each needs
-// reference values or SST wall data; when a run lacks them the export is
-// retried with the CLI's own selection of available fields.
+// reference values or SST wall data; with fields_policy "available" kutta
+// skips the ones a run cannot provide and lists them in the manifest.
 const QStringList kSurfaceFields{"pressure_coefficient", "total_pressure_coefficient", "skin_friction",
                                  "vorticity_magnitude", "velocity_x"};
 
@@ -424,7 +424,7 @@ QJsonObject Session::postBatch(const QString& runId) const
         const QJsonObject o = QJsonDocument::fromJson(f.readAll()).object();
         if (o.value("v").toInt() == 1) return o;
     }
-    return {{"v", 1}, {"fields", QJsonArray::fromStringList(kSurfaceFields)}};
+    return {{"v", 1}, {"fields", QJsonArray::fromStringList(kSurfaceFields)}, {"fields_policy", "available"}};
 }
 
 void Session::writePostBatch(const QString& runId, const QJsonObject& batch) const
@@ -479,13 +479,22 @@ void Session::exportNow(const QString& runId, const std::vector<Plane>& planes, 
     for (const Plane& p : planes) arr.append(QJsonArray{p.origin.x(), p.origin.y(), p.origin.z(), p.normal.x(), p.normal.y(), p.normal.z()});
     m_cli->exportView(dir, planes, QDir(dir).filePath("app-post.json"),
                       [this, runId, planes, retried, batch, dir, title, arr, key, done](Result<ViewManifest> m) mutable {
-        if (!m && !retried && batch.contains("fields") && m.error().contains("unavailable")) {
-            emit consoleLine(ConsoleLevel::Warning, "Some derived fields are unavailable for this run; exporting the fields kutta can compute.");
+        // A CLI from before fields_policy rejects the property, or one
+        // unavailable field: fall back once to its own selection of fields.
+        if (!m && !retried && (m.error().contains("fields_policy") || (batch.contains("fields") && m.error().contains("unavailable")))) {
+            emit consoleLine(ConsoleLevel::Warning, tr("This kutta CLI cannot skip unavailable fields; exporting the fields it can compute."));
+            batch.remove("fields_policy");
             batch.remove("fields");
             writePostBatch(runId, batch);
             return exportNow(runId, planes, true, done);
         }
         if (!m) return done(key, Result<std::shared_ptr<SceneData>>::failure(m.error()));
+        if (!m.value().unavailableFields.isEmpty())
+            emit consoleLine(ConsoleLevel::Info, tr("Not available for this run: %1.").arg(m.value().unavailableFields.join(", ")));
+        if (const QJsonObject pc = m.value().postCache; pc.contains("reused") && pc.value("reused").toInt() > 0)
+            emit consoleLine(ConsoleLevel::Info, tr("Post-processing reused %1 earlier result(s) and computed %2 in %3 s.")
+                                                     .arg(pc.value("reused").toInt()).arg(pc.value("computed").toInt())
+                                                     .arg(pc.value("seconds").toDouble(), 0, 'f', 2));
         QFile f(QDir(dir).filePath("app-view.json"));
         if (f.open(QIODevice::WriteOnly)) f.write(QJsonDocument(QJsonObject{{"slices", arr}}).toJson());
         m_views.insert(runId, m.value());
