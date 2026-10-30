@@ -26,6 +26,12 @@ sum to exactly zero. Debug builds check a requested constant nullspace against
 symmetry and row sums within 8 float epsilons times the absolute row sum.
 This is a consistency diagnostic, never an automatic mode selection.
 
+`SolverOptions::structure` and `AmgOptions::structure` default to
+`OperatorStructure::General`. FV pressure explicitly selects
+`SymmetricMMatrix`: the caller guarantees symmetric nonpositive off-diagonals
+and diagonal dominance of the stored float rows, including on refresh. Setup
+validates this declaration. Nullspace selection remains independent and explicit.
+
 Constant projection removes the mean from the initial guess, residuals and
 preconditioned corrections, and from coarse RHS/corrections at every level.
 Reported residuals remain norms of the full stored operator's b-A*x. An
@@ -87,6 +93,14 @@ build only the operator, without entry maps; each intermediate Coarsening is
 released before the next is built. Refresh rebuilds only values and diagonals,
 retaining aggregates/maps. Large coefficient changes can reduce hierarchy
 quality; rebuild explicitly if needed.
+
+For `SymmetricMMatrix`, opposite coarse edges gather the same fine edges in
+canonical order, preserving exact stored symmetry. Each coarse diagonal is
+reconstructed as the upward-rounded sum of its stored edge magnitudes and
+aggregated fine-row surpluses. This is the graph form of `P^T A P`, rounded to
+preserve the M-matrix property; it does not add an arbitrary diagonal shift.
+Host setup/intermediate pairing and device refresh use the same upper-bound
+float accumulator. General matrices retain compensated entrywise Galerkin sums.
 
 A K-cycle uses up to two recursive inner Krylov corrections, with an adaptive
 0.25 residual-reduction exit. Inner SPD corrections use conjugate directions;

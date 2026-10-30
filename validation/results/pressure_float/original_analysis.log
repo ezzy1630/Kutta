@@ -1,0 +1,9 @@
+completed iterations=18, cells=3520
+symmetry error=0
+diagonal min/max=1.24645387463e-14/0.00592642463744
+negative row sums=1712, minimum row surplus=-3.45742989794e-10
+smallest eigenvalues=[-1.10101827e-11 -1.06578759e-11 -6.11089921e-14 -4.59997566e-16
+  1.77136879e-17]
+Cholesky: FAIL (stored matrix is not positive definite)
+diagonal-congruence eigenvalue min/max=-2.58868244431e-08/2.00000002589
+diagonal congruence retains an indefinite operator

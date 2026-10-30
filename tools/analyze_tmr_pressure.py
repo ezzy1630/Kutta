@@ -32,7 +32,10 @@ print(f"completed iterations={iteration}, cells={cells}")
 print(f"symmetry error={symmetry:.12g}")
 print(f"diagonal min/max={diagonal.min():.12g}/{diagonal.max():.12g}")
 print(f"negative row sums={np.count_nonzero(surplus < 0)}, minimum row surplus={surplus.min():.12g}")
-print(f"smallest eigenvalues={np.linalg.eigvalsh(matrix)[:5]}")
+eigenvalues = np.linalg.eigvalsh(matrix)
+print(f"smallest eigenvalues={eigenvalues[:5]}")
+if eigenvalues[0] > 0:
+    print(f"unscaled condition estimate={eigenvalues[-1] / eigenvalues[0]:.12g}")
 positive = False
 try:
     np.linalg.cholesky(matrix)
@@ -45,7 +48,10 @@ if np.all(diagonal > 0):
     scaled = matrix / scale[:, None] / scale[None, :]
     eigenvalues = np.linalg.eigvalsh(scaled)
     print(f"diagonal-congruence eigenvalue min/max={eigenvalues[0]:.12g}/{eigenvalues[-1]:.12g}")
-    print(f"diagonal-congruence condition estimate={eigenvalues[-1] / eigenvalues[0]:.12g}")
+    if eigenvalues[0] > 0:
+        print(f"diagonal-congruence condition estimate={eigenvalues[-1] / eigenvalues[0]:.12g}")
+    else:
+        print("diagonal congruence retains an indefinite operator")
 same_edges = True
 if args.compare:
     original, _ = load(args.compare)

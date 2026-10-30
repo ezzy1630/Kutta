@@ -1,0 +1,9 @@
+{
+  "baseline_source_commit": "152ac72eac4c78098b99d6e940834f4f1b3cdc75",
+  "recapture_matches_archived_matrix_byte_for_byte": true,
+  "uncompressed_original_and_recapture_sha256": "d5e201895f7f5f9a7e0bafabd5bfe39c69a127ef02a269b39f98b6302f94c0da",
+  "captured_completed_steps": 18,
+  "backend": "CPU reference (serial)",
+  "capture_inputs": "bump_iteration18.assembly.gz",
+  "replay_cpu_metal_coo_byte_identical": true
+}

@@ -1889,3 +1889,148 @@ and pressure-matrix evidence are retained in
 [`validation/results/tmr_v5`](../../../validation/results/tmr_v5/README.md).
 No result is relabelled converged, no failing assertion is skipped or marked
 expected-failure, and no test threshold was loosened after measurement.
+
+## Float pressure M-matrix repair (2026-10-29)
+
+**The stored-pressure definiteness defect is repaired. Aerodynamic verification
+remains separate.** Numerics are commit `be8b993`; reproducible pressure
+capture/replay tooling is `35042d5`. All results below use this checkout,
+`/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f`, Apple M4 Pro, macOS 26.6.2,
+AppleClang 21, C++20 Release, HDF5 enabled. The native test executable SHA-256 is
+`e77c1a44c9945e294a68fdaf17669e484441203da8106f3e0f6a89bc7da232cc`.
+Raw logs, assembly inputs, matrices, hashes and machine-readable results are in
+[`validation/results/pressure_float`](../../../validation/results/pressure_float/README.md).
+
+### Construction and scope
+
+Pressure first stores its symmetric nonpositive off-diagonals, gathering all
+faces shared by each cell pair into the same CSR entry. It then computes each
+diagonal from those **final stored entries**, once per neighbour, plus the
+stored float Dirichlet and eliminated-reference coefficients. Independent
+face-diagonal summation is removed from both runtime assembly and initial host
+hierarchy construction.
+
+The portable accumulator uses TwoSum to retain each float addition's exact
+rounding error. Its low word accumulates with upward rounding, and the final
+high-plus-low addition rounds upward too. `nextafter` advances only a result
+whose exact addition rounded down; exact sums and zero remain exact. This
+gives a tight upper bound without FP64 kernel arithmetic on Metal. There is no
+epsilon shift, tuned diagonal floor, atomic operation or new host field loop
+in solve/refresh. Overflow/nonfinite inputs still fail the existing solver
+guards; this construction assumes finite nonnegative coefficients and row
+sums within the representable float range.
+
+The resulting stored matrix is a symmetric weakly diagonally dominant
+M-matrix. Writing `w_ij=-a_ij>=0` and `s_i=a_ii-sum(w_ij)>=0`, its energy is
+`sum_{i<j} w_ij*(x_i-x_j)^2 + sum_i s_i*x_i^2`. It is positive semidefinite;
+it is positive definite when each connected stored-edge component has an
+anchor. Reference row **and column** elimination remains symmetric, with
+eliminated edges retained as diagonal anchors. Boundary conditions still
+select the explicit nullspace mode; rounded row sums do not select it.
+
+Pressure explicitly requests `OperatorStructure::SymmetricMMatrix`. Its AMG
+coarse edges use canonical fine-edge order, so opposite entries remain exactly
+equal. Coarse diagonals are reconstructed from the stored coarse edges plus
+aggregated fine-row surpluses, using the same upper-bound accumulator during
+host setup, intermediate pairing, and device refresh. This is a property-
+preserving rounding of the graph form of `P^T A P`, rather than a diagonal
+regularization. General AMG retains Neumaier entrywise Galerkin sums and its
+independent double `P^T A P` regression.
+
+Momentum and k/omega share the same vulnerable transport assembly. Their
+diagonals now use stored off-diagonals, net outward mass flux, boundary anchors
+and implicit sinks. This protects diffusion and solenoidal upwind transport.
+A genuinely negative transient mass surplus remains negative; nonsymmetric
+non-solenoidal transport is not falsely declared SPD. Relaxation, pseudo time,
+fixed wall-omega row scaling, and the positive SIMPLEC startup fallback remain.
+
+### Exact original-state replay and conditioning
+
+A CPU-only build of archived source `152ac72` recaptured the original face
+coefficients and provisional flux after 18 completed coarse-bump steps. Its
+entire COO output matches the archived unmodified matrix **byte for byte**.
+The new kernel reassembles those exact inputs; no state is inferred from a
+negative row sum and no boundary term is reconstructed from the matrix.
+
+| Independent double check | Original float operator | Reassembled float operator |
+| --- | ---: | ---: |
+| Symmetry error | 0 | 0 |
+| Negative row sums (`math.fsum`) | 1,712 | 0 |
+| Smallest eigenvalue | -1.10101827e-11 | +1.87656240e-17 |
+| Cholesky | FAIL | PASS |
+| Stored off-diagonals changed | — | 0 |
+
+CPU and Metal reassembly are byte identical. Exactly 1,750 diagonals change;
+the largest change is 4.65661287308e-10. Some diagonals decrease by tiny amounts
+where the previous independent sum rounded upward farther than the ceiling
+of the stored row. The diagonal range remains 1.24645387463e-14 to
+.0059264251031: no regularization removes the mesh's physical coefficient range.
+
+Diagonal scaling is useful for conditioning but cannot repair indefiniteness:
+the original operator remains indefinite under diagonal congruence. For the
+reassembled operator, the double spectral condition estimate falls from
+4.75113e14 to 3.85366e7 under `D^-1/2 A D^-1/2`. No float row/column scaling
+transform was added: it would itself require property-preserving rounding and
+an original-operator residual acceptance check. Existing L1/Jacobi smoothing
+and the repaired AMG meet the unchanged pressure linear gate in **six
+iterations on both backends**, full stored-operator residual ratio
+.000955778245003 (target .001).
+
+That replay also exposes a separate failure: the captured original state's
+RHS norm is already **1.33542359297e14**, and its pressure correction reaches
+**4.64774617491e25**. Thus the original nonpositive AMG diagonal was not the
+first evidence of a divergent flow transient. An actual repaired-path coarse
+matrix after 15 completed steps also has zero negative row sums and passing
+Cholesky (smallest eigenvalue 6.98154696e-14), even while its next monitor
+reports enormous loads. Positivity alone does not establish a stable nonlinear
+startup, local continuity accuracy, or an isolated SST-model discrepancy.
+
+### Retained numerical and portability gates
+
+The new quick regressions exercise a validated 32-cell graded mesh with cell
+widths spanning **1e7** and aspect ratio **2.5e7**. They check stored-value
+diagonal dominance and symmetry, independent double Cholesky, Dirichlet/pinned/
+Neumann variants, repeated neighbour faces, deterministic reassembly, diffusion/
+upwind/sink transport, actual pressure AMG operators through nonuniform refresh,
+and explicit constant-nullspace projection with incompatible-RHS rejection.
+The repeated-neighbour case fails on CPU and Metal with independent face-
+diagonal summation, and passes with structural assembly restored. Tests retain
+the full stored-operator residual; no convergence target is weakened.
+
+| Check | Result |
+| --- | --- |
+| Native quick tier, external Fluent fixtures | 161/161 cases; 1,539,181 assertions; **8.30 s** |
+| `ctest -LE slow`, including portability lint | 2/2 entries pass; **8.01 s** |
+| V1–V4 and Couette, CPU + Metal | 7 cases, 879 assertions; exactly the **six retained V2 tet wall-force failures**; 738.99 s |
+| V3 finest-pair orders, CPU u/v | 2.875062 / 2.712819, both above 1.6 |
+| V3 finest-pair orders, Metal u/v | 2.875029 / 2.712785, both above 1.6 |
+| V6, explicit external pair, CPU + Metal | Same **30 retained failures** / 2,605 assertions; 140.62 s |
+| CUDA 13.0.2 Docker CI configure/build | PASS, architecture list `75-real;86-real;89-real;120` |
+| CUDA-container CPU quick tier + portability lint | PASS: 160 cases / 809,150 assertions; GPU-presence case excluded as in CI |
+| CUDA GPU execution | Unverified; no NVIDIA device is available |
+
+V1 finest diffusion/SOU orders are 2.0020/1.9121 on hex and at least
+1.9310/1.9225 on tet. V2 hex velocity/pressure orders are 1.915134/1.818924 on
+both backends. The retained tet wall pressure/viscous/total force orders remain
+1.007284/.861350/.871823. V4 imported/matched-grid comparisons pass. No slow
+assertion or acceptance threshold was changed.
+
+### V6 measured numbers
+
+The external case/data hashes freshly match the V6 hashes above. These remain
+WFGC-disabled, standard-cold-proxy diagnostics; the original WFGC and hybrid
+initialization requirements still fail. Iterative convergence passes in all
+four runs, but saved-field, same-settings and accuracy gates still fail.
+
+| Backend/start | Steps | Solve s | Velocity L2 % | Pressure L2 % | k L2 % | omega L2 % | Drop Pa (error %) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| CPU seeded | 350 | 42.11 | 3.601603 | 2.962122 | 15.482040 | 8.474921 | .541470034 (1.187831) |
+| CPU cold proxy | 600 | 68.83 | 3.601375 | 2.961934 | 15.478484 | 8.474925 | .541454152 (1.184863) |
+| Metal seeded | 350 | 10.73 | 3.601602 | 2.962225 | 15.482037 | 8.474866 | .541469335 (1.187701) |
+| Metal cold proxy | 600 | 17.18 | 3.601376 | 2.961857 | 15.478487 | 8.474923 | .541454670 (1.184960) |
+
+Across those four runs, elbow-wall shear/total-force errors are
+2.2589%/1.5049–1.5078%; inlet-wall shear/total-force errors are
+.6096–.6098%/2.0692–2.0710%. Their .5% gates remain failed. Full SI force
+vectors, maxima, saved-field residuals and pressure normalization are retained
+in `slow_v6.log`; this change does not claim to resolve the prior V6 blockers.

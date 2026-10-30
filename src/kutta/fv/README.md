@@ -26,6 +26,12 @@ policy is centralized in `transport.hpp`. All operator work remains on Device;
 only the linear solver and explicitly requested monitors synchronize with the
 host.
 
+Transport diagonals use the final stored float off-diagonals plus net outward
+mass flux, stored boundary anchors and implicit sinks. A compensated upper-bound
+sum rounds the diagonal upward. Thus diffusion and solenoidal upwind transport
+retain diagonal dominance across graded cells. Negative transient mass surplus
+is retained; a non-solenoidal convection operator need not be diagonally dominant.
+
 The flow driver shares one uploaded CSR matrix workspace across its sequential
 equations. Each assembly overwrites the values and keeps each component's RHS
 and reconstruction separately. A standalone `TransportEquation` owns its own
@@ -137,6 +143,18 @@ correction row and column are eliminated, preserving symmetry for AMG-PCG.
 Pressure outlets remove the need for a pin. Disconnected domains are rejected;
 one pin would leave additional unconstrained pressure modes. Solver kinds are
 centralized in `transport.hpp` and use the current `solver.hpp` factory.
+
+Pressure assembly computes each diagonal from the final stored float CSR edges,
+once per neighbour, plus the stored boundary and eliminated-pin coefficients.
+TwoSum with upward rounding of its compensation and final result bounds that
+sum from above without FP64 or an epsilon shift. With finite nonnegative
+representable coefficients, the stored matrix is a symmetric weakly diagonally dominant
+M-matrix: positive semidefinite, and positive definite when every connected
+stored-edge component has a pressure anchor. Pressure requests
+`OperatorStructure::SymmetricMMatrix`, so AMG reconstructs coarse diagonals
+from stored coarse edges and aggregated fine-row surpluses too. See the dated
+float-pressure section in VERIFICATION.md for the original-state replay and
+remaining TMR transient failures.
 
 Automatic pseudo-time uses Fluent's conservative length scale,
 `.3 * min(cbrt(domain volume), max domain extent) /

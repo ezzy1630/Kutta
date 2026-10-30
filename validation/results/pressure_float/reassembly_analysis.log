@@ -1,0 +1,12 @@
+completed iterations=18, cells=3520
+symmetry error=0
+diagonal min/max=1.24645387463e-14/0.0059264251031
+negative row sums=0, minimum row surplus=0
+smallest eigenvalues=[1.87656240e-17 3.79282178e-17 6.42393331e-17 8.72917118e-17
+ 1.30002797e-16]
+unscaled condition estimate=4.75113292416e+14
+Cholesky: PASS
+diagonal-congruence eigenvalue min/max=5.18986909125e-08/1.9999999481
+diagonal-congruence condition estimate=38536616.4914
+off-diagonals unchanged=True, changed diagonals=1750
+diagonal change min/max=-6.93889390391e-18/4.65661287308e-10

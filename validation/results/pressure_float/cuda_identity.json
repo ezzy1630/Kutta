@@ -1,0 +1,10 @@
+{
+  "image": "nvidia/cuda:13.0.2-devel-ubuntu24.04",
+  "platform": "linux/amd64 under Docker on Apple silicon",
+  "image_id": "sha256:5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6",
+  "source_commit": "35042d5bea1f150ed736e7210e35a42d3c46ac78",
+  "source_mount": "this checkout at /src, read-only",
+  "architectures": "75-real;86-real;89-real;120",
+  "test_sha256": "daa7dce5b3e4cd6f6690dd59dfb8299c54b9c6d8f63e694ee3bf3a0a65e2767d",
+  "cuda_compiler": "/usr/local/cuda/bin/nvcc"
+}
