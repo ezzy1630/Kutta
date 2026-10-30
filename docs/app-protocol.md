@@ -611,9 +611,12 @@ prefixes.)
 
 `<equation>` is each residual name the solver reports (`continuity`,
 `x-velocity`, `y-velocity`, `z-velocity`, `k`, `omega`). Residual `check` and
-`absolute-criterion` come from the case's `residuals/settings` when they parse,
-otherwise `check` is `false` and the criterion is null (an enabled check needs a
-value: an override must supply one). Report entries exist for each force-type
+`absolute-criterion` come from the case's `residuals/settings` when its rows use
+the 7-element layout Kutta parses, otherwise `check` is `false` and the
+criterion is null. A raw row that also lists equations Kutta does not solve
+(energy, for example) stays read-only. A checked residual with a null criterion
+is exit 1 with an issue at `monitors/residual/<equation>/absolute-criterion`,
+whether or not checking is on. Report entries exist for each force-type
 report definition (`force`, `drag`, `lift`, `downforce`); other report kinds are
 listed read-only. Report defaults are Kutta's, not read from the case.
 
@@ -627,20 +630,24 @@ the final partial interval):
   than `ignore-before`, at least Np+1 samples after `ignore-before` exist, and
   `max over k=1..Np of |m(n-k+1) - m(n-k)| / |m(n)|` is **below** the stop
   criterion (Fluent's lag residuals; [Fluent 24.2 User's Guide §36.16](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_ug/flu_ug_convergence_conditions.html)).
-  m(n) = 0 is never met. Coefficients differ from forces by a constant factor,
+  m(n) = 0 is never met, and its value is null. Coefficients differ from forces by a constant factor,
   so the relative change is the same. Kutta evaluates reports at the monitor
   interval, so consecutive values are `run/monitor-interval` iterations apart;
   with interval 1 Np is exactly Fluent's Use Iterations, with a larger interval
   the check is stricter than Fluent's for the same Np.
 - **Combination**: the conditions are the residual condition (when any residual
   is checked) and each active report. `all` needs every condition met at the
-  same sample, `any` needs one. Checking on with no condition emits a warning
-  and runs to the iteration limit.
+  same sample, `any` needs one. Checking on with no condition emits the warning
+  "Convergence checking is on but no residual is checked and no report
+  condition is active; stopping at the requested iteration limit." and runs to
+  the iteration limit.
 
 When met, the run stops after that iteration and writes its outputs normally.
 `done` and `summary.json` then carry `"converged": true` and
-`"stop_reason": "converged"`. A user stop or the iteration limit keeps
-`converged: false`.
+`"stop_reason": "converged"`; this wins over a user stop or the iteration
+limit reached at the same sample. Otherwise `converged` stays false. Human
+output (no `--json`/`--progress`) evaluates the same conditions at the same
+samples.
 
 The `setup` event adds `convergence` (always present):
 
@@ -651,7 +658,8 @@ The `setup` event adds `convergence` (always present):
 ```
 
 `residuals` lists checked equations only. With checking on, each `iteration`
-event adds the state of every condition at that sample:
+event adds the state of every condition at that sample, residuals first and
+then active reports in report order:
 
 ```json
 "convergence":{"met":false,"conditions":[
@@ -689,7 +697,9 @@ stress on the fluid times face area, as in surface reports. `reference` holds
 the values the run solved with (case values after setup overrides; null when
 absent). `report_zones` is the union of the zones of the case's force report
 definitions, in report order (empty when there are none). The per-zone totals
-equal the wall rows of `forces.csv` to floating-point summation order.
+equal the wall rows of `forces.csv` to floating-point summation order. Solve
+deletes an earlier `loads.json` and `aero.json` in the output directory when it
+starts, so neither can describe a different solution.
 
 `kutta aero DIR [--aero spec.json] [--json]` reads only `loads.json`, so it
 takes milliseconds and never re-solves; changing groups, axes or vehicle
@@ -698,8 +708,8 @@ with `--json` prints `{"v":1,"event":"aero", ...the same object}`. A run
 without `loads.json` (solved before this addition) is exit 1 with an `error`
 event; invalid specs are exit 2.
 
-The spec is strict JSON (`v:1`, at most 1 MiB, unknown or duplicate keys
-rejected); every key is optional:
+The spec is strict JSON (at most 1 MiB, unknown or duplicate keys rejected);
+every key is optional, and `v`, when given, must be 1:
 
 ```json
 {"v":1,
@@ -721,9 +731,10 @@ rejected); every key is optional:
 - `groups` have unique nonempty names; their zones must be car zones and each
   zone may be in at most one group. Car zones in no group are listed in
   `ungrouped`.
+- `car_zones` and each group's `zones` are nonempty and list a zone once.
 - `vehicle.front_axle` is the front tyre contact point (m) and `wheelbase` (m,
-  > 0) the distance to the rear contact point along the drag axis. Without a
-  vehicle there is no balance.
+  > 0) the distance to the rear contact point along the drag axis; a vehicle
+  needs both. Without a vehicle there is no balance.
 
 `aero.json`:
 
@@ -756,10 +767,11 @@ rejected); every key is optional:
   axis, `roll` on the drag axis, `yaw` on the lift axis. With the defaults a
   positive pitch raises the front (the nose, upstream) of the car.
 - Coefficients divide forces by `q A` and moments by `q A L`, with `q = ½ ρ V²`
-  from the run's reference values. They are null when density, velocity or area
-  is missing or not positive; moment coefficients are also null without a
-  positive length. `cla` and `cda` are `cl·A` and `cd·A` in m², independent of
-  the reference area. `downforce_share` is the row's share of the total
+  from the run's reference values. Every key of `coefficients` is always
+  present. Force coefficients are null when density, velocity or area is
+  missing or not positive; moment coefficients are also null without a
+  positive length. `cla` and `cda` are lift and drag over `q` in m² (`cl·A`,
+  `cd·A`): they need density and velocity but not the area. `downforce_share` is the row's share of the total
   downforce (null when the total is zero).
 - `lift_to_drag` is total downforce over total drag (null for zero drag).
 - `balance`: with F the total force and M_C the total moment about the moment
@@ -771,5 +783,6 @@ rejected); every key is optional:
   `100 front_load / downforce` and `cop_from_front_axle` is
   `wheelbase · rear_load / downforce`, the distance behind the front axle at
   which the total downforce alone would give the same split. `status` is
-  `"defined"`, `"needs_vehicle"` (no vehicle in the spec; numbers null) or
+  `"defined"`, `"needs_vehicle"` (no vehicle in the spec; every other balance
+  field, including `front_axle` and `wheelbase`, null) or
   `"no_downforce"` (total downforce ≤ 0: loads given, percentage and CoP null).

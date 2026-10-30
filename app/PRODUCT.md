@@ -70,8 +70,14 @@ it does not mesh and does not replace Fluent's pre-processing.
 - Support verdict per case: supported, approximate (runs only after explicit
   opt-in per approximation), unsupported (blocked). An approximate result must
   never look faithful anywhere: badges, headers, history, exports, screenshots.
-- The CLI has no convergence criteria yet: runs stop at the iteration cap and
-  record `converged=false`. The app must not claim convergence.
+- Convergence criteria (Fluent's residual criteria and report convergence
+  conditions) are off by default, as in older scripts: a run stops at its
+  iteration cap unless the user turns checking on, and the app claims
+  convergence only when the CLI reports which conditions were met.
+- Aero numbers (coefficients, groups, balance, centre of pressure) come from
+  `kutta aero` over the run's wall loads, so changing groups or the vehicle
+  never re-solves. Design studies are the app queueing ordinary runs; each
+  variant is a run with its own provenance.
 
 ## Evidence on Hand
 

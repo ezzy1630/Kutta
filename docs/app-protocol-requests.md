@@ -37,6 +37,23 @@ boundary without a run (0.16 s on the elbow), and zones carry a KUTL edges
 file of their polygon edges, so the app shows the mesh as soon as a case
 opens, with face edges rather than triangle diagonals.
 
+## Done (aero and convergence)
+
+The CLI now gives the numbers an FSAE aero engineer designs with;
+`docs/app-protocol.md` has the wire format.
+
+5. **Convergence criteria.** The case's residual criteria and report
+   convergence conditions (Fluent's lag residual over the last N values) are
+   `monitors/` run controls, off by default. Iteration events carry each
+   condition's state; `done` and `summary.json` say which conditions stopped
+   the run. The seeded elbow with checking on stops at iteration 120 on its
+   own residual criteria (2.8 s on Metal).
+6. **Wall loads and `kutta aero`.** `solve` writes `loads.json` (per-wall
+   pressure and viscous force and moment). `kutta aero` turns it into
+   coefficients, a group breakdown, balance and centre of pressure in
+   milliseconds, so editing groups or the vehicle never re-solves. On the
+   elbow its totals match `forces.csv` to 4e-9 relative.
+
 ## Resolved since
 
 - **The monitor interval changed the solution.** Found while testing request
@@ -68,5 +85,12 @@ opens, with face edges rather than triangle diagonals.
   would make badges more specific.
 - **Stop.** Closing stdin through QProcess's pipe stops the run after the
   current iteration with outputs written; verified by the app's real-CLI test.
+- **Report sampling.** Report conditions use values at the monitor interval,
+  so with an interval above 1 they are stricter than Fluent's per-iteration
+  check for the same N. A per-iteration force reduction would match Fluent
+  exactly, at the cost measured above for residuals.
+- **Residual criteria in other layouts.** Only the 7-element residual rows
+  parse; elbow1's 10-element rows leave checking off with a null criterion,
+  and the user must enter one to check that equation.
 - **Wording.** Fixed: the protocol doc describes the app as a native Qt
   child-process host, not a "sidecar".
