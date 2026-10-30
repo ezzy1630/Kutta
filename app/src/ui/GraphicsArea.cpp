@@ -17,36 +17,6 @@
 
 namespace kapp {
 
-QStringList defaultVisibleItems(const SceneData& s)
-{
-    // External aero: the car's surfaces. Internal flow: the planes through it
-    // (a slice, else the symmetry plane), since walls enclose the flow.
-    bool ground = false;
-    QStringList walls, slices, symmetry;
-    for (const auto& it : s.items) {
-        if (it.kind == ItemKind::Slice) slices << it.id;
-        if (it.kind != ItemKind::Zone) continue;
-        if (it.id.contains("ground")) ground = true;
-        else if (it.zoneType == "wall") walls << it.id;
-        else if (it.zoneType == "symmetry") symmetry << it.id;
-    }
-    if (ground || (slices.isEmpty() && symmetry.isEmpty())) return walls;
-    return slices.isEmpty() ? symmetry : slices;
-}
-
-FieldRef defaultField(const SceneData& s)
-{
-    const auto fields = s.availableFields();
-    const bool external = std::any_of(s.items.begin(), s.items.end(), [](const SceneItem& i) { return i.id.contains("ground"); });
-    const QStringList prefs = external ? QStringList{"pressure_coefficient", "pressure", "velocity_magnitude"}
-                                       : QStringList{"velocity_magnitude", "velocity", "pressure"};
-    const FieldRole role = s.runDelta ? FieldRole::Run : FieldRole::Kutta;
-    for (const QString& q : prefs)
-        for (const auto& f : fields)
-            if (f.quantity == q && f.role == role && f.component < 0) return f;
-    return fields.empty() ? FieldRef{} : fields.front();
-}
-
 namespace {
 
 QToolButton* toolButton(const QString& icon, const QString& name, QWidget* parent)

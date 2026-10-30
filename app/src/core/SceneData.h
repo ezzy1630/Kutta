@@ -95,5 +95,15 @@ QColor zoneColor(int index);
 // enclosing box (ground, tunnel sides, far-field inlet/outlet) nor symmetry
 // planes that would hide the inside of the domain.
 QStringList defaultMeshItems(const SceneData& s);
+// A face of the enclosing box (a ground plane, tunnel sides, far-field
+// planes): flat in one axis and spanning the domain in the other two.
+bool enclosesDomain(const SceneItem& it, const Bounds& domain);
+// External aero: walls that enclose the domain (or are named ground) beside
+// walls that do not, the body. Pipes and ducts are internal.
+bool isExternalFlow(const SceneData& s);
+bool isEnclosingWall(const SceneItem& it, const SceneData& s);
+// What a results view shows first, and the field it is coloured by.
+QStringList defaultVisibleItems(const SceneData& s);
+FieldRef defaultField(const SceneData& s);
 
 } // namespace kapp

@@ -103,7 +103,4 @@ private:
     bool m_syncing = false;
 };
 
-QStringList defaultVisibleItems(const SceneData& s);
-FieldRef defaultField(const SceneData& s);
-
 } // namespace kapp

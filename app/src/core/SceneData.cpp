@@ -314,26 +314,82 @@ QColor zoneColor(int index)
     return index / n % 2 ? c.lighter(135) : c;
 }
 
+bool enclosesDomain(const SceneItem& it, const Bounds& domain)
+{
+    if (it.kind != ItemKind::Zone || !it.mesh || !domain.valid) return false;
+    const Bounds b = it.mesh->bounds();
+    const QVector3D e = domain.max - domain.min, z = b.max - b.min;
+    // Flat within 0.1% of the domain: float noise or a slight slope in a
+    // ground mesh must not make it a body.
+    int span = 0, flat = 0;
+    for (int a = 0; a < 3; ++a) {
+        span += e[a] > 0 && z[a] >= 0.98f * e[a];
+        flat += z[a] <= 1e-3f * e.length();
+    }
+    return span >= 2 && flat >= 1;
+}
+
+bool isEnclosingWall(const SceneItem& it, const SceneData& s)
+{
+    return it.kind == ItemKind::Zone && it.zoneType == "wall" && (enclosesDomain(it, s.bounds) || it.id.contains("ground"));
+}
+
+bool isExternalFlow(const SceneData& s)
+{
+    bool enclosure = false, body = false;
+    for (const auto& it : s.items) {
+        if (it.kind != ItemKind::Zone || it.zoneType != "wall") continue;
+        (isEnclosingWall(it, s) ? enclosure : body) = true;
+    }
+    return enclosure && body;
+}
+
 QStringList defaultMeshItems(const SceneData& s)
 {
-    const Bounds dom = s.bounds;
     QStringList body, all;
     for (const auto& it : s.items) {
         if (it.kind != ItemKind::Zone || !it.mesh) continue;
         all << it.id;
         if (it.zoneType == "symmetry" || it.zoneType == "interior") continue;
-        const Bounds b = it.mesh->bounds();
-        const QVector3D e = dom.max - dom.min, z = b.max - b.min;
-        // A face of the enclosing box: flat in one axis, spanning the domain in the other two.
-        int span = 0, flat = 0;
-        for (int a = 0; a < 3; ++a) {
-            span += e[a] > 0 && z[a] >= 0.98f * e[a];
-            flat += z[a] <= 1e-6f * std::max(1.0f, e.length());
-        }
-        if (span >= 2 && flat >= 1) continue;
+        if (enclosesDomain(it, s.bounds)) continue;
         body << it.id;
     }
     return body.isEmpty() ? all : body;
+}
+
+QStringList defaultVisibleItems(const SceneData& s)
+{
+    // External aero: the body's walls, without the ground or tunnel. Internal
+    // flow: the planes through it (a slice, else the symmetry plane), since
+    // walls enclose the flow.
+    QStringList walls, slices, symmetry;
+    for (const auto& it : s.items) {
+        if (it.kind == ItemKind::Slice) slices << it.id;
+        if (it.kind != ItemKind::Zone) continue;
+        if (it.zoneType == "wall" && !isEnclosingWall(it, s)) walls << it.id;
+        else if (it.zoneType == "symmetry") symmetry << it.id;
+    }
+    if (isExternalFlow(s)) return walls;
+    if (slices.isEmpty() && symmetry.isEmpty()) {
+        QStringList all;
+        for (const auto& it : s.items)
+            if (it.kind == ItemKind::Zone && it.zoneType == "wall") all << it.id;
+        return all;
+    }
+    return slices.isEmpty() ? symmetry : slices;
+}
+
+FieldRef defaultField(const SceneData& s)
+{
+    const auto fields = s.availableFields();
+    const bool external = isExternalFlow(s);
+    const QStringList prefs = external ? QStringList{"pressure_coefficient", "pressure", "velocity_magnitude"}
+                                       : QStringList{"velocity_magnitude", "velocity", "pressure"};
+    const FieldRole role = s.runDelta ? FieldRole::Run : FieldRole::Kutta;
+    for (const QString& q : prefs)
+        for (const auto& f : fields)
+            if (f.quantity == q && f.role == role && f.component < 0) return f;
+    return fields.empty() ? FieldRef{} : fields.front();
 }
 
 std::shared_ptr<SceneData> runDifference(const SceneData& a, const SceneData& b, QStringList* skipped)

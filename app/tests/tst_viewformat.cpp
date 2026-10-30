@@ -25,11 +25,61 @@ MeshData triangle()
     m.fields.push_back(f);
     return m;
 }
+MeshData quad(QVector3D a, QVector3D b, QVector3D c, QVector3D d)
+{
+    MeshData m;
+    for (const QVector3D& v : {a, b, c, d}) m.positions.insert(m.positions.end(), {v.x(), v.y(), v.z()});
+    m.indices = {0, 1, 2, 0, 2, 3};
+    return m;
+}
+
+SceneItem zone(const QString& name, const QString& type, MeshData mesh)
+{
+    SceneItem it;
+    it.id = "zone:" + name;
+    it.kind = ItemKind::Zone;
+    it.zoneType = type;
+    it.mesh = std::make_shared<PreparedMesh>(std::move(mesh));
+    return it;
+}
+
+std::shared_ptr<SceneData> scene(std::vector<SceneItem> items)
+{
+    auto s = std::make_shared<SceneData>();
+    for (auto& it : items) s->bounds.expand(it.mesh->bounds());
+    s->items = std::move(items);
+    return s;
+}
 } // namespace
 
 class TestViewFormat : public QObject {
     Q_OBJECT
 private slots:
+    // A ground plane is found by its shape, whatever it is called: a flat wall
+    // spanning the domain (with float noise) is not the body. Pipe and duct
+    // walls are internal flow.
+    void enclosingWallsAreNotTheBody()
+    {
+        const auto car = scene({
+            zone("road", "wall", quad({-5, -2, 0}, {10, -2, 0}, {10, 2, 1e-4f}, {-5, 2, 0})),
+            zone("body", "wall", quad({0, -0.5f, 0.1f}, {2, -0.5f, 0.1f}, {2, 0.5f, 0.6f}, {0, 0.5f, 0.6f})),
+            zone("roof", "wall", quad({-5, -2, 4}, {10, -2, 4}, {10, 2, 4}, {-5, 2, 4})),
+            zone("side", "symmetry", quad({-5, 0, 0}, {10, 0, 0}, {10, 0, 4}, {-5, 0, 4})),
+        });
+        QVERIFY(isExternalFlow(*car));
+        QCOMPARE(defaultMeshItems(*car), QStringList{"zone:body"});
+        QCOMPARE(defaultVisibleItems(*car), QStringList{"zone:body"});
+
+        // A square duct's walls are all flat and span it: internal, so its symmetry plane shows.
+        const auto duct = scene({
+            zone("floor", "wall", quad({0, 0, 0}, {10, 0, 0}, {10, 1, 0}, {0, 1, 0})),
+            zone("top", "wall", quad({0, 0, 1}, {10, 0, 1}, {10, 1, 1}, {0, 1, 1})),
+            zone("mid", "symmetry", quad({0, 0.5f, 0}, {10, 0.5f, 0}, {10, 0.5f, 1}, {0, 0.5f, 1})),
+        });
+        QVERIFY(!isExternalFlow(*duct));
+        QCOMPARE(defaultVisibleItems(*duct), QStringList{"zone:mid"});
+    }
+
     void roundTrip()
     {
         ViewPart part;
