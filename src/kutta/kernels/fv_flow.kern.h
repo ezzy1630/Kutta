@@ -17,21 +17,16 @@ KUTTA_KERNEL void fv_velocity_boundary(int i,KIn(int) owner,KIn(int) kind,
   float a2=sx[f]*sx[f]+sy[f]*sy[f]+sz[f]*sz[f];
   scalar_kind[i]=0;
   if((type==2 || type==4) && flux[f]>=0.0f) {
-    x=u[p]+ux[p]*rx[f]+uy[p]*ry[f]+uz[p]*rz[f];
-    y=v[p]+vx[p]*rx[f]+vy[p]*ry[f]+vz[p]*rz[f];
-    z=w[p]+wx[p]*rx[f]+wy[p]*ry[f]+wz[p]*rz[f];
-    scalar_kind[i]=1;
+    x=u[p];y=v[p];z=w[p];
+    scalar_kind[i]=2; // cell-value outflow: no diffusion or SOU correction
   }
   if(type==4 && flux[f]<0.0f) {
     float area=ksqrt(a2),speed=flux[f]/(rho*area);
     x=speed*(sx[f]/area);y=speed*(sy[f]/area);z=speed*(sz[f]/area);
   }
   if(type==3) {
-    float along=(rx[f]*sx[f]+ry[f]*sy[f]+rz[f]*sz[f])/a2;
-    float tx=rx[f]-along*sx[f],ty=ry[f]-along*sy[f],tz=rz[f]-along*sz[f];
-    x=u[p]+ux[p]*tx+uy[p]*ty+uz[p]*tz;
-    y=v[p]+vx[p]*tx+vy[p]*ty+vz[p]*tz;
-    z=w[p]+wx[p]*tx+wy[p]*ty+wz[p]*tz;
+    x=u[p];y=v[p];z=w[p];
+    scalar_kind[i]=2; // symmetry has no net viscous flux
   }
   if(type==0 || type==3) {
     float normal=(x*sx[f]+y*sy[f]+z*sz[f])/a2;
@@ -46,11 +41,15 @@ KUTTA_KERNEL void fv_pressure_boundary(int i,KIn(int) owner,KIn(int) kind,
     KOut(float) boundary,int internal) {
   int f=i+internal,c=owner[f];
   float x=rx[f],y=ry[f],z=rz[f];
-  if(kind[i]==3) {
-    float along=(x*sx[f]+y*sy[f]+z*sz[f])/(sx[f]*sx[f]+sy[f]*sy[f]+sz[f]*sz[f]);
-    x-=along*sx[f];y-=along*sy[f];z-=along*sz[f];
-  }
   boundary[i]=(kind[i]==2 || kind[i]==4)?prescribed[i]:p[c]+gx[c]*x+gy[c]*y+gz[c]*z;
+}
+
+// Storage/LSQ pressure data are distinct from extrapolated momentum face data.
+// Non-outlet observations constrain the difference to zero without feeding a
+// previous gradient back into its own least-squares reconstruction.
+KUTTA_KERNEL void fv_pressure_lsq_boundary(int i,KIn(int) owner,KIn(int) kind,
+    KIn(float) p,KIn(float) boundary,KOut(float) observation,int internal) {
+  observation[i]=(kind[i]==2 || kind[i]==4)?boundary[i]:p[owner[i+internal]];
 }
 
 KUTTA_KERNEL void fv_pressure_faces(int i,KIn(int) owner,KIn(int) neighbour,

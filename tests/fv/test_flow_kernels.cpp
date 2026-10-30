@@ -34,7 +34,7 @@ TEST_CASE("FV momentum face interpolation is affine exact with unequal diagonals
   }
 }
 
-TEST_CASE("FV pressure symmetry boundary extrapolates only within its plane") {
+TEST_CASE("FV pressure symmetry boundary uses the full centroid displacement") {
   auto mesh=make_box_tet(2,2,2,{0,0,0},{1,1,1});
   const auto g=compute_geometry(mesh);
   KUTTA_FOR_EACH_BACKEND(dev) {
@@ -50,9 +50,7 @@ TEST_CASE("FV pressure symmetry boundary extrapolates only within its plane") {
       prescribed,bc,m.n_internal_faces);
     auto got=dev->download(bc);
     for(Index f=m.n_internal_faces;f<m.n_faces;++f) {
-      const auto n=g.face_area[f]/norm(g.face_area[f]);
       auto r=g.face_centroid[f]-g.cell_centroid[mesh.owner[f]];
-      r=r-n*dot(r,n);
       CHECK(got[f-m.n_internal_faces]==doctest::Approx(2+dot(Vec3d{1,2,3},r)).epsilon(1e-6));
     }
   }

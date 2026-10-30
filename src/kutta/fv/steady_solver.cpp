@@ -63,7 +63,7 @@ struct SteadySolver::Impl {
   Buffer<float> wall_diagonal,wall_rhs,physical_diagonal,consistent_inverse;
   DeviceVec3 transpose_stress;
   DeviceVec3 velocity,body,boundary_velocity,prescribed_velocity,source,face_velocity;
-  Buffer<float> pressure,mass,viscosity,boundary_pressure,prescribed_pressure;
+  Buffer<float> pressure,mass,viscosity,boundary_pressure,pressure_observation,prescribed_pressure;
   Buffer<Index> boundary_kind,scalar_kind;
   DeviceVec3 grad_p;
   std::unique_ptr<TransportEquation> momentum[3];
@@ -116,6 +116,7 @@ struct SteadySolver::Impl {
     pressure=dev.alloc<float>(n);dev.fill(pressure,0);
     mass=dev.alloc<float>(nf);dev.fill(mass,0);viscosity=dev.alloc<float>(nf);dev.fill(viscosity,float(settings.viscosity));
     boundary_pressure=dev.alloc<float>(nb);dev.fill(boundary_pressure,0);
+    pressure_observation=dev.alloc<float>(nb);
     prescribed_pressure=dev.alloc<float>(nb);boundary_kind=dev.alloc<Index>(nb);scalar_kind=dev.alloc<Index>(nb);
     pressure_rhs=dev.alloc<float>(n);correction=dev.alloc<float>(n);dev.fill(correction,0);
     correction_boundary=dev.alloc<float>(nb);dev.fill(correction_boundary,0);
@@ -147,17 +148,17 @@ struct SteadySolver::Impl {
     dev.upload<Index>(total_pressure,totals);
     std::vector<Index> independent_velocity(nb),independent_pressure(nb),independent_k(nb),independent_omega(nb);
     for(Index b=0;b<nb;++b) {
-      independent_velocity[b]=kinds[b]==0 || kinds[b]==1;
-      independent_pressure[b]=kinds[b]==2 || kinds[b]==4;
+      independent_velocity[b]=kinds[b]==0 || kinds[b]==1 || kinds[b]==3;
+      independent_pressure[b]=1;
       independent_k[b]=kinds[b]==1;independent_omega[b]=kinds[b]==0 || kinds[b]==1;
     }
     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
     upload_vectors(dev,prescribed_velocity,velocities);
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
     for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
+    velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity);
+    pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure);
     if(settings.sst) {
-      velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity);
-      pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure);
       const auto& t=*settings.sst;
       KUTTA_REQUIRE(t.k_relaxation>0 && t.k_relaxation<=1 && t.omega_relaxation>0 && t.omega_relaxation<=1,"FV invalid SST relaxation");
       k_lsq=boundary_least_squares(dev,host,geom,independent_k);
@@ -320,17 +321,14 @@ struct SteadySolver::Impl {
       prescribed_velocity.x,prescribed_velocity.y,prescribed_velocity.z,mass,
       boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,scalar_kind,mesh.n_internal_faces,float(settings.density));
   }
-  // The boundary-aware reconstruction belongs to the SST operator. Laminar
-  // flow retains the verified full stencil, including extrapolated face data.
   void reconstruct_velocity() {
-    if(sst) vector_gradient(dev,mesh,stencil,velocity_lsq,velocity,boundary_velocity,
-      momentum[0]->grad,momentum[1]->grad,momentum[2]->grad);
-    else vector_gradient(dev,mesh,stencil,velocity,boundary_velocity,
+    vector_gradient(dev,mesh,stencil,velocity_lsq,velocity,boundary_velocity,
       momentum[0]->grad,momentum[1]->grad,momentum[2]->grad);
   }
   void reconstruct_pressure(const Buffer<float>& field,const Buffer<float>& boundary,DeviceVec3& grad) {
-    if(sst) gradient(dev,mesh,stencil,pressure_lsq,field,boundary,grad);
-    else gradient(dev,mesh,stencil,field,boundary,grad);
+    kern::fv_pressure_lsq_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
+      field,boundary,pressure_observation,mesh.n_internal_faces);
+    gradient(dev,mesh,stencil,pressure_lsq,field,pressure_observation,grad);
   }
   void update_pressure() {
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,

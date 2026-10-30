@@ -18,7 +18,7 @@ KUTTA_KERNEL void fv_transport_faces(int i, KIn(int) owner, KIn(int) neighbour,
     conv=limiter[up]*(gx[up]*rx+gy[up]*ry+gz[up]*rz)*flux[i];
   } else {
     if(kind[i-internal]!=0) x=y=z=0.0f;
-    if(flux[i]>0.0f) conv=limiter[p]*(gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])*flux[i];
+    if(flux[i]>0.0f && kind[i-internal]!=2) conv=limiter[p]*(gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])*flux[i];
   }
   correction[i]=mu[i]*(x*tx[i]+y*ty[i]+z*tz[i])-(second_order!=0?conv:0.0f);
 }
