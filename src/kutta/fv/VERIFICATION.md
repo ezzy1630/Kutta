@@ -2034,3 +2034,127 @@ Across those four runs, elbow-wall shear/total-force errors are
 .6096–.6098%/2.0692–2.0710%. Their .5% gates remain failed. Full SI force
 vectors, maxima, saved-field residuals and pressure normalization are retained
 in `slow_v6.log`; this change does not claim to resolve the prior V6 blockers.
+
+
+### V5 frozen rerun: flat plate
+
+The original V5 settings, uniform initialization, three grids, 3,000-step /
+600-second per-grid budget and every gate are unchanged. The following
+before values are the original retained V5 measurements, not a new baseline
+run. All six repaired-path plate runs reach 3,000 steps. Timings are observed
+on this shared machine; they are not isolated speedup measurements.
+
+| Grid | Backend | Solve s | Cf(.97) | CD | Continuity before / after | Cf change % |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 35x25 | cpu | 8.93 | 0.00264909846 | 0.00280631200 | 0.001576 / 0.000448 | -0.000469 |
+| 69x49 | cpu | 39.62 | 0.00269533063 | 0.00285632816 | 0.006299 / 0.007839 | -0.001336 |
+| 137x97 | cpu | 213.20 | 0.00271377013 | 0.00287685782 | 0.043738 / 0.028116 | -0.005119 |
+| 35x25 | metal | 95.24 | 0.00264909988 | 0.00280631263 | 0.002337 / 0.001292 | -0.000344 |
+| 69x49 | metal | 101.13 | 0.00269533061 | 0.00285632817 | 0.002724 / 0.011241 | -0.001328 |
+| 137x97 | metal | 123.32 | 0.00271376979 | 0.00287685755 | 0.029880 / 0.024713 | -0.005182 |
+
+
+Finest CPU raw errors are +.851647% Cf and +.824787% CD, both within the frozen
+5%/7% limits. The endpoint error norm decreases from 1.647621% to .851647%;
+Metal gives the same trend. Relative to the original study, finest Cf changes
+-.005119% (CPU) / -.005182% (Metal). The structural fix therefore preserves the
+plate's force accuracy while leaving its convergence gate unmet.
+
+Every plate field defect and final load-change value passes its numerical
+limit; **normalized provisional continuity still fails on every grid**.
+The finest CPU value .0281158 is about 2,812 times the 1e-5 gate; Metal is
+.0247128. Corrected mass imbalance is 5.19e-8 / 4.87e-8 on the finest CPU /
+Metal grids. Those small absolute values do not waive the normalized gate.
+The change does not turn these diagnostics into accepted V5 plate solutions.
+
+
+### V5 frozen rerun: bump
+
+The coarse/middle grids still diverge, now with a nonfinite linear-solve input
+rather than the original coarse CPU nonpositive AMG diagonal. Failed states
+remain NaN. The pressure construction fixes definiteness; it does not repair
+this nonlinear transient.
+
+| Grid | Backend | Completed steps before / after | Solve s after | Outcome after |
+| --- | --- | ---: | ---: | --- |
+| 89x41 | CPU | 18 / 16 | .18 | Nonfinite linear-solve input |
+| 177x81 | CPU | 474 / 467 | 19.69 | Nonfinite linear-solve input |
+| 353x161 | CPU | 2,300 / 2,200 | 618.76 | Time budget; load change 2.0295% |
+| 89x41 | Metal | 17 / 13 | .23 | Nonfinite linear-solve input |
+| 177x81 | Metal | 474 / 456 | 8.70 | Nonfinite linear-solve input |
+| 353x161 | Metal | 3,000 / 3,000 | 152.20 | Iteration limit; load change 1.2115% |
+
+The CPU time cutoff is still **600 seconds, checked every 100 steps**. The
+618.76-second endpoint is the first completed check after that cutoff, just
+as the original run checked at 623.37 seconds. It does not use a larger
+budget. The current CPU fine result has 100 fewer outer steps than the prior
+study; comparing its raw loads is not an equal-iteration accuracy comparison.
+
+Fine-grid station results are all **unconverged**:
+
+| Station x | CFL3D 2003m Cf | CPU Cf (error %) | Metal Cf (error %) | CFL3D Cp | CPU Cp | Metal Cp |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.6321975 | 0.005024713 | 0.005559935 (+10.652) | 0.005343091 (+6.336) | -0.2505676 | -0.2501620 | -0.2488455 |
+| 0.75 | 0.005933283 | 0.006807337 (+14.731) | 0.006503838 (+9.616) | -0.6698700 | -0.6544345 | -0.6504617 |
+| 0.8678025 | 0.002602456 | 0.003317696 (+27.483) | 0.002934327 (+12.752) | -0.2466382 | -0.2526301 | -0.2498536 |
+
+
+All six raw Cp accuracy checks pass. CPU front/peak/aft Cf now fail, and Metal
+aft Cf still fails. The additional CPU front Cf assertion (10.652% versus the
+prior 9.930%) raises the V5 total from **25 to 26 failed assertions / 83**;
+these are unequal, budget-limited transient endpoints, not a changed gate.
+Neither backend has three finite grid outcomes, so both bump trend gates
+still fail. Fine normalized continuity is .000213026 (CPU) / .000179141
+(Metal), also above 1e-5. The load changes remain above .1%.
+
+Fine CD is .004047988055 (CPU, +13.005% from finest CFL3D) and .003846721258
+(Metal, +7.386%). No drag gate is introduced after observing those values.
+Plate and bump doctest cases take 581.83 and 801.28 seconds, respectively.
+All ten slow cases, executed in the scoped runs, retain **62 failures**:
+six V2, thirty V6, twenty-six V5. Previously accepted V1–V4 gates remain
+passed; neither V5 case is accepted. Stable nonlinear startup and the
+continuity floor remain open before a FSAE aero accuracy claim is justified.
+
+### Repair reproduction and evidence identity
+
+All native quick and slow runs explicitly set
+`KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples`.
+The original matrix and original V5 results are retained unchanged. The new
+`bump_iteration18.assembly.gz` contains actual captured inputs, not an edited
+operator. `identity.json`, `cuda_identity.json`, `source_sha256.json` and
+`artifact_sha256.json` bind the tests, source files, image and matrices to the
+recorded artifacts. Documentation/plotting changes after `35042d5` do not
+change the compiled numerical sources or test executable.
+
+```sh
+cmake -S . -B build -G Ninja
+cmake --build build
+python3 tools/prepare_tmr.py
+export KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples
+./build/kutta-tests --test-suite-exclude=slow
+ctest --test-dir build -LE slow --output-on-failure
+# These scoped slow runs retain their real nonzero exit statuses:
+./build/kutta-tests --test-suite=slow --test-case-exclude='V5*,*V6*' --duration
+./build/kutta-tests --test-suite=slow --test-case='*V6*' --duration
+./build/kutta-tests --test-suite=slow --test-case='V5*' --duration
+python3 tools/report_tmr.py --test-log build/verification/slow_v5.log \
+  --output validation/results/pressure_float
+python3 tools/analyze_tmr_pressure.py \
+  validation/results/pressure_float/bump_iteration18_reassembled.coo.gz \
+  --compare validation/results/tmr_v5/bump_pressure_iteration18.coo.gz --require-spd
+```
+
+The capture/replay and plotting commands are in the evidence README. CUDA
+uses the unchanged CI configure flags in
+`nvidia/cuda:13.0.2-devel-ubuntu24.04`, linux/amd64 under Docker:
+
+```sh
+cmake -S . -B build -G Ninja -DKUTTA_ENABLE_CUDA=ON \
+  -DCMAKE_CUDA_ARCHITECTURES='75-real;86-real;89-real;120'
+cmake --build build
+./build/kutta-tests --test-suite-exclude=slow \
+  --test-case-exclude='compiled GPU backends*'
+```
+
+Local commits only. No push, deployment, remote resource change, solver-gate
+relaxation or case-specific tuning is part of this repair.

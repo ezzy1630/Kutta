@@ -8,5 +8,10 @@
     "check": "slow_v6",
     "exit": 1,
     "seconds": 140.6212675839197
+  },
+  {
+    "check": "slow_v5",
+    "exit": 1,
+    "seconds": 1383.1283112911042
   }
 ]
