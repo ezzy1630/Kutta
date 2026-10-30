@@ -10,8 +10,13 @@ A local, GPU-native CFD solver for car aerodynamics. Its first goal is to reprod
 - Fluent-style SST constitutive kernels and smooth-wall closure, verified against
   the saved mixing-elbow fields on CPU and Metal.
 
-The flow solver is in progress; the SST transport/momentum assembly is not yet
-integrated. No accuracy or speed claims are made until they are measured; see the gates in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+SST transport, effective momentum stress and wall shear are coupled into the
+steady solver. The strict Fluent setup adapter rejects unsupported spatial
+settings and initializers. V6 currently retains failing accuracy gates; its
+explicitly labelled elbow diagnostic disables Fluent's undocumented warped-face
+correction and substitutes standard initialization for hybrid initialization.
+See [the measured results](src/kutta/fv/VERIFICATION.md#v6-mixing-elbow-sst)
+and the gates in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Build
 

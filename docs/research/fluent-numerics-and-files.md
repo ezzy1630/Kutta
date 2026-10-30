@@ -261,7 +261,7 @@ Sources: UG `flu_ug_bcs_sec_bound_cond.html` (8.4), `flu_ug_bcs_sec_cell_zones.h
 | **Porous radiator** | S_i = −(μ/α · v_i + C2 · ½ρ\|v\| v_i) per direction (Darcy + inertial; 8-1/8-2), with 1/α and C2 given per direction. Superficial velocity formulation by default [D]. Turbulence is solved in the zone unless "laminar zone" is set [D]. Force reports can include porous zones [D]. | fluid-zone keys (porous?, viscous/inertial resistance vectors) [I names] |
 | **Operating pressure** | Default 101325 Pa. **All input and reported pressures are gauge.** Not used for constant density [D]. | `operating-pressure` |
 
-Implementation clarification (2026-10-29): [UG 8.4.9.1.3, backflow](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/flu_ug/flu_ug_bcs_sec_bound_cond.html#flu_ug_sec_bcs_po_backflow)
+Implementation clarification (2026-10-29): [UG 8.4.9.1.3, backflow](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/flu_ug/flu_ug_bcs_sec_bound_cond.html)
 uses the **adjacent cell velocity** in the dynamic contribution. For a stationary,
 constant-density zone, UG Eq. 8-88 gives `p_s=p_0-rho*|v_cell|^2/2` on backflow
 faces when total pressure is selected; static selection imposes `p_s=p_spec`.

@@ -402,3 +402,320 @@ Fresh evidence is in `build/baseline-tests.log`, `build/operator-tests.log`,
 `build/quick-tests-final.log`, `build/operator-tests-final.log` and
 `build/final-build.log`. These are local artifacts, not committed fixtures.
 Only local commits are made; nothing is pushed.
+
+## V6 mixing-elbow SST
+
+**The requested same-settings accuracy gate is not achieved.** SST transport and
+momentum are coupled, but the strict adapter rejects the original elbow's
+`recon/cell-lsf?` (warped-face gradient correction, WFGC). Its hybrid initializer
+is also rejected by `initial_fields()`. The slow test keeps both requirements
+failing. The numbers below are an explicitly labelled **diagnostic**: WFGC is
+disabled and cold start uses the case's stored standard initialization values.
+They are not results for Fluent's complete original settings.
+
+Measured 2026-10-29 in worktree `t3-265ec8e3`, branch
+`t3/couple-sst-steady-solver`, on Apple M4 Pro / 24 GiB, serial CPU and Metal.
+Numerical implementation is `bbc176c`, setup `c70561a`, stopping criterion
+`764fa63`; subsequent changes add diagnostics, input guards and this report.
+macOS HDF5 is 2.2.0. Float fields, double/compensated reductions, deterministic
+gather kernels, and the existing test thresholds are retained.
+
+External files (not committed), from `KUTTA_FLUENT_EXAMPLES/mixing_elbow`:
+
+| File | SHA-256 |
+| --- | --- |
+| `mixing_elbow.cas.h5` | `8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc` |
+| `mixing_elbow.dat.h5` | `863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42` |
+
+The saved solver version is Fluent **22.2**. The mesh has 17,822 cells, 91,581
+faces, two velocity inlets, a pressure outlet, symmetry, and 2,436 wall faces.
+There are **zero report definitions**. The saved iteration counter is **absent**;
+the last retained residual sample is iteration **294**, with 294 samples. Do not
+substitute 294 for a separately verified save counter. Fluent wall time is absent.
+
+Active material `air` has constant density **1.225 kg/m³** and dynamic viscosity
+**1.7894e-5 Pa s**; gravity is off. Although energy is enabled, neither density
+nor viscosity depends on temperature, and there are no other enabled couplings
+that feed energy back into these incompressible flow equations. Omitting energy
+does not change this case's converged flow.
+
+### Settings, classifications and remaining limits
+
+Every item originally flagged by `kutta inspect` is accounted for:
+
+| Setting | Effect and evidence | Adapter action |
+| --- | --- | --- |
+| Missing `turbulence/wall-omega-treatment` | Changes wall equations if a different model is selected. The case explicitly has legacy `kw-wall-omega-treatment-r13? #t`; the saved-field forensics establish this correlation's wall-cell omega, shear and y+ on this exact case. | Use the established legacy correlation; no version-independent default. Reject tabulated treatment. |
+| `kw-wall-omega-treatment-r13? #t` | Discrete wall closure; forensics §3/§7 and the saved-field SST test are the evidence. | Implemented by `SstModel`. |
+| `kw-dissipation-newton? #t` | Convergence path: Newton versus Picard linearization of destruction has the same source zero. | Picard implicit sink; recorded in setup notes. |
+| `sst-des-iddes-simplify_omit_fe? #t` | Inactive: case configuration explicitly has `rp-des? #f`. | Accept only the globally disabled DES problem. |
+| `sst-linearize-neg-cross-diff? #t` | Linearization path; source sign still changes the equation. | Signed cross diffusion, negative part as an implicit sink, implemented in SST. |
+| Informational k-epsilon flags | Inactive in the explicitly selected k-omega SST model. | Parser's model allowlist retains their provenance. |
+| Energy | Decoupled constant-property flow as verified above. | Record omission. |
+
+Other consequential case settings:
+
+- LSQ cell gradients, standard cell-to-face limiter, SOU momentum/k/omega,
+  second-order pressure, momentum-based Rhie-Chow: represented. WFGC is **on**
+  (`recon/cell-lsf? #t`): this changes gradients and hence the converged equations.
+  The [Fluent WFGC documentation](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_ug/flu_ug_sec_solve_conv_stab.html)
+  describes its purpose but gives no reproducible algorithm. The adapter errors
+  rather than silently disabling it.
+- Coupled is replaced by SIMPLEC; implicit relaxation uses the recorded numerical
+  factors (momentum/pressure .5, k/omega .75). Conservative automatic global
+  pseudo-time uses scale 1. These substitutions affect the convergence path.
+  Rhie-Chow uses the trace/3 of physical component momentum diagonals, including
+  wall drag and excluding relaxation/pseudo-time. The scalar trace choice is
+  rotationally invariant; exact equivalence to Fluent's undocumented high-order
+  Rhie-Chow correction remains unverified.
+- `wall-distance/method 2`, quad correction on: finite-surface BVH wall distance
+  and face-normal wall-function distances are used. At the saved fields, wall
+  distance relative L2 error is **2.09324e-5** (0.00209324%), max absolute
+  **1.16476e-5 m**. This is much smaller than the eddy-viscosity discrepancy.
+- Backflow pressure code 0 is total pressure: on backflow faces,
+  `p=p0-rho*|u_cell|²/2`, using the adjacent cell velocity (UG 8.4.9.1.3 and 8-88).
+  Outflow remains static pressure. The [boundary-condition chapter](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/flu_ug/flu_ug_bcs_sec_bound_cond.html)
+  supplies the formulas; a CPU/Metal regression checks a nonzero gauge-pressure
+  case. Backflow direction is normal and turbulence is intensity .05 / viscosity
+  ratio 4. Prevent-reverse-flow is explicitly off.
+- Inlets use `k=1.5*(U*I)²`, `ell=.07*Dh`,
+  `omega=sqrt(k)/(.09^(1/4)*ell)`; viscosity-ratio specification instead uses
+  `omega=rho*k/(mu*ratio)`. Cold inlet: speed 1, Dh .1016 m, k .00375,
+  omega 15.72038792. Hot inlet: speed 1.2, Dh .0254 m, k .0054,
+  omega 75.45786201. Both exactly match saved inlet fields. UG 8-73/75/79/80
+  and the SVG exponent discrepancy are documented in the research report's
+  authoritative corrections box.
+- The case has `hyb-init? #t`. [Hybrid initialization](https://ansyshelp.ansys.com/public/Views/Secured/corp/v252/en/flu_ug/flu_ug_sec_init_hybrid.html)
+  solves auxiliary Laplace equations and patches other variables from recipes.
+  It changes the starting fields and iteration count, not the converged equations.
+  This initializer is not implemented. The diagnostic cold proxy uses stored
+  uniform defaults: velocity (.3771192189, .06864234338, 2.999943839e-17) m/s,
+  pressure 8.731149137e-11 Pa, k 5.657097174, omega 597.1623783. Those defaults
+  are not described as the hybrid result.
+
+### Fixed-point residual check
+
+Initialization maps source zone IDs through the solver's retained RCM permutation.
+It primes physical momentum coefficients/face fluxes without advancing the fields.
+`monitor()` does not change the seeded u/p/k/omega. Momentum residuals use the
+physical diagonal, turbulence residuals use their own physical diagonals and omit
+fixed wall-cell omega rows. Fluent's coupled/pseudo-time normalization can differ;
+these numbers compare observed residuals, not equivalent normalization operators.
+Continuity uses each Kutta run's first-five-iteration normalization, learned after
+its initial snapshot. Fluent's scale is .002614088497 kg/s.
+
+| Equation | Fluent final scaled | Kutta CPU at saved fields | Kutta Metal at saved fields |
+| --- | ---: | ---: | ---: |
+| x-velocity | 1.39741825e-06 | 0.00116463854 | 0.00116463849 |
+| y-velocity | 3.88742419e-06 | 0.00204521918 | 0.00204521912 |
+| z-velocity | 1.00155813e-06 | 0.000516084586 | 0.000516084586 |
+| k | 5.16072107e-05 | 0.0118328971 | 0.0118328977 |
+| omega | 2.10806917e-05 | 0.0306121987 | 0.0306121985 |
+| continuity | 0.000947130927 | 0.0393532417 | 0.0393531944 |
+
+Initial Kutta continuity L1 is .002068248363 kg/s on CPU and .002068248380 kg/s
+on Metal, versus Fluent's final 2.475884062e-6 kg/s. At those same saved fields,
+Kutta's eddy-viscosity relative L2 discrepancy is **3.40282%**, max absolute
+**5.09735e-5 Pa s**. The existing independent SST saved-field test already measures
+scatter from inverse-distance-squared reconstruction in strain-limited cells.
+Thus the saved Fluent state is observably not a fixed point of these reconstructed
+coefficients, before taking any solver step.
+
+### Iteration counts, timings and field differences
+
+Stopping requires every scaled steady momentum/k/omega defect <1e-6 and
+provisional continuity L1 below Fluent's recorded final unscaled continuity,
+2.475884062e-6 kg/s. This uses the reference run's physical mass scale; an earlier
+arbitrary 1e-7 kg/s target ran into float-level flux noise despite sub-1e-7 steady
+transport defects. The accuracy thresholds below were never changed. Monitors
+run every 50 iterations; time includes iteration/monitor work, excludes setup,
+input and force post-processing. Docker's emulated CUDA build was running
+concurrently; these are observed wall times, not an isolated speed benchmark.
+There is no measured speedup against Fluent.
+
+| Backend | Start | Outer iterations | Wall time (s) | Velocity L2 (%) | Pressure L2 (%) | k L2 (%) | omega L2 (%) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| cpu | seeded | 300 | 35.7029 | 3.925067 | 3.147520 | 15.618063 | 8.596569 |
+| cpu | cold-standard-proxy | 600 | 83.6633 | 3.926663 | 3.145914 | 15.620213 | 8.596902 |
+| metal | seeded | 300 | 11.2184 | 3.925066 | 3.147465 | 15.618062 | 8.596579 |
+| metal | cold-standard-proxy | 600 | 20.2913 | 3.926664 | 3.145997 | 15.620217 | 8.596901 |
+
+Unweighted cell relative L2 is `sqrt(sum(|q-q_ref|²)/sum(|q_ref|²))`; velocity
+uses vector norms. Maximum is an absolute cell error in the field's SI units;
+relative maximum divides that maximum by the reference field's maximum magnitude,
+not by a potentially zero local reference value.
+
+| Backend / start | Field | Max absolute difference | Relative maximum (%) |
+| --- | --- | ---: | ---: |
+| cpu / seeded | velocity | 0.443521633 | 26.711847 |
+| cpu / seeded | pressure | 0.121506399 | 10.601535 |
+| cpu / seeded | k | 0.01788308 | 63.397187 |
+| cpu / seeded | omega | 10826.0641 | 12.012038 |
+| cpu / cold-standard-proxy | velocity | 0.443568948 | 26.714696 |
+| cpu / cold-standard-proxy | pressure | 0.121516323 | 10.602401 |
+| cpu / cold-standard-proxy | k | 0.0178871275 | 63.411536 |
+| cpu / cold-standard-proxy | omega | 10826.2565 | 12.012251 |
+| metal / seeded | velocity | 0.443521575 | 26.711843 |
+| metal / seeded | pressure | 0.121507532 | 10.601634 |
+| metal / seeded | k | 0.0178830818 | 63.397193 |
+| metal / seeded | omega | 10826.0837 | 12.012059 |
+| metal / cold-standard-proxy | velocity | 0.443569083 | 26.714705 |
+| metal / cold-standard-proxy | pressure | 0.121512196 | 10.602041 |
+| metal / cold-standard-proxy | k | 0.0178871312 | 63.411549 |
+| metal / cold-standard-proxy | omega | 10826.2878 | 12.012286 |
+
+### Pressure drop and wall forces
+
+Pressure drop is the area-weighted static pressure over both inlets minus the
+area-weighted outlet static pressure. Reference cold/hot/outlet pressures are
+.5016180027 / 1.087188619 / 0 Pa. Reference combined drop is **.5351137855 Pa**.
+
+| Backend / start | Cold inlet (Pa) | Hot inlet (Pa) | Outlet (Pa) | Drop (Pa) | Drop error (%) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| cpu / seeded | 0.510110193 | 1.11442965 | 0 | 0.544678447 | 1.787407 |
+| cpu / cold-standard-proxy | 0.510144157 | 1.11448749 | 0 | 0.544713776 | 1.794009 |
+| metal / seeded | 0.510109738 | 1.11442894 | 0 | 0.544677976 | 1.787319 |
+| metal / cold-standard-proxy | 0.510140742 | 1.11448362 | 0 | 0.544710335 | 1.793366 |
+
+Forces below are on the body, in N. Saved `SV_WALL_SHEAR` is force on the fluid;
+its sign is reversed for body shear. Saved face `SV_P` is integrated with the
+same mesh's double face areas, gauge/reference pressure zero. Kutta uses its
+SST wall shear, not a molecular-viscosity gradient approximation.
+
+| Reference zone | Part | Fx (N) | Fy (N) | Fz (N) |
+| --- | --- | ---: | ---: | ---: |
+| wall-elbow | pressure | 0.006362455524 | -0.005934901867 | 0.01552523764 |
+| wall-elbow | shear | 0.0003481685928 | 0.0006880408909 | -6.734241096e-05 |
+| wall-elbow | total | 0.006710624117 | -0.005246860976 | 0.01545789523 |
+| wall-inlet | pressure | 7.988724203e-05 | -4.692876481e-06 | 0.001612299233 |
+| wall-inlet | shear | 1.013114139e-06 | 7.091390076e-05 | 4.221385465e-07 |
+| wall-inlet | total | 8.090035617e-05 | 6.622102428e-05 | 0.001612721372 |
+
+| Backend / start | Zone | Part | Fx (N) | Fy (N) | Fz (N) | Vector error (%) |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| cpu / seeded | wall-elbow | pressure | 0.006429916884 | -0.005949214478 | 0.01528421649 | 1.408618 |
+| cpu / seeded | wall-elbow | shear | 0.0003327747477 | 0.0006874346094 | -5.847051166e-05 | 2.296713 |
+| cpu / seeded | wall-elbow | total | 0.006762691632 | -0.005261779868 | 0.01522574598 | 1.350647 |
+| cpu / seeded | wall-inlet | pressure | 7.262223624e-05 | -5.181007285e-06 | 0.001601499837 | 0.806847 |
+| cpu / seeded | wall-inlet | shear | 1.3234273e-06 | 7.261430428e-05 | 4.293509314e-07 | 2.437173 |
+| cpu / seeded | wall-inlet | total | 7.394566354e-05 | 6.7433297e-05 | 0.001601929188 | 0.797971 |
+| cpu / cold-standard-proxy | wall-elbow | pressure | 0.006430119715 | -0.005949366355 | 0.01528612308 | 1.398680 |
+| cpu / cold-standard-proxy | wall-elbow | shear | 0.0003327702131 | 0.0006874739025 | -5.847263314e-05 | 2.296916 |
+| cpu / cold-standard-proxy | wall-elbow | total | 0.006762889928 | -0.005261892453 | 0.01522765045 | 1.340429 |
+| cpu / cold-standard-proxy | wall-inlet | pressure | 7.262826666e-05 | -5.181260033e-06 | 0.001601611789 | 0.800897 |
+| cpu / cold-standard-proxy | wall-inlet | shear | 1.323552797e-06 | 7.261475904e-05 | 4.294074343e-07 | 2.437836 |
+| cpu / cold-standard-proxy | wall-inlet | total | 7.395181945e-05 | 6.7433499e-05 | 0.001602041197 | 0.791975 |
+| metal / seeded | wall-elbow | pressure | 0.006429920191 | -0.005949211152 | 0.01528422088 | 1.408598 |
+| metal / seeded | wall-elbow | shear | 0.0003327746459 | 0.0006874345954 | -5.847054399e-05 | 2.296723 |
+| metal / seeded | wall-elbow | total | 0.006762694837 | -0.005261776557 | 0.01522575033 | 1.350626 |
+| metal / seeded | wall-inlet | pressure | 7.262227842e-05 | -5.181003054e-06 | 0.001601498779 | 0.806900 |
+| metal / seeded | wall-inlet | shear | 1.323425071e-06 | 7.261429323e-05 | 4.293473738e-07 | 2.437158 |
+| metal / seeded | wall-inlet | total | 7.394570349e-05 | 6.743329018e-05 | 0.001601928127 | 0.798025 |
+| metal / cold-standard-proxy | wall-elbow | pressure | 0.006430107648 | -0.005949365789 | 0.01528597329 | 1.399470 |
+| metal / cold-standard-proxy | wall-elbow | shear | 0.0003327700705 | 0.0006874736837 | -5.847260683e-05 | 2.296935 |
+| metal / cold-standard-proxy | wall-elbow | total | 0.006762877719 | -0.005261892106 | 0.01522750068 | 1.341240 |
+| metal / cold-standard-proxy | wall-inlet | pressure | 7.262727542e-05 | -5.181244506e-06 | 0.001601602589 | 0.801403 |
+| metal / cold-standard-proxy | wall-inlet | shear | 1.323563213e-06 | 7.261472454e-05 | 4.294127328e-07 | 2.437791 |
+| metal / cold-standard-proxy | wall-inlet | total | 7.395083863e-05 | 6.743348003e-05 | 0.001602032001 | 0.792482 |
+
+### Gate outcomes and diagnosis
+
+| Gate | Required | Observed | Outcome |
+| --- | --- | --- | --- |
+| Original case settings / initializer | Both represented | WFGC and hybrid initialization explicitly rejected | FAIL |
+| Cell velocity relative L2 | <0.5% | 3.9251–3.9267% | FAIL, all four runs |
+| Pressure drop | Within 0.5% | 1.7873–1.7940% | FAIL, all four runs |
+| Integrated wall shear | Within 0.5% per zone | Elbow ~2.297%; inlet ~2.437–2.438% | FAIL, both zones/all runs |
+| Integrated total wall force | Within 0.5% per zone | Elbow ~1.34–1.35%; inlet ~0.792–0.798% | FAIL, both zones/all runs |
+| Fixed-point drift, max of u/p/k/omega relative L2 | <0.1% | 15.6181%, dominated by k | FAIL, both seeded runs |
+| Diagnostic convergence | Steady defects <1e-6 and reference mass target | All four runs satisfy | PASS for the diagnostic equations |
+
+The slow case exits nonzero with **28 retained failed assertions**. There are no
+threshold exceptions, expected-failure decorators or skipped accuracy assertions.
+
+A concrete discrepancy is reconstruction-dependent eddy viscosity: already at
+the saved state mu_t differs by 3.40% L2 and k/omega residuals are .0118/.0306,
+far above Fluent's final residuals. Wall distance has a much smaller global L2
+error; its isolated nonlinear effect has not been measured.
+Missing WFGC is a known spatial mismatch, and inverse-distance LSQ's effect on
+strain-limited viscosity was independently established by the existing SST test.
+The contribution of WFGC alone has **not** been isolated: no Fluent executable or
+same-case WFGC-off reference was available. It would be unsupported to attribute
+all drift to that one switch.
+
+Other unresolved discrete details remain the wall-face omega reconstruction's
+known ~0.42% systematic offset, unverified wall-cell production blending, and
+Fluent's unpublished high-order Rhie-Chow correction. The treatment of the
+isotropic `-2*rho*k/3` momentum stress is also unresolved in research A1; no
+physical-pressure equivalence is claimed for it here. The data file contains
+primary fields, not the gradients/source terms needed to settle these separately.
+The constitutive options retain their documented/inferred provenance in
+`turbulence/README.md`; the production limiter is inactive in the saved fields,
+which does not verify its form during a cold solve. Hybrid initialization explains
+only why the requested cold iteration-count comparison remains unverified.
+
+Two implementation defects were resolved during verification: extrapolated
+boundary feedback can preserve seeded gradients in deficient tet stencils (the
+new constant-field CPU/Metal regression reproduces and removes it), and unscaled
+identity wall-omega rows swamp the inexact Krylov residual (retaining the physical
+row scale removes the artificial ~1e-3 interior-omega residual plateau). Neither
+fix was made by relaxing an accuracy gate.
+
+### Reproduction and repository checks
+
+```sh
+export KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples
+cmake -S . -B build -G Ninja
+cmake --build build
+./build/kutta inspect "$KUTTA_FLUENT_EXAMPLES/mixing_elbow/mixing_elbow.cas.h5" \
+  --data "$KUTTA_FLUENT_EXAMPLES/mixing_elbow/mixing_elbow.dat.h5"
+./build/kutta-tests --test-suite-exclude=slow
+ctest --test-dir build -LE slow --output-on-failure
+# Expected nonzero exit while the accuracy/settings gates above remain unmet:
+KUTTA_V6_ITERATIONS=1200 ./build/kutta-tests --test-case='FV V6*'
+# Optional single backend; omitting it runs every compiled/present backend:
+KUTTA_V6_BACKEND=metal ./build/kutta-tests --test-case='FV V6*'
+```
+
+Fixtures are located through `KUTTA_FLUENT_EXAMPLES` or `KUTTA_SOURCE_DIR`; absent
+HDF5 or the external case/data pair produces a clean skip. The independent SST
+saved-field test now honors the same environment variable. No Ansys data is added
+to git. No push, deployment or remote-resource change is performed.
+
+Final checks at code commit `94cdeca` (the final documentation-only commit
+follows):
+
+| Check | Result |
+| --- | --- |
+| Fresh macOS CMake/Ninja build | PASS |
+| Default quick tier, CPU + Metal | 146/146 cases, 1,415,147 assertions; **8.82 s** |
+| `ctest -LE slow`, external fixture environment enabled | 2/2 entries pass, including portability lint; doctest 17.74 s during the emulated CUDA build (earlier fixture-enabled run 13.11 s) |
+| V6 slow case, CPU + Metal | Expected FAIL: 28 accuracy/settings assertions, 2,601 total assertions |
+| CUDA 13.0.2 / Ubuntu 24.04 / HDF5 1.10.10 | Library, generated kernels and full test executable compile for `75-real;86-real;89-real;120` |
+| CUDA build's CPU-oracle quick tier | 145/145 cases, 764,034 assertions pass; GPU-presence test excluded as in CI |
+| Linux portability lint | PASS |
+| CUDA GPU execution | UNVERIFIED: no NVIDIA device exposed |
+
+CUDA configuration uses the exact CI command:
+
+```sh
+cmake -S /src -B /build/compile -G Ninja -DKUTTA_ENABLE_CUDA=ON \
+  -DCMAKE_CUDA_ARCHITECTURES="75-real;86-real;89-real;120"
+cmake --build /build/compile -j 6
+/build/compile/kutta-tests --test-suite-exclude=slow \
+  --test-case-exclude='compiled GPU backends*'
+python3 tools/lint_portability.py
+```
+
+The container starts from `nvidia/cuda:13.0.2-devel-ubuntu24.04`, with CI's apt
+packages `cmake ninja-build python3 libhdf5-dev zlib1g-dev git`. A temporary local
+image cached those packages for the final incremental current-source check;
+this does not change the CUDA/HDF5 toolchain. The original container's in-flight
+build predated the last input guard and was superseded by that successful final
+build, rather than being used as current-source proof.
+Local evidence: `build/v6-evidence.log`, `build/v6-results.json`,
+`build/ctest-final.log`, `build/quick-final-default.log`,
+`build/quick-with-fixture.log`, `build/input-tests.log`, and
+`build/cuda-evidence/{build,tests,lint}.log`. The complete V1–V4 slow ladder was not rerun: prior
+retained failures above remain unresolved, and no claim is made that these
+laminar long runs have been revalidated after the boundary-gradient change.
