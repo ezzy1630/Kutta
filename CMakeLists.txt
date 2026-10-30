@@ -36,6 +36,7 @@ file(GLOB_RECURSE KUTTA_CORE_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/src/kutta/core/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/mesh/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/io/*.cpp
+  ${CMAKE_SOURCE_DIR}/src/kutta/post/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/linalg/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/fv/*.cpp)
 add_library(kutta
