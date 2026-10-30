@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include "kernels.hpp"
+#include "kutta/core/parse.hpp"
 
 #include "../validation/cases/cavity.hpp"
 #include "sst_channel.hpp"
@@ -162,12 +163,12 @@ void performance(kutta::Backend backend,int size,int repeats) {
 }
 
 bool sst_performance(kutta::Backend backend,int nx,int ny,int nz,int repeats,int warmup,
-    bool profile,int converge,const std::string& output) {
+    bool profile,int converge,double viscosity,const std::string& output) {
   bool success=true;
   MeasuredDevice dev(backend);
   auto mesh=kutta::bench::sst_channel(nx,ny,nz);
   auto bc=kutta::bench::channel_boundaries(mesh);
-  const auto settings=kutta::bench::channel_settings();
+  auto settings=kutta::bench::channel_settings();settings.viscosity=viscosity;
   const auto setup=Clock::now();
   kutta::fv::SteadySolver solver(dev,std::move(mesh),bc,settings);
   kutta::bench::initialize_channel(solver);
@@ -176,6 +177,7 @@ bool sst_performance(kutta::Backend backend,int nx,int ny,int nz,int repeats,int
   std::cout<<std::setprecision(12)<<"FV_CASE case=sst-tet backend="<<kutta::backend_name(backend)
     <<" device=\""<<dev.name()<<"\" source="<<KUTTA_BENCH_COMMIT<<" cells="<<cells
     <<" faces="<<solver.mesh().n_faces()<<" nx="<<nx<<" ny="<<ny<<" nz="<<nz
+    <<" viscosity="<<viscosity<<" Re_H="<<1/viscosity
     <<" setup_s="<<std::chrono::duration<double>(Clock::now()-setup).count()<<std::endl;
   if(converge>0) {
     const auto start=Clock::now();bool converged=false;
@@ -262,6 +264,7 @@ int main(int argc,char** argv) {
   try {
     int reynolds=100,nx=129,ny=129,iterations=6000,size=100,repeats=3;
     bool run_cavity=false,sst=false,profile=false;int nz=40,warmup=5,converge=0;std::string output;
+    double viscosity=.001;
     std::string backend_filter;std::filesystem::path fluent;
     for(int i=1;i<argc;++i) {
       std::string arg=argv[i];
@@ -276,6 +279,11 @@ int main(int argc,char** argv) {
       else if(arg=="--warmup") warmup=std::stoi(value);
       else if(arg=="--converge") converge=std::stoi(value);
       else if(arg=="--output") output=value;
+      else if(arg=="--viscosity") {
+        const auto parsed=kutta::parse_double(value);
+        KUTTA_REQUIRE(parsed && std::isfinite(*parsed) && *parsed>0,"Invalid SST benchmark viscosity");
+        viscosity=*parsed;
+      }
       else if(arg=="--iterations") iterations=std::stoi(value);
       else if(arg=="--backend") backend_filter=value;
       else if(arg=="--fluent") {fluent=value;run_cavity=true;}
@@ -294,7 +302,7 @@ int main(int argc,char** argv) {
       ran=true;
       if(sst) {
         KUTTA_REQUIRE(nx>1 && ny>1 && nz>0 && warmup>=0 && converge>=0,"Invalid SST benchmark dimensions");
-        success=sst_performance(backend,nx,ny,nz,repeats,warmup,profile,converge,output) && success;continue;
+        success=sst_performance(backend,nx,ny,nz,repeats,warmup,profile,converge,viscosity,output) && success;continue;
       }
       if(!run_cavity) {performance(backend,size,repeats);continue;}
       auto dev=kutta::Device::create(backend);
