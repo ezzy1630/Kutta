@@ -10,8 +10,8 @@ struct FluentSetup {
   std::vector<fv::PatchCondition> boundaries;
   std::vector<std::string> convergence_notes;
 };
-// Strict flow adapter. Throws with the source setting path when the discrete
-// equations cannot be represented. Coupled -> SIMPLEC is a reported path change.
+// Strict flow adapter. Throws with all offending setting paths and reasons
+// before returning a setup when the discrete equations cannot be represented. Coupled -> SIMPLEC is a reported path change.
 FluentSetup fluent_setup(const fluent::FluentCase& input,const PolyMesh& mesh);
 fv::TurbulenceValues turbulence_values(const fv::TurbulenceCondition& spec,
     double speed,double density,double viscosity);

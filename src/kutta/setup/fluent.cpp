@@ -12,32 +12,47 @@ using namespace fv;
 using namespace kutta::detail;
 namespace {
 void require(bool ok,const std::string& key) {KUTTA_REQUIRE(ok,"Fluent setup: unsupported or absent "+key);}
-template<class T> T required(const std::optional<T>& value,const std::string& key) {
-  require(value.has_value(),key);return *value;
-}
+// Accumulate independent setting failures before returning any setup. Placeholder
+// values below exist only during validation and never reach a solver.
+class SetupValidation {
+  std::vector<std::string> errors;
+ public:
+  void require(bool ok,const std::string& key,const std::string& reason="value is unsupported or required setting is absent") {
+    if(!ok) errors.push_back(key+": "+reason);
+  }
+  template<class T> T required(const std::optional<T>& value,const std::string& key) {
+    require(value.has_value(),key,"required setting absent or unparsed");return value.value_or(T{});
+  }
+  void finish() const {
+    if(errors.empty()) return;
+    std::string message="Fluent setup rejected:";
+    for(const auto& e:errors) message+="\n  "+e;
+    throw Error(message);
+  }
 double scalar(const std::optional<ScalarValue>& value,const std::string& key) {
-  const auto& v=required(value,key);const auto n=v.constant?v.constant:v.resolved;
-  require(n && std::isfinite(*n),key);return *n;
+  if(!value) {require(false,key,"required scalar absent or unparsed");return 0;}
+  const auto& v=*value;const auto n=v.constant?v.constant:v.resolved;
+  require(n && std::isfinite(*n),key,"requires a finite constant or resolved expression");return n.value_or(0);
 }
 double number(const RawSettings& raw,const std::string& key) {
-  const auto* value=raw.value(key);require(value && value->number() && std::isfinite(*value->number()),key);
-  return *value->number();
+  const auto* value=raw.value(key);require(value && value->number() && std::isfinite(*value->number()),key,"requires a finite number");
+  return value && value->number()?*value->number():0;
 }
 bool flag(const RawSettings& raw,const std::string& key) {
-  const auto* value=raw.value(key);require(value && value->kind==SExpr::Kind::boolean,key);return value->boolean;
+  const auto* value=raw.value(key);require(value && value->kind==SExpr::Kind::boolean,key,"requires an explicit boolean");return value && value->kind==SExpr::Kind::boolean?value->boolean:false;
 }
 Vec3d vector(const ScalarVector& value,const std::string& key) {
   return {scalar(value[0],key+"/x"),scalar(value[1],key+"/y"),scalar(value[2],key+"/z")};
 }
 ConvectionScheme convection(std::optional<Scheme> scheme,const std::string& key) {
-  require(scheme==Scheme::first_upwind || scheme==Scheme::second_upwind,key);
-  return *scheme==Scheme::first_upwind?ConvectionScheme::FirstOrderUpwind:ConvectionScheme::SecondOrderUpwind;
+  require(scheme==Scheme::first_upwind || scheme==Scheme::second_upwind,key,"only first-order and second-order upwind are supported");
+  return scheme==Scheme::first_upwind?ConvectionScheme::FirstOrderUpwind:ConvectionScheme::SecondOrderUpwind;
 }
 TurbulenceCondition turbulence(const BoundaryZone& z) {
   const auto key="zone/"+std::to_string(z.id)+"/";
   const auto get=[&](const std::string& name) {
     auto it=z.turbulence.find(name);require(it!=z.turbulence.end(),key+name);
-    return scalar(it->second,key+name);
+    return it==z.turbulence.end()?0:scalar(it->second,key+name);
   };
   switch(required(z.turbulence_spec,key+"ke-spec")) {
     case TurbulenceSpec::k_dissipation:return TurbulenceValues{get("k"),get("omega")};
@@ -45,8 +60,10 @@ TurbulenceCondition turbulence(const BoundaryZone& z) {
     case TurbulenceSpec::intensity_diameter:return IntensityLength{get("turb-intensity"),.07*get("turb-hydraulic-diam")};
     case TurbulenceSpec::intensity_viscosity_ratio:return IntensityViscosityRatio{get("turb-intensity"),get("turb-viscosity-ratio")};
   }
-  throw Error("Fluent setup: invalid "+key+"ke-spec");
+  require(false,key+"ke-spec");return TurbulenceValues{};
 }
+FluentSetup build(const FluentCase& c,const PolyMesh& mesh);
+};
 std::vector<std::uint64_t> cell_ids(const FluentCase& c,const PolyMesh& mesh) {
   std::vector<std::uint64_t> ids(mesh.n_cells,0);
   for(const auto& zone:mesh.cell_zones) {
@@ -75,8 +92,8 @@ TurbulenceValues turbulence_values(const TurbulenceCondition& spec,double speed,
   }
   require(std::isfinite(out.k) && out.k>=0 && std::isfinite(out.omega) && out.omega>=0,"k/omega");return out;
 }
-FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
-  require(c.dimension==3,"dimension");require(c.pressure_based==true,"rp-seg?");require(c.unsteady==false,"rp-unsteady?");
+FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh) {
+  require(c.dimension==3,"dimension","requires a 3D case");require(c.pressure_based==true,"rp-seg?","requires the pressure-based solver");require(c.unsteady==false,"rp-unsteady?","only steady cases are supported");
   require(c.viscous.model==ViscousModel::kw_sst,"viscous-model (requires SST)");
   require(c.mesh.cells && *c.mesh.cells==std::uint64_t(mesh.n_cells),"mesh/cell-count");
   FluentSetup out;auto& s=out.settings;const auto& n=c.numerics;const auto& t=c.viscous;
@@ -88,23 +105,24 @@ FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
     require(z.porous==false,prefix+"porous?");require(z.laminar==false,prefix+"laminar?");
     const auto it=std::find_if(c.materials.begin(),c.materials.end(),[&](const auto& m){return z.material==m.name;});
     require(it!=c.materials.end(),prefix+"material");
+    if(it==c.materials.end()) continue;
     const auto r=scalar(it->density,"material/"+it->name+"/density");
     const auto v=scalar(it->viscosity,"material/"+it->name+"/viscosity");
     require(r>0 && v>0 && (!rho || *rho==r) && (!mu || *mu==v),"constant uniform density/viscosity");rho=r;mu=v;
   }
-  s.density=*rho;s.viscosity=*mu;
+  s.density=rho.value_or(0);s.viscosity=mu.value_or(0);
   require(c.gravity==false,"gravity? (body force not adapted)");
   if(c.energy==true) out.convergence_notes.push_back("energy is decoupled: active material density and viscosity are constant");
-  require(n.gradient==Gradient::least_squares_cell,"recon/cell-lsq?");
-  require(n.pressure==Scheme::second_pressure,"pressure/scheme");
+  require(n.gradient==Gradient::least_squares_cell,"recon/cell-lsq?","requires least-squares cell gradients");
+  require(n.pressure==Scheme::second_pressure,"pressure/scheme","requires second-order pressure interpolation");
   s.convection=convection(n.momentum,"mom/scheme");
-  require(n.limiter==Limiter::standard,"recon/lim/type");
+  require(n.limiter==Limiter::standard,"recon/lim/type","only the standard limiter (0) is supported");
   s.limit=required(n.limiting,"recon/limit?");
-  require(n.limit_to_face==true,"recon/lim/dx-to-face?");require(n.limiter_filter==false,"recon/lim/filter/on?");
-  require(n.warped_face_correction==false,"recon/cell-lsf? (warped-face gradient correction)");
-  require(n.flux_index==1,"pbs/flux-index");required(n.flux_auto_select,"pbs/flux-auto-select?");
-  require(n.wall_distance_method==2,"wall-distance/method");
-  require(n.wall_distance_quad_correction==true,"wall-distance/quad-correction?");
+  require(n.limit_to_face==true,"recon/lim/dx-to-face?","requires face-based limiting");require(n.limiter_filter==false,"recon/lim/filter/on?","limiter filtering is not implemented");
+  require(n.warped_face_correction==false,"recon/cell-lsf? (warped-face gradient correction)","warped-face gradient correction is not implemented");
+  require(n.flux_index==1,"pbs/flux-index","only flux index 1 is supported");required(n.flux_auto_select,"pbs/flux-auto-select?");
+  require(n.wall_distance_method==2,"wall-distance/method","only wall-distance method 2 is supported");
+  require(n.wall_distance_quad_correction==true,"wall-distance/quad-correction?","requires quadrilateral wall-distance correction");
   const auto coupling=required(n.coupling,"flow/scheme");
   if(coupling!=Coupling::simplec) out.convergence_notes.push_back("flow/scheme: SIMPLEC replaces "+std::string(name(coupling))+"; convergence path only, Majumdar physical diagonal");
   if(required(n.high_order_relaxation,"recon/relax/relax?")) out.convergence_notes.push_back("high-order term relaxation omitted; same fixed point");
@@ -119,8 +137,11 @@ FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
     const auto key=coupling==Coupling::coupled && (eq=="mom" || eq=="pressure")?
       "pressure-coupled/"+eq+"/pseudo-explicit-relax":eq+"/pseudo-relax";
     const auto it=n.pseudo_relaxation.find(key);require(it!=n.pseudo_relaxation.end(),key);
+    if(it==n.pseudo_relaxation.end()) return 0.0;
     require(it->second>0 && it->second<=1,key);return it->second;
   };
+  require(std::isfinite(s.pseudo_time_scale) && s.pseudo_time_scale>0,"pseudo-auto-time-step-scale-factor","requires a finite positive scale");
+  require(std::isfinite(s.pseudo_time_step) && s.pseudo_time_step>=0,"pseudo-time-step","requires a finite nonnegative time step");
   s.momentum_relaxation=relax("mom");s.pressure_relaxation=relax("pressure");
   require(relax("density")==1,"density/pseudo-relax");require(relax("body-force")==1,"body-force/pseudo-relax");
   require(relax("turb-viscosity")==1,"turb-viscosity/pseudo-relax");
@@ -130,7 +151,7 @@ FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
   model.production_limiter=required(t.production_limiter,"kw-not-trans-sst-production-limiter?");
   model.production_clip=float(required(t.production_factor,"sst-pk-factor"));
   model.low_re=required(t.low_re,"kw-low-re-mod?");
-  require(t.curvature_correction==false,"curvature-correction?");require(t.compressibility==false,"turb-compress-mod?");
+  require(t.curvature_correction==false,"curvature-correction?","curvature correction is not implemented");require(t.compressibility==false,"turb-compress-mod?","compressibility correction is not implemented");
   require(t.sst_strain==false && t.shear_modification==true,"kw-sst-strain?/kw-shear-mod?");
   model.kato_launder=required(t.kato_launder,"kw-not-trans-sst-kato-launder?");
   model.vorticity_production=required(t.vorticity_production,"kw-vorticity-pk?");
@@ -150,17 +171,20 @@ FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
   const std::set<std::string> handled{"rp/turbulence/wall-omega-treatment","rp/kw-dissipation-newton?",
     "rp/kw-wall-omega-treatment-r13?","rp/sst-des-iddes-simplify_omit_fe?","rp/sst-linearize-neg-cross-diff?"};
   for(const auto& issue:c.issues) if(issue.classification==IssueClass::unsupported)
-    require(handled.contains(issue.path),issue.path+": "+issue.reason);
+    if(!handled.contains(issue.path)) errors.push_back(issue.path+": "+issue.reason);
   require(!flag(c.config,"rp-des?"),"rp-des?");
   s.reference_point={number(c.variables,"pressure-reference/x"),number(c.variables,"pressure-reference/y"),number(c.variables,"pressure-reference/z")};
   for(const auto& patch:mesh.patches) {
     const auto it=std::find_if(c.boundaries.begin(),c.boundaries.end(),[&](const auto& z){return z.id==patch.source_zone_id;});
-    require(it!=c.boundaries.end() && it->name==patch.name,"mesh/patch identity: "+patch.name);const auto& z=*it;
+    require(it!=c.boundaries.end() && it->name==patch.name,"mesh/patch identity: "+patch.name);
+    if(it==c.boundaries.end()) continue;
+    const auto& z=*it;
     const auto prefix="zone/"+std::to_string(z.id)+"/";
     require(patch.size>0,prefix+"empty patch");
+    if(patch.size<=0) continue;
     if(z.type==ZoneType::wall) {
-      require(z.wall_motion==WallMotion::stationary,prefix+"motion-bc");
-      require(z.specified_shear==false && z.shear_bc==0 && z.rough_bc==0,prefix+"shear-bc");
+      require(z.wall_motion==WallMotion::stationary,prefix+"motion-bc","only stationary walls are supported");
+      require(z.specified_shear==false && z.shear_bc==0 && z.rough_bc==0,prefix+"shear-bc","requires specified-shear?=false, shear-bc=0 and rough-bc=0");
       require(scalar(z.roughness_height,prefix+"roughness-height")==0,prefix+"roughness-height");
       out.boundaries.push_back({patch.name,Wall{}});
     } else if(z.type==ZoneType::symmetry) out.boundaries.push_back({patch.name,Symmetry{}});
@@ -188,7 +212,10 @@ FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
         type==0?BackflowPressure::Total:BackflowPressure::Static,turbulence(z)}});
     } else require(false,prefix+"type");
   }
-  return out;
+  finish();return out;
+}
+FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
+  return SetupValidation{}.build(c,mesh);
 }
 CellFields fluent_fields(const FluentCase& c,const FluentData& d,const PolyMesh& mesh) {
   const auto ids=cell_ids(c,mesh);CellFields out;
@@ -203,10 +230,14 @@ CellFields fluent_fields(const FluentCase& c,const FluentData& d,const PolyMesh&
   return out;
 }
 CellFields initial_fields(const FluentCase& c,const PolyMesh& mesh) {
-  require(!flag(c.variables,"hyb-init?"),"hyb-init? (hybrid initialization)");
-  require(!flag(c.variables,"fmg-init/enable?"),"fmg-init/enable?");
-  CellFields out;out.velocity.assign(mesh.n_cells,{number(c.variables,"x-velocity/default"),number(c.variables,"y-velocity/default"),number(c.variables,"z-velocity/default")});
-  out.pressure.assign(mesh.n_cells,number(c.variables,"pressure/default"));
-  out.k.assign(mesh.n_cells,number(c.variables,"k/default"));out.omega.assign(mesh.n_cells,number(c.variables,"omega/default"));return out;
+  SetupValidation v;
+  v.require(!v.flag(c.variables,"hyb-init?"),"hyb-init? (hybrid initialization)");
+  v.require(!v.flag(c.variables,"fmg-init/enable?"),"fmg-init/enable?");
+  CellFields out;out.velocity.assign(mesh.n_cells,{v.number(c.variables,"x-velocity/default"),v.number(c.variables,"y-velocity/default"),v.number(c.variables,"z-velocity/default")});
+  out.pressure.assign(mesh.n_cells,v.number(c.variables,"pressure/default"));
+  out.k.assign(mesh.n_cells,v.number(c.variables,"k/default"));out.omega.assign(mesh.n_cells,v.number(c.variables,"omega/default"));
+  v.require(out.k.empty() || out.k.front()>=0,"k/default","requires nonnegative turbulent kinetic energy");
+  v.require(out.omega.empty() || out.omega.front()>=0,"omega/default","requires nonnegative specific dissipation");
+  v.finish();return out;
 }
 } // namespace kutta::setup
