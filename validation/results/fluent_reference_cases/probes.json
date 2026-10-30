@@ -1,0 +1,734 @@
+[
+  {
+    "case": "validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.cas",
+    "data": "validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.dat",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/axial_fan_performance_curve/axial_fan.cas.h5",
+    "data": "validation/fluent_examples/axial_fan_performance_curve/axial_fan.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.cas.h5",
+    "data": "validation/fluent_examples/axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/borealis_fracture/26 Mpa-solution-final.cas",
+    "data": "validation/fluent_examples/borealis_fracture/26 Mpa-solution-final.dat",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/borealis_fracture/final solution-before-26 MPa.cas",
+    "data": "validation/fluent_examples/borealis_fracture/final solution-before-26 MPa.dat",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/borealis_fracture/final solution-before-94 MPa.cas",
+    "data": "validation/fluent_examples/borealis_fracture/final solution-before-94 MPa.dat",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/examples/Ablation-tutorial/ablation_Solved.cas.h5",
+    "data": "validation/fluent_examples/examples/Ablation-tutorial/ablation_Solved.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/examples/Dash-App-for-Post-processing/elbow.cas.h5",
+    "data": "validation/fluent_examples/examples/Dash-App-for-Post-processing/elbow.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/examples/Excel-Monitor-Points/glycerol_filling_mixing_init.cas.h5",
+    "data": "validation/fluent_examples/examples/Excel-Monitor-Points/glycerol_filling_mixing_init.dat.h5",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/examples/Gravity-Separator-PID/2d-separator.cas.h5",
+    "data": "validation/fluent_examples/examples/Gravity-Separator-PID/2d-separator.dat.h5",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/examples/PPTX-report-generation/elbow.cas.h5",
+    "data": "validation/fluent_examples/examples/PPTX-report-generation/elbow.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/examples/Separator-Collection-Efficiency/oil_separator.cas.h5",
+    "data": "validation/fluent_examples/examples/Separator-Collection-Efficiency/oil_separator.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/examples/Steady-Vortex-VOF/vortex_init.cas.h5",
+    "data": "validation/fluent_examples/examples/Steady-Vortex-VOF/vortex_init.dat.h5",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.cas.h5",
+    "data": "validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.cas.h5",
+    "data": "validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/exhaust_manifold/manifold_solution.cas.h5",
+    "data": "validation/fluent_examples/exhaust_manifold/manifold_solution.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/exhaust_system/exhaust_system.cas.h5",
+    "data": "validation/fluent_examples/exhaust_system/exhaust_system.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/file_session/elbow1.cas.h5",
+    "data": "validation/fluent_examples/file_session/elbow1.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/file_session/mixing_elbow_mul_ph.cas.h5",
+    "data": "validation/fluent_examples/file_session/mixing_elbow_mul_ph.dat.h5",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.cas.h5",
+    "data": "validation/fluent_examples/flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/mixing_elbow/elbow_param.cas.h5",
+    "data": "validation/fluent_examples/mixing_elbow/elbow_param.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5",
+    "data": "validation/fluent_examples/mixing_elbow/mixing_elbow.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 0,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ],
+    "supported_approximation": "wfgc"
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00005.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00010.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00015.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00020.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00025.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00030.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00035.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00040.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00045.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00050.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00001.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00002.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00003.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00004.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00005.dat.h5",
+    "inspect_exit": 0,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-multi_phase/fluentMultiphase.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-multi_phase/fluentMultiphase.dat.h5",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/other_folders/result_files/fluent-multi_species/FFF.cas.h5",
+    "data": "validation/fluent_examples/other_folders/result_files/fluent-multi_species/FFF.dat.h5",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  },
+  {
+    "case": "validation/fluent_examples/vki_turbine/vki_turbine.cas",
+    "data": "validation/fluent_examples/vki_turbine/vki_turbine.dat",
+    "inspect_exit": 1,
+    "runs": [
+      {
+        "approximate_wfgc": false,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      },
+      {
+        "approximate_wfgc": true,
+        "exit": 1,
+        "log": "validation/results/fluent_reference_cases/solve-preflight.txt"
+      }
+    ]
+  }
+]

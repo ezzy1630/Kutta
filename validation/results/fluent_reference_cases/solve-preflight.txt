@@ -1,0 +1,2599 @@
+
+===== validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.dat approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  dimension: requires a 3D case
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  recon/cell-lsq?: requires least-squares cell gradients
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  turb-viscosity/pseudo-relax: value is unsupported or required setting is absent
+  turb-viscosity/pseudo-relax: value is unsupported or required setting is absent
+  k/scheme: only first-order and second-order upwind are supported
+  omega/scheme: only first-order and second-order upwind are supported
+  k/pseudo-relax: value is unsupported or required setting is absent
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  kw-not-trans-sst-production-limiter?: required setting absent or unparsed
+  sst-pk-factor: required setting absent or unparsed
+  kw-low-re-mod?: required setting absent or unparsed
+  curvature-correction?: curvature correction is not implemented
+  turb-compress-mod?: compressibility correction is not implemented
+  kw-sst-strain?/kw-shear-mod?: value is unsupported or required setting is absent
+  kw-not-trans-sst-kato-launder?: required setting absent or unparsed
+  kw-vorticity-pk?: required setting absent or unparsed
+  omega/min-limit: required setting absent or unparsed
+  omega/min-limit: requires a positive value representable in float storage
+  sst-pk-factor: requires a positive value representable in float storage
+  case-config/rp-3d?: unsupported: expected #t
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/11/electrolyte?: unsupported: expected neutral value #t
+  zone/8/is-not-a-rans-les-interface: unsupported: expected neutral value #t
+  zone/4/prevent-reverse-flow?: value is unsupported or required setting is absent
+  p-profile-multiplier: requires a finite number
+  zone/4/p-profile-multiplier: value is unsupported or required setting is absent
+  mesh/patch identity: front: value is unsupported or required setting is absent
+  mesh/patch identity: back: value is unsupported or required setting is absent
+cannot open HDF5 file: validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.dat
+
+
+===== validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.dat approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  dimension: requires a 3D case
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  recon/cell-lsq?: requires least-squares cell gradients
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  turb-viscosity/pseudo-relax: value is unsupported or required setting is absent
+  turb-viscosity/pseudo-relax: value is unsupported or required setting is absent
+  k/scheme: only first-order and second-order upwind are supported
+  omega/scheme: only first-order and second-order upwind are supported
+  k/pseudo-relax: value is unsupported or required setting is absent
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  kw-not-trans-sst-production-limiter?: required setting absent or unparsed
+  sst-pk-factor: required setting absent or unparsed
+  kw-low-re-mod?: required setting absent or unparsed
+  curvature-correction?: curvature correction is not implemented
+  turb-compress-mod?: compressibility correction is not implemented
+  kw-sst-strain?/kw-shear-mod?: value is unsupported or required setting is absent
+  kw-not-trans-sst-kato-launder?: required setting absent or unparsed
+  kw-vorticity-pk?: required setting absent or unparsed
+  omega/min-limit: required setting absent or unparsed
+  omega/min-limit: requires a positive value representable in float storage
+  sst-pk-factor: requires a positive value representable in float storage
+  case-config/rp-3d?: unsupported: expected #t
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/11/electrolyte?: unsupported: expected neutral value #t
+  zone/8/is-not-a-rans-les-interface: unsupported: expected neutral value #t
+  zone/4/prevent-reverse-flow?: value is unsupported or required setting is absent
+  p-profile-multiplier: requires a finite number
+  zone/4/p-profile-multiplier: value is unsupported or required setting is absent
+  mesh/patch identity: front: value is unsupported or required setting is absent
+  mesh/patch identity: back: value is unsupported or required setting is absent
+cannot open HDF5 file: validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.dat
+
+
+===== validation/fluent_examples/axial_fan_performance_curve/axial_fan.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  zone/8877/mrf-motion?: value is unsupported or required setting is absent
+  gravity? (body force not adapted): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  kw-not-trans-sst-production-limiter?: required setting absent or unparsed
+  curvature-correction?: curvature correction is not implemented
+  case-config/rp-degradation?: unsupported: flag is not in the supported configuration allowlist
+  case-config/sg-dsmc?: unsupported: flag is not in the supported configuration allowlist
+  rp/kw-not-trans-sst-production-limiter?: unparsed: unsupported value
+  zone/8877/mrf-omega: unresolved expression/profile for solve: (profile __expr__ "rotational_speed")
+  zone/8877/axis-direction-component: unsupported: expected neutral value #f
+  zone/8877/axis-origin-component: unsupported: expected neutral value #f
+  zone/8877/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8877/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8877/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/motion-spec: unsupported: expected neutral value 0
+  zone/8874/axis-direction-component: unsupported: expected neutral value #f
+  zone/8874/axis-origin-component: unsupported: expected neutral value #f
+  zone/8874/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8874/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8874/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/axis-direction-component: unsupported: expected neutral value #f
+  zone/8871/axis-origin-component: unsupported: expected neutral value #f
+  zone/8871/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8871/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8871/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/48/p: unresolved expression/profile for solve: (profile __expr__ "pressure_outlet")
+  zone/48/axis-direction-component: unsupported: expected neutral value #f
+  zone/48/axis-origin-component: unsupported: expected neutral value #f
+  zone/48/flow-direction-component: unsupported: expected neutral value #f
+  zone/48/radial-direction-component: unsupported: expected neutral value #f
+  zone/48/system-coupling?: unsupported: switch is not in this zone type's allowlist
+  zone/47: unparsed boundary type: pressure-inlet
+  zone/47/equ-required?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/dpm/surface-injection?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/bccustom?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/cv?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/dv?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/vrh?: unsupported: switch is not in this zone type's allowlist
+  zone/47/mixing-plane-thread?: unsupported: switch is not in this zone type's allowlist
+  zone/47/open-channel?: unsupported: switch is not in this zone type's allowlist
+  zone/47/parallel-collimated-beam?: unsupported: switch is not in this zone type's allowlist
+  zone/47/prevent-reverse-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/47/radiating-s2s-surface?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-direction?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-fluxes?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-irradiation?: unsupported: switch is not in this zone type's allowlist
+  zone/47/species-in-mole-fractions?: unsupported: switch is not in this zone type's allowlist
+  zone/47/vm-mass-conservation?: unsupported: switch is not in this zone type's allowlist
+  zone/47/vm-streamwise-fluct?: unsupported: switch is not in this zone type's allowlist
+  zone/47/volumetric-synthetic-turbulence-generator?: unsupported: switch is not in this zone type's allowlist
+  zone/46/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/46/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/46/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/46/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/46/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/46/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/46/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-velocity: unsupported: expected neutral value #f
+  zone/46/flux-momentum-components: unsupported: expected neutral value #f
+  zone/46/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/46/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/46/momentum-source-components: unsupported: expected neutral value #f
+  zone/46/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/46/velocity-components: unsupported: expected neutral value #f
+  zone/46/wall-translation-vector: unsupported: expected neutral value #f
+  zone/46/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/49/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/49/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/49/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/49/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/49/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/49/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-velocity: unsupported: expected neutral value #f
+  zone/49/flux-momentum-components: unsupported: expected neutral value #f
+  zone/49/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/49/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/49/momentum-source-components: unsupported: expected neutral value #f
+  zone/49/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/velocity-components: unsupported: expected neutral value #f
+  zone/49/wall-translation-vector: unsupported: expected neutral value #f
+  zone/49/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/50/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/50/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/50/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/50/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/50/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/50/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-velocity: unsupported: expected neutral value #f
+  zone/50/flux-momentum-components: unsupported: expected neutral value #f
+  zone/50/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/50/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/50/momentum-source-components: unsupported: expected neutral value #f
+  zone/50/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/velocity-components: unsupported: expected neutral value #f
+  zone/50/wall-translation-vector: unsupported: expected neutral value #f
+  zone/50/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/51/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/51/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/51/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/51/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/51/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/51/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-velocity: unsupported: expected neutral value #f
+  zone/51/flux-momentum-components: unsupported: expected neutral value #f
+  zone/51/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/51/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/51/momentum-source-components: unsupported: expected neutral value #f
+  zone/51/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/velocity-components: unsupported: expected neutral value #f
+  zone/51/wall-translation-vector: unsupported: expected neutral value #f
+  zone/51/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/52/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/52/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/52/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/52/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/52/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/52/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-velocity: unsupported: expected neutral value #f
+  zone/52/flux-momentum-components: unsupported: expected neutral value #f
+  zone/52/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/52/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/52/momentum-source-components: unsupported: expected neutral value #f
+  zone/52/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/velocity-components: unsupported: expected neutral value #f
+  zone/52/wall-translation-vector: unsupported: expected neutral value #f
+  zone/52/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/1/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/1/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/1/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/1/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/1/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/1/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-velocity: unsupported: expected neutral value #f
+  zone/1/flux-momentum-components: unsupported: expected neutral value #f
+  zone/1/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/1/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/1/momentum-source-components: unsupported: expected neutral value #f
+  zone/1/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/velocity-components: unsupported: expected neutral value #f
+  zone/1/wall-translation-vector: unsupported: expected neutral value #f
+  zone/1/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  report/inlet-volume-flow-rate: unparsed report type: surface-volumeflowrate
+  report/p_static_out: unparsed report type: surface-areaavg
+  report/p_total_in: unparsed report type: surface-areaavg
+  report/total-to-static-pressure: unparsed report type: single-val-expression
+  mesh/zone/47/type: unsupported: topology and thread types disagree or are unverified
+  zone/48/p: requires a finite constant or resolved expression
+  zone/47/type: value is unsupported or required setting is absent
+
+
+===== validation/fluent_examples/axial_fan_performance_curve/axial_fan.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  zone/8877/mrf-motion?: value is unsupported or required setting is absent
+  gravity? (body force not adapted): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  kw-not-trans-sst-production-limiter?: required setting absent or unparsed
+  curvature-correction?: curvature correction is not implemented
+  case-config/rp-degradation?: unsupported: flag is not in the supported configuration allowlist
+  case-config/sg-dsmc?: unsupported: flag is not in the supported configuration allowlist
+  rp/kw-not-trans-sst-production-limiter?: unparsed: unsupported value
+  zone/8877/mrf-omega: unresolved expression/profile for solve: (profile __expr__ "rotational_speed")
+  zone/8877/axis-direction-component: unsupported: expected neutral value #f
+  zone/8877/axis-origin-component: unsupported: expected neutral value #f
+  zone/8877/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8877/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8877/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/motion-spec: unsupported: expected neutral value 0
+  zone/8874/axis-direction-component: unsupported: expected neutral value #f
+  zone/8874/axis-origin-component: unsupported: expected neutral value #f
+  zone/8874/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8874/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8874/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/axis-direction-component: unsupported: expected neutral value #f
+  zone/8871/axis-origin-component: unsupported: expected neutral value #f
+  zone/8871/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8871/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8871/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/48/p: unresolved expression/profile for solve: (profile __expr__ "pressure_outlet")
+  zone/48/axis-direction-component: unsupported: expected neutral value #f
+  zone/48/axis-origin-component: unsupported: expected neutral value #f
+  zone/48/flow-direction-component: unsupported: expected neutral value #f
+  zone/48/radial-direction-component: unsupported: expected neutral value #f
+  zone/48/system-coupling?: unsupported: switch is not in this zone type's allowlist
+  zone/47: unparsed boundary type: pressure-inlet
+  zone/47/equ-required?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/dpm/surface-injection?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/bccustom?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/cv?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/dv?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/vrh?: unsupported: switch is not in this zone type's allowlist
+  zone/47/mixing-plane-thread?: unsupported: switch is not in this zone type's allowlist
+  zone/47/open-channel?: unsupported: switch is not in this zone type's allowlist
+  zone/47/parallel-collimated-beam?: unsupported: switch is not in this zone type's allowlist
+  zone/47/prevent-reverse-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/47/radiating-s2s-surface?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-direction?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-fluxes?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-irradiation?: unsupported: switch is not in this zone type's allowlist
+  zone/47/species-in-mole-fractions?: unsupported: switch is not in this zone type's allowlist
+  zone/47/vm-mass-conservation?: unsupported: switch is not in this zone type's allowlist
+  zone/47/vm-streamwise-fluct?: unsupported: switch is not in this zone type's allowlist
+  zone/47/volumetric-synthetic-turbulence-generator?: unsupported: switch is not in this zone type's allowlist
+  zone/46/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/46/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/46/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/46/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/46/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/46/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/46/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-velocity: unsupported: expected neutral value #f
+  zone/46/flux-momentum-components: unsupported: expected neutral value #f
+  zone/46/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/46/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/46/momentum-source-components: unsupported: expected neutral value #f
+  zone/46/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/46/velocity-components: unsupported: expected neutral value #f
+  zone/46/wall-translation-vector: unsupported: expected neutral value #f
+  zone/46/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/49/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/49/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/49/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/49/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/49/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/49/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-velocity: unsupported: expected neutral value #f
+  zone/49/flux-momentum-components: unsupported: expected neutral value #f
+  zone/49/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/49/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/49/momentum-source-components: unsupported: expected neutral value #f
+  zone/49/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/velocity-components: unsupported: expected neutral value #f
+  zone/49/wall-translation-vector: unsupported: expected neutral value #f
+  zone/49/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/50/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/50/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/50/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/50/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/50/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/50/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-velocity: unsupported: expected neutral value #f
+  zone/50/flux-momentum-components: unsupported: expected neutral value #f
+  zone/50/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/50/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/50/momentum-source-components: unsupported: expected neutral value #f
+  zone/50/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/velocity-components: unsupported: expected neutral value #f
+  zone/50/wall-translation-vector: unsupported: expected neutral value #f
+  zone/50/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/51/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/51/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/51/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/51/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/51/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/51/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-velocity: unsupported: expected neutral value #f
+  zone/51/flux-momentum-components: unsupported: expected neutral value #f
+  zone/51/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/51/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/51/momentum-source-components: unsupported: expected neutral value #f
+  zone/51/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/velocity-components: unsupported: expected neutral value #f
+  zone/51/wall-translation-vector: unsupported: expected neutral value #f
+  zone/51/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/52/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/52/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/52/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/52/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/52/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/52/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-velocity: unsupported: expected neutral value #f
+  zone/52/flux-momentum-components: unsupported: expected neutral value #f
+  zone/52/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/52/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/52/momentum-source-components: unsupported: expected neutral value #f
+  zone/52/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/velocity-components: unsupported: expected neutral value #f
+  zone/52/wall-translation-vector: unsupported: expected neutral value #f
+  zone/52/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/1/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/1/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/1/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/1/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/1/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/1/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-velocity: unsupported: expected neutral value #f
+  zone/1/flux-momentum-components: unsupported: expected neutral value #f
+  zone/1/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/1/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/1/momentum-source-components: unsupported: expected neutral value #f
+  zone/1/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/velocity-components: unsupported: expected neutral value #f
+  zone/1/wall-translation-vector: unsupported: expected neutral value #f
+  zone/1/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  report/inlet-volume-flow-rate: unparsed report type: surface-volumeflowrate
+  report/p_static_out: unparsed report type: surface-areaavg
+  report/p_total_in: unparsed report type: surface-areaavg
+  report/total-to-static-pressure: unparsed report type: single-val-expression
+  mesh/zone/47/type: unsupported: topology and thread types disagree or are unverified
+  zone/48/p: requires a finite constant or resolved expression
+  zone/47/type: value is unsupported or required setting is absent
+
+
+===== validation/fluent_examples/axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  zone/8877/mrf-motion?: value is unsupported or required setting is absent
+  gravity? (body force not adapted): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  kw-not-trans-sst-production-limiter?: required setting absent or unparsed
+  curvature-correction?: curvature correction is not implemented
+  case-config/rp-degradation?: unsupported: flag is not in the supported configuration allowlist
+  case-config/sg-dsmc?: unsupported: flag is not in the supported configuration allowlist
+  rp/kw-not-trans-sst-production-limiter?: unparsed: unsupported value
+  zone/8877/mrf-omega: unresolved expression/profile for solve: (profile __expr__ "rotational_speed")
+  zone/8877/axis-direction-component: unsupported: expected neutral value #f
+  zone/8877/axis-origin-component: unsupported: expected neutral value #f
+  zone/8877/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8877/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8877/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/motion-spec: unsupported: expected neutral value 0
+  zone/8874/axis-direction-component: unsupported: expected neutral value #f
+  zone/8874/axis-origin-component: unsupported: expected neutral value #f
+  zone/8874/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8874/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8874/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/axis-direction-component: unsupported: expected neutral value #f
+  zone/8871/axis-origin-component: unsupported: expected neutral value #f
+  zone/8871/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8871/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8871/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/48/p: unresolved expression/profile for solve: (profile __expr__ "pressure_outlet")
+  zone/48/axis-direction-component: unsupported: expected neutral value #f
+  zone/48/axis-origin-component: unsupported: expected neutral value #f
+  zone/48/flow-direction-component: unsupported: expected neutral value #f
+  zone/48/radial-direction-component: unsupported: expected neutral value #f
+  zone/48/system-coupling?: unsupported: switch is not in this zone type's allowlist
+  zone/47: unparsed boundary type: pressure-inlet
+  zone/47/equ-required?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/dpm/surface-injection?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/bccustom?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/cv?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/dv?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/vrh?: unsupported: switch is not in this zone type's allowlist
+  zone/47/mixing-plane-thread?: unsupported: switch is not in this zone type's allowlist
+  zone/47/open-channel?: unsupported: switch is not in this zone type's allowlist
+  zone/47/parallel-collimated-beam?: unsupported: switch is not in this zone type's allowlist
+  zone/47/prevent-reverse-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/47/radiating-s2s-surface?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-direction?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-fluxes?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-irradiation?: unsupported: switch is not in this zone type's allowlist
+  zone/47/species-in-mole-fractions?: unsupported: switch is not in this zone type's allowlist
+  zone/47/vm-mass-conservation?: unsupported: switch is not in this zone type's allowlist
+  zone/47/vm-streamwise-fluct?: unsupported: switch is not in this zone type's allowlist
+  zone/47/volumetric-synthetic-turbulence-generator?: unsupported: switch is not in this zone type's allowlist
+  zone/46/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/46/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/46/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/46/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/46/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/46/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/46/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-velocity: unsupported: expected neutral value #f
+  zone/46/flux-momentum-components: unsupported: expected neutral value #f
+  zone/46/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/46/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/46/momentum-source-components: unsupported: expected neutral value #f
+  zone/46/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/46/velocity-components: unsupported: expected neutral value #f
+  zone/46/wall-translation-vector: unsupported: expected neutral value #f
+  zone/46/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/49/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/49/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/49/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/49/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/49/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/49/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-velocity: unsupported: expected neutral value #f
+  zone/49/flux-momentum-components: unsupported: expected neutral value #f
+  zone/49/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/49/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/49/momentum-source-components: unsupported: expected neutral value #f
+  zone/49/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/velocity-components: unsupported: expected neutral value #f
+  zone/49/wall-translation-vector: unsupported: expected neutral value #f
+  zone/49/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/50/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/50/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/50/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/50/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/50/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/50/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-velocity: unsupported: expected neutral value #f
+  zone/50/flux-momentum-components: unsupported: expected neutral value #f
+  zone/50/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/50/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/50/momentum-source-components: unsupported: expected neutral value #f
+  zone/50/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/velocity-components: unsupported: expected neutral value #f
+  zone/50/wall-translation-vector: unsupported: expected neutral value #f
+  zone/50/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/51/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/51/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/51/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/51/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/51/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/51/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-velocity: unsupported: expected neutral value #f
+  zone/51/flux-momentum-components: unsupported: expected neutral value #f
+  zone/51/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/51/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/51/momentum-source-components: unsupported: expected neutral value #f
+  zone/51/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/velocity-components: unsupported: expected neutral value #f
+  zone/51/wall-translation-vector: unsupported: expected neutral value #f
+  zone/51/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/52/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/52/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/52/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/52/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/52/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/52/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-velocity: unsupported: expected neutral value #f
+  zone/52/flux-momentum-components: unsupported: expected neutral value #f
+  zone/52/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/52/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/52/momentum-source-components: unsupported: expected neutral value #f
+  zone/52/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/velocity-components: unsupported: expected neutral value #f
+  zone/52/wall-translation-vector: unsupported: expected neutral value #f
+  zone/52/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/1/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/1/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/1/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/1/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/1/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/1/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-velocity: unsupported: expected neutral value #f
+  zone/1/flux-momentum-components: unsupported: expected neutral value #f
+  zone/1/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/1/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/1/momentum-source-components: unsupported: expected neutral value #f
+  zone/1/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/velocity-components: unsupported: expected neutral value #f
+  zone/1/wall-translation-vector: unsupported: expected neutral value #f
+  zone/1/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  report/inlet-volume-flow-rate: unparsed report type: surface-volumeflowrate
+  report/p_static_out: unparsed report type: surface-areaavg
+  report/p_total_in: unparsed report type: surface-areaavg
+  report/total-to-static-pressure: unparsed report type: single-val-expression
+  mesh/zone/47/type: unsupported: topology and thread types disagree or are unverified
+  zone/48/p: requires a finite constant or resolved expression
+  zone/47/type: value is unsupported or required setting is absent
+
+
+===== validation/fluent_examples/axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  zone/8877/mrf-motion?: value is unsupported or required setting is absent
+  gravity? (body force not adapted): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  kw-not-trans-sst-production-limiter?: required setting absent or unparsed
+  curvature-correction?: curvature correction is not implemented
+  case-config/rp-degradation?: unsupported: flag is not in the supported configuration allowlist
+  case-config/sg-dsmc?: unsupported: flag is not in the supported configuration allowlist
+  rp/kw-not-trans-sst-production-limiter?: unparsed: unsupported value
+  zone/8877/mrf-omega: unresolved expression/profile for solve: (profile __expr__ "rotational_speed")
+  zone/8877/axis-direction-component: unsupported: expected neutral value #f
+  zone/8877/axis-origin-component: unsupported: expected neutral value #f
+  zone/8877/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8877/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8877/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/motion-spec: unsupported: expected neutral value 0
+  zone/8874/axis-direction-component: unsupported: expected neutral value #f
+  zone/8874/axis-origin-component: unsupported: expected neutral value #f
+  zone/8874/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8874/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8874/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/axis-direction-component: unsupported: expected neutral value #f
+  zone/8871/axis-origin-component: unsupported: expected neutral value #f
+  zone/8871/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8871/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8871/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/48/p: unresolved expression/profile for solve: (profile __expr__ "pressure_outlet")
+  zone/48/axis-direction-component: unsupported: expected neutral value #f
+  zone/48/axis-origin-component: unsupported: expected neutral value #f
+  zone/48/flow-direction-component: unsupported: expected neutral value #f
+  zone/48/radial-direction-component: unsupported: expected neutral value #f
+  zone/48/system-coupling?: unsupported: switch is not in this zone type's allowlist
+  zone/47: unparsed boundary type: pressure-inlet
+  zone/47/equ-required?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/dpm/surface-injection?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/bccustom?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/cv?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/dv?: unsupported: switch is not in this zone type's allowlist
+  zone/47/fensapice/drop/vrh?: unsupported: switch is not in this zone type's allowlist
+  zone/47/mixing-plane-thread?: unsupported: switch is not in this zone type's allowlist
+  zone/47/open-channel?: unsupported: switch is not in this zone type's allowlist
+  zone/47/parallel-collimated-beam?: unsupported: switch is not in this zone type's allowlist
+  zone/47/prevent-reverse-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/47/radiating-s2s-surface?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-direction?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-fluxes?: unsupported: switch is not in this zone type's allowlist
+  zone/47/solar-irradiation?: unsupported: switch is not in this zone type's allowlist
+  zone/47/species-in-mole-fractions?: unsupported: switch is not in this zone type's allowlist
+  zone/47/vm-mass-conservation?: unsupported: switch is not in this zone type's allowlist
+  zone/47/vm-streamwise-fluct?: unsupported: switch is not in this zone type's allowlist
+  zone/47/volumetric-synthetic-turbulence-generator?: unsupported: switch is not in this zone type's allowlist
+  zone/46/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/46/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/46/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/46/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/46/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/46/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/46/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-velocity: unsupported: expected neutral value #f
+  zone/46/flux-momentum-components: unsupported: expected neutral value #f
+  zone/46/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/46/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/46/momentum-source-components: unsupported: expected neutral value #f
+  zone/46/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/46/velocity-components: unsupported: expected neutral value #f
+  zone/46/wall-translation-vector: unsupported: expected neutral value #f
+  zone/46/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/49/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/49/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/49/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/49/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/49/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/49/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-velocity: unsupported: expected neutral value #f
+  zone/49/flux-momentum-components: unsupported: expected neutral value #f
+  zone/49/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/49/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/49/momentum-source-components: unsupported: expected neutral value #f
+  zone/49/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/velocity-components: unsupported: expected neutral value #f
+  zone/49/wall-translation-vector: unsupported: expected neutral value #f
+  zone/49/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/50/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/50/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/50/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/50/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/50/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/50/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-velocity: unsupported: expected neutral value #f
+  zone/50/flux-momentum-components: unsupported: expected neutral value #f
+  zone/50/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/50/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/50/momentum-source-components: unsupported: expected neutral value #f
+  zone/50/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/velocity-components: unsupported: expected neutral value #f
+  zone/50/wall-translation-vector: unsupported: expected neutral value #f
+  zone/50/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/51/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/51/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/51/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/51/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/51/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/51/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-velocity: unsupported: expected neutral value #f
+  zone/51/flux-momentum-components: unsupported: expected neutral value #f
+  zone/51/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/51/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/51/momentum-source-components: unsupported: expected neutral value #f
+  zone/51/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/velocity-components: unsupported: expected neutral value #f
+  zone/51/wall-translation-vector: unsupported: expected neutral value #f
+  zone/51/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/52/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/52/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/52/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/52/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/52/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/52/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-velocity: unsupported: expected neutral value #f
+  zone/52/flux-momentum-components: unsupported: expected neutral value #f
+  zone/52/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/52/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/52/momentum-source-components: unsupported: expected neutral value #f
+  zone/52/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/velocity-components: unsupported: expected neutral value #f
+  zone/52/wall-translation-vector: unsupported: expected neutral value #f
+  zone/52/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/1/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/1/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/1/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/1/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/1/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/1/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-velocity: unsupported: expected neutral value #f
+  zone/1/flux-momentum-components: unsupported: expected neutral value #f
+  zone/1/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/1/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/1/momentum-source-components: unsupported: expected neutral value #f
+  zone/1/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/velocity-components: unsupported: expected neutral value #f
+  zone/1/wall-translation-vector: unsupported: expected neutral value #f
+  zone/1/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  report/inlet-volume-flow-rate: unparsed report type: surface-volumeflowrate
+  report/p_static_out: unparsed report type: surface-areaavg
+  report/p_total_in: unparsed report type: surface-areaavg
+  report/total-to-static-pressure: unparsed report type: single-val-expression
+  mesh/zone/47/type: unsupported: topology and thread types disagree or are unverified
+  zone/48/p: requires a finite constant or resolved expression
+  zone/47/type: value is unsupported or required setting is absent
+
+
+===== validation/fluent_examples/borealis_fracture/26 Mpa-solution-final.dat approximate_wfgc=False =====
+kutta solve: src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+
+===== validation/fluent_examples/borealis_fracture/26 Mpa-solution-final.dat approximate_wfgc=True =====
+kutta solve: src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+
+===== validation/fluent_examples/borealis_fracture/final solution-before-26 MPa.dat approximate_wfgc=False =====
+kutta solve: src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+
+===== validation/fluent_examples/borealis_fracture/final solution-before-26 MPa.dat approximate_wfgc=True =====
+kutta solve: src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+
+===== validation/fluent_examples/borealis_fracture/final solution-before-94 MPa.dat approximate_wfgc=False =====
+kutta solve: src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+
+===== validation/fluent_examples/borealis_fracture/final solution-before-94 MPa.dat approximate_wfgc=True =====
+kutta solve: src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+
+===== validation/fluent_examples/examples/Ablation-tutorial/ablation_Solved.dat.h5 approximate_wfgc=False =====
+kutta solve: src/kutta/mesh/mesh.cpp:163: face 93107 normal does not point out of owner; reverse node winding
+
+===== validation/fluent_examples/examples/Ablation-tutorial/ablation_Solved.dat.h5 approximate_wfgc=True =====
+kutta solve: src/kutta/mesh/mesh.cpp:163: face 93107 normal does not point out of owner; reverse node winding
+
+===== validation/fluent_examples/examples/Dash-App-for-Post-processing/elbow.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+  pbs/flux-index: only flux index 1 is supported
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  zone/3460/read-fan-curve: unsupported: expected neutral value #f
+  zone/33/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/33/rough-option?: unsupported: expected neutral value #t
+  report/avg-outlet-temp: unparsed report type: surface-massavg
+  report/ave-p-inlet: unparsed report type: surface-areaavg
+  report/mass-flow-rate: unparsed report type: surface-massflowrate
+  report/cell-count/zones: unverified: surface name has no unique matching thread
+  report/cell-count: unparsed report type: cell-count
+
+
+===== validation/fluent_examples/examples/Dash-App-for-Post-processing/elbow.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  pbs/flux-index: only flux index 1 is supported
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  zone/3460/read-fan-curve: unsupported: expected neutral value #f
+  zone/33/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/33/rough-option?: unsupported: expected neutral value #t
+  report/avg-outlet-temp: unparsed report type: surface-massavg
+  report/ave-p-inlet: unparsed report type: surface-areaavg
+  report/mass-flow-rate: unparsed report type: surface-massflowrate
+  report/cell-count/zones: unverified: surface name has no unique matching thread
+  report/cell-count: unparsed report type: cell-count
+
+
+===== validation/fluent_examples/examples/Excel-Monitor-Points/glycerol_filling_mixing_init.dat.h5 approximate_wfgc=False =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/examples/Excel-Monitor-Points/glycerol_filling_mixing_init.dat.h5 approximate_wfgc=True =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/examples/Gravity-Separator-PID/2d-separator.dat.h5 approximate_wfgc=False =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/examples/Gravity-Separator-PID/2d-separator.dat.h5 approximate_wfgc=True =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/examples/PPTX-report-generation/elbow.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+  pbs/flux-index: only flux index 1 is supported
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  zone/3460/read-fan-curve: unsupported: expected neutral value #f
+  zone/33/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/33/rough-option?: unsupported: expected neutral value #t
+  report/cell-count/zones: unverified: surface name has no unique matching thread
+  report/cell-count: unparsed report type: cell-count
+  report/mass-flow-rate: unparsed report type: surface-massflowrate
+  report/ave-p-inlet: unparsed report type: surface-areaavg
+  report/avg-outlet-temp: unparsed report type: surface-massavg
+
+
+===== validation/fluent_examples/examples/PPTX-report-generation/elbow.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  pbs/flux-index: only flux index 1 is supported
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  zone/3460/read-fan-curve: unsupported: expected neutral value #f
+  zone/33/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/33/rough-option?: unsupported: expected neutral value #t
+  report/cell-count/zones: unverified: surface name has no unique matching thread
+  report/cell-count: unparsed report type: cell-count
+  report/mass-flow-rate: unparsed report type: surface-massflowrate
+  report/ave-p-inlet: unparsed report type: surface-areaavg
+  report/avg-outlet-temp: unparsed report type: surface-massavg
+
+
+===== validation/fluent_examples/examples/Separator-Collection-Efficiency/oil_separator.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  gravity? (body force not adapted): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-realizability-on?: unsupported: active model flag is not in the model allowlist
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  zone/114/axis-direction-component: unsupported: expected neutral value #f
+  zone/114/axis-origin-component: unsupported: expected neutral value #f
+  zone/114/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/114/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/114/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/114/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/114/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/34/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/34/film-velocity: unsupported: expected neutral value #f
+  zone/34/flux-momentum-components: unsupported: expected neutral value #f
+  zone/34/momentum-source-components: unsupported: expected neutral value #f
+  zone/34/velocity-components: unsupported: expected neutral value #f
+  zone/34/wall-translation-vector: unsupported: expected neutral value #f
+  zone/37/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/37/film-velocity: unsupported: expected neutral value #f
+  zone/37/flux-momentum-components: unsupported: expected neutral value #f
+  zone/37/momentum-source-components: unsupported: expected neutral value #f
+  zone/37/velocity-components: unsupported: expected neutral value #f
+  zone/37/wall-translation-vector: unsupported: expected neutral value #f
+  zone/36/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/36/film-velocity: unsupported: expected neutral value #f
+  zone/36/flux-momentum-components: unsupported: expected neutral value #f
+  zone/36/momentum-source-components: unsupported: expected neutral value #f
+  zone/36/velocity-components: unsupported: expected neutral value #f
+  zone/36/wall-translation-vector: unsupported: expected neutral value #f
+  zone/38/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/38/film-velocity: unsupported: expected neutral value #f
+  zone/38/flux-momentum-components: unsupported: expected neutral value #f
+  zone/38/momentum-source-components: unsupported: expected neutral value #f
+  zone/38/velocity-components: unsupported: expected neutral value #f
+  zone/38/wall-translation-vector: unsupported: expected neutral value #f
+  zone/33/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/33/film-velocity: unsupported: expected neutral value #f
+  zone/33/flux-momentum-components: unsupported: expected neutral value #f
+  zone/33/momentum-source-components: unsupported: expected neutral value #f
+  zone/33/velocity-components: unsupported: expected neutral value #f
+  zone/33/wall-translation-vector: unsupported: expected neutral value #f
+  zone/32/axis-direction-component: unsupported: expected neutral value #f
+  zone/32/axis-origin-component: unsupported: expected neutral value #f
+  zone/32/flow-direction-component: unsupported: expected neutral value #f
+  zone/32/radial-direction-component: unsupported: expected neutral value #f
+  zone/31/axis-direction-component: unsupported: expected neutral value #f
+  zone/31/axis-origin-component: unsupported: expected neutral value #f
+  zone/31/flow-direction-component: unsupported: expected neutral value #f
+  zone/31/moving-object-direction-components: unsupported: expected neutral value #f
+  zone/31/primary-phase-direction-components: unsupported: expected neutral value #f
+  zone/31/radial-direction-component: unsupported: expected neutral value #f
+  zone/31/secondary-phase-direction-components: unsupported: expected neutral value #f
+  zone/31/velocity-component: unsupported: expected neutral value #f
+  zone/1/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/1/film-velocity: unsupported: expected neutral value #f
+  zone/1/flux-momentum-components: unsupported: expected neutral value #f
+  zone/1/momentum-source-components: unsupported: expected neutral value #f
+  zone/1/velocity-components: unsupported: expected neutral value #f
+  zone/1/wall-translation-vector: unsupported: expected neutral value #f
+  report/vol-avg-vel/zones: unverified: surface name has no unique matching thread
+  report/vol-avg-vel: unparsed report type: volume-average
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/examples/Separator-Collection-Efficiency/oil_separator.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  gravity? (body force not adapted): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-realizability-on?: unsupported: active model flag is not in the model allowlist
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  zone/114/axis-direction-component: unsupported: expected neutral value #f
+  zone/114/axis-origin-component: unsupported: expected neutral value #f
+  zone/114/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/114/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/114/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/114/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/114/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/34/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/34/film-velocity: unsupported: expected neutral value #f
+  zone/34/flux-momentum-components: unsupported: expected neutral value #f
+  zone/34/momentum-source-components: unsupported: expected neutral value #f
+  zone/34/velocity-components: unsupported: expected neutral value #f
+  zone/34/wall-translation-vector: unsupported: expected neutral value #f
+  zone/37/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/37/film-velocity: unsupported: expected neutral value #f
+  zone/37/flux-momentum-components: unsupported: expected neutral value #f
+  zone/37/momentum-source-components: unsupported: expected neutral value #f
+  zone/37/velocity-components: unsupported: expected neutral value #f
+  zone/37/wall-translation-vector: unsupported: expected neutral value #f
+  zone/36/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/36/film-velocity: unsupported: expected neutral value #f
+  zone/36/flux-momentum-components: unsupported: expected neutral value #f
+  zone/36/momentum-source-components: unsupported: expected neutral value #f
+  zone/36/velocity-components: unsupported: expected neutral value #f
+  zone/36/wall-translation-vector: unsupported: expected neutral value #f
+  zone/38/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/38/film-velocity: unsupported: expected neutral value #f
+  zone/38/flux-momentum-components: unsupported: expected neutral value #f
+  zone/38/momentum-source-components: unsupported: expected neutral value #f
+  zone/38/velocity-components: unsupported: expected neutral value #f
+  zone/38/wall-translation-vector: unsupported: expected neutral value #f
+  zone/33/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/33/film-velocity: unsupported: expected neutral value #f
+  zone/33/flux-momentum-components: unsupported: expected neutral value #f
+  zone/33/momentum-source-components: unsupported: expected neutral value #f
+  zone/33/velocity-components: unsupported: expected neutral value #f
+  zone/33/wall-translation-vector: unsupported: expected neutral value #f
+  zone/32/axis-direction-component: unsupported: expected neutral value #f
+  zone/32/axis-origin-component: unsupported: expected neutral value #f
+  zone/32/flow-direction-component: unsupported: expected neutral value #f
+  zone/32/radial-direction-component: unsupported: expected neutral value #f
+  zone/31/axis-direction-component: unsupported: expected neutral value #f
+  zone/31/axis-origin-component: unsupported: expected neutral value #f
+  zone/31/flow-direction-component: unsupported: expected neutral value #f
+  zone/31/moving-object-direction-components: unsupported: expected neutral value #f
+  zone/31/primary-phase-direction-components: unsupported: expected neutral value #f
+  zone/31/radial-direction-component: unsupported: expected neutral value #f
+  zone/31/secondary-phase-direction-components: unsupported: expected neutral value #f
+  zone/31/velocity-component: unsupported: expected neutral value #f
+  zone/1/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/1/film-velocity: unsupported: expected neutral value #f
+  zone/1/flux-momentum-components: unsupported: expected neutral value #f
+  zone/1/momentum-source-components: unsupported: expected neutral value #f
+  zone/1/velocity-components: unsupported: expected neutral value #f
+  zone/1/wall-translation-vector: unsupported: expected neutral value #f
+  report/vol-avg-vel/zones: unverified: surface name has no unique matching thread
+  report/vol-avg-vel: unparsed report type: volume-average
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/examples/Steady-Vortex-VOF/vortex_init.dat.h5 approximate_wfgc=False =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/examples/Steady-Vortex-VOF/vortex_init.dat.h5 approximate_wfgc=True =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.dat.h5 approximate_wfgc=False =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.dat.h5 approximate_wfgc=True =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.dat.h5 approximate_wfgc=False =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.dat.h5 approximate_wfgc=True =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/exhaust_manifold/manifold_solution.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  zone/815/type: value is unsupported or required setting is absent
+  zone/815/porous?: value is unsupported or required setting is absent
+  zone/815/laminar?: value is unsupported or required setting is absent
+  material/cast-iron/viscosity: required scalar absent or unparsed
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/815/porous?: absent: no default assumed
+  zone/815/laminar?: absent: no default assumed
+  zone/815/porosity: absent: no default assumed
+  zone/815/contact-property?: unsupported: switch is not in this zone type's allowlist
+  zone/815/cylindrical-fixed-var?: unsupported: switch is not in this zone type's allowlist
+  zone/815/deactivated?: unsupported: switch is not in this zone type's allowlist
+  zone/815/fixed?: unsupported: switch is not in this zone type's allowlist
+  zone/815/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/815/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  zone/815/les-embedded?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-enable-transient?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/radiating?: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/sources?: unsupported: switch is not in this zone type's allowlist
+  zone/815: unsupported: solid cell zone
+  zone/818/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/818/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/mass-bal: unparsed report type: expression
+  report/mass-tot: unparsed report type: flux-massflow
+  report/mass-in: unparsed report type: flux-massflow
+  report/point-vel: unparsed report type: surface-facetmax
+  case-config/rf-energy?: unsupported: energy coupling cannot be excluded without constant density and viscosity
+  mesh/zone/815/type: unsupported: topology and thread types disagree or are unverified
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_U
+
+
+===== validation/fluent_examples/exhaust_manifold/manifold_solution.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  zone/815/type: value is unsupported or required setting is absent
+  zone/815/porous?: value is unsupported or required setting is absent
+  zone/815/laminar?: value is unsupported or required setting is absent
+  material/cast-iron/viscosity: required scalar absent or unparsed
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/815/porous?: absent: no default assumed
+  zone/815/laminar?: absent: no default assumed
+  zone/815/porosity: absent: no default assumed
+  zone/815/contact-property?: unsupported: switch is not in this zone type's allowlist
+  zone/815/cylindrical-fixed-var?: unsupported: switch is not in this zone type's allowlist
+  zone/815/deactivated?: unsupported: switch is not in this zone type's allowlist
+  zone/815/fixed?: unsupported: switch is not in this zone type's allowlist
+  zone/815/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/815/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  zone/815/les-embedded?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-enable-transient?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/radiating?: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/sources?: unsupported: switch is not in this zone type's allowlist
+  zone/815: unsupported: solid cell zone
+  zone/818/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/818/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/mass-bal: unparsed report type: expression
+  report/mass-tot: unparsed report type: flux-massflow
+  report/mass-in: unparsed report type: flux-massflow
+  report/point-vel: unparsed report type: surface-facetmax
+  case-config/rf-energy?: unsupported: energy coupling cannot be excluded without constant density and viscosity
+  mesh/zone/815/type: unsupported: topology and thread types disagree or are unverified
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_U
+
+
+===== validation/fluent_examples/exhaust_system/exhaust_system.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  zone/815/type: value is unsupported or required setting is absent
+  zone/815/porous?: value is unsupported or required setting is absent
+  zone/815/laminar?: value is unsupported or required setting is absent
+  material/cast-iron/viscosity: required scalar absent or unparsed
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+  pbs/flux-index: only flux index 1 is supported
+  zone/815/porous?: absent: no default assumed
+  zone/815/laminar?: absent: no default assumed
+  zone/815/porosity: absent: no default assumed
+  zone/815/axis-direction-component: unsupported: switch is not in this zone type's allowlist
+  zone/815/axis-origin-component: unsupported: switch is not in this zone type's allowlist
+  zone/815/contact-property?: unsupported: switch is not in this zone type's allowlist
+  zone/815/cursys?: unsupported: switch is not in this zone type's allowlist
+  zone/815/cylindrical-fixed-var?: unsupported: switch is not in this zone type's allowlist
+  zone/815/deactivated?: unsupported: switch is not in this zone type's allowlist
+  zone/815/fixed?: unsupported: switch is not in this zone type's allowlist
+  zone/815/les-embedded?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-enable-transient?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/moving-mesh-axis-origin-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/moving-mesh-velocity-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/pcb-model: unsupported: switch is not in this zone type's allowlist
+  zone/815/radiating?: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion-axis-direction-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion-axis-origin-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion-velocity-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/sources?: unsupported: switch is not in this zone type's allowlist
+  zone/815: unsupported: solid cell zone
+  zone/272/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/367/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/463/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/559/parallel-collimated-beam?: unsupported: expected neutral value #t
+  report/mass-bal: unparsed report type: expression
+  report/mass-tot: unparsed report type: flux-massflow
+  report/mass-in: unparsed report type: flux-massflow
+  report/point-vel: unparsed report type: surface-facetmax
+  case-config/rf-energy?: unsupported: energy coupling cannot be excluded without constant density and viscosity
+  mesh/zone/815/type: unsupported: topology and thread types disagree or are unverified
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_U
+
+
+===== validation/fluent_examples/exhaust_system/exhaust_system.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  zone/815/type: value is unsupported or required setting is absent
+  zone/815/porous?: value is unsupported or required setting is absent
+  zone/815/laminar?: value is unsupported or required setting is absent
+  material/cast-iron/viscosity: required scalar absent or unparsed
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  pbs/flux-index: only flux index 1 is supported
+  zone/815/porous?: absent: no default assumed
+  zone/815/laminar?: absent: no default assumed
+  zone/815/porosity: absent: no default assumed
+  zone/815/axis-direction-component: unsupported: switch is not in this zone type's allowlist
+  zone/815/axis-origin-component: unsupported: switch is not in this zone type's allowlist
+  zone/815/contact-property?: unsupported: switch is not in this zone type's allowlist
+  zone/815/cursys?: unsupported: switch is not in this zone type's allowlist
+  zone/815/cylindrical-fixed-var?: unsupported: switch is not in this zone type's allowlist
+  zone/815/deactivated?: unsupported: switch is not in this zone type's allowlist
+  zone/815/fixed?: unsupported: switch is not in this zone type's allowlist
+  zone/815/les-embedded?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-enable-transient?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/moving-mesh-axis-origin-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/moving-mesh-velocity-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/pcb-model: unsupported: switch is not in this zone type's allowlist
+  zone/815/radiating?: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion-axis-direction-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion-axis-origin-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion-velocity-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/sources?: unsupported: switch is not in this zone type's allowlist
+  zone/815: unsupported: solid cell zone
+  zone/272/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/367/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/463/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/559/parallel-collimated-beam?: unsupported: expected neutral value #t
+  report/mass-bal: unparsed report type: expression
+  report/mass-tot: unparsed report type: flux-massflow
+  report/mass-in: unparsed report type: flux-massflow
+  report/point-vel: unparsed report type: surface-facetmax
+  case-config/rf-energy?: unsupported: energy coupling cannot be excluded without constant density and viscosity
+  mesh/zone/815/type: unsupported: topology and thread types disagree or are unverified
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_U
+
+
+===== validation/fluent_examples/file_session/elbow1.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-realizability-on?: unsupported: active model flag is not in the model allowlist
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  zone/2/axis-direction-component: unsupported: expected neutral value #f
+  zone/2/axis-origin-component: unsupported: expected neutral value #f
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/2/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/2/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/2/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/2/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/3/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/3/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/3/film-velocity: unsupported: expected neutral value #f
+  zone/3/flux-momentum-components: unsupported: expected neutral value #f
+  zone/3/momentum-source-components: unsupported: expected neutral value #f
+  zone/3/velocity-components: unsupported: expected neutral value #f
+  zone/3/wall-translation-vector: unsupported: expected neutral value #f
+  zone/5/axis-direction-component: unsupported: expected neutral value #f
+  zone/5/axis-origin-component: unsupported: expected neutral value #f
+  zone/5/flow-direction-component: unsupported: expected neutral value #f
+  zone/5/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/5/radial-direction-component: unsupported: expected neutral value #f
+  zone/6/axis-direction-component: unsupported: expected neutral value #f
+  zone/6/axis-origin-component: unsupported: expected neutral value #f
+  zone/6/flow-direction-component: unsupported: expected neutral value #f
+  zone/6/moving-object-direction-components: unsupported: expected neutral value #f
+  zone/6/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/6/primary-phase-direction-components: unsupported: expected neutral value #f
+  zone/6/radial-direction-component: unsupported: expected neutral value #f
+  zone/6/secondary-phase-direction-components: unsupported: expected neutral value #f
+  zone/7/axis-direction-component: unsupported: expected neutral value #f
+  zone/7/axis-origin-component: unsupported: expected neutral value #f
+  zone/7/flow-direction-component: unsupported: expected neutral value #f
+  zone/7/moving-object-direction-components: unsupported: expected neutral value #f
+  zone/7/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/7/primary-phase-direction-components: unsupported: expected neutral value #f
+  zone/7/radial-direction-component: unsupported: expected neutral value #f
+  zone/7/secondary-phase-direction-components: unsupported: expected neutral value #f
+  report/report-def-0: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/file_session/elbow1.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-realizability-on?: unsupported: active model flag is not in the model allowlist
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  zone/2/axis-direction-component: unsupported: expected neutral value #f
+  zone/2/axis-origin-component: unsupported: expected neutral value #f
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/2/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/2/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/2/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/2/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/3/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/3/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/3/film-velocity: unsupported: expected neutral value #f
+  zone/3/flux-momentum-components: unsupported: expected neutral value #f
+  zone/3/momentum-source-components: unsupported: expected neutral value #f
+  zone/3/velocity-components: unsupported: expected neutral value #f
+  zone/3/wall-translation-vector: unsupported: expected neutral value #f
+  zone/5/axis-direction-component: unsupported: expected neutral value #f
+  zone/5/axis-origin-component: unsupported: expected neutral value #f
+  zone/5/flow-direction-component: unsupported: expected neutral value #f
+  zone/5/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/5/radial-direction-component: unsupported: expected neutral value #f
+  zone/6/axis-direction-component: unsupported: expected neutral value #f
+  zone/6/axis-origin-component: unsupported: expected neutral value #f
+  zone/6/flow-direction-component: unsupported: expected neutral value #f
+  zone/6/moving-object-direction-components: unsupported: expected neutral value #f
+  zone/6/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/6/primary-phase-direction-components: unsupported: expected neutral value #f
+  zone/6/radial-direction-component: unsupported: expected neutral value #f
+  zone/6/secondary-phase-direction-components: unsupported: expected neutral value #f
+  zone/7/axis-direction-component: unsupported: expected neutral value #f
+  zone/7/axis-origin-component: unsupported: expected neutral value #f
+  zone/7/flow-direction-component: unsupported: expected neutral value #f
+  zone/7/moving-object-direction-components: unsupported: expected neutral value #f
+  zone/7/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/7/primary-phase-direction-components: unsupported: expected neutral value #f
+  zone/7/radial-direction-component: unsupported: expected neutral value #f
+  zone/7/secondary-phase-direction-components: unsupported: expected neutral value #f
+  report/report-def-0: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/file_session/mixing_elbow_mul_ph.dat.h5 approximate_wfgc=False =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/file_session/mixing_elbow_mul_ph.dat.h5 approximate_wfgc=True =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+  pbs/flux-index: only flux index 1 is supported
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  zone/12/vmag: unresolved expression/profile for solve: (profile __expr__ "inlet_vel")
+  zone/12/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/13/parallel-collimated-beam?: unsupported: expected neutral value #t
+  report/outlet_vel: unparsed report type: surface-areaavg
+  zone/12/vmag: requires a finite constant or resolved expression
+
+
+===== validation/fluent_examples/flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  pbs/flux-index: only flux index 1 is supported
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  zone/12/vmag: unresolved expression/profile for solve: (profile __expr__ "inlet_vel")
+  zone/12/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/13/parallel-collimated-beam?: unsupported: expected neutral value #t
+  report/outlet_vel: unparsed report type: surface-areaavg
+  zone/12/vmag: requires a finite constant or resolved expression
+
+
+===== validation/fluent_examples/mixing_elbow/elbow_param.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  zone/4/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/5/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/6/parallel-collimated-beam?: unsupported: expected neutral value #t
+  report/outlet_temp: unparsed report type: surface-areaavg
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/mixing_elbow/elbow_param.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  zone/4/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/5/parallel-collimated-beam?: unsupported: expected neutral value #t
+  zone/6/parallel-collimated-beam?: unsupported: expected neutral value #t
+  report/outlet_temp: unparsed report type: surface-areaavg
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/mixing_elbow/mixing_elbow.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+
+
+===== validation/fluent_examples/mixing_elbow/mixing_elbow.dat.h5 approximate_wfgc=True =====
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: flow/scheme: SIMPLEC replaces Coupled; convergence path only, Majumdar physical diagonal
+Setup: kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+Case convergence criteria are not exposed by the adapter; using iteration limit 1.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter
+     1  1.000000e+00  2.378316e-03  3.861959e-03  4.229761e-03  4.237871e-03  1.042589e-02   2.065835e-01
+Wrote build/reference-probes/mixing_elbow__mixing_elbow.dat.h5/wfgc (1 iterations, 2.066058e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+
+===== validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.dat.h5 approximate_wfgc=False =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.dat.h5 approximate_wfgc=True =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.dat.h5 approximate_wfgc=False =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.dat.h5 approximate_wfgc=True =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.dat.h5 approximate_wfgc=False =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.dat.h5 approximate_wfgc=True =====
+kutta solve: src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00005.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00005.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00010.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00010.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00015.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00015.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00020.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00020.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00025.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00025.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00030.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00030.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00035.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00035.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00040.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00040.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00045.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00045.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00050.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00050.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00001.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00001.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00002.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00002.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00003.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00003.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00004.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00004.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00005.dat.h5 approximate_wfgc=False =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00005.dat.h5 approximate_wfgc=True =====
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  viscous-model (requires SST): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order pressure interpolation
+  pbs/flux-index: only flux index 1 is supported
+  pbs/flux-auto-select?: required setting absent or unparsed
+  wall-distance/method: only wall-distance method 2 is supported
+  wall-distance/quad-correction?: requires quadrilateral wall-distance correction
+  pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted): value is unsupported or required setting is absent
+  pseudo-time-method/dt-method: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  omega/scheme: only first-order and second-order upwind are supported
+  omega/pseudo-relax: value is unsupported or required setting is absent
+  turb-compress-mod?: compressibility correction is not implemented
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+  case-config/rp-structure-time?: unsupported: expected #f
+  viscous-model: unsupported model: k-epsilon standard
+  rp/ke-source-mod: unsupported: active model flag is not in the model allowlist
+  rp/ke-time-marching?: unsupported: active model flag is not in the model allowlist
+  rp/ke-uncoupled?: unsupported: active model flag is not in the model allowlist
+  rp/pbs/flux-auto-select?: absent: no default assumed
+  rp/pbs/flux-index: absent: no default assumed
+  rp/pseudo-time-method/coupled-pbns/dt-method: absent: no default assumed
+  rp/pseudo-time-method/segregated-pbns/dt-method: absent: no default assumed
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/2/electrolyte?: unsupported: expected neutral value #t
+  zone/2/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/2/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  report/vol-mon-1/zones: unverified: surface name has no unique matching thread
+  report/vol-mon-1: unparsed report type: volume-integral
+  report/surf-mon-1: unparsed report type: surface-areaavg
+  report/surf-mon-2: unparsed report type: surface-massflowrate
+src/kutta/setup/fluent.cpp:15: Fluent setup: unsupported or absent SV_O
+
+
+===== validation/fluent_examples/other_folders/result_files/fluent-multi_phase/fluentMultiphase.dat.h5 approximate_wfgc=False =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/other_folders/result_files/fluent-multi_phase/fluentMultiphase.dat.h5 approximate_wfgc=True =====
+kutta solve: duplicate thread ID
+
+===== validation/fluent_examples/other_folders/result_files/fluent-multi_species/FFF.dat.h5 approximate_wfgc=False =====
+kutta solve: duplicate material name
+
+===== validation/fluent_examples/other_folders/result_files/fluent-multi_species/FFF.dat.h5 approximate_wfgc=True =====
+kutta solve: duplicate material name
+
+===== validation/fluent_examples/vki_turbine/vki_turbine.dat approximate_wfgc=False =====
+kutta solve: src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+
+===== validation/fluent_examples/vki_turbine/vki_turbine.dat approximate_wfgc=True =====
+kutta solve: src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040

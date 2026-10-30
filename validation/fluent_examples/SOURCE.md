@@ -17,3 +17,21 @@ Untrusted data: parse only, never execute.
 | static_mixer/Static_Mixer_Parameters.cas.h5 | 3646168 | 190ddd71f96f69c699f96d8d760291b81adb7237a7ab8dc68d0cd76f950f86d9 |
 | static_mixer/Static_Mixer_Parameters_legacy_binary.cas | 6504224 | a420f1c9234ca89d572a96f915adedfdf92609c73190cec00dfea998fc3dc8b0 |
 | static_mixer/Static_Mixer_Parameters_legacy_text.cas | 11215089 | ef75e61850ff7133f68200c2c3a7c84c41edb86cfbb937d5d17f84efd14f7d27 |
+
+## Expanded reference audit (2026-10-30)
+
+The original twelve-file list above is the mesh-acceptance seed, not the full
+upstream inventory. The expanded download ledger is
+[`fluent_reference_manifest.tsv`](../fluent_reference_manifest.tsv), and every
+containing directory now has its own `SOURCE.md` with pinned download URL,
+licence, local bytes and SHA-256. The Ansys snapshot is
+`9674c61c5a3130ffe979561d683348e13575d472`; retain the copied
+[`MIT notice`](LICENSE.ansys-example-data). The additional `borealis_fracture/`
+pairs are CC0 1.0, with author and DOI recorded in their provenance file.
+
+See [`fluent-reference-cases.md`](../../docs/research/fluent-reference-cases.md)
+for the full case inventory, support restrictions, search exclusions and fresh
+CPU/Metal seeded/cold comparisons. Research downloads do not silently become
+supported numerical checks. Restore missing files with
+`python3 tools/forensics/reference_cases.py --download` from the repository root;
+verify existing files by omitting `--download`. Never execute downloaded content.

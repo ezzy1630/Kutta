@@ -1,0 +1,5646 @@
+[
+  {
+    "file": "validation/fluent_examples/2d_box/pro_species.cas",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "cell_types": {
+      "3": 800
+    },
+    "legacy_cell_declarations": [
+      "0 1 320 0 0",
+      "8 1 320 1 3"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "300"
+      ]
+    },
+    "cell_types": {
+      "3": 640,
+      "1": 25100
+    },
+    "legacy_cell_declarations": [
+      "0 1 648c 0",
+      "b 1 648c 1 0"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.dat",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "cell_types": {},
+    "legacy_cell_declarations": [],
+    "legacy_data_headers": [
+      "1 11 1 0 1 1 25740",
+      "1 3 1 0 1 1 80",
+      "1 4 1 0 1 81 110",
+      "1 5 1 0 1 111 140",
+      "1 6 1 0 1 141 170",
+      "1 7 1 0 1 171 200",
+      "1 8 1 0 1 201 39030",
+      "111 11 1 0 1 1 25740",
+      "111 3 1 0 1 1 80",
+      "111 4 1 0 1 81 110",
+      "111 5 1 0 1 111 140",
+      "112 11 1 0 1 1 25740"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/axial_fan_performance_curve/axial_fan.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "2500"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 26.1 Build 10262",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "26.1"
+    },
+    "cell_types": {
+      "7": 56963
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        56963
+      ],
+      "faceCount": [
+        394173
+      ],
+      "nodeCount": [
+        331597
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/axial_fan_performance_curve/axial_fan.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 26.1 Build 10262",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "26.1",
+      "Case File": "axial_fan.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_FLUX",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "2500"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 26.1 Build 10262",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "26.1"
+    },
+    "cell_types": {
+      "7": 56963
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        56963
+      ],
+      "faceCount": [
+        394173
+      ],
+      "nodeCount": [
+        331597
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 26.1 Build 10262",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "26.1",
+      "Case File": "axial_fan.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_FLUX",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/BaseCases/axial_fan.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "2500"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 26.1 Build 10262",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "26.1"
+    },
+    "cell_types": {
+      "7": 56963
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        56963
+      ],
+      "faceCount": [
+        394173
+      ],
+      "nodeCount": [
+        331597
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/axial_fan.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "2500"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 26.1 Build 10262",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "26.1"
+    },
+    "cell_types": {
+      "7": 56963
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        56963
+      ],
+      "faceCount": [
+        394173
+      ],
+      "nodeCount": [
+        331597
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/borealis_fracture/26 Mpa-solution-final.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#t"
+      ],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": [
+        "10000"
+      ]
+    },
+    "cell_types": {
+      "2": 511466
+    },
+    "legacy_cell_declarations": [
+      "0 1 7cdea 0",
+      "3 1 7cdea 1 2"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/borealis_fracture/26 Mpa-solution-final.dat",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "cell_types": {},
+    "legacy_cell_declarations": [],
+    "legacy_data_headers": [
+      "1 3 1 0 1 1 511466",
+      "1 2 1 0 1 1 871262",
+      "1 5 1 0 1 871263 1022702",
+      "1 6 1 0 1 1022703 1172879",
+      "1 7 1 0 1 1172880 1174363",
+      "1 8 1 0 1 1174364 1174602",
+      "111 3 1 0 1 1 511466",
+      "111 5 1 0 1 871263 1022702",
+      "111 6 1 0 1 1022703 1172879",
+      "111 7 1 0 1 1172880 1174363",
+      "111 8 1 0 1 1174364 1174602",
+      "112 3 1 0 1 1 511466"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/borealis_fracture/final solution-before-26 MPa.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#t"
+      ],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": [
+        "10000"
+      ]
+    },
+    "cell_types": {
+      "2": 511466
+    },
+    "legacy_cell_declarations": [
+      "0 1 7cdea 0",
+      "3 1 7cdea 1 2"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/borealis_fracture/final solution-before-26 MPa.dat",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "cell_types": {},
+    "legacy_cell_declarations": [],
+    "legacy_data_headers": [
+      "1 3 1 0 1 1 511466",
+      "1 2 1 0 1 1 871262",
+      "1 5 1 0 1 871263 1022702",
+      "1 6 1 0 1 1022703 1172879",
+      "1 7 1 0 1 1172880 1174363",
+      "1 8 1 0 1 1174364 1174602",
+      "111 3 1 0 1 1 511466",
+      "111 5 1 0 1 871263 1022702",
+      "111 6 1 0 1 1022703 1172879",
+      "111 7 1 0 1 1172880 1174363",
+      "111 8 1 0 1 1174364 1174602",
+      "112 3 1 0 1 1 511466"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/borealis_fracture/final solution-before-94 MPa.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#t"
+      ],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": [
+        "1000"
+      ]
+    },
+    "cell_types": {
+      "2": 510820
+    },
+    "legacy_cell_declarations": [
+      "0 1 7cb64 0",
+      "2 1 7cb64 1 2"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/borealis_fracture/final solution-before-94 MPa.dat",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "cell_types": {},
+    "legacy_cell_declarations": [],
+    "legacy_data_headers": [
+      "1 2 1 0 1 1 510820",
+      "1 1 1 0 1 1 870111",
+      "1 5 1 0 1 870112 871455",
+      "1 6 1 0 1 871456 871692",
+      "1 7 1 0 1 871693 1023153",
+      "1 8 1 0 1 1023154 1173169",
+      "111 2 1 0 1 1 510820",
+      "111 5 1 0 1 870112 871455",
+      "111 6 1 0 1 871456 871692",
+      "111 7 1 0 1 871693 1023153",
+      "111 8 1 0 1 1023154 1173169",
+      "112 2 1 0 1 1 510820"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/catalytic_converter/catalytic_converter_param.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "cell_types": {
+      "4": 34580
+    },
+    "legacy_cell_declarations": [
+      "0 1 8714 0",
+      "2 1 724c 1 4",
+      "3 724d 8714 1 4"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/examples/Ablation-tutorial/ablation.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 170",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1"
+    },
+    "cell_types": {
+      "4": 539,
+      "7": 48193
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        48732
+      ],
+      "faceCount": [
+        261930
+      ],
+      "nodeCount": [
+        189921
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Ablation-tutorial/ablation_Solved.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 180",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "4": 539,
+      "7": 48193
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        48732
+      ],
+      "faceCount": [
+        261930
+      ],
+      "nodeCount": [
+        189921
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Ablation-tutorial/ablation_Solved.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 180",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2",
+      "Case File": "ablation_Solved.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_BND_GRID_V",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_FLUX_M2",
+      "SV_GRID_FLUX",
+      "SV_GRID_FLUX_M2",
+      "SV_HEAT_FLUX",
+      "SV_K",
+      "SV_O",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_SURFACE_DEFORMATION",
+      "SV_SURFACE_INIT_AREA",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_ABLATION_RATE",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BETA_NH",
+      "SV_BETA_PH",
+      "SV_BF_V",
+      "SV_CELL_GRID_V",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DENSITY_M2",
+      "SV_DISCONT",
+      "SV_DVOLUME_DT",
+      "SV_DVOLUME_M2_DT",
+      "SV_ENERGY_M1",
+      "SV_ENERGY_M2",
+      "SV_H",
+      "SV_K",
+      "SV_K_M1",
+      "SV_K_M2",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_NORMAL_MACH",
+      "SV_O",
+      "SV_O_M1",
+      "SV_O_M2",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_P_M1",
+      "SV_P_M2",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_M2",
+      "SV_U",
+      "SV_U_M1",
+      "SV_U_M2",
+      "SV_V",
+      "SV_VOLUME_M2",
+      "SV_V_M1",
+      "SV_V_M2",
+      "SV_W",
+      "SV_WALL_DIST",
+      "SV_W_M1",
+      "SV_W_M2",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/examples/DOE-ML-Mixing-Elbow/elbow.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "200"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 119",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "4": 729,
+      "7": 17136
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        17865
+      ],
+      "faceCount": [
+        91982
+      ],
+      "nodeCount": [
+        66285
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Dash-App-for-Post-processing/elbow.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "1"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 160",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "4": 729,
+      "7": 17136
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        17865
+      ],
+      "faceCount": [
+        91982
+      ],
+      "nodeCount": [
+        66285
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Dash-App-for-Post-processing/elbow.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 156",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2",
+      "Case File": "elbow.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/examples/Excel-Monitor-Points/glycerol_filling_mixing_init.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 73453,
+      "4": 82964
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        156417
+      ],
+      "faceCount": [
+        701455
+      ],
+      "nodeCount": [
+        422109
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Excel-Monitor-Points/glycerol_filling_mixing_init.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.1 Build 10179",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.1",
+      "Case File": "glycerol_filling_mixing_init.cas.h5"
+    },
+    "cell_types": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_HEAT_FLUX",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_U",
+      "SV_V",
+      "SV_VFLUX",
+      "SV_VFLUX_M1",
+      "SV_VFLUX_M2",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BETA_NH",
+      "SV_BETA_PH",
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DENSITY_M2",
+      "SV_DPM_PARTITION",
+      "SV_MU_LAM",
+      "SV_P",
+      "SV_P_M1",
+      "SV_P_M2",
+      "SV_U",
+      "SV_U_M1",
+      "SV_U_M2",
+      "SV_V",
+      "SV_V_M1",
+      "SV_V_M2",
+      "SV_W",
+      "SV_W_M1",
+      "SV_W_M2",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/examples/Fluent-Parametric/elbow_params_2.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "5"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.1 Build 165",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.1"
+    },
+    "cell_types": {
+      "4": 13852
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        13852
+      ],
+      "faceCount": [
+        44500
+      ],
+      "nodeCount": [
+        16968
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Graphics-Demo/elbow1.cas",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "cell_types": {
+      "4": 13852
+    },
+    "legacy_cell_declarations": [
+      "0 1 361c 0",
+      "2 1 361c 1 4"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/examples/Gravity-Separator-PID/2d-separator.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "3000"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 146",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "3": 16221
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        16221
+      ],
+      "faceCount": [
+        32789
+      ],
+      "nodeCount": [
+        16569
+      ],
+      "dimension": [
+        2
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Gravity-Separator-PID/2d-separator.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 146",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2",
+      "Case File": "2d-separator.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_HEAT_FLUX",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_U",
+      "SV_V",
+      "SV_VFLUX",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_U",
+      "SV_V",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/examples/Intro-Demo-Mixing-Elbow/elbow.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "10"
+      ]
+    },
+    "cell_types": {
+      "2": 45637
+    },
+    "legacy_cell_declarations": [
+      "0 1 b245 0",
+      "2 1 b245 1 2"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/examples/MixingTank-DOE/test-laminar-visc.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "20"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 119",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 167738
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        167738
+      ],
+      "faceCount": [
+        1123521
+      ],
+      "nodeCount": [
+        898830
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/PPTX-report-generation/elbow.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "20"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 156",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "4": 729,
+      "7": 17136
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        17865
+      ],
+      "faceCount": [
+        91982
+      ],
+      "nodeCount": [
+        66285
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/PPTX-report-generation/elbow.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 156",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2",
+      "Case File": "elbow.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/examples/PyFluent-ACE-Training-at-22R2/demo.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS FLUENT MESHING 2023 R1",
+      "Solver": "ANSYS_FLUENT_MESHING",
+      "Version": "23.1"
+    },
+    "cell_types": {
+      "7": 140613
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        140613
+      ],
+      "faceCount": [
+        681057
+      ],
+      "nodeCount": [
+        448300
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/PyFluent-ACE-Training-at-22R2/elbow.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "200"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 119",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "4": 729,
+      "7": 17136
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        17865
+      ],
+      "faceCount": [
+        91982
+      ],
+      "nodeCount": [
+        66285
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/PyFluent-ACE-Training-at-22R2/elbow1.cas",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "cell_types": {
+      "4": 13852
+    },
+    "legacy_cell_declarations": [
+      "0 1 361c 0",
+      "2 1 361c 1 4"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/examples/Remote-Execution-in-Cluster/bkd_facing_step.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "20"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 123",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 32512
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        32512
+      ],
+      "faceCount": [
+        218452
+      ],
+      "nodeCount": [
+        193009
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Separator-Collection-Efficiency/oil_separator.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "25"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 164",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1"
+    },
+    "cell_types": {
+      "4": 13846,
+      "7": 84690
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        98536
+      ],
+      "faceCount": [
+        449625
+      ],
+      "nodeCount": [
+        266837
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Separator-Collection-Efficiency/oil_separator.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 164",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1",
+      "Case File": "oil_separator.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_HEAT_FLUX",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/examples/Steady-Vortex-VOF/vortex_init.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 164",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1"
+    },
+    "cell_types": {
+      "7": 265700,
+      "4": 68644
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        334344
+      ],
+      "faceCount": [
+        1589752
+      ],
+      "nodeCount": [
+        1012921
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Steady-Vortex-VOF/vortex_init.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 164",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1",
+      "Case File": "vortex_init.cas.h5"
+    },
+    "cell_types": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_HEAT_FLUX",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_U",
+      "SV_V",
+      "SV_VFLUX",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 151",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "4": 221696
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        221696
+      ],
+      "faceCount": [
+        718384
+      ],
+      "nodeCount": [
+        259760
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 151",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2",
+      "Case File": "axial_comp_fullWheel_DFT.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_MEAN",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_RTDFT_IP_I",
+      "SV_RTDFT_RP_I",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_M2",
+      "SV_T_MEAN",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_SHEAR_MEAN",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_W_M1",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_MU_LAM",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_P_M1",
+      "SV_P_MEAN",
+      "SV_P_RMS",
+      "SV_RTDFT_IP_I",
+      "SV_RTDFT_RP_I",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_MEAN",
+      "SV_T_RMS",
+      "SV_U",
+      "SV_U_M1",
+      "SV_U_MEAN",
+      "SV_U_RMS",
+      "SV_V",
+      "SV_V_M1",
+      "SV_V_MEAN",
+      "SV_V_RMS",
+      "SV_W",
+      "SV_W_M1",
+      "SV_W_MEAN",
+      "SV_W_RMS",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.2"
+    },
+    "cell_types": {
+      "4": 221696
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        221696
+      ],
+      "faceCount": [
+        718336
+      ],
+      "nodeCount": [
+        259760
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.2",
+      "Case File": "axial_comp_fullWheel_DFT_23R2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_F_SC_PRESSURE",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_MEAN",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_M2",
+      "SV_T_MEAN",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_SHEAR_MEAN",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_W_M1",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_LORENTZ_FORCE",
+      "SV_MU_LAM",
+      "SV_P",
+      "SV_P_M1",
+      "SV_P_MEAN",
+      "SV_P_RMS",
+      "SV_RTDFT_0_IM",
+      "SV_RTDFT_0_MEAN",
+      "SV_RTDFT_0_RE",
+      "SV_RTDFT_1_IM",
+      "SV_RTDFT_1_MEAN",
+      "SV_RTDFT_1_RE",
+      "SV_RTDFT_2_IM",
+      "SV_RTDFT_2_MEAN",
+      "SV_RTDFT_2_RE",
+      "SV_STAT_DATASET_0_MEAN",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_MEAN",
+      "SV_T_RMS",
+      "SV_U",
+      "SV_U_M1",
+      "SV_U_MEAN",
+      "SV_U_RMS",
+      "SV_V",
+      "SV_V_M1",
+      "SV_V_MEAN",
+      "SV_V_RMS",
+      "SV_W",
+      "SV_W_M1",
+      "SV_W_MEAN",
+      "SV_W_RMS",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/exhaust_manifold/manifold_expressions.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "cell_types": {
+      "4": 91415,
+      "2": 245095,
+      "6": 378,
+      "5": 10210
+    },
+    "legacy_cell_declarations": [
+      "0 1 54bda 0",
+      "a 1 4ad85 1 0",
+      "d 4ad86 4ae02 1 4",
+      "4 4ae03 4d578 fa1 0",
+      "e 4d579 4fcee fa1 0",
+      "17 4fcef 52464 fa1 0",
+      "1c 52465 54bda fa1 0"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/exhaust_manifold/manifold_solution.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.1 Build 173",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.1"
+    },
+    "cell_types": {
+      "7": 288590
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        288590
+      ],
+      "faceCount": [
+        1795387
+      ],
+      "nodeCount": [
+        1408040
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/exhaust_manifold/manifold_solution.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.1 Build 173",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.1",
+      "Case File": "manifold_solution.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/exhaust_system/exhaust_system.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 288590
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        288590
+      ],
+      "faceCount": [
+        1795387
+      ],
+      "nodeCount": [
+        1408040
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/exhaust_system/exhaust_system.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2",
+      "Case File": "exhaust_system.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/file_session/elbow1.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "150"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 24.1 Build 82",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "24.1"
+    },
+    "cell_types": {
+      "4": 13852
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        13852
+      ],
+      "faceCount": [
+        44500
+      ],
+      "nodeCount": [
+        16968
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/file_session/elbow1.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 24.1 Build 82",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "24.1",
+      "Case File": "elbow1.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_F_SC_PRESSURE",
+      "SV_F_SC_TDR",
+      "SV_F_SC_TKE",
+      "SV_F_SC_TT",
+      "SV_F_SC_VELOCITY",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_H",
+      "SV_K",
+      "SV_LORENTZ_FORCE",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/file_session/mixing_elbow_mul_ph.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "3"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 24.1 Build 106",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "24.1"
+    },
+    "cell_types": {
+      "4": 729,
+      "7": 17093
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        17822
+      ],
+      "faceCount": [
+        91581
+      ],
+      "nodeCount": [
+        66417
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/file_session/mixing_elbow_mul_ph.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 24.1 Build 106",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "24.1",
+      "Case File": "mixing_elbow_mul_ph.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_FLUX",
+      "SV_F_SC_PRESSURE",
+      "SV_F_SC_TDR",
+      "SV_F_SC_TKE",
+      "SV_F_SC_TT",
+      "SV_F_SC_VELOCITY",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_U",
+      "SV_V",
+      "SV_VFLUX",
+      "SV_VFLUX_M1",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_K",
+      "SV_K_M1",
+      "SV_LORENTZ_FORCE",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_O_M1",
+      "SV_P",
+      "SV_PHASE_MASS",
+      "SV_P_M1",
+      "SV_THIN_FILM",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_WALL_DIST",
+      "SV_W_M1",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "10"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 124",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 19429
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        19429
+      ],
+      "faceCount": [
+        106180
+      ],
+      "nodeCount": [
+        74540
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 124",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2",
+      "Case File": "nozzle_para_named_1.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_HEAT_FLUX",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/BaseCases/nozzle_para_named_1.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "10"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 124",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 19429
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        19429
+      ],
+      "faceCount": [
+        106180
+      ],
+      "nodeCount": [
+        74540
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/nozzle_para_named_1.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "10"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 124",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 19429
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        19429
+      ],
+      "faceCount": [
+        106180
+      ],
+      "nodeCount": [
+        74540
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/mixing_elbow/elbow_param.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 75",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1"
+    },
+    "cell_types": {
+      "2": 45637
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        45637
+      ],
+      "faceCount": [
+        94288
+      ],
+      "nodeCount": [
+        9203
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/mixing_elbow/elbow_param.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 75",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1",
+      "Case File": "elbow_param.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/mixing_elbow/elbow_source_terms.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.2 Build 130",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.2"
+    },
+    "cell_types": {
+      "2": 45637
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        45637
+      ],
+      "faceCount": [
+        94288
+      ],
+      "nodeCount": [
+        9203
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "4": 729,
+      "7": 17093
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        17822
+      ],
+      "faceCount": [
+        91581
+      ],
+      "nodeCount": [
+        66417
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/mixing_elbow/mixing_elbow.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2",
+      "Case File": "mixing_elbow.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_O",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIFFUSIVE_BC_MFLUX",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_O",
+      "SV_P",
+      "SV_PSEUDO_DT",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_DIST",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/mixing_elbow/mixing_elbow_for_field_data.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.2 Build 186",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.2"
+    },
+    "cell_types": {
+      "4": 729,
+      "7": 17093
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        17822
+      ],
+      "faceCount": [
+        91581
+      ],
+      "nodeCount": [
+        66417
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/optislang/mixer-ran_2019r3.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "25"
+      ]
+    },
+    "cell_types": {
+      "4": 860,
+      "7": 13075
+    },
+    "legacy_cell_declarations": [
+      "0 1 366f 0",
+      "c1 1 366f 1 0"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/optislang/nozzle-2D-WB.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "400"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 10201",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2"
+    },
+    "cell_types": {
+      "3": 4182,
+      "1": 8
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        4190
+      ],
+      "faceCount": [
+        8513
+      ],
+      "nodeCount": [
+        4324
+      ],
+      "dimension": [
+        2
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pyprimemesh/unit_test_examples/file.cas",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "cell_types": {},
+    "legacy_cell_declarations": [],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pyprimemesh/unit_test_examples/hex.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "cell_types": {
+      "4": 216
+    },
+    "legacy_cell_declarations": [
+      "0 1 d8 0",
+      "9 1 d8 1 4"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pysystem-coupling/fluid-swirl/water_pipe_flow.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "200"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 24.1 Build 10184",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "24.1"
+    },
+    "cell_types": {
+      "6": 31390,
+      "2": 17185
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        48575
+      ],
+      "faceCount": [
+        116126
+      ],
+      "nodeCount": [
+        20404
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pysystem-coupling/heating_tank_fmu/Fluent/fluent.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 24.1 Build 162",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "24.1"
+    },
+    "cell_types": {
+      "7": 20307
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        20307
+      ],
+      "faceCount": [
+        134351
+      ],
+      "nodeCount": [
+        109746
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pysystem-coupling/oscillating_plate/Fluent/plate.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "cell_types": {
+      "4": 3025
+    },
+    "legacy_cell_declarations": [
+      "0 1 bd1 0",
+      "2 1 bd1 1 4"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pysystem-coupling/oscillating_plate/oscillating_plate.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 24.1 Build 10184",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "24.1"
+    },
+    "cell_types": {
+      "4": 3025
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        3025
+      ],
+      "faceCount": [
+        12236
+      ],
+      "nodeCount": [
+        6324
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pysystem-coupling/parametric_sweep_vel/Fluent/case.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "8"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 154",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1"
+    },
+    "cell_types": {
+      "4": 58065
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        58065
+      ],
+      "faceCount": [
+        187138
+      ],
+      "nodeCount": [
+        71280
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pytwin/other_files/HX_CFD.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "1000"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.2"
+    },
+    "cell_types": {
+      "7": 873348
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        873348
+      ],
+      "faceCount": [
+        4761341
+      ],
+      "nodeCount": [
+        3482788
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pytwin/other_files/T_Junction.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "1"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "6": 30360,
+      "2": 185516
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        215876
+      ],
+      "faceCount": [
+        518843
+      ],
+      "nodeCount": [
+        55905
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/pyworkbench/elbow_case_file/elbow.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "10"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.1 Build 10179",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.1"
+    },
+    "cell_types": {
+      "2": 45637
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        45637
+      ],
+      "faceCount": [
+        94288
+      ],
+      "nodeCount": [
+        9203
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 20.2 Build 129",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "20.2"
+    },
+    "cell_types": {
+      "4": 13856
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        13856
+      ],
+      "faceCount": [
+        45391
+      ],
+      "nodeCount": [
+        16660
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 20.2 Build 129",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "20.2"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_HEAT_FLUX",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_M2",
+      "SV_T_MEAN",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_W_M1",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DISCONT",
+      "SV_DPM_PARTITION",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_P",
+      "SV_P_M1",
+      "SV_P_MEAN",
+      "SV_P_RMS",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_MEAN",
+      "SV_T_RMS",
+      "SV_U",
+      "SV_U_M1",
+      "SV_U_MEAN",
+      "SV_U_RMS",
+      "SV_V",
+      "SV_V_M1",
+      "SV_V_MEAN",
+      "SV_V_RMS",
+      "SV_W",
+      "SV_W_M1",
+      "SV_W_MEAN",
+      "SV_W_RMS",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 20.2 Build 129",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "20.2"
+    },
+    "cell_types": {
+      "4": 13856
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        13856
+      ],
+      "faceCount": [
+        45359
+      ],
+      "nodeCount": [
+        16660
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 20.2 Build 129",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "20.2"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_HEAT_FLUX",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_M2",
+      "SV_T_MEAN",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_W_M1",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DISCONT",
+      "SV_DPM_PARTITION",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_P",
+      "SV_P_M1",
+      "SV_P_MEAN",
+      "SV_P_RMS",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_MEAN",
+      "SV_T_RMS",
+      "SV_U",
+      "SV_U_M1",
+      "SV_U_MEAN",
+      "SV_U_RMS",
+      "SV_V",
+      "SV_V_M1",
+      "SV_V_MEAN",
+      "SV_V_RMS",
+      "SV_W",
+      "SV_W_M1",
+      "SV_W_MEAN",
+      "SV_W_RMS",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 20.2 Build 129",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "20.2"
+    },
+    "cell_types": {
+      "4": 13856
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        13856
+      ],
+      "faceCount": [
+        45343
+      ],
+      "nodeCount": [
+        16660
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 20.2 Build 129",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "20.2"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_HEAT_FLUX",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_M2",
+      "SV_T_MEAN",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_WALL_SHEAR",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_W_M1",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DISCONT",
+      "SV_DPM_PARTITION",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_P",
+      "SV_P_M1",
+      "SV_P_MEAN",
+      "SV_P_RMS",
+      "SV_T",
+      "SV_T_M1",
+      "SV_T_MEAN",
+      "SV_T_RMS",
+      "SV_U",
+      "SV_U_M1",
+      "SV_U_MEAN",
+      "SV_U_RMS",
+      "SV_V",
+      "SV_V_M1",
+      "SV_V_MEAN",
+      "SV_V_RMS",
+      "SV_W",
+      "SV_W_M1",
+      "SV_W_MEAN",
+      "SV_W_RMS",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00005.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00010.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00015.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00020.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00025.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00030.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00035.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00040.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00045.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00050.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "50"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2"
+    },
+    "cell_types": {
+      "2": 45637
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        45637
+      ],
+      "faceCount": [
+        94288
+      ],
+      "nodeCount": [
+        9203
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00001.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DPM_PARTITION",
+      "SV_D_M1",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_K",
+      "SV_K_M1",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_P_M1",
+      "SV_T",
+      "SV_T_M1",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_W_M1",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00002.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DPM_PARTITION",
+      "SV_D_M1",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_K",
+      "SV_K_M1",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_P_M1",
+      "SV_T",
+      "SV_T_M1",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_W_M1",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00003.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DPM_PARTITION",
+      "SV_D_M1",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_K",
+      "SV_K_M1",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_P_M1",
+      "SV_T",
+      "SV_T_M1",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_W_M1",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00004.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DPM_PARTITION",
+      "SV_D_M1",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_K",
+      "SV_K_M1",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_P_M1",
+      "SV_T",
+      "SV_T_M1",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_W_M1",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00005.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2",
+      "Case File": "elbow-2.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_FLUX_M1",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_W",
+      "SV_WALL_PRORUS_ZONE_FORCE_MEAN",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DENSITY_M1",
+      "SV_DPM_PARTITION",
+      "SV_D_M1",
+      "SV_ENERGY_M1",
+      "SV_H",
+      "SV_K",
+      "SV_K_M1",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_P_M1",
+      "SV_T",
+      "SV_T_M1",
+      "SV_U",
+      "SV_U_M1",
+      "SV_V",
+      "SV_V_M1",
+      "SV_W",
+      "SV_W_M1",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "50"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 21.2 Build 81",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "21.2"
+    },
+    "cell_types": {
+      "2": 45637
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        45637
+      ],
+      "faceCount": [
+        94288
+      ],
+      "nodeCount": [
+        9203
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-multi_phase/fluentMultiphase.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#t"
+      ],
+      "number-of-iterations": [
+        "400"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 19.5 Build 180",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "19.5"
+    },
+    "cell_types": {
+      "2": 46133
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        46133
+      ],
+      "faceCount": [
+        96209
+      ],
+      "nodeCount": [
+        9884
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-multi_phase/fluentMultiphase.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 19.5 Build 180",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "19.5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_OUTFLOW_DEFICIT",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_SLIP_U",
+      "SV_SLIP_V",
+      "SV_SLIP_W",
+      "SV_T",
+      "SV_U",
+      "SV_UDM_I",
+      "SV_V",
+      "SV_VFLUX",
+      "SV_W",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_PHASE_MASS",
+      "SV_SLIP_U",
+      "SV_SLIP_V",
+      "SV_SLIP_W",
+      "SV_T",
+      "SV_THIN_FILM",
+      "SV_U",
+      "SV_UDM_I",
+      "SV_V",
+      "SV_W",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-multi_species/FFF.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "1"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 20.2 Build 175",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "20.2"
+    },
+    "cell_types": {
+      "3": 1344
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        1344
+      ],
+      "faceCount": [
+        2773
+      ],
+      "nodeCount": [
+        1430
+      ],
+      "dimension": [
+        2
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/other_folders/result_files/fluent-multi_species/FFF.dat.h5",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 20.2 Build 175",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "20.2",
+      "Case File": "FFF.cas.h5"
+    },
+    "cell_types": {},
+    "residuals": {},
+    "faces_fields": [
+      "SV_ARTIFICIAL_WALL_FLAG",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPMS_WALL_FORCE",
+      "SV_DT_BC_SOURCE",
+      "SV_FLUX",
+      "SV_H",
+      "SV_HEAT_FLUX",
+      "SV_HEAT_FLUX_SENSIBLE",
+      "SV_K",
+      "SV_MACH",
+      "SV_P",
+      "SV_RAD_HEAT_FLUX",
+      "SV_T",
+      "SV_U",
+      "SV_V",
+      "SV_WALL_SHEAR",
+      "SV_WALL_T_INNER",
+      "SV_WALL_V",
+      "SV_WALL_VV",
+      "SV_WALL_YPLUS",
+      "SV_WALL_YPLUS_UTAU",
+      "SV_Y",
+      "fields"
+    ],
+    "cells_fields": [
+      "SV_BF_V",
+      "SV_D",
+      "SV_DENSITY",
+      "SV_DPMS_BURNOUT",
+      "SV_DPMS_BURN_PER_MAT_0",
+      "SV_DPMS_BURN_PER_MAT_1",
+      "SV_DPMS_CONCENTRATION",
+      "SV_DPMS_DEVOL_PER_MAT_0",
+      "SV_DPMS_DEVOL_PER_MAT_1",
+      "SV_DPMS_ENERGY",
+      "SV_DPMS_MASS",
+      "SV_DPMS_MOM_AP",
+      "SV_DPMS_MOM_S",
+      "SV_DPMS_PDF_1",
+      "SV_DPMS_SPECIES",
+      "SV_DPMS_VAP_PER_MAT_0",
+      "SV_DPM_PARTITION",
+      "SV_H",
+      "SV_K",
+      "SV_MU_LAM",
+      "SV_MU_T",
+      "SV_P",
+      "SV_T",
+      "SV_TOT_RXN",
+      "SV_U",
+      "SV_V",
+      "SV_Y",
+      "fields"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/peridoic_rot/peridoic_rot.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 94",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1"
+    },
+    "cell_types": {
+      "7": 24280
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        24280
+      ],
+      "faceCount": [
+        130664
+      ],
+      "nodeCount": [
+        92052
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/peridoicrot_withpipes/peridoicrot_withpipes.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 94",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1"
+    },
+    "cell_types": {
+      "7": 24280
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        24280
+      ],
+      "faceCount": [
+        130664
+      ],
+      "nodeCount": [
+        92052
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/periodic_rot/periodic_rot.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 23.1 Build 94",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "23.1"
+    },
+    "cell_types": {
+      "7": 24280
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        24280
+      ],
+      "faceCount": [
+        130664
+      ],
+      "nodeCount": [
+        92052
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/rotating_disk/disk.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 24.1 Build 10183",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "24.1"
+    },
+    "cell_types": {
+      "3": 6192
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        6192
+      ],
+      "faceCount": [
+        12542
+      ],
+      "nodeCount": [
+        6351
+      ],
+      "dimension": [
+        2
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/static_mixer/Static_Mixer_Parameter_project_file/Static_Mixer_Parameters.cffdb/Static_Mixer_Parameters-Solve/Static_Mixer_Parameters.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 10212",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 22771
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        22771
+      ],
+      "faceCount": [
+        119140
+      ],
+      "nodeCount": [
+        82247
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/static_mixer/Static_Mixer_Parameters.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 201",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 22771
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        22771
+      ],
+      "faceCount": [
+        119140
+      ],
+      "nodeCount": [
+        82247
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/static_mixer/Static_Mixer_Parameters.xxx.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "cell_types": {
+      "7": 22771
+    },
+    "legacy_cell_declarations": [
+      "0 1 58f3 0",
+      "61 1 58f3 1 7"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/static_mixer/Static_Mixer_Parameters.xxxx.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 201",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 22771
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        22771
+      ],
+      "faceCount": [
+        119140
+      ],
+      "nodeCount": [
+        82247
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "cell_types": {
+      "7": 22771
+    },
+    "legacy_cell_declarations": [
+      "0 1 58f3 0",
+      "61 1 58f3 1 7"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/static_mixer/Static_Mixer_Parameters_legacy_text.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "cell_types": {
+      "7": 22771
+    },
+    "legacy_cell_declarations": [
+      "0 1 58f3 0",
+      "61 1 58f3 1 7"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/static_mixer/Static_Mixer_Parameters_unitless.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "100"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 25.1 Build 10210",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "25.1"
+    },
+    "cell_types": {
+      "7": 22771
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        22771
+      ],
+      "faceCount": [
+        119140
+      ],
+      "nodeCount": [
+        82247
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/static_mixer/Static_Mixer_main.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#t"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "330"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 22.2 Build 164",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "22.2"
+    },
+    "cell_types": {
+      "7": 22771
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        22771
+      ],
+      "faceCount": [
+        119140
+      ],
+      "nodeCount": [
+        82247
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  },
+  {
+    "file": "validation/fluent_examples/vki_turbine/vki_turbine.cas",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "cell_types": {
+      "6": 64800
+    },
+    "legacy_cell_declarations": [
+      "0 1 fd20 0",
+      "1 1 fd20 1 6"
+    ],
+    "legacy_data_headers": []
+  },
+  {
+    "file": "validation/fluent_examples/vki_turbine/vki_turbine.dat",
+    "flags": {
+      "recon/cell-lsf?": [],
+      "recon/wfgc-jump-enhanced?": [],
+      "recon/node-lsq?": [],
+      "rp-unsteady?": [],
+      "rp-lam?": [],
+      "number-of-iterations": []
+    },
+    "cell_types": {},
+    "legacy_cell_declarations": [],
+    "legacy_data_headers": [
+      "1 1 1 0 1 1 64800",
+      "1 2 1 0 1 2761 3100",
+      "1 3 1 0 1 3101 3440",
+      "1 4 1 0 1 3441 6680",
+      "1 5 1 0 1 6681 9920",
+      "1 6 1 0 1 9921 12640",
+      "111 1 1 0 1 1 64800",
+      "111 2 1 0 1 2761 3100",
+      "111 3 1 0 1 3101 3440",
+      "112 1 1 0 1 1 64800",
+      "112 2 1 0 1 2761 3100",
+      "112 3 1 0 1 3101 3440"
+    ]
+  },
+  {
+    "file": "validation/fluent_examples/wigley_hull/wigley.cas.h5",
+    "flags": {
+      "recon/cell-lsf?": [
+        "#f"
+      ],
+      "recon/wfgc-jump-enhanced?": [
+        "#t"
+      ],
+      "recon/node-lsq?": [
+        "#f"
+      ],
+      "rp-unsteady?": [
+        "#f"
+      ],
+      "rp-lam?": [
+        "#f"
+      ],
+      "number-of-iterations": [
+        "0"
+      ]
+    },
+    "settings": {
+      "Origin": "ANSYS_FLUENT 24.1 Build 10183",
+      "Solver": "ANSYS_FLUENT",
+      "Version": "24.1"
+    },
+    "cell_types": {
+      "4": 92904
+    },
+    "mesh_attributes": {
+      "cellCount": [
+        92904
+      ],
+      "faceCount": [
+        285655
+      ],
+      "nodeCount": [
+        100000
+      ],
+      "dimension": [
+        3
+      ]
+    }
+  }
+]

@@ -34,3 +34,13 @@ __pycache__/
 # Derived by tools/prepare_tmr.py from checksum-verified bundled gzip fixtures.
 /validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt
 /validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.p2dfmt
+
+# Expanded, licence-audited Fluent research corpus (small provenance is tracked).
+/validation/fluent_examples/**/*.cas
+/validation/fluent_examples/**/*.dat
+/validation/fluent_examples/**/*.cas.h5
+/validation/fluent_examples/**/*.dat.h5
+/validation/fluent_examples/**/*.gz
+/validation/fluent_examples/**/*.zip
+# Small MIT case fixture is useful even without its missing solved data.
+!/validation/fluent_examples/2d_box/pro_species.cas

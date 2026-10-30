@@ -8,6 +8,7 @@
 #include <optional>
 #include <set>
 
+#include "../fluent_reference_files.hpp"
 #include "kutta/io/mesh_io.hpp"
 #include "kutta/mesh/detail.hpp"
 using namespace kutta;
@@ -100,12 +101,20 @@ TEST_CASE("real Fluent external mesh acceptance") {
     MESSAGE("SKIP: external Fluent examples directory is absent");
     return;
   }
-  // Inventory prevents an added fixture from silently escaping the concrete
-  // acceptance expectations. Only two fixtures are tracked; the rest are
-  // gitignored downloads (SOURCE.md), so absent ones are reported and skipped.
-  // Data-only files cannot supply a mesh.
+  // Every download must have explicit provenance. Curated mesh examples retain
+  // their concrete geometry checks below; unsupported research candidates have
+  // ledger byte expectations here and SHA-256 verification in the slow suite.
+  // Missing external files are optional. Unknown files still fail closed.
   std::set<std::string> expected = data_files, found;
   for (const auto& e : examples) expected.insert(e.file);
+  for (const auto& file : fluent_reference_files()) {
+    expected.insert(file.path.generic_string());
+    const auto path=root/file.path;
+    if(std::filesystem::exists(path)) {
+      INFO(file.path.string());
+      CHECK(std::filesystem::file_size(path)==file.bytes);
+    }
+  }
   for (const auto& entry : std::filesystem::recursive_directory_iterator(root))
     if (entry.is_regular_file() && entry.path().extension() != ".md" &&
         !entry.path().filename().string().starts_with("LICENSE"))

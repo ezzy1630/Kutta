@@ -1,0 +1,23 @@
+{
+  "approximate": true,
+  "approximation_notice": "APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison",
+  "approximations": [
+    {"name": "wfgc", "setting": "recon/cell-lsf?", "fluent_value": "#t", "kutta_action": "run without warped-face gradient correction (WFGC off, #f)", "effect_documentation": "src/kutta/fv/VERIFICATION.md#v6-initialization-comparison", "measured_effect": "V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound"}],
+  "case_file": "/Users/ezzy/.t3/worktrees/Kutta/t3-e6179ac7/validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5",
+  "case_sha256": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+  "data_file": "/Users/ezzy/.t3/worktrees/Kutta/t3-e6179ac7/validation/fluent_examples/mixing_elbow/mixing_elbow.dat.h5",
+  "data_sha256": "863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42",
+  "kutta_version": "0.1.0",
+  "kutta_commit": "a0c5caa6079cdd7ccd299ac093d9c9b18373c989",
+  "backend": "cpu",
+  "device": "CPU reference (serial)",
+  "cells": 17822,
+  "iterations": 1200,
+  "wall_time_seconds": 192.148141041,
+  "setup_time_seconds": 0.65574624999999997,
+  "peak_device_memory_bytes": null,
+  "converged": false,
+  "stop_reason": "iteration_limit",
+  "convergence_criteria_available": false,
+  "boundary_wall_shear_available": false
+}

@@ -1,0 +1,40 @@
+{
+  "source_commit": "a0c5caa6079cdd7ccd299ac093d9c9b18373c989",
+  "platform": "Darwin UAs-MacBook-Pro.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:17:26 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6041 arm64",
+  "binaries": {
+    "build/kutta": "1dc9122880ba47f93689bcb9044ef23110b6ba8724050214065f7127c2beed56",
+    "build/kutta-tests": "e8799a3647aa607774b3c9d4d8a40852d0ac327071b221d9e6210bb844cc3476",
+    "build/bench_fluent_reference": "1cb7f56011497a6cf70d4748e900b84842903fabb4d89847d13fd88316f2f4c1"
+  },
+  "force_crosscheck": [
+    {
+      "backend": "cpu",
+      "mode": "seeded",
+      "maximum_absolute_cli_force_difference": 4.386074836659759e-14
+    },
+    {
+      "backend": "cpu",
+      "mode": "cold",
+      "maximum_absolute_cli_force_difference": 4.993921942642032e-14
+    },
+    {
+      "backend": "metal",
+      "mode": "seeded",
+      "maximum_absolute_cli_force_difference": 3.562948547308764e-14
+    },
+    {
+      "backend": "metal",
+      "mode": "cold",
+      "maximum_absolute_cli_force_difference": 4.060293767871315e-14
+    }
+  ],
+  "protected_source_diff": "",
+  "new_code_sha256": {
+    "bench/bench_fluent_reference.cpp": "8148bed05263ffbedae34f7971bf0fe5c1831bf90242d10b6ab674eebd3f8d86",
+    "tests/fluent_reference_files.hpp": "ce506f67103d58598df912e3ba14daa42aca727897ffe0e9ea70b502badcf65a",
+    "tests/io/test_fluent_real.cpp": "3202f7f832c31932ef40786be944b135cfcf2f73812520261c316e979eeae0f0",
+    "tests/io/test_fluent_reference_inventory.cpp": "dd37cdd12519dec9ba62b3c1891418c3216a9e56125c60f8db23b19400aa7031",
+    "tools/forensics/reference_cases.py": "79412e6a7823d7aef3e5870b3439732c3e831355d19fae953f27127cadb4df26",
+    "tools/forensics/reference_metadata.py": "26f1a1bf9627407abb78d8f57e38b72ffb0cdeee43ede7afa256a2a6d0610633"
+  }
+}
