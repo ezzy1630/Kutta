@@ -71,9 +71,22 @@ protected:
     void keyPressEvent(QKeyEvent* e) override;
 
 private:
-    struct Chip { QRectF rect; std::size_t series; };  // series: the first with the chip's key
-    struct Layout { QRectF plot; std::vector<Chip> legend; };
-    Layout layout(const QRectF& r, const QFontMetricsF& fm) const;
+    // series: the first with the chip's key; npos marks the "+N more" chip.
+    struct Chip { QRectF rect; std::size_t series; QString text; };
+    // Every label owns its own rectangle: legend rows, the y title (rotated
+    // beside the axis when it fits, else on one line above the plot), tick
+    // labels and the x title. Nothing is drawn where another element is.
+    struct Layout {
+        QRectF plot;
+        std::vector<Chip> legend;
+        QStringList hiddenLegend;  // keys folded into the "+N more" chip
+        QRectF yTitle;             // empty when there is no y title
+        bool yRotated = false;
+        QRectF xTitle;
+        int xTicks = 6, yTicks = 6;
+    };
+    Layout layout(const QRectF& r) const;
+    QFont chartFont() const;
     void paintTo(QPainter& p, const QRectF& r, bool forExport) const;
     void fitData();
     void configureAxes(const QRectF& plot) const;

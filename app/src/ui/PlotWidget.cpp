@@ -1,5 +1,6 @@
 #include "ui/PlotWidget.h"
 
+#include "core/ChartLayout.h"
 #include "ui/Theme.h"
 
 #include <QApplication>
@@ -107,31 +108,39 @@ void PlotWidget::fitData()
     m_y.setRange(y0, y1);
 }
 
-PlotWidget::Layout PlotWidget::layout(const QRectF& r, const QFontMetricsF& fm) const
+QFont PlotWidget::chartFont() const
 {
+    QFont small = tabular(font());
+    small.setPointSizeF(small.pointSizeF() * 0.9);
+    return small;
+}
+
+PlotWidget::Layout PlotWidget::layout(const QRectF& r) const
+{
+    ChartLayoutInput in;
+    in.rect = r;
+    in.font = chartFont();
+    in.header = kHeader;
+    std::vector<std::size_t> firstOf;
+    for (std::size_t i = 0; i < m_series.size(); ++i)
+        if (!in.legend.contains(m_series[i].legendKey())) {
+            in.legend << m_series[i].legendKey();
+            firstOf.push_back(i);
+        }
+    in.xLabel = m_xLabel;
+    in.yLabel = m_yLabel;
+    in.x = &m_x;
+    in.y = &m_y;
+    const ChartLayout c = chartLayout(in);
     Layout l;
-    double yTickWidth = 0;
-    for (const Tick& t : m_y.ticks(6))
-        if (t.major) yTickWidth = std::max(yTickWidth, fm.horizontalAdvance(t.label));
-    const double left = r.left() + yTickWidth + (m_yLabel.isEmpty() ? 12 : 26);
-    // Legend chips wrap below the header.
-    double x = r.left() + 10, y = r.top() + kHeader;
-    const double h = fm.height() + 6;
-    bool any = false;
-    QStringList keys;
-    for (std::size_t i = 0; i < m_series.size(); ++i) {
-        const QString key = m_series[i].legendKey();
-        if (keys.contains(key)) continue;
-        keys << key;
-        const double w = fm.horizontalAdvance(key) + 26;
-        if (x + w > r.right() - 8 && x > r.left() + 10) { x = r.left() + 10; y += h; }
-        l.legend.push_back({QRectF(x, y, w, h), i});
-        x += w + 6;
-        any = true;
-    }
-    const double top = any ? y + h + 6 : r.top() + kHeader + 4;
-    const double bottom = r.bottom() - fm.height() - (m_xLabel.isEmpty() ? 10 : 26);
-    l.plot = QRectF(QPointF(left, top), QPointF(r.right() - 14, bottom));
+    l.plot = c.plot;
+    for (const auto& chip : c.legend) l.legend.push_back({chip.rect, chip.key < 0 ? std::size_t(-1) : firstOf[std::size_t(chip.key)], chip.text});
+    l.hiddenLegend = c.hiddenLegend;
+    l.yTitle = c.yTitle;
+    l.yRotated = c.yRotated;
+    l.xTitle = c.xTitle;
+    l.xTicks = c.xTicks;
+    l.yTicks = c.yTicks;
     return l;
 }
 
@@ -153,14 +162,13 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
     p.fillRect(full, t.panel);
     p.setRenderHint(QPainter::Antialiasing);
     const QFont base = tabular(font());
-    QFont small = base;
-    small.setPointSizeF(base.pointSizeF() * 0.9);
+    const QFont small = chartFont();
     p.setFont(small);
     const QFontMetricsF fm(small);
     // Exports reserve a footer line for the provenance notice.
     const bool footer = forExport && !m_provenance.isEmpty();
     const QRectF r = footer ? full.adjusted(0, 0, 0, -(fm.height() + 8)) : full;
-    const Layout l = layout(r, fm);
+    const Layout l = layout(r);
     configureAxes(l.plot);
 
     // Header: title and badges.
@@ -169,13 +177,17 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
     p.setFont(titleFont);
     p.setPen(t.text);
     const QFontMetricsF tfm(titleFont);
-    p.drawText(QPointF(r.left() + 10, r.top() + 8 + tfm.ascent()), m_title);
-    double bx = r.left() + 10 + tfm.horizontalAdvance(m_title) + 10;
     QFont badgeFont = base;
     badgeFont.setPointSizeF(base.pointSizeF() * 0.78);
     badgeFont.setWeight(QFont::Bold);
     badgeFont.setLetterSpacing(QFont::AbsoluteSpacing, 0.6);
     const QFontMetricsF bfm(badgeFont);
+    // Badges (APPROXIMATE, MODIFIED) are never pushed out: the title elides.
+    double badgesW = 0;
+    for (const QString& b : m_badges) badgesW += bfm.horizontalAdvance(b) + 12 + 6;
+    const QString title = tfm.elidedText(m_title, Qt::ElideRight, std::max(40.0, r.width() - 20 - badgesW - (badgesW > 0 ? 4 : 0)));
+    p.drawText(QPointF(r.left() + 10, r.top() + 8 + tfm.ascent()), title);
+    double bx = r.left() + 10 + tfm.horizontalAdvance(title) + 10;
     p.setFont(badgeFont);
     for (const QString& b : m_badges) {
         const QRectF br(bx, r.top() + 8, bfm.horizontalAdvance(b) + 12, bfm.height() + 3);
@@ -198,15 +210,20 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
     // Legend chips (click to hide a series).
     p.setFont(small);
     for (const Chip& chip : l.legend) {
-        const auto& s = m_series[chip.series];
         const QRectF c = chip.rect;
+        if (chip.series == std::size_t(-1)) {
+            p.setPen(t.faint);
+            p.drawText(c, Qt::AlignVCenter | Qt::AlignLeft, chip.text);
+            continue;
+        }
+        const auto& s = m_series[chip.series];
         const double cy = c.center().y();
         QPen pen(s.visible ? s.color : t.faint, 2);
         if (s.dashed) pen.setStyle(Qt::DashLine);
         p.setPen(pen);
         p.drawLine(QPointF(c.left() + 2, cy), QPointF(c.left() + 16, cy));
         p.setPen(s.visible ? t.muted : t.faint);
-        p.drawText(QRectF(c.left() + 20, c.top(), c.width() - 20, c.height()), Qt::AlignVCenter | Qt::AlignLeft, s.legendKey());
+        p.drawText(QRectF(c.left() + 20, c.top(), c.width() - 20, c.height()), Qt::AlignVCenter | Qt::AlignLeft, chip.text);
     }
 
     const QRectF plot = l.plot;
@@ -216,44 +233,55 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
     p.setFont(small);
     const QColor grid = t.dark ? QColor(255, 255, 255, 16) : QColor(0, 0, 0, 16);
     const QColor gridMinor = t.dark ? QColor(255, 255, 255, 7) : QColor(0, 0, 0, 7);
-    for (const Tick& tk : m_y.ticks(6)) {
+    // Tick labels never overlap each other or leave their gutter: a label that
+    // would touch the previous one is skipped (its grid line stays).
+    double lastLabelTop = INFINITY;
+    for (const Tick& tk : m_y.ticks(l.yTicks)) {
         const double py = m_y.toPixel(tk.value);
         if (py < plot.top() - 0.5 || py > plot.bottom() + 0.5) continue;
         p.setPen(QPen(tk.major ? grid : gridMinor, 1));
         p.drawLine(QPointF(plot.left(), py), QPointF(plot.right(), py));
-        if (tk.major) {
-            p.setPen(t.muted);
-            p.drawText(QRectF(r.left(), py - fm.height() / 2, plot.left() - r.left() - 6, fm.height()),
-                       Qt::AlignRight | Qt::AlignVCenter, tk.label);
-        }
+        if (!tk.major) continue;
+        const QRectF box(plot.left() - 6 - fm.horizontalAdvance(tk.label), py - fm.height() / 2, fm.horizontalAdvance(tk.label), fm.height());
+        if (box.bottom() > lastLabelTop - 1 && std::isfinite(lastLabelTop)) continue;
+        lastLabelTop = box.top();
+        p.setPen(t.muted);
+        p.drawText(box, Qt::AlignRight | Qt::AlignVCenter, tk.label);
     }
-    for (const Tick& tk : m_x.ticks(std::max(2, int(plot.width() / 90)))) {
+    double lastLabelRight = -INFINITY;
+    for (const Tick& tk : m_x.ticks(l.xTicks)) {
         const double px = m_x.toPixel(tk.value);
         if (px < plot.left() - 0.5 || px > plot.right() + 0.5) continue;
         p.setPen(QPen(tk.major ? grid : gridMinor, 1));
         p.drawLine(QPointF(px, plot.top()), QPointF(px, plot.bottom()));
-        if (tk.major) {
-            p.setPen(t.muted);
-            p.drawText(QRectF(px - 50, plot.bottom() + 4, 100, fm.height()), Qt::AlignHCenter | Qt::AlignTop, tk.label);
-        }
+        if (!tk.major) continue;
+        const double w = fm.horizontalAdvance(tk.label);
+        QRectF box(px - w / 2, plot.bottom() + 4, w, fm.height());
+        if (box.right() > r.right() - 2) box.moveRight(r.right() - 2);
+        if (box.left() < lastLabelRight + 8) continue;
+        lastLabelRight = box.right();
+        p.setPen(t.muted);
+        p.drawText(box, Qt::AlignHCenter | Qt::AlignTop, tk.label);
     }
     p.setPen(QPen(t.border, 1));
     p.setBrush(Qt::NoBrush);
     p.drawRect(plot);
-    if (!m_xLabel.isEmpty()) {
+    if (!l.xTitle.isEmpty()) {
         p.setPen(t.muted);
-        p.drawText(QRectF(plot.left(), r.bottom() - fm.height() - 6, plot.width(), fm.height()), Qt::AlignCenter, m_xLabel);
+        p.drawText(l.xTitle, Qt::AlignCenter, fm.elidedText(m_xLabel, Qt::ElideRight, l.xTitle.width()));
     }
-    if (!m_yLabel.isEmpty()) {
-        // Centred on the plot when it fits; otherwise on the whole widget height, elided.
-        const bool fits = fm.horizontalAdvance(m_yLabel) <= plot.height();
-        const double span = fits ? plot.height() : r.height() - 8;
-        p.save();
-        p.translate(r.left() + 6 + fm.ascent(), fits ? plot.center().y() : r.center().y());
-        p.rotate(-90);
+    if (!l.yTitle.isEmpty()) {
         p.setPen(t.muted);
-        p.drawText(QRectF(-span / 2, -fm.ascent(), span, fm.height()), Qt::AlignCenter, fm.elidedText(m_yLabel, Qt::ElideRight, int(span)));
-        p.restore();
+        if (l.yRotated) {
+            p.save();
+            p.translate(l.yTitle.center());
+            p.rotate(-90);
+            const double span = l.yTitle.height();
+            p.drawText(QRectF(-span / 2, -l.yTitle.width() / 2, span, l.yTitle.width()), Qt::AlignCenter, m_yLabel);
+            p.restore();
+        } else {
+            p.drawText(l.yTitle, Qt::AlignLeft | Qt::AlignVCenter, fm.elidedText(m_yLabel, Qt::ElideRight, l.yTitle.width()));
+        }
     }
 
     // Series.
@@ -390,7 +418,7 @@ void PlotWidget::setCursorX(std::optional<double> x)
 void PlotWidget::mouseMoveEvent(QMouseEvent* e)
 {
     const QPointF pos = e->position();
-    const Layout l = layout(rect(), QFontMetricsF(font()));
+    const Layout l = layout(rect());
     configureAxes(l.plot);
     if (m_dragging) {
         if (m_zoomBox) {
@@ -417,9 +445,29 @@ void PlotWidget::mouseMoveEvent(QMouseEvent* e)
 
 void PlotWidget::mousePressEvent(QMouseEvent* e)
 {
-    const Layout l = layout(rect(), QFontMetricsF(font()));
+    const Layout l = layout(rect());
     for (const Chip& chip : l.legend)
-        if (chip.rect.contains(e->position()) && e->button() == Qt::LeftButton) {
+        if (chip.series == std::size_t(-1) && chip.rect.contains(e->position()) && e->button() == Qt::LeftButton) {
+            // Folded series stay reachable: toggle them from a menu.
+            QMenu m(this);
+            for (const QString& key : l.hiddenLegend) {
+                auto it = std::find_if(m_series.begin(), m_series.end(), [&](const PlotSeries& s) { return s.legendKey() == key; });
+                QAction* a = m.addAction(key);
+                a->setCheckable(true);
+                a->setChecked(it != m_series.end() && it->visible);
+                connect(a, &QAction::toggled, this, [this, key](bool on) {
+                    for (auto& s : m_series)
+                        if (s.legendKey() == key) s.visible = on;
+                    emit seriesToggled(key, on);
+                    if (m_follow) fitData();
+                    update();
+                });
+            }
+            m.exec(mapToGlobal(chip.rect.bottomLeft().toPoint()));
+            return;
+        }
+    for (const Chip& chip : l.legend)
+        if (chip.series != std::size_t(-1) && chip.rect.contains(e->position()) && e->button() == Qt::LeftButton) {
             const QString key = m_series[chip.series].legendKey();
             const bool visible = !m_series[chip.series].visible;
             for (auto& s : m_series)
@@ -455,7 +503,7 @@ void PlotWidget::mouseDoubleClickEvent(QMouseEvent*) { resetView(); }
 
 void PlotWidget::wheelEvent(QWheelEvent* e)
 {
-    const Layout l = layout(rect(), QFontMetricsF(font()));
+    const Layout l = layout(rect());
     configureAxes(l.plot);
     const double steps = e->angleDelta().y() / 120.0;
     if (steps == 0) return;
