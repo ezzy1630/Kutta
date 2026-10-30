@@ -142,4 +142,4 @@ FV_CONVERGENCE backend=metal iteration=2780 u=0.0930090184865 v=0.0854525458393 
 FV_CONVERGENCE backend=metal iteration=2800 u=0.084235260555 v=0.0625638325896 w=0.0933688507186 k=0.00726166603486 omega=0.00704388467305 continuity=67418756.7847 converged=0
 FV_CONVERGENCE backend=metal iteration=2820 u=0.0775570881345 v=0.0475827515781 w=0.0733158406007 k=0.0132665821243 omega=0.022493914044 continuity=81184863.4014 converged=0
 FV_CONVERGENCE backend=metal iteration=2840 u=0.081178205358 v=0.0533051790391 w=0.0764461984842 k=0.0459187550684 omega=0.0406822760886 continuity=103064688.904 converged=0
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/build/performance/baseline-source/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+<checkout>/build/performance/baseline-source/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector

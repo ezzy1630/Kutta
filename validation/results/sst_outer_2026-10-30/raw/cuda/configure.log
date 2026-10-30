@@ -23,13 +23,13 @@
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
 -- Found Threads: TRUE  
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-71d11e7c
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-71d11e7c
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-71d11e7c
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-71d11e7c
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-71d11e7c
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-71d11e7c
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-71d11e7c
+fatal: not a git repository: <checkout>/.git/worktrees/t3-71d11e7c
+fatal: not a git repository: <checkout>/.git/worktrees/t3-71d11e7c
+fatal: not a git repository: <checkout>/.git/worktrees/t3-71d11e7c
+fatal: not a git repository: <checkout>/.git/worktrees/t3-71d11e7c
+fatal: not a git repository: <checkout>/.git/worktrees/t3-71d11e7c
+fatal: not a git repository: <checkout>/.git/worktrees/t3-71d11e7c
+fatal: not a git repository: <checkout>/.git/worktrees/t3-71d11e7c
 -- Configuring done (2.6s)
 -- Generating done (0.0s)
 -- Build files have been written to: /tmp/kutta-build

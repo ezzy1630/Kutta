@@ -2,7 +2,7 @@
   "baseline_commit": "e21866d7c4ae9511cc65c33e7ea939f12721d7c1",
   "benchmark_commit": "18196bfbffa05f76d93069a9f6ae60169b3e9b06",
   "performance_commit": "c329d5d74749c20edf8126bd1bc6937c31bb8c19",
-  "checkout": "/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c",
+  "checkout": "<checkout>",
   "platform": {
     "device": "Apple M4 Pro",
     "memory_GiB": 24,
@@ -777,12 +777,12 @@
     {
       "meaning": "Other lane V7 validation",
       "started_local": "2026-10-30T03:02:43-07:00",
-      "checkout": "/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00"
+      "checkout": "<checkout>"
     },
     {
       "meaning": "Other lane V8 validation",
       "started_local": "2026-10-30T03:11:23-07:00",
-      "checkout": "/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00"
+      "checkout": "<checkout>"
     }
   ],
   "report_sha256": "792cce0d5825cba91e0dd4263796dde7fbf8fc3f9c843e314e855ec54947195b"

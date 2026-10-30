@@ -71,7 +71,7 @@ FV_CAVITY_PRIMARY_REFERENCE BotellaPeyret1998_N160,Chebyshev N=160,spectral,0.11
 FV_CAVITY_PRIMARY_REFERENCE BarragyCarey1997,257x257 p=8,8,0.118930,,,
 FV_CAVITY_PRIMARY_REFERENCE Ghia1982,129x129,2,0.117929,2.04968,0.5313,0.5625
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_cavity.cpp:38:
+<checkout>/tests/fv/test_cavity.cpp:38:
 TEST SUITE: slow
 TEST CASE:  FV V3 Re1000 cavity refinement against Erturk
 
@@ -113,7 +113,7 @@ FV_CAVITY_PROGRESS backend=metal Re=400 cells=16641 iterations=400 ru=0.000000 r
 FV_CAVITY_PROGRESS backend=metal Re=400 cells=16641 iterations=500 ru=0.000000 rv=0.000000 rc=0.000024 mass=0.000001 update=0.000007
 FV_CAVITY_RESULT backend=metal case=129x129 Re=400 iterations=500 converged=1 Ghia_u_max=0.002640 Ghia_v_max=0.004048
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_cavity.cpp:79:
+<checkout>/tests/fv/test_cavity.cpp:79:
 TEST SUITE: slow
 TEST CASE:  FV V3 Re100 and Re400 cavity reported deviations
 
@@ -181,7 +181,7 @@ FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=400 ru=0.000000 r
 FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000012 mass=0.000001 update=0.000006
 FV_CAVITY_RESULT backend=metal case=Fluent Re=1000 iterations=500 converged=1 Ghia_u_max=0.008934 Ghia_v_max=0.004055 Erturk_u_max=0.011848 Erturk_v_max=0.021203
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_cavity.cpp:87:
+<checkout>/tests/fv/test_cavity.cpp:87:
 TEST SUITE: slow
 TEST CASE:  FV V4 Fluent cavity matches its actual grid
 
@@ -195,17 +195,17 @@ V6_FLUENT_RESIDUAL x-velocity raw=0.0000023566 scale=1.6863713854 scaled=0.00000
 V6_FLUENT_RESIDUAL y-velocity raw=0.0000065561 scale=1.6864982500 scaled=0.0000038874
 V6_FLUENT_RESIDUAL z-velocity raw=0.0000017014 scale=1.6987610991 scaled=0.0000010016
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:97:
+<checkout>/tests/fv/test_fluent_elbow.cpp:97:
 TEST SUITE: slow
 TEST CASE:  FV V6 Fluent mixing elbow fixed point and cold start
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:115: ERROR: CHECK_NOTHROW( setup::fluent_setup(c,mesh) ) THREW exception: "Fluent setup rejected:
+<checkout>/tests/fv/test_fluent_elbow.cpp:115: ERROR: CHECK_NOTHROW( setup::fluent_setup(c,mesh) ) THREW exception: "Fluent setup rejected:
   recon/cell-lsf? (warped-face gradient correction): warped-face gradient correction is not implemented"
 
 V6_DIAGNOSTIC approximations: recon/cell-lsf? disabled; cold start uses stored hybrid initialization settings
 V6_FIELD initial_wall_distance relative_L2=0.0000209324 max_absolute=0.0000116476 relative_max=0.0002387150
 V6_FIELD initial_mu_t relative_L2=0.0103262529 max_absolute=0.0000389048 relative_max=0.1048400386
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
   values: CHECK( 0.00225861 <  0.0008 )
   logged: backend: cpu
 
@@ -228,35 +228,35 @@ V6_FIELD velocity relative_L2=0.0360160240 max_absolute=0.3416302551 relative_ma
 V6_FIELD pressure relative_L2=0.0296254007 max_absolute=0.1121975170 relative_max=0.0978932737
 V6_FIELD k relative_L2=0.1548204557 max_absolute=0.0154873479 relative_max=0.5490409314
 V6_FIELD omega relative_L2=0.0847491325 max_absolute=10979.1197956780 relative_max=0.1218186039
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
   values: CHECK( 0.036016 <  0.005 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
   values: CHECK( 0.15482 <  0.001 )
   logged: backend: cpu
 
 V6_ZONE_PRESSURE wall-elbow ours=0.2403554198 Fluent=0.2443336319
 V6_FORCE wall-elbow pressure ours=0.0064189661,-0.0059432502,0.0152540545 Fluent=0.0063624555,-0.0059349019,0.0155252376 relative=0.0155718809
 V6_FORCE wall-elbow shear ours=0.0003329840,0.0006876454,-0.0000586822 Fluent=0.0003481686,0.0006880409,-0.0000673424 relative=0.0225890378
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.022589 <  0.005 )
   logged: backend: cpu
 
 V6_FORCE wall-elbow total ours=0.0067519501,-0.0052556048,0.0151953723 Fluent=0.0067106241,-0.0052468610,0.0154578952 relative=0.0150654691
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0150655 <  0.005 )
   logged: backend: cpu
 
 V6_ZONE_PRESSURE wall-inlet ours=0.7719656467 Fluent=0.7882671307
 V6_FORCE wall-inlet pressure ours=0.0000732920,-0.0000049168,0.0015794822 Fluent=0.0000798872,-0.0000046929,0.0016122992 relative=0.0207361034
 V6_FORCE wall-inlet shear ours=0.0000012662,0.0000712629,0.0000003892 Fluent=0.0000010131,0.0000709139,0.0000004221 relative=0.0060965708
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.00609657 <  0.005 )
   logged: backend: cpu
 
 V6_FORCE wall-inlet total ours=0.0000745582,0.0000663461,0.0015798714 Fluent=0.0000809004,0.0000662210,0.0016127214 relative=0.0207021506
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0207022 <  0.005 )
   logged: backend: cpu
 
@@ -265,7 +265,7 @@ V6_ZONE_PRESSURE cold-inlet ours=0.5075208966 Fluent=0.5016180027
 V6_ZONE_PRESSURE hot-inlet ours=1.1008900913 Fluent=1.0871886193
 V6_ZONE_PRESSURE symmetry-xyplane ours=0.2557984270 Fluent=0.2603867108
 V6_PRESSURE_DROP ours=0.5414627733 Fluent=0.5351137855 relative=0.0118647434
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
   values: CHECK( 0.0118647 <  0.005 )
   logged: backend: cpu
 
@@ -287,31 +287,31 @@ V6_FIELD velocity relative_L2=0.0360146036 max_absolute=0.3416062848 relative_ma
 V6_FIELD pressure relative_L2=0.0296166468 max_absolute=0.1121864529 relative_max=0.0978836201
 V6_FIELD k relative_L2=0.1547893152 max_absolute=0.0154879868 relative_max=0.5490635806
 V6_FIELD omega relative_L2=0.0847490747 max_absolute=10979.0953816155 relative_max=0.1218183330
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
   values: CHECK( 0.0360146 <  0.005 )
   logged: backend: cpu
 
 V6_ZONE_PRESSURE wall-elbow ours=0.2403551183 Fluent=0.2443336319
 V6_FORCE wall-elbow pressure ours=0.0064189167,-0.0059432219,0.0152540372 Fluent=0.0063624555,-0.0059349019,0.0155252376 relative=0.0155722156
 V6_FORCE wall-elbow shear ours=0.0003329843,0.0006876413,-0.0000586811 Fluent=0.0003481686,0.0006880409,-0.0000673424 relative=0.0225894701
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0225895 <  0.005 )
   logged: backend: cpu
 
 V6_FORCE wall-elbow total ours=0.0067519010,-0.0052555806,0.0151953561 Fluent=0.0067106241,-0.0052468610,0.0154578952 relative=0.0150658989
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0150659 <  0.005 )
   logged: backend: cpu
 
 V6_ZONE_PRESSURE wall-inlet ours=0.7719653640 Fluent=0.7882671307
 V6_FORCE wall-inlet pressure ours=0.0000732906,-0.0000049168,0.0015794816 Fluent=0.0000798872,-0.0000046929,0.0016122992 relative=0.0207366150
 V6_FORCE wall-inlet shear ours=0.0000012662,0.0000712630,0.0000003892 Fluent=0.0000010131,0.0000709139,0.0000004221 relative=0.0060980500
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.00609805 <  0.005 )
   logged: backend: cpu
 
 V6_FORCE wall-inlet total ours=0.0000745568,0.0000663462,0.0015798708 Fluent=0.0000809004,0.0000662210,0.0016127214 relative=0.0207026452
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0207026 <  0.005 )
   logged: backend: cpu
 
@@ -320,13 +320,13 @@ V6_ZONE_PRESSURE cold-inlet ours=0.5075173640 Fluent=0.5016180027
 V6_ZONE_PRESSURE hot-inlet ours=1.1008897597 Fluent=1.0871886193
 V6_ZONE_PRESSURE symmetry-xyplane ours=0.2557995621 Fluent=0.2603867108
 V6_PRESSURE_DROP ours=0.5414594238 Fluent=0.5351137855 relative=0.0118584840
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
   values: CHECK( 0.0118585 <  0.005 )
   logged: backend: cpu
 
 V6_FIELD initial_wall_distance relative_L2=0.0000209324 max_absolute=0.0000116476 relative_max=0.0002387150
 V6_FIELD initial_mu_t relative_L2=0.0103262527 max_absolute=0.0000389047 relative_max=0.1048399602
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
   values: CHECK( 0.00225861 <  0.0008 )
   logged: backend: metal
 
@@ -349,35 +349,35 @@ V6_FIELD velocity relative_L2=0.0360160321 max_absolute=0.3416306658 relative_ma
 V6_FIELD pressure relative_L2=0.0296229594 max_absolute=0.1122026281 relative_max=0.0978977332
 V6_FIELD k relative_L2=0.1548204167 max_absolute=0.0154873460 relative_max=0.5490408654
 V6_FIELD omega relative_L2=0.0847489459 max_absolute=10979.0865925530 relative_max=0.1218182355
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
   values: CHECK( 0.036016 <  0.005 )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
   values: CHECK( 0.15482 <  0.001 )
   logged: backend: metal
 
 V6_ZONE_PRESSURE wall-elbow ours=0.2403588309 Fluent=0.2443336319
 V6_FORCE wall-elbow pressure ours=0.0064189816,-0.0059432537,0.0152542752 Fluent=0.0063624555,-0.0059349019,0.0155252376 relative=0.0155599248
 V6_FORCE wall-elbow shear ours=0.0003329841,0.0006876456,-0.0000586821 Fluent=0.0003481686,0.0006880409,-0.0000673424 relative=0.0225889333
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0225889 <  0.005 )
   logged: backend: metal
 
 V6_FORCE wall-elbow total ours=0.0067519657,-0.0052556082,0.0151955932 Fluent=0.0067106241,-0.0052468610,0.0154578952 relative=0.0150532581
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0150533 <  0.005 )
   logged: backend: metal
 
 V6_ZONE_PRESSURE wall-inlet ours=0.7719708949 Fluent=0.7882671307
 V6_FORCE wall-inlet pressure ours=0.0000732931,-0.0000049168,0.0015794928 Fluent=0.0000798872,-0.0000046929,0.0016122992 relative=0.0207295054
 V6_FORCE wall-inlet shear ours=0.0000012662,0.0000712629,0.0000003892 Fluent=0.0000010131,0.0000709139,0.0000004221 relative=0.0060966439
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.00609664 <  0.005 )
   logged: backend: metal
 
 V6_FORCE wall-inlet total ours=0.0000745593,0.0000663461,0.0015798820 Fluent=0.0000809004,0.0000662210,0.0016127214 relative=0.0206955493
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0206955 <  0.005 )
   logged: backend: metal
 
@@ -386,7 +386,7 @@ V6_ZONE_PRESSURE cold-inlet ours=0.5075266661 Fluent=0.5016180027
 V6_ZONE_PRESSURE hot-inlet ours=1.1008950921 Fluent=1.0871886193
 V6_ZONE_PRESSURE symmetry-xyplane ours=0.2558030625 Fluent=0.2603867108
 V6_PRESSURE_DROP ours=0.5414684988 Fluent=0.5351137855 relative=0.0118754431
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
   values: CHECK( 0.0118754 <  0.005 )
   logged: backend: metal
 
@@ -408,31 +408,31 @@ V6_FIELD velocity relative_L2=0.0360145971 max_absolute=0.3416064399 relative_ma
 V6_FIELD pressure relative_L2=0.0296192083 max_absolute=0.1121836217 relative_max=0.0978811499
 V6_FIELD k relative_L2=0.1547892423 max_absolute=0.0154880166 relative_max=0.5490646371
 V6_FIELD omega relative_L2=0.0847490635 max_absolute=10979.1295613030 relative_max=0.1218187123
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
   values: CHECK( 0.0360146 <  0.005 )
   logged: backend: metal
 
 V6_ZONE_PRESSURE wall-elbow ours=0.2403535479 Fluent=0.2443336319
 V6_FORCE wall-elbow pressure ours=0.0064189080,-0.0059432207,0.0152539357 Fluent=0.0063624555,-0.0059349019,0.0155252376 relative=0.0155776941
 V6_FORCE wall-elbow shear ours=0.0003329842,0.0006876412,-0.0000586811 Fluent=0.0003481686,0.0006880409,-0.0000673424 relative=0.0225896818
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0225897 <  0.005 )
   logged: backend: metal
 
 V6_FORCE wall-elbow total ours=0.0067518922,-0.0052555796,0.0151952547 Fluent=0.0067106241,-0.0052468610,0.0154578952 relative=0.0150714929
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0150715 <  0.005 )
   logged: backend: metal
 
 V6_ZONE_PRESSURE wall-inlet ours=0.7719607396 Fluent=0.7882671307
 V6_FORCE wall-inlet pressure ours=0.0000732897,-0.0000049168,0.0015794723 Fluent=0.0000798872,-0.0000046929,0.0016122992 relative=0.0207424060
 V6_FORCE wall-inlet shear ours=0.0000012663,0.0000712630,0.0000003892 Fluent=0.0000010131,0.0000709139,0.0000004221 relative=0.0060974865
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.00609749 <  0.005 )
   logged: backend: metal
 
 V6_FORCE wall-inlet total ours=0.0000745559,0.0000663461,0.0015798615 Fluent=0.0000809004,0.0000662210,0.0016127214 relative=0.0207084214
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0207084 <  0.005 )
   logged: backend: metal
 
@@ -441,7 +441,7 @@ V6_ZONE_PRESSURE cold-inlet ours=0.5075144661 Fluent=0.5016180027
 V6_ZONE_PRESSURE hot-inlet ours=1.1008857933 Fluent=1.0871886193
 V6_ZONE_PRESSURE symmetry-xyplane ours=0.2557966081 Fluent=0.2603867108
 V6_PRESSURE_DROP ours=0.5414564647 Fluent=0.5351137855 relative=0.0118529543
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
   values: CHECK( 0.011853 <  0.005 )
   logged: backend: metal
 
@@ -495,7 +495,7 @@ FV_V2 backend=metal tet=0 n=32 iterations=240 u_L2=0.004182 p_L2=0.003010 ru=0.0
 FV_V2_FORCE backend=metal tet=0 n=32 pressure_x=-0.321558 viscous_y=-0.331913 viscous_x=0.005128 pressure_error=0.003248 viscous_error=0.005322 total_error=0.002357
 FV_V2_ORDER backend=metal tet=0 n=32 u=1.915134 p=1.818924 momentum_operator=1.485543 wall_pressure=1.914970 wall_viscous=1.959164 wall_total=2.011907
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_navier_stokes.cpp:164:
+<checkout>/tests/fv/test_navier_stokes.cpp:164:
 TEST SUITE: slow
 TEST CASE:  FV V2 manufactured Navier Stokes hex refinement
 
@@ -516,19 +516,19 @@ FV_V2 backend=cpu tet=1 n=16 iterations=400 u_L2=0.013127 p_L2=0.076424 ru=0.000
 FV_V2_FORCE backend=cpu tet=1 n=16 pressure_x=-0.355602 viscous_y=-0.350562 viscous_x=0.071533 pressure_error=0.037293 viscous_error=0.075476 total_error=0.041858
 FV_V2_ORDER backend=cpu tet=1 n=16 u=1.977800 p=0.920065 momentum_operator=1.014063 wall_pressure=1.007284 wall_viscous=0.861350 wall_total=0.871823
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_navier_stokes.cpp:167:
+<checkout>/tests/fv/test_navier_stokes.cpp:167:
 TEST SUITE: slow
 TEST CASE:  FV V2 manufactured Navier Stokes tet refinement
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
   values: CHECK( 1.00728 >= 1.8 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
   values: CHECK( 0.86135 >= 1.8 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
   values: CHECK( 0.871823 >= 1.8 )
   logged: backend: cpu
 
@@ -547,15 +547,15 @@ FV_V2_BOUNDARY backend=metal tet=1 n=16 interior_p_L2=0.070079 excluding_walls_p
 FV_V2 backend=metal tet=1 n=16 iterations=400 u_L2=0.013127 p_L2=0.076424 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000004 corrected_mass=0.000001
 FV_V2_FORCE backend=metal tet=1 n=16 pressure_x=-0.355602 viscous_y=-0.350562 viscous_x=0.071533 pressure_error=0.037293 viscous_error=0.075476 total_error=0.041858
 FV_V2_ORDER backend=metal tet=1 n=16 u=1.977800 p=0.920065 momentum_operator=1.014063 wall_pressure=1.007284 wall_viscous=0.861350 wall_total=0.871823
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
   values: CHECK( 1.00728 >= 1.8 )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
   values: CHECK( 0.86135 >= 1.8 )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
   values: CHECK( 0.871823 >= 1.8 )
   logged: backend: metal
 
@@ -621,7 +621,7 @@ FV_V1_ORDER backend=metal tet=1 mode=2 n=16 slope=1.861946
 FV_V1 backend=metal tet=1 n=32 speed=4.000000 scheme=2 iterations=15 L2=0.000293
 FV_V1_ORDER backend=metal tet=1 mode=2 n=32 slope=1.922585
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_scalar.cpp:53:
+<checkout>/tests/fv/test_scalar.cpp:53:
 TEST SUITE: slow
 TEST CASE:  FV V1 manufactured scalar diffusion and upwind refinement
 
@@ -629,7 +629,7 @@ TEST CASE:  FV V1 manufactured scalar diffusion and upwind refinement
 FV_COUETTE backend=cpu max_error=0.000000 residual=0.000000
 FV_COUETTE backend=metal max_error=0.000000 residual=0.000000
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_steady.cpp:51:
+<checkout>/tests/fv/test_steady.cpp:51:
 TEST SUITE: slow
 TEST CASE:  FV SIMPLEC develops planar Couette flow with moving and slip walls
 
@@ -665,11 +665,11 @@ TMR progress cpu plate 0 it=2800 defect=0.001129840492 change=0.000000074946 cf=
 TMR progress cpu plate 0 it=2900 defect=0.000772837256 change=0.000000148878 cf=0.002649099521 drag=0.002806312210
 TMR progress cpu plate 0 it=3000 defect=0.001736340020 change=0.000000295138 cf=0.002649100303 drag=0.002806312602
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:35:
+<checkout>/tests/fv/test_tmr.cpp:35:
 TEST SUITE: slow
 TEST CASE:  V5 TMR flat plate SST accuracy and three-grid trend
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 0
@@ -705,7 +705,7 @@ TMR progress cpu plate 1 it=2700 defect=0.018277599072 change=0.000000009688 cf=
 TMR progress cpu plate 1 it=2800 defect=0.010896745015 change=0.000000086383 cf=0.002695331067 drag=0.002856328133
 TMR progress cpu plate 1 it=2900 defect=0.009789390063 change=0.000000025871 cf=0.002695331080 drag=0.002856328207
 TMR progress cpu plate 1 it=3000 defect=0.009079961876 change=0.000000045613 cf=0.002695330957 drag=0.002856328129
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 1
@@ -741,7 +741,7 @@ TMR progress cpu plate 2 it=2700 defect=0.035082609214 change=0.000002905774 cf=
 TMR progress cpu plate 2 it=2800 defect=0.032955732207 change=0.000002190264 cf=0.002713773819 drag=0.002876864320
 TMR progress cpu plate 2 it=2900 defect=0.029522330659 change=0.000001247770 cf=0.002713771851 drag=0.002876860731
 TMR progress cpu plate 2 it=3000 defect=0.057049534364 change=0.000000986955 cf=0.002713770952 drag=0.002876857891
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 2
@@ -777,7 +777,7 @@ TMR progress metal plate 0 it=2700 defect=0.001042555332 change=0.000000120036 c
 TMR progress metal plate 0 it=2800 defect=0.001729475497 change=0.000000095757 cf=0.002649098525 drag=0.002806311966
 TMR progress metal plate 0 it=2900 defect=0.001782702343 change=0.000000167914 cf=0.002649098970 drag=0.002806312273
 TMR progress metal plate 0 it=3000 defect=0.000637564650 change=0.000000135769 cf=0.002649099330 drag=0.002806312312
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 0
@@ -813,7 +813,7 @@ TMR progress metal plate 1 it=2700 defect=0.003961147952 change=0.000000001493 c
 TMR progress metal plate 1 it=2800 defect=0.007557766610 change=0.000000035926 cf=0.002695330737 drag=0.002856328136
 TMR progress metal plate 1 it=2900 defect=0.002650329335 change=0.000000086383 cf=0.002695330970 drag=0.002856328153
 TMR progress metal plate 1 it=3000 defect=0.016415264432 change=0.000000035926 cf=0.002695331067 drag=0.002856328153
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 1
@@ -849,7 +849,7 @@ TMR progress metal plate 2 it=2700 defect=0.041756044898 change=0.000002934424 c
 TMR progress metal plate 2 it=2800 defect=0.032023801196 change=0.000001972176 cf=0.002713774917 drag=0.002876865304
 TMR progress metal plate 2 it=2900 defect=0.034171012880 change=0.000001332733 cf=0.002713771867 drag=0.002876861470
 TMR progress metal plate 2 it=3000 defect=0.036050761579 change=0.000001075869 cf=0.002713770350 drag=0.002876858375
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 2
@@ -888,11 +888,11 @@ TMR progress cpu bump 0 it=2900 defect=0.000311787223 change=0.000107668823 cf=0
 TMR progress cpu bump 0 it=3000 defect=0.000209331599 change=0.000518469927 cf=0.004894122836 drag=0.004387415594
 V5 bump measurement backend=cpu cells=3520 iterations=3000 seconds=34.799623875000 setup_s=0.043004584000 converged=0 budget=0 change=0.000518469927 drag=0.004387415594 cf=0.004894122836 cf=0.005912329215 cf=0.002963791291 cp=-0.216295165608 cp=-0.606637686491 cp=-0.265115376521 continuity=0.000138390837 failure=
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:51:
+<checkout>/tests/fv/test_tmr.cpp:51:
 TEST SUITE: slow
 TEST CASE:  V5 TMR bump SST station accuracy and three-grid trend
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 0
@@ -929,7 +929,7 @@ TMR progress cpu bump 1 it=2800 defect=0.000135870863 change=0.000582437528 cf=0
 TMR progress cpu bump 1 it=2900 defect=0.000140216323 change=0.001338932165 cf=0.005133609481 drag=0.003708679445
 TMR progress cpu bump 1 it=3000 defect=0.000053021872 change=0.001528906889 cf=0.005133533628 drag=0.003708067564
 V5 bump measurement backend=cpu cells=14080 iterations=3000 seconds=195.421138292000 setup_s=0.173363834000 converged=0 budget=0 change=0.001528906889 drag=0.003708067564 cf=0.005133533628 cf=0.006561164668 cf=0.002422324274 cp=-0.243656329914 cp=-0.634651273489 cp=-0.244851903878 continuity=0.000053021872 failure=
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 1
@@ -959,18 +959,18 @@ TMR progress cpu bump 2 it=2100 defect=0.000341749912 change=0.021754127301 cf=0
 TMR progress cpu bump 2 it=2200 defect=0.000187740930 change=0.020386026849 cf=0.005561375795 drag=0.004048679205
 TMR progress cpu bump 2 it=2300 defect=0.000224860009 change=0.019155275335 cf=0.005523353052 drag=0.004014119388
 V5 bump measurement backend=cpu cells=56320 iterations=2300 seconds=600.828079375000 setup_s=0.698333000000 converged=0 budget=1 change=0.019155275335 drag=0.004014119388 cf=0.005523353052 cf=0.006756197533 cf=0.003258012113 cp=-0.250175372744 cp=-0.654042124748 cp=-0.252479198789 continuity=0.000224860009 failure=
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 2
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:70: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:70: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
   values: CHECK( 0.138695 <= 0.1 )
   logged: backend: cpu
           level: 2
           station: 0.75
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:70: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:70: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
   values: CHECK( 0.251899 <= 0.1 )
   logged: backend: cpu
           level: 2
@@ -1008,7 +1008,7 @@ TMR progress metal bump 0 it=2800 defect=0.000211607114 change=0.000181174322 cf
 TMR progress metal bump 0 it=2900 defect=0.000210121314 change=0.000084595007 cf=0.004894249946 drag=0.004388001367
 TMR progress metal bump 0 it=3000 defect=0.000226105636 change=0.000789514607 cf=0.004894178694 drag=0.004387592016
 V5 bump measurement backend=metal cells=3520 iterations=3000 seconds=77.815613875000 setup_s=0.050307917000 converged=0 budget=0 change=0.000789514607 drag=0.004387592016 cf=0.004894178694 cf=0.005912381494 cf=0.002963807920 cp=-0.216012469336 cp=-0.606351494789 cp=-0.264836307751 continuity=0.000226105636 failure=
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 0
@@ -1045,7 +1045,7 @@ TMR progress metal bump 1 it=2800 defect=0.000039493769 change=0.000197421137 cf
 TMR progress metal bump 1 it=2900 defect=0.000321557748 change=0.001347516892 cf=0.005133610175 drag=0.003708660461
 TMR progress metal bump 1 it=3000 defect=0.000348645583 change=0.000178370433 cf=0.005133547157 drag=0.003708110339
 V5 bump measurement backend=metal cells=14080 iterations=3000 seconds=132.222047292000 setup_s=0.134353083000 converged=0 budget=0 change=0.000178370433 drag=0.003708110339 cf=0.005133547157 cf=0.006561180278 cf=0.002422328190 cp=-0.243306037552 cp=-0.634299188852 cp=-0.244501310757 continuity=0.000348645583 failure=
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 1
@@ -1082,12 +1082,12 @@ TMR progress metal bump 2 it=2800 defect=0.000171796984 change=0.013965132821 cf
 TMR progress metal bump 2 it=2900 defect=0.000126860563 change=0.013039904496 cf=0.005362663995 drag=0.003865375027
 TMR progress metal bump 2 it=3000 defect=0.000120012693 change=0.012153932748 cf=0.005344418117 drag=0.003848440324
 V5 bump measurement backend=metal cells=56320 iterations=3000 seconds=144.915812959000 setup_s=0.554932708000 converged=0 budget=0 change=0.012153932748 drag=0.003848440324 cf=0.005344418117 cf=0.006504695744 cf=0.002935502670 cp=-0.249205715754 cp=-0.650808602571 cp=-0.250202983273 continuity=0.000083138711 failure=
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:64: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 2
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_tmr.cpp:70: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:70: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
   values: CHECK( 0.127974 <= 0.1 )
   logged: backend: metal
           level: 2

@@ -459,7 +459,7 @@ CUDA dispatch, host waits, cache behavior and instruction throughput. They are
 **not CUDA timings**; CUDA has never executed on an NVIDIA GPU here.
 
 Verification uses the unchanged protocols and the external fixtures at
-`/Users/ezzy/.Others/Kutta/validation/fluent_examples`.
+`<checkout>/validation/fluent_examples`.
 
 | Check | Observed result |
 | --- | --- |
@@ -537,9 +537,9 @@ cmake -S . -B build -G Ninja && cmake --build build
 ./build/bench_fv --case sst-tet --nx 128 --ny 32 --nz 40 --viscosity .0001 --backend metal --repeats 3
 ./build/bench_fv --case sst-tet --nx 24 --ny 8 --nz 4 --backend metal --converge 3000
 python3 validation/results/sst_outer_2026-10-30/analyze.py
-KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples ./build/kutta-tests --test-suite-exclude=slow
-KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples ./build/kutta-tests -ts=slow -d
-KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples ctest --test-dir build -LE slow --output-on-failure
+KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples ./build/kutta-tests --test-suite-exclude=slow
+KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples ./build/kutta-tests -ts=slow -d
+KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples ctest --test-dir build -LE slow --output-on-failure
 ```
 
 ### Historical 100-cubed laminar measurement

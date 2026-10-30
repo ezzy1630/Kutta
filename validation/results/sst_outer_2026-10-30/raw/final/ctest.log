@@ -1,4 +1,4 @@
-Test project /Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/build
+Test project <checkout>/build
     Start 1: kutta-tests
 1/2 Test #1: kutta-tests ......................   Passed   10.08 sec
     Start 3: lint-portability
