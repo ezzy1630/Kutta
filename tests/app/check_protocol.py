@@ -146,10 +146,15 @@ for stop in (["eof", "sigint"] if os.name != "nt" else ["eof"]):
     if stop != "eof":
         p.stdin.close()
 
-# EOF before setup yields a valid initialized, zero-iteration run.
-p, out = start(suffix="-early-eof", stdin=subprocess.DEVNULL)
+# EOF on the stdin pipe before setup yields a valid initialized, zero-iteration run.
+p, out = start(suffix="-early-eof")
+p.stdin.close()
 events = finish(p)
 assert events[-1]["iterations"] == 0 and events[-1]["stop_reason"] == "stopped"
+# Stdin that is not a pipe (scripts, CI, nohup) never means stop.
+p, out = start(suffix="-devnull", stdin=subprocess.DEVNULL)
+events = finish(p)
+assert events[-1]["iterations"] == 21 and events[-1]["stop_reason"] == "iteration_limit", events
 for name, code, args in [("unsupported", 1, []), ("wfgc", 1, []), ("tiny", 2, ["--iterations", "0"])]:
     result = command("solve", root / (name + ".cas.h5"), "--progress", "jsonl", *args, code=code)
     events = list(map(json.loads, result.stdout.splitlines()))

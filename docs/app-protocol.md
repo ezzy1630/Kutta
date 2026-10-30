@@ -121,8 +121,9 @@ interval. The final partial interval emits an iteration event when at least one
 iteration ran. A request during setup completes initialization before writing
 a zero-iteration run. `done` and `summary.json` add `stop_reason: "stopped"` or
 `"iteration_limit"`. `converged` remains false until the adapter exposes case
-convergence criteria. JSONL mode watches stdin EOF; keep the sidecar's stdin
-pipe open while it runs. Any received bytes are ignored. Human mode retains
+convergence criteria. JSONL mode watches stdin EOF only when stdin is a pipe
+at startup; keep the sidecar's stdin pipe open while it runs. Any received
+bytes are ignored. A file, `/dev/null`, a terminal or absent stdin never stops a run. Human mode retains
 normal redirected-stdin behavior and responds to SIGINT / CTRL_BREAK. Neither
 signal handler runs solver or file I/O. SIGKILL/forced process termination cannot
 produce final outputs.

@@ -9,15 +9,19 @@
 #include <cerrno>
 #include <csignal>
 #include <poll.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #endif
 
 namespace kutta::app {
 // No worker thread and no blocking stdin read. Handlers only set a flag; the
 // solver observes it between outer iterations and writes normal final outputs.
+// EOF means "stop" only on a pipe, which is how the app holds the sidecar's
+// stdin. A file, /dev/null, a terminal or no stdin at all would otherwise turn
+// a scripted run into an immediate zero-iteration stop.
 class StopRequest {
  public:
-  explicit StopRequest(bool watch_stdin) : watch_stdin_(watch_stdin) {
+  explicit StopRequest(bool watch_stdin) : watch_stdin_(watch_stdin && stdin_is_pipe()) {
 #ifdef _WIN32
     InterlockedExchange(&requested_,0);
     installed_=SetConsoleCtrlHandler(handler,TRUE)!=0;
@@ -42,18 +46,9 @@ class StopRequest {
     if(InterlockedCompareExchange(&requested_,0,0))return true;
     if(!watch_stdin_)return false;
     const auto input=GetStdHandle(STD_INPUT_HANDLE);
-    const auto type=GetFileType(input);
-    if(type==FILE_TYPE_PIPE) {
-      DWORD available=0;
-      if(!PeekNamedPipe(input,nullptr,0,nullptr,&available,nullptr))return true;
-      if(available){char bytes[4096];DWORD read=0;if(!ReadFile(input,bytes,available<sizeof(bytes)?available:DWORD(sizeof(bytes)),&read,nullptr))return true;}
-    } else if(type==FILE_TYPE_DISK) {
-      LARGE_INTEGER zero{},position{},size{};
-      if(GetFileSizeEx(input,&size) && SetFilePointerEx(input,zero,&position,FILE_CURRENT))return position.QuadPart>=size.QuadPart;
-    } else if(type==FILE_TYPE_CHAR) {
-      DWORD mode=0;
-      if(!GetConsoleMode(input,&mode))return true; // NUL, rather than a console
-    } else if(type==FILE_TYPE_UNKNOWN || input==INVALID_HANDLE_VALUE || input==nullptr)return true;
+    DWORD available=0;
+    if(!PeekNamedPipe(input,nullptr,0,nullptr,&available,nullptr))return true;
+    if(available){char bytes[4096];DWORD read=0;if(!ReadFile(input,bytes,available<sizeof(bytes)?available:DWORD(sizeof(bytes)),&read,nullptr))return true;}
     return false;
 #else
     if(requested_)return true;
@@ -68,6 +63,15 @@ class StopRequest {
 #endif
   }
  private:
+  static bool stdin_is_pipe() {
+#ifdef _WIN32
+    const auto input=GetStdHandle(STD_INPUT_HANDLE);
+    return input!=INVALID_HANDLE_VALUE && input!=nullptr && GetFileType(input)==FILE_TYPE_PIPE;
+#else
+    struct stat s{};
+    return fstat(STDIN_FILENO,&s)==0 && (S_ISFIFO(s.st_mode) || S_ISSOCK(s.st_mode));
+#endif
+  }
   bool watch_stdin_,installed_=false;
 #ifdef _WIN32
   inline static volatile LONG requested_=0;
