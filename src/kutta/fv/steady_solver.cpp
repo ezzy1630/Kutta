@@ -458,6 +458,7 @@ void SteadySolver::initialize_fields(std::span<const Vec3d> velocity,std::span<c
     if(s.sst) {
       KUTTA_REQUIRE(std::isfinite(k[old]) && k[old]>=0 && std::isfinite(omega[old]) && omega[old]>0,"FV invalid turbulence initialization");
       kinetic[c]=float(k[old]);dissipation[c]=float(omega[old]);
+      KUTTA_REQUIRE(std::isfinite(kinetic[c]) && std::isfinite(dissipation[c]),"FV turbulence initialization exceeds float storage");
     }
   }
   upload_vectors(s.dev,s.velocity,u);s.dev.upload<float>(s.pressure,p);

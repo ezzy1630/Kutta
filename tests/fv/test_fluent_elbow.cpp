@@ -118,14 +118,28 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
   const auto setup=setup::fluent_setup(diagnostic,mesh);const auto cold=setup::initial_fields(diagnostic,mesh);
   int limit=4000;
   if(const auto* value=std::getenv("KUTTA_V6_ITERATIONS")) {const auto parsed=parse_double(value);REQUIRE(parsed);REQUIRE(*parsed>0);REQUIRE(*parsed<=100000);REQUIRE(std::floor(*parsed)==*parsed);limit=int(*parsed);}
+  int solved=0;
   KUTTA_FOR_EACH_BACKEND(dev) {
     if(const auto* selected=std::getenv("KUTTA_V6_BACKEND");selected && std::string_view(backend_name(dev->backend()))!=selected) continue;
     for(bool seeded:{true,false}) {
+      ++solved;
       const auto mode=seeded?"seeded":"cold-standard-proxy";
       auto settings=setup.settings;settings.monitor_interval=50;
       SteadySolver solver(*dev,mesh,setup.boundaries,settings);const auto& init=seeded?saved:cold;
       solver.initialize_fields(init.velocity,init.pressure,init.k,init.omega);
       const auto r0=solver.monitor();
+      if(seeded) {
+        // This fixture has one contiguous source cell zone, independently
+        // checked by the data reader and setup mapping above.
+        REQUIRE(c.mesh.cell_zones.size()==1);REQUIRE(c.mesh.cell_zones[0].first==1);
+        std::vector<double> distance,mut;
+        for(Index cell=0;cell<mesh.n_cells;++cell) {
+          distance.push_back(d.cell_fields.at("SV_WALL_DIST").at(std::uint64_t(cell)+1)[0]);
+          mut.push_back(d.cell_fields.at("SV_MU_T").at(std::uint64_t(cell)+1)[0]);
+        }
+        print_error("initial_wall_distance",error(original(*dev,solver,solver.device_mesh().wall_distance),distance));
+        print_error("initial_mu_t",error(original(*dev,solver,solver.turbulence().mu_t),mut));
+      }
       std::cout<<"V6_INITIAL backend="<<backend_name(dev->backend())<<" mode="<<mode<<" u="<<r0.u.scaled<<" v="<<r0.v.scaled
         <<" w="<<r0.w.scaled<<" continuity_raw="<<r0.continuity.raw<<" k="<<r0.k.scaled<<" omega="<<r0.omega.scaled<<std::endl;
       // The absolute mass scale depends on mesh, density and throughput. Use
@@ -143,6 +157,10 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
         if(maximum<1e-6 && r.continuity.raw<continuity_target) {converged=true;break;}
       }
       const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
+      const auto last=solver.report();
+      const double continuity_scale=last.continuity.raw/last.continuity.scaled;
+      std::cout<<"V6_INITIAL_CONTINUITY backend="<<backend_name(dev->backend())<<" mode="<<mode
+        <<" scaled="<<r0.continuity.raw/continuity_scale<<" first_five_scale="<<continuity_scale<<std::endl;
       std::cout<<"V6_RESULT backend="<<backend_name(dev->backend())<<" mode="<<mode<<" iterations="<<solver.report().iteration<<" seconds="<<seconds<<" converged="<<converged<<std::endl;
       const auto eu=error(original_velocity(*dev,solver),reference_velocity,3);
       const auto ep=error(original(*dev,solver,solver.pressure()),saved.pressure);
@@ -174,5 +192,6 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
       CHECK(std::abs(drop/reference-1)<.005);
     }
   }
+  CHECK(solved>0);
 #endif
 }

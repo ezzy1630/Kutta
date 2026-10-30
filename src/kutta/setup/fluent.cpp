@@ -157,6 +157,7 @@ FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
     const auto it=std::find_if(c.boundaries.begin(),c.boundaries.end(),[&](const auto& z){return z.id==patch.source_zone_id;});
     require(it!=c.boundaries.end() && it->name==patch.name,"mesh/patch identity: "+patch.name);const auto& z=*it;
     const auto prefix="zone/"+std::to_string(z.id)+"/";
+    require(patch.size>0,prefix+"empty patch");
     if(z.type==ZoneType::wall) {
       require(z.wall_motion==WallMotion::stationary,prefix+"motion-bc");
       require(z.specified_shear==false && z.shear_bc==0 && z.rough_bc==0,prefix+"shear-bc");

@@ -22,7 +22,13 @@ TEST_CASE("FV SST coupled transport and wall force agree with CPU oracle") {
     SteadySolver solver(*dev,mesh,bc,settings);
     std::vector<Vec3d> u(mesh.n_cells,Vec3d{.8,.01,.02});
     std::vector<double> p(mesh.n_cells,.01),k(mesh.n_cells,.01),w(mesh.n_cells,4);
+    auto overflow=k;overflow[0]=1e100;
+    CHECK_THROWS_WITH(solver.initialize_fields(u,p,overflow,w),doctest::Contains("exceeds float storage"));
     solver.initialize_fields(u,p,k,w);
+    const auto initial_flux=dev->download(solver.mass_flux());
+    auto changed=settings;changed.momentum_relaxation=.9;changed.pressure_relaxation=.2;changed.pseudo_time_scale=13;
+    SteadySolver different_path(*dev,mesh,bc,changed);different_path.initialize_fields(u,p,k,w);
+    CHECK(dev->download(different_path.mass_flux())==initial_flux);
     // Monitoring must not impose fixed omega rows on the caller's saved state.
     const auto before=dev->download(solver.specific_dissipation());solver.monitor();
     CHECK(dev->download(solver.specific_dissipation())==before);
