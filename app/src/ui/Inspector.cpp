@@ -491,8 +491,8 @@ QWidget* boundary(const InspectorContext& c, const QString& zoneName)
     const Zone* z = c.session->caseSummary().zone(zoneName);
     const QString prefix = "boundary/" + zoneName + "/";
     QStringList placed;
-    auto add = [&](const QString& leaf) {
-        if (f->addSetting(prefix + leaf)) placed << prefix + leaf;
+    auto add = [&](const QString& leaf, const QString& label = {}) {
+        if (f->addSetting(prefix + leaf, label)) placed << prefix + leaf;
     };
     const QString type = z ? z->type : QString();
     f->addRow(QObject::tr("Type"), label(type.isEmpty() ? QObject::tr("unknown") : type));
@@ -500,13 +500,14 @@ QWidget* boundary(const InspectorContext& c, const QString& zoneName)
     placed << prefix + "type";
     if (type.contains("inlet") || type.contains("outlet") || type.contains("far-field")) {
         f->addSection(QObject::tr("Momentum"));
-        add("velocity-specification");
+        // Fluent's panel words; the section heading says which method.
+        add("velocity-specification", QObject::tr("Velocity specification method"));
         add("velocity-magnitude");
         add("velocity");
         add("direction");
         add("gauge-pressure");
         f->addSection(type.contains("outlet") ? QObject::tr("Turbulence (backflow)") : QObject::tr("Turbulence"));
-        add("turbulence-specification");
+        add("turbulence-specification", QObject::tr("Specification method"));
         add("turb-intensity");
         add("turb-hydraulic-diam");
         add("turb-length-scale");

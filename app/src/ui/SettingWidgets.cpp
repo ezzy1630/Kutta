@@ -325,15 +325,25 @@ bool SettingsForm::addSetting(const QString& path, const QString& labelOverride)
     r.label->setToolTip(s->path);
     r.editor = new SettingEditor(m_model, *s, this);
     r.label->setBuddy(r.editor->focusTarget());
-    m_grid->addWidget(r.marker, m_row, 0);
-    m_grid->addWidget(r.label, m_row, 1, Qt::AlignVCenter | Qt::AlignLeft);
-    m_grid->addWidget(r.editor, m_row, 2);
-    const DisplayUnit du = displayUnit(*s);
-    auto* unit = new QLabel(du.unit, this);
-    unit->setProperty("role", "unit");
-    unit->setMinimumWidth(QFontMetrics(font()).horizontalAdvance("kg/m³") + 2);
-    m_grid->addWidget(unit, m_row, 3);
-    r.unit = unit;
+    // A method choice in Fluent's words ("Intensity and Hydraulic Diameter")
+    // is too long beside its label: as in Fluent, it sits under it, full width.
+    const bool stacked = !s->optionLabels.isEmpty() || !s->valueLabel.isEmpty();
+    if (stacked) {
+        m_grid->addWidget(r.label, m_row++, 1, 1, 3, Qt::AlignVCenter | Qt::AlignLeft);
+        m_grid->addWidget(r.marker, m_row, 0);
+        m_grid->addWidget(r.editor, m_row, 1, 1, 3);
+    } else {
+        m_grid->addWidget(r.marker, m_row, 0);
+        m_grid->addWidget(r.label, m_row, 1, Qt::AlignVCenter | Qt::AlignLeft);
+        m_grid->addWidget(r.editor, m_row, 2);
+    }
+    if (!stacked) {  // a method choice has no unit
+        auto* unit = new QLabel(displayUnit(*s).unit, this);
+        unit->setProperty("role", "unit");
+        unit->setMinimumWidth(QFontMetrics(font()).horizontalAdvance("kg/m³") + 2);
+        m_grid->addWidget(unit, m_row, 3);
+        r.unit = unit;
+    }
     auto* status = new QWidget(this);
     r.status = status;
     auto* sl = new QHBoxLayout(status);
@@ -379,7 +389,7 @@ void SettingsForm::refreshRow(const QString& path)
     r.label->setToolTip(mod && s ? tr("%1\nModified. Case value: %2").arg(path, displayValue(*s, s->value)) : path);
     const bool active = m_model->isActive(path);
     for (QWidget* w : {r.marker, static_cast<QWidget*>(r.label), static_cast<QWidget*>(r.editor), static_cast<QWidget*>(r.unit), r.status})
-        w->setVisible(active);
+        if (w) w->setVisible(active);
 }
 
 int SettingsForm::activeRows() const
