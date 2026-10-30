@@ -3,13 +3,16 @@
 
 Usage: compare_slow_assertions.py baseline.xml final.xml > comparison.json
 A repeated assertion is identified by its occurrence within the same case,
-source location, original expression and INFO context. Changed numeric values
-are reported only when an assertion changes outcome; timings are not compared.
+source location, original expression and INFO context. Changed expanded values
+are recorded even when the assertion outcome is unchanged; timings are not compared.
+Pointer addresses in INFO are numbered by first appearance within each case;
+their process-specific addresses are not stable assertion identities.
 Missing assertions and newly failed assertions return a nonzero exit status.
 """
 import argparse
 import collections
 import json
+import re
 import xml.etree.ElementTree as ET
 
 
@@ -22,11 +25,20 @@ def read_assertions(path):
             raise ValueError(f"{path}: duplicate case name {case.get('name')}")
         assertions = {}
         occurrences = collections.Counter()
+        pointers = {}
+        def context_text(info):
+            value = " ".join(" ".join(info.itertext()).split())
+            def address(match):
+                return pointers.setdefault(match.group(), f"<pointer-{len(pointers)+1}>")
+            if case.get("name", "").startswith("V7 SA TMR") and re.fullmatch(r"case 0x[0-9a-fA-F]{9,16} level [0-9]+", value):
+                return re.sub(r"0x[0-9a-fA-F]{9,16}", address, value)
+            return value
+
         for expression in case.iter("Expression"):
             filename = expression.get("filename", "").replace("\\", "/")
-            filename = "tests/" + filename.split("/tests/", 1)[-1]
-            context = tuple(" ".join(" ".join(info.itertext()).split())
-                            for info in expression.findall("Info"))
+            if "/tests/" in filename:
+                filename = "tests/" + filename.split("/tests/", 1)[1]
+            context = tuple(context_text(info) for info in expression.findall("Info"))
             key = (filename, expression.get("line"), expression.get("type"),
                    (expression.findtext("Original") or "").strip(), context)
             identity = (*key, occurrences[key])
@@ -52,7 +64,7 @@ def read_assertions(path):
 
 
 def compare(before, after):
-    rows, regressions, recoveries, missing, added = [], [], [], [], []
+    rows, regressions, recoveries, missing, added, changed = [], [], [], [], [], []
     for name, assertions in before.items():
         final = after.get(name, {})
         rows.append({"case": name, "baseline_assertions": len(assertions),
@@ -64,6 +76,10 @@ def compare(before, after):
                 missing.append({"case": name, "assertion": key})
                 continue
             new = final[key]
+            if old["expanded"] != new["expanded"]:
+                changed.append({"case": name, "assertion": key,
+                                "before": old["expanded"], "after": new["expanded"],
+                                "baseline_passed": old["passed"], "final_passed": new["passed"]})
             if old["passed"] != new["passed"]:
                 change = {"case": name, "assertion": key,
                           "before": old["expanded"], "after": new["expanded"]}
@@ -77,6 +93,7 @@ def compare(before, after):
                                         "before": None, "after": value["expanded"]})
     missing_cases = sorted(before.keys() - after.keys())
     return {"cases": rows, "regressions": regressions, "recoveries": recoveries,
+            "changed_values": changed,
             "missing_assertions": missing, "new_assertions": added,
             "missing_cases": missing_cases,
             "new_cases": sorted(after.keys() - before.keys()),

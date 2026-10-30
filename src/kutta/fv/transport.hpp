@@ -1,6 +1,7 @@
 #pragma once
 
 #include "kutta/fv/operators.hpp"
+#include "kutta/fv/face_projection.hpp"
 #include "kutta/linalg/solver.hpp"
 
 namespace kutta::fv {
@@ -32,7 +33,8 @@ class TransportEquation {
  public:
   TransportEquation(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
                     const PolyMesh& host, const MeshGeometry& geometry,
-                    std::shared_ptr<CsrMatrix> shared_matrix={});
+                    std::shared_ptr<CsrMatrix> shared_matrix={},
+                    std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction={});
   void assemble(const Buffer<float>& field, const Buffer<float>& face_values,
                 const Buffer<Index>& boundary_kind, const Buffer<float>& mass_flux,
                 const Buffer<float>& diffusivity, const Buffer<float>& source,
@@ -53,6 +55,8 @@ class TransportEquation {
   const Stencil& stencil_;
   std::unique_ptr<LinearSolver> solver_;
   Buffer<float> zero_;
+  std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction_;
+  Buffer<float> diffusion_correction_;
 };
 
 }  // namespace kutta::fv

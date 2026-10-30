@@ -8,7 +8,8 @@ namespace kutta::fv {
 
 TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stencil& s,
                                      const PolyMesh&,const MeshGeometry&,
-                                     std::shared_ptr<CsrMatrix> shared_matrix)
+                                     std::shared_ptr<CsrMatrix> shared_matrix,
+                                     std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction)
     :matrix_storage_(shared_matrix?std::move(shared_matrix):std::make_shared<CsrMatrix>(upload(dev,s.pattern))),
      matrix(*matrix_storage_),rhs(dev.alloc<float>(m.n_cells)),
      diagonal(dev.alloc<float>(m.n_cells)),consistent_inverse(dev.alloc<float>(m.n_cells)),
@@ -21,6 +22,8 @@ TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stenc
   for(auto j:s.pattern.diag) initial.val[j]=1;
   solver_=make_solver(transport_solver_kind,dev,initial);
   zero_=dev.alloc<float>(m.n_cells);dev.fill(zero_,0);
+  diffusion_reconstruction_=std::move(diffusion_reconstruction);
+  if(diffusion_reconstruction_) diffusion_correction_=dev.alloc<float>(m.n_faces);
 }
 
 void TransportEquation::assemble(const Buffer<float>& field,const Buffer<float>& bc,
@@ -42,12 +45,18 @@ void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const 
   for(const auto* term:{terms.sink,terms.diagonal,terms.rhs})
     KUTTA_REQUIRE(!term || term->size()==field.size(),"FV transport term size mismatch");
   if(settings.limit) limit_gradient(dev,m,s,field,bc,grad,limiter); else dev.fill(limiter,1);
+  if(diffusion_reconstruction_) {
+    diffusion_reconstruction_->diffusion_correction(field,bc,diffusion_correction_);
+  }
   kern::fv_transport_faces(dev,m.n_faces,m.owner,m.neighbour,m.weight,
     m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
     m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
     s.nonorthogonal.x,s.nonorthogonal.y,s.nonorthogonal.z,
-    grad.x,grad.y,grad.z,limiter,flux,mu,kind,face_correction,m.n_internal_faces,
-    settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
+    grad.x,grad.y,grad.z,limiter,flux,mu,kind,
+    diffusion_reconstruction_?diffusion_reconstruction_->mask():m.owner,
+    diffusion_reconstruction_?diffusion_correction_:face_correction,
+    face_correction,m.n_internal_faces,
+    settings.convection==ConvectionScheme::SecondOrderUpwind?1:0,diffusion_reconstruction_?1:0);
   kern::fv_transport_assemble(dev,m.n_cells,m.cell_face_offsets,m.cell_faces,m.cell_face_sign,
     s.adjacent,s.matrix_entry,matrix.row_ptr,matrix.diag,s.diffusion,flux,mu,kind,bc,face_correction,
     source,m.volume,field,terms.sink?*terms.sink:zero_,terms.diagonal?*terms.diagonal:zero_,

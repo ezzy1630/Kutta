@@ -52,6 +52,33 @@ Index locate_cell(const PolyMesh& mesh,const MeshGeometry& geom,Vec3d point) {
 }
 }
 
+namespace {
+// A quadratic cloud assumes a continuous trace. A moving lid meeting a fixed
+// wall violates that assumption; retain the existing scheme in its support.
+std::vector<Index> discontinuous_wall_cells(const PolyMesh& mesh,
+    const std::map<std::string,BoundaryCondition>& conditions,std::span<const RigidFrame> frames) {
+  struct Trace {Index point,cell;Vec3d velocity;};std::vector<Trace> traces;
+  for(const auto& patch:mesh.patches) if(const auto* wall=std::get_if<Wall>(&conditions.at(patch.name)))
+    for(Index f=patch.start;f<patch.start+patch.size;++f) {
+      const auto frame=frames.empty()?RigidFrame{}:frames[mesh.owner[f]];
+      for(auto point:detail::nodes(mesh,f)) traces.push_back({point,mesh.owner[f],wall_velocity(*wall,mesh.points[point],frame)});
+    }
+  std::sort(traces.begin(),traces.end(),[](const auto& a,const auto& b){return a.point<b.point;});
+  std::vector<Index> cells(mesh.n_cells,0);
+  for(std::size_t first=0;first<traces.size();) {
+    std::size_t end=first+1;while(end<traces.size() && traces[end].point==traces[first].point) ++end;
+    bool discontinuous=false;
+    for(auto j=first+1;j<end;++j) {
+      const auto a=traces[first].velocity,b=traces[j].velocity;
+      discontinuous|=norm(a-b)>64*std::numeric_limits<double>::epsilon()*std::max({1.,norm(a),norm(b)});
+    }
+    if(discontinuous) for(auto j=first;j<end;++j) cells[traces[j].cell]=1;
+    first=end;
+  }
+  return cells;
+}
+}
+
 struct SteadySolver::Impl {
   Device& dev;
   PolyMesh host;
@@ -75,6 +102,8 @@ struct SteadySolver::Impl {
   Buffer<Index> boundary_kind,scalar_kind;
   DeviceVec3 grad_p,limited_gradient[3];
   std::unique_ptr<TransportEquation> momentum[3];
+  std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction;
+  DeviceVec3 projected_gradient[3];
   std::shared_ptr<CsrMatrix> pressure_matrix;
   std::unique_ptr<LinearSolver> pressure_solver;
   Buffer<float> pressure_rhs,correction,correction_boundary,coefficient,face_pressure,pressure_jump;
@@ -211,7 +240,15 @@ struct SteadySolver::Impl {
     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
     upload_vectors(dev,prescribed_velocity,velocities);
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
-    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
+    if(!settings.sst && !settings.sa && !settings.realizable_ke) {
+      const auto nonsmooth=discontinuous_wall_cells(host,boundaries,frames);
+      diffusion_reconstruction=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,independent_velocity,nonsmooth);
+      if(diffusion_reconstruction->corrected_faces()==0) diffusion_reconstruction.reset();
+    }
+    if(diffusion_reconstruction) {
+      for(auto& g:projected_gradient) g=vector_field(dev,nf);
+    }
+    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,diffusion_reconstruction);
     velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity);
     pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure);
     if(settings.sst) {
@@ -475,6 +512,7 @@ struct SteadySolver::Impl {
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,face_pressure,pressure_jump,mesh.n_internal_faces);
+
   }
   void update_flux() {
     reconstruct_velocity();
@@ -497,6 +535,11 @@ struct SteadySolver::Impl {
       velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
       physical_diagonal,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
       face_velocity.x,face_velocity.y,face_velocity.z,mesh.n_internal_faces);
+    if(diffusion_reconstruction) {
+      diffusion_reconstruction->momentum_values(velocity.x,boundary_velocity.x,physical_diagonal,face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
+      diffusion_reconstruction->momentum_values(velocity.y,boundary_velocity.y,physical_diagonal,face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
+      diffusion_reconstruction->momentum_values(velocity.z,boundary_velocity.z,physical_diagonal,face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
+    }
     kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,
       physical_diagonal,consistent_inverse,face_velocity.x,face_velocity.y,face_velocity.z,
@@ -825,6 +868,18 @@ ForceReport SteadySolver::forces(std::span<const std::string> patches,double ref
     s.update_turbulence();const auto& shear=s.sst?s.sst->fields().wall_shear:s.rke->fields().wall_shear;
     kern::fv_sst_force(s.dev,selected.size(),mask,m.area.x,m.area.y,m.area.z,
       shear.x,shear.y,shear.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces);
+  } else if(s.diffusion_reconstruction) {
+    kern::fv_wall_viscous_force(s.dev,selected.size(),m.owner,mask,m.area.x,m.area.y,m.area.z,
+      m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,s.velocity.x,s.velocity.y,s.velocity.z,
+      gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+      s.boundary_velocity.x,s.boundary_velocity.y,s.boundary_velocity.z,viscous.x,viscous.y,viscous.z,
+      m.n_internal_faces,float(s.settings.viscosity));
+    s.diffusion_reconstruction->flux_gradient(s.velocity.x,s.boundary_velocity.x,m,s.stencil,s.projected_gradient[0]);
+    s.diffusion_reconstruction->flux_gradient(s.velocity.y,s.boundary_velocity.y,m,s.stencil,s.projected_gradient[1]);
+    s.diffusion_reconstruction->flux_gradient(s.velocity.z,s.boundary_velocity.z,m,s.stencil,s.projected_gradient[2]);
+    const auto& u=s.projected_gradient[0];const auto& v=s.projected_gradient[1];const auto& w=s.projected_gradient[2];
+    kern::fv_wall_projected_viscous_force(s.dev,selected.size(),mask,s.diffusion_reconstruction->mask(),m.area.x,m.area.y,m.area.z,
+      u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces,float(s.settings.viscosity));
   } else kern::fv_wall_viscous_force(s.dev,selected.size(),m.owner,mask,m.area.x,m.area.y,m.area.z,
     m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,s.velocity.x,s.velocity.y,s.velocity.z,
     gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,

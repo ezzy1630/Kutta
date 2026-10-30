@@ -218,8 +218,6 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
     require(patch.size>0,prefix+"empty patch");
     if(patch.size<=0) continue;
     if(z.type==ZoneType::wall) {
-      require(z.wall_motion!=WallMotion::rotating,prefix+"motion-bc",
-        "native rotating-wall support held: V7.2 polyhedral pressure accuracy still exceeds the 1% gate; the C++ verification path remains available");
       require(z.specified_shear==false && z.shear_bc==0 && z.rough_bc==0,prefix+"shear-bc","requires specified-shear?=false, shear-bc=0 and rough-bc=0");
       require(scalar(z.roughness_height,prefix+"roughness-height")==0,prefix+"roughness-height");
       try {out.boundaries.push_back({patch.name,fluent_wall(z)});} catch(const Error& e) {errors.push_back({prefix+"motion",e.what()});}

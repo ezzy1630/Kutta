@@ -31,7 +31,12 @@ TEST_CASE("FSAE strict Fluent adapter accepts verified settings and holds unmet 
   const auto wall=std::find_if(c.boundaries.begin(),c.boundaries.end(),[](const auto& z){return z.type==fluent::ZoneType::wall;});REQUIRE(wall!=c.boundaries.end());
   const auto inlet=std::find_if(c.boundaries.begin(),c.boundaries.end(),[](const auto& z){return z.type==fluent::ZoneType::velocity_inlet;});REQUIRE(inlet!=c.boundaries.end());
   auto moving=change(c,wall->id,"wall","(motion-bc . 1) (rotating? . #t) (relative? . #f) (omega . 2) (ai . 0) (aj . 0) (ak . 2) (x-origin . 0) (y-origin . 0) (z-origin . 0)");
-  CHECK_THROWS_WITH(setup::fluent_setup(moving,mesh,allowed),doctest::Contains("V7.2 polyhedral pressure accuracy"));
+  const auto rotating=setup::fluent_setup(moving,mesh,allowed);
+  const auto adapted=std::find_if(rotating.boundaries.begin(),rotating.boundaries.end(),[&](const auto& p){return p.patch==wall->name;});
+  REQUIRE(adapted!=rotating.boundaries.end());
+  const auto& native_wall=std::get<fv::Wall>(adapted->condition);
+  REQUIRE(native_wall.rotation.has_value());
+  CHECK(native_wall.rotation->angular_velocity.z==2);
   moving=change(c,wall->id,"wall","(motion-bc . 1) (rotating? . #f) (components? . #t) (relative? . #f) (u . 12) (v . 0) (w . 0)");
   CHECK_NOTHROW(setup::fluent_setup(moving,mesh,allowed));
   auto pressure=change(c,inlet->id,"pressure-inlet","(p0 . 1) (direction-spec . 1) (flow-spec . 0)");
