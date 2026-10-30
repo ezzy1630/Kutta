@@ -33,18 +33,21 @@ void add_derived(std::vector<Field>& fields,std::optional<double> pressure,doubl
   }
 }
 }
-void save_view_input(const std::filesystem::path& path,Device& dev,const fv::SteadySolver& solver,
-                     const fluent::FluentCase& c,const fluent::FluentData* reference,const setup::FluentSetup& setup,std::string_view provenance) {
+view::Fields collect_view_fields(Device& dev,const fv::SteadySolver& solver,
+                     const fluent::FluentCase& c,const fluent::FluentData* reference,const setup::FluentSetup& setup,std::string_view provenance,bool volume) {
   view::Fields s;s.reference=reference!=nullptr;s.provenance=provenance;
   s.properties={setup.settings.density,setup.settings.viscosity,c.reference.density,c.reference.velocity,c.reference.pressure,c.reference.area,c.reference.length};
   const auto& m=solver.mesh();const auto nb=m.n_faces()-m.n_internal_faces();
   const auto& t=solver.turbulence();
-  s.cells.push_back(vector_field(dev,"velocity","m/s",solver.velocity()));
-  s.cells.push_back({"pressure","Pa",1,dev.download(solver.pressure())});
-  s.cells.push_back({"k","m^2/s^2",1,dev.download(solver.kinetic_energy())});
-  s.cells.push_back({"omega","1/s",1,dev.download(solver.specific_dissipation())});
-  auto ratio=dev.download(t.mu_t);for(auto& v:ratio)v=float(v/setup.settings.viscosity);
-  s.cells.push_back({"viscosity_ratio","1",1,std::move(ratio)});
+  auto cell_velocity=vector_field(dev,"velocity","m/s",solver.velocity());
+  if(volume) {
+    s.cells.push_back(std::move(cell_velocity));
+    s.cells.push_back({"pressure","Pa",1,dev.download(solver.pressure())});
+    s.cells.push_back({"k","m^2/s^2",1,dev.download(solver.kinetic_energy())});
+    s.cells.push_back({"omega","1/s",1,dev.download(solver.specific_dissipation())});
+    auto ratio=dev.download(t.mu_t);for(auto& v:ratio)v=float(v/setup.settings.viscosity);
+    s.cells.push_back({"viscosity_ratio","1",1,std::move(ratio)});
+  }
   s.boundary.push_back({"pressure","Pa",1,dev.download(solver.boundary_pressure())});
   s.boundary.push_back(vector_field(dev,"wall_shear","Pa",t.wall_shear));
   s.boundary.push_back({"y_plus","1",1,dev.download(t.wall_y_plus)});
@@ -53,7 +56,7 @@ void save_view_input(const std::filesystem::path& path,Device& dev,const fv::Ste
     auto bc=std::find_if(setup.boundaries.begin(),setup.boundaries.end(),[&](const auto& b){return b.patch==p.name;});
     KUTTA_REQUIRE(bc!=setup.boundaries.end(),"missing export boundary condition");
     for(Index f=p.start;f<p.start+p.size;++f) {
-      const auto cell=std::size_t(m.owner[f])*3;const auto& u=s.cells.front().values;
+      const auto cell=std::size_t(m.owner[f])*3;const auto& u=volume?s.cells.front().values:cell_velocity.values;
       Vec3d v{u[cell],u[cell+1],u[cell+2]};
       if(const auto* inlet=std::get_if<fv::VelocityInlet>(&bc->condition))v=std::get<Vec3d>(inlet->velocity);
       else if(std::holds_alternative<fv::Symmetry>(bc->condition)){const auto n=solver.geometry().face_area[f]/norm(solver.geometry().face_area[f]);v=v-n*dot(v,n);}
@@ -62,8 +65,10 @@ void save_view_input(const std::filesystem::path& path,Device& dev,const fv::Ste
     }
   }
   s.boundary.push_back(std::move(velocity));
-  const auto mass_flux=dev.download(solver.mass_flux());
-  s.boundary.push_back({"mass_flux","kg/s",1,std::vector<float>(mass_flux.begin()+m.n_internal_faces(),mass_flux.end())});
+  if(volume) {
+    const auto mass_flux=dev.download(solver.mass_flux());
+    s.boundary.push_back({"mass_flux","kg/s",1,std::vector<float>(mass_flux.begin()+m.n_internal_faces(),mass_flux.end())});
+  }
   if(reference) {
     // Cell-zone vectors retain original Fluent-ID order through RCM; their
     // stored indices are updated by the mesh permutation.
@@ -77,14 +82,16 @@ void save_view_input(const std::filesystem::path& path,Device& dev,const fv::Ste
       auto it=fields.find(std::string(key));if(it==fields.end())return missing;
       const auto values=it->second.at(id);return values.size()>std::size_t(component)?float(values[component]):missing;
     };
-    for(const auto& [name,source,unit]:std::vector<std::array<std::string,3>>{
-        {"pressure","SV_P","Pa"},{"k","SV_K","m^2/s^2"},{"omega","SV_O","1/s"},{"viscosity_ratio","SV_MU_T","1"}}) {
-      if(!reference->cell_fields.contains(source))continue;
-      Field f{name+"@fluent",unit,1,{}};f.values.reserve(ids.size());
-      for(auto id:ids){const auto v=sample(reference->cell_fields,source,id);f.values.push_back(name=="viscosity_ratio"?float(v/setup.settings.viscosity):v);}s.cells.push_back(std::move(f));
+    if(volume) {
+      for(const auto& [name,source,unit]:std::vector<std::array<std::string,3>>{
+          {"pressure","SV_P","Pa"},{"k","SV_K","m^2/s^2"},{"omega","SV_O","1/s"},{"viscosity_ratio","SV_MU_T","1"}}) {
+        if(!reference->cell_fields.contains(source))continue;
+        Field f{name+"@fluent",unit,1,{}};f.values.reserve(ids.size());
+        for(auto id:ids){const auto v=sample(reference->cell_fields,source,id);f.values.push_back(name=="viscosity_ratio"?float(v/setup.settings.viscosity):v);}s.cells.push_back(std::move(f));
+      }
+      Field u{"velocity@fluent","m/s",3,{}};
+      for(auto id:ids)for(auto key:{"SV_U","SV_V","SV_W"})u.values.push_back(sample(reference->cell_fields,key,id));s.cells.push_back(std::move(u));
     }
-    Field u{"velocity@fluent","m/s",3,{}};
-    for(auto id:ids)for(auto key:{"SV_U","SV_V","SV_W"})u.values.push_back(sample(reference->cell_fields,key,id));s.cells.push_back(std::move(u));
     Field p{"pressure@fluent","Pa",1,std::vector<float>(nb,missing)},shear{"wall_shear@fluent","Pa",3,std::vector<float>(std::size_t(nb)*3,missing)},yp{"y_plus@fluent","1",1,std::vector<float>(nb,missing)},uv{"velocity@fluent","m/s",3,std::vector<float>(std::size_t(nb)*3,missing)};
     for(const auto& patch:m.patches) {
       auto range=std::find_if(c.mesh.face_zones.begin(),c.mesh.face_zones.end(),[&](const auto& r){return r.zone_id==patch.source_zone_id;});
@@ -110,7 +117,11 @@ void save_view_input(const std::filesystem::path& path,Device& dev,const fv::Ste
   double dynamic=0;
   if(c.reference.density && c.reference.velocity && *c.reference.density>0 && *c.reference.velocity>0)dynamic=.5**c.reference.density**c.reference.velocity**c.reference.velocity;
   add_derived(s.cells,c.reference.pressure,dynamic);add_derived(s.boundary,c.reference.pressure,dynamic);
-  view::write_snapshot(path,m,s);
+  return s;
+}
+void save_view_input(const std::filesystem::path& path,Device& dev,const fv::SteadySolver& solver,
+                     const fluent::FluentCase& c,const fluent::FluentData* reference,const setup::FluentSetup& setup,std::string_view provenance) {
+  view::write_snapshot(path,solver.mesh(),collect_view_fields(dev,solver,c,reference,setup,provenance,true));
 }
 int export_view(int argc,char** argv) {
   if(argc<3){std::cerr<<"Usage: kutta export-view DIR [--slice ox,oy,oz,nx,ny,nz]... [--post spec.json | --streamlines spec.json]\n";return 2;}

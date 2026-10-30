@@ -2,6 +2,8 @@
 #include "protocol.hpp"
 #include "export.hpp"
 #include "stop.hpp"
+#include "live.hpp"
+#include "kutta/io/live_view.hpp"
 #include "kutta/setup/settings.hpp"
 #include "kutta/core/json.hpp"
 #include "kutta/core/path.hpp"
@@ -25,13 +27,13 @@ using namespace kutta;
 using namespace kutta::detail;
 using Clock=std::chrono::steady_clock;
 struct Options {
-  std::filesystem::path input,data,setup_file,out="kutta-result";
+  std::filesystem::path input,data,setup_file,live_directory,out="kutta-result";
   std::string backend="auto";
-  int iterations=1000;
+  int iterations=1000,live_every=app::LiveCadence::default_every;
   std::vector<setup::Approximation> approximations;
 };
 Options parse(int argc,char** argv) {
-  KUTTA_REQUIRE(argc>=3,"Usage: kutta solve <case.cas.h5> [--data init.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--approximate SETTING[,SETTING...]]");
+  KUTTA_REQUIRE(argc>=3,"Usage: kutta solve <case.cas.h5> [--data init.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--live-view DIR] [--live-every N] [--approximate SETTING[,SETTING...]]");
   Options o;o.input=argv[2];std::set<std::string> seen;
   for(int i=3;i<argc;i+=2) {
     const std::string key=argv[i];
@@ -40,14 +42,17 @@ Options parse(int argc,char** argv) {
     if(key=="--data") o.data=v;
     else if(key=="--setup") o.setup_file=v;
     else if(key=="--out") o.out=v;
+    else if(key=="--live-view") {KUTTA_REQUIRE(!v.empty(),"--live-view requires a directory");o.live_directory=v;}
     else if(key=="--backend") o.backend=v;
     else if(key=="--progress") {KUTTA_REQUIRE(v=="jsonl","--progress requires jsonl");}
     else if(key=="--approximate") o.approximations=setup::parse_approximations(v);
-    else if(key=="--iterations") {
-      const auto [end,ec]=std::from_chars(v.data(),v.data()+v.size(),o.iterations);
-      KUTTA_REQUIRE(ec==std::errc{} && end==v.data()+v.size() && o.iterations>0,"--iterations must be a positive integer");
+    else if(key=="--iterations" || key=="--live-every") {
+      auto& value=key=="--iterations"?o.iterations:o.live_every;
+      const auto [end,ec]=std::from_chars(v.data(),v.data()+v.size(),value);
+      KUTTA_REQUIRE(ec==std::errc{} && end==v.data()+v.size() && value>0,key+" must be a positive integer");
     } else throw Error("unknown solve option: "+key);
   }
+  KUTTA_REQUIRE(!seen.contains("--live-every") || !o.live_directory.empty(),"--live-every requires --live-view");
   KUTTA_REQUIRE(o.backend=="auto" || o.backend=="cpu" || o.backend=="cuda" || o.backend=="metal","unknown backend: "+o.backend);
   return o;
 }
@@ -131,14 +136,22 @@ int solve(int argc,char** argv) {
     setup::initialize(solver,*fields);
     if(std::holds_alternative<fv::HybridInitialization>(*fields))
       human<<"Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).\n";
-    dev->synchronize();const auto setup_time=seconds(start);
+    dev->synchronize();
+    std::optional<view::LiveView> live;
+    if(!o.live_directory.empty())live.emplace(o.live_directory);
+    app::LiveCadence cadence(o.live_every);
+    const auto live_configuration=[&] {return Json::Object{{"directory",utf8_path(live->directory())},{"run_id",live->run_id()},{"every",cadence.every()},{"unit","iterations"},{"budget_fraction",app::LiveCadence::budget_fraction}};};
+    const auto live_statistics=[&](double wall) {auto info=live_configuration();const auto compute=std::max(0.0,wall-cadence.total_seconds());info.emplace("snapshots",double(cadence.count()));info.emplace("snapshot_time_seconds",cadence.total_seconds());info.emplace("solve_time_seconds",compute);info.emplace("overhead_fraction",compute>0?Json(cadence.total_seconds()/compute):Json(nullptr));return info;};
+    const auto setup_time=seconds(start);
     std::cout.imbue(std::locale::classic());std::cout<<std::setprecision(17);
     if(jsonl) {
       std::cout<<"{\"v\":1,\"event\":\"setup\",\"cells\":"<<solver.mesh().n_cells<<",\"backend\":"<<json_string(backend_name(dev->backend()))
         <<",\"device\":"<<json_string(dev->name())<<",\"approximations\":[";
       for(std::size_t i=0;i<setup->approximations.size();++i){if(i)std::cout<<',';std::cout<<json_string(setup::approximation_info(setup->approximations[i]).name);}
       const auto init=!o.data.empty()?"fluent-data":std::holds_alternative<fv::HybridInitialization>(*fields)?"hybrid":"standard";
-      std::cout<<"],\"init\":"<<json_string(init)<<",\"overrides\":"<<dump_json(applied)<<",\"modified\":"<<(applied.empty()?"false":"true")<<'}'<<std::endl;
+      std::cout<<"],\"init\":"<<json_string(init)<<",\"overrides\":"<<dump_json(applied)<<",\"modified\":"<<(applied.empty()?"false":"true");
+      if(live)std::cout<<",\"live_view\":"<<dump_json(live_configuration());
+      std::cout<<'}'<<std::endl;
       if(!notice.empty())warning(notice);
       for(const auto& note:setup->convergence_notes)warning(note);
       warning("Case convergence criteria are not exposed by the adapter; stopping at the requested iteration limit.");
@@ -154,7 +167,7 @@ int solve(int argc,char** argv) {
              <<"  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter\n";
     const auto run_start=Clock::now();
     bool stopped=false;
-    auto batch=Clock::now();int batch_count=0;
+    auto batch=Clock::now();int batch_count=0;double batch_snapshot_time=0;
     while(solver.report().iteration<o.iterations) {
       if(stop.requested()){stopped=true;if(batch_count==0)break;}
       else {
@@ -162,9 +175,17 @@ int solve(int argc,char** argv) {
         solver.iterate(1);++batch_count;stopped=stop.requested();
       }
       const auto iter=solver.report().iteration;
+      if(live && cadence.due(iter,seconds(run_start)-cadence.total_seconds())) {
+        const auto snapshot_start=Clock::now();
+        const auto snapshot_fields=app::collect_view_fields(*dev,solver,c,reference?&*reference:nullptr,*setup,notice,false);
+        auto event=live->publish(solver.mesh(),snapshot_fields,iter,seconds(run_start));
+        const auto cost=seconds(snapshot_start);cadence.record(iter,cost);batch_snapshot_time+=cost;
+        if(jsonl){event.emplace("event","snapshot");event.emplace("snapshot_seconds",cost);std::cout<<dump_json(event)<<std::endl;}
+        stopped=stop.requested();
+      }
       if(iter%setup->settings.monitor_interval!=0 && iter!=o.iterations && !stopped)continue;
       const auto r=solver.report().residual_iteration==iter?solver.report():solver.monitor();
-      dev->synchronize();const auto per_iteration=seconds(batch)/batch_count;
+      dev->synchronize();const auto per_iteration=(seconds(batch)-batch_snapshot_time)/batch_count;
       const double values[]={r.continuity.fluent_scaled,r.u.fluent_scaled,r.v.fluent_scaled,r.w.fluent_scaled,r.k.fluent_scaled,r.omega.fluent_scaled};
       residuals<<r.iteration;
       if(!jsonl)human<<std::setw(6)<<r.iteration<<std::scientific<<std::setprecision(6);
@@ -196,7 +217,7 @@ int solve(int argc,char** argv) {
         std::cout<<event.str()<<std::endl;
       }
       if(stopped)break;
-      batch=Clock::now();batch_count=0;
+      batch=Clock::now();batch_count=0;batch_snapshot_time=0;
     }
     const auto wall_time=seconds(run_start);residuals.close();
     write_fields(*dev,solver,o.out/"result.vtu",notice);
@@ -245,10 +266,12 @@ int solve(int argc,char** argv) {
       <<",\n  \"kutta_version\": "<<json_string(KUTTA_VERSION)<<",\n  \"kutta_commit\": "<<json_string(KUTTA_COMMIT)
       <<",\n  \"backend\": "<<json_string(backend_name(dev->backend()))<<",\n  \"device\": "<<json_string(dev->name())
       <<",\n  \"cells\": "<<solver.mesh().n_cells<<",\n  \"iterations\": "<<solver.report().iteration
-      <<",\n  \"wall_time_seconds\": "<<wall_time<<",\n  \"setup_time_seconds\": "<<setup_time
-      <<",\n  \"peak_device_memory_bytes\": null,\n  \"converged\": false,\n  \"stop_reason\": "<<json_string(stopped?"stopped":"iteration_limit")<<",\n  \"convergence_criteria_available\": false,\n  \"boundary_wall_shear_available\": true\n}\n";
+      <<",\n  \"wall_time_seconds\": "<<wall_time<<",\n  \"setup_time_seconds\": "<<setup_time;
+    if(live)summary<<",\n  \"live_view\": "<<dump_json(live_statistics(wall_time));
+    summary<<",\n  \"peak_device_memory_bytes\": null,\n  \"converged\": false,\n  \"stop_reason\": "<<json_string(stopped?"stopped":"iteration_limit")<<",\n  \"convergence_criteria_available\": false,\n  \"boundary_wall_shear_available\": true\n}\n";
     summary.close();
-    if(jsonl)std::cout<<"{\"v\":1,\"event\":\"done\",\"converged\":false,\"iterations\":"<<solver.report().iteration<<",\"elapsed\":"<<wall_time<<",\"out\":"<<json_string(utf8_path(o.out))<<",\"stop_reason\":"<<json_string(stopped?"stopped":"iteration_limit")<<'}'<<std::endl;
+    if(jsonl)std::cout<<"{\"v\":1,\"event\":\"done\",\"converged\":false,\"iterations\":"<<solver.report().iteration<<",\"elapsed\":"<<wall_time<<",\"out\":"<<json_string(utf8_path(o.out))<<",\"stop_reason\":"<<json_string(stopped?"stopped":"iteration_limit");
+    if(jsonl){if(live)std::cout<<",\"live_view\":"<<dump_json(live_statistics(wall_time));std::cout<<'}'<<std::endl;}
     else human<<"Wrote "<<o.out.string()<<" ("<<solver.report().iteration<<" iterations, "<<wall_time<<" s solve).\n";
     if(!notice.empty() && !jsonl) human<<notice<<std::endl;
     return 0;

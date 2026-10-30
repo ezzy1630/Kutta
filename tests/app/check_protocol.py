@@ -222,3 +222,62 @@ solve_setup({"missing/setting": 1, "general/operating-pressure": 10, "run/iterat
 solve_setup({"run/iterations": True}, "bool-is-not-integer", reject=True)
 solve_setup({"boundary/inlet/direction": [1, 0]}, "bad-vector", reject=True)
 print(f"Setup overrides: actual inlet mass flux {base_flux['inlet']} -> {changed_flux['inlet']} kg/s; rejections and provenance passed")
+
+# Live publication is independent of the residual monitor interval. Read the
+# linked files at the event boundary, while the child is still running.
+live_root = root / "live-view"
+p = subprocess.Popen([cli, "solve", str(root / "tiny.cas.h5"), "--backend", "cpu", "--iterations", "1", "--data", str(root / "tiny.dat.h5"),
+                      "--out", str(root / "live-result"), "--progress", "jsonl", "--live-view", str(live_root), "--live-every", "1"],
+                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+events = []
+for line in p.stdout:
+    event = json.loads(line)
+    events.append(event)
+    if event["event"] == "snapshot":
+        manifest_file = pathlib.Path(event["manifest"])
+        view = json.loads(manifest_file.read_text())
+        assert view["v"] == 1 and len(view["zones"]) == 1 and not view["slices"]
+        for zone in view["zones"]:
+            data = (manifest_file.parent / zone["file"]).read_bytes()
+            assert data[:4] == b"KUTV" and len(data) >= 32
+        assert event["snapshot_seconds"] > 0 and event["iter"] >= 1
+assert p.wait(timeout=10) == 0, p.stderr.read()
+p.stdin.close()
+snapshots = [e for e in events if e["event"] == "snapshot"]
+assert snapshots and [s["sequence"] for s in snapshots] == list(range(1, len(snapshots) + 1))
+assert events[0]["event"] == "setup" and events[-1]["event"] == "done"
+config = events[0]["live_view"]
+assert config["every"] == 1 and config["unit"] == "iterations" and config["budget_fraction"] == .05
+pointer = json.loads((live_root / "live/manifest.json").read_text())
+assert pointer["sequence"] == snapshots[-1]["sequence"] and pointer["run_id"] == config["run_id"]
+assert (live_root / "live" / pointer["manifest"]).resolve() == pathlib.Path(snapshots[-1]["manifest"]).resolve()
+summary = json.loads((root / "live-result/summary.json").read_text())
+assert summary["live_view"] == events[-1]["live_view"] and summary["live_view"]["snapshots"] == len(snapshots)
+assert math.isclose(summary["live_view"]["snapshot_time_seconds"], sum(s["snapshot_seconds"] for s in snapshots), rel_tol=1e-12)
+# A finished live surface uses exactly the same fields and geometry as export.
+command("export-view", root / "live-result")
+final_manifest = json.loads((root / "live-result/view/manifest.json").read_text())
+assert view == final_manifest and view["reference"]
+for zone in view["zones"]:
+    assert (manifest_file.parent / zone["file"]).read_bytes() == (root / "live-result/view" / zone["file"]).read_bytes()
+# Closing stdin after observing a live update still closes ordinary run outputs.
+stopping = subprocess.Popen([cli, "solve", str(root / "tiny.cas.h5"), "--backend", "cpu", "--iterations", "1000000",
+                             "--out", str(root / "live-stopped"), "--progress", "jsonl", "--live-view", str(live_root), "--live-every", "1"],
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+prefix = []
+while not prefix or prefix[-1]["event"] != "snapshot":
+    line = stopping.stdout.readline()
+    assert line, stopping.stderr.read()
+    prefix.append(json.loads(line))
+stopping.stdin.close()
+stopped_events = prefix + finish(stopping)
+assert stopped_events[-1]["event"] == "done" and stopped_events[-1]["stop_reason"] == "stopped"
+assert stopped_events[-1]["iterations"] < 1000000
+assert stopped_events[0]["live_view"]["run_id"] != config["run_id"]
+assert pathlib.Path(prefix[-1]["manifest"]).is_file()
+for arguments in [("--live-every", "1"), ("--live-view", str(live_root), "--live-every", "0"),
+                  ("--live-view", str(live_root), "--live-every", "1.5"),
+                  ("--live-view", str(live_root), "--live-every", "99999999999999")]:
+    failure = command("solve", root / "tiny.cas.h5", "--progress", "jsonl", *arguments, code=2)
+    assert json.loads(failure.stdout)["event"] == "error"
+print("Live CLI: surface publication, event paths, run identity, sequence, timing and option validation passed")

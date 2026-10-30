@@ -11,7 +11,7 @@ the app only presents it. Every message carries `"v": 1`.
 | --- | --- |
 | `kutta devices --json` | one JSON object: `{"v":1,"devices":[{"backend":"cuda","name":"NVIDIA GeForce RTX 4070","memory_bytes":12884901888,"default":true}, ...]}` |
 | `kutta inspect <case> [--data <dat>] --json` | one JSON object: case summary (below) |
-| `kutta solve <case> [--data <dat>] [--approximate a,b] [--backend b] [--iterations n] --out DIR --progress jsonl` | JSON lines on stdout while running; files in DIR |
+| `kutta solve <case> [--data <dat>] [--approximate a,b] [--backend b] [--iterations n] [--live-view DIR] [--live-every N] --out DIR --progress jsonl` | JSON lines on stdout while running; files in DIR |
 | `kutta export-view DIR [--slice origin,normal]... [--post spec.json]` | writes `DIR/view/` (below) from a finished run |
 
 Human-readable output without `--json` / `--progress` is unchanged.
@@ -46,6 +46,7 @@ One JSON object per line, in order:
 {"v":1,"event":"iteration","iter":20,"residuals":{"continuity":1e-3,"x-velocity":1e-4,"y-velocity":1e-4,"z-velocity":1e-4,"k":1e-3,"omega":1e-3},
  "reports":{"drag":{"force":0.0123,"coefficient":0.31}},"sec_per_iter":0.042,"elapsed":0.9}
 {"v":1,"event":"warning","message":"…"}
+{"v":1,"event":"snapshot","run_id":"run-123-0","sequence":1,"iter":20,"elapsed":0.9,"manifest":"/absolute/DIR/live/run-123-0/snapshot-1/manifest.json","snapshot_seconds":0.006}
 {"v":1,"event":"done","converged":false,"iterations":600,"elapsed":16.9,"out":"DIR"}
 {"v":1,"event":"error","message":"…","issues":[...]}
 ```
@@ -400,3 +401,76 @@ probes use KUTL polylines in the same little-endian float32/uint32 family; its
 layout is documented [next to the writer](../src/kutta/io/VIEW_FORMAT.md).
 Probe descriptors link a CSV, and `reports_file` links `view/reports.json`, whose
 root is `{"v":1,"reports":[...]}`. All outputs carry the run/view provenance.
+
+
+## Live surfaces during solve (v1 additive)
+
+```sh
+kutta solve case.cas.h5 --out RUN --progress jsonl --live-view RUN --live-every 20
+```
+
+`--live-view DIR` enables surface updates under `DIR/live/`. It works in human
+mode too; JSONL mode additionally emits `snapshot` events. `--live-every N` is a
+positive integer **minimum iteration gap**, default **20**, and requires
+`--live-view`. It is independent of the residual monitor interval. The first
+snapshot follows N completed outer iterations; a shorter/stopped run may produce
+no live snapshots. There is no forced final live write. Normal final run outputs
+and the `done` completion contract stay the same.
+
+Snapshots contain the ordinary export-view boundary surfaces: pressure, Cp when
+references exist, wall stress/y+ and non-wall velocity, with available Fluent and
+delta fields, units and ranges. They use the identical KUTV v1 layout and surface
+interpolation. Each is a coherent completed-iteration state, carrying the run's
+approximation/override provenance. Capture borrows the solver mesh and downloads
+velocity/boundary fields, without copying mesh topology, writing a volume snapshot
+or computing volume post-processing. Extra derived fields, slices, probes and
+traces remain available through `export-view` on the completed run.
+
+`DIR/live/manifest.json` is a small, atomically replaced pointer:
+
+```json
+{"v":1,"run_id":"run-123-0","sequence":2,"iter":40,"elapsed":1.7,
+ "manifest":"run-123-0/snapshot-2/manifest.json"}
+```
+
+Resolve its `manifest` **relative to `DIR/live/`**. That file is a normal
+export-view manifest; resolve its zone filenames relative to its own directory.
+Each publication first closes all files in a temporary snapshot directory, then
+renames the directory to `run_id/snapshot-SEQUENCE/`. Finally it closes a temporary
+pointer file and renames it over `live/manifest.json`. A reader sees the previous
+complete snapshot or the new complete snapshot, with no missing-pointer interval.
+Only after the pointer swap does the solver emit the `snapshot` event, whose
+`manifest` is an **absolute UTF-8 path** and whose `snapshot_seconds` measures
+capture and publication. `sequence` starts at 1 and increases without gaps for
+each `run_id`; a new solve gets a new run ID, even when it reuses DIR. The setup
+event includes that ID in `live_view`, so the app can discard a previous run's
+contours before the new run publishes its first snapshot.
+
+Published snapshots are immutable and retained. Readers may finish reading an
+older sequence while the solver publishes another. A publication failure leaves
+the previous pointer/assets readable and emits the ordinary terminal `error`;
+unpublished staging data is removed. One solver owns each DIR. The caller owns
+cleanup of retained run directories after readers close them. On Windows the
+pointer swap uses replacement rename, with a bounded retry for readers briefly
+holding the pointer file open; consumers should close it after reading. Atomicity
+means visibility to concurrent readers on the same filesystem, not a guarantee
+against storage failure or power loss.
+
+Snapshot work has a **5% solve-time budget**. The first write calibrates its cost.
+Later writes wait until both the iteration gap and the budget permit publication:
+`total_snapshot_seconds + 1.25 * previous_snapshot_seconds <= 0.05 * solve_seconds`,
+where solve seconds are loop wall time minus snapshot time. This reserves a 25%
+cost margin; unexpectedly slow storage or the first calibration can exceed the
+target temporarily. Delayed updates skip intermediate states and use the current
+iteration, rather than queueing stale snapshots. Snapshot cost includes field
+downloads, interpolation, binary/manifest I/O and publication. There is no export
+work when live view is disabled.
+
+The `setup` event adds optional `live_view` with `directory` (absolute live root),
+`run_id`, `every`, `unit:"iterations"` and `budget_fraction:0.05`. `done` and
+`summary.json` echo those fields and add `snapshots`, `snapshot_time_seconds`,
+`solve_time_seconds` and `overhead_fraction` (snapshot/solve time; null for zero
+solve time). Ordinary iteration `sec_per_iter` excludes measured snapshot time;
+progress `elapsed` and run `wall_time_seconds` include it. Cancellation finishes
+any active snapshot publication and the current iteration before normal output
+closure. Live views are intermediate solutions, not convergence certificates.
