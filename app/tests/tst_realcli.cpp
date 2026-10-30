@@ -104,6 +104,43 @@ private slots:
         QVERIFY(!s->availableFields(id).empty());
     }
 
+    // With checking on, the seeded elbow stops on the case's own residual
+    // criteria; its wall loads give coefficients without a re-solve.
+    void convergesOnTheCaseCriteriaThenAero()
+    {
+        auto s = open(true);
+        QVERIFY(s);
+        QCOMPARE(s->settings()->setValue("monitors/check-convergence", true), QString());
+        QCOMPARE(s->settings()->setValue("run/iterations", 1000), QString());
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString id = s->run();
+        QVERIFY(finished.wait(300000));
+        const RunRecord* r = s->history().find(id);
+        QVERIFY(r->converged());
+        QVERIFY(r->iterationsDone < 1000);
+        QCOMPARE(r->convergedBy, QStringList{"residuals"});
+        QVERIFY(!r->modified());
+        const auto summary = s->history().summary(id);
+        QVERIFY(summary && summary->convergence.enabled);
+        QCOMPARE(summary->convergence.residuals.value("continuity"), 1e-3);
+
+        std::optional<Result<AeroResult>> aero;
+        s->aero(id, [&](Result<AeroResult> a) { aero = std::move(a); });
+        QTRY_VERIFY_WITH_TIMEOUT(aero.has_value(), 60000);
+        QVERIFY2(aero->ok(), qPrintable(*aero ? QString() : aero->error()));
+        const AeroResult& a = aero->value();
+        QVERIFY(a.approximate);
+        QVERIFY(a.total() && a.total()->coefficients);
+        QCOMPARE(a.balance.status, QString("needs_vehicle"));
+        // The total is the case's walls, as in forces.csv (read as floats).
+        const auto forces = s->history().forces(id);
+        QVERIFY(forces);
+        double drag = 0;
+        for (const auto& row : forces->rows)
+            if (row.kind == "wall") drag += row.total.x();
+        QVERIFY(std::abs(a.total()->total.drag - drag) <= 1e-5 * std::abs(drag));
+    }
+
     void stopFinishesTheCurrentIteration()
     {
         auto s = open(false);
