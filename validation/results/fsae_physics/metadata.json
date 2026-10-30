@@ -1,5 +1,5 @@
 {
-  "checkout": "/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7",
+  "checkout": "<checkout>",
   "branch": "t3/fluent-fsae-physics",
   "base_commit": "a0c5caa6079cdd7ccd299ac093d9c9b18373c989",
   "machine": "Apple M4 Pro, macOS arm64, 24 GB",
@@ -149,12 +149,12 @@
     "build/generated/kernels_host.cpp": "9156aed05386d2bc0dcaf4c6b7837be1eb5611add3e82b38ca596f139ab4be32",
     "build/generated/kernels_metal.cpp": "c19c63bd463c407fec7adc8cefe190ec9101282f0a342f5c4741dcd14a264169"
   },
-  "quick_command": "KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples ctest --test-dir build -LE slow -V",
+  "quick_command": "KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples ctest --test-dir build -LE slow -V",
   "slow_command": "./build/kutta-tests --test-case='FSAE*' --test-suite=slow",
   "fluent_results_compared": false,
   "cuda_execution_verified": false,
   "adapter_fixture": {
-    "path": "/Users/ezzy/.Others/Kutta/validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5",
+    "path": "<checkout>/validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5",
     "sha256": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc"
   },
   "input_convention_sources": {

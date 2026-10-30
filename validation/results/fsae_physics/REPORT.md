@@ -12,7 +12,7 @@ are part of this report. No Fluent solution agreement is claimed.
 
 ## Machine and source identity
 
-- Checkout: `/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7`.
+- Checkout: `<checkout>`.
 - Branch: `t3/fluent-fsae-physics`; base commit
   `a0c5caa6079cdd7ccd299ac093d9c9b18373c989`.
 - Apple M4 Pro, macOS arm64, 24 GB; AppleClang 21.0.0.21000101.
@@ -74,7 +74,7 @@ The source equation SVG SHA256 was
 ```sh
 cmake -S . -B build -G Ninja
 cmake --build build -j 6
-KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples \
+KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples \
   ctest --test-dir build -LE slow -V
 ./build/kutta-tests --test-case='FSAE*' --test-suite=slow
 ```

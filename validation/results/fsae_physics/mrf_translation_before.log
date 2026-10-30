@@ -1,54 +1,54 @@
 [doctest] doctest version is "2.4.12"
 [doctest] run with "--help" for options
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:43:
+<checkout>/tests/fv/test_zone_physics.cpp:43:
 TEST CASE:  FSAE tensor source and MRF kernels match the CPU oracle
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( -9.18826 == Approx( -8.92826 ) )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( -10.2964 == Approx( -10.0364 ) )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( -11.705 == Approx( -11.445 ) )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( 0.277506 == Approx( 0.797506 ) )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( 4.5586 == Approx( 5.0786 ) )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( 9.57255 == Approx( 10.0925 ) )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( -9.18826 == Approx( -8.92826 ) )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( -10.2964 == Approx( -10.0364 ) )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( -11.705 == Approx( -11.445 ) )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( 0.277506 == Approx( 0.797506 ) )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( 4.5586 == Approx( 5.0786 ) )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
+<checkout>/tests/fv/test_zone_physics.cpp:62: ERROR: CHECK( (b[c]-a[c]*q[k])/g.cell_volume[c]==doctest::Approx(f[k]).epsilon(2e-6) ) is NOT correct!
   values: CHECK( 9.57255 == Approx( 10.0925 ) )
   logged: backend: metal
 
