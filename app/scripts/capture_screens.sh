@@ -18,7 +18,7 @@ for s in $scenarios; do
     *) if [ -n "${KUTTA_REAL_CLI:-}" ] && [ -n "${ELBOW_CASE:-}" ]; then set -- --cli "$KUTTA_REAL_CLI" "$ELBOW_CASE"; fi ;;
   esac
   for theme in dark light; do
-    data=$(mktemp -d)
+    data=$(mktemp -d "${TMPDIR:-/tmp}/kutta-shot.XXXXXX")
     if ! "$app" --data-dir "$data" --scenario "$s" --theme "$theme" --size 1500x940 --screenshot "$out/$s-$theme.png" "$@"; then
       echo "FAILED: $s ($theme)" >&2
       status=1
