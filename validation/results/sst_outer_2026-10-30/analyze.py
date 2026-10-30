@@ -20,7 +20,7 @@ for stage in ['baseline','batching','fused','amg2','final','highre-baseline','hi
             outer_per_s=1/seconds_median))
 
 with (root/'throughput.csv').open('w',newline='') as out:
-    writer=csv.DictWriter(out,fieldnames=list(summary[0]))
+    writer=csv.DictWriter(out,fieldnames=list(summary[0]),lineterminator='\n')
     writer.writeheader();writer.writerows(summary)
 
 phases={}
@@ -34,7 +34,7 @@ for row in json.loads((root/'kernels.json').read_text()):
     sums[0]+=float(row['calls_per_outer'])*float(row['us_per_call'])/1000
     sums[1]+=float(row['logical_bytes_per_cell_per_outer'])
 with (root/'kernel_groups.csv').open('w',newline='') as out:
-    writer=csv.writer(out);writer.writerow(['stage','backend','kernel_group','profiled_ms','logical_bytes_per_cell'])
+    writer=csv.writer(out,lineterminator="\n");writer.writerow(['stage','backend','kernel_group','profiled_ms','logical_bytes_per_cell'])
     writer.writerows([*key,*values] for key,values in phases.items())
 
 n=983040

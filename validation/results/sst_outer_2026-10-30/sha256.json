@@ -1,12 +1,13 @@
 {
-  "README.md": "557033806e48b186a0e3d9611f8370dc85c921b1a82b9bae5b4369883c5b8a2b",
-  "analyze.py": "bf807fda53ba4fb7dac544140b5937884caec99cadef92df912d7621f437ef95",
+  ".gitattributes": "bb874522aac36fdc9febe3dc7718a3acb0ff520b6a4403a5e7e6f2d26fc97025",
+  "README.md": "cc9a227a36c144ccfffde4339bded076901764cbde630c520979078b748c9cd9",
+  "analyze.py": "394af8df98df8d9f05caff9e9b89d05b7816f74b40315beafcc25603e0ce80e8",
   "highre-performance.png": "16f63880ef04526d682bce8c9c08d41df8bf8e1730172024cec909c0d6582aec",
   "highre_transient_field_comparison.json": "adee2929c13ea2e5618a29a63dacb94b446eef7030e34d854c4c6d6b5cf6ddc4",
-  "kernel_groups.csv": "ebf4337cc43e264ce50252d06a6043feeb469e431a8b134e4b52c47f3707a83f",
+  "kernel_groups.csv": "64ceed4697ee3c1b31928ebc0fcfb4377f9d55c00bf9babf2c68e7364e0b171f",
   "kernels.json": "f0d16b946f3b3e73fdbc9a769daca6e2d8eb9b93412cffd442caf5276fff2790",
   "measurements.json": "c7471bd96071bc12eda1f674d727010c2294006659faa534273fe0b0e4f613c3",
-  "metadata.json": "6baf0b7726128c3aee244c24115a05fac9844221af34af454a00a61935f320fe",
+  "metadata.json": "1143b1e0cc267c0b4688d5fbc340def89246122e84012d21462d88b6f4f59c53",
   "performance.html": "4285abad4fd7790e8c08495bc6c40a69e4ac9eb6f3ac082428286ecc26ff1d24",
   "performance.png": "ac38ae5e810173b6661a03e28afd023e9b4b5b22e28546ce318cfe9127ee16dc",
   "plot.py": "9831fb1af063fe7cf29018cbe95b07c2befc1cc9dc457296161dea2ba12f723b",
@@ -85,6 +86,6 @@
   "raw/highre-final/sst-profile-metal.log": "5d905350c34b147c81c578ad5416ebe2fd02f25ce387ddbf7de65928e024c496",
   "raw/mid-baseline/convergence-metal.log": "ad72d970062b67f17b2a9c2804c0ff572d1e2fa385d74a28ab1b248ea20428ae",
   "raw/mid-final/convergence-metal.log": "06219bfe73baa2be8b9df62b95d430ed88a2b221a2f8fa79e6b3fceba1c8558e",
-  "throughput.csv": "bb80a7a48415aa04409f5d0e8d538258f528b5ce6e98dd6b60a9c885815df951",
+  "throughput.csv": "a10340fd6285f8e22dc431e25be8e6671953b53487768fdb012d4409146ecf7b",
   "v6_field_comparison.json": "bff4d6493fc52a8447d9179d3b720975732968547f2bd0b6c6084c8e89e9ba92"
 }

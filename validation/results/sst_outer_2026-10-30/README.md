@@ -9,7 +9,9 @@ pushed. No source under `src/kutta/app` or `src/kutta/setup` was changed.
 `kernels.json` preserves the intrusive per-kernel timings and logical traffic.
 `analyze.py` regenerates the summary CSVs. `plot.py` uses matplotlib 3.11.2 to
 regenerate both figures. The Re_H=10,000 comparison is the primary benchmark;
-the Re_H=1,000 pilot records incremental changes. `raw` contains the unedited measurement/test logs.
+the Re_H=1,000 pilot records incremental changes. `raw` contains the unedited measurement/test logs. Its scoped Git whitespace
+attribute preserves terminal whitespace; it does not change source-code checks
+or numerical acceptance gates. Generated CSVs use LF line endings.
 
 The 1M-cell generated SST channel is a transient execution benchmark. Its smaller
 4,608-tet counterpart fails to converge on baseline and final, at both tested
