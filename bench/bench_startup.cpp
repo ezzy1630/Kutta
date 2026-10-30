@@ -43,7 +43,7 @@ int main(int argc,char** argv) {
         const auto nx=dev.read<float>(*a[5].buffer),ny=dev.read<float>(*a[6].buffer),nz=dev.read<float>(*a[7].buffer);
         const auto gx=dev.read<float>(*a[9].buffer),gy=dev.read<float>(*a[10].buffer),gz=dev.read<float>(*a[11].buffer);
         const auto p=dev.read<float>(*a[8].buffer),jump=dev.read<float>(*a[14].buffer);
-        double original=0,retained=0,ratio=0;
+        double original=0,retained=0,ratio=0,remote_original=0,remote_retained=0;
         for(Index f=0;f<a[15].get<Index>();++f) {
           const auto c=owner[f],n=neighbour[f];
           const Vec3d rp{px[f],py[f],pz[f]},rn{nx[f],ny[f],nz[f]},gp{gx[c],gy[c],gz[c]},gn{gx[n],gy[n],gz[n]};
@@ -51,8 +51,13 @@ int main(int argc,char** argv) {
           const double shared=p[c]-p[n]+dot((gp+gn)*.5,d);
           original=std::max(original,std::abs(dot(gp-gn,skew)));
           retained=std::max(retained,std::abs(jump[f]-shared));ratio=std::max(ratio,norm(skew)/norm(d));
+          if(norm(skew)>2*norm(d)) {
+            remote_original=std::max(remote_original,std::abs(dot(gp-gn,skew)));
+            remote_retained=std::max(remote_retained,std::abs(jump[f]-shared));
+          }
         }
-        std::cout<<"PRESSURE_SKEW step="<<step<<" original_term="<<original<<" retained_term="<<retained<<" max_offset_over_link="<<ratio<<'\n';
+        std::cout<<"PRESSURE_SKEW step="<<step<<" original_term="<<original<<" retained_term="<<retained
+          <<" remote_original="<<remote_original<<" remote_retained="<<remote_retained<<" max_offset_over_link="<<ratio<<'\n';
       }
       if(id==KernelId::fv_floor) {
         std::cout<<"STARTUP step="<<step<<" kernel=floor value="<<a[1].get<float>();

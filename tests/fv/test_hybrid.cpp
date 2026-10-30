@@ -29,6 +29,11 @@ TEST_CASE("Hybrid potential obeys inlet flux and outlet potential, with constant
     const auto p=dev->download(solver.pressure());
     for(Index c=0;c<mesh.n_cells;++c)
       CHECK(p[c]==doctest::Approx(5-2*solver.geometry().cell_centroid[c].x).epsilon(2e-4));
+    auto skewed=mesh;for(auto& point:skewed.points) point.x+=.8*point.y;
+    SteadySolver skew_solver(*dev,skewed,bc,settings);
+    HybridInitialization skew_controls;skew_controls.iterations=40;
+    skew_solver.initialize_hybrid(skew_controls);
+    CHECK(skew_solver.monitor().continuity.raw<2e-5);
   }
 }
 
