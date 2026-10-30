@@ -1,0 +1,22 @@
+[
+  {
+    "variant": "original",
+    "pressure_relative_L2": 0.0169127148416,
+    "velocity_L2": 0.000324131255554
+  },
+  {
+    "variant": "diffusion-only",
+    "pressure_relative_L2": 0.01677777683,
+    "velocity_L2": 0.0003017230133
+  },
+  {
+    "variant": "momentum-only",
+    "pressure_relative_L2": 0.000686114048,
+    "velocity_L2": 0.0003261246362
+  },
+  {
+    "variant": "both_retained",
+    "pressure_relative_L2": 0.000926813610946,
+    "velocity_L2": 0.000302533655983
+  }
+]

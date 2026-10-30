@@ -1,0 +1,920 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.0.2
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+WARNING: The NVIDIA Driver was not detected.  GPU functionality will not be available.
+   Use the NVIDIA Container Toolkit to start this container with GPU support; see
+   https://docs.nvidia.com/datacenter/cloud-native/ .
+
+W: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+debconf: delaying package configuration, since apt-utils is not installed
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 15507 files and directories currently installed.)
+Preparing to unpack .../libssl3t64_3.0.13-0ubuntu3.16_amd64.deb ...
+Unpacking libssl3t64:amd64 (3.0.13-0ubuntu3.16) over (3.0.13-0ubuntu3.6) ...
+Setting up libssl3t64:amd64 (3.0.13-0ubuntu3.16) ...
+Selecting previously unselected package libpython3.12-minimal:amd64.
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 15507 files and directories currently installed.)
+Preparing to unpack .../libpython3.12-minimal_3.12.3-1ubuntu0.17_amd64.deb ...
+Unpacking libpython3.12-minimal:amd64 (3.12.3-1ubuntu0.17) ...
+Selecting previously unselected package libexpat1:amd64.
+Preparing to unpack .../libexpat1_2.6.1-2ubuntu0.6_amd64.deb ...
+Unpacking libexpat1:amd64 (2.6.1-2ubuntu0.6) ...
+Preparing to unpack .../zlib1g_1%3a1.3.dfsg-3.1ubuntu2.3_amd64.deb ...
+Unpacking zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.3) over (1:1.3.dfsg-3.1ubuntu2.1) ...
+Setting up zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.3) ...
+Selecting previously unselected package python3.12-minimal.
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 15815 files and directories currently installed.)
+Preparing to unpack .../python3.12-minimal_3.12.3-1ubuntu0.17_amd64.deb ...
+Unpacking python3.12-minimal (3.12.3-1ubuntu0.17) ...
+Setting up libpython3.12-minimal:amd64 (3.12.3-1ubuntu0.17) ...
+Setting up libexpat1:amd64 (2.6.1-2ubuntu0.6) ...
+Setting up python3.12-minimal (3.12.3-1ubuntu0.17) ...
+Selecting previously unselected package python3-minimal.
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 15826 files and directories currently installed.)
+Preparing to unpack .../0-python3-minimal_3.12.3-0ubuntu2.1_amd64.deb ...
+Unpacking python3-minimal (3.12.3-0ubuntu2.1) ...
+Selecting previously unselected package media-types.
+Preparing to unpack .../1-media-types_10.1.0_all.deb ...
+Unpacking media-types (10.1.0) ...
+Selecting previously unselected package netbase.
+Preparing to unpack .../2-netbase_6.4_all.deb ...
+Unpacking netbase (6.4) ...
+Selecting previously unselected package tzdata.
+Preparing to unpack .../3-tzdata_2026e-0ubuntu0.24.04.1_all.deb ...
+Unpacking tzdata (2026e-0ubuntu0.24.04.1) ...
+Selecting previously unselected package libpython3.12-stdlib:amd64.
+Preparing to unpack .../4-libpython3.12-stdlib_3.12.3-1ubuntu0.17_amd64.deb ...
+Unpacking libpython3.12-stdlib:amd64 (3.12.3-1ubuntu0.17) ...
+Selecting previously unselected package python3.12.
+Preparing to unpack .../5-python3.12_3.12.3-1ubuntu0.17_amd64.deb ...
+Unpacking python3.12 (3.12.3-1ubuntu0.17) ...
+Selecting previously unselected package libpython3-stdlib:amd64.
+Preparing to unpack .../6-libpython3-stdlib_3.12.3-0ubuntu2.1_amd64.deb ...
+Unpacking libpython3-stdlib:amd64 (3.12.3-0ubuntu2.1) ...
+Setting up python3-minimal (3.12.3-0ubuntu2.1) ...
+Selecting previously unselected package python3.
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 16795 files and directories currently installed.)
+Preparing to unpack .../python3_3.12.3-0ubuntu2.1_amd64.deb ...
+Unpacking python3 (3.12.3-0ubuntu2.1) ...
+Preparing to unpack .../libasan8_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libasan8:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../libubsan1_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libubsan1:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../libtsan2_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libtsan2:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../gcc-14-base_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking gcc-14-base:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Setting up gcc-14-base:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 16816 files and directories currently installed.)
+Preparing to unpack .../libstdc++6_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libstdc++6:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Setting up libstdc++6:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 16816 files and directories currently installed.)
+Preparing to unpack .../0-libquadmath0_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libquadmath0:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../1-liblsan0_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking liblsan0:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../2-libitm1_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libitm1:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../3-libhwasan0_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libhwasan0:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../4-libgomp1_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libgomp1:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../5-libcc1-0_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libcc1-0:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../6-libatomic1_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libatomic1:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Preparing to unpack .../7-libgcc-s1_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libgcc-s1:amd64 (14.2.0-4ubuntu2~24.04.1) over (14.2.0-4ubuntu2~24.04) ...
+Setting up libgcc-s1:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Selecting previously unselected package krb5-locales.
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 16816 files and directories currently installed.)
+Preparing to unpack .../00-krb5-locales_1.20.1-6ubuntu2.10_all.deb ...
+Unpacking krb5-locales (1.20.1-6ubuntu2.10) ...
+Selecting previously unselected package libkrb5support0:amd64.
+Preparing to unpack .../01-libkrb5support0_1.20.1-6ubuntu2.10_amd64.deb ...
+Unpacking libkrb5support0:amd64 (1.20.1-6ubuntu2.10) ...
+Selecting previously unselected package libk5crypto3:amd64.
+Preparing to unpack .../02-libk5crypto3_1.20.1-6ubuntu2.10_amd64.deb ...
+Unpacking libk5crypto3:amd64 (1.20.1-6ubuntu2.10) ...
+Selecting previously unselected package libkeyutils1:amd64.
+Preparing to unpack .../03-libkeyutils1_1.6.3-3build1_amd64.deb ...
+Unpacking libkeyutils1:amd64 (1.6.3-3build1) ...
+Selecting previously unselected package libkrb5-3:amd64.
+Preparing to unpack .../04-libkrb5-3_1.20.1-6ubuntu2.10_amd64.deb ...
+Unpacking libkrb5-3:amd64 (1.20.1-6ubuntu2.10) ...
+Selecting previously unselected package libgssapi-krb5-2:amd64.
+Preparing to unpack .../05-libgssapi-krb5-2_1.20.1-6ubuntu2.10_amd64.deb ...
+Unpacking libgssapi-krb5-2:amd64 (1.20.1-6ubuntu2.10) ...
+Preparing to unpack .../06-openssl_3.0.13-0ubuntu3.16_amd64.deb ...
+Unpacking openssl (3.0.13-0ubuntu3.16) over (3.0.13-0ubuntu3.6) ...
+Selecting previously unselected package libnghttp2-14:amd64.
+Preparing to unpack .../07-libnghttp2-14_1.59.0-1ubuntu0.4_amd64.deb ...
+Unpacking libnghttp2-14:amd64 (1.59.0-1ubuntu0.4) ...
+Selecting previously unselected package libpsl5t64:amd64.
+Preparing to unpack .../08-libpsl5t64_0.21.2-1.1build1_amd64.deb ...
+Unpacking libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Selecting previously unselected package publicsuffix.
+Preparing to unpack .../09-publicsuffix_20231001.0357-0.1_all.deb ...
+Unpacking publicsuffix (20231001.0357-0.1) ...
+Selecting previously unselected package hdf5-helpers.
+Preparing to unpack .../10-hdf5-helpers_1.10.10+repack-3.1ubuntu4_amd64.deb ...
+Unpacking hdf5-helpers (1.10.10+repack-3.1ubuntu4) ...
+Selecting previously unselected package libaec0:amd64.
+Preparing to unpack .../11-libaec0_1.1.2-1build1_amd64.deb ...
+Unpacking libaec0:amd64 (1.1.2-1build1) ...
+Selecting previously unselected package libbrotli1:amd64.
+Preparing to unpack .../12-libbrotli1_1.1.0-2ubuntu0.1_amd64.deb ...
+Unpacking libbrotli1:amd64 (1.1.0-2ubuntu0.1) ...
+Selecting previously unselected package librtmp1:amd64.
+Preparing to unpack .../13-librtmp1_2.4+20151223.gitfa8646d.1-2build7_amd64.deb ...
+Unpacking librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2build7) ...
+Selecting previously unselected package libssh-4:amd64.
+Preparing to unpack .../14-libssh-4_0.10.6-2ubuntu0.5_amd64.deb ...
+Unpacking libssh-4:amd64 (0.10.6-2ubuntu0.5) ...
+Selecting previously unselected package libcurl4t64:amd64.
+Preparing to unpack .../15-libcurl4t64_8.5.0-2ubuntu10.16_amd64.deb ...
+Unpacking libcurl4t64:amd64 (8.5.0-2ubuntu10.16) ...
+Selecting previously unselected package libcurl4-openssl-dev:amd64.
+Preparing to unpack .../16-libcurl4-openssl-dev_8.5.0-2ubuntu10.16_amd64.deb ...
+Unpacking libcurl4-openssl-dev:amd64 (8.5.0-2ubuntu10.16) ...
+Selecting previously unselected package libgfortran5:amd64.
+Preparing to unpack .../17-libgfortran5_14.2.0-4ubuntu2~24.04.1_amd64.deb ...
+Unpacking libgfortran5:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Selecting previously unselected package libsz2:amd64.
+Preparing to unpack .../18-libsz2_1.1.2-1build1_amd64.deb ...
+Unpacking libsz2:amd64 (1.1.2-1build1) ...
+Selecting previously unselected package libhdf5-103-1t64:amd64.
+Preparing to unpack .../19-libhdf5-103-1t64_1.10.10+repack-3.1ubuntu4_amd64.deb ...
+Unpacking libhdf5-103-1t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Selecting previously unselected package libhdf5-cpp-103-1t64:amd64.
+Preparing to unpack .../20-libhdf5-cpp-103-1t64_1.10.10+repack-3.1ubuntu4_amd64.deb ...
+Unpacking libhdf5-cpp-103-1t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Selecting previously unselected package libhdf5-fortran-102t64:amd64.
+Preparing to unpack .../21-libhdf5-fortran-102t64_1.10.10+repack-3.1ubuntu4_amd64.deb ...
+Unpacking libhdf5-fortran-102t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Selecting previously unselected package libhdf5-hl-100t64:amd64.
+Preparing to unpack .../22-libhdf5-hl-100t64_1.10.10+repack-3.1ubuntu4_amd64.deb ...
+Unpacking libhdf5-hl-100t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Selecting previously unselected package libhdf5-hl-fortran-100t64:amd64.
+Preparing to unpack .../23-libhdf5-hl-fortran-100t64_1.10.10+repack-3.1ubuntu4_amd64.deb ...
+Unpacking libhdf5-hl-fortran-100t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Selecting previously unselected package libhdf5-hl-cpp-100t64:amd64.
+Preparing to unpack .../24-libhdf5-hl-cpp-100t64_1.10.10+repack-3.1ubuntu4_amd64.deb ...
+Unpacking libhdf5-hl-cpp-100t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Selecting previously unselected package zlib1g-dev:amd64.
+Preparing to unpack .../25-zlib1g-dev_1%3a1.3.dfsg-3.1ubuntu2.3_amd64.deb ...
+Unpacking zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.3) ...
+Selecting previously unselected package libjpeg-turbo8:amd64.
+Preparing to unpack .../26-libjpeg-turbo8_2.1.5-2ubuntu2_amd64.deb ...
+Unpacking libjpeg-turbo8:amd64 (2.1.5-2ubuntu2) ...
+Selecting previously unselected package libjpeg-turbo8-dev:amd64.
+Preparing to unpack .../27-libjpeg-turbo8-dev_2.1.5-2ubuntu2_amd64.deb ...
+Unpacking libjpeg-turbo8-dev:amd64 (2.1.5-2ubuntu2) ...
+Selecting previously unselected package libjpeg8:amd64.
+Preparing to unpack .../28-libjpeg8_8c-2ubuntu11_amd64.deb ...
+Unpacking libjpeg8:amd64 (8c-2ubuntu11) ...
+Selecting previously unselected package libjpeg8-dev:amd64.
+Preparing to unpack .../29-libjpeg8-dev_8c-2ubuntu11_amd64.deb ...
+Unpacking libjpeg8-dev:amd64 (8c-2ubuntu11) ...
+Selecting previously unselected package libjpeg-dev:amd64.
+Preparing to unpack .../30-libjpeg-dev_8c-2ubuntu11_amd64.deb ...
+Unpacking libjpeg-dev:amd64 (8c-2ubuntu11) ...
+Selecting previously unselected package libaec-dev:amd64.
+Preparing to unpack .../31-libaec-dev_1.1.2-1build1_amd64.deb ...
+Unpacking libaec-dev:amd64 (1.1.2-1build1) ...
+Selecting previously unselected package libssl-dev:amd64.
+Preparing to unpack .../32-libssl-dev_3.0.13-0ubuntu3.16_amd64.deb ...
+Unpacking libssl-dev:amd64 (3.0.13-0ubuntu3.16) ...
+Selecting previously unselected package libhdf5-dev.
+Preparing to unpack .../33-libhdf5-dev_1.10.10+repack-3.1ubuntu4_amd64.deb ...
+Unpacking libhdf5-dev (1.10.10+repack-3.1ubuntu4) ...
+Setting up media-types (10.1.0) ...
+Setting up libkeyutils1:amd64 (1.6.3-3build1) ...
+Setting up hdf5-helpers (1.10.10+repack-3.1ubuntu4) ...
+Setting up libbrotli1:amd64 (1.1.0-2ubuntu0.1) ...
+Setting up libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Setting up libnghttp2-14:amd64 (1.59.0-1ubuntu0.4) ...
+Setting up krb5-locales (1.20.1-6ubuntu2.10) ...
+Setting up libgomp1:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up libaec0:amd64 (1.1.2-1build1) ...
+Setting up libkrb5support0:amd64 (1.20.1-6ubuntu2.10) ...
+Setting up tzdata (2026e-0ubuntu0.24.04.1) ...
+
+Current default time zone: 'Etc/UTC'
+Local time is now:      Fri Oct 30 18:27:26 UTC 2026.
+Universal Time is now:  Fri Oct 30 18:27:26 UTC 2026.
+Run 'dpkg-reconfigure tzdata' if you wish to change it.
+
+Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2build7) ...
+Setting up libquadmath0:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up libssl-dev:amd64 (3.0.13-0ubuntu3.16) ...
+Setting up libatomic1:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up libk5crypto3:amd64 (1.20.1-6ubuntu2.10) ...
+Setting up libjpeg-turbo8:amd64 (2.1.5-2ubuntu2) ...
+Setting up libgfortran5:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up libubsan1:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.3) ...
+Setting up libhwasan0:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up libasan8:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up netbase (6.4) ...
+Setting up libkrb5-3:amd64 (1.20.1-6ubuntu2.10) ...
+Setting up libtsan2:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up openssl (3.0.13-0ubuntu3.16) ...
+Setting up publicsuffix (20231001.0357-0.1) ...
+Setting up libcc1-0:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up liblsan0:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up libsz2:amd64 (1.1.2-1build1) ...
+Setting up libitm1:amd64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up libjpeg8:amd64 (8c-2ubuntu11) ...
+Setting up libjpeg-turbo8-dev:amd64 (2.1.5-2ubuntu2) ...
+Setting up libpython3.12-stdlib:amd64 (3.12.3-1ubuntu0.17) ...
+Setting up python3.12 (3.12.3-1ubuntu0.17) ...
+Setting up libaec-dev:amd64 (1.1.2-1build1) ...
+Setting up libgssapi-krb5-2:amd64 (1.20.1-6ubuntu2.10) ...
+Setting up libssh-4:amd64 (0.10.6-2ubuntu0.5) ...
+Setting up libjpeg8-dev:amd64 (8c-2ubuntu11) ...
+Setting up libpython3-stdlib:amd64 (3.12.3-0ubuntu2.1) ...
+Setting up libcurl4t64:amd64 (8.5.0-2ubuntu10.16) ...
+Setting up libjpeg-dev:amd64 (8c-2ubuntu11) ...
+Setting up python3 (3.12.3-0ubuntu2.1) ...
+Setting up libcurl4-openssl-dev:amd64 (8.5.0-2ubuntu10.16) ...
+Setting up libhdf5-103-1t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Setting up libhdf5-hl-100t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Setting up libhdf5-cpp-103-1t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Setting up libhdf5-fortran-102t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Setting up libhdf5-hl-cpp-100t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Setting up libhdf5-hl-fortran-100t64:amd64 (1.10.10+repack-3.1ubuntu4) ...
+Setting up libhdf5-dev (1.10.10+repack-3.1ubuntu4) ...
+update-alternatives: using /usr/lib/x86_64-linux-gnu/pkgconfig/hdf5-serial.pc to provide /usr/lib/x86_64-linux-gnu/pkgconfig/hdf5.pc (hdf5.pc) in auto mode
+Processing triggers for libc-bin (2.39-0ubuntu8.6) ...
+FIXTURES: all 13 source-relative input hashes verified; env root is /fixtures
+Solve CLI: generated CFF/data, residuals, VTU, forces, SHA256, and rejection checks passed
+App protocol: devices, inspect, JSONL event order/reports, EOF and SIGINT passed
+Case geometry: event, atomic publication, zones, edges, case identity and errors passed
+Setup overrides: actual inlet mass flux -1.0 -> -2.0 kg/s; rejections and provenance passed
+Live CLI: publication, paths, run identity, sequence, timing, refreshed pressure states, stop handling and option validation passed
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FV_LSQ backend=cpu cells=60 max_error=3.8147e-07
+FV_LSQ backend=cpu cells=144 max_error=8.28505e-07
+FV_LSQ backend=cpu cells=86803 max_error=5.71489e-05
+FV_V2_PROGRESS backend=cpu tet=1 n=4 iter=20 ru=0.000614292 rv=0.000612886 rc=0.0169233 rc_raw=0.0128765
+FV_V2_BOUNDARY backend=cpu tet=1 n=4 interior_p_L2=0.182163 excluding_walls_p_L2=0.211647 p_Linf=0.75571 at=0.375,0.8125,0.9375 boundary=1 wall=0
+FV_V2 backend=cpu tet=1 n=4 iterations=120 u_L2=0.138799 p_L2=0.20497 ru=5.88353e-08 rv=5.42893e-08 rw=5.84162e-08 rc_raw=1.12504e-06 corrected_mass=3.24682e-07
+FV_V2_FORCE backend=cpu tet=1 n=4 pressure_x=-0.449686 viscous_y=-0.336589 viscous_x=0.121582 pressure_error=0.131376 viscous_error=0.12175 total_error=0.0116895
+POLY_PRESSURE backend=cpu nr=8 linear=1 exact_bc=0 grad_interior=1.49748e-07 grad_wall=2.22278e-07 skew_max=0.310053 bounded=0 face0=3.5351e-08 jump0=4.89319e-08 face2=3.79325e-08 jump2=4.96175e-08 face3=2.37935e-08 face4=4.45461e-08 face5=2.25028e-08
+POLY_PRESSURE backend=cpu nr=8 linear=1 exact_bc=1 grad_interior=1.49748e-07 grad_wall=1.44067e-07 skew_max=0.310053 bounded=0 face0=3.54405e-08 jump0=4.90897e-08 face2=3.89606e-08 jump2=5.3342e-08 face3=1.5295e-08 face4=4.43538e-08 face5=2.25028e-08
+POLY_PRESSURE backend=cpu nr=8 linear=0 exact_bc=0 grad_interior=0.0239612 grad_wall=0.104679 skew_max=0.310053 bounded=0 face0=0.00778755 jump0=4.90457e-08 face2=0.00283493 jump2=0.00368355 face3=0.00632297 face4=0.0141242 face5=2.77813e-08
+POLY_PRESSURE backend=cpu nr=8 linear=0 exact_bc=1 grad_interior=0.0239612 grad_wall=0.0430934 skew_max=0.310053 bounded=0 face0=0.00785709 jump0=4.79005e-08 face2=0.00312857 jump2=0.00285234 face3=0.00270956 face4=0.00993473 face5=2.77813e-08
+POLY_PRESSURE backend=cpu nr=16 linear=1 exact_bc=0 grad_interior=2.91146e-07 grad_wall=5.44473e-07 skew_max=0.309489 bounded=0 face0=3.72307e-08 jump0=4.83061e-08 face2=3.7541e-08 jump2=5.08414e-08 face3=2.66935e-08 face4=5.7601e-08 face5=2.26709e-08
+POLY_PRESSURE backend=cpu nr=16 linear=1 exact_bc=1 grad_interior=2.91146e-07 grad_wall=3.85294e-07 skew_max=0.309489 bounded=0 face0=3.71735e-08 jump0=4.88013e-08 face2=3.76621e-08 jump2=5.1669e-08 face3=1.88841e-08 face4=4.77659e-08 face5=2.26709e-08
+POLY_PRESSURE backend=cpu nr=16 linear=0 exact_bc=0 grad_interior=0.0110889 grad_wall=0.0497555 skew_max=0.309489 bounded=0 face0=0.00193221 jump0=5.13946e-08 face2=0.000799339 jump2=0.000815257 face3=0.00160486 face4=0.00342378 face5=2.51245e-08
+POLY_PRESSURE backend=cpu nr=16 linear=0 exact_bc=1 grad_interior=0.0110889 grad_wall=0.0184634 skew_max=0.309489 bounded=0 face0=0.001937 jump0=5.36838e-08 face2=0.000834566 jump2=0.000744006 face3=0.000703625 face4=0.00236947 face5=2.51245e-08
+POLY_PRESSURE backend=cpu nr=32 linear=1 exact_bc=0 grad_interior=5.73563e-07 grad_wall=9.39866e-07 skew_max=0.309172 bounded=0 face0=3.77629e-08 jump0=5.09708e-08 face2=3.88513e-08 jump2=5.09531e-08 face3=2.73392e-08 face4=5.69503e-08 face5=2.25117e-08
+POLY_PRESSURE backend=cpu nr=32 linear=1 exact_bc=1 grad_interior=5.73563e-07 grad_wall=6.32389e-07 skew_max=0.309172 bounded=0 face0=3.77587e-08 jump0=5.07679e-08 face2=3.91798e-08 jump2=5.1167e-08 face3=2.05353e-08 face4=4.99914e-08 face5=2.25117e-08
+POLY_PRESSURE backend=cpu nr=32 linear=0 exact_bc=0 grad_interior=0.00539653 grad_wall=0.0240488 skew_max=0.309172 bounded=0 face0=0.00047925 jump0=5.50873e-08 face2=0.000209684 jump2=0.000198404 face3=0.000402956 face4=0.000838264 face5=3.22415e-08
+POLY_PRESSURE backend=cpu nr=32 linear=0 exact_bc=1 grad_interior=0.00539653 grad_wall=0.00837725 skew_max=0.309172 bounded=0 face0=0.000479575 jump0=5.44113e-08 face2=0.000214017 jump2=0.000192023 face3=0.000178633 face4=0.000575743 face5=3.22415e-08
+POLY_VISCOUS backend=cpu nr=8 component=0 exact_grad=0 published_Linf=2.11697e-07 normal_derivative0=0.00460667 normal_derivative1=0.0302109 normal_derivative2=0.0389767 normal_derivative3=0.0788584 normal_derivative4=1.84919e-15
+POLY_VISCOUS backend=cpu nr=8 component=0 exact_grad=1 published_Linf=2.32045e-07 normal_derivative0=0.00460667 normal_derivative1=0.0270864 normal_derivative2=0.0389767 normal_derivative3=0.0793192 normal_derivative4=1.8635e-15
+POLY_VISCOUS backend=cpu nr=8 component=1 exact_grad=0 published_Linf=3.84542e-07 normal_derivative0=0.00921334 normal_derivative1=0.0572482 normal_derivative2=0.0450063 normal_derivative3=0.145116 normal_derivative4=2.22196e-15
+POLY_VISCOUS backend=cpu nr=8 component=1 exact_grad=1 published_Linf=4.32888e-07 normal_derivative0=0.00921334 normal_derivative1=0.0540741 normal_derivative2=0.0450063 normal_derivative3=0.142792 normal_derivative4=2.22832e-15
+POLY_VISCOUS backend=cpu nr=16 component=0 exact_grad=0 published_Linf=3.5182e-07 normal_derivative0=0.00113608 normal_derivative1=0.0146998 normal_derivative2=0.0193241 normal_derivative3=0.0419988 normal_derivative4=1.59081e-15
+POLY_VISCOUS backend=cpu nr=16 component=0 exact_grad=1 published_Linf=2.79487e-07 normal_derivative0=0.00113608 normal_derivative1=0.0136318 normal_derivative2=0.0193241 normal_derivative3=0.0420324 normal_derivative4=1.59302e-15
+POLY_VISCOUS backend=cpu nr=16 component=1 exact_grad=0 published_Linf=5.7536e-07 normal_derivative0=0.00227216 normal_derivative1=0.0277739 normal_derivative2=0.0223137 normal_derivative3=0.0747024 normal_derivative4=1.96542e-15
+POLY_VISCOUS backend=cpu nr=16 component=1 exact_grad=1 published_Linf=4.86654e-07 normal_derivative0=0.00227216 normal_derivative1=0.0272513 normal_derivative2=0.0223137 normal_derivative3=0.0739259 normal_derivative4=1.96885e-15
+POLY_VISCOUS backend=cpu nr=32 component=0 exact_grad=0 published_Linf=3.26617e-07 normal_derivative0=0.000281935 normal_derivative1=0.00730891 normal_derivative2=0.00961636 normal_derivative3=0.0216599 normal_derivative4=1.84618e-15
+POLY_VISCOUS backend=cpu nr=32 component=0 exact_grad=1 published_Linf=3.30743e-07 normal_derivative0=0.000281935 normal_derivative1=0.00683831 normal_derivative2=0.00961636 normal_derivative3=0.0216536 normal_derivative4=1.84789e-15
+POLY_VISCOUS backend=cpu nr=32 component=1 exact_grad=0 published_Linf=6.73062e-07 normal_derivative0=0.000563867 normal_derivative1=0.0137957 normal_derivative2=0.0111045 normal_derivative3=0.0378466 normal_derivative4=2.12732e-15
+POLY_VISCOUS backend=cpu nr=32 component=1 exact_grad=1 published_Linf=4.97454e-07 normal_derivative0=0.000563867 normal_derivative1=0.013675 normal_derivative2=0.0111045 normal_derivative3=0.0376235 normal_derivative4=2.1277e-15
+PROJECTED_QUADRATIC backend=cpu variant=0 normal_stencil_Linf=1.52588e-06 normal_interpolation_Linf=1.90735e-07 gradient_Linf=0 analytic_flux0=1.67625e-07 analytic_flux1=1.2563e-07 analytic_flux2=0.279509 analytic_flux4=0.0625
+PROJECTED_QUADRATIC backend=cpu variant=1 normal_stencil_Linf=1.86225e-06 normal_interpolation_Linf=2.39007e-07 gradient_Linf=2.14095e-06 analytic_flux0=3.16464e-07 analytic_flux1=2.33733e-07 analytic_flux2=0.186339 analytic_flux4=0.0416666
+PROJECTED_QUADRATIC backend=cpu variant=2 normal_stencil_Linf=1.73158e-05 normal_interpolation_Linf=1.51714e-06 gradient_Linf=7.01873e-06 analytic_flux0=9.43322e-07 analytic_flux1=0.00489588 analytic_flux2=0.142323 analytic_flux3=0.148506 analytic_flux4=0.0250002
+PROJECTED_QUADRATIC backend=cpu variant=3 normal_stencil_Linf=2.57056e-05 normal_interpolation_Linf=1.72522e-06 gradient_Linf=9.26138e-06 analytic_flux0=2.20083e-06 analytic_flux1=0.00124029 analytic_flux2=0.0705617 analytic_flux3=0.0721368 analytic_flux4=0.0249999
+PROJECTED_QUADRATIC backend=cpu variant=4 normal_stencil_Linf=5.7829e-05 normal_interpolation_Linf=1.87122e-06 gradient_Linf=2.1417e-05 analytic_flux0=4.23863e-06 analytic_flux1=0.000312764 analytic_flux2=0.0351147 analytic_flux3=0.0355134 analytic_flux4=0.025
+PROJECTED_WALL backend=cpu poly=0 raw_Linf=0.0948396 consistent_Linf=2.61012e-07 tangent_change_Linf=0
+PROJECTED_WALL backend=cpu poly=1 raw_Linf=0.364868 consistent_Linf=4.28274e-07 tangent_change_Linf=1.52183e-07
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=4 exact_face_L2=0.0566571 momentum_L2=0.0870708 LSQ_L2=0.242695
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=8 exact_face_L2=0.0142464 momentum_L2=0.0556747 LSQ_L2=0.0889712 exact_face_order=1.99166 momentum_order=0.645167 LSQ_order=1.44773
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=16 exact_face_L2=0.00356676 momentum_L2=0.0216528 LSQ_L2=0.0301149 exact_face_order=1.99791 momentum_order=1.36247 LSQ_order=1.56286
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=4 exact_face_L2=0.236907 momentum_L2=0.365856 LSQ_L2=0.334045
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=8 exact_face_L2=0.118648 momentum_L2=0.179739 LSQ_L2=0.168973 exact_face_order=0.997635 momentum_order=1.02537 LSQ_order=0.983245
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=16 exact_face_L2=0.0593483 momentum_L2=0.0889978 LSQ_L2=0.0848384 exact_face_order=0.999409 momentum_order=1.01406 LSQ_order=0.994008
+TMR progress cpu bump 0 it=24 defect=0.189284197922 change=inf cf=0.0105468171518 drag=0.0108153515172
+===============================================================================
+/src/tests/io/test_fluent_real.cpp:97:
+TEST CASE:  real Fluent external mesh acceptance
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): adjoint_cylinder_tutorial/cylinder_tutorial.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): adjoint_cylinder_tutorial/cylinder_tutorial.dat
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/axial_fan.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/axial_fan.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/BaseCases/axial_fan.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/axial_fan.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/26 Mpa-solution-final.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/26 Mpa-solution-final.dat
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-26 MPa.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-26 MPa.dat
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-94 MPa.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-94 MPa.dat
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): catalytic_converter/catalytic_converter_param.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Ablation-tutorial/ablation.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Ablation-tutorial/ablation_Solved.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Ablation-tutorial/ablation_Solved.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/DOE-ML-Mixing-Elbow/elbow.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Dash-App-for-Post-processing/elbow.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Dash-App-for-Post-processing/elbow.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Excel-Monitor-Points/glycerol_filling_mixing_init.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Excel-Monitor-Points/glycerol_filling_mixing_init.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Fluent-Parametric/elbow_params_2.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Graphics-Demo/elbow1.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Gravity-Separator-PID/2d-separator.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Gravity-Separator-PID/2d-separator.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Intro-Demo-Mixing-Elbow/elbow.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Intro-Demo-Mixing-Elbow/elbow.cas.gz
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/MixingTank-DOE/test-laminar-visc.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PPTX-report-generation/elbow.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PPTX-report-generation/elbow.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PyFluent-ACE-Training-at-22R2/demo.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PyFluent-ACE-Training-at-22R2/elbow.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PyFluent-ACE-Training-at-22R2/elbow1.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Remote-Execution-in-Cluster/bkd_facing_step.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Separator-Collection-Efficiency/oil_separator.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Separator-Collection-Efficiency/oil_separator.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Steady-Vortex-VOF/vortex_init.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Steady-Vortex-VOF/vortex_init.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_expressions.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_expressions.cas.gz
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_solution.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_solution.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_system/exhaust_system.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_system/exhaust_system.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/mixing_elbow_mul_ph.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/mixing_elbow_mul_ph.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/data.zip
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/BaseCases/nozzle_para_named_1.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/nozzle_para_named_1.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/elbow_param.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/elbow_param.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/elbow_source_terms.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/mixing_elbow_for_field_data.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): optislang/mixer-ran_2019r3.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): optislang/mixer-ran_2019r3.cas.gz
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): optislang/nozzle-2D-WB.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pyprimemesh/unit_test_examples/file.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pyprimemesh/unit_test_examples/hex.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/fluid-swirl/water_pipe_flow.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/heating_tank_fmu/Fluent/fluent.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/oscillating_plate/Fluent/plate.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/oscillating_plate/Fluent/plate.cas.gz
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/oscillating_plate/oscillating_plate.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/parametric_sweep_vel/Fluent/case.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pytwin/other_files/HX_CFD.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pytwin/other_files/T_Junction.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pyworkbench/elbow_case_file/elbow.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00005.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00010.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00015.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00020.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00025.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00030.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00035.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00040.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00045.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00050.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00001.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00002.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00003.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00004.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00005.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_phase/fluentMultiphase.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_phase/fluentMultiphase.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_species/FFF.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_species/FFF.dat.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): peridoic_rot/peridoic_rot.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): peridoicrot_withpipes/peridoicrot_withpipes.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): periodic_rot/periodic_rot.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): rotating_disk/disk.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameter_project_file/Static_Mixer_Parameters.cffdb/Static_Mixer_Parameters-Solve/Static_Mixer_Parameters.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.xxx.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.xxx.cas.gz
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.xxxx.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_binary.cas.gz
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_text.cas.gz
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_unitless.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_main.cas.h5
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.cas
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.cas.gz
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.dat
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.dat.gz
+
+/src/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): wigley_hull/wigley.cas.h5
+
+REAL flow_over_cylinder/flow_over_cylinder.msh cells=46949 faces=188392 points=95090 patches=6 volume=449.214654586013 min-normal-cos=0.645058420029463 boundary-closure=1.99426167665573e-14
+REAL lid_driven_cavity/lid_driven_cavity.msh cells=3550 faces=14321 points=7344 patches=5 volume=1.00000000000001 min-normal-cos=1 boundary-closure=3.89956317394702e-16
+REAL simple_duct/simple-duct.msh.h5 cells=10 faces=51 points=44 patches=3 volume=9.99999904 min-normal-cos=1 boundary-closure=2.9906525756859e-17
+REAL box/poly.msh.h5 cells=86803 faces=591932 points=505132 patches=6 volume=0.499999999999999 min-normal-cos=0.534414873063884 boundary-closure=2.03323002025411e-16
+REAL aero/wing.msh.h5 cells=114219 faces=654343 points=478848 patches=5 volume=6995.03679818086 min-normal-cos=0.214559058459804 boundary-closure=3.48672466320493e-16
+REAL file_session/elbow1.cas.h5 cells=13852 faces=44500 points=16968 patches=5 volume=0.00263365409702418 min-normal-cos=0.648592133183826 boundary-closure=1.76213036475812e-16
+REAL mixing_elbow/mixing_elbow.cas.h5 cells=17822 faces=91581 points=66417 patches=6 volume=0.00250065665056062 min-normal-cos=0.28317016387715 boundary-closure=3.16284455455994e-16
+REAL static_mixer/Static_Mixer_Parameters.cas.h5 cells=22771 faces=119140 points=82247 patches=4 volume=3.95971337209982e-08 min-normal-cos=0.289117938578567 boundary-closure=1.96539969205897e-16
+REAL static_mixer/Static_Mixer_Parameters_legacy_text.cas cells=22771 faces=119140 points=82247 patches=4 volume=3.95971337209982e-08 min-normal-cos=0.289117938578567 boundary-closure=1.96539969205897e-16
+REAL static_mixer/Static_Mixer_Parameters_legacy_binary.cas cells=22771 faces=119140 points=82247 patches=4 volume=3.95971337209982e-08 min-normal-cos=0.289117938578567 boundary-closure=1.96539969205897e-16
+===============================================================================
+/src/tests/io/test_io.cpp:220:
+TEST CASE:  NASA TMR real formatted grids (optional external fixtures)
+
+/src/tests/io/test_io.cpp:247: MESSAGE: NASA TMR real grids checked: 2
+
+===============================================================================
+/src/tests/io/test_plot3d_nmf.cpp:36:
+TEST CASE:  NASA NMF ranges supply exact BC patches and stitch the NACA wake
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: front = 816
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back = 816
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: subsonic_inflow_pt_block1_f5_1-25_1-2 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back_pressure_block1_f6_1-25_1-2 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-7 = 6
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: viscous_solid_block1_f1_1-2_7-35 = 28
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: farfield_riem_block1_f2_1-2_1-35 = 34
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: front = 3264
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back = 3264
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: subsonic_inflow_pt_block1_f5_1-49_1-2 = 48
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back_pressure_block1_f6_1-49_1-2 = 48
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-13 = 12
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: viscous_solid_block1_f1_1-2_13-69 = 56
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: farfield_riem_block1_f2_1-2_1-69 = 68
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: front = 13056
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back = 13056
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: subsonic_inflow_pt_block1_f5_1-97_1-2 = 96
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back_pressure_block1_f6_1-97_1-2 = 96
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: viscous_solid_block1_f1_1-2_25-137 = 112
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: farfield_riem_block1_f2_1-2_1-137 = 136
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: front = 3520
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back = 3520
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: subsonic_inflow_pt_block1_f5_1-41_1-2 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back_pressure_block1_f6_1-41_1-2 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: viscous_solid_block1_f1_1-2_25-65 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_65-89 = 24
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-89 = 88
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: front = 14080
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back = 14080
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: subsonic_inflow_pt_block1_f5_1-81_1-2 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back_pressure_block1_f6_1-81_1-2 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-49 = 48
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: viscous_solid_block1_f1_1-2_49-129 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_129-177 = 48
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-177 = 176
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: front = 3584
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: back = 3584
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f5_1-33_1-2 = 32
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f6_1-33_1-2 = 32
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: viscous_solid_block1_f1_1-2_25-89 = 64
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f2_1-2_1-113 = 112
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: front = 14336
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-6View format: header, geometry, winding-compatible areas, per-vertex values, ranges, deltas and replacement passed
+Post CLI: KUTV/KUTL layout, fields/ranges, pathline frame interpolation, probes/CSV, reports and atomic failures passed
+Post cache: fields_policy, reuse across reordering, cold/warm equality, failure retention and pruning passed
+Fluent mixing elbow: streamlines, pressure/Q iso-surfaces, line/section probes, all derived/reference/delta fields and all-zone aero reports passed
+5.p2dfmt: back = 14336
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f5_1-65_1-2 = 64
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f6_1-65_1-2 = 64
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: viscous_solid_block1_f1_1-2_49-177 = 128
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/src/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f2_1-2_1-225 = 224
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+AMG_GRID backend=cpu n=32 iterations=8 rel=8.73664678189595e-09 converged=1 PCG, aggregation AMG V-cycle, 5 levels, op complexity 1.138
+AMG_GRID backend=cpu n=64 iterations=6 rel=9.95758814760105e-09 converged=1 PCG, aggregation AMG V-cycle, 6 levels, op complexity 1.140
+AMG_RANDOM backend=cpu n=32 iterations=11 relative_residual=6.60351631336802e-07
+AMG_RANDOM backend=cpu n=64 iterations=15 relative_residual=7.91394973556324e-07
+runtime test backend: cpu (CPU reference (serial))
+SST Fluent 22.2 mixing_elbow: cpu / CPU reference (serial)
+  mu_t inactive identity n=11066 median=3.72593229602813e-08 p95=1.0579963594104e-07 max=1.84469393760267e-07
+  omega gradient change vs saved wall SV_O n=17822 median=0 p95=0.00594252845150434 max=0.00627284585698132
+  model wall omega: max mu_t change=0 limiter changes=0 CDkw changes=2436
+  mu_t limited, inverse-square LSQ n=6756 median=0.045967167782592 p95=0.142836575167297 max=0.309756998590163
+  mu_t inactive, inverse-square LSQ n=11066 median=4.09553719826761e-08 p95=0.0394149678676212 max=0.268264944137967
+  limiter agreement=0.902985074626866 discriminating n=2555 median S ratio=0.999075439959459 median Omega ratio=0.240745848775544 max production/cap=0.359466910847145
+  wall-face reconstruction omega n=2436 median=0.00418607180634833 p95=0.00428162275882993 max=0.00431867663868535
+  wall-cell omega n=2436 median=5.79916854304141e-06 p95=4.24771387430856e-05 max=0.000293143453000466
+  wall y+ (u*) n=2436 median=5.04172774878908e-06 p95=0.000201379079059816 max=0.0017583347155784
+  wall y+ (u_tau) n=2436 median=4.71773308391432e-06 p95=0.000185434679640023 max=0.00198188131615651
+  wall shear force magnitude n=2436 median=9.4358907611336e-06 p95=0.000370034637373229 max=0.00396057101405178
+  wall shear force vector n=2436 median=1.14337608257276e-05 p95=0.000445172450193374 max=0.00543407227532991
+  wall shear vector kernel/double-oracle n=2436 median=6.49454771388064e-08 p95=1.61027709186006e-07 max=2.97193982846495e-07
+  saved shear directional scatter (1+cos) n=2436 median=2.41540121237449e-12 p95=3.44189371448422e-09 max=1.11230539295848e-05
+  wall k zero gradient n=2436 median=4.99287583566321e-06 p95=0.000596878820532637 max=0.00463328167085786
+===============================================================================
+[doctest] test cases:     225 |     225 passed | 0 failed | 24 skipped
+[doctest] assertions: 3756393 | 3756393 passed | 0 failed |
+[doctest] Status: SUCCESS!

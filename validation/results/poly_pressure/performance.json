@@ -1,0 +1,57 @@
+{
+  "baseline": {
+    "command": [
+      "/usr/bin/time",
+      "-lp",
+      "<checkout>/build-pressure/bench-poly-baseline",
+      "32",
+      "0",
+      "1200"
+    ],
+    "executable_sha256": "71247202117ed58ae86a9d89d6f7dfda676a65c6213697623341d36f3b216a0f",
+    "total_seconds": 95.92375866696239,
+    "maximum_resident_bytes": 57032704,
+    "backend_scenarios": [
+      {
+        "backend": "cpu",
+        "elapsed_seconds": 45.84819558286108,
+        "pressure_relative_L2": 0.01691271484,
+        "velocity_L2": 0.0003241312556
+      },
+      {
+        "backend": "metal",
+        "elapsed_seconds": 50.07161029195413,
+        "pressure_relative_L2": 0.01691271484,
+        "velocity_L2": 0.0003241312556
+      }
+    ]
+  },
+  "after": {
+    "command": [
+      "/usr/bin/time",
+      "-lp",
+      "<checkout>/build-pressure/bench_poly_pressure",
+      "32",
+      "0",
+      "1200"
+    ],
+    "executable_sha256": "05f60713bd77fc3774e698e413aaa687619268fe12cd7821a4b6a89bb15796fd",
+    "total_seconds": 107.81275612488389,
+    "maximum_resident_bytes": 127303680,
+    "backend_scenarios": [
+      {
+        "backend": "cpu",
+        "elapsed_seconds": 57.13658249983564,
+        "pressure_relative_L2": 0.0009268136109,
+        "velocity_L2": 0.000302533656
+      },
+      {
+        "backend": "metal",
+        "elapsed_seconds": 50.67260858300142,
+        "pressure_relative_L2": 0.0009268136109,
+        "velocity_L2": 0.000302533656
+      }
+    ]
+  },
+  "note": "Single serial end-to-end sample at 6,144 cells and 1,200 iterations per backend. Each scenario includes setup, initialization, solve and final diagnostic reductions; first scenario also includes device discovery. This is not a kernel-throughput or car-scale benchmark. No other owned heavy jobs ran concurrently."
+}

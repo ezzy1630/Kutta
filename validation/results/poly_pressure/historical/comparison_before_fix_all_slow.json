@@ -1,0 +1,313 @@
+{
+  "cases": [
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re100 and Re400 cavity reported deviations",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V4 Fluent cavity matches its actual grid",
+      "baseline_assertions": 763,
+      "final_assertions": 763,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "baseline_assertions": 2601,
+      "final_assertions": 2601,
+      "baseline_failed": 29,
+      "final_failed": 29
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes hex refinement",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes tet refinement",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 6,
+      "final_failed": 6
+    },
+    {
+      "case": "FV V1 manufactured scalar diffusion and upwind refinement",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV SIMPLEC develops planar Couette flow with moving and slip walls",
+      "baseline_assertions": 14,
+      "final_assertions": 14,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "baseline_assertions": 36,
+      "final_assertions": 36,
+      "baseline_failed": 6,
+      "final_failed": 6
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "baseline_assertions": 47,
+      "final_assertions": 47,
+      "baseline_failed": 10,
+      "final_failed": 10
+    },
+    {
+      "case": "FSAE V12 native Fluent polynomial fan import acceptance",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 1,
+      "final_failed": 1
+    },
+    {
+      "case": "V8 realizable KE scalable channel MKM DNS profile and momentum balance",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "baseline_assertions": 70,
+      "final_assertions": 70,
+      "baseline_failed": 17,
+      "final_failed": 17
+    },
+    {
+      "case": "FSAE V7.1 translating-wall Couette hex and poly",
+      "baseline_assertions": 104,
+      "final_assertions": 104,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.2 rotating-wall Taylor Couette hex and poly",
+      "baseline_assertions": 6668,
+      "final_assertions": 6668,
+      "baseline_failed": 2,
+      "final_failed": 2
+    },
+    {
+      "case": "FSAE V8 Darcy Forchheimer pressure drop and oblique directions",
+      "baseline_assertions": 24,
+      "final_assertions": 24,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10 incompressible pressure and mass-flow inlets",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V11 internal fan polynomial and porous jump pressure discontinuity",
+      "baseline_assertions": 312,
+      "final_assertions": 312,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.3 rotation and translation preserve Taylor Couette pressure",
+      "baseline_assertions": 6,
+      "final_assertions": 6,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent research downloads retain published byte identities",
+      "baseline_assertions": 26,
+      "final_assertions": 26,
+      "baseline_failed": 0,
+      "final_failed": 0
+    }
+  ],
+  "regressions": [],
+  "recoveries": [],
+  "changed_values": [
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "64",
+        "CHECK",
+        "r.iterations<=3000",
+        [
+          "backend: cpu",
+          "level: 2"
+        ],
+        0
+      ],
+      "before": "2100 <= 3000",
+      "after": "2200 <= 3000",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.632197"
+        ],
+        0
+      ],
+      "before": "0.115167 <= 0.1",
+      "after": "0.106805 <= 0.1",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.632197"
+        ],
+        0
+      ],
+      "before": "0.000186555 <= 0.03",
+      "after": "0.0001693 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.75"
+        ],
+        0
+      ],
+      "before": "0.156962 <= 0.1",
+      "after": "0.147388 <= 0.1",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.75"
+        ],
+        0
+      ],
+      "before": "0.0143812 <= 0.03",
+      "after": "0.0152151 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.867803"
+        ],
+        0
+      ],
+      "before": "0.30189 <= 0.1",
+      "after": "0.275879 <= 0.1",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.867803"
+        ],
+        0
+      ],
+      "before": "0.00676048 <= 0.03",
+      "after": "0.00621789 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    }
+  ],
+  "missing_assertions": [],
+  "new_assertions": [],
+  "missing_cases": [],
+  "new_cases": [],
+  "no_new_failures": true
+}

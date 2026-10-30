@@ -1,0 +1,58 @@
+[
+  {
+    "backend": "cpu",
+    "mode": "seeded",
+    "before": {
+      "iterations": 350,
+      "velocity": 0.03601602396,
+      "pressure": 0.0296254007
+    },
+    "after": {
+      "iterations": 350,
+      "velocity": 0.03601605097,
+      "pressure": 0.02962465764
+    }
+  },
+  {
+    "backend": "cpu",
+    "mode": "cold-hybrid",
+    "before": {
+      "iterations": 550,
+      "velocity": 0.03601460363,
+      "pressure": 0.02961664678
+    },
+    "after": {
+      "iterations": 550,
+      "velocity": 0.03601465345,
+      "pressure": 0.02961828452
+    }
+  },
+  {
+    "backend": "metal",
+    "mode": "seeded",
+    "before": {
+      "iterations": 350,
+      "velocity": 0.03601603208,
+      "pressure": 0.02962295937
+    },
+    "after": {
+      "iterations": 350,
+      "velocity": 0.03601604702,
+      "pressure": 0.0296245967
+    }
+  },
+  {
+    "backend": "metal",
+    "mode": "cold-hybrid",
+    "before": {
+      "iterations": 550,
+      "velocity": 0.0360145971,
+      "pressure": 0.02961920831
+    },
+    "after": {
+      "iterations": 550,
+      "velocity": 0.03601464446,
+      "pressure": 0.02961693403
+    }
+  }
+]

@@ -141,7 +141,12 @@ coefficient. This damps pressure overshoot without changing the steady equations
 Pressure face values use the second-order reconstruction in the design spec.
 Momentum-weighted face velocities use a shared limited gradient to correct the
 weighted cell point to the face centroid. The independently reconstructed side
-mean was rejected by the V2 wall-load refinement gates. Outlet flux predictors
+mean was rejected by the V2 wall-load refinement gates. Laminar momentum now
+uses quadratic tangential shifts to the face-normal line on skewed faces,
+retaining the compact normal two-point stencil and momentum-weighted coupling.
+Wall gradients carry that same assembled normal viscous flux. Orthogonal and
+under-resolved faces retain the original method; SST, SA and realizable-k-epsilon
+retain their existing diffusion/wall contracts. Outlet flux predictors
 use cell velocity. Rhie–Chow uses the LSQ-reconstructed pressure jump; the
 momentum Green–Gauss alternative adds tet pressure-order failures. Pressure
 skew correction is retained within one centroid-link length of the link's
@@ -206,4 +211,8 @@ Moving/rotating walls, superficial porous resistance, absolute-velocity MRF,
 pressure and mass-flow inlets, and interior pressure jumps are documented in
 [`fsae-physics.md`](../../../docs/research/fsae-physics.md). Native Fluent fan
 polynomial import remains rejected; its V12 acceptance gate remains red.
-Native rotating-wall acceptance is also held by V7.2's polyhedral pressure error.
+Native rotating walls are enabled after the unchanged V7.2 gate passes on CPU
+and Metal: poly pressure error 0.093%, hex 0.312%. The
+[face-reconstruction study](../../../validation/results/poly_pressure/REPORT.md)
+records the before/after operator orders, complete slow assertion comparison
+and the remaining SST/Fluent validation limits.

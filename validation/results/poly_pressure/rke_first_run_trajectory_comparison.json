@@ -1,0 +1,170 @@
+{
+  "shared_progress_samples": 150,
+  "different_shared_samples": [
+    {
+      "sample": [
+        "cpu",
+        "20",
+        "400"
+      ],
+      "before": {
+        "defect": "5.20094e-06",
+        "change": "0.00110974"
+      },
+      "after": {
+        "defect": "5.200938171e-06",
+        "change": "0.001109738954"
+      }
+    },
+    {
+      "sample": [
+        "cpu",
+        "20",
+        "300"
+      ],
+      "before": {
+        "defect": "2.25204e-05",
+        "change": "0.00482436"
+      },
+      "after": {
+        "defect": "2.252038045e-05",
+        "change": "0.004824360999"
+      }
+    },
+    {
+      "sample": [
+        "cpu",
+        "20",
+        "600"
+      ],
+      "before": {
+        "defect": "2.84526e-07",
+        "change": "5.97591e-05"
+      },
+      "after": {
+        "defect": "2.845260923e-07",
+        "change": "5.975908552e-05"
+      }
+    },
+    {
+      "sample": [
+        "cpu",
+        "20",
+        "200"
+      ],
+      "before": {
+        "defect": "9.89351e-05",
+        "change": "0.021302"
+      },
+      "after": {
+        "defect": "9.893506119e-05",
+        "change": "0.02130202023"
+      }
+    },
+    {
+      "sample": [
+        "cpu",
+        "20",
+        "500"
+      ],
+      "before": {
+        "defect": "1.16578e-06",
+        "change": "0.000256337"
+      },
+      "after": {
+        "defect": "1.16578139e-06",
+        "change": "0.0002563373464"
+      }
+    },
+    {
+      "sample": [
+        "cpu",
+        "20",
+        "100"
+      ],
+      "before": {
+        "defect": "0.000376486",
+        "change": "0.0456685"
+      },
+      "after": {
+        "defect": "0.0003764860739",
+        "change": "0.04566848941"
+      }
+    }
+  ],
+  "baseline_only_samples": [
+    [
+      "metal",
+      "80",
+      "4400"
+    ],
+    [
+      "metal",
+      "80",
+      "4500"
+    ],
+    [
+      "metal",
+      "80",
+      "4600"
+    ],
+    [
+      "metal",
+      "80",
+      "4700"
+    ],
+    [
+      "metal",
+      "80",
+      "4800"
+    ],
+    [
+      "metal",
+      "80",
+      "4900"
+    ],
+    [
+      "metal",
+      "80",
+      "5000"
+    ],
+    [
+      "metal",
+      "80",
+      "5100"
+    ],
+    [
+      "metal",
+      "80",
+      "5200"
+    ],
+    [
+      "metal",
+      "80",
+      "5300"
+    ],
+    [
+      "metal",
+      "80",
+      "5400"
+    ],
+    [
+      "metal",
+      "80",
+      "5500"
+    ],
+    [
+      "metal",
+      "80",
+      "5600"
+    ],
+    [
+      "metal",
+      "80",
+      "5700"
+    ]
+  ],
+  "after_only_samples": [],
+  "different_beyond_printed_precision": [],
+  "note": "The first CPU20 samples have different ostream precision because baseline was a separate test batch. All shared values agree within their printed rounding intervals; no assertion or expanded value was normalized."
+}

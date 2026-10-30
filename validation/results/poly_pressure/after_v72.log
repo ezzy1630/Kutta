@@ -1,0 +1,4 @@
+FSAE V7.2 backend=cpu poly=0 velocity_L2=0.00440610773344 pressure_relative_L2=0.00311599288321 momentum=2.92832282159e-08
+FSAE V7.2 backend=metal poly=0 velocity_L2=0.00440610773344 pressure_relative_L2=0.00311599288321 momentum=2.92832282159e-08
+FSAE V7.2 backend=cpu poly=1 velocity_L2=0.000302533655983 pressure_relative_L2=0.000926813610946 momentum=4.7784565512e-08
+FSAE V7.2 backend=metal poly=1 velocity_L2=0.000302533655983 pressure_relative_L2=0.000926813610946 momentum=4.7784565512e-08

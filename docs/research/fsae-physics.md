@@ -2,18 +2,22 @@
 
 This lane adds device-native physics and strict setup adaptation. It does not
 establish Fluent same-mesh solution agreement (G3), CUDA execution parity, or
-full FSAE-car acceptance. Native Fluent **rotating walls and fan polynomial import
-remain rejected**: V7.2 retains a polyhedral pressure-accuracy failure, and V12
-lacks verified native fan encoding.
+full FSAE-car acceptance. Native Fluent rotating walls are enabled following
+the unchanged CPU/Metal V7.2 analytic gate. Native **fan polynomial import remains
+rejected** because V12 lacks verified native fan encoding.
 The independently callable fan solver is tested against an analytic pressure step.
 V12 deliberately fails until a saved native polynomial-fan case is supplied and
 the importer implements its verified encoding.
 
-The rotating-wall C++ path passes velocity on hex and poly meshes, and pressure
-on hex. On the refined 32-ring/256-sector poly mesh its converged pressure L2
-error is 1.69% of the analytic radial pressure range, above the unchanged 1%
-limit. The 8-ring/64-sector diagnostic gives 9.08%. These failures are retained;
-native rotating-wall support is not enabled on the strength of velocity alone.
+The rotating-wall path passes velocity and pressure on hex and poly meshes.
+The refined 32-ring/256-sector poly pressure error falls from 1.69% to 0.093%
+of the analytic radial pressure range, below the unchanged 1% gate. The coarse
+384-cell diagnostic falls from 9.08% to 2.93%; it is not the acceptance grid.
+The [reconstruction report](../../validation/results/poly_pressure/REPORT.md)
+records quadratic viscous-flux and momentum-interpolation proofs and regression
+evidence. This qualifies the laminar analytic gate and native input adaptation;
+SST rotating-wheel pressure accuracy and full-car Fluent agreement are not
+established by it.
 
 ## Equations and conventions
 

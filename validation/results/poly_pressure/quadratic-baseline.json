@@ -1,0 +1,2166 @@
+{
+  "input": "quadratic-baseline.log",
+  "sha256": "eb575a2d82f21eb6e7524b562907822aaf0a329cb5554dc6e4f2da8701a0ecd5",
+  "records": [
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.002013092551,
+        0.0005036325646,
+        0.0001259348856
+      ],
+      "maximum": [
+        0.003994812396,
+        0.001020010726,
+        0.0002590083605
+      ],
+      "orders": [
+        1.9989700259818344,
+        1.9996935862308416
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_regular",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.001079396585,
+        0.0002703742988,
+        6.768189829e-05
+      ],
+      "maximum": [
+        0.002313966651,
+        0.0006121296504,
+        0.0001606003602
+      ],
+      "orders": [
+        1.9971951042658802,
+        1.9981160809039955
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03897673552,
+        0.01932409531,
+        0.00961636258
+      ],
+      "maximum": [
+        0.06349533335,
+        0.03153748759,
+        0.01570217409
+      ],
+      "orders": [
+        1.012212389804581,
+        1.0068376752770627
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03781596356,
+        0.0190298606,
+        0.009542601112
+      ],
+      "maximum": [
+        0.06160726886,
+        0.03105722361,
+        0.01559410932
+      ],
+      "orders": [
+        0.9907303861743804,
+        0.9958105202147973
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.002013092551,
+        0.0005036325646,
+        0.0001259348856
+      ],
+      "maximum": [
+        0.003994812396,
+        0.001020010726,
+        0.0002590083605
+      ],
+      "orders": [
+        1.9989700259818344,
+        1.9996935862308416
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_regular",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.001079396585,
+        0.0002703742988,
+        6.768189829e-05
+      ],
+      "maximum": [
+        0.002313966651,
+        0.0006121296504,
+        0.0001606003602
+      ],
+      "orders": [
+        1.9971951042658802,
+        1.9981160809039955
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03897673552,
+        0.01932409531,
+        0.00961636258
+      ],
+      "maximum": [
+        0.06349533335,
+        0.03153748759,
+        0.01570217409
+      ],
+      "orders": [
+        1.012212389804581,
+        1.0068376752770627
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03781596356,
+        0.0190298606,
+        0.009542601112
+      ],
+      "maximum": [
+        0.06160726886,
+        0.03105722361,
+        0.01559410932
+      ],
+      "orders": [
+        0.9907303861743804,
+        0.9958105202147973
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.004026196171,
+        0.001007266403,
+        0.0002518624551
+      ],
+      "maximum": [
+        0.007988997289,
+        0.002040946894,
+        0.0005154918379
+      ],
+      "orders": [
+        1.9989721678606,
+        1.9997373174732498
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_regular",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.001246381644,
+        0.0003121935987,
+        7.814018489e-05
+      ],
+      "maximum": [
+        0.002308044143,
+        0.0006128943537,
+        0.0001586261351
+      ],
+      "orders": [
+        1.9972330301450314,
+        1.9983043819736337
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04500628384,
+        0.02231367247,
+        0.0111045385
+      ],
+      "maximum": [
+        0.06334155545,
+        0.03151769771,
+        0.01569969111
+      ],
+      "orders": [
+        1.012198469175341,
+        1.0067785410951084
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04366561157,
+        0.02197406661,
+        0.01101828996
+      ],
+      "maximum": [
+        0.06145503372,
+        0.03103494298,
+        0.01558849581
+      ],
+      "orders": [
+        0.9906956608890477,
+        0.9959015506432711
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.004026196171,
+        0.001007266403,
+        0.0002518624551
+      ],
+      "maximum": [
+        0.007988997289,
+        0.002040946894,
+        0.0005154918379
+      ],
+      "orders": [
+        1.9989721678606,
+        1.9997373174732498
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_regular",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.001246381644,
+        0.0003121935987,
+        7.814018489e-05
+      ],
+      "maximum": [
+        0.002308044143,
+        0.0006128943537,
+        0.0001586261351
+      ],
+      "orders": [
+        1.9972330301450314,
+        1.9983043819736337
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04500628384,
+        0.02231367247,
+        0.0111045385
+      ],
+      "maximum": [
+        0.06334155545,
+        0.03151769771,
+        0.01569969111
+      ],
+      "orders": [
+        1.012198469175341,
+        1.0067785410951084
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04366561157,
+        0.02197406661,
+        0.01101828996
+      ],
+      "maximum": [
+        0.06145503372,
+        0.03103494298,
+        0.01558849581
+      ],
+      "orders": [
+        0.9906956608890477,
+        0.9959015506432711
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.004606670381,
+        0.001136081708,
+        0.000281935182
+      ],
+      "maximum": [
+        0.01330483283,
+        0.003391405701,
+        0.0008562132656
+      ],
+      "orders": [
+        2.0196577746542554,
+        2.0106311738447196
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_hanging",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03021091188,
+        0.01469984442,
+        0.007308913166
+      ],
+      "maximum": [
+        0.06834610483,
+        0.03330802694,
+        0.0163275878
+      ],
+      "orders": [
+        1.0392688447681988,
+        1.0080720872073157
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03897673552,
+        0.01932409531,
+        0.00961636258
+      ],
+      "maximum": [
+        0.06349533335,
+        0.03153748759,
+        0.01570217409
+      ],
+      "orders": [
+        1.012212389804581,
+        1.0068376752770627
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.07885839552,
+        0.04199884616,
+        0.02165991697
+      ],
+      "maximum": [
+        0.1333331744,
+        0.07202144201,
+        0.03730060261
+      ],
+      "orders": [
+        0.9089146640963308,
+        0.9553219804745526
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.004606670381,
+        0.001136081708,
+        0.000281935182
+      ],
+      "maximum": [
+        0.01330483283,
+        0.003391405701,
+        0.0008562132656
+      ],
+      "orders": [
+        2.0196577746542554,
+        2.0106311738447196
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_hanging",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.02708641594,
+        0.01363185036,
+        0.006838310869
+      ],
+      "maximum": [
+        0.04851845195,
+        0.02446123025,
+        0.01225865813
+      ],
+      "orders": [
+        0.9905881055725804,
+        0.9952694898012958
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03897673552,
+        0.01932409531,
+        0.00961636258
+      ],
+      "maximum": [
+        0.06349533335,
+        0.03153748759,
+        0.01570217409
+      ],
+      "orders": [
+        1.012212389804581,
+        1.0068376752770627
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.07931920944,
+        0.04203242145,
+        0.02165357843
+      ],
+      "maximum": [
+        0.1350390862,
+        0.07222211875,
+        0.03732024431
+      ],
+      "orders": [
+        0.9161677273138932,
+        0.9568971095008619
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.009213339625,
+        0.002272157583,
+        0.0005638671631
+      ],
+      "maximum": [
+        0.02660966566,
+        0.006781576737,
+        0.001710590383
+      ],
+      "orders": [
+        2.019661300243416,
+        2.010635659927036
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_hanging",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.05724822943,
+        0.02777385027,
+        0.01379569269
+      ],
+      "maximum": [
+        0.1078362658,
+        0.05229122733,
+        0.02555979285
+      ],
+      "orders": [
+        1.043503883454328,
+        1.009509293761969
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04500628384,
+        0.02231367247,
+        0.0111045385
+      ],
+      "maximum": [
+        0.06334155545,
+        0.03151769771,
+        0.01569969111
+      ],
+      "orders": [
+        1.012198469175341,
+        1.0067785410951084
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.1451158958,
+        0.07470239301,
+        0.03784660848
+      ],
+      "maximum": [
+        0.2048941488,
+        0.1056312262,
+        0.05351777292
+      ],
+      "orders": [
+        0.9579791948988227,
+        0.9809904360782014
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.009213339625,
+        0.002272157583,
+        0.0005638671631
+      ],
+      "maximum": [
+        0.02660966566,
+        0.006781576737,
+        0.001710590383
+      ],
+      "orders": [
+        2.019661300243416,
+        2.010635659927036
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_hanging",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.05407407991,
+        0.02725127703,
+        0.01367504947
+      ],
+      "maximum": [
+        0.09172350136,
+        0.04754816205,
+        0.02416887545
+      ],
+      "orders": [
+        0.9886133743943135,
+        0.9947777859943624
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04500628384,
+        0.02231367247,
+        0.0111045385
+      ],
+      "maximum": [
+        0.06334155545,
+        0.03151769771,
+        0.01569969111
+      ],
+      "orders": [
+        1.012198469175341,
+        1.0067785410951084
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.1427922958,
+        0.07392594444,
+        0.03762345788
+      ],
+      "maximum": [
+        0.2009693267,
+        0.1044169541,
+        0.05319370315
+      ],
+      "orders": [
+        0.9497654677466018,
+        0.9744483200686164
+      ]
+    },
+    {
+      "backend": "cpu",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.002013092551,
+        0.0005036325646,
+        0.0001259348856
+      ],
+      "maximum": [
+        0.003994812396,
+        0.001020010726,
+        0.0002590083605
+      ],
+      "orders": [
+        1.9989700259818344,
+        1.9996935862308416
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_regular",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.001079396585,
+        0.0002703742988,
+        6.768189829e-05
+      ],
+      "maximum": [
+        0.002313966651,
+        0.0006121296504,
+        0.0001606003602
+      ],
+      "orders": [
+        1.9971951042658802,
+        1.9981160809039955
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03897673552,
+        0.01932409531,
+        0.00961636258
+      ],
+      "maximum": [
+        0.06349533335,
+        0.03153748759,
+        0.01570217409
+      ],
+      "orders": [
+        1.012212389804581,
+        1.0068376752770627
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03781596356,
+        0.0190298606,
+        0.009542601112
+      ],
+      "maximum": [
+        0.06160726886,
+        0.03105722361,
+        0.01559410932
+      ],
+      "orders": [
+        0.9907303861743804,
+        0.9958105202147973
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.002013092551,
+        0.0005036325646,
+        0.0001259348856
+      ],
+      "maximum": [
+        0.003994812396,
+        0.001020010726,
+        0.0002590083605
+      ],
+      "orders": [
+        1.9989700259818344,
+        1.9996935862308416
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_regular",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.001079396585,
+        0.0002703742988,
+        6.768189829e-05
+      ],
+      "maximum": [
+        0.002313966651,
+        0.0006121296504,
+        0.0001606003602
+      ],
+      "orders": [
+        1.9971951042658802,
+        1.9981160809039955
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03897673552,
+        0.01932409531,
+        0.00961636258
+      ],
+      "maximum": [
+        0.06349533335,
+        0.03153748759,
+        0.01570217409
+      ],
+      "orders": [
+        1.012212389804581,
+        1.0068376752770627
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03781596356,
+        0.0190298606,
+        0.009542601112
+      ],
+      "maximum": [
+        0.06160726886,
+        0.03105722361,
+        0.01559410932
+      ],
+      "orders": [
+        0.9907303861743804,
+        0.9958105202147973
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.004026196171,
+        0.001007266403,
+        0.0002518624551
+      ],
+      "maximum": [
+        0.007988997289,
+        0.002040946894,
+        0.0005154918379
+      ],
+      "orders": [
+        1.9989721678606,
+        1.9997373174732498
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_regular",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.001246381644,
+        0.0003121935987,
+        7.814018489e-05
+      ],
+      "maximum": [
+        0.002308044143,
+        0.0006128943537,
+        0.0001586261351
+      ],
+      "orders": [
+        1.9972330301450314,
+        1.9983043819736337
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04500628384,
+        0.02231367247,
+        0.0111045385
+      ],
+      "maximum": [
+        0.06334155545,
+        0.03151769771,
+        0.01569969111
+      ],
+      "orders": [
+        1.012198469175341,
+        1.0067785410951084
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04366561157,
+        0.02197406661,
+        0.01101828996
+      ],
+      "maximum": [
+        0.06145503372,
+        0.03103494298,
+        0.01558849581
+      ],
+      "orders": [
+        0.9906956608890477,
+        0.9959015506432711
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.004026196171,
+        0.001007266403,
+        0.0002518624551
+      ],
+      "maximum": [
+        0.007988997289,
+        0.002040946894,
+        0.0005154918379
+      ],
+      "orders": [
+        1.9989721678606,
+        1.9997373174732498
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_regular",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.001246381644,
+        0.0003121935987,
+        7.814018489e-05
+      ],
+      "maximum": [
+        0.002308044143,
+        0.0006128943537,
+        0.0001586261351
+      ],
+      "orders": [
+        1.9972330301450314,
+        1.9983043819736337
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04500628384,
+        0.02231367247,
+        0.0111045385
+      ],
+      "maximum": [
+        0.06334155545,
+        0.03151769771,
+        0.01569969111
+      ],
+      "orders": [
+        1.012198469175341,
+        1.0067785410951084
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04366561157,
+        0.02197406661,
+        0.01101828996
+      ],
+      "maximum": [
+        0.06145503372,
+        0.03103494298,
+        0.01558849581
+      ],
+      "orders": [
+        0.9906956608890477,
+        0.9959015506432711
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "0",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.004606670381,
+        0.001136081708,
+        0.000281935182
+      ],
+      "maximum": [
+        0.01330483283,
+        0.003391405701,
+        0.0008562132656
+      ],
+      "orders": [
+        2.0196577746542554,
+        2.0106311738447196
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_hanging",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03021091188,
+        0.01469984442,
+        0.007308913166
+      ],
+      "maximum": [
+        0.06834610483,
+        0.03330802694,
+        0.0163275878
+      ],
+      "orders": [
+        1.0392688447681988,
+        1.0080720872073157
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03897673552,
+        0.01932409531,
+        0.00961636258
+      ],
+      "maximum": [
+        0.06349533335,
+        0.03153748759,
+        0.01570217409
+      ],
+      "orders": [
+        1.012212389804581,
+        1.0068376752770627
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.07885839552,
+        0.04199884616,
+        0.02165991697
+      ],
+      "maximum": [
+        0.1333331744,
+        0.07202144201,
+        0.03730060261
+      ],
+      "orders": [
+        0.9089146640963308,
+        0.9553219804745526
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.004606670381,
+        0.001136081708,
+        0.000281935182
+      ],
+      "maximum": [
+        0.01330483283,
+        0.003391405701,
+        0.0008562132656
+      ],
+      "orders": [
+        2.0196577746542554,
+        2.0106311738447196
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_hanging",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.02708641594,
+        0.01363185036,
+        0.006838310869
+      ],
+      "maximum": [
+        0.04851845195,
+        0.02446123025,
+        0.01225865813
+      ],
+      "orders": [
+        0.9905881055725804,
+        0.9952694898012958
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.03897673552,
+        0.01932409531,
+        0.00961636258
+      ],
+      "maximum": [
+        0.06349533335,
+        0.03153748759,
+        0.01570217409
+      ],
+      "orders": [
+        1.012212389804581,
+        1.0068376752770627
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.07931920944,
+        0.04203242145,
+        0.02165357843
+      ],
+      "maximum": [
+        0.1350390862,
+        0.07222211875,
+        0.03732024431
+      ],
+      "orders": [
+        0.9161677273138932,
+        0.9568971095008619
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "0",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.009213339625,
+        0.002272157583,
+        0.0005638671631
+      ],
+      "maximum": [
+        0.02660966566,
+        0.006781576737,
+        0.001710590383
+      ],
+      "orders": [
+        2.019661300243416,
+        2.010635659927036
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_hanging",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.05724822943,
+        0.02777385027,
+        0.01379569269
+      ],
+      "maximum": [
+        0.1078362658,
+        0.05229122733,
+        0.02555979285
+      ],
+      "orders": [
+        1.043503883454328,
+        1.009509293761969
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04500628384,
+        0.02231367247,
+        0.0111045385
+      ],
+      "maximum": [
+        0.06334155545,
+        0.03151769771,
+        0.01569969111
+      ],
+      "orders": [
+        1.012198469175341,
+        1.0067785410951084
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.1451158958,
+        0.07470239301,
+        0.03784660848
+      ],
+      "maximum": [
+        0.2048941488,
+        0.1056312262,
+        0.05351777292
+      ],
+      "orders": [
+        0.9579791948988227,
+        0.9809904360782014
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "lsq",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "azimuthal",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.009213339625,
+        0.002272157583,
+        0.0005638671631
+      ],
+      "maximum": [
+        0.02660966566,
+        0.006781576737,
+        0.001710590383
+      ],
+      "orders": [
+        2.019661300243416,
+        2.010635659927036
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "radial_hanging",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.05407407991,
+        0.02725127703,
+        0.01367504947
+      ],
+      "maximum": [
+        0.09172350136,
+        0.04754816205,
+        0.02416887545
+      ],
+      "orders": [
+        0.9886133743943135,
+        0.9947777859943624
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "inner_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.04500628384,
+        0.02231367247,
+        0.0111045385
+      ],
+      "maximum": [
+        0.06334155545,
+        0.03151769771,
+        0.01569969111
+      ],
+      "orders": [
+        1.012198469175341,
+        1.0067785410951084
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "outer_wall",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.1427922958,
+        0.07392594444,
+        0.03762345788
+      ],
+      "maximum": [
+        0.2009693267,
+        0.1044169541,
+        0.05319370315
+      ],
+      "orders": [
+        0.9497654677466018,
+        0.9744483200686164
+      ]
+    },
+    {
+      "backend": "metal",
+      "poly": "1",
+      "component": "1",
+      "gradient": "exact",
+      "operator": "viscous_normal_derivative",
+      "location": "cap",
+      "rings": [
+        8,
+        16,
+        32
+      ],
+      "rms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orders": [
+        null,
+        null
+      ]
+    }
+  ]
+}

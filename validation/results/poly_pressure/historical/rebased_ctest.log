@@ -1,0 +1,9 @@
+Test project <checkout>/build-pressure
+    Start 1: kutta-tests
+1/2 Test #1: kutta-tests ......................   Passed   21.21 sec
+    Start 3: lint-portability
+2/2 Test #3: lint-portability .................   Passed    0.23 sec
+
+100% tests passed out of 2
+
+Total Test time (real) =  21.45 sec

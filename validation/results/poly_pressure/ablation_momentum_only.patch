@@ -1,0 +1,11 @@
+--- a/src/kutta/fv/steady_solver.cpp
++++ b/src/kutta/fv/steady_solver.cpp
+@@ -248,7 +248,7 @@
+     if(diffusion_reconstruction) {
+       for(auto& g:projected_gradient) g=vector_field(dev,nf);
+     }
+-    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,diffusion_reconstruction);
++    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
+     velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity);
+     pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure);
+     if(settings.sst) {

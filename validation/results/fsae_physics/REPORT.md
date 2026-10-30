@@ -1,6 +1,11 @@
 # FSAE physics implementation report
 
-This is a **partial implementation with two held acceptance gates**. Translating
+> V7.2 follow-up: the unchanged gate now passes on CPU and Metal (0.093%
+> poly pressure error), and native rotating walls are enabled. See the
+> [operator and regression evidence](../poly_pressure/REPORT.md). V12 remains held.
+> The original measurements below describe the source identified in this report.
+
+At its recorded source, this was a **partial implementation with two held acceptance gates**. Translating
 walls, superficial porous resistance, absolute-velocity MRF, pressure inlets,
 uniform mass-flow inlets and porous jumps reach the strict setup adapter.
 Rotating walls and polynomial fans have C++ solver paths, but native rotating
@@ -79,8 +84,8 @@ KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples \
 ./build/kutta-tests --test-case='FSAE*' --test-suite=slow
 ```
 
-The quick result is in [`quick_final.log`](quick_final.log). The scoped slow
-command intentionally returns nonzero for V7.2 and V12; its complete output is
+The quick result is in [`quick_final.log`](quick_final.log). At the originally recorded source, the scoped slow
+command intentionally returned nonzero for V7.2 and V12; its complete output is
 [`slow_acceptance.log`](slow_acceptance.log): **11 cases, 9 passed, 2 failed;
 7,207 assertions, 7,204 passed, 3 failed**. The failures are exactly the two
 polyhedral pressure assertions and V12's absent native fan fixture.
@@ -90,9 +95,9 @@ Earlier coarse rotational diagnostics are preserved in
 
 ## Remaining work and integration boundary
 
-1. Resolve the polyhedral rotational pressure error, then rerun V7.2 unchanged
-   before enabling native rotating walls. Its velocity and residual gates pass;
-   the remaining pressure error needs investigation in the shared discretization.
+1. **Resolved in the follow-up:** V7.2 passes unchanged on CPU and Metal and
+   native rotating walls are enabled. The linked reconstruction report records
+   the before/after errors, operator orders and remaining validation limits.
 2. Obtain a saved Fluent case containing a **polynomial fan thread**, establish
    its active encoding and sign conventions, implement strict adaptation, and
    pass V12. An MRF rotor case is not a substitute. The mathematical fan path

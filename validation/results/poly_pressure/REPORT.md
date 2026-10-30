@@ -1,278 +1,311 @@
-# Polyhedral pressure and viscous-flux investigation
+# Polyhedral face reconstruction: Taylor–Couette and regression evidence
 
-No numerical correction met every unchanged acceptance gate. Before rebasing, the retained
-solver and adapter code is identical to `fb827e0d416746030eaf156f9f42fca87b712a31`.
-Native rotating walls remain rejected. The local changes add manufactured
-checks, reproducible probes and an assertion comparator, and correct a stale
-pressure-LSQ paragraph in the finite-volume README.
+The V7.2 pressure mode comes chiefly from skewed momentum interpolation in
+the mass predictor. Controlled ablations distinguish this from the real viscous
+flux defect: correcting diffusion alone leaves 1.678% pressure error, correcting
+the predictor alone gives .0686%, and correcting both gives .0927%. The retained
+change improves quadratic tangential reconstruction in both operators. Second
+Order pressure interpolation, pressure LSQ, the momentum pressure source and the
+Rhie–Chow pressure term are unchanged. The Taylor–Couette analytic solution is
+the reference; no Fluent installation or same-mesh annulus run exists or is required.
 
-The strongest result is a rejected one. Momentum-weighted side velocity
-reconstruction passes the original V7.2 test on CPU and Metal, including all
-6,668 assertions, with polyhedral pressure error 0.600827%. It adds V2 failures,
-and its unchanged V6 seeded solve stalls. Retaining it would violate the
-requested regression boundary.
+## Converged solution and unchanged acceptance gates
 
-## Source and runtime
+CPU and Metal use the same original tests and limits. Pressure removes a volume-weighted constant gauge and is normalized by the analytic radial pressure range.
 
-- Branch `pressure-poly-consistency`, worktree `t3-2a096bd1`, starting at `fb827e0`.
-- Apple M4 Pro, macOS 26.6.2, AppleClang 21.0.0.21000101, C++20 Release.
-- CPU serial oracle and native Metal. Float fields and geometry, existing
-  compensated/double reductions. CUDA 13.0.2 compile checks use the CI targets
-  `75-real;86-real;89-real;120`; no NVIDIA device was available.
-- The V6 case/data SHA256 values are
-  `8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc` and
-  `863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42`.
-- `metadata.json` records source and executable hashes. Other agents ran tests
-  concurrently. Timings and time-budget endpoints are not performance evidence.
+| Poly cells | Before pressure L2 (%) | After pressure L2 (%) |
+| ---: | ---: | ---: |
+| 384 | 9.076386 | 2.927974 |
+| 1,536 | 3.607781 | 0.521156 |
+| 6,144 | 1.691271 | 0.092681 |
 
-## What the pressure error contains
+The 6,144-cell gate passes below 1%; the coarse diagnostic remains above 1%. The three-level observed poly pressure order is about 2.49, versus 1.21 before. Hex pressure error is 0.311599%. The native rotating-wall adapter hold is removed; its quick test checks the imported angular velocity.
 
-The unchanged V7.2 result reproduces on both backends:
+| V6 backend / start | Before velocity / pressure L2 (%) | After velocity / pressure L2 (%) |
+| --- | ---: | ---: |
+| cpu / seeded | 3.601602 / 2.962540 | 3.601605 / 2.962466 |
+| cpu / cold-hybrid | 3.601460 / 2.961665 | 3.601465 / 2.961828 |
+| metal / seeded | 3.601603 / 2.962296 | 3.601605 / 2.962460 |
+| metal / cold-hybrid | 3.601460 / 2.961921 | 3.601464 / 2.961693 |
 
-| Mesh | Cells | Velocity L2 | Pressure relative L2 | Momentum defect |
-| --- | ---: | ---: | ---: | ---: |
-| Hex, 8 rings / 64 sectors | 512 | .00452144 | .00309582 | 6.57222e-8 |
-| Poly, 32 rings / 256 sectors | 6,144 | .000324131 | .0169127 | 9.26867e-8 |
+V6 remains approximately 3.60% velocity / 2.96% pressure error. Its same 29 accuracy assertions fail; this laminar reconstruction does not change its SST operators. Small integrated-source/rounding differences are retained in the JSON.
 
-Pressure L2 removes a volume-weighted constant gauge and divides by the
-analytic radial pressure range. The finer result still fails the 1% bound.
-The retained polyhedral refinement sequence is 384 / 1,536 / 6,144 cells:
-pressure errors `.09076386154 / .03607781113 / .0169127`, giving orders
-**1.33101 / 1.09300**. Velocity errors are
-`.005230776072 / .001292472365 / .000324131`.
+## Cause and formulation
 
-Most of the pressure error is an azimuthally alternating mode in the fine-cell
-rings, rather than a radial mean error. On the 384-cell mesh, the inner fine
-ring has pressure error range `[-.0339574, .0324573] Pa` after removing the
-constant gauge, but ring mean `-.0007561 Pa`. The next coarse ring's range is
-only `[.00155434, .00156860] Pa`. The pattern repeats through the alternating
-fine/coarse rings. `rings_baseline8.log` retains every ring's mean and extrema.
+All ablations use the same 6,144-cell poly mesh, analytic seed, viscosity one,
+1,200 iterations and CPU solver, with only the indicated operator disabled.
+The production source is unchanged by these diagnostics; isolated patches are
+preserved as [diffusion-only](ablation_diffusion_only.patch) and
+[predictor-only](ablation_momentum_only.patch).
 
-At fixed coarse mesh and wall speed, viscosity `.1 / 1 / 2` gives pressure
-errors **1.04337% / 9.07639% / 18.05425%**. Velocity error remains near `.0053`.
-These seeded runs use 600 / 1,200 / 600 steps and have momentum defects below
-`2e-7`. Solid-body rotation, whose velocity is linear and pressure quadratic,
-has only `.150427%` pressure error on the same coarse poly mesh after 400
-steps. A centrifugal-pressure explanation alone does not account for these
-observations.
+| Active correction | Pressure relative L2 (%) | Velocity L2 |
+| --- | ---: | ---: |
+| Original operators | 1.691271 | .0003241313 |
+| Projected diffusion only | 1.677778 | .0003017230 |
+| Projected momentum predictor only | .068611 | .0003261246 |
+| Both, retained | .092681 | .0003025337 |
 
-![Recorded pressure and viscous diagnostics](diagnostics.png)
+The predictor-only pressure error is lower than the retained result. The
+combined method is retained for its independent quadratic viscous-flux accuracy
+and improved V2 finest-grid field/traction errors, rather than selecting the
+smallest annulus pressure number. The pressure error's viscosity scaling is not
+unique evidence against diffusion: in this diffusion-dominated flow, Rhie–Chow
+mobility is proportional to `V/aP`, approximately `1/mu`. Compensating a spurious
+face-normal predictor velocity therefore requires a pressure mode proportional
+to viscosity. This is an inference from the published coupling formula and the
+controlled ablations, not an independent Fluent observation.
 
-## Manufactured pressure checks
+The original kernel implements Fluent's published primary/secondary diffusion
+split correctly. An independent double oracle agrees within float roundoff,
+including with exact cell gradients. The defect is therefore not a missing
+secondary term or the wrong primary normal distance. Its linearly reconstructed
+secondary term does not resolve quadratic tangential variation on skewed faces.
+The coarse/fine radial faces expose this most clearly: their exact-state viscous
+normal-flux error converges at order 0.99 before the change and 1.95 afterward.
 
-`FV poly annulus manufactured pressure reconstruction` uses the actual V7.2
-poly mesh sequence with `p=.7x-.3y` and `p=(x²+y²)/2`. It calls the production
-LSQ and pressure-face kernels. It separates wall cells from interior cells,
-and exact boundary observations from the solver's omitted pressure rows.
+Let F be the face centroid, n its unit normal, P/N the cell centroids,
+dp = n·(F−P), dn = n·(N−F), and alpha = A/(dp+dn). Define the projected points
+P* = F−n dp and N* = F+n dn. A geometry-only quadratic least-squares fit qhat
+supplies the deferred correction
 
-| Quadratic pressure, omitted boundary rows | 8 rings | 16 rings | 32 rings | Finest order |
-| --- | ---: | ---: | ---: | ---: |
-| Interior LSQ vector L2 | .0239612 | .0110889 | .00539653 | 1.039 |
-| Wall-cell LSQ vector L2 | .104679 | .0497555 | .0240487 | 1.049 |
-| Azimuthal face-pressure RMS | .00778755 | .00193221 | .000479249 | 2.011 |
-| Fine/coarse radial face-pressure RMS | .00283494 | .000799340 | .000209684 | 1.931 |
-
-The linear gradient is exact to float precision, with maximum error below
-`2e-5`; linear face values and Rhie-Chow jumps are below `2e-6`. CPU and Metal
-agree to the printed digits. Exact boundary values reduce the quadratic wall
-LSQ error to `.0430934 / .0184634 / .00837724`, but do not make the interior
-linear LSQ fit quadratic-exact.
-
-The recently added Rhie-Chow extrapolation bound is inactive on every annular
-face: maximum `|skew|/|link|` is `.310053 / .309489 / .309172`, and no face
-exceeds one. Removing the skew term everywhere changes fine pressure error
-only from 1.69127% to 1.64044%. It cannot explain the V7.2 failure.
-
-## Exact-state momentum and quadratic viscous flux
-
-`bench_poly_momentum` freezes analytic Taylor-Couette cell values, then isolates
-pressure, convection and the scalar viscous Laplacian without taking an outer
-iteration. The viscosity is one. It uses exact radial-wall values and zero
-cap-normal flux. Pressure boundary values are exact in this operator diagnostic;
-this deliberately excludes pressure-boundary extrapolation from that comparison.
-
-At 32 rings, volume-weighted RMS tangential defects are:
-
-| Term | Defect |
-| --- | ---: |
-| Viscous Laplacian, production LSQ gradients | .129138 |
-| Viscous Laplacian, analytic exact velocity gradients | .112376 |
-| Viscous Laplacian, Gauss gradients of second-order faces | .129065 |
-| Momentum pressure force, LSQ second-order faces | .00364665 |
-| Momentum pressure force, exact pressure gradients in the face reconstruction | 1.07210e-6 |
-| Convection, production LSQ gradients | .00189616 |
-| Convection, exact velocity gradients | 3.58484e-6 |
-
-The viscous defect is about 35 times the pressure-force defect. Exact velocity
-gradients remove only 13% of it. This identifies a large viscous face-placement
-and boundary truncation contribution, with coupling to mass interpolation;
-it does not establish a complete causal decomposition of the converged error.
-The pressure source itself applies the expected conservative Gauss sum.
-
-The second manufactured check uses divergence-free quadratic velocity
-`u=x²`, `v=-2xy`, exact boundary values, and either LSQ or exact gradients.
-It evaluates the actual transport face correction and implicit link flux.
-The independent host-double oracle evaluates the documented primary/secondary
-split using the same float observations and Kutta's geometric gradient mean:
-
-```text
-alpha = (S.S)/(S.d)
-F = mu * [alpha*(qN-qP) + Gmean.(S-alpha*d)]
+```
+C = alpha [qhat(N*) − qhat(N) − qhat(P*) + qhat(P)]
+Fdiff / mu = alpha (qN − qP) + C.
 ```
 
-The kernel/oracle discrepancy in normal derivative is below `7e-7` across
-both components, every face type and both backends. There is no missing
-secondary term or reversed sign in that implementation. Fluent describes an
-adjacent-cell gradient average; Kutta uses a face-normal-distance-weighted
-mean. The separate arithmetic-mean trial does not resolve V7.2.
+At a Dirichlet wall N=F and dn=0. The implicit primary coefficient is unchanged.
+For a linear field, C is exactly `grad(q)·(S−alpha*(N−P))`, the documented
+secondary diffusion term. For a quadratic field the tangential shifts are exact.
+The normal two-point curvature error is deliberately retained, including at
+orthogonal walls; replacing it by a wide fitted derivative caused cavity
+regressions in rejected trials.
 
-For `u=x²`, area-weighted RMS normal-derivative errors are:
+Momentum face velocity uses the same normal-projected states with geometric
+normal interpolation, while retaining the compact momentum-diagonal-weighted
+cell coupling. If w=aP/(aP+aN), its deferred correction is
 
-| Face type, production LSQ | 8 rings | 16 rings | 32 rings | Finest order |
+```
+qstar = [dn*qhat(P*) + dp*qhat(N*)] / (dp+dn)
+qface = w*qP + (1−w)*qN
+      + [qstar−qhat(P)] − (1−w)*[qhat(N)−qhat(P)].
+```
+
+This corrects the skew curvature in the mass predictor. It does not replace the
+Rhie–Chow pressure term. With limiting enabled the existing cell Barth limiter
+bounds/blends this correction from the original face predictor; a zero limiter
+recovers that predictor exactly.
+
+Fits are centered at F, include both adjacent cells, and use symmetric weights
+`1/(|sample−P|²+|sample−N|²)`. Three overlapping neighbour rings supply the
+cloud, expanded to five only when the requested functionals are rank deficient.
+Only independently prescribed boundary face values enter the fit. Roundoff-
+orthogonal faces retain the original stencil without allocating reconstruction
+weights. Rank-deficient faces and clouds containing discontinuous prescribed
+wall traces retain the original method. This trace check uses rigid wall motion
+before projection onto faceted normals, so smooth rotation is not misclassified.
+
+Wall forces retain the fitted tangential derivatives and replace their normal
+component with the exact flux assembled by the compact momentum stencil. The
+full Newtonian traction therefore uses the same normal viscous flux as the
+momentum equation, even for non-polynomial fields.
+
+This is a standard quadratic geometric reconstruction extending the documented
+linear split. It is **not a claim that Fluent uses these polynomial weights**:
+Fluent's public documentation does not specify that reconstruction. The latest
+task instruction permits a standard consistent treatment where that formula is
+not published. The [Fluent Customization Manual, §3.2.5, Eq. 3.3](https://ansyshelp.ansys.com/public/Views/Secured/corp/v251/en/pdf/Ansys_Fluent_UDF_Manual.pdf)
+specifies the primary/secondary split; the [Theory Guide, §23.4.1](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_solver_pb_mom_eq.html)
+specifies central Second Order pressure and the separate body-force-weighted
+option. No body-force-weighted pressure scheme was needed to pass this annulus.
+
+## Operator evidence
+
+The probe evaluates production kernels on exact Taylor–Couette cell fields at
+8, 16 and 32 radial rings, for hex and poly meshes. It separates azimuthal,
+regular radial, coarse/fine radial, inner/outer wall and cap faces, and separates
+interior/inner-wall/outer-wall cells. The poly sequence has 384, 1,536 and 6,144
+cells. Both analytic wall observations and the actual faceted rotating-wall
+values are measured, with LSQ and exact velocity/pressure gradients, on CPU and
+Metal. Every norm, maximum and adjacent refinement order is preserved in
+[before](operators-baseline.json) and [after](operators-after.json); the readable
+[operator table](operator_orders.md) contains every CPU analytic-wall/LSQ row.
+The raw probe logs are [before](operators-baseline.log) and [after](operators-after.log).
+
+Face RMS norms are area weighted; cell RMS norms are volume weighted. The probe
+reports both centroid face fluxes and signed seven-point triangle-integrated
+fluxes. Triangle orientation is retained for concave poly cap polygons. Pressure
+source truncation is also compared against integrated analytic cell forcing,
+not only the pressure gradient sampled at a centroid.
+
+The first-order-operator heuristic needs qualification. The inner-wall viscous
+normal derivative is first order on **both** hex and poly meshes; the unchanged
+one-sided normal wall stencil has that local truncation error. Its cell residual
+need not vanish pointwise with refinement. The faceted physical rotating-wall
+trace adds another O(h²) velocity mismatch divided by an O(h) wall distance.
+The fixed-thickness axial caps are not axially refined. None of these observations
+can by itself diagnose the poly-only pressure mode. Local flux, local divergence
+and converged solution orders are distinct; [Diskin and Thomas, AIAA 2012-0609](https://ntrs.nasa.gov/citations/20120001451)
+explicitly separates these error measures on irregular meshes.
+
+The retained reconstruction improves coarse/fine radial viscous flux and the
+coupled mass predictor. Bulk continuity at the exact state improves from order
+0.94 to 2.34. Some local errors remain first order, and some magnitudes increase:
+for example bulk viscous divergence RMS at 32 rings rises from .05972 to .08409,
+although its observed order improves from approximately zero to .95. Azimuthal
+viscous face error also increases. These are recorded rather than hidden behind
+the improved pressure solution. The complete before/after records are needed to
+judge the remaining irregular-mesh truncation error.
+
+The quadratic pressure checks also narrow the original hypotheses. Linear
+pressure and boundary-cell gradients reproduce the manufactured field within
+float tolerance. Quadratic cell LSQ gradients are only first order on this
+irregular sequence, while quadratic face pressures approach second order. The
+recent remote-extrapolation bound is inactive: the largest normalized skew is
+.3101, below its activation threshold of one. Thus removing that bound cannot
+repair V7.2. Pressure Gauss gradients retain first-order local errors, but the
+same unchanged pressure source now supports a passing pressure solution. The
+radial Rhie–Chow normal-velocity contribution is about 1.02e-6 at 32 rings,
+compared with the original mass-predictor error of 1.12e-4; its observed order
+is 3.35 and it is unchanged by the repair.
+
+All 224 pressure-operator records and all 64 isolated Rhie–Chow pressure-term records are identical
+before and after; so are the 80 isolated convective-flux records. The converged
+coupled convective flux changes through the corrected mass predictor, as it
+should. See [the comparison](unchanged_operators.json).
+
+## Manufactured proofs
+
+A paired manufactured velocity `(u,v,w)=(x²,−2xy,0)` uses identical
+observations before and after, including exact cell gradients. The finest-poly
+area-weighted RMS derivative errors and 16→32-ring orders are:
+
+| Component / face | Before RMS | Before order | After RMS | After order |
 | --- | ---: | ---: | ---: | ---: |
-| Azimuthal | .00460667 | .00113608 | .000281935 | 2.01063 |
-| Fine/coarse radial | .0302109 | .0146998 | .00730891 | 1.00807 |
-| Inner wall | .0389767 | .0193241 | .00961636 | 1.00684 |
-| Outer wall | .0788584 | .0419988 | .0216599 | .95532 |
-| Symmetry cap | below 2e-15 | below 2e-15 | below 2e-15 | roundoff |
+| u / azimuthal | 2.81935e-4 | 2.011 | 1.12880e-6 | float noise |
+| u / coarse-fine radial | .00683831 | .995 | 8.56878e-5 | 1.987 |
+| u / inner wall | .00961636 | 1.007 | .00961636 | 1.007 |
+| u / outer wall | .0216536 | .957 | .00972430 | 1.023 |
+| v / azimuthal | 5.63867e-4 | 2.011 | 1.28940e-6 | float noise |
+| v / coarse-fine radial | .0136750 | .995 | 9.89811e-5 | 1.986 |
+| v / inner wall | .0111045 | 1.007 | .0111045 | 1.007 |
+| v / outer wall | .0376235 | .974 | .0112285 | 1.023 |
+| u,v / axial cap | 0 | — | 0 | — |
 
-Exact gradients leave the fine/coarse radial error at `.0270864 / .0136319 /
-.00683831`, still first order. These are errors in flux divided by face area.
-An integrated flux error has an additional factor of face size on the refined
-vertical faces; it must not be reported as the order of the normal derivative.
+The inner-wall numbers are exactly the same on hex and poly; hex outer-wall
+errors are .00954260 for u and .0110183 for v, both order .996. CPU and Metal
+RMS records match exactly for this diagnostic. This directly distinguishes
+quadratic tangential reconstruction from a wall-normal-distance mistake.
+All three levels, LSQ/exact variants and face types are in
+[quadratic before](quadratic-baseline.json) and [after](quadratic-after.json),
+with raw logs beside them. The probe is `bench_quadratic_viscous`.
 
-## Rejected numerical candidates
+The quick tier includes independent linear/quadratic pressure and original
+primary/secondary diffusion oracles, plus new checks on Cartesian hex, tetrahedral
+and all three poly annulus levels:
 
-No threshold, mesh, stopping criterion or source was changed for V2 or V7.2.
-These are exploratory alternatives, not accepted implementations.
+- Quadratic tangential projection reproduces the independent normal-foot finite
+  difference and normal-central interpolation, including unequal momentum
+  diagonals. It does not falsely demand a quadratic-exact one-sided wall normal
+  derivative. Maximum float errors are below 5.8e-5 for the normal derivative,
+  1.9e-6 for interpolation, and 2.2e-5 for the fitted gradient.
+- For non-polynomial fields, the wall-gradient normal flux mismatch falls from
+  .0948 (tet) / .365 (poly) to below 2.5e-7, while tangential derivatives change
+  by less than 1.6e-7.
+- Reversing cell numbering reverses physical face ownership while preserving the
+  mesh invariant owner<neighbour. Corrections reverse sign and physical face
+  velocities remain invariant within 2e-6. This guards against a rejected
+  one-sided fit that passed the annulus but broke generated/imported cavity parity.
+- An all-zero cell limiter restores the original face predictor exactly.
 
-| Change from baseline | Coarse/fine poly pressure % | Reason rejected |
-| --- | --- | --- |
-| Shared-link Rhie-Chow jump on all faces | 8.83201 / 1.64044 | V7.2 still fails |
-| Gauss momentum pressure gradient in bounded Rhie-Chow | 8.02250 / 1.47780 | V7.2 still fails |
-| Arithmetic secondary-gradient mean | 9.07190 / 1.69120 | V7.2 still fails |
-| Additional gradient-jump/skew correction to viscous flux | 8.93444 / 1.67718 | V7.2 fails; no published Fluent formula was established for this extra term |
-| Laminar interior transpose stress alone | 9.14365 / not run | Coarse velocity error rises to .0100248; no improvement |
-| Momentum-weighted side velocity reconstructions | 2.45271 / .600827 | Original V7.2 passes, but V2 adds hex velocity, pressure and load failures; V6 seeded convergence stalls |
+The general quadratic test includes axial curvature; axial cap error remains
+constant under purely radial/azimuthal refinement because layer thickness is
+fixed. Taylor–Couette itself is axially constant and has zero cap flux.
 
-The side-velocity trial follows the interpolation favored by the existing
-[Fluent flux forensics](../../../docs/research/fluent-flux-gradient-forensics.md).
-Its pressure scheme and bounded LSQ Rhie-Chow jump are unchanged. This is a
-partial formula substitution, not a complete Fluent high-order-flux implementation.
-The unchanged V7.2 side-reconstruction test gives hex pressure `.596663%`,
-poly pressure `.600827%`, poly velocity `.000322576` and momentum defect
-`4.0209e-8`, on both backends. Its full 6,668 assertions pass. The same trial's
-V2 hex finest velocity/pressure orders are `1.82292 / 1.57075`, against
-`1.9 / 1.8`. Its V6 seeded CPU run was stopped after 3,050 steps with
-continuity near `1.28e-4` and omega defect near `6.99e-5`. No converged field
-error is claimed for that rejected trial.
+## Scope and unresolved limits
 
-A second set of trials combined side velocities with laminar tangential wall
-shear and omitted normal wall traction, then added interior transpose stress,
-a Gauss Rhie-Chow gradient, or the documented `-2/3 mu div(u) I` stress term.
-They recover some wall-load orders but retain new V2 failures. Representative
-finest orders are:
+The correction is enabled for laminar momentum. SST, SA and realizable-k-epsilon
+retain their existing diffusion and wall-function contracts. In particular this
+work does not change V6's SST viscous operators or resolve its unmatched WFGC
+setting. It does not establish Fluent same-mesh agreement, full FSAE-car
+acceptance, arbitrary-polyhedral second-order pointwise truncation, or CUDA GPU
+execution parity. Existing tetrahedral wall-load accuracy failures remain
+visible; no original acceptance assertion or threshold was weakened.
 
-| Trial | Hex velocity / pressure | Tet velocity / pressure |
-| --- | --- | --- |
-| Tangential laminar wall shear, original interior Laplacian | 1.88393 / 1.80872 | 2.04973 / .863289 |
-| Plus interior transpose stress | 1.90477 / 1.70540 | 2.05346 / .938831 |
-| Tangential wall shear plus Gauss Rhie-Chow | 1.88466 / 1.80980 | see raw log |
-| Full stress with dilation and Gauss Rhie-Chow | 1.89239 / 1.77999 | 1.98487 / .796726 |
+Geometry fitting occurs only at setup. Every field-dependent reconstruction,
+transport assembly and force operation runs through Device and generated
+CPU/CUDA/Metal kernels. No app source, convergence control, pseudo time or
+linear solver was changed by this lane. Main's independently developed
+convergence changes are included by the final rebase and identified in metadata.
+Historical diagnostics and rejected trials are preserved under [historical](historical/README.md);
+their old `final` names do not identify this retained scheme.
 
-Replacing the wall diagonal with its projected tangential tensor in the last
-combination destabilizes V2. That rejected source is in
-`rejected_wall_tensor.patch`. Its run and the already rejected V6 runs were
-terminated; their incomplete logs are labelled by their trial names. They are
-not successful field comparisons or complete assertion inventories.
+## Full assertion comparison and runtime proof
 
-## Retained results and verification
+The original baseline is `fb827e0d416746030eaf156f9f42fca87b712a31`. Numerical source is `d4fa853`, rebased onto main `587de30`. Machine: Apple M4 Pro / 24 GiB, macOS 26.6.2 arm64, AppleClang 21, C++20 Release. [Metadata](metadata.json) records source, generated-code, executable and fixture hashes. Every check set `KUTTA_FLUENT_EXAMPLES`; TMR grids were unzipped. The Linux CPU run additionally verified all 13 source-relative fixture hashes before executing.
 
-The retained numerical code and native rotating-wall rejection are unchanged.
-Before/after V7.2 remains 1.69127% poly pressure error, with exactly its two
-CPU/Metal pressure failures. No accepted improvement is claimed for V6.
+All 24 slow cases and 10,884 assertions were compared by case, normalized source location, expression, INFO context and occurrence. No assertions are missing or added. Changed expanded values are retained even when outcomes match. The only context normalization is the known SA INFO ternary-pointer address, scoped to that case and exact message shape; a synthetic check confirmed distinct identities, changed-value detection, new-failure detection and missing-assertion detection.
 
-- Default native quick tier passes, 191 cases and 1,507,441 assertions, including
-  compiled Metal presence. CTest and portability lint pass 2/2.
-- The external saved-elbow SST check passes 34,204 assertions.
-- Selecting the entire external example directory reveals two static-mixer
-  `viscous` metadata equality failures. The unmodified baseline independently
-  reproduces both. They are outside this lane; the default quick tier does not
-  contain those external files. `baseline_external_quick_failure.log` and
-  `final_quick.log` retain that distinction.
-- CUDA configuration/build and its CPU-oracle quick tier pass. The external
-  elbow pair is checked natively; it is absent inside the CUDA container.
-- The complete V1-V6 plus Couette slow comparison is recorded below after both
-  runs finish. SA, realizable-KE, native fan and unrelated research-download
-  slow cases are outside that comparison. No claim is made about all 24 slow
-  cases in the integrated repository.
+| Slow case | Before failed | Final failed |
+| --- | ---: | ---: |
+| FV V3 Re1000 cavity refinement against Erturk | 0 | 0 |
+| FV V3 Re100 and Re400 cavity reported deviations | 0 | 0 |
+| FV V4 Fluent cavity matches its actual grid | 0 | 0 |
+| FV V6 Fluent mixing elbow fixed point and cold start | 29 | 29 |
+| FV V2 manufactured Navier Stokes hex refinement | 0 | 0 |
+| FV V2 manufactured Navier Stokes tet refinement | 6 | 6 |
+| FV V1 manufactured scalar diffusion and upwind refinement | 0 | 0 |
+| FV SIMPLEC develops planar Couette flow with moving and slip walls | 0 | 0 |
+| V5 TMR flat plate SST accuracy and three-grid trend | 6 | 6 |
+| V5 TMR bump SST station accuracy and three-grid trend | 10 | 9 |
+| FSAE V12 native Fluent polynomial fan import acceptance | 1 | 1 |
+| V8 realizable KE scalable channel MKM DNS profile and momentum balance | 0 | 1 |
+| V7 SA TMR flat plate and bump accuracy convergence and three-grid trend | 17 | 17 |
+| FSAE V7.1 translating-wall Couette hex and poly | 0 | 0 |
+| FSAE V7.2 rotating-wall Taylor Couette hex and poly | 2 | 0 |
+| FSAE V8 Darcy Forchheimer pressure drop and oblique directions | 0 | 0 |
+| FSAE V9 absolute-velocity MRF analytic solutions and frame invariance | 0 | 0 |
+| FSAE V10 incompressible pressure and mass-flow inlets | 0 | 0 |
+| FSAE V11 internal fan polynomial and porous jump pressure discontinuity | 0 | 0 |
+| FSAE V7.3 SST moving-wall and translating-frame invariance | 0 | 0 |
+| FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette | 0 | 0 |
+| FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport | 0 | 0 |
+| FSAE V9.3 rotation and translation preserve Taylor Couette pressure | 0 | 0 |
+| Fluent research downloads retain published byte identities | 0 | 0 |
 
-The complete V6 seeded/hybrid runs reproduce every printed velocity and pressure
-error exactly. Pressure fields are compared directly to Fluent source cells,
-with the same gauge and no resampling.
+[Complete assertion comparison](comparison_final_source.json), [final XML](final-slow.xml), [final output](final-slow.log), and [original full baseline](baseline_all_slow.xml) preserve the evidence. Earlier full/run-attempt outputs are separate; they are not substituted for failures in this final run.
 
-| Backend/start | Steps before / after | Velocity L2 %, before = after | Pressure L2 %, before = after |
-| --- | ---: | ---: | ---: |
-| CPU seeded | 350 / 350 | 3.601602396 | 2.962540070 |
-| CPU hybrid | 550 / 550 | 3.601460363 | 2.961664678 |
-| Metal seeded | 350 / 350 | 3.601603208 | 2.962295937 |
-| Metal hybrid | 550 / 550 | 3.601459710 | 2.961920831 |
+The final full tier is **not green**: Metal's unchanged k-epsilon channel stopped at 5300 steps / 182.5 seconds. Its new failed assertion is the time-limited convergence check. Original-channel trajectories agree, but Metal wall time varied enough to stop before the required 5,700 steps. A current-machine original-binary replay converged at 5,700 / 183.7 seconds; candidate attempts stopped at 4,300, 5,400 and 4,200 steps at the 180-second check. The legacy transport shader/signature has been restored verbatim, with projected diffusion on a separate entry point. This timing instability remains unresolved; no budget or convergence gate was changed. V1–V6 have no new failed assertions.
 
-<!-- SLOW_RESULTS -->
+V2 finest tetrahedral errors improve from .0131268 to about .0118707 for velocity, .0764240 to .0558932 for pressure, and .0418577 to .0285646 for total wall force. Some order estimates decline: velocity 1.9778→1.9020, viscous wall load .8613→.8111, and total wall load .8718→.5468. The velocity gate remains passed and the same six wall-load assertions remain failed; lower finest-grid errors do not mean every measured slope improved. The comparator records all such values.
 
-## Documentation and remaining work
+The apparent recovered SST-bump assertion is a budget endpoint effect (more CPU iterations), not evidence for this laminar reconstruction. SA/SST unconverged results remain diagnostics. Native polynomial fan import still lacks its V12 fixture/encoding acceptance.
 
-[Fluent Theory Guide 23.4.1](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_solver_pb_mom_eq.html)
-gives the existing two-side second-order pressure reconstruction. Its body-force
-weighted scheme concerns a known force/pressure-gradient balance. V7.2 runs in
-the inertial frame with no prescribed body force; its centrifugal balance comes
-from convection. The side-velocity trial already reaches .600827% with the
-existing Second Order pressure scheme. Thus this failure does not establish a
-need for body-force-weighted pressure at the required resolution. It also does
-not prove what Fluent itself would achieve on this mesh. No body-force-weighted
-scheme was substituted into the unchanged test.
+## Cost and CUDA portability
 
-[Fluent Customization Manual 3.2.5](https://ansyshelp.ansys.com/public/views/secured/corp/v252/en/flu_udf/flu_udf_DataAccessMacros.html)
-gives the primary/secondary diffusion split used by the oracle.
-[Fluent User's Guide 8.4.15.14.1](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/flu_ug/flu_ug_bcs_sec_bound_cond.html)
-defines laminar wall shear from the normal derivative of tangential velocity.
-The tested wall changes are interpretations of that law in the coupled
-operator, not proof of Fluent's complete discrete boundary implementation.
-The extra viscous skew term tested above is not presented as a Fluent algorithm.
+One serial end-to-end sample uses the same 6,144-cell / 1,200-step scenario per backend. It includes setup, initialization, solve and final reductions; CPU also includes initial device discovery. It is not a kernel-throughput benchmark.
 
-The next useful evidence is a Fluent solution on these exact generated annular
-meshes, preferably with saved face fluxes and cell derivative/reconstruction
-gradients, with WFGC explicitly controlled. That would distinguish Fluent's
-viscous face-gradient and wall implementation from an accuracy limitation of
-this synthetic alternating mesh. A WFGC-off elbow reference would also separate
-that known setup mismatch from the remaining V6 discrepancy. Neither reference
-nor a Fluent executable was available in this checkout. More tuning against
-V7.2 alone would not meet the requested Fluent-matching requirement.
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| cpu scenario (seconds) | 45.85 | 57.14 |
+| metal scenario (seconds) | 50.07 | 50.67 |
+| Peak process RSS (MiB) | 54.39 | 121.41 |
 
-Native rotating-wall acceptance, a regression-safe numerical repair and Fluent
-same-mesh agreement remain unresolved. No adapter gate was opened, no app code
-was edited, and no commit was pushed.
+[Timing and executable identities](performance.json) record the sample. Overlapping face clouds add storage and work; car-scale memory and throughput were not measured. No G4 speed claim is made.
+
+CUDA 13.0.2 container / NVCC 13.0.88 compiles the complete C++/generated-kernel stack for `75-real;86-real;89-real;120`. A separate Linux CPU-only build passes 225 cases / 3,756,393 assertions with all 13 fixture hashes verified, including source-relative legacy readers. See [compile output](cuda-compile.log) and [accepted fixture-backed CPU output](cuda-fixture-quick.log). The first container CPU pass had source-relative fixture skips and is not the accepted fixture proof. No NVIDIA device was available, so CUDA GPU execution remains unverified. Native quick passes 225 cases / 7,413,872 assertions, compiled Metal presence and portability lint ([output](quick-ctest.log)).
 
 ## Reproduction
 
 ```sh
-export KUTTA_FLUENT_EXAMPLES=/path/to/Kutta/validation/fluent_examples
+export KUTTA_FLUENT_EXAMPLES="${KUTTA_FLUENT_EXAMPLES:?set the external fixture root}"
 python3 tools/prepare_tmr.py
-cmake -S . -B build-pressure -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build-pressure -j 6
-./build-pressure/kutta-tests --test-case='FV poly*'
-./build-pressure/bench_poly_momentum
-./build-pressure/bench_poly_pressure 8 0 1200 1
-./build-pressure/bench_poly_pressure 16 0 1200 1
-./build-pressure/bench_poly_pressure 32 0 1200 1
-./build-pressure/kutta-tests --test-case='FSAE V7.2*'  # retains its real nonzero exit
-ctest --test-dir build-pressure -LE slow --output-on-failure
-./build-pressure/kutta-tests --test-suite=slow \
-  --test-case-exclude='FSAE*,V7*,V8*,Fluent research*' --success --reporters=xml --out=slow.xml
-python3 tools/forensics/compare_slow_assertions.py baseline_slow.xml final_slow.xml
-python3 tools/forensics/plot_poly_pressure.py validation/results/poly_pressure
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j 6
+ctest --test-dir build -LE slow -V
+build/kutta-tests --test-suite=slow --success --reporters=xml --out=slow.xml
+python3 tools/forensics/compare_slow_assertions.py baseline_all_slow.xml slow.xml
+build/bench_taylor_couette_operators --baseline > operators-baseline.log
+build/bench_taylor_couette_operators > operators-after.log
+build/bench_quadratic_viscous --baseline > quadratic-baseline.log
+build/bench_quadratic_viscous > quadratic-after.log
 ```
-
-The plot script needs matplotlib; the assertion comparator uses only Python's
-standard library. The baseline executable was built before any source change
-and preserved separately. Raw logs retain failed gates and interrupted trials.

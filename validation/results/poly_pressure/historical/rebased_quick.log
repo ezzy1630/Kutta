@@ -1,0 +1,1633 @@
+Solve CLI: generated CFF/data, residuals, VTU, forces, SHA256, and rejection checks passed
+App protocol: devices, inspect, JSONL event order/reports, EOF and SIGINT passed
+Setup overrides: actual inlet mass flux -1.0 -> -2.0 kg/s; rejections and provenance passed
+Live CLI: publication, paths, run identity, sequence, timing, refreshed pressure states, stop handling and option validation passed
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+<checkout>/tests/app/test_inspect.cpp:60:
+TEST CASE:  Inspect labels active relaxation equations and issue classes
+
+0.018397 s: Inspect labels active relaxation equations and issue classes
+===============================================================================
+<checkout>/tests/app/test_inspect.cpp:80:
+TEST CASE:  Inspect real static mixer displays resolved expressions instead of saved snapshots
+
+0.035903 s: Inspect real static mixer displays resolved expressions instead of saved snapshots
+===============================================================================
+<checkout>/tests/app/test_solve.cpp:159:
+TEST CASE:  Solve CLI runs generated CFF cases and data, rejects settings, and emits parseable outputs
+
+0.641049 s: Solve CLI runs generated CFF cases and data, rejects settings, and emits parseable outputs
+===============================================================================
+<checkout>/tests/app/test_solve.cpp:187:
+TEST CASE:  SHA256 input fingerprints match standard vectors across padding boundaries
+
+0.005203 s: SHA256 input fingerprints match standard vectors across padding boundaries
+===============================================================================
+<checkout>/tests/case/test_case.cpp:84:
+TEST CASE:  Case extraction uses authoritative flags and never invents missing settings
+
+0.000284 s: Case extraction uses authoritative flags and never invents missing settings
+===============================================================================
+<checkout>/tests/case/test_case.cpp:115:
+TEST CASE:  Case expression selectors do not expose inactive numeric settings
+
+0.000032 s: Case expression selectors do not expose inactive numeric settings
+===============================================================================
+<checkout>/tests/case/test_case.cpp:128:
+TEST CASE:  Case BC material frame porous and force bindings stay explicit
+
+0.000137 s: Case BC material frame porous and force bindings stay explicit
+===============================================================================
+<checkout>/tests/case/test_case.cpp:173:
+TEST CASE:  Case malformed identities and incomplete Scheme fail at the boundary
+
+0.000207 s: Case malformed identities and incomplete Scheme fail at the boundary
+===============================================================================
+<checkout>/tests/case/test_case.cpp:179:
+TEST CASE:  Case legacy metadata is hexadecimal and binary bodies stay opaque
+
+0.000471 s: Case legacy metadata is hexadecimal and binary bodies stay opaque
+===============================================================================
+<checkout>/tests/case/test_case.cpp:207:
+TEST CASE:  Real legacy cases parse without HDF5
+
+0.037965 s: Real legacy cases parse without HDF5
+===============================================================================
+<checkout>/tests/case/test_case.cpp:222:
+TEST CASE:  Real mixing elbow typed settings match verified CFF values
+
+0.011850 s: Real mixing elbow typed settings match verified CFF values
+===============================================================================
+<checkout>/tests/case/test_case.cpp:263:
+TEST CASE:  Real elbow1 authoritative k epsilon and velocity components
+
+0.012943 s: Real elbow1 authoritative k epsilon and velocity components
+===============================================================================
+<checkout>/tests/case/test_case.cpp:287:
+TEST CASE:  Static mixer typed settings agree across CFF ASCII and binary legacy
+
+0.051220 s: Static mixer typed settings agree across CFF ASCII and binary legacy
+===============================================================================
+<checkout>/tests/case/test_case.cpp:330:
+TEST CASE:  Case support is an allowlist for authoritative physics flags
+
+0.000409 s: Case support is an allowlist for authoritative physics flags
+===============================================================================
+<checkout>/tests/case/test_case.cpp:348:
+TEST CASE:  Unsupported k epsilon retains its active equation schemes
+
+0.000033 s: Unsupported k epsilon retains its active equation schemes
+===============================================================================
+<checkout>/tests/case/test_case.cpp:356:
+TEST CASE:  Node reconstruction mapping remains explicitly unverified
+
+0.000023 s: Node reconstruction mapping remains explicitly unverified
+===============================================================================
+<checkout>/tests/case/test_case.cpp:361:
+TEST CASE:  Energy and gravity require proven constant flow properties
+
+0.000100 s: Energy and gravity require proven constant flow properties
+===============================================================================
+<checkout>/tests/case/test_case.cpp:377:
+TEST CASE:  Zone switches reject nonneutral cell inlet and outlet behavior
+
+0.000416 s: Zone switches reject nonneutral cell inlet and outlet behavior
+===============================================================================
+<checkout>/tests/case/test_case.cpp:392:
+TEST CASE:  Translating walls require only the active velocity representation
+
+0.000074 s: Translating walls require only the active velocity representation
+===============================================================================
+<checkout>/tests/case/test_case.cpp:414:
+TEST CASE:  Inlet singular vector override detects conflicting scalar components
+
+0.000034 s: Inlet singular vector override detects conflicting scalar components
+===============================================================================
+<checkout>/tests/case/test_case.cpp:422:
+TEST CASE:  Parameter bindings never use their inactive saved constants
+
+0.000043 s: Parameter bindings never use their inactive saved constants
+===============================================================================
+<checkout>/tests/case/test_case.cpp:437:
+TEST CASE:  Only complete constant expressions with recognized units resolve
+
+0.000323 s: Only complete constant expressions with recognized units resolve
+===============================================================================
+<checkout>/tests/case/test_case.cpp:451:
+TEST CASE:  Force report surface IDs never masquerade as thread IDs
+
+0.000047 s: Force report surface IDs never masquerade as thread IDs
+===============================================================================
+<checkout>/tests/case/test_case.cpp:472:
+TEST CASE:  Inactive turbulence flags remain visible in a laminar case
+
+0.000022 s: Inactive turbulence flags remain visible in a laminar case
+===============================================================================
+<checkout>/tests/case/test_case.cpp:478:
+TEST CASE:  Active pseudo relaxation requires turbulence factors
+
+0.000030 s: Active pseudo relaxation requires turbulence factors
+===============================================================================
+<checkout>/tests/case/test_case.cpp:485:
+TEST CASE:  Force reports with empty name selections cannot claim resolved zones
+
+0.000025 s: Force reports with empty name selections cannot claim resolved zones
+===============================================================================
+<checkout>/tests/case/test_case.cpp:495:
+TEST CASE:  Reading a zone selector does not silently accept unknown behavior
+
+0.000117 s: Reading a zone selector does not silently accept unknown behavior
+===============================================================================
+<checkout>/tests/case/test_case.cpp:504:
+TEST CASE:  SA case intent is parsed without opening the unverified model allowlist
+
+0.000064 s: SA case intent is parsed without opening the unverified model allowlist
+===============================================================================
+<checkout>/tests/case/test_data.cpp:80:
+TEST CASE:  Data chunks use Fluent IDs not ordinal positions and vectors are row major
+
+0.001242 s: Data chunks use Fluent IDs not ordinal positions and vectors are row major
+===============================================================================
+<checkout>/tests/case/test_data.cpp:108:
+TEST CASE:  Data rejects invalid ranges shapes overlaps and external links
+
+0.004027 s: Data rejects invalid ranges shapes overlaps and external links
+===============================================================================
+<checkout>/tests/case/test_data.cpp:149:
+TEST CASE:  Data Case File provenance is compared by basename without claiming mesh identity
+
+0.002190 s: Data Case File provenance is compared by basename without claiming mesh identity
+===============================================================================
+<checkout>/tests/case/test_data.cpp:170:
+TEST CASE:  Case topology requires matching thread records names and types
+
+0.004483 s: Case topology requires matching thread records names and types
+===============================================================================
+<checkout>/tests/case/test_data.cpp:200:
+TEST CASE:  CFF reads large complete Thread Variables strings with a bounded parser
+
+0.227267 s: CFF reads large complete Thread Variables strings with a bounded parser
+===============================================================================
+<checkout>/tests/case/test_fsae_case.cpp:24:
+TEST CASE:  FSAE Fluent wall representations retain SI radians and relative motion
+
+0.000148 s: FSAE Fluent wall representations retain SI radians and relative motion
+===============================================================================
+<checkout>/tests/case/test_fsae_case.cpp:38:
+TEST CASE:  FSAE Fluent nested MRF frames resolve origins and reject cycles
+
+0.000255 s: FSAE Fluent nested MRF frames resolve origins and reject cycles
+===============================================================================
+<checkout>/tests/case/test_fsae_case.cpp:53:
+TEST CASE:  FSAE Fluent porous coordinates use orthogonalized directions and superficial velocity
+
+0.000104 s: FSAE Fluent porous coordinates use orthogonalized directions and superficial velocity
+===============================================================================
+<checkout>/tests/case/test_fsae_case.cpp:67:
+TEST CASE:  FSAE Fluent pressure mass and porous jump inputs remain distinct
+
+0.000066 s: FSAE Fluent pressure mass and porous jump inputs remain distinct
+===============================================================================
+<checkout>/tests/case/test_fsae_case.cpp:85:
+TEST CASE:  FSAE Fluent import retains special interior identity and input normal through RCM
+
+0.000081 s: FSAE Fluent import retains special interior identity and input normal through RCM
+===============================================================================
+<checkout>/tests/case/test_real_data.cpp:19:
+TEST CASE:  Real mixing elbow data fields match mesh zones
+
+0.024494 s: Real mixing elbow data fields match mesh zones
+===============================================================================
+<checkout>/tests/case/test_real_data.cpp:67:
+TEST CASE:  Real mismatched case data pairs fail primary field coverage
+
+0.021234 s: Real mismatched case data pairs fail primary field coverage
+===============================================================================
+<checkout>/tests/case/test_real_data.cpp:76:
+TEST CASE:  Real elbow1 data fields match mesh zones
+
+0.023122 s: Real elbow1 data fields match mesh zones
+===============================================================================
+<checkout>/tests/case/test_sexpr.cpp:5:
+TEST CASE:  Scheme data handles atoms pairs quotation comments and escapes
+
+0.000019 s: Scheme data handles atoms pairs quotation comments and escapes
+===============================================================================
+<checkout>/tests/case/test_sexpr.cpp:17:
+TEST CASE:  Scheme rejects malformed or excessive input without stack overflow
+
+0.103940 s: Scheme rejects malformed or excessive input without stack overflow
+===============================================================================
+<checkout>/tests/case/test_sexpr.cpp:46:
+TEST CASE:  Scheme node budget scales beyond two million for large thread tables
+
+0.219092 s: Scheme node budget scales beyond two million for large thread tables
+===============================================================================
+<checkout>/tests/case/test_sexpr.cpp:58:
+TEST CASE:  Automatic Scheme node budgets include synthesized quote nodes
+
+0.000407 s: Automatic Scheme node budgets include synthesized quote nodes
+===============================================================================
+<checkout>/tests/core/test_json.cpp:3:
+TEST CASE:  Setup JSON parser rejects ambiguous or non-JSON values at the boundary
+
+0.000177 s: Setup JSON parser rejects ambiguous or non-JSON values at the boundary
+===============================================================================
+<checkout>/tests/core/test_parse.cpp:10:
+TEST CASE:  parse_double accepts whole decimal and exponent forms only
+
+0.000003 s: parse_double accepts whole decimal and exponent forms only
+===============================================================================
+<checkout>/tests/core/test_parse.cpp:22:
+TEST CASE:  parse_double ignores the process locale
+
+0.000127 s: parse_double ignores the process locale
+===============================================================================
+<checkout>/tests/fv/test_cavity.cpp:18:
+TEST CASE:  FV cavity primary vortex diagnostic recovers analytic streamfunction
+
+0.003736 s: FV cavity primary vortex diagnostic recovers analytic streamfunction
+===============================================================================
+<checkout>/tests/fv/test_device_mesh.cpp:9:
+TEST CASE:  FV upload preserves gather geometry and exact box wall distances
+
+0.048394 s: FV upload preserves gather geometry and exact box wall distances
+===============================================================================
+<checkout>/tests/fv/test_device_mesh.cpp:37:
+TEST CASE:  FV wall distance is to the finite surface rather than its infinite plane
+
+0.013674 s: FV wall distance is to the finite surface rather than its infinite plane
+===============================================================================
+<checkout>/tests/fv/test_flow_kernels.cpp:10:
+TEST CASE:  FV momentum face interpolation is affine exact with unequal diagonals
+
+0.011052 s: FV momentum face interpolation is affine exact with unequal diagonals
+===============================================================================
+<checkout>/tests/fv/test_flow_kernels.cpp:60:
+TEST CASE:  FV pressure symmetry boundary uses the full centroid displacement
+
+0.010875 s: FV pressure symmetry boundary uses the full centroid displacement
+===============================================================================
+<checkout>/tests/fv/test_flow_kernels.cpp:82:
+TEST CASE:  Rhie-Chow bounds remote face extrapolation and preserves local reconstruction
+
+0.010020 s: Rhie-Chow bounds remote face extrapolation and preserves local reconstruction
+===============================================================================
+<checkout>/tests/fv/test_fluent_elbow.cpp:78:
+TEST CASE:  Fluent setup converts SST inlet specifications and rejects unsupported physics
+
+0.236677 s: Fluent setup converts SST inlet specifications and rejects unsupported physics
+===============================================================================
+<checkout>/tests/fv/test_fsae_setup.cpp:26:
+TEST CASE:  FSAE strict Fluent adapter accepts verified settings and holds unmet physics gates
+
+0.490806 s: FSAE strict Fluent adapter accepts verified settings and holds unmet physics gates
+FV_LSQ backend=cpu cells=60 max_error=0.000000
+FV_LSQ backend=metal cells=60 max_error=0.000000
+FV_LSQ backend=cpu cells=144 max_error=0.000001
+FV_LSQ backend=metal cells=144 max_error=0.000001
+===============================================================================
+<checkout>/tests/fv/test_gradient.cpp:72:
+TEST CASE:  FV least squares is linear exact and limiter bounds face reconstructions
+
+0.021485 s: FV least squares is linear exact and limiter bounds face reconstructions
+FV_LSQ backend=cpu cells=86803 max_error=0.000057
+FV_LSQ backend=metal cells=86803 max_error=0.000057
+===============================================================================
+<checkout>/tests/fv/test_gradient.cpp:76:
+TEST CASE:  FV least squares is linear exact on real Fluent polyhedra
+
+2.359909 s: FV least squares is linear exact on real Fluent polyhedra
+===============================================================================
+<checkout>/tests/fv/test_gradient.cpp:86:
+TEST CASE:  FV fused velocity gradients equal scalar gradient kernels
+
+0.012563 s: FV fused velocity gradients equal scalar gradient kernels
+===============================================================================
+<checkout>/tests/fv/test_gradient.cpp:110:
+TEST CASE:  FV extrapolated boundaries cannot preserve seeded null-space gradients
+
+0.037848 s: FV extrapolated boundaries cannot preserve seeded null-space gradients
+===============================================================================
+<checkout>/tests/fv/test_gradient.cpp:139:
+TEST CASE:  FV projected symmetry observations preserve tangential affine gradients
+
+0.010743 s: FV projected symmetry observations preserve tangential affine gradients
+===============================================================================
+<checkout>/tests/fv/test_gradient.cpp:166:
+TEST CASE:  FV jump derivative satisfies independent face-row normal equations
+
+0.010432 s: FV jump derivative satisfies independent face-row normal equations
+===============================================================================
+<checkout>/tests/fv/test_gradient.cpp:204:
+TEST CASE:  fused limiter and scaling preserve staged reconstruction
+
+0.010023 s: fused limiter and scaling preserve staged reconstruction
+===============================================================================
+<checkout>/tests/fv/test_hybrid.cpp:9:
+TEST CASE:  Hybrid potential obeys inlet flux and outlet potential, with constant and local turbulence recipes
+
+0.813498 s: Hybrid potential obeys inlet flux and outlet potential, with constant and local turbulence recipes
+===============================================================================
+<checkout>/tests/fv/test_hybrid.cpp:40:
+TEST CASE:  Fluent hybrid controls are parsed strictly and do not require stale standard defaults
+
+0.000065 s: Fluent hybrid controls are parsed strictly and do not require stale standard defaults
+FV_V2_PROGRESS backend=cpu tet=1 n=4 iter=20 ru=0.001312 rv=0.001286 rc=0.027333 rc_raw=0.026369
+FV_V2_BOUNDARY backend=cpu tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.937500,0.875000,0.062500 boundary=1 wall=1
+FV_V2 backend=cpu tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.258420 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000001 corrected_mass=0.000000
+FV_V2_FORCE backend=cpu tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.167080 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+FV_V2_PROGRESS backend=metal tet=1 n=4 iter=20 ru=0.001312 rv=0.001286 rc=0.027333 rc_raw=0.026369
+FV_V2_BOUNDARY backend=metal tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.937500,0.875000,0.062500 boundary=1 wall=1
+FV_V2 backend=metal tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.258420 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000001 corrected_mass=0.000000
+FV_V2_FORCE backend=metal tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.167080 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+===============================================================================
+<checkout>/tests/fv/test_navier_stokes.cpp:171:
+TEST CASE:  FV laminar tet manufactured solution converges without SST
+
+1.974741 s: FV laminar tet manufactured solution converges without SST
+POLY_PRESSURE backend=cpu nr=8 linear=1 exact_bc=0 grad_interior=0.000000 grad_wall=0.000000 skew_max=0.310053 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=cpu nr=8 linear=1 exact_bc=1 grad_interior=0.000000 grad_wall=0.000000 skew_max=0.310053 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=cpu nr=8 linear=0 exact_bc=0 grad_interior=0.023961 grad_wall=0.104679 skew_max=0.310053 bounded=0 face0=0.007788 jump0=0.000000 face2=0.002835 jump2=0.003684 face3=0.006323 face4=0.014124 face5=0.000000
+POLY_PRESSURE backend=cpu nr=8 linear=0 exact_bc=1 grad_interior=0.023961 grad_wall=0.043093 skew_max=0.310053 bounded=0 face0=0.007857 jump0=0.000000 face2=0.003129 jump2=0.002852 face3=0.002710 face4=0.009935 face5=0.000000
+POLY_PRESSURE backend=cpu nr=16 linear=1 exact_bc=0 grad_interior=0.000000 grad_wall=0.000001 skew_max=0.309489 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=cpu nr=16 linear=1 exact_bc=1 grad_interior=0.000000 grad_wall=0.000000 skew_max=0.309489 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=cpu nr=16 linear=0 exact_bc=0 grad_interior=0.011089 grad_wall=0.049755 skew_max=0.309489 bounded=0 face0=0.001932 jump0=0.000000 face2=0.000799 jump2=0.000815 face3=0.001605 face4=0.003424 face5=0.000000
+POLY_PRESSURE backend=cpu nr=16 linear=0 exact_bc=1 grad_interior=0.011089 grad_wall=0.018463 skew_max=0.309489 bounded=0 face0=0.001937 jump0=0.000000 face2=0.000835 jump2=0.000744 face3=0.000704 face4=0.002369 face5=0.000000
+POLY_PRESSURE backend=cpu nr=32 linear=1 exact_bc=0 grad_interior=0.000001 grad_wall=0.000001 skew_max=0.309172 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=cpu nr=32 linear=1 exact_bc=1 grad_interior=0.000001 grad_wall=0.000001 skew_max=0.309172 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=cpu nr=32 linear=0 exact_bc=0 grad_interior=0.005397 grad_wall=0.024049 skew_max=0.309172 bounded=0 face0=0.000479 jump0=0.000000 face2=0.000210 jump2=0.000198 face3=0.000403 face4=0.000838 face5=0.000000
+POLY_PRESSURE backend=cpu nr=32 linear=0 exact_bc=1 grad_interior=0.005397 grad_wall=0.008377 skew_max=0.309172 bounded=0 face0=0.000480 jump0=0.000000 face2=0.000214 jump2=0.000192 face3=0.000179 face4=0.000576 face5=0.000000
+POLY_PRESSURE backend=metal nr=8 linear=1 exact_bc=0 grad_interior=0.000000 grad_wall=0.000000 skew_max=0.310053 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=metal nr=8 linear=1 exact_bc=1 grad_interior=0.000000 grad_wall=0.000000 skew_max=0.310053 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=metal nr=8 linear=0 exact_bc=0 grad_interior=0.023961 grad_wall=0.104679 skew_max=0.310053 bounded=0 face0=0.007788 jump0=0.000000 face2=0.002835 jump2=0.003684 face3=0.006323 face4=0.014124 face5=0.000000
+POLY_PRESSURE backend=metal nr=8 linear=0 exact_bc=1 grad_interior=0.023961 grad_wall=0.043093 skew_max=0.310053 bounded=0 face0=0.007857 jump0=0.000000 face2=0.003129 jump2=0.002852 face3=0.002710 face4=0.009935 face5=0.000000
+POLY_PRESSURE backend=metal nr=16 linear=1 exact_bc=0 grad_interior=0.000000 grad_wall=0.000001 skew_max=0.309489 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=metal nr=16 linear=1 exact_bc=1 grad_interior=0.000000 grad_wall=0.000000 skew_max=0.309489 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=metal nr=16 linear=0 exact_bc=0 grad_interior=0.011089 grad_wall=0.049755 skew_max=0.309489 bounded=0 face0=0.001932 jump0=0.000000 face2=0.000799 jump2=0.000815 face3=0.001605 face4=0.003424 face5=0.000000
+POLY_PRESSURE backend=metal nr=16 linear=0 exact_bc=1 grad_interior=0.011089 grad_wall=0.018463 skew_max=0.309489 bounded=0 face0=0.001937 jump0=0.000000 face2=0.000835 jump2=0.000744 face3=0.000704 face4=0.002369 face5=0.000000
+POLY_PRESSURE backend=metal nr=32 linear=1 exact_bc=0 grad_interior=0.000001 grad_wall=0.000001 skew_max=0.309172 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=metal nr=32 linear=1 exact_bc=1 grad_interior=0.000001 grad_wall=0.000001 skew_max=0.309172 bounded=0 face0=0.000000 jump0=0.000000 face2=0.000000 jump2=0.000000 face3=0.000000 face4=0.000000 face5=0.000000
+POLY_PRESSURE backend=metal nr=32 linear=0 exact_bc=0 grad_interior=0.005397 grad_wall=0.024049 skew_max=0.309172 bounded=0 face0=0.000479 jump0=0.000000 face2=0.000210 jump2=0.000198 face3=0.000403 face4=0.000838 face5=0.000000
+POLY_PRESSURE backend=metal nr=32 linear=0 exact_bc=1 grad_interior=0.005397 grad_wall=0.008377 skew_max=0.309172 bounded=0 face0=0.000480 jump0=0.000000 face2=0.000214 jump2=0.000192 face3=0.000179 face4=0.000576 face5=0.000000
+===============================================================================
+<checkout>/tests/fv/test_poly_pressure.cpp:25:
+TEST CASE:  FV poly annulus manufactured pressure reconstruction
+
+0.100151 s: FV poly annulus manufactured pressure reconstruction
+POLY_VISCOUS backend=cpu nr=8 component=0 exact_grad=0 published_Linf=0.000000 normal_derivative0=0.004607 normal_derivative1=0.030211 normal_derivative2=0.038977 normal_derivative3=0.078858 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=8 component=0 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.004607 normal_derivative1=0.027086 normal_derivative2=0.038977 normal_derivative3=0.079319 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=8 component=1 exact_grad=0 published_Linf=0.000000 normal_derivative0=0.009213 normal_derivative1=0.057248 normal_derivative2=0.045006 normal_derivative3=0.145116 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=8 component=1 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.009213 normal_derivative1=0.054074 normal_derivative2=0.045006 normal_derivative3=0.142792 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=16 component=0 exact_grad=0 published_Linf=0.000000 normal_derivative0=0.001136 normal_derivative1=0.014700 normal_derivative2=0.019324 normal_derivative3=0.041999 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=16 component=0 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.001136 normal_derivative1=0.013632 normal_derivative2=0.019324 normal_derivative3=0.042032 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=16 component=1 exact_grad=0 published_Linf=0.000001 normal_derivative0=0.002272 normal_derivative1=0.027774 normal_derivative2=0.022314 normal_derivative3=0.074702 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=16 component=1 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.002272 normal_derivative1=0.027251 normal_derivative2=0.022314 normal_derivative3=0.073926 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=32 component=0 exact_grad=0 published_Linf=0.000000 normal_derivative0=0.000282 normal_derivative1=0.007309 normal_derivative2=0.009616 normal_derivative3=0.021660 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=32 component=0 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.000282 normal_derivative1=0.006838 normal_derivative2=0.009616 normal_derivative3=0.021654 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=32 component=1 exact_grad=0 published_Linf=0.000001 normal_derivative0=0.000564 normal_derivative1=0.013796 normal_derivative2=0.011105 normal_derivative3=0.037847 normal_derivative4=0.000000
+POLY_VISCOUS backend=cpu nr=32 component=1 exact_grad=1 published_Linf=0.000001 normal_derivative0=0.000564 normal_derivative1=0.013675 normal_derivative2=0.011105 normal_derivative3=0.037623 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=8 component=0 exact_grad=0 published_Linf=0.000000 normal_derivative0=0.004607 normal_derivative1=0.030211 normal_derivative2=0.038977 normal_derivative3=0.078858 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=8 component=0 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.004607 normal_derivative1=0.027086 normal_derivative2=0.038977 normal_derivative3=0.079319 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=8 component=1 exact_grad=0 published_Linf=0.000000 normal_derivative0=0.009213 normal_derivative1=0.057248 normal_derivative2=0.045006 normal_derivative3=0.145116 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=8 component=1 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.009213 normal_derivative1=0.054074 normal_derivative2=0.045006 normal_derivative3=0.142792 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=16 component=0 exact_grad=0 published_Linf=0.000000 normal_derivative0=0.001136 normal_derivative1=0.014700 normal_derivative2=0.019324 normal_derivative3=0.041999 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=16 component=0 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.001136 normal_derivative1=0.013632 normal_derivative2=0.019324 normal_derivative3=0.042032 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=16 component=1 exact_grad=0 published_Linf=0.000001 normal_derivative0=0.002272 normal_derivative1=0.027774 normal_derivative2=0.022314 normal_derivative3=0.074702 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=16 component=1 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.002272 normal_derivative1=0.027251 normal_derivative2=0.022314 normal_derivative3=0.073926 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=32 component=0 exact_grad=0 published_Linf=0.000000 normal_derivative0=0.000282 normal_derivative1=0.007309 normal_derivative2=0.009616 normal_derivative3=0.021660 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=32 component=0 exact_grad=1 published_Linf=0.000000 normal_derivative0=0.000282 normal_derivative1=0.006838 normal_derivative2=0.009616 normal_derivative3=0.021654 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=32 component=1 exact_grad=0 published_Linf=0.000001 normal_derivative0=0.000564 normal_derivative1=0.013796 normal_derivative2=0.011105 normal_derivative3=0.037847 normal_derivative4=0.000000
+POLY_VISCOUS backend=metal nr=32 component=1 exact_grad=1 published_Linf=0.000001 normal_derivative0=0.000564 normal_derivative1=0.013675 normal_derivative2=0.011105 normal_derivative3=0.037623 normal_derivative4=0.000000
+===============================================================================
+<checkout>/tests/fv/test_poly_pressure.cpp:94:
+TEST CASE:  FV poly quadratic viscous face flux and documented secondary gradient
+
+0.100235 s: FV poly quadratic viscous face flux and documented secondary gradient
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=4 exact_face_L2=0.056657 momentum_L2=0.087071 LSQ_L2=0.242695
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=8 exact_face_L2=0.014246 momentum_L2=0.055675 LSQ_L2=0.088971 exact_face_order=1.991655 momentum_order=0.645167 LSQ_order=1.447733
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=16 exact_face_L2=0.003567 momentum_L2=0.021653 LSQ_L2=0.030115 exact_face_order=1.997914 momentum_order=1.362470 LSQ_order=1.562862
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=4 exact_face_L2=0.236907 momentum_L2=0.365856 LSQ_L2=0.334045
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=8 exact_face_L2=0.118648 momentum_L2=0.179739 LSQ_L2=0.168973 exact_face_order=0.997635 momentum_order=1.025370 LSQ_order=0.983245
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=16 exact_face_L2=0.059348 momentum_L2=0.088998 LSQ_L2=0.084838 exact_face_order=0.999409 momentum_order=1.014063 LSQ_order=0.994008
+FV_PRESSURE_OPERATOR backend=metal tet=0 n=4 exact_face_L2=0.056657 momentum_L2=0.087071 LSQ_L2=0.242695
+FV_PRESSURE_OPERATOR backend=metal tet=0 n=8 exact_face_L2=0.014246 momentum_L2=0.055675 LSQ_L2=0.088971 exact_face_order=1.991655 momentum_order=0.645167 LSQ_order=1.447733
+FV_PRESSURE_OPERATOR backend=metal tet=0 n=16 exact_face_L2=0.003567 momentum_L2=0.021653 LSQ_L2=0.030115 exact_face_order=1.997914 momentum_order=1.362470 LSQ_order=1.562862
+FV_PRESSURE_OPERATOR backend=metal tet=1 n=4 exact_face_L2=0.236907 momentum_L2=0.365856 LSQ_L2=0.334045
+FV_PRESSURE_OPERATOR backend=metal tet=1 n=8 exact_face_L2=0.118648 momentum_L2=0.179739 LSQ_L2=0.168973 exact_face_order=0.997635 momentum_order=1.025370 LSQ_order=0.983245
+FV_PRESSURE_OPERATOR backend=metal tet=1 n=16 exact_face_L2=0.059348 momentum_L2=0.088998 LSQ_L2=0.084838 exact_face_order=0.999409 momentum_order=1.014063 LSQ_order=0.994008
+===============================================================================
+<checkout>/tests/fv/test_pressure_gradient.cpp:6:
+TEST CASE:  FV MMS pressure gradient operator convergence
+
+0.181612 s: FV MMS pressure gradient operator convergence
+===============================================================================
+<checkout>/tests/fv/test_pressure_matrix.cpp:56:
+TEST CASE:  FV momentum and SST transport retain graded diffusion dominance
+
+0.011647 s: FV momentum and SST transport retain graded diffusion dominance
+===============================================================================
+<checkout>/tests/fv/test_pressure_matrix.cpp:80:
+TEST CASE:  pressure M-matrix AMG preserves stored symmetry and dominance through refresh
+
+0.024374 s: pressure M-matrix AMG preserves stored symmetry and dominance through refresh
+===============================================================================
+<checkout>/tests/fv/test_pressure_matrix.cpp:133:
+TEST CASE:  FV graded float pressure is symmetric diagonally dominant and anchored SPD
+
+0.011163 s: FV graded float pressure is symmetric diagonally dominant and anchored SPD
+===============================================================================
+<checkout>/tests/fv/test_pressure_matrix.cpp:163:
+TEST CASE:  FV pressure diagonal bounds final entries with repeated neighbour faces
+
+0.009986 s: FV pressure diagonal bounds final entries with repeated neighbour faces
+===============================================================================
+<checkout>/tests/fv/test_pressure_matrix.cpp:183:
+TEST CASE:  pressure M-matrix coarsening retains explicit constant nullspace projection
+
+0.014234 s: pressure M-matrix coarsening retains explicit constant nullspace projection
+===============================================================================
+<checkout>/tests/fv/test_rans.cpp:10:
+TEST CASE:  FV SST coupled transport and wall force agree with CPU oracle
+
+0.063658 s: FV SST coupled transport and wall force agree with CPU oracle
+===============================================================================
+<checkout>/tests/fv/test_rans.cpp:53:
+TEST CASE:  FV total-pressure outlet backflow uses adjacent-cell dynamic pressure
+
+0.012318 s: FV total-pressure outlet backflow uses adjacent-cell dynamic pressure
+===============================================================================
+<checkout>/tests/fv/test_rans.cpp:71:
+TEST CASE:  FV transport integrates implicit sinks and component wall terms before relaxation
+
+0.014328 s: FV transport integrates implicit sinks and component wall terms before relaxation
+===============================================================================
+<checkout>/tests/fv/test_rans.cpp:94:
+TEST CASE:  SIMPLEC non-solenoidal startup falls back to a positive momentum inverse
+
+0.009855 s: SIMPLEC non-solenoidal startup falls back to a positive momentum inverse
+===============================================================================
+<checkout>/tests/fv/test_scalar.cpp:72:
+TEST CASE:  FV transport kernels preserve an affine solution on skew tetrahedra
+
+0.010252 s: FV transport kernels preserve an affine solution on skew tetrahedra
+===============================================================================
+<checkout>/tests/fv/test_scalar.cpp:97:
+TEST CASE:  FV equations share one uploaded CSR pattern and value workspace
+
+0.009334 s: FV equations share one uploaded CSR pattern and value workspace
+===============================================================================
+<checkout>/tests/fv/test_steady.cpp:9:
+TEST CASE:  FV symmetry constrains normal velocity in a closed box
+
+0.208644 s: FV symmetry constrains normal velocity in a closed box
+===============================================================================
+<checkout>/tests/fv/test_steady.cpp:22:
+TEST CASE:  FV SIMPLEC preserves rest and uniform inlet outlet flow
+
+0.185595 s: FV SIMPLEC preserves rest and uniform inlet outlet flow
+===============================================================================
+<checkout>/tests/fv/test_steady.cpp:84:
+TEST CASE:  FV pressure outlet defaults to flux-consistent normal backflow
+
+0.112259 s: FV pressure outlet defaults to flux-consistent normal backflow
+===============================================================================
+<checkout>/tests/fv/test_steady.cpp:103:
+TEST CASE:  FV closed-domain gauge pressure is zero at the reference point's cell
+
+0.061642 s: FV closed-domain gauge pressure is zero at the reference point's cell
+===============================================================================
+<checkout>/tests/fv/test_tmr.cpp:14:
+TEST CASE:  TMR reference reader preserves independent code zones and interpolation
+
+0.001592 s: TMR reference reader preserves independent code zones and interpolation
+TMR progress cpu bump 0 it=24 defect=0.188958993466 change=inf cf=0.010549628473 drag=0.010816565408
+TMR progress metal bump 0 it=24 defect=0.188762684214 change=inf cf=0.010547640243 drag=0.010814068498
+===============================================================================
+<checkout>/tests/fv/test_tmr.cpp:24:
+TEST CASE:  TMR uniform bump startup stays bounded on skew wall cells
+
+0.791001 s: TMR uniform bump startup stays bounded on skew wall cells
+===============================================================================
+<checkout>/tests/fv/test_tmr_sa.cpp:10:
+TEST CASE:  SA TMR pinned reference values and variant identity
+
+0.000174 s: SA TMR pinned reference values and variant identity
+===============================================================================
+<checkout>/tests/fv/test_zone_physics.cpp:43:
+TEST CASE:  FSAE tensor source and MRF kernels match the CPU oracle
+
+0.010446 s: FSAE tensor source and MRF kernels match the CPU oracle
+===============================================================================
+<checkout>/tests/fv/test_zone_physics.cpp:69:
+TEST CASE:  FSAE invalid porous bases and MRF interfaces fail closed
+
+0.000071 s: FSAE invalid porous bases and MRF interfaces fail closed
+===============================================================================
+<checkout>/tests/fv/test_zone_physics.cpp:76:
+TEST CASE:  FSAE clamped fan curve evaluates bounded speed without limiting flow
+
+0.009742 s: FSAE clamped fan curve evaluates bounded speed without limiting flow
+===============================================================================
+<checkout>/tests/fv/test_zone_physics.cpp:242:
+TEST CASE:  FSAE internal face-zone source normals survive RCM
+
+0.000121 s: FSAE internal face-zone source normals survive RCM
+===============================================================================
+<checkout>/tests/io/test_cff.cpp:23:
+TEST CASE:  synthetic Fluent CFF HDF5: 3D tet/hex, polygon faces, section ranges and zone names
+
+0.008905 s: synthetic Fluent CFF HDF5: 3D tet/hex, polygon faces, section ranges and zone names
+===============================================================================
+<checkout>/tests/io/test_cff.cpp:60:
+TEST CASE:  synthetic Fluent CFF HDF5: 2D extrusion and malformed dataset rejection
+
+0.002039 s: synthetic Fluent CFF HDF5: 2D extrusion and malformed dataset rejection
+===============================================================================
+<checkout>/tests/io/test_cff.cpp:80:
+TEST CASE:  CFF cell type sections use ranges, with complete coverage and count checks
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  node coordinate coverage must match topology
+
+0.015276 s: CFF cell type sections use ranges, with complete coverage and count checks
+===============================================================================
+<checkout>/tests/io/test_cff.cpp:165:
+TEST CASE:  CFF legacy deflate partial chunks preserve numeric conversion and reject corruption
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  truncated compressed stream
+
+0.016526 s: CFF legacy deflate partial chunks preserve numeric conversion and reject corruption
+===============================================================================
+<checkout>/tests/io/test_cff.cpp:259:
+TEST CASE:  CFF reads a file whose name is not ASCII
+
+0.001873 s: CFF reads a file whose name is not ASCII
+===============================================================================
+<checkout>/tests/io/test_fluent_real.cpp:97:
+TEST CASE:  real Fluent external mesh acceptance
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): adjoint_cylinder_tutorial/cylinder_tutorial.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): adjoint_cylinder_tutorial/cylinder_tutorial.dat
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/axial_fan.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/axial_fan.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/BaseCases/axial_fan.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/axial_fan.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/26 Mpa-solution-final.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/26 Mpa-solution-final.dat
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-26 MPa.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-26 MPa.dat
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-94 MPa.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-94 MPa.dat
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): catalytic_converter/catalytic_converter_param.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Ablation-tutorial/ablation.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Ablation-tutorial/ablation_Solved.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Ablation-tutorial/ablation_Solved.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/DOE-ML-Mixing-Elbow/elbow.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Dash-App-for-Post-processing/elbow.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Dash-App-for-Post-processing/elbow.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Excel-Monitor-Points/glycerol_filling_mixing_init.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Excel-Monitor-Points/glycerol_filling_mixing_init.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Fluent-Parametric/elbow_params_2.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Graphics-Demo/elbow1.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Gravity-Separator-PID/2d-separator.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Gravity-Separator-PID/2d-separator.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Intro-Demo-Mixing-Elbow/elbow.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Intro-Demo-Mixing-Elbow/elbow.cas.gz
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/MixingTank-DOE/test-laminar-visc.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PPTX-report-generation/elbow.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PPTX-report-generation/elbow.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PyFluent-ACE-Training-at-22R2/demo.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PyFluent-ACE-Training-at-22R2/elbow.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PyFluent-ACE-Training-at-22R2/elbow1.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Remote-Execution-in-Cluster/bkd_facing_step.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Separator-Collection-Efficiency/oil_separator.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Separator-Collection-Efficiency/oil_separator.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Steady-Vortex-VOF/vortex_init.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Steady-Vortex-VOF/vortex_init.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_expressions.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_expressions.cas.gz
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_solution.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_solution.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_system/exhaust_system.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_system/exhaust_system.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/mixing_elbow_mul_ph.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/mixing_elbow_mul_ph.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/data.zip
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/BaseCases/nozzle_para_named_1.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/nozzle_para_named_1.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/elbow_param.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/elbow_param.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/elbow_source_terms.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/mixing_elbow_for_field_data.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): optislang/mixer-ran_2019r3.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): optislang/mixer-ran_2019r3.cas.gz
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): optislang/nozzle-2D-WB.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pyprimemesh/unit_test_examples/file.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pyprimemesh/unit_test_examples/hex.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/fluid-swirl/water_pipe_flow.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/heating_tank_fmu/Fluent/fluent.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/oscillating_plate/Fluent/plate.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/oscillating_plate/Fluent/plate.cas.gz
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/oscillating_plate/oscillating_plate.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/parametric_sweep_vel/Fluent/case.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pytwin/other_files/HX_CFD.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pytwin/other_files/T_Junction.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pyworkbench/elbow_case_file/elbow.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00005.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00010.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00015.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00020.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00025.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00030.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00035.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00040.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00045.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00050.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00001.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00002.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00003.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00004.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00005.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_phase/fluentMultiphase.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_phase/fluentMultiphase.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_species/FFF.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_species/FFF.dat.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): peridoic_rot/peridoic_rot.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): peridoicrot_withpipes/peridoicrot_withpipes.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): periodic_rot/periodic_rot.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): rotating_disk/disk.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameter_project_file/Static_Mixer_Parameters.cffdb/Static_Mixer_Parameters-Solve/Static_Mixer_Parameters.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.xxx.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.xxx.cas.gz
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.xxxx.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_binary.cas.gz
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_text.cas.gz
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_unitless.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_main.cas.h5
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.cas
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.cas.gz
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.dat
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.dat.gz
+
+<checkout>/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): wigley_hull/wigley.cas.h5
+
+REAL flow_over_cylinder/flow_over_cylinder.msh cells=46949 faces=188392 points=95090 patches=6 volume=449.214654586012898 min-normal-cos=0.645058420029463 boundary-closure=0.000000000000020
+REAL lid_driven_cavity/lid_driven_cavity.msh cells=3550 faces=14321 points=7344 patches=5 volume=1.000000000000010 min-normal-cos=1.000000000000000 boundary-closure=0.000000000000000
+REAL simple_duct/simple-duct.msh.h5 cells=10 faces=51 points=44 patches=3 volume=9.999999039999999 min-normal-cos=1.000000000000000 boundary-closure=0.000000000000000
+REAL box/poly.msh.h5 cells=86803 faces=591932 points=505132 patches=6 volume=0.500000000000000 min-normal-cos=0.534414873063884 boundary-closure=0.000000000000000
+REAL aero/wing.msh.h5 cells=114219 faces=654343 points=478848 patches=5 volume=6995.036798180858568 min-normal-cos=0.214559058459804 boundary-closure=0.000000000000000
+REAL file_session/elbow1.cas.h5 cells=13852 faces=44500 points=16968 patches=5 volume=0.002633654097024 min-normal-cos=0.648592133183826 boundary-closure=0.000000000000000
+REAL mixing_elbow/mixing_elbow.cas.h5 cells=17822 faces=91581 points=66417 patches=6 volume=0.002500656650561 min-normal-cos=0.283170163877150 boundary-closure=0.000000000000000
+REAL static_mixer/Static_Mixer_Parameters.cas.h5 cells=22771 faces=119140 points=82247 patches=4 volume=0.000000039597134 min-normal-cos=0.289117938578567 boundary-closure=0.000000000000000
+REAL static_mixer/Static_Mixer_Parameters_legacy_text.cas cells=22771 faces=119140 points=82247 patches=4 volume=0.000000039597134 min-normal-cos=0.289117938578567 boundary-closure=0.000000000000000
+REAL static_mixer/Static_Mixer_Parameters_legacy_binary.cas cells=22771 faces=119140 points=82247 patches=4 volume=0.000000039597134 min-normal-cos=0.289117938578567 boundary-closure=0.000000000000000
+4.812138 s: real Fluent external mesh acceptance
+===============================================================================
+<checkout>/tests/io/test_io.cpp:85:
+TEST CASE:  Fluent hand-made ASCII 2D quad, 3D hex and mixed cells
+
+0.000174 s: Fluent hand-made ASCII 2D quad, 3D hex and mixed cells
+===============================================================================
+<checkout>/tests/io/test_io.cpp:112:
+TEST CASE:  legacy binary floats/doubles and both byte orders
+
+0.001367 s: legacy binary floats/doubles and both byte orders
+===============================================================================
+<checkout>/tests/io/test_io.cpp:130:
+TEST CASE:  legacy periodic pairs survive boundary grouping and 2D extrusion
+
+0.000828 s: legacy periodic pairs survive boundary grouping and 2D extrusion
+===============================================================================
+<checkout>/tests/io/test_io.cpp:149:
+TEST CASE:  Fluent malformed references and unsupported adaptations fail clearly
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  unsupported extension
+
+0.001130 s: Fluent malformed references and unsupported adaptations fail clearly
+===============================================================================
+<checkout>/tests/io/test_io.cpp:174:
+TEST CASE:  Plot3D formatted 2D multiblock, extrusion and boundary splitting
+
+0.000552 s: Plot3D formatted 2D multiblock, extrusion and boundary splitting
+===============================================================================
+<checkout>/tests/io/test_io.cpp:209:
+TEST CASE:  Plot3D formatted 3D and single k-plane
+
+0.000581 s: Plot3D formatted 3D and single k-plane
+===============================================================================
+<checkout>/tests/io/test_io.cpp:222:
+TEST CASE:  NASA TMR real formatted grids (optional external fixtures)
+
+<checkout>/tests/io/test_io.cpp:247: MESSAGE: NASA TMR real grids checked: 2
+
+0.018652 s: NASA TMR real formatted grids (optional external fixtures)
+===============================================================================
+<checkout>/tests/io/test_io.cpp:250:
+TEST CASE:  VTU ASCII structure, hex/tet fast paths, polyhedron stream and fields
+
+0.000924 s: VTU ASCII structure, hex/tet fast paths, polyhedron stream and fields
+===============================================================================
+<checkout>/tests/io/test_io.cpp:318:
+TEST CASE:  legacy 3D mixed and polygonal cells honor file c0/c1 winding
+
+0.000102 s: legacy 3D mixed and polygonal cells honor file c0/c1 winding
+===============================================================================
+<checkout>/tests/io/test_io.cpp:336:
+TEST CASE:  binary periodic records and 2D nodes
+
+0.000304 s: binary periodic records and 2D nodes
+===============================================================================
+<checkout>/tests/io/test_io.cpp:361:
+TEST CASE:  Fluent optional dimension section is inferred from node ND
+
+0.000451 s: Fluent optional dimension section is inferred from node ND
+===============================================================================
+<checkout>/tests/io/test_io.cpp:372:
+TEST CASE:  Fluent face sections may precede later coordinate chunks
+
+0.000273 s: Fluent face sections may precede later coordinate chunks
+===============================================================================
+<checkout>/tests/io/test_io.cpp:385:
+TEST CASE:  VTU mixed fast cells and polyhedra use correct face offsets
+
+0.000532 s: VTU mixed fast cells and polyhedra use correct face offsets
+===============================================================================
+<checkout>/tests/io/test_io.cpp:428:
+TEST CASE:  legacy uniform binary cells have a trailer without a payload
+
+0.000418 s: legacy uniform binary cells have a trailer without a payload
+===============================================================================
+<checkout>/tests/io/test_io.cpp:446:
+TEST CASE:  legacy settings skip balanced lists and escaped quoted parentheses
+
+0.000441 s: legacy settings skip balanced lists and escaped quoted parentheses
+===============================================================================
+<checkout>/tests/io/test_io.cpp:466:
+TEST CASE:  binary node flags skip exact counts even with parentheses in raw bytes
+
+0.000829 s: binary node flags skip exact counts even with parentheses in raw bytes
+===============================================================================
+<checkout>/tests/io/test_io.cpp:484:
+TEST CASE:  Plot3D multi-block 2D dimensions on one line without an extension hint
+
+0.000313 s: Plot3D multi-block 2D dimensions on one line without an extension hint
+===============================================================================
+<checkout>/tests/io/test_live_view.cpp:20:
+TEST CASE:  Live cadence reserves snapshot cost within the solve-time budget
+
+0.000003 s: Live cadence reserves snapshot cost within the solve-time budget
+===============================================================================
+<checkout>/tests/io/test_live_view.cpp:38:
+TEST CASE:  Live manifest swaps expose complete immutable views with monotonic sequences
+
+0.019443 s: Live manifest swaps expose complete immutable views with monotonic sequences
+===============================================================================
+<checkout>/tests/io/test_plot3d_nmf.cpp:36:
+TEST CASE:  NASA NMF ranges supply exact BC patches and stitch the NACA wake
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: front = 816
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back = 816
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: subsonic_inflow_pt_block1_f5_1-25_1-2 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back_pressure_block1_f6_1-25_1-2 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-7 = 6
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: viscous_solid_block1_f1_1-2_7-35 = 28
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: farfield_riem_block1_f2_1-2_1-35 = 34
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: front = 3264
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back = 3264
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: subsonic_inflow_pt_block1_f5_1-49_1-2 = 48
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back_pressure_block1_f6_1-49_1-2 = 48
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-13 = 12
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: viscous_solid_block1_f1_1-2_13-69 = 56
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: farfield_riem_block1_f2_1-2_1-69 = 68
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: front = 13056
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back = 13056
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: subsonic_inflow_pt_block1_f5_1-97_1-2 = 96
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back_pressure_block1_f6_1-97_1-2 = 96
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: viscous_solid_block1_f1_1-2_25-137 = 112
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: farfield_riem_block1_f2_1-2_1-137 = 136
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: front = 3520
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back = 3520
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: subsonic_inflow_pt_block1_f5_1-41_1-2 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back_pressure_block1_f6_1-41_1-2 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: viscous_solid_block1_f1_1-2_25-65 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_65-89 = 24
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-89 = 88
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: front = 14080
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back = 14080
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: subsonic_inflow_pt_block1_f5_1-81_1-2 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back_pressure_block1_f6_1-81_1-2 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-49 = 48
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: viscous_solid_block1_f1_1-2_49-129 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_129-177 = 48
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-177 = 176
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: front = 3584
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: back = 3584
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f5_1-33_1-2 = 32
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f6_1-33_1-2 = 32
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: viscous_solid_block1_f1_1-2_25-89 = 64
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f2_1-2_1-113 = 112
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: front = 14336
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: back = 14336
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f5_1-65_1-2 = 64
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f6_1-65_1-2 = 64
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: viscous_solid_block1_f1_1-2_49-177 = 128
+  lView format: header, geometry, winding-compatible areas, per-vertex values, ranges, deltas and replacement passed
+ogged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f2_1-2_1-225 = 224
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+0.276059 s: NASA NMF ranges supply exact BC patches and stitch the NACA wake
+===============================================================================
+<checkout>/tests/io/test_plot3d_nmf.cpp:131:
+TEST CASE:  NMF explicit maps, discovery, strict ranges and complete coverage
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  non-symmetry cap
+
+0.013540 s: NMF explicit maps, discovery, strict ranges and complete coverage
+===============================================================================
+<checkout>/tests/io/test_plot3d_nmf.cpp:178:
+TEST CASE:  NMF multi-block extrusion shares caps and stitches reversed ranges
+
+0.000521 s: NMF multi-block extrusion shares caps and stitches reversed ranges
+===============================================================================
+<checkout>/tests/io/test_plot3d_nmf.cpp:203:
+TEST CASE:  NMF native 3D swapped primary directions stitch conforming blocks
+
+0.000625 s: NMF native 3D swapped primary directions stitch conforming blocks
+===============================================================================
+<checkout>/tests/io/test_view.cpp:20:
+TEST CASE:  View export preserves known surface and slice geometry, area weights and Fluent deltas
+
+0.032831 s: View export preserves known surface and slice geometry, area weights and Fluent deltas
+===============================================================================
+<checkout>/tests/io/test_view.cpp:65:
+TEST CASE:  View export triangulates a concave polygon and its nonconvex volume slice
+
+0.000787 s: View export triangulates a concave polygon and its nonconvex volume slice
+===============================================================================
+<checkout>/tests/linalg/test_kernels.cpp:11:
+TEST CASE:  linalg kernels match explicit host calculations on every backend
+
+0.011786 s: linalg kernels match explicit host calculations on every backend
+===============================================================================
+<checkout>/tests/linalg/test_kernels.cpp:50:
+TEST CASE:  AMG restriction prolongation and Galerkin gather match host sums
+
+0.009748 s: AMG restriction prolongation and Galerkin gather match host sums
+===============================================================================
+<checkout>/tests/linalg/test_kernels.cpp:66:
+TEST CASE:  compensated CSR residual resolves product and cancellation error
+
+0.010092 s: compensated CSR residual resolves product and cancellation error
+===============================================================================
+<checkout>/tests/linalg/test_kernels.cpp:92:
+TEST CASE:  fused coarse Jacobi preserves the ordinary sweep arithmetic
+
+0.014449 s: fused coarse Jacobi preserves the ordinary sweep arithmetic
+===============================================================================
+<checkout>/tests/linalg/test_kernels.cpp:129:
+TEST CASE:  device coefficient guards hold vectors on zero or nonfinite rho and omega
+
+0.013014 s: device coefficient guards hold vectors on zero or nonfinite rho and omega
+===============================================================================
+<checkout>/tests/linalg/test_kernels.cpp:154:
+TEST CASE:  AMG Galerkin preserves weak terms across strong cancellation
+
+0.010069 s: AMG Galerkin preserves weak terms across strong cancellation
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:50:
+TEST CASE:  CSR validates its boundary and kernels match host double arithmetic
+
+0.009846 s: CSR validates its boundary and kernels match host double arithmetic
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:80:
+TEST CASE:  Jacobi PCG and AMG solve SPD problems against double CG
+
+0.058352 s: Jacobi PCG and AMG solve SPD problems against double CG
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:93:
+TEST CASE:  BiCGStab solves upwind convection diffusion against dense double reference
+
+0.042746 s: BiCGStab solves upwind convection diffusion against dense double reference
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:102:
+TEST CASE:  constant Neumann nullspace is projected and incompatible RHS is rejected
+
+0.018344 s: constant Neumann nullspace is projected and incompatible RHS is rejected
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:117:
+TEST CASE:  controls zero residual nonzero initial guess and breakdown are truthful
+
+0.014275 s: controls zero residual nonzero initial guess and breakdown are truthful
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:145:
+TEST CASE:  AMG refresh agrees with fresh setup and V and K cycles are selectable
+
+0.041927 s: AMG refresh agrees with fresh setup and V and K cycles are selectable
+AMG_GRID backend=cpu n=32 iterations=10 rel=0.000000 converged=1 PCG, aggregation AMG V-cycle, 5 levels, op complexity 1.138
+AMG_GRID backend=cpu n=64 iterations=4 rel=0.000000 converged=1 PCG, aggregation AMG V-cycle, 6 levels, op complexity 1.140
+AMG_GRID backend=metal n=32 iterations=10 rel=0.000000 converged=1 PCG, aggregation AMG V-cycle, 5 levels, op complexity 1.138
+AMG_GRID backend=metal n=64 iterations=4 rel=0.000000 converged=1 PCG, aggregation AMG V-cycle, 6 levels, op complexity 1.140
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:177:
+TEST CASE:  AMG 3D Poisson grid growth at requested 1e-8 is measured honestly
+
+0.528893 s: AMG 3D Poisson grid growth at requested 1e-8 is measured honestly
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:214:
+TEST CASE:  float representability limits never produce false convergence
+
+0.017785 s: float representability limits never produce false convergence
+AMG_RANDOM backend=cpu n=32 iterations=11 relative_residual=0.000001
+AMG_RANDOM backend=cpu n=64 iterations=15 relative_residual=0.000001
+AMG_RANDOM backend=metal n=32 iterations=11 relative_residual=0.000001
+AMG_RANDOM backend=metal n=64 iterations=15 relative_residual=0.000001
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:231:
+TEST CASE:  AMG is grid robust for random forcing with low modes
+
+1.012168 s: AMG is grid robust for random forcing with low modes
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:255:
+TEST CASE:  a small reference term is preserved instead of projecting an invertible system
+
+0.014634 s: a small reference term is preserved instead of projecting an invertible system
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:274:
+TEST CASE:  empty CSR and solvers are valid no-ops
+
+0.008175 s: empty CSR and solvers are valid no-ops
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:288:
+TEST CASE:  strong upwind couplings coarsen in either direction and under permutation
+
+0.046932 s: strong upwind couplings coarsen in either direction and under permutation
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:308:
+TEST CASE:  isolated diagonal rows do not prevent connected cells from coarsening
+
+0.014443 s: isolated diagonal rows do not prevent connected cells from coarsening
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:324:
+TEST CASE:  default AMG avoids recursive host reductions and Krylov uses bounded storage
+
+0.029768 s: default AMG avoids recursive host reductions and Krylov uses bounded storage
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:343:
+TEST CASE:  Jacobi batches residual reductions and BiCGStab checks s only once
+
+0.000928 s: Jacobi batches residual reductions and BiCGStab checks s only once
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:359:
+TEST CASE:  reused transport solves allocate nothing and avoid frozen reduction batches
+
+0.017974 s: reused transport solves allocate nothing and avoid frozen reduction batches
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:393:
+TEST CASE:  Krylov exits do not reread an already verified current residual
+
+0.019018 s: Krylov exits do not reread an already verified current residual
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:409:
+TEST CASE:  assembled random Neumann pressure uses the caller nullspace contract
+
+0.058995 s: assembled random Neumann pressure uses the caller nullspace contract
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:450:
+TEST CASE:  AMG rejects negative diagonals and Krylov restores its best verified iterate on divergence
+
+0.017058 s: AMG rejects negative diagonals and Krylov restores its best verified iterate on divergence
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:487:
+TEST CASE:  actual hierarchy Galerkin values match independent double PtAP before and after refresh
+
+0.019219 s: actual hierarchy Galerkin values match independent double PtAP before and after refresh
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:557:
+TEST CASE:  CPU and Metal solves have identical iteration counts residuals and solutions
+
+0.112857 s: CPU and Metal solves have identical iteration counts residuals and solutions
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:585:
+TEST CASE:  Neumann PCG avoids duplicate fine projection and unused final preconditioning
+
+0.010998 s: Neumann PCG avoids duplicate fine projection and unused final preconditioning
+===============================================================================
+<checkout>/tests/linalg/test_solvers.cpp:603:
+TEST CASE:  batched BiCGStab freezes on zero omega and zero shadow product
+
+0.028045 s: batched BiCGStab freezes on zero omega and zero shadow product
+===============================================================================
+<checkout>/tests/lPost CLI: KUTV/KUTL layout, fields/ranges, pathline frame interpolation, probes/CSV, reports and atomic failures passed
+Fluent mixing elbow: streamlines, pressure/Q iso-surfaces, line/section probes, all derived/reference/delta fields and all-zone aero reports passed
+inalg/test_solvers.cpp:631:
+TEST CASE:  Krylov host checks are batched including K-cycle and Neumann projection
+
+0.037185 s: Krylov host checks are batched including K-cycle and Neumann projection
+===============================================================================
+<checkout>/tests/mesh/test_mesh.cpp:30:
+TEST CASE:  hex and conforming six-tet boxes: volumes, centroids and linear moments
+
+0.000277 s: hex and conforming six-tet boxes: volumes, centroids and linear moments
+===============================================================================
+<checkout>/tests/mesh/test_mesh.cpp:50:
+TEST CASE:  shear, skew, scale and translation preserve affine volume moments
+
+0.000185 s: shear, skew, scale and translation preserve affine volume moments
+===============================================================================
+<checkout>/tests/mesh/test_mesh.cpp:68:
+TEST CASE:  prism, polygonal prism and warped face geometry
+
+0.000032 s: prism, polygonal prism and warped face geometry
+===============================================================================
+<checkout>/tests/mesh/test_mesh.cpp:119:
+TEST CASE:  validation rejects malformed topology and winding
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  non-finite
+
+0.000163 s: validation rejects malformed topology and winding
+===============================================================================
+<checkout>/tests/mesh/test_mesh.cpp:159:
+TEST CASE:  gather adjacency and RCM preserve topology, zones and geometry
+
+0.000317 s: gather adjacency and RCM preserve topology, zones and geometry
+===============================================================================
+<checkout>/tests/mesh/test_mesh.cpp:214:
+TEST CASE:  individual tet centroid is the vertex average; trapezoid face moments
+
+0.000033 s: individual tet centroid is the vertex average; trapezoid face moments
+===============================================================================
+<checkout>/tests/mesh/test_mesh.cpp:247:
+TEST CASE:  RCM reduces a scrambled chain bandwidth and handles disconnected cells
+
+0.000230 s: RCM reduces a scrambled chain bandwidth and handles disconnected cells
+===============================================================================
+<checkout>/tests/mesh/test_mesh.cpp:278:
+TEST CASE:  oversized box dimensions fail before arithmetic overflows
+
+0.000019 s: oversized box dimensions fail before arithmetic overflows
+===============================================================================
+<checkout>/tests/mesh/test_mesh.cpp:284:
+TEST CASE:  signed face moments handle a dart quad outside the vertex-average kernel
+
+0.000004 s: signed face moments handle a dart quad outside the vertex-average kernel
+===============================================================================
+<checkout>/tests/post/test_cli.cpp:19:
+TEST CASE:  Post CLI publishes independently decoded compact traces iso surfaces probes and reports
+
+0.091577 s: Post CLI publishes independently decoded compact traces iso surfaces probes and reports
+===============================================================================
+<checkout>/tests/post/test_elbow.cpp:18:
+TEST CASE:  Mixing elbow post-processing smoke exercises every requested operation through the CLI
+
+1.881786 s: Mixing elbow post-processing smoke exercises every requested operation through the CLI
+===============================================================================
+<checkout>/tests/post/test_integrals.cpp:11:
+TEST CASE:  Aerodynamic surface reports reproduce analytic area flow force moment and constrained pressure centre
+
+0.000135 s: Aerodynamic surface reports reproduce analytic area flow force moment and constrained pressure centre
+===============================================================================
+<checkout>/tests/post/test_integrals.cpp:41:
+TEST CASE:  Mass-weighted averages use absolute face flux while mass flow retains sign
+
+0.000039 s: Mass-weighted averages use absolute face flux while mass flow retains sign
+===============================================================================
+<checkout>/tests/post/test_integrals.cpp:72:
+TEST CASE:  Surface reports return null for undefined zero-flow averages and zero-force pressure centres
+
+0.000029 s: Surface reports return null for undefined zero-flow averages and zero-force pressure centres
+===============================================================================
+<checkout>/tests/post/test_iso_probe.cpp:6:
+TEST CASE:  Marching tetrahedra exports an affine iso plane with correct area fields and winding
+
+0.000672 s: Marching tetrahedra exports an affine iso plane with correct area fields and winding
+===============================================================================
+<checkout>/tests/post/test_iso_probe.cpp:31:
+TEST CASE:  Line probes preserve affine values and mask samples outside the volume
+
+0.000129 s: Line probes preserve affine values and mask samples outside the volume
+===============================================================================
+<checkout>/tests/post/test_iso_probe.cpp:49:
+TEST CASE:  Surface-plane section probes produce ordered closed Cp curves
+
+0.000081 s: Surface-plane section probes produce ordered closed Cp curves
+===============================================================================
+<checkout>/tests/post/test_iso_probe.cpp:71:
+TEST CASE:  Nonconvex cell iso decomposition finds a positive kernel away from the Fluent centroid
+
+0.000045 s: Nonconvex cell iso decomposition finds a positive kernel away from the Fluent centroid
+===============================================================================
+<checkout>/tests/post/test_iso_probe.cpp:121:
+TEST CASE:  Coarse line probes locate distant samples without exhausting a cell walk
+
+0.007910 s: Coarse line probes locate distant samples without exhausting a cell walk
+===============================================================================
+<checkout>/tests/post/test_trace.cpp:7:
+TEST CASE:  Uniform-flow adaptive streamlines stop on a boundary and honour maximum length
+
+0.000396 s: Uniform-flow adaptive streamlines stop on a boundary and honour maximum length
+===============================================================================
+<checkout>/tests/post/test_trace.cpp:38:
+TEST CASE:  RK4 reconstructed solid-body rotation follows a circular closed-form path
+
+0.000676 s: RK4 reconstructed solid-body rotation follows a circular closed-form path
+===============================================================================
+<checkout>/tests/post/test_trace.cpp:64:
+TEST CASE:  Time-dependent pathlines interpolate saved frame velocity with physical time
+
+0.000098 s: Time-dependent pathlines interpolate saved frame velocity with physical time
+===============================================================================
+<checkout>/tests/post/test_trace.cpp:89:
+TEST CASE:  Plane and deterministic area-distributed surface seeds respect their specifications
+
+0.000082 s: Plane and deterministic area-distributed surface seeds respect their specifications
+===============================================================================
+<checkout>/tests/post/test_trace.cpp:115:
+TEST CASE:  Pathline steps honour saved time knots in forward and backward integration
+
+0.000119 s: Pathline steps honour saved time knots in forward and backward integration
+===============================================================================
+<checkout>/tests/post/test_trace.cpp:147:
+TEST CASE:  Unsteady pathlines can leave rest and retain physical time at a length limit
+
+0.000059 s: Unsteady pathlines can leave rest and retain physical time at a length limit
+===============================================================================
+<checkout>/tests/post/test_volume.cpp:6:
+TEST CASE:  Post reconstruction is affine exact and walks real face neighbours to a boundary
+
+0.000281 s: Post reconstruction is affine exact and walks real face neighbours to a boundary
+===============================================================================
+<checkout>/tests/post/test_volume.cpp:27:
+TEST CASE:  Solid-body rotation gives analytic vorticity Q helicity and pressure coefficients
+
+0.000288 s: Solid-body rotation gives analytic vorticity Q helicity and pressure coefficients
+===============================================================================
+<checkout>/tests/post/test_volume.cpp:54:
+TEST CASE:  Post reference overrides recompute existing coefficients and preserve solution fields
+
+0.000049 s: Post reference overrides recompute existing coefficients and preserve solution fields
+===============================================================================
+<checkout>/tests/post/test_volume.cpp:77:
+TEST CASE:  Nonlinear Fluent deltas subtract independently reconstructed diagnostics
+
+0.000196 s: Nonlinear Fluent deltas subtract independently reconstructed diagnostics
+runtime test backend: cpu (CPU reference (serial))
+runtime test backend: metal (Apple M4 Pro)
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:25:
+TEST CASE:  compiled GPU backends are exercised, not silently skipped
+
+0.011128 s: compiled GPU backends are exercised, not silently skipped
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:41:
+TEST CASE:  all generated BLAS kernels match the CPU oracle including tail grids
+
+0.059711 s: all generated BLAS kernels match the CPU oracle including tail grids
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:71:
+TEST CASE:  transfers fills copies and queued launches preserve call order and lifetime
+
+0.013542 s: transfers fills copies and queued launches preserve call order and lifetime
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:120:
+TEST CASE:  zero sized operations are no-ops and reductions validate bounds
+
+0.007232 s: zero sized operations are no-ops and reductions validate bounds
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:142:
+TEST CASE:  compensated reductions retain mixed magnitudes cancellation and product residuals
+
+0.014080 s: compensated reductions retain mixed magnitudes cancellation and product residuals
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:162:
+TEST CASE:  reductions keep low terms when high products and sums cancel
+
+0.012267 s: reductions keep low terms when high products and sums cancel
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:183:
+TEST CASE:  reductions reach one hundred million elements at double reference accuracy
+
+0.473913 s: reductions reach one hundred million elements at double reference accuracy
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:199:
+TEST CASE:  identical queued computations and reductions are bitwise deterministic
+
+0.030310 s: identical queued computations and reductions are bitwise deterministic
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:222:
+TEST CASE:  reductions propagate NaN and Inf instead of hiding them
+
+0.010417 s: reductions propagate NaN and Inf instead of hiding them
+===============================================================================
+<checkout>/tests/runtime/test_backends.cpp:235:
+TEST CASE:  math wrappers are accurate on every backend
+
+0.012095 s: math wrappers are accurate on every backend
+===============================================================================
+<checkout>/tests/runtime/test_device.cpp:9:
+TEST CASE:  blas kernels and reductions match the reference on every backend
+
+0.015120 s: blas kernels and reductions match the reference on every backend
+===============================================================================
+<checkout>/tests/runtime/test_device.cpp:36:
+TEST CASE:  device scalar reductions preserve low terms and ordered scratch reuse
+
+0.014765 s: device scalar reductions preserve low terms and ordered scratch reuse
+===============================================================================
+<checkout>/tests/runtime/test_device.cpp:77:
+TEST CASE:  Device inventory is additive and reports one auto default without kernel compilation
+
+0.000153 s: Device inventory is additive and reports one auto default without kernel compilation
+===============================================================================
+<checkout>/tests/setup/test_settings.cpp:8:
+TEST CASE:  Mixing elbow inventories every retained case and zone setting with Fluent groups
+
+0.128412 s: Mixing elbow inventories every retained case and zone setting with Fluent groups
+SST Fluent 22.2 mixing_elbow: cpu / CPU reference (serial)
+  mu_t inactive identity n=11066 median=0.000000 p95=0.000000 max=0.000000
+  omega gradient change vs saved wall SV_O n=17822 median=0.000000 p95=0.005943 max=0.006273
+  model wall omega: max mu_t change=0.000000 limiter changes=0 CDkw changes=2436
+  mu_t limited, inverse-square LSQ n=6756 median=0.045967 p95=0.142837 max=0.309757
+  mu_t inactive, inverse-square LSQ n=11066 median=0.000000 p95=0.039415 max=0.268265
+  limiter agreement=0.902985 discriminating n=2555 median S ratio=0.999075 median Omega ratio=0.240746 max production/cap=0.359467
+  wall-face reconstruction omega n=2436 median=0.004186 p95=0.004282 max=0.004319
+  wall-cell omega n=2436 median=0.000006 p95=0.000042 max=0.000293
+  wall y+ (u*) n=2436 median=0.000005 p95=0.000201 max=0.001758
+  wall y+ (u_tau) n=2436 median=0.000005 p95=0.000185 max=0.001982
+  wall shear force magnitude n=2436 median=0.000009 p95=0.000370 max=0.003961
+  wall shear force vector n=2436 median=0.000011 p95=0.000445 max=0.005434
+  wall shear vector kernel/double-oracle n=2436 median=0.000000 p95=0.000000 max=0.000000
+  saved shear directional scatter (1+cos) n=2436 median=0.000000 p95=0.000000 max=0.000011
+  wall k zero gradient n=2436 median=0.000005 p95=0.000597 max=0.004633
+SST Fluent 22.2 mixing_elbow: metal / Apple M4 Pro
+  mu_t inactive identity n=11066 median=0.000000 p95=0.000000 max=0.000000
+  omega gradient change vs saved wall SV_O n=17822 median=0.000000 p95=0.005943 max=0.006273
+  model wall omega: max mu_t change=0.000000 limiter changes=0 CDkw changes=2436
+  mu_t limited, inverse-square LSQ n=6756 median=0.045967 p95=0.142837 max=0.309757
+  mu_t inactive, inverse-square LSQ n=11066 median=0.000000 p95=0.039415 max=0.268265
+  limiter agreement=0.902985 discriminating n=2555 median S ratio=0.999075 median Omega ratio=0.240746 max production/cap=0.359467
+  wall-face reconstruction omega n=2436 median=0.004186 p95=0.004282 max=0.004319
+  wall-cell omega n=2436 median=0.000006 p95=0.000042 max=0.000293
+  wall y+ (u*) n=2436 median=0.000005 p95=0.000201 max=0.001758
+  wall y+ (u_tau) n=2436 median=0.000005 p95=0.000185 max=0.001982
+  wall shear force magnitude n=2436 median=0.000009 p95=0.000370 max=0.003961
+  wall shear force vector n=2436 median=0.000011 p95=0.000445 max=0.005434
+  wall shear vector kernel/double-oracle n=2436 median=0.000000 p95=0.000000 max=0.000000
+  saved shear directional scatter (1+cos) n=2436 median=0.000000 p95=0.000000 max=0.000011
+  wall k zero gradient n=2436 median=0.000005 p95=0.000597 max=0.004633
+===============================================================================
+<checkout>/tests/turbulence/test_fluent_sst.cpp:189:
+TEST CASE:  SST reproduces Fluent mixing-elbow saved viscosity and wall fields
+
+0.217713 s: SST reproduces Fluent mixing-elbow saved viscosity and wall fields
+===============================================================================
+<checkout>/tests/turbulence/test_realizable_ke.cpp:18:
+TEST CASE:  Realizable KE variable Cmu and epsilon equations match double oracle and all backends
+
+0.010979 s: Realizable KE variable Cmu and epsilon equations match double oracle and all backends
+===============================================================================
+<checkout>/tests/turbulence/test_realizable_ke.cpp:43:
+TEST CASE:  Realizable KE scalable walls clamp every y-star formula and retain moving-wall tangency
+
+0.010396 s: Realizable KE scalable walls clamp every y-star formula and retain moving-wall tangency
+===============================================================================
+<checkout>/tests/turbulence/test_realizable_ke.cpp:70:
+TEST CASE:  Realizable KE explicit EWT algebra and Kader asymptotes are portable
+
+0.009610 s: Realizable KE explicit EWT algebra and Kader asymptotes are portable
+===============================================================================
+<checkout>/tests/turbulence/test_realizable_ke.cpp:95:
+TEST CASE:  Realizable KE inlet boundary conversions use epsilon and hydraulic diameter
+
+0.009460 s: Realizable KE inlet boundary conversions use epsilon and hydraulic diameter
+===============================================================================
+<checkout>/tests/turbulence/test_realizable_ke.cpp:108:
+TEST CASE:  Realizable KE coupled steady path transports positive decaying turbulence on CPU and Metal
+
+0.687543 s: Realizable KE coupled steady path transports positive decaying turbulence on CPU and Metal
+===============================================================================
+<checkout>/tests/turbulence/test_sa.cpp:17:
+TEST CASE:  SA transport coefficients match independent double equations and backend oracle
+
+0.014302 s: SA transport coefficients match independent double equations and backend oracle
+===============================================================================
+<checkout>/tests/turbulence/test_sa.cpp:56:
+TEST CASE:  SA boundary methods invert damped viscosity and distinguish outlet backflow
+
+0.009996 s: SA boundary methods invert damped viscosity and distinguish outlet backflow
+===============================================================================
+<checkout>/tests/turbulence/test_sa.cpp:80:
+TEST CASE:  SA real transport path preserves laminar Couette and rejects conflicting model data
+
+0.194660 s: SA real transport path preserves laminar Couette and rejects conflicting model data
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:19:
+TEST CASE:  fused SST constitutive update equals staged kernels on every backend
+
+0.012189 s: fused SST constitutive update equals staged kernels on every backend
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:48:
+TEST CASE:  SST constants, F1/F2 limits, signed cross diffusion and implicit sinks
+
+0.011024 s: SST constants, F1/F2 limits, signed cross diffusion and implicit sinks
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:86:
+TEST CASE:  SST production switches, viscosity limiter and gamma choices
+
+0.012422 s: SST production switches, viscosity limiter and gamma choices
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:125:
+TEST CASE:  SST optional low-Re coefficients and explicit floors
+
+0.010479 s: SST optional low-Re coefficients and explicit floors
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:146:
+TEST CASE:  SST wall sublayer, log layer, moving walls and zero relative velocity
+
+0.010818 s: SST wall sublayer, log layer, moving walls and zero relative velocity
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:191:
+TEST CASE:  SST wall law and omega correlation blend continuously
+
+0.012392 s: SST wall law and omega correlation blend continuously
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:213:
+TEST CASE:  SST F1 and F2 blend continuously across their transition
+
+0.011803 s: SST F1 and F2 blend continuously across their transition
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:228:
+TEST CASE:  SST interpolation, no-wall constraints and boundary masking
+
+0.010291 s: SST interpolation, no-wall constraints and boundary masking
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:246:
+TEST CASE:  SST every kernel matches CPU and repeats deterministically
+
+0.020467 s: SST every kernel matches CPU and repeats deterministically
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:282:
+TEST CASE:  SST unsupported and invalid options fail explicitly
+
+0.000107 s: SST unsupported and invalid options fail explicitly
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:297:
+TEST CASE:  SST floor cross-diffusion overflow probe remains finite
+
+0.044526 s: SST floor cross-diffusion overflow probe remains finite
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:357:
+TEST CASE:  SST signed cross-diffusion clip scales with omega destruction
+
+0.011752 s: SST signed cross-diffusion clip scales with omega destruction
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:377:
+TEST CASE:  SST F1 cross branch and transport match an independent double oracle
+
+0.011612 s: SST F1 cross branch and transport match an independent double oracle
+===============================================================================
+<checkout>/tests/turbulence/test_sst.cpp:411:
+TEST CASE:  SST implicit wall shear, reconstruction omega and structural zero k flux
+
+0.012914 s: SST implicit wall shear, reconstruction omega and structural zero k flux
+===============================================================================
+[doctest] test cases:     218 |     218 passed | 0 failed | 24 skipped
+[doctest] assertions: 7403793 | 7403793 passed | 0 failed |
+[doctest] Status: SUCCESS!

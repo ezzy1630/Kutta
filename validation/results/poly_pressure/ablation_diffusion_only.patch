@@ -1,0 +1,11 @@
+--- a/src/kutta/fv/face_projection.cpp
++++ b/src/kutta/fv/face_projection.cpp
+@@ -156,6 +156,8 @@
+ }
+ void ProjectedFaceReconstruction::momentum_values(const Buffer<float>& field,const Buffer<float>& boundary,
+     const Buffer<float>& diagonal,Buffer<float>& out,const Buffer<float>* cell_limiter) const {
++  return; // Controlled diffusion-only diagnostic.
++
+   kern::fv_projected_momentum_faces(dev_,internal_,offsets_,points_,owner_,neighbour_,mask_,value_weights_,link_weights_,field,boundary,diagonal,cell_limiter?*cell_limiter:diagonal,out,cell_limiter?1:0);
+ }
+ void ProjectedFaceReconstruction::gradient(const Buffer<float>& field,const Buffer<float>& boundary,DeviceVec3& out) const {

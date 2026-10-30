@@ -1,0 +1,11 @@
+--- a/src/kutta/kernels/fv_flow.kern.h
++++ b/src/kutta/kernels/fv_flow.kern.h
+@@ -104 +104 @@
+-    +0.5f*((ux[p]+ux[n])*rx+(uy[p]+uy[n])*ry+(uz[p]+uz[n])*rz);
++    +weight*(ux[p]*px[i]+uy[p]*py[i]+uz[p]*pz[i])+(1.0f-weight)*(ux[n]*nx[i]+uy[n]*ny[i]+uz[n]*nz[i]);
+@@ -106 +106 @@
+-    +0.5f*((vx[p]+vx[n])*rx+(vy[p]+vy[n])*ry+(vz[p]+vz[n])*rz);
++    +weight*(vx[p]*px[i]+vy[p]*py[i]+vz[p]*pz[i])+(1.0f-weight)*(vx[n]*nx[i]+vy[n]*ny[i]+vz[n]*nz[i]);
+@@ -108 +108 @@
+-    +0.5f*((wx[p]+wx[n])*rx+(wy[p]+wy[n])*ry+(wz[p]+wz[n])*rz);
++    +weight*(wx[p]*px[i]+wy[p]*py[i]+wz[p]*pz[i])+(1.0f-weight)*(wx[n]*nx[i]+wy[n]*ny[i]+wz[n]*nz[i]);

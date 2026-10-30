@@ -4,8 +4,11 @@ FSAE physics gates V7–V12 and their measured results are tracked separately in
 [`validation/results/fsae_physics/REPORT.md`](../../../validation/results/fsae_physics/REPORT.md).
 Their [formulation and input contracts](../../../docs/research/fsae-physics.md)
 distinguish analytic proof from native Fluent input evidence. V12 remains a
-failing native-fan acceptance gate, and V7.2 retains its polyhedral pressure
-accuracy failure. Existing V1–V6 gates are unchanged.
+failing native-fan acceptance gate. V7.2 now passes unchanged on CPU and Metal
+with 0.093% poly pressure error; native rotating walls are enabled. The
+[polyhedral reconstruction report](../../../validation/results/poly_pressure/REPORT.md)
+records the operator evidence and full assertion comparison. Existing V1–V6
+acceptance thresholds are unchanged.
 
 This branch preserves the Fluent-class discretization and checks its operator
 consistency separately from integrated-load accuracy. The former tet pointwise
@@ -2659,19 +2662,41 @@ selector provenance. No external realizable-code execution, Fluent same-mesh
 comparison, separately converged default-no-ft2 SA study, or new model release
 is claimed. Existing V1-V6 slow gates were not rerun or reclassified in this lane.
 
-## Polyhedral pressure and viscous-flux investigation (2026-10-30)
+## Polyhedral face reconstruction (2026-10-30)
 
-The [manufactured checks and rejected numerical trials](../../../validation/results/poly_pressure/REPORT.md)
-reproduce V7.2's polyhedral pressure error and identify a large viscosity-dependent
-azimuthal pressure mode. Quadratic pressure face values converge at about second
-order; quadratic viscous normal derivatives on fine/coarse radial faces and at
-walls converge at about first order, even with exact velocity gradients.
-The existing non-orthogonal diffusion split matches its independent double oracle.
+The [complete report](../../../validation/results/poly_pressure/REPORT.md) records
+before/after exact-state operators on three hex/poly refinement levels, quadratic
+manufactured velocity fluxes, full slow assertion identities, source/fixture
+hashes, and CPU/Metal/CUDA evidence. The analytic Taylor–Couette solution supplies
+the reference; no Fluent annulus run exists or is required.
 
-Momentum-weighted side velocity reconstructions pass the unchanged V7.2 test,
-with .600827% poly pressure error on CPU and Metal, but introduce V2 failures
-and stall the V6 seeded solve. Wall-stress and pressure-gradient combinations
-also fail regression gates. All numerical trials were reverted; the retained
-solver code is identical to `fb827e0`. V7.2 remains at 1.69127%, and the native
-rotating-wall adapter remains rejected. This investigation does not supply an
-accepted numerical repair or a Fluent same-mesh comparison.
+Controlled ablations identify the mass predictor as the principal V7.2 pressure
+cause: projected diffusion alone leaves 1.678% pressure error; projected momentum
+interpolation alone gives .0686%; both give .0927%. Diffusion is retained for
+its quadratic-flux consistency and improved V2 field/force errors. The report
+records why viscosity scaling can also arise through Rhie–Chow mobility.
+
+The retained laminar reconstruction projects tangentially onto the face-normal
+line with a symmetric quadratic fit. It preserves the implicit primary diffusion
+coefficient, the normal two-point stencil and compact momentum coupling. Wall
+traction uses the same assembled normal flux. This is a standard quadratic
+geometric extension of Fluent's documented linear primary/secondary split;
+Fluent's proprietary reconstruction weights are not claimed to match it.
+Second Order pressure, cell pressure LSQ, the momentum pressure source and the
+Rhie–Chow pressure term are unchanged. The velocity/mass predictor is corrected.
+
+For quadratic velocity `(x²,−2xy,0)`, coarse/fine radial viscous-flux order rises
+from .995 to 1.987; finest `u` flux RMS falls from .00683831 to .0000856878.
+The inner-wall error remains first order and exactly matches hex. For exact
+Taylor–Couette, the corresponding radial-flux order rises from .988 to 1.954,
+and bulk continuity order from .938 to 2.342. Local viscous/pressure cell
+truncation norms do not all become second order; the full per-operator tables
+retain those limits and any increased error magnitudes.
+
+The unchanged V7.2 pressure gate passes on CPU and Metal: poly 0.093%,
+hex 0.312%, against the 1% bound. Native rotating walls are enabled in the
+strict adapter. Three-grid poly pressure convergence and controlled diffusion/
+interpolation ablations are recorded in the report. No original gate was relaxed.
+SST, SA and realizable-k-epsilon retain their diffusion and wall-function
+contracts; V6 remains approximately 3.60% velocity / 2.96% pressure error, with
+its existing WFGC mismatch and failed accuracy assertions unresolved.

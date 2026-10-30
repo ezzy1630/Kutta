@@ -1,0 +1,13 @@
+{
+  "shared_progress_samples": 351,
+  "different_shared_samples": [],
+  "baseline_only_samples": [],
+  "final_only_samples": [
+    [
+      "cpu",
+      "bump",
+      "2",
+      "2200"
+    ]
+  ]
+}
