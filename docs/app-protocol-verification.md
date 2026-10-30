@@ -162,3 +162,79 @@ its compact binaries, CSV probes and `reports.json`. The summary records the
 exact source commit above. The 10M readback is
 `build/evidence/post-10m-readback.json`; its compact view, request, timings and
 resource logs remain, while the large temporary volume snapshot was removed.
+
+## Native Qt app and live surfaces
+
+Implementation source: `bff23998d6b83d4471b4ce50c2826853f8bbc339`. The protocol now
+identifies the desktop app as native Qt 6/C++, running the CLI as a child process.
+No desktop UI, FV, linear algebra or runtime source changed in this follow-up.
+
+`solve --live-view DIR [--live-every N]` publishes immutable KUTV v1 surface
+snapshots with a separately renamed sequence pointer. Default N is 20 iterations.
+It waits for the existing solver monitor refresh and a measured 5% budget, with a
+25% allowance on the previous snapshot cost before admitting the next write.
+This refresh condition is necessary: the boundary-pressure buffer is used for
+pressure correction between monitors. Exporting that scratch would show incorrect
+pressure contours. Live view adds no monitor calls; the terminal refresh already
+needed by ordinary output happens before a possible terminal live snapshot.
+
+New coverage includes concurrent readers checking complete headers, payload sizes,
+per-sequence field ranges and monotonically increasing pointers while twelve
+snapshots publish. Failed capture and failed pointer publication leave the old
+view readable, preserve its sequence and remove the unpublished directory. A new
+run gets a new identity while old immutable sequences remain readable. The actual
+CLI test checks snapshot event paths, timings/counters, option rejection,
+byte-identical live/final surface exports including Fluent/delta fields, stdin
+cancellation after a live update, delayed publication for N=7 at monitor 20, and
+a refreshed terminal snapshot at iteration 7.
+
+### Elbow cost measurement
+
+The supplied 17,822-cell Fluent mixing elbow was seeded from its `.dat.h5` and
+run for 100 iterations, with the existing `--approximate wfgc` opt-in. Baseline
+and live runs used identical inputs and controls on each backend. The live default
+produced five snapshots at iterations 20, 40, 60, 80 and 100. Each contains six
+zones and 21 fields across the view, including comparison fields. Contour payloads
+change between snapshots. Independent readback checks the KUTV headers and finite
+available values, resolves each event and final pointer, and compares all final
+VTU/forces/fluxes/snapshot files byte for byte against the baseline: all match on
+both backends.
+
+| Backend | Snapshot capture/publication total | Loop time excluding snapshots | Snapshot/solve cost |
+| --- | ---: | ---: | ---: |
+| CPU | 0.045181 s | 13.651650 s | 0.331% |
+| Metal, Apple M4 Pro | 0.035977 s | 6.339098 s | 0.568% |
+
+The final measurement's baseline/live total loop times were 13.6581/13.6968 s for
+CPU and 5.40875/6.37507 s for Metal. Other solver benchmark/test loops were active
+on this shared machine; these single-pair totals do not isolate the feature's
+throughput effect. The within-run snapshot timer measures the requested cost
+bound directly. Earlier measurements under lighter load were 0.278% CPU and
+1.471% Metal. These are local observations, not hard latency guarantees for an
+unmeasured filesystem or GPU. Initial calibration and storage spikes can exceed
+the budget temporarily, as specified in the protocol.
+
+### Verification and limits
+
+- Final native quick tier: **192 cases, 1,601,965 assertions passed**, 24.55 s
+  wall time while multiple other solver benchmark/test processes were active.
+  The earlier integrated live-view check passed in 13.37 s before the final
+  pressure-state/fault regressions. The final checkout's approximately 15 s
+  wall-time target could not be confirmed under the shared load; tests were
+  neither excluded nor weakened.
+- Final `ctest -LE slow`: **2/2 passed in 24.23 s**, including portability lint.
+  Actual CPU/Metal availability checks remain included.
+- CUDA 13.0.2 amd64: CI architecture configuration compiled without warnings;
+  **191 CPU-oracle cases, 888,975 assertions passed**, with only compiled GPU
+  presence excluded as in CI. Supplied Fluent fixtures were mounted. CUDA
+  execution is unverified on this Mac, which has no NVIDIA driver.
+- The Windows-specific addition is replacement rename with a bounded retry for
+  manifest sharing violations. Windows compilation/runtime remain unverified.
+  The existing CTRL_BREAK implementation is unchanged.
+
+Retained evidence is under `build/evidence/live-elbow/`: baseline/live JSONL logs,
+source-stamped summaries, `measurements.json`, independent `readback.json`, and
+both backends' live views. Build/test logs and the process-load sample are
+`build/evidence/live-{build,quick,quick-time,ctest,cuda,host-load}` with their
+`.log`/`.txt` suffixes. The large temporary volume used by the prior 10M benchmark
+remains removed; live view itself never writes a volume snapshot.
