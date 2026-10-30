@@ -59,6 +59,7 @@ struct SstVelocityGradients {
 
 struct SstInputs {
   const DeviceVec3& velocity;
+  // Derivative for rates, production and mu_t, independently of SOU.
   SstVelocityGradients velocity_gradient;
   const Buffer<float>& density;    // per cell, finite and > 0
   const Buffer<float>& viscosity;  // dynamic molecular viscosity, finite and > 0

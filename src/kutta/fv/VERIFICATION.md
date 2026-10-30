@@ -845,3 +845,246 @@ Local evidence: `build/laminar-evidence-identity.txt`,
 `build/laminar-build-final.log` and `build/laminar-portability-final.log`.
 Temporary reference sources/builds and the field-comparison harness were
 removed after retaining the results and field hashes. Commits are local only.
+
+## Fluent flux/gradient implementation measurement (2026-10-29)
+
+**Acceptance is not complete.** The required changes improve V6 but introduce V2 refinement failures. No acceptance threshold was relaxed and no laminar/SST reconstruction switch was restored. The unchanged V6 original-settings and accuracy gates remain failing. See the laminar diagnosis below.
+
+Baseline is the clean starting commit `9cdbe6a20b3fa0a8c7f7bfaf1398f3fbc512d93c`; numerical implementation is `40bc8bfa482b4739ef7d4cd16bb200a93e72de91`, with local commits `5312bb8`, `52ff319`, `5de28d4`, and `40bc8bf`. Nothing was pushed. Measurements use this worktree, Apple M4 Pro, macOS 26.6.2 arm64, Release AppleClang 21, CPU serial oracle and Metal, float storage and double reductions. The external case/data SHA-256 values are unchanged from the V6 section above.
+
+The baseline full V6 run uses a saved copy of the unmodified starting executable. An isolated `git archive` of the starting commit, with only test-output instrumentation, supplies its raw saved-field residuals; those scaled residuals reproduce the unmodified executable. Final V6 was rerun on the rebuilt final executable (SHA-256 `cae300f3c4b1c3b1575100e5c42fcaf4443f5452ecc577b0599727a52cf93b13`).
+
+### Implemented scope
+
+- Momentum flux averages physical-a_P-weighted, per-component limited side reconstructions. Outlet predictors and advected outlet velocity use the cell value. Rhie–Chow uses Green–Gauss of momentum's second-order face pressures; a_P remains physical, without pseudo-time or relaxation.
+- All flow models use the same per-field LSQ policy. Pressure includes zero-difference wall/inlet/symmetry observations, independently of extrapolated momentum boundary pressure. Velocity includes projected symmetry values and omits outlet rows. k/omega retain their independent inlet/wall observations. SOU and diffusion use plain LSQ 1/d², with the existing per-component face-centroid Barth–Jespersen limiter for SOU.
+- Symmetry has zero net viscous force, while its implicit normal coefficient is balanced explicitly and remains in a_P. Outlet transpose stress is retained. Wall shear and harmonic wall-cell k production are unchanged.
+- SST production and viscosity limiting share LSQ2 without wall rows plus one half-jump fit. The face-row geometry matrix is precomputed. Omega destruction is Newton-linearized with the matching RHS correction; production remains alpha*rho*P_k/mu_t.
+- `ResidualValue::scaled` retains the existing steady-monitor convention; new `fluent_scaled` and `fluent_normalization` expose component momentum and sink/pseudo-time turbulence scaling. The solver has no energy equation, so no energy monitor was added. No atomics or host-side solve-field loops were introduced.
+
+### Full V6 before/after
+
+These remain **diagnostics**: the original WFGC flag is rejected and cold start uses the stored standard proxy rather than hybrid initialization. The new strain derivative is a likely WFGC-related approximation, not an implementation of the complete original flag. S means seeded from Fluent; C means cold-standard-proxy. Stopping uses the unchanged legacy steady residual and absolute continuity gates.
+
+| Backend/start | Iterations before → after | Seconds before → after | Drop Pa before → after | Drop error % before → after |
+| --- | ---: | ---: | ---: | ---: |
+| cpu/S | 300 → 300 | 29.466349 → 36.456238 | 0.54467845 → 0.53755602 | 1.787407 → 0.456396 |
+| cpu/C | 600 → 500 | 62.443878 → 55.968848 | 0.54471378 → 0.53758691 | 1.794009 → 0.462167 |
+| metal/S | 300 → 300 | 7.7052269 → 8.0159244 | 0.54467798 → 0.53755857 | 1.787319 → 0.456872 |
+| metal/C | 600 → 500 | 16.263123 → 11.415624 | 0.54471033 → 0.53758764 | 1.793366 → 0.462305 |
+
+Times are observed, with slow-tier/Docker/probe work concurrent; they are not isolated performance benchmarks. All four runs converge. Fluent pressure drop is 0.5351137855 Pa.
+
+| Backend/start | Field | L2 % before → after | Max absolute before → after (SI) | Relative max % before → after |
+| --- | --- | ---: | ---: | ---: |
+| cpu/S | velocity | 3.925067 → 2.502106 | 0.44352163 → 0.28718162 | 26.711847 → 17.296003 |
+| cpu/S | pressure | 3.147520 → 1.177819 | 0.1215064 → 0.042969369 | 10.601535 → 3.749113 |
+| cpu/S | k | 15.618063 → 11.419892 | 0.01788308 → 0.0080515299 | 63.397187 → 28.543424 |
+| cpu/S | omega | 8.596569 → 8.743751 | 10826.064 → 11713.757 | 12.012038 → 12.996975 |
+| cpu/C | velocity | 3.926663 → 2.503539 | 0.44356895 → 0.28721976 | 26.714696 → 17.298300 |
+| cpu/C | pressure | 3.145914 → 1.180174 | 0.12151632 → 0.042985507 | 10.602401 → 3.750521 |
+| cpu/C | k | 15.620213 → 11.424049 | 0.017887128 → 0.0080517357 | 63.411536 → 28.544154 |
+| cpu/C | omega | 8.596902 → 8.743866 | 10826.257 → 11713.838 | 12.012251 → 12.997065 |
+| metal/S | velocity | 3.925066 → 2.502105 | 0.44352158 → 0.28718145 | 26.711843 → 17.295993 |
+| metal/S | pressure | 3.147465 → 1.178059 | 0.12150753 → 0.042972297 | 10.601634 → 3.749369 |
+| metal/S | k | 15.618062 → 11.419893 | 0.017883082 → 0.0080515313 | 63.397193 → 28.543429 |
+| metal/S | omega | 8.596579 → 8.743763 | 10826.084 → 11713.787 | 12.012059 → 12.997009 |
+| metal/C | velocity | 3.926664 → 2.503540 | 0.44356908 → 0.2872201 | 26.714705 → 17.298320 |
+| metal/C | pressure | 3.145997 → 1.180287 | 0.1215122 → 0.042986863 | 10.602041 → 3.750640 |
+| metal/C | k | 15.620217 → 11.424048 | 0.017887131 → 0.0080517492 | 63.411549 → 28.544202 |
+| metal/C | omega | 8.596901 → 8.743874 | 10826.288 → 11713.827 | 12.012286 → 12.997053 |
+
+L2 and maxima use the definitions in the V6 section above, without changing reference pressure or field alignment. CPU seeded gap reduction is 36.25% for velocity, 62.58% for pressure and 26.88% for k; omega error increases by 1.71%.
+
+Wall force vectors below are on the body, in N, reference pressure zero. The Fluent reference vectors are listed in the earlier V6 force table and printed in both raw logs.
+
+| Backend/start | Wall / part | Vector before (Fx,Fy,Fz) | Vector after (Fx,Fy,Fz) | Vector error % before → after |
+| --- | --- | --- | --- | ---: |
+| cpu/S | wall-elbow / pressure | (0.006429916884,-0.005949214478,0.01528421649) | (0.006391833166,-0.005947184161,0.01560256609) | 1.408618 → 0.469895 |
+| cpu/S | wall-elbow / shear | (0.0003327747477,0.0006874346094,-5.847051166e-05) | (0.0003393058146,0.0006925559117,-6.241457295e-05) | 2.296713 → 1.434058 |
+| cpu/S | wall-elbow / total | (0.006762691632,-0.005261779868,0.01522574598) | (0.006731138981,-0.005254628249,0.01554015152) | 1.350647 → 0.482339 |
+| cpu/S | wall-inlet / pressure | (7.262223624e-05,-5.181007285e-06,0.001601499837) | (8.125025784e-05,-4.750439119e-06,0.001620376565) | 0.806847 → 0.507453 |
+| cpu/S | wall-inlet / shear | (1.3234273e-06,7.261430428e-05,4.293509314e-07) | (1.00551305e-06,6.990126857e-05,4.74597542e-07) | 2.437173 → 1.429758 |
+| cpu/S | wall-inlet / total | (7.394566354e-05,6.7433297e-05,0.001601929188) | (8.225577089e-05,6.515082945e-05,0.001620851163) | 0.797971 → 0.514273 |
+| cpu/C | wall-elbow / pressure | (0.006430119715,-0.005949366355,0.01528612308) | (0.006391996417,-0.005947290521,0.01560404008) | 1.398680 → 0.477968 |
+| cpu/C | wall-elbow / shear | (0.0003327702131,0.0006874739025,-5.847263314e-05) | (0.0003393041704,0.0006925858344,-6.241667007e-05) | 2.296916 → 1.435684 |
+| cpu/C | wall-elbow / total | (0.006762889928,-0.005261892453,0.01522765045) | (0.006731300587,-0.005254704686,0.01554162341) | 1.340429 → 0.490659 |
+| cpu/C | wall-inlet / pressure | (7.262826666e-05,-5.181260033e-06,0.001601611789) | (8.125696102e-05,-4.750579942e-06,0.001620450067) | 0.800897 → 0.512012 |
+| cpu/C | wall-inlet / shear | (1.323552797e-06,7.261475904e-05,4.294074343e-07) | (1.005553647e-06,6.990135533e-05,4.746065951e-07) | 2.437836 → 1.429636 |
+| cpu/C | wall-inlet / total | (7.395181945e-05,6.7433499e-05,0.001602041197) | (8.226251467e-05,6.515077539e-05,0.001620924674) | 0.791975 → 0.518791 |
+| metal/S | wall-elbow / pressure | (0.006429920191,-0.005949211152,0.01528422088) | (0.006391840013,-0.005947185334,0.01560267109) | 1.408598 → 0.470455 |
+| metal/S | wall-elbow / shear | (0.0003327746459,0.0006874345954,-5.847054399e-05) | (0.0003393058534,0.000692556058,-6.24145869e-05) | 2.296723 → 1.434061 |
+| metal/S | wall-elbow / total | (0.006762694837,-0.005261776557,0.01522575033) | (0.006731145866,-0.005254629276,0.0155402565) | 1.350626 → 0.482924 |
+| metal/S | wall-inlet / pressure | (7.262227842e-05,-5.181003054e-06,0.001601498779) | (8.125103288e-05,-4.750450376e-06,0.001620383892) | 0.806900 → 0.507908 |
+| metal/S | wall-inlet / shear | (1.323425071e-06,7.261429323e-05,4.293473738e-07) | (1.005506658e-06,6.990128913e-05,4.745941925e-07) | 2.437158 → 1.429729 |
+| metal/S | wall-inlet / total | (7.394570349e-05,6.743329018e-05,0.001601928127) | (8.225653954e-05,6.515083875e-05,0.001620858487) | 0.798025 → 0.514724 |
+| metal/C | wall-elbow / pressure | (0.006430107648,-0.005949365789,0.01528597329) | (0.006391999661,-0.005947291088,0.01560408313) | 1.399470 → 0.478199 |
+| metal/C | wall-elbow / shear | (0.0003327700705,0.0006874736837,-5.847260683e-05) | (0.0003393042162,0.000692585891,-6.241671641e-05) | 2.296935 → 1.435679 |
+| metal/C | wall-elbow / total | (0.006762877719,-0.005261892106,0.01522750068) | (0.006731303878,-0.005254705197,0.01554166641) | 1.341240 → 0.490899 |
+| metal/C | wall-inlet / pressure | (7.262727542e-05,-5.181244506e-06,0.001601602589) | (8.125737223e-05,-4.750586393e-06,0.001620454888) | 0.801403 → 0.512310 |
+| metal/C | wall-inlet / shear | (1.323563213e-06,7.261472454e-05,4.294127328e-07) | (1.005547355e-06,6.990137836e-05,4.745972016e-07) | 2.437791 → 1.429603 |
+| metal/C | wall-inlet / total | (7.395083863e-05,6.743348003e-05,0.001602032001) | (8.226291958e-05,6.515079197e-05,0.001620929485) | 0.792482 → 0.519086 |
+
+The drop and elbow total-force gates now pass. Both shear gates and inlet total force still fail (inlet total is about 0.515%, against 0.5%). The velocity and seeded all-field gates still fail. Final V6 reports 20 failures, reduced from 28; the two added saved-field ratchets pass on both backends.
+
+### Residuals at Fluent's saved fields
+
+The following raw L1 defects compare directly with Fluent's raw column. Final values use Kutta's recomputed constitutive flux and viscosity, not Fluent's saved conservative flux or viscosity. This differs from the parse-only momentum report's operator isolation.
+
+| Backend | Equation | Fluent raw | Kutta raw before → after | Fluent scaled | Kutta legacy scaled before → after | Kutta final Fluent-form scaled |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| cpu | x-velocity | 2.3565662e-06 | 0.00089966505 → 0.00047166741 | 1.3974183e-06 | 0.0011646385 → 0.00061155289 | 0.00026238395 |
+| cpu | y-velocity | 6.5561341e-06 | 0.0015798998 → 0.00070247674 | 3.8874242e-06 | 0.0020452192 → 0.00091081485 | 0.00039075333 |
+| cpu | z-velocity | 1.701408e-06 | 0.00039866726 → 0.0002894943 | 1.0015581e-06 | 0.00051608459 → 0.00037535152 | 0.00015994122 |
+| cpu | k | 2.4964801e-07 | 5.1706615e-05 → 3.352245e-05 | 5.1607211e-05 | 0.011832897 → 0.0076293569 | 0.006522952 |
+| cpu | omega | 0.0019203082 | 2.2533911 → 1.9464532 | 2.1080692e-05 | 0.030612199 → 0.023553652 | 0.020431395 |
+| metal | x-velocity | 2.3565662e-06 | 0.00089966501 → 0.00047166741 | 1.3974183e-06 | 0.0011646385 → 0.0006115529 | 0.00026238395 |
+| metal | y-velocity | 6.5561341e-06 | 0.0015798998 → 0.00070247678 | 3.8874242e-06 | 0.0020452191 → 0.0009108149 | 0.00039075335 |
+| metal | z-velocity | 1.701408e-06 | 0.00039866726 → 0.0002894943 | 1.0015581e-06 | 0.00051608459 → 0.00037535152 | 0.00015994122 |
+| metal | k | 2.4964801e-07 | 5.1706618e-05 → 3.3522449e-05 | 5.1607211e-05 | 0.011832898 → 0.0076293568 | 0.0065229519 |
+| metal | omega | 0.0019203082 | 2.2533911 → 1.9464532 | 2.1080692e-05 | 0.030612199 → 0.023553652 | 0.020431395 |
+| cpu | continuity | 2.4758841e-06 | 0.0020682484 → 0.00076560919 | 0.00094713093 | first-five scales differ by run | 0.29287807 (Fluent saved scale) |
+| metal | continuity | 2.4758841e-06 | 0.0020682484 → 0.0007656092 | 0.00094713093 | first-five scales differ by run | 0.29287807 (Fluent saved scale) |
+
+Final Kutta normalization denominators (CPU; Metal agrees to shown precision) are 1.797622959 / 1.797749829 / 1.810004303 for momentum, 0.00513915321 for k and 95.26775816 for omega. Kutta automatic pseudo time is 0.02452421188 s at the saved state; Fluent saved 0.04265362362 s. Consequently these denominators are not claimed to reproduce Fluent's normalization numbers: the formulas match, but the pseudo time, flux and viscosity differ. Continuity in the last column alone uses Fluent's recorded scale 0.002614088497 kg/s. Energy is decoupled and unsolved.
+
+Reweighting only the pseudo-time contribution to Fluent's saved 0.04265362362 s,
+using the saved rho, volumes and velocity magnitude, gives momentum denominators
+1.687423913 / 1.687550783 / 1.699805257: +0.0624% / +0.0624% / +0.0615%
+relative to Fluent. This passes the report's 0.2% momentum normalization identity
+without changing any solver coefficient. The corresponding k/omega differences
+are -0.312% / -1.310%; their new constitutive coefficients differ from the saved
+ones. `normalize-saved-time.py` and its log reproduce this offline calculation;
+it is not a separate solver run or a claim that the original automatic-time
+values match Fluent.
+
+Legacy omega scaling also changes when its implicit sink becomes Newton-linearized; the reduction in that scaled number alone is not a reduction in physical imbalance. Raw omega drops from 2.25339 to 1.94645, still about 1014 times Fluent. Final momentum raw defects remain about 107–200 times Fluent; continuity remains 309 times Fluent.
+
+### Cheap contribution isolation
+
+These are sequential CPU **saved-state** probes, not independent estimates of converged field contributions. Each uses the preceding changes. Single-step/cold outputs in these probe logs are not accepted convergence results.
+
+| Cumulative change | Provisional continuity L1 kg/s | mu_t L2 % | Legacy u / v / w scaled | Legacy k / omega scaled |
+| --- | ---: | ---: | --- | --- |
+| Starting commit | 0.0020682484 | 3.402821 | 0.0011646385 / 0.0020452192 / 0.00051608459 | 0.011832897 / 0.030612199 |
+| Boundary values and unified LSQ | 0.0021319 | 3.401673 | 0.0011060095 / 0.0020747537 / 0.00054052118 | 0.011872312 / 0.030624514 |
+| Limited side flux + momentum-gradient RC | 0.00076525572 | 3.401673 | 0.00062033102 / 0.00091954839 / 0.00035550277 | 0.01104708 / 0.029745876 |
+| Zero symmetry viscous force / physical diagonal | 0.00076475627 | 3.401673 | 0.00061842344 / 0.00091660653 / 0.00037769719 | 0.011046466 / 0.029745743 |
+| Half-jump strain derivative | 0.00076560919 | 1.032625 | 0.00061155289 / 0.00091081485 / 0.00037535152 | 0.0076293569 / 0.026227434 |
+| Newton omega + Fluent monitor diagnostics | 0.00076560919 | 1.032625 | 0.00061155289 / 0.00091081485 / 0.00037535152 | 0.0076293569 / 0.023553652 |
+
+The final saved-field ratchets are continuity <8e-4 kg/s and mu_t relative L2 <1.1%; both pass on CPU and Metal. Parse-only `strain_gradient.py` and `momentum_residual.py`, rerun with `/tmp/kutta-v6probe/.venv/bin/python -I`, reproduce the reports' conclusions.
+
+### Laminar regression diagnosis
+
+The quick 384-cell tet case passes with 80 steps (previously 160), velocity L2 0.115124 and pressure L2 0.142933 (gates 0.18/0.28, <=200 steps). No per-model gradient policy is used. Full V2, however, adds failures even though it converges faster.
+
+| Controlled V2 hex probe (both backends) | Finest velocity / pressure order | Pressure / viscous / total force order | Outcome |
+| --- | --- | --- | --- |
+| All required changes | 1.82875 / 1.57490 | 1.17395 / 1.00488 / 0.684743 | all five gates fail |
+| Only RC jump reverted to LSQ pressure gradient | 1.82277 / 1.57034 | 1.16372 / 1.00107 / 0.692760 | all five gates fail |
+| Only extrapolated pressure LSQ feedback restored | 1.82533 / 1.57363 | 1.19867 / 1.05281 / 0.797068 | all five gates fail |
+| Only previous weighted-point velocity interpolant restored | 1.91555 / 1.82103 | 1.87560 / 1.93796 / 2.00169 | all hex gates pass |
+
+This isolates the hex accuracy conflict to the requested independently reconstructed side-velocity mean, rather than pressure rows or the GG Rhie–Chow gradient. These probes were removed and the required Fluent-matching interpolant restored. A model/mesh switch or the undocumented high-order flux correction would exceed the resolved formulas; neither was introduced. Every probe meets the same steady residual criteria, which points to a discretization error rather than incomplete outer convergence. This is an unmet acceptance requirement, not a claimed successful regression.
+
+### Slow-tier results
+
+The complete `-ts=slow -d` run takes **1,032.613457 s (17.21 min)**:
+**5/8 cases pass; 40/3,468 assertions fail**. Exactly 20 failures are V2 and
+20 are V6. V2 previously had six retained tet-force failures, so this adds
+14 V2 failures while removing eight V6 failures. Every case runs; none skips.
+The full-tier binary predates only unused boundary-kernel argument cleanup,
+the independent jump-gradient quick test, and the final V6 output/ratchets.
+It has the same numerical equations. The final rebuilt V2/V6 and quick-tier
+reruns reproduce its numbers; the four final V6 ratchet assertions also pass.
+
+The reference column below is VERIFICATION.md's preceding laminar-repair
+section, rather than an invented new full starting-commit slow run.
+
+| Slow case | Documented baseline | Required-change result (CPU / Metal) | Seconds |
+| --- | --- | --- | ---: |
+| V1 scalar | PASS; hex finest 3/3/6 steps; tet historical 19/21/18 CPU and 19/17/18 Metal | PASS; hex 3/3/6 both; tet 15/15/15 CPU and 14/14/15 Metal | 70.216514 |
+| V2 hex 8/16/32 | PASS; 140/320/840 steps; finest velocity/pressure L2 .00418355/.00301253 | FAIL; 80/120/280 steps both; finest .005356/.00879722 | 13.339769 |
+| V2 tet 4/8/16 | Six force-order failures; 160/220/420 steps; finest .012256/.068933 | Ten failures; 80/160/420 steps both; finest .011553/.039499 | 69.910117 |
+| Couette | PASS; 400 steps, max velocity error 1.78814e-7, residual 3.1049e-8 | PASS; 400 steps; detailed error/residual below | 5.589687 |
+| V3 Re=1000 65²/129²/257² | PASS; CPU 700/600/1000, Metal 700/600/900 | PASS; 700/600/1100 both | 602.707528 |
+| V3 Re=100/400, 129² | PASS; 1000/500 steps; max u/v .005038/.008966 and .002639/.004047 | PASS; same steps; .005114/.008968 and .002815/.003910 both | 74.407447 |
+| V4 imported/matched Fluent cavity Re=100/400/1000 | PASS; 600/300/500 steps; max Ghia u/v .005306/.009046, .003285/.003434, .008948/.004081 | PASS; same steps; .005823/.009383, .003396/.003925, .007030/.005620 both; all matched-grid samples within 2e-6 | 82.073933 |
+| V6 elbow | 28 failures; 300/600 seeded/cold steps both | 20 failures; 300/500 steps both; complete measurements above | 114.368462 |
+
+V2 finest-pair velocity / pressure / pressure-force / viscous-force / total-force
+orders are 1.828754 / 1.574898 / 1.173950 / 1.004885 / .684743 on hex and
+1.687730 / .857145 / 1.077591 / .879702 / .689143 on tet, equal on both
+backends at printed precision. The tet pressure gate is .914063 (momentum
+operator order 1.014063 minus .1), so it fails too. Finest force errors per span
+(pressure / viscous / total) are .014071/.022362/.008300 for hex and
+.033293/.061292/.028638 for tet, versus documented .00310731/.00506342/.00225342
+and .0358039/.0727936/.0407649. Improved absolute tet errors do not replace
+failed refinement orders.
+
+| V3 finest Re=1000 | Documented u/v max error | New u/v max error | New u/v finest order |
+| --- | --- | --- | --- |
+| CPU | .000613706079/.001062930888 | .000686523583/.001088384009 | 2.648674/2.748874 |
+| Metal | .000614044335/.001062692470 | .000686562326/.001088413811 | 2.648592/2.748834 |
+
+Convergence does not broadly deteriorate: V2 is faster, V3 coarse and V4 counts
+are unchanged, V6 cold saves 100 steps, and only the finest V3 adds 100 CPU /
+200 Metal steps. All runs converge. No model-specific reconstruction switch,
+iteration cap, residual threshold, mesh refinement or force threshold was
+changed to obtain these outcomes.
+
+V1 detailed final values (diffusion / FOU / SOU):
+
+| Mesh/backend | Documented prior orders | New orders | New finest L2 |
+| --- | --- | --- | --- |
+| Hex/cpu | 2.002060/.854671/1.912087 | 2.00206 / 0.854671 / 1.91209 | 0.000284123 / 0.00630692 / 0.000249379 |
+| Tet/cpu | 1.931832/.993209/1.949123 | 1.93183 / 0.993209 / 1.94912 | 0.00028859 / 0.0041207 / 0.000286859 |
+| Hex/metal | 2.002005/.854671/1.912087 | 2.002 / 0.854671 / 1.91209 | 0.000284135 / 0.00630692 / 0.000249379 |
+| Tet/metal | 1.931099/.993197/1.949137 | 1.9311 / 0.993197 / 1.94914 | 0.000288734 / 0.00412074 / 0.000286863 |
+
+Scalar operators are unchanged by this task for the boundary kinds in V1; their small differences from historical values reflect the existing device linear solver, not a changed acceptance criterion.
+
+Couette on both backends has maximum velocity error 1.19209e-7 and momentum
+residual 2.01581e-8 after the unchanged 400 steps, versus the preceding
+1.78814e-7 / 3.1049e-8. Its 14 assertions, including force values, pass.
+
+### Checks and remaining open items
+
+| Check | Result |
+| --- | --- |
+| Release build | PASS, no compiler warnings |
+| Quick tier, external fixtures enabled | PASS: 148/148 cases, 1,450,428 assertions; summed case time 7.00 s |
+| Starting quick tier | PASS: 147/147 cases, 1,449,526 assertions |
+| Final `ctest -LE slow` after removing probes | PASS: tests and portability lint, 7.09 s |
+| Full slow tier | FAIL as detailed above; 40 assertions, no convergence failures |
+| CUDA CI configure/build | PASS in local `nvidia/cuda:13.0.2-devel-ubuntu24.04`, native arm64, NVCC 13.0.88 |
+| CUDA-container CPU quick tier | PASS: 147 cases after excluding GPU presence; external Fluent pair not mounted, saved-field test skips |
+
+CUDA uses exactly the CI apt packages (`cmake ninja-build python3 libhdf5-dev
+zlib1g-dev git`) and configure line:
+
+```sh
+cmake -S /src -B /tmp/kutta-cuda -G Ninja -DKUTTA_ENABLE_CUDA=ON \
+  -DCMAKE_CUDA_ARCHITECTURES="75-real;86-real;89-real;120"
+```
+
+Image ID is `sha256:5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6`.
+The temporary container and isolated baseline source/build were removed after
+retaining logs and the baseline instrumentation patch. The worktree contains
+no diagnostic switches or probe implementation. No CUDA GPU is available, so
+CUDA runtime remains unverified.
+
+- Exact WFGC/LSF and high-order Rhie–Chow terms, including the polyhedral SOU residual floor; Fluent consecutive data files or per-cell residuals are still needed to distinguish saved-state drift from the missing reconstruction ingredient.
+- Wall-cell velocity reconstruction rows/weights, exact geometric jump weights and warped-face centroids. Wall rows remain present for convection and absent only in the strain base, as the reports distinguish.
+- Harmonic versus arithmetic effective-viscosity interpolation, which derivative gradient diffusion uses, optional pressure limiting, and unexplained omega layers 2–4/cross diffusion. These were not changed.
+- The production limiter is inactive in this fixture, so the case does not establish its exact form.
+- Complete original WFGC settings, hybrid initialization, energy evolution, CUDA runtime and Fluent-equivalent residual normalization values remain unverified. CUDA compilation and CPU execution in the container do not establish GPU runtime agreement.
+
+Local evidence is under `build/evidence/`: `identity.txt`, `v6-before.log`,
+`v6-before-raw.log`, `v6-final.log`, the four `v6-*-initial.log` probes,
+`v2-after.log`, `v2-probe-*.log`, `slow-after.log`, `quick-before.log`,
+`quick-final.log`, `ctest-final-committed.log`, `cuda-final.log`, `jump-test.log`,
+`forensics-{strain,momentum}.log`, `normalize-saved-time.{py,log}`,
+`v1-couette-detail.log` and `couette-detail.log`. These are local artifacts,
+not redistributed Fluent fixtures.

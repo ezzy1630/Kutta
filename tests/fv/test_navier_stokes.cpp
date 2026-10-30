@@ -151,8 +151,8 @@ TEST_CASE("FV V2 manufactured Navier Stokes tet refinement" * doctest::test_suit
 
 TEST_CASE("FV laminar tet manufactured solution converges without SST") {
   KUTTA_FOR_EACH_BACKEND(dev) {
-    // The 384-cell V2 case converges in 160 steps with the verified laminar
-    // operator. Omitting extrapolated pressure observations stalls this solve.
+    // The shared per-field reconstruction must converge on this 384-cell tet
+    // case without a turbulence-dependent gradient policy. Keep its original gates.
     const auto error=manufactured(*dev,4,true,200);
     CHECK(error.velocity<.18);
     CHECK(error.pressure<.28);
