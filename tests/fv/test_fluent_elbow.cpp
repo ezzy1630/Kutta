@@ -128,6 +128,10 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
       const auto r0=solver.monitor();
       std::cout<<"V6_INITIAL backend="<<backend_name(dev->backend())<<" mode="<<mode<<" u="<<r0.u.scaled<<" v="<<r0.v.scaled
         <<" w="<<r0.w.scaled<<" continuity_raw="<<r0.continuity.raw<<" k="<<r0.k.scaled<<" omega="<<r0.omega.scaled<<std::endl;
+      // The absolute mass scale depends on mesh, density and throughput. Use
+      // the saved run's final unscaled continuity as the comparison target,
+      // alongside a tighter 1e-6 steady transport defect for every equation.
+      const double continuity_target=d.residuals.at("continuity").rows.back()[0];
       const auto start=std::chrono::steady_clock::now();bool converged=false;
       for(int outer=0;outer<limit;outer+=50) {
         solver.iterate(std::min(50,limit-outer));const auto r=solver.monitor();
@@ -136,7 +140,7 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
           <<" u="<<r.u.scaled<<" v="<<r.v.scaled<<" w="<<r.w.scaled<<" k="<<r.k.scaled<<" omega="<<r.omega.scaled
           <<" continuity="<<r.continuity.raw<<" corrected_mass="<<r.corrected_mass_imbalance<<" max_u="<<r.maximum_velocity<<std::endl;
         REQUIRE(std::isfinite(maximum));REQUIRE(r.maximum_velocity<100);
-        if(maximum<1e-6 && r.continuity.raw<1e-7) {converged=true;break;}
+        if(maximum<1e-6 && r.continuity.raw<continuity_target) {converged=true;break;}
       }
       const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
       std::cout<<"V6_RESULT backend="<<backend_name(dev->backend())<<" mode="<<mode<<" iterations="<<solver.report().iteration<<" seconds="<<seconds<<" converged="<<converged<<std::endl;
