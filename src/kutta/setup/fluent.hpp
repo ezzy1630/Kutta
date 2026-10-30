@@ -6,6 +6,23 @@
 #include "kutta/setup/approximations.hpp"
 
 namespace kutta::setup {
+// Typed validation failures are shared by inspect and solve; neither parses
+// diagnostic strings to infer support or broadens the approximation allowlist.
+class RejectedSettings : public Error {
+ public:
+  explicit RejectedSettings(std::vector<fluent::SettingIssue> issues);
+  const std::vector<fluent::SettingIssue>& issues() const { return issues_; }
+ private:
+  std::vector<fluent::SettingIssue> issues_;
+};
+struct ForceDefinition {
+  std::string name;
+  std::vector<std::string> patches;
+  std::optional<Vec3d> direction;
+  bool scaled = false;
+};
+std::vector<ForceDefinition> force_definitions(const fluent::FluentCase&, const PolyMesh&);
+
 struct FluentSetup {
   fv::SolverSettings settings;
   std::vector<fv::PatchCondition> boundaries;

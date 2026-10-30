@@ -975,6 +975,8 @@ void reports(FluentCase &c) {
       report.kind = ReportDefinition::Kind::drag;
     else if (t == "lift" || t == "force-lift")
       report.kind = ReportDefinition::Kind::lift;
+    else if (t == "downforce" || t == "force-downforce")
+      report.kind = ReportDefinition::Kind::downforce;
     else if (t == "moment" || t == "force-moment")
       report.kind = ReportDefinition::Kind::moment;
     RawSettings props;

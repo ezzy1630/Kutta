@@ -17,19 +17,17 @@ void require(bool ok,const std::string& key) {KUTTA_REQUIRE(ok,"Fluent setup: un
 // Accumulate independent setting failures before returning any setup. Placeholder
 // values below exist only during validation and never reach a solver.
 class SetupValidation {
-  std::vector<std::string> errors;
+  std::vector<SettingIssue> errors;
  public:
   void require(bool ok,const std::string& key,const std::string& reason="value is unsupported or required setting is absent") {
-    if(!ok) errors.push_back(key+": "+reason);
+    if(!ok) errors.push_back({key,reason});
   }
   template<class T> T required(const std::optional<T>& value,const std::string& key) {
     require(value.has_value(),key,"required setting absent or unparsed");return value.value_or(T{});
   }
   void finish() const {
     if(errors.empty()) return;
-    std::string message="Fluent setup rejected:";
-    for(const auto& e:errors) message+="\n  "+e;
-    throw Error(message);
+    throw RejectedSettings(errors);
   }
 double scalar(const std::optional<ScalarValue>& value,const std::string& key) {
   if(!value) {require(false,key,"required scalar absent or unparsed");return 0;}
@@ -80,6 +78,12 @@ std::vector<std::uint64_t> cell_ids(const FluentCase& c,const PolyMesh& mesh) {
   return ids;
 }
 }
+RejectedSettings::RejectedSettings(std::vector<SettingIssue> issues)
+  : Error([&] {
+      std::string message="Fluent setup rejected:";
+      for(const auto& i:issues) message+="\n  "+i.path+": "+i.reason;
+      return message;
+    }()), issues_(std::move(issues)) {}
 TurbulenceValues turbulence_values(const TurbulenceCondition& spec,double speed,double rho,double mu) {
   require(std::isfinite(speed) && speed>=0 && rho>0 && mu>0,"turbulence inputs");
   TurbulenceValues out;
@@ -99,7 +103,7 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   require(c.viscous.model==ViscousModel::kw_sst,"viscous-model (requires SST)");
   require(c.mesh.cells && *c.mesh.cells==std::uint64_t(mesh.n_cells),"mesh/cell-count");
   FluentSetup out;auto& s=out.settings;const auto& n=c.numerics;const auto& t=c.viscous;
-  try {s.cell_zone_physics=fluent_zone_physics(c);} catch(const Error& e) {errors.push_back(e.what());}
+  try {s.cell_zone_physics=fluent_zone_physics(c);} catch(const Error& e) {errors.push_back({"cell-zone-physics",e.what()});}
   require(!c.cell_zones.empty(),"cell zones");
   std::optional<double> rho,mu;
   for(const auto& z:c.cell_zones) {
@@ -191,7 +195,7 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
     // a present but unparsed list must still be rejected.
     const bool absent_reports=issue.path=="rp/monitor/report-definitions" &&
       !c.variables.entry("monitor/report-definitions");
-    if(!handled.contains(issue.path) && !absent_reports) errors.push_back(issue.path+": "+issue.reason);
+    if(!handled.contains(issue.path) && !absent_reports) errors.push_back(issue);
   }
   require(!flag(c.config,"rp-des?"),"rp-des?");
   s.reference_point={number(c.variables,"pressure-reference/x"),number(c.variables,"pressure-reference/y"),number(c.variables,"pressure-reference/z")};
@@ -218,7 +222,7 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
         "native rotating-wall support held: V7.2 polyhedral pressure accuracy still exceeds the 1% gate; the C++ verification path remains available");
       require(z.specified_shear==false && z.shear_bc==0 && z.rough_bc==0,prefix+"shear-bc","requires specified-shear?=false, shear-bc=0 and rough-bc=0");
       require(scalar(z.roughness_height,prefix+"roughness-height")==0,prefix+"roughness-height");
-      try {out.boundaries.push_back({patch.name,fluent_wall(z)});} catch(const Error& e) {errors.push_back(e.what());}
+      try {out.boundaries.push_back({patch.name,fluent_wall(z)});} catch(const Error& e) {errors.push_back({prefix+"motion",e.what()});}
     } else if(z.type==ZoneType::symmetry) out.boundaries.push_back({patch.name,Symmetry{}});
     else if(z.type==ZoneType::velocity_inlet) {
       require(z.frame_of_reference==0,prefix+"frame-of-reference");
@@ -260,6 +264,35 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
     } else require(false,prefix+"type");
   }
   finish();return out;
+}
+std::vector<ForceDefinition> force_definitions(const fluent::FluentCase& c,const PolyMesh& mesh) {
+  std::vector<ForceDefinition> out;std::vector<SettingIssue> errors;
+  for(const auto& r:c.reports) {
+    using Kind=fluent::ReportDefinition::Kind;
+    if(r.kind==Kind::moment || r.kind==Kind::other) {
+      errors.push_back({"report/"+r.name,"only force, drag, lift and downforce reports are implemented"});continue;
+    }
+    const auto fail=[&](const std::string& why){errors.push_back({"report/"+r.name,why});};
+    ForceDefinition d;d.name=r.name;
+    if(!r.zone_ids || r.zone_ids->empty()) fail("wall zone identities are unresolved");
+    else for(auto id:*r.zone_ids) {
+      auto p=std::find_if(mesh.patches.begin(),mesh.patches.end(),[&](const auto& p){return p.source_zone_id==id && p.kind==PatchKind::Wall;});
+      if(p==mesh.patches.end()) fail("zone "+std::to_string(id)+" is not a wall patch");
+      else if(std::find(d.patches.begin(),d.patches.end(),p->name)==d.patches.end()) d.patches.push_back(p->name);
+    }
+    if(!r.direction) fail("force direction is absent");
+    else {
+      const auto& v=*r.direction;d.direction=Vec3d{v[0],v[1],v[2]};
+      if(!std::isfinite(norm(*d.direction)) || norm(*d.direction)==0) fail("force direction must be finite and nonzero");
+    }
+    if(!r.scaled) fail("scaled? is absent");else d.scaled=*r.scaled;
+    if(d.scaled) for(auto [name,v]:{std::pair{"density",c.reference.density},{"velocity",c.reference.velocity},{"area",c.reference.area}})
+      if(!v || !std::isfinite(*v) || *v<=0) fail(std::string("reference/")+name+" must be finite and positive for coefficients");
+    if(std::any_of(out.begin(),out.end(),[&](const auto& prior){return prior.name==d.name;})) fail("duplicate report name");
+    out.push_back(std::move(d));
+  }
+  if(!errors.empty()) throw RejectedSettings(std::move(errors));
+  return out;
 }
 FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh,std::span<const Approximation> allowed) {
   return SetupValidation{}.build(c,mesh,allowed);
