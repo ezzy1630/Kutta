@@ -1,0 +1,16 @@
+REFERENCE_CASE sha256=fac28f56d9de4d3b0e4d4d2d18d10969d2e7c6b9d082e16ebd3466483da75190 data_sha256=4372b8208d9fb76dc6b628dcc0ad3ded314d70ea00ae096d0922fece47bc1799 result_sha256=d60c2cb09f0ab145f948d6cde06cb78c614e61254640d327efb590fb4d32e5ee backend=metal cells=19429
+REFERENCE_SAVED iteration=10 continuity_scaled=0.0843400904133
+REFERENCE_FIELD velocity relative_L2=0.016153791428
+REFERENCE_FIELD pressure relative_L2=0.00583286625863
+REFERENCE_FIELD k relative_L2=0.0505390659265
+REFERENCE_FIELD omega relative_L2=0.0554592747226
+REFERENCE_ZONE wall ours=21.5157377075 Fluent=21.3845705647
+REFERENCE_FORCE wall pressure ours=0.566893992276,-1.08204091021e-07,5.73339576704e-06 Fluent=0.563443824464,-4.16996920907e-05,9.13380150129e-06 relative=0.0061238050894
+REFERENCE_FORCE wall shear ours=0.00730527344064,-2.75773828603e-07,-2.04088167984e-07 Fluent=0.00720663088463,-7.64305562649e-07,6.77880054411e-07 relative=0.0136884640082
+REFERENCE_FORCE wall total ours=0.574199265717,-3.83977919623e-07,5.52930759905e-06 Fluent=0.570650455348,-4.24639976533e-05,9.8116815557e-06 relative=0.00621932810439
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet ours=24.8098829444 Fluent=24.6821705355
+REFERENCE_PRESSURE_DROP ours=24.8098829444 Fluent=24.6821705355 relative=0.0051742778744
+REFERENCE_REPORT outlet_vel type=surface-areaavg scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+compare exit=0

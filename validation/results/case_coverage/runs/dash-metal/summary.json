@@ -1,0 +1,28 @@
+{
+  "v": 1,
+  "modified": false,
+  "overrides": {"run/monitor-interval":100},
+  "run_controls": {"run/monitor-interval":100},
+  "approximate": true,
+  "approximation_notice": "APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison",
+  "approximations": [
+    {"name": "wfgc", "setting": "recon/cell-lsf?", "fluent_value": "#t", "kutta_action": "run without warped-face gradient correction (WFGC off, #f)", "effect_documentation": "src/kutta/fv/VERIFICATION.md#v6-initialization-comparison", "measured_effect": "V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound"}],
+  "case_file": "validation/fluent_examples/examples/Dash-App-for-Post-processing/elbow.cas.h5",
+  "case_sha256": "7521dca7cc833d8587ed8f91cb0a59b2b6e0084faa7907a5627d437a822c0d87",
+  "data_file": null,
+  "data_sha256": null,
+  "kutta_version": "0.1.0",
+  "kutta_commit": "c24da6d7161093b45028212054767d255c572675",
+  "backend": "metal",
+  "device": "Apple M4 Pro",
+  "cells": 17865,
+  "iterations": 800,
+  "wall_time_seconds": 25.428638415999998,
+  "setup_time_seconds": 1.8845687499999999,
+  "peak_device_memory_bytes": null,
+  "converged": false,
+  "stop_reason": "iteration_limit",
+  "convergence": {"condition":"all","enabled":false,"iteration":null,"met_by":[],"reports":[],"residuals":{"continuity":0.001,"k":0.001,"omega":0.001,"x-velocity":0.001,"y-velocity":0.001,"z-velocity":0.001}},
+  "convergence_criteria_available": true,
+  "boundary_wall_shear_available": true
+}

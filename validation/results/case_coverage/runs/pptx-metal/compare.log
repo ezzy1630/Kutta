@@ -1,0 +1,26 @@
+REFERENCE_CASE sha256=5e928e2f93585bf513a360d698d14d8fb67c368143d5ed99add1883ac7864aca data_sha256=5706cd2c371a23aec9f9972ddec9ff7fb0f7efc8dc2e3774e8671e74dcbe528b result_sha256=3b3c737f5a44d11090fbc44ebc631ea16d8088098830ceb23dc51fd737f82547 backend=metal cells=17865
+REFERENCE_SAVED iteration=20 continuity_scaled=0.199398929763
+REFERENCE_FIELD velocity relative_L2=0.0889446939952
+REFERENCE_FIELD pressure relative_L2=0.279763567872
+REFERENCE_FIELD k relative_L2=0.27040224344
+REFERENCE_FIELD omega relative_L2=0.182868745472
+REFERENCE_ZONE wall-elbow ours=13.1149939094 Fluent=5.53203390862
+REFERENCE_FORCE wall-elbow pressure ours=0.730552930916,-0.62657226322,0.848227322481 Fluent=0.662578340243,-0.589146637841,0.379752423237 relative=0.492321065381
+REFERENCE_FORCE wall-elbow shear ours=0.0256190659586,0.0468644192831,-0.00474946811439 Fluent=0.0311927155159,0.0384966044352,-0.00300307930647 relative=0.205579719466
+REFERENCE_FORCE wall-elbow total ours=0.756171996875,-0.579707843937,0.843477854367 Fluent=0.693771055759,-0.550650033406,0.37674934393 relative=0.490140270042
+REFERENCE_ZONE wall-inlet ours=63.4452752605 Fluent=76.1615856357
+REFERENCE_FORCE wall-inlet pressure ours=-0.0182862200111,-0.000428706040804,0.130389372337 Fluent=-0.016333244835,-0.000367782628248,0.157121292857 relative=0.169674677392
+REFERENCE_FORCE wall-inlet shear ours=4.62216751552e-05,0.01744835009,3.24206490039e-05 Fluent=0,0,0 absolute=0.017448441432
+REFERENCE_FORCE wall-inlet total ours=-0.018239998336,0.0170196440492,0.130421792986 Fluent=-0.016333244835,-0.000367782628248,0.157121292857 relative=0.202059323329
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE cold-inlet ours=27.7839012256 Fluent=16.1129778144
+REFERENCE_ZONE hot-inlet ours=115.671368218 Fluent=114.620798277
+REFERENCE_ZONE symmetry-xyplane ours=15.0046781276 Fluent=8.18623602257
+REFERENCE_PRESSURE_DROP ours=32.8112359658 Fluent=21.7478175128 relative=0.508713963895
+REFERENCE_REPORT ave-p-inlet type=surface-areaavg scaled=absent
+REFERENCE_REPORT avg-outlet-temp type=surface-massavg scaled=absent
+REFERENCE_REPORT cell-count type=cell-count scaled=absent
+REFERENCE_REPORT force type=force scaled=false
+REFERENCE_REPORT mass-flow-rate type=surface-massflowrate scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+compare exit=0

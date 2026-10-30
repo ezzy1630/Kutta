@@ -1,0 +1,786 @@
+===== ./adjoint_cylinder_tutorial/cylinder_tutorial.cas | ./adjoint_cylinder_tutorial/cylinder_tutorial.dat
+kutta solve: Fluent setup rejected:
+  dimension: requires a 3D case
+  recon/cell-lsq?: requires least-squares cell gradients
+  case-config/rp-3d?: unsupported: expected #t
+  zone/4/prevent-reverse-flow?: value is unsupported or required setting is absent
+  p-profile-multiplier: requires a finite number
+  zone/4/p-profile-multiplier: value is unsupported or required setting is absent
+  mesh/patch identity: front: value is unsupported or required setting is absent
+  mesh/patch identity: back: value is unsupported or required setting is absent
+cannot open HDF5 file: ./adjoint_cylinder_tutorial/cylinder_tutorial.dat
+
+exit=1
+===== ./axial_fan_performance_curve/axial_fan.cas.h5 | ./axial_fan_performance_curve/axial_fan.dat.h5
+kutta solve: Fluent setup rejected:
+  cell-zone-physics: <checkout>/src/kutta/setup/fluent_physics.cpp:65: zone/8877: only constant frame motion (motion-spec=0) is supported
+  gravity? (body force not adapted): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order or standard pressure interpolation
+  turb-viscosity/relax: value is unsupported or required setting is absent
+  kw-not-trans-sst-production-limiter?: required setting absent or unparsed
+  curvature-correction?: curvature correction is not implemented
+  case-config/rp-degradation?: unsupported: flag is not in the supported configuration allowlist
+  case-config/sg-dsmc?: unsupported: flag is not in the supported configuration allowlist
+  rp/kw-not-trans-sst-production-limiter?: unparsed: unsupported value
+  zone/8877/mrf-omega: unresolved expression/profile for solve: (profile __expr__ "rotational_speed")
+  zone/8877/axis-direction-component: unsupported: expected neutral value #f
+  zone/8877/axis-origin-component: unsupported: expected neutral value #f
+  zone/8877/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8877/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8877/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/motion-spec: unsupported: expected neutral value 0
+  zone/8874/axis-direction-component: unsupported: expected neutral value #f
+  zone/8874/axis-origin-component: unsupported: expected neutral value #f
+  zone/8874/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8874/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8874/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/axis-direction-component: unsupported: expected neutral value #f
+  zone/8871/axis-origin-component: unsupported: expected neutral value #f
+  zone/8871/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8871/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8871/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/48/p: unresolved expression/profile for solve: (profile __expr__ "pressure_outlet")
+  zone/48/axis-direction-component: unsupported: expected neutral value #f
+  zone/48/axis-origin-component: unsupported: expected neutral value #f
+  zone/48/flow-direction-component: unsupported: expected neutral value #f
+  zone/48/radial-direction-component: unsupported: expected neutral value #f
+  zone/48/system-coupling?: unsupported: switch is not in this zone type's allowlist
+  zone/47/radial-direction-component: unsupported: expected neutral value #f
+  zone/46/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/46/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/46/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/46/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/46/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/46/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/46/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-velocity: unsupported: expected neutral value #f
+  zone/46/flux-momentum-components: unsupported: expected neutral value #f
+  zone/46/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/46/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/46/momentum-source-components: unsupported: expected neutral value #f
+  zone/46/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/46/velocity-components: unsupported: expected neutral value #f
+  zone/46/wall-translation-vector: unsupported: expected neutral value #f
+  zone/46/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/49/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/49/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/49/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/49/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/49/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/49/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-velocity: unsupported: expected neutral value #f
+  zone/49/flux-momentum-components: unsupported: expected neutral value #f
+  zone/49/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/49/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/49/momentum-source-components: unsupported: expected neutral value #f
+  zone/49/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/velocity-components: unsupported: expected neutral value #f
+  zone/49/wall-translation-vector: unsupported: expected neutral value #f
+  zone/49/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/50/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/50/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/50/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/50/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/50/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/50/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-velocity: unsupported: expected neutral value #f
+  zone/50/flux-momentum-components: unsupported: expected neutral value #f
+  zone/50/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/50/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/50/momentum-source-components: unsupported: expected neutral value #f
+  zone/50/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/velocity-components: unsupported: expected neutral value #f
+  zone/50/wall-translation-vector: unsupported: expected neutral value #f
+  zone/50/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/51/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/51/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/51/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/51/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/51/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/51/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-velocity: unsupported: expected neutral value #f
+  zone/51/flux-momentum-components: unsupported: expected neutral value #f
+  zone/51/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/51/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/51/momentum-source-components: unsupported: expected neutral value #f
+  zone/51/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/velocity-components: unsupported: expected neutral value #f
+  zone/51/wall-translation-vector: unsupported: expected neutral value #f
+  zone/51/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/52/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/52/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/52/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/52/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/52/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/52/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-velocity: unsupported: expected neutral value #f
+  zone/52/flux-momentum-components: unsupported: expected neutral value #f
+  zone/52/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/52/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/52/momentum-source-components: unsupported: expected neutral value #f
+  zone/52/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/velocity-components: unsupported: expected neutral value #f
+  zone/52/wall-translation-vector: unsupported: expected neutral value #f
+  zone/52/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/1/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/1/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/1/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/1/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/1/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/1/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-velocity: unsupported: expected neutral value #f
+  zone/1/flux-momentum-components: unsupported: expected neutral value #f
+  zone/1/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/1/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/1/momentum-source-components: unsupported: expected neutral value #f
+  zone/1/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/velocity-components: unsupported: expected neutral value #f
+  zone/1/wall-translation-vector: unsupported: expected neutral value #f
+  zone/1/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  mesh/zone/47/type: unsupported: topology and thread types disagree or are unverified
+  zone/48/p: requires a finite constant or resolved expression
+
+exit=1
+===== ./axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.cas.h5 | ./axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.dat.h5
+kutta solve: Fluent setup rejected:
+  cell-zone-physics: <checkout>/src/kutta/setup/fluent_physics.cpp:65: zone/8877: only constant frame motion (motion-spec=0) is supported
+  gravity? (body force not adapted): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order or standard pressure interpolation
+  turb-viscosity/relax: value is unsupported or required setting is absent
+  kw-not-trans-sst-production-limiter?: required setting absent or unparsed
+  curvature-correction?: curvature correction is not implemented
+  case-config/rp-degradation?: unsupported: flag is not in the supported configuration allowlist
+  case-config/sg-dsmc?: unsupported: flag is not in the supported configuration allowlist
+  rp/kw-not-trans-sst-production-limiter?: unparsed: unsupported value
+  zone/8877/mrf-omega: unresolved expression/profile for solve: (profile __expr__ "rotational_speed")
+  zone/8877/axis-direction-component: unsupported: expected neutral value #f
+  zone/8877/axis-origin-component: unsupported: expected neutral value #f
+  zone/8877/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8877/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8877/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8877/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8877/motion-spec: unsupported: expected neutral value 0
+  zone/8874/axis-direction-component: unsupported: expected neutral value #f
+  zone/8874/axis-origin-component: unsupported: expected neutral value #f
+  zone/8874/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8874/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8874/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8874/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8874/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/axis-direction-component: unsupported: expected neutral value #f
+  zone/8871/axis-origin-component: unsupported: expected neutral value #f
+  zone/8871/faradaic-heat?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/8871/rad-porous-wall?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/8871/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/8871/wall-treatment?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-flow?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-models?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-time-advancement?: unsupported: switch is not in this zone type's allowlist
+  zone/8871/zonal-wetsteam-parameters?: unsupported: switch is not in this zone type's allowlist
+  zone/48/p: unresolved expression/profile for solve: (profile __expr__ "pressure_outlet")
+  zone/48/axis-direction-component: unsupported: expected neutral value #f
+  zone/48/axis-origin-component: unsupported: expected neutral value #f
+  zone/48/flow-direction-component: unsupported: expected neutral value #f
+  zone/48/radial-direction-component: unsupported: expected neutral value #f
+  zone/48/system-coupling?: unsupported: switch is not in this zone type's allowlist
+  zone/47/radial-direction-component: unsupported: expected neutral value #f
+  zone/46/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/46/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/46/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/46/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/46/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/46/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/46/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/46/film-velocity: unsupported: expected neutral value #f
+  zone/46/flux-momentum-components: unsupported: expected neutral value #f
+  zone/46/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/46/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/46/momentum-source-components: unsupported: expected neutral value #f
+  zone/46/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/46/velocity-components: unsupported: expected neutral value #f
+  zone/46/wall-translation-vector: unsupported: expected neutral value #f
+  zone/46/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/49/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/49/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/49/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/49/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/49/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/49/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/49/film-velocity: unsupported: expected neutral value #f
+  zone/49/flux-momentum-components: unsupported: expected neutral value #f
+  zone/49/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/49/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/49/momentum-source-components: unsupported: expected neutral value #f
+  zone/49/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/49/velocity-components: unsupported: expected neutral value #f
+  zone/49/wall-translation-vector: unsupported: expected neutral value #f
+  zone/49/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/50/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/50/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/50/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/50/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/50/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/50/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/50/film-velocity: unsupported: expected neutral value #f
+  zone/50/flux-momentum-components: unsupported: expected neutral value #f
+  zone/50/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/50/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/50/momentum-source-components: unsupported: expected neutral value #f
+  zone/50/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/50/velocity-components: unsupported: expected neutral value #f
+  zone/50/wall-translation-vector: unsupported: expected neutral value #f
+  zone/50/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/51/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/51/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/51/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/51/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/51/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/51/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/51/film-velocity: unsupported: expected neutral value #f
+  zone/51/flux-momentum-components: unsupported: expected neutral value #f
+  zone/51/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/51/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/51/momentum-source-components: unsupported: expected neutral value #f
+  zone/51/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/51/velocity-components: unsupported: expected neutral value #f
+  zone/51/wall-translation-vector: unsupported: expected neutral value #f
+  zone/51/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/52/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/52/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/52/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/52/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/52/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/52/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/52/film-velocity: unsupported: expected neutral value #f
+  zone/52/flux-momentum-components: unsupported: expected neutral value #f
+  zone/52/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/52/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/52/momentum-source-components: unsupported: expected neutral value #f
+  zone/52/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/52/velocity-components: unsupported: expected neutral value #f
+  zone/52/wall-translation-vector: unsupported: expected neutral value #f
+  zone/52/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/boundary-advection?: unsupported: switch is not in this zone type's allowlist
+  zone/1/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/1/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/1/dpm/film-bl-model?: unsupported: expected neutral value #f
+  zone/1/dpm/in-situ-data-reduction?: unsupported: switch is not in this zone type's allowlist
+  zone/1/eom-damping-active?: unsupported: switch is not in this zone type's allowlist
+  zone/1/fensapice/drop/reinj?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-nec-deposition?: unsupported: switch is not in this zone type's allowlist
+  zone/1/film-velocity: unsupported: expected neutral value #f
+  zone/1/flux-momentum-components: unsupported: expected neutral value #f
+  zone/1/force-cmplx?: unsupported: switch is not in this zone type's allowlist
+  zone/1/force-norm?: unsupported: switch is not in this zone type's allowlist
+  zone/1/momentum-source-components: unsupported: expected neutral value #f
+  zone/1/read-polar-dist-func-from-file?: unsupported: switch is not in this zone type's allowlist
+  zone/1/velocity-components: unsupported: expected neutral value #f
+  zone/1/wall-translation-vector: unsupported: expected neutral value #f
+  zone/1/write-polar-dist-func-to-file?: unsupported: switch is not in this zone type's allowlist
+  mesh/zone/47/type: unsupported: topology and thread types disagree or are unverified
+  zone/48/p: requires a finite constant or resolved expression
+
+exit=1
+===== ./borealis_fracture/26 Mpa-solution-final.cas | ./borealis_fracture/26 Mpa-solution-final.dat
+kutta solve: <checkout>/src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+exit=1
+===== ./borealis_fracture/final solution-before-26 MPa.cas | ./borealis_fracture/final solution-before-26 MPa.dat
+kutta solve: <checkout>/src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+exit=1
+===== ./borealis_fracture/final solution-before-94 MPa.cas | ./borealis_fracture/final solution-before-94 MPa.dat
+kutta solve: <checkout>/src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+exit=1
+===== ./examples/Ablation-tutorial/ablation_Solved.cas.h5 | ./examples/Ablation-tutorial/ablation_Solved.dat.h5
+kutta solve: <checkout>/src/kutta/mesh/mesh.cpp:163: face 93107 normal does not point out of owner; reverse node winding
+exit=1
+===== ./examples/Dash-App-for-Post-processing/elbow.cas.h5 | ./examples/Dash-App-for-Post-processing/elbow.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: flow/scheme: SIMPLEC replaces Coupled; convergence path only, Majumdar physical diagonal
+Setup: pseudo-time-method/dt-method disagrees with pseudo-transient-formulation?; the formulation flag governs
+Setup: Coupled without pseudo time: its explicit momentum and pressure relaxation become SIMPLEC under-relaxation; the Courant-number implicit relaxation is not reproduced; convergence path only
+Setup: kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter
+     1  1.000000e+00  1.261156e-01  1.343981e+00  1.671001e-01  9.995876e-01  4.998376e-01   1.263107e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.263575e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+exit=0
+===== ./examples/Excel-Monitor-Points/glycerol_filling_mixing_init.cas.h5 | ./examples/Excel-Monitor-Points/glycerol_filling_mixing_init.dat.h5
+kutta solve: duplicate thread ID
+exit=1
+===== ./examples/Gravity-Separator-PID/2d-separator.cas.h5 | ./examples/Gravity-Separator-PID/2d-separator.dat.h5
+kutta solve: duplicate thread ID
+exit=1
+===== ./examples/PPTX-report-generation/elbow.cas.h5 | ./examples/PPTX-report-generation/elbow.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: flow/scheme: SIMPLEC replaces Coupled; convergence path only, Majumdar physical diagonal
+Setup: pseudo-time-method/dt-method disagrees with pseudo-transient-formulation?; the formulation flag governs
+Setup: Coupled without pseudo time: its explicit momentum and pressure relaxation become SIMPLEC under-relaxation; the Courant-number implicit relaxation is not reproduced; convergence path only
+Setup: kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter
+     1  1.000000e+00  8.119936e-04  1.215843e-03  4.170567e-04  8.464680e-03  2.068515e-02   1.441292e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.441701e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+exit=0
+===== ./examples/Separator-Collection-Efficiency/oil_separator.cas.h5 | ./examples/Separator-Collection-Efficiency/oil_separator.dat.h5
+kutta solve: Fluent setup rejected:
+  gravity? (body force not adapted): value is unsupported or required setting is absent
+  pressure/scheme: requires second-order or standard pressure interpolation
+  turb-viscosity/relax: value is unsupported or required setting is absent
+  rp/ke-realizability-on?: unsupported: active model flag is not in the model allowlist
+  zone/114/axis-direction-component: unsupported: expected neutral value #f
+  zone/114/axis-origin-component: unsupported: expected neutral value #f
+  zone/114/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/114/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/114/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/114/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/114/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/34/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/34/film-velocity: unsupported: expected neutral value #f
+  zone/34/flux-momentum-components: unsupported: expected neutral value #f
+  zone/34/momentum-source-components: unsupported: expected neutral value #f
+  zone/34/velocity-components: unsupported: expected neutral value #f
+  zone/34/wall-translation-vector: unsupported: expected neutral value #f
+  zone/37/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/37/film-velocity: unsupported: expected neutral value #f
+  zone/37/flux-momentum-components: unsupported: expected neutral value #f
+  zone/37/momentum-source-components: unsupported: expected neutral value #f
+  zone/37/velocity-components: unsupported: expected neutral value #f
+  zone/37/wall-translation-vector: unsupported: expected neutral value #f
+  zone/36/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/36/film-velocity: unsupported: expected neutral value #f
+  zone/36/flux-momentum-components: unsupported: expected neutral value #f
+  zone/36/momentum-source-components: unsupported: expected neutral value #f
+  zone/36/velocity-components: unsupported: expected neutral value #f
+  zone/36/wall-translation-vector: unsupported: expected neutral value #f
+  zone/38/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/38/film-velocity: unsupported: expected neutral value #f
+  zone/38/flux-momentum-components: unsupported: expected neutral value #f
+  zone/38/momentum-source-components: unsupported: expected neutral value #f
+  zone/38/velocity-components: unsupported: expected neutral value #f
+  zone/38/wall-translation-vector: unsupported: expected neutral value #f
+  zone/33/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/33/film-velocity: unsupported: expected neutral value #f
+  zone/33/flux-momentum-components: unsupported: expected neutral value #f
+  zone/33/momentum-source-components: unsupported: expected neutral value #f
+  zone/33/velocity-components: unsupported: expected neutral value #f
+  zone/33/wall-translation-vector: unsupported: expected neutral value #f
+  zone/32/axis-direction-component: unsupported: expected neutral value #f
+  zone/32/axis-origin-component: unsupported: expected neutral value #f
+  zone/32/flow-direction-component: unsupported: expected neutral value #f
+  zone/32/radial-direction-component: unsupported: expected neutral value #f
+  zone/31/axis-direction-component: unsupported: expected neutral value #f
+  zone/31/axis-origin-component: unsupported: expected neutral value #f
+  zone/31/flow-direction-component: unsupported: expected neutral value #f
+  zone/31/moving-object-direction-components: unsupported: expected neutral value #f
+  zone/31/primary-phase-direction-components: unsupported: expected neutral value #f
+  zone/31/radial-direction-component: unsupported: expected neutral value #f
+  zone/31/secondary-phase-direction-components: unsupported: expected neutral value #f
+  zone/31/velocity-component: unsupported: expected neutral value #f
+  zone/1/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/1/film-velocity: unsupported: expected neutral value #f
+  zone/1/flux-momentum-components: unsupported: expected neutral value #f
+  zone/1/momentum-source-components: unsupported: expected neutral value #f
+  zone/1/velocity-components: unsupported: expected neutral value #f
+  zone/1/wall-translation-vector: unsupported: expected neutral value #f
+
+exit=1
+===== ./examples/Steady-Vortex-VOF/vortex_init.cas.h5 | ./examples/Steady-Vortex-VOF/vortex_init.dat.h5
+kutta solve: duplicate thread ID
+exit=1
+===== ./examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.cas.h5 | ./examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.dat.h5
+kutta solve: <checkout>/src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+exit=1
+===== ./examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.cas.h5 | ./examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.dat.h5
+kutta solve: <checkout>/src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+exit=1
+===== ./exhaust_manifold/manifold_solution.cas.h5 | ./exhaust_manifold/manifold_solution.dat.h5
+kutta solve: Fluent setup rejected:
+  cell-zone-physics: <checkout>/src/kutta/setup/fluent_physics.cpp:79: Fluent physics: explicit mrf-motion? and porous? required
+  zone/815/type: value is unsupported or required setting is absent
+  zone/815/laminar?: value is unsupported or required setting is absent
+  material/cast-iron/viscosity: required scalar absent or unparsed
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  pseudo-transient-mode: value is unsupported or required setting is absent
+  rp/pseudo-transient-mode: absent: no default assumed
+  zone/815/porous?: absent: no default assumed
+  zone/815/laminar?: absent: no default assumed
+  zone/815/porosity: absent: no default assumed
+  zone/815/contact-property?: unsupported: switch is not in this zone type's allowlist
+  zone/815/cylindrical-fixed-var?: unsupported: switch is not in this zone type's allowlist
+  zone/815/deactivated?: unsupported: switch is not in this zone type's allowlist
+  zone/815/fixed?: unsupported: switch is not in this zone type's allowlist
+  zone/815/forcemrf: unsupported: switch is not in this zone type's allowlist
+  zone/815/forcemsolid: unsupported: switch is not in this zone type's allowlist
+  zone/815/les-embedded?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-enable-transient?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/radiating?: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/sources?: unsupported: switch is not in this zone type's allowlist
+  zone/815: unsupported: solid cell zone
+  case-config/rf-energy?: unsupported: energy coupling cannot be excluded without constant density and viscosity
+  mesh/zone/815/type: unsupported: topology and thread types disagree or are unverified
+<checkout>/src/kutta/setup/fluent.cpp:16: Fluent setup: unsupported or absent SV_U
+
+exit=1
+===== ./exhaust_system/exhaust_system.cas.h5 | ./exhaust_system/exhaust_system.dat.h5
+kutta solve: Fluent setup rejected:
+  cell-zone-physics: <checkout>/src/kutta/setup/fluent_physics.cpp:79: Fluent physics: explicit mrf-motion? and porous? required
+  zone/815/type: value is unsupported or required setting is absent
+  zone/815/laminar?: value is unsupported or required setting is absent
+  material/cast-iron/viscosity: required scalar absent or unparsed
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  constant uniform density/viscosity: value is unsupported or required setting is absent
+  zone/815/porous?: absent: no default assumed
+  zone/815/laminar?: absent: no default assumed
+  zone/815/porosity: absent: no default assumed
+  zone/815/axis-direction-component: unsupported: switch is not in this zone type's allowlist
+  zone/815/axis-origin-component: unsupported: switch is not in this zone type's allowlist
+  zone/815/contact-property?: unsupported: switch is not in this zone type's allowlist
+  zone/815/cursys?: unsupported: switch is not in this zone type's allowlist
+  zone/815/cylindrical-fixed-var?: unsupported: switch is not in this zone type's allowlist
+  zone/815/deactivated?: unsupported: switch is not in this zone type's allowlist
+  zone/815/fixed?: unsupported: switch is not in this zone type's allowlist
+  zone/815/les-embedded?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-enable-transient?: unsupported: switch is not in this zone type's allowlist
+  zone/815/mgrid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/moving-mesh-axis-origin-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/moving-mesh-velocity-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/pcb-model: unsupported: switch is not in this zone type's allowlist
+  zone/815/radiating?: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion-axis-direction-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion-axis-origin-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion-velocity-components: unsupported: switch is not in this zone type's allowlist
+  zone/815/solid-motion?: unsupported: switch is not in this zone type's allowlist
+  zone/815/sources?: unsupported: switch is not in this zone type's allowlist
+  zone/815: unsupported: solid cell zone
+  case-config/rf-energy?: unsupported: energy coupling cannot be excluded without constant density and viscosity
+  mesh/zone/815/type: unsupported: topology and thread types disagree or are unverified
+<checkout>/src/kutta/setup/fluent.cpp:16: Fluent setup: unsupported or absent SV_U
+
+exit=1
+===== ./file_session/elbow1.cas.h5 | ./file_session/elbow1.dat.h5
+kutta solve: Fluent setup rejected:
+  rp/ke-realizability-on?: unsupported: active model flag is not in the model allowlist
+  zone/2/axis-direction-component: unsupported: expected neutral value #f
+  zone/2/axis-origin-component: unsupported: expected neutral value #f
+  zone/2/moving-mesh-axis-origin-components: unsupported: expected neutral value #f
+  zone/2/moving-mesh-velocity-components: unsupported: expected neutral value #f
+  zone/2/solid-motion-axis-direction-components: unsupported: expected neutral value #f
+  zone/2/solid-motion-axis-origin-components: unsupported: expected neutral value #f
+  zone/2/solid-motion-velocity-components: unsupported: expected neutral value #f
+  zone/3/component-of-radiation-direction: unsupported: expected neutral value #f
+  zone/3/dpm/do-patch-lwf-now: unsupported: switch is not in this zone type's allowlist
+  zone/3/film-velocity: unsupported: expected neutral value #f
+  zone/3/flux-momentum-components: unsupported: expected neutral value #f
+  zone/3/momentum-source-components: unsupported: expected neutral value #f
+  zone/3/velocity-components: unsupported: expected neutral value #f
+  zone/3/wall-translation-vector: unsupported: expected neutral value #f
+  zone/5/axis-direction-component: unsupported: expected neutral value #f
+  zone/5/axis-origin-component: unsupported: expected neutral value #f
+  zone/5/flow-direction-component: unsupported: expected neutral value #f
+  zone/5/radial-direction-component: unsupported: expected neutral value #f
+  zone/6/axis-direction-component: unsupported: expected neutral value #f
+  zone/6/axis-origin-component: unsupported: expected neutral value #f
+  zone/6/flow-direction-component: unsupported: expected neutral value #f
+  zone/6/moving-object-direction-components: unsupported: expected neutral value #f
+  zone/6/primary-phase-direction-components: unsupported: expected neutral value #f
+  zone/6/radial-direction-component: unsupported: expected neutral value #f
+  zone/6/secondary-phase-direction-components: unsupported: expected neutral value #f
+  zone/7/axis-direction-component: unsupported: expected neutral value #f
+  zone/7/axis-origin-component: unsupported: expected neutral value #f
+  zone/7/flow-direction-component: unsupported: expected neutral value #f
+  zone/7/moving-object-direction-components: unsupported: expected neutral value #f
+  zone/7/primary-phase-direction-components: unsupported: expected neutral value #f
+  zone/7/radial-direction-component: unsupported: expected neutral value #f
+  zone/7/secondary-phase-direction-components: unsupported: expected neutral value #f
+
+exit=1
+===== ./file_session/mixing_elbow_mul_ph.cas.h5 | ./file_session/mixing_elbow_mul_ph.dat.h5
+kutta solve: duplicate thread ID
+exit=1
+===== ./flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.cas.h5 | ./flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+Setup: flow/scheme: SIMPLEC replaces Coupled; convergence path only, Majumdar physical diagonal
+Setup: pseudo-time-method: absent (case predates the selector); pseudo-transient-formulation? #t runs global automatic pseudo time
+Setup: kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter
+     1  1.000000e+00  2.093017e-03  2.371600e-03  2.359400e-03  3.215376e-03  2.107636e-02   1.381793e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.382318e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+exit=0
+===== ./mixing_elbow/elbow_param.cas.h5 | ./mixing_elbow/elbow_param.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  1.001791e-03  1.468811e-03  5.398196e-04  1.668663e-03  5.366982e-03   2.438525e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 2.439203e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./mixing_elbow/mixing_elbow.cas.h5 | ./mixing_elbow/mixing_elbow.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: flow/scheme: SIMPLEC replaces Coupled; convergence path only, Majumdar physical diagonal
+Setup: kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter
+     1  1.000000e+00  2.378298e-03  3.861616e-03  4.229807e-03  4.237790e-03  1.042594e-02   1.441401e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.441867e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+exit=0
+===== ./other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.cas.h5 | ./other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.dat.h5
+kutta solve: <checkout>/src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+exit=1
+===== ./other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.cas.h5 | ./other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.dat.h5
+kutta solve: <checkout>/src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+exit=1
+===== ./other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.cas.h5 | ./other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.dat.h5
+kutta solve: <checkout>/src/kutta/io/fluent_cff.cpp:324: CFF: adapted/nonconformal/overset meshes are unsupported: /meshes/1/faces/interface
+exit=1
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00005.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  2.919171e-03  3.563154e-03  1.932109e-03  4.079696e-02  7.294582e-02   2.919452e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 2.920124e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00010.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  1.263202e-03  1.629943e-03  7.290931e-04  2.960522e-02  5.128740e-02   2.720898e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 2.721307e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00015.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  1.045664e-03  1.405570e-03  5.694789e-04  2.116271e-02  3.449261e-02   1.666175e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.666730e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00020.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  9.871864e-04  1.341056e-03  5.205793e-04  1.539555e-02  2.333473e-02   2.367876e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 2.368281e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00025.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  9.664252e-04  1.325649e-03  5.014204e-04  1.152330e-02  1.653727e-02   2.419209e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 2.419825e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00030.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  9.636925e-04  1.333562e-03  4.970684e-04  8.920403e-03  1.250811e-02   1.727590e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.728074e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00035.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  9.703312e-04  1.354353e-03  4.991465e-04  7.179549e-03  1.018657e-02   1.608784e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.609255e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00040.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  9.786013e-04  1.384519e-03  5.041103e-04  5.965429e-03  8.845239e-03   1.610547e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.611084e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00045.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  9.876402e-04  1.416255e-03  5.103762e-04  5.009824e-03  7.855173e-03   1.610110e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.610691e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00050.dat.h5
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+     1  1.000000e+00  9.938662e-04  1.444547e-03  5.165568e-04  4.163387e-03  6.959196e-03   1.603681e-01
+Reached the iteration limit (1 iterations).
+Wrote ../../build/cov/probe (1 iterations, 1.604295e-01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; constant-density case: the omitted term relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); MEASURED_BOUND; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; KE_OPTIONS_EFFECT; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+exit=0
+===== ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00001.dat.h5
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+
+exit=1
+===== ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00002.dat.h5
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+
+exit=1
+===== ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00003.dat.h5
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+
+exit=1
+===== ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00004.dat.h5
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+
+exit=1
+===== ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5 | ./other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00005.dat.h5
+kutta solve: Fluent setup rejected:
+  rp-unsteady?: only steady cases are supported
+  case-config/rp-unsteady?: unsupported: expected #f
+  case-config/rp-dual-time?: unsupported: expected #f
+
+exit=1
+===== ./other_folders/result_files/fluent-multi_phase/fluentMultiphase.cas.h5 | ./other_folders/result_files/fluent-multi_phase/fluentMultiphase.dat.h5
+kutta solve: duplicate thread ID
+exit=1
+===== ./other_folders/result_files/fluent-multi_species/FFF.cas.h5 | ./other_folders/result_files/fluent-multi_species/FFF.dat.h5
+kutta solve: duplicate material name
+exit=1
+===== ./vki_turbine/vki_turbine.cas | ./vki_turbine/vki_turbine.dat
+kutta solve: <checkout>/src/kutta/io/fluent_msh.cpp:216: Fluent: unsupported binary section 2040
+exit=1

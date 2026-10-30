@@ -1,0 +1,18 @@
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Setup: report surf-mon-1 (surface-areaavg): not evaluated; Kutta evaluates force, drag, lift and downforce reports only
+Setup: report surf-mon-2 (surface-massflowrate): not evaluated; Kutta evaluates force, drag, lift and downforce reports only
+Setup: report vol-mon-1 (volume-integral): not evaluated; Kutta evaluates force, drag, lift and downforce reports only
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).
+Backend: metal; device: Apple M4 Pro
+  iter    continuity    x-velocity    y-velocity    z-velocity             k       epsilon       sec/iter
+   100  1.081543e-03  4.480888e-06  5.066401e-06  2.937954e-06  1.346459e-05  6.352371e-06   3.096538e-02
+   200  1.024621e-05  2.000169e-08  2.373068e-08  1.000815e-08  3.224625e-08  3.266532e-08   9.321605e-02
+   300  1.018742e-05  1.874328e-08  2.205488e-08  8.997440e-09  3.126295e-08  3.210789e-08   1.280664e-01
+   400  1.079318e-05  2.058550e-08  2.367074e-08  1.037577e-08  3.221265e-08  3.300927e-08   1.298675e-01
+Reached the iteration limit (400 iterations).
+Wrote build/cov/final/runs/elbow2-metal (400 iterations, 3.821175e+01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+solve exit=0

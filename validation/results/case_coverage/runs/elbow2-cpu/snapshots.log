@@ -1,0 +1,190 @@
+== elbow-2-00005.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=daf2019f2903d0108ab2c8256d74e723476a08c48fce701d1eb71076e48d2430 result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=5 continuity_scaled=0.56180814622
+REFERENCE_FIELD velocity relative_L2=0.140670338376
+REFERENCE_FIELD pressure relative_L2=0.867585491227
+REFERENCE_FIELD k relative_L2=0.91872917862
+REFERENCE_FIELD epsilon relative_L2=0.962933153896
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=85.1860721579
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=3.85552547235,-3.87898043671,-0.0412001182517 relative=0.337195034196
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.212703052624,0.286878211962,0.000171663830069 relative=0.544025277425
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=4.06822852498,-3.59210222475,-0.0410284544216 relative=0.332387723763
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=142.196682305
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=156.002534147
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=155.263088672 relative=0.862802942538
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+== elbow-2-00010.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=102a12159d8f1879f530e4091e09c478eb617b08fe5ff36d57f3ef1b0824fc42 result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=10 continuity_scaled=0.0584685880048
+REFERENCE_FIELD velocity relative_L2=0.118515994485
+REFERENCE_FIELD pressure relative_L2=0.269604188111
+REFERENCE_FIELD k relative_L2=0.842249547909
+REFERENCE_FIELD epsilon relative_L2=0.871024818957
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=6.71595646748
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=2.66621946627,-2.33569268326,0.00390216383121 relative=0.029559441422
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.164556146903,0.233235539815,0.00025232801405 relative=0.429353851749
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=2.83077561317,-2.10245714344,0.00415449184526 relative=0.0521756984955
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=68.4827552908
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=14.7612335758
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=17.638574042 relative=0.207673525504
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+== elbow-2-00015.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=d3feeab5ebf5c25c4a94c82c26872073f8ffafbc3e073cfab4f54386139b22d5 result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=15 continuity_scaled=0.0199362304745
+REFERENCE_FIELD velocity relative_L2=0.105352561441
+REFERENCE_FIELD pressure relative_L2=0.20603807331
+REFERENCE_FIELD k relative_L2=0.740129639821
+REFERENCE_FIELD epsilon relative_L2=0.679590037848
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=14.2789089951
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=2.78999203934,-2.4727964106,0.00230735476835 relative=0.0217603356104
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.133259879872,0.196019968341,0.000253844004976 relative=0.313336195041
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=2.92325191921,-2.27677644226,0.00256119877333 relative=0.026866252404
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=78.8178589153
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=23.9891460964
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=26.9257880431 relative=0.208875934695
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+== elbow-2-00020.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=685bf4e5b843add083941c10f75b9f5c85eccf3e953950066af281ed95404616 result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=20 continuity_scaled=0.0100997230619
+REFERENCE_FIELD velocity relative_L2=0.0946543250656
+REFERENCE_FIELD pressure relative_L2=0.0993577506018
+REFERENCE_FIELD k relative_L2=0.624110827677
+REFERENCE_FIELD epsilon relative_L2=0.485491694281
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=11.5643875
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=2.72342459441,-2.41897702606,0.00332468625152 relative=0.00241005232521
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.116840839174,0.175100187585,0.000242262890465 relative=0.227852106083
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=2.84026543358,-2.24387683847,0.00356694914198 relative=0.0126089597786
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=73.3810852054
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=19.8812255772
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=22.7466937571 relative=0.0635281273982
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+== elbow-2-00025.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=f1b59b318da58143b5650d8569861170b422d666b9d1667a45d07e4c084d0aab result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=25 continuity_scaled=0.0067832330998
+REFERENCE_FIELD velocity relative_L2=0.085398333651
+REFERENCE_FIELD pressure relative_L2=0.083035425037
+REFERENCE_FIELD k relative_L2=0.510408743469
+REFERENCE_FIELD epsilon relative_L2=0.355229689811
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=11.1010562895
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=2.70930092892,-2.41224155416,0.00187822030707 relative=0.00604010817216
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.107693796228,0.161842089696,0.000236092634089 relative=0.164798032154
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=2.81699472514,-2.25039946446,0.00211431294116 relative=0.0102115974208
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=71.9580477403
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=18.6123200732
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=21.4695328999 relative=0.00782010500829
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+== elbow-2-00030.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=cef969ff01108023c06b80f202ec924cd0c0a8ca591961a7ab85cc1e362e424e result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=30 continuity_scaled=0.00505840177845
+REFERENCE_FIELD velocity relative_L2=0.0769138366032
+REFERENCE_FIELD pressure relative_L2=0.0773808989996
+REFERENCE_FIELD k relative_L2=0.409527900197
+REFERENCE_FIELD epsilon relative_L2=0.276945239649
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=10.825373624
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=2.7014765891,-2.40874781119,0.000386913432138 relative=0.00831701935512
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.102356015526,0.152945283656,0.000245213895661 relative=0.11829843324
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=2.80383260463,-2.25580252753,0.000632127327799 relative=0.0102160121954
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=70.6286550108
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=18.1338553422
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=20.9454922157 relative=0.0170035002672
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+== elbow-2-00035.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=98173facc375695a38a8d564243502ed24e0a27dfe032f9b3c9a563735f02930 result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=35 continuity_scaled=0.00400612408243
+REFERENCE_FIELD velocity relative_L2=0.068853196408
+REFERENCE_FIELD pressure relative_L2=0.0765821388537
+REFERENCE_FIELD k relative_L2=0.324168258916
+REFERENCE_FIELD epsilon relative_L2=0.228967238258
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=10.6089246441
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=2.69591267724,-2.40575572836,-0.00168710706985 relative=0.0100200962947
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.0992758845112,0.14664944739,0.000260798428002 relative=0.0836023925055
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=2.79518856175,-2.25910628097,-0.00142630864185 relative=0.0110649570313
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=69.4928806823
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=17.8296035511
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=20.5967038335 relative=0.0342256251477
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+== elbow-2-00040.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=8a20143d912477845074e663ec52701748e8b37902d815e5db0d27f95975d149 result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=40 continuity_scaled=0.00333275360761
+REFERENCE_FIELD velocity relative_L2=0.0609853345875
+REFERENCE_FIELD pressure relative_L2=0.0749944621258
+REFERENCE_FIELD k relative_L2=0.253078005894
+REFERENCE_FIELD epsilon relative_L2=0.195226329095
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=10.5461012814
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=2.69624316691,-2.40657587143,-0.00393397361309 relative=0.0098518604393
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.0975753352254,0.142068619469,0.000273495932644 relative=0.0575791568135
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=2.79381850213,-2.26450725196,-0.00366047768044 relative=0.0104041723547
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=68.9140129211
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=17.7534926636
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=20.4936651403 relative=0.0394255372234
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+== elbow-2-00045.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=540fb0fcda7d595427b0a06e1ff51c91b0e367b7e216674cc11904dec992a85a result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=45 continuity_scaled=0.00284619197804
+REFERENCE_FIELD velocity relative_L2=0.0532213676639
+REFERENCE_FIELD pressure relative_L2=0.0706334407845
+REFERENCE_FIELD k relative_L2=0.195793513826
+REFERENCE_FIELD epsilon relative_L2=0.171879815506
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=10.6062628535
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=2.70117229696,-2.40998997602,-0.00406380231929 relative=0.00824577797067
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.0966979716282,0.138753811156,0.000278808052181 relative=0.0384358030728
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=2.79787026858,-2.27123616486,-0.00378499426711 relative=0.00843146429792
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=68.6942339674
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=17.9786817209
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=20.6950215804 relative=0.029312234124
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows
+== elbow-2-00050.dat.h5
+REFERENCE_CASE sha256=2165addc733c720a880a77e874c807251507919247bf886239de3847ebcf3e1e data_sha256=aa3188ce5c3e74b5fcd44f1e1c484bee54abd199004d419aefbfcfc9d9c1123e result_sha256=c2cb1fdca971c6c974669305a2acf64bcc4eec8669504fadd21199273adc3ecf backend=cpu cells=45637
+REFERENCE_SAVED iteration=50 continuity_scaled=0.00243377989424
+REFERENCE_FIELD velocity relative_L2=0.0455385810365
+REFERENCE_FIELD pressure relative_L2=0.0690322385867
+REFERENCE_FIELD k relative_L2=0.152008630813
+REFERENCE_FIELD epsilon relative_L2=0.161721912331
+REFERENCE_ZONE wall ours=10.8052667235 Fluent=10.5633872464
+REFERENCE_FORCE wall pressure ours=2.72966572554,-2.41880182555,-0.00284667684205 Fluent=2.70595074219,-2.41085098995,-0.00357046190961 relative=0.00690447861669
+REFERENCE_FORCE wall shear ours=0.0946121143052,0.132598708836,0.000419267607648 Fluent=0.0963079462183,0.136438997082,0.000277906345115 relative=0.0251514415205
+REFERENCE_FORCE wall total ours=2.82427783984,-2.28620311672,-0.00242740923441 Fluent=2.80225868841,-2.27441199286,-0.00329255556449 relative=0.00692483716861
+REFERENCE_ZONE outlet ours=0 Fluent=0
+REFERENCE_ZONE inlet2 ours=70.7186017286 Fluent=68.3926219475
+REFERENCE_ZONE inlet1 ours=18.505066638 Fluent=18.0164546014
+REFERENCE_PRESSURE_DROP ours=21.3016388982 Fluent=20.7146169061 relative=0.0283385396304
+REFERENCE_REPORT surf-mon-1 type=surface-areaavg scaled=absent
+REFERENCE_REPORT surf-mon-2 type=surface-massflowrate scaled=absent
+REFERENCE_REPORT vol-mon-1 type=volume-integral scaled=absent
+APPROXIMATE RESULT: not a faithful Fluent reproduction; compressibility: turb-compress-mod? Fluent #t -> Kutta run without the turbulence compressibility (dilatation dissipation) correction; the omitted dilatation dissipation relative to dissipation is 2k/a^2 (Sarkar, TG 4.3.8); for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound; evidence: validation/results/case_coverage/REPORT.md#compressibility-bound; ke-options: ke-source-mod/ke-time-marching? Fluent #t -> Kutta run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches; not isolated, because the switches are undocumented; elbow_param CPU cold start versus Fluent's converged saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound; evidence: validation/results/case_coverage/REPORT.md#standard-k-epsilon-elbows

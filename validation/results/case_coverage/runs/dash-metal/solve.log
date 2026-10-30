@@ -1,0 +1,26 @@
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: flow/scheme: SIMPLEC replaces Coupled; convergence path only, Majumdar physical diagonal
+Setup: pseudo-time-method/dt-method disagrees with pseudo-transient-formulation?; the formulation flag governs
+Setup: Coupled without pseudo time: its explicit momentum and pressure relaxation become SIMPLEC under-relaxation; the Courant-number implicit relaxation is not reproduced; convergence path only
+Setup: kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+Setup: report ave-p-inlet (surface-areaavg): not evaluated; Kutta evaluates force, drag, lift and downforce reports only
+Setup: report avg-outlet-temp (surface-massavg): not evaluated; Kutta evaluates force, drag, lift and downforce reports only
+Setup: report cell-count (cell-count): not evaluated; Kutta evaluates force, drag, lift and downforce reports only
+Setup: report mass-flow-rate (surface-massflowrate): not evaluated; Kutta evaluates force, drag, lift and downforce reports only
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).
+Backend: metal; device: Apple M4 Pro
+  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter
+   100  2.951694e-04  4.943784e-07  1.381466e-06  3.345401e-07  7.116888e-06  2.392064e-06   2.499010e-02
+   200  1.379092e-05  3.517041e-08  3.758105e-08  2.308035e-08  9.642984e-08  5.303330e-08   3.314559e-02
+   300  1.403856e-05  3.465516e-08  3.865323e-08  2.542283e-08  1.094618e-07  5.632732e-08   3.271040e-02
+   400  1.419551e-05  3.500765e-08  4.018290e-08  2.528083e-08  8.985656e-08  5.543363e-08   3.301317e-02
+   500  1.402409e-05  3.604277e-08  3.837092e-08  2.386930e-08  1.087993e-07  5.537102e-08   3.209514e-02
+   600  1.421236e-05  3.604963e-08  3.684915e-08  2.579886e-08  1.080285e-07  5.558487e-08   3.165196e-02
+   700  1.341035e-05  3.256809e-08  3.697046e-08  2.348788e-08  9.231147e-08  5.254320e-08   3.257645e-02
+   800  1.370309e-05  3.289355e-08  3.630268e-08  2.383522e-08  9.826689e-08  5.483523e-08   3.408973e-02
+Reached the iteration limit (800 iterations).
+Wrote build/cov/final/runs/dash-metal (800 iterations, 2.542864e+01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+solve exit=0
