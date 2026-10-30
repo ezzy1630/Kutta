@@ -53,7 +53,11 @@ One JSON object per line, in order:
 {"v":1,"event":"error","message":"…","issues":[...]}
 ```
 
-`iteration` events are emitted at the monitor interval. Report values are
+`iteration` events are emitted at the monitor interval. Residual names follow
+the solved equations: `continuity` and the three velocities always, then `k`
+and `omega` for SST or `k` and `epsilon` for standard k-epsilon; laminar runs
+have none of these turbulence entries. `residuals.csv` uses the same columns.
+Report values are
 optional per event. stderr carries human-readable diagnostics only. Exit
 codes: 0 success, 1 rejected case or solver failure, 2 usage error. The app
 stops a run by closing stdin or sending SIGINT / CTRL_BREAK; the CLI then
@@ -131,9 +135,11 @@ Fluent default. `poly` counts every cell other than a topological tet or hex.
 prove decoupling; null means coupling cannot be excluded. The support status is
 computed by the same setup, initialization and report validation as solve.
 When `--data` is supplied, saved fields replace initialization validation.
-Informational issues do not block solve; the only approximable setting is the
-explicit setup allowlist (currently `wfgc`). An unparsed WFGC flag is unsupported,
-not approximable. A downforce report is normally a lift report whose direction
+Informational issues do not block solve; the only approximable settings are the
+explicit setup allowlist (`wfgc`, `compressibility` for the k-epsilon
+dilatation term, `ke-options` for undocumented k-epsilon solver switches). Each
+approximable issue carries its measured effect and evidence. An unparsed WFGC
+flag is unsupported, not approximable. A downforce report is normally a lift report whose direction
 points down; its sign and reference scaling are preserved.
 
 `setup` and `summary.json` carry `pressure_velocity_coupling` (v1 additive):
@@ -440,8 +446,9 @@ Let `q_ref = 0.5 rho_ref U_ref^2`, `G_ij = dU_i/dx_j`, `S=(G+G^T)/2` and
 | `vorticity_magnitude` | 1/s | `|curl(U)|` |
 | `q_criterion` | 1/s^2 | `0.5 (||Omega||_F^2 - ||S||_F^2)` |
 | `helicity` | m/s^2 | `U dot curl(U)` |
-| `wall_shear`, `wall_shear_magnitude` | Pa | saved SST stress on fluid, vector/magnitude |
+| `wall_shear`, `wall_shear_magnitude` | Pa | saved wall stress on fluid from the active closure, vector/magnitude |
 | `y_plus` | 1 | saved SST u-star wall diagnostic |
+| `y_star` | 1 | saved k-epsilon wall-function y* diagnostic |
 | `skin_friction`, `skin_friction_vector` | 1 | wall shear magnitude/vector divided by `q_ref`, on fluid |
 
 The existing `@fluent` and `@delta` conventions apply. Derivatives are reconstructed
@@ -621,7 +628,8 @@ prefixes.)
 | `monitors/report/<report>/ignore-before` | integer ≥ 0 | `100` | Fluent's Ignore Iterations Before |
 
 `<equation>` is each residual name the solver reports (`continuity`,
-`x-velocity`, `y-velocity`, `z-velocity`, `k`, `omega`). Residual `check` and
+`x-velocity`, `y-velocity`, `z-velocity`, then `k` and `omega` or `epsilon`
+for turbulent cases). Residual `check` and
 `absolute-criterion` come from the case's `residuals/settings` when its rows use
 the 7-element layout Kutta parses, otherwise `check` is `false` and the
 criterion is null. A raw row that also lists equations Kutta does not solve

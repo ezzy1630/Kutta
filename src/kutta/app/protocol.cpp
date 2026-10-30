@@ -19,8 +19,8 @@ Issue describe(const SettingIssue& i) {
   struct Explanation { std::string_view key,label,text; };
   static constexpr Explanation descriptions[]={
     {"curvature", "Streamline curvature correction", "Fluent modifies SST production for rotating or curved strain. Kutta does not yet compute the strain material derivative required by that correction."},
-    {"compress", "Compressibility correction", "Fluent modifies turbulence for compressible flow. Kutta currently advances constant-density incompressible momentum and has no compressible turbulence correction."},
-    {"viscous-model", "Viscous model", "This selects Fluent's laminar or turbulence closure. The Fluent solve adapter currently implements k-omega SST only; substituting another closure changes turbulent stresses and separation."},
+    {"compress", "Compressibility correction", "Fluent modifies turbulence for compressible flow. Kutta currently advances constant-density incompressible momentum; the k-epsilon dilatation term can only be omitted by explicit approximation."},
+    {"viscous-model", "Viscous model", "This selects Fluent's laminar or turbulence closure. The Fluent solve adapter implements laminar flow, k-omega SST and standard k-epsilon with standard wall functions; substituting another closure changes turbulent stresses and separation."},
     {"rp-unsteady", "Transient flow", "Fluent advances physical time for this setting. Kutta's case adapter currently solves a steady fixed point; pseudo time is a convergence aid and cannot reproduce physical transients."},
     {"rp-seg", "Pressure-based solver", "This selects Fluent's pressure-based or density-based formulation. Kutta implements the incompressible pressure-based equations and cannot reproduce a density-based solution."},
     {"dimension", "Mesh dimension", "This describes the case dimension. The Fluent solve adapter requires a three-dimensional case; mesh extrusion alone does not define the missing case boundary and reference semantics."},
@@ -30,20 +30,20 @@ Issue describe(const SettingIssue& i) {
     {"mrf", "Moving reference frame", "Fluent includes rotating-frame momentum sources and frame-relative velocities. The adapter currently implements stationary frames and cannot reproduce Coriolis and centrifugal effects."},
     {"porous", "Porous medium", "Fluent adds directional viscous and inertial resistance. Kutta has no porous-zone source adapter, so the pressure loss cannot be reproduced."},
     {"motion", "Wall or mesh motion", "Fluent prescribes moving walls or a moving frame. The Fluent adapter currently accepts stationary no-slip walls and stationary fluid zones only."},
-    {"rough", "Wall roughness", "Fluent modifies the wall law using roughness height and constant. Kutta currently implements the smooth-wall SST law, so roughness drag and y-plus cannot be reproduced."},
-    {"shear-bc", "Wall shear condition", "Fluent can prescribe shear or slip at a wall. Kutta's adapter currently requires a smooth no-slip wall and computes shear using its SST wall treatment."},
+    {"rough", "Wall roughness", "Fluent modifies the wall law using roughness height and constant. Kutta currently implements smooth-wall laws only, so roughness drag and y-plus cannot be reproduced."},
+    {"shear-bc", "Wall shear condition", "Fluent can prescribe shear or slip at a wall. Kutta's adapter currently requires a smooth no-slip wall and computes shear with the active model's wall treatment."},
     {"wall-omega", "SST wall omega treatment", "Fluent selects a wall-omega correlation or a tabulated law. Kutta implements the correlation only; the alternative table is unavailable. Correlation face-omega offset was about 0.42% on the saved Fluent 22.2 elbow fields; this is not a flow-solution error bound."},
     {"recon/cell-lsq", "Gradient reconstruction", "Fluent selects its cell or node gradient method. Kutta uses inverse-square least-squares cell gradients; Green-Gauss and Fluent node reconstruction are not adapted."},
     {"recon/node", "Gradient reconstruction", "Fluent selects node-based gradient reconstruction. Kutta's Fluent adapter requires cell least-squares gradients; a different reconstruction changes transport fluxes."},
     {"recon/lim", "Gradient limiter", "Fluent limits reconstructed values before evaluating face fluxes. Kutta implements the standard face-based limiter without filtering; other limiter settings alter the discrete transport equations."},
-    {"pressure/scheme", "Pressure interpolation", "Fluent selects the pressure interpolation at faces. Kutta's adapter currently requires second-order pressure; PRESTO, standard and body-force-weighted interpolation are not implemented."},
+    {"pressure/scheme", "Pressure interpolation", "Fluent selects the pressure interpolation at faces. Kutta implements standard and second-order pressure; PRESTO, linear and body-force-weighted interpolation are not implemented."},
     {"/scheme", "Discretization scheme", "Fluent selects the face interpolation for this equation. Kutta's transport adapter implements first- and second-order upwind only; other schemes change numerical diffusion and the solution."},
-    {"pseudo", "Pseudo-transient controls", "Fluent uses these controls to converge a steady solution. Kutta adapts global pseudo-time stepping with the supported method, scale and relaxation factors only; local or other pseudo-time formulations are unavailable."},
-    {"relax", "Equation relaxation", "Fluent damps iterative updates using this factor. Kutta's SIMPLEC adapter requires the supported pseudo-relaxation factors; missing or incompatible controls cannot be replaced by guessed defaults."},
+    {"pseudo", "Pseudo-transient controls", "Fluent uses these controls to converge a steady solution. Kutta adapts global pseudo-time stepping and the classic relaxation-only iteration; local or other pseudo-time formulations are unavailable."},
+    {"relax", "Equation relaxation", "Fluent damps iterative updates using this factor. Kutta uses the factors of the active formulation (pseudo-time or classic); missing or incompatible controls cannot be replaced by guessed defaults."},
     {"wall-distance", "Wall-distance calculation", "Fluent selects how distance to the wall is computed. Kutta uses exact nearest wall-surface distances with quadrilateral correction; other selections are not adapted."},
     {"hyb-init", "Hybrid initialization", "Fluent solves potential-flow initialization using saved scalar controls. Kutta uses its own AMG cycles; absent or invalid controls cannot be inferred. This affects startup, not the target steady equations."},
     {"fmg-init", "Full multigrid initialization", "Fluent initializes on a hierarchy of coarsened flow meshes. Kutta has no FMG initialization adapter and cannot reproduce that startup path."},
-    {"/default", "Standard initialization", "Fluent uses this initial flow or turbulence value. Kutta requires finite values and positive omega; it does not invent absent initialization settings."},
+    {"/default", "Standard initialization", "Fluent uses this initial flow or turbulence value. Kutta requires finite values and positive omega or epsilon; it does not invent absent initialization settings."},
     {"material", "Material properties", "Fluent binds a material and its density and viscosity laws to a cell zone. Kutta currently requires one positive, constant, uniform density and viscosity; variable properties or unresolved profiles change the equations."},
     {"density/viscosity", "Density and viscosity", "Fluent assigns density and viscosity by material. Kutta's current incompressible adapter requires constant positive properties shared by every active fluid zone."},
     {"report/", "Report definition", "Fluent defines the selected surfaces, force direction and scaling. Kutta can evaluate wall forces, drag and lift only when names resolve exactly to wall zones and the reference values are valid. ID-only selections cannot safely be treated as thread IDs."},
@@ -51,9 +51,10 @@ Issue describe(const SettingIssue& i) {
     {"zone/", "Zone boundary or cell condition", "Fluent prescribes this zone's physics or boundary values. Kutta's adapter supports stationary fluid, smooth no-slip walls, symmetry, constant velocity inlets and pressure outlets only; unparsed or other active conditions cannot be reproduced."},
     {"sst-", "SST model controls", "Fluent uses this coefficient or switch in SST production, blending or destruction. Kutta requires the implemented coefficient set and finite positive limits; other model controls are not adapted."},
     {"kw-", "k-omega model controls", "Fluent uses this switch or coefficient in the turbulence closure. Kutta implements the explicitly validated SST variants only; the requested or unparsed variant cannot be reproduced."},
-    {"pbs/flux", "Mass-flux interpolation", "Fluent selects how pressure and velocity form face mass flux. Kutta currently adapts flux index 1 only; other or unparsed selectors cannot reproduce that coupling."},
+    {"/ke-", "k-epsilon model controls", "Fluent uses this switch or coefficient in the k-epsilon closure or its wall treatment. Kutta implements the standard model with standard wall functions and Fluent's default coefficients; other variants are not adapted."},
+    {"pbs/flux", "Mass-flux interpolation", "Fluent selects how pressure and velocity form face mass flux. Kutta adapts the momentum-weighted and distance-weighted Rhie-Chow fluxes; automatic selection or other selectors cannot reproduce that coupling."},
     {"mesh/", "Mesh identity", "The case's Fluent zone IDs, counts and names must match the mesh used to place fields. Kutta refuses inconsistent mappings because assigning values to different cells or faces would corrupt the solution."},
-    {"case-config", "Active physics model", "Fluent enables a physics model with this switch. Kutta implements steady, constant-density, single-phase SST flow; this active or unrecognized configuration is outside the case adapter's allowlist."}
+    {"case-config", "Active physics model", "Fluent enables a physics model with this switch. Kutta implements steady, constant-density, single-phase laminar, SST and standard k-epsilon flow; this active or unrecognized configuration is outside the case adapter's allowlist."}
   };
   for(const auto& d:descriptions) if(i.path.find(d.key)!=std::string::npos) {
     out.label=d.label;out.explanation=d.text;break;
@@ -84,15 +85,26 @@ std::vector<Issue> support_issues(const FluentCase& c,const PolyMesh& mesh,bool 
     if(std::none_of(out.begin(),out.end(),[&](const auto& p){return p.setting==d.setting && p.classification==d.classification;})) out.push_back(std::move(d));
   };
   const auto check=[&](auto fn) {try {fn();}catch(const setup::RejectedSettings& e){for(const auto& i:e.issues()) append(i);}};
-  const setup::Approximation all[]={setup::Approximation::wfgc};
-  check([&]{(void)setup::fluent_setup(c,mesh,all);});
+  const setup::Approximation all[]={setup::Approximation::wfgc,setup::Approximation::compressibility,setup::Approximation::ke_options};
+  std::vector<setup::Approximation> used;
+  check([&]{used=setup::fluent_setup(c,mesh,all).approximations;});
   if(!seeded) check([&]{(void)setup::initial_fields(c,mesh);});
   check([&]{(void)setup::force_definitions(c,mesh);});
   for(const auto& i:c.issues) if(i.classification==IssueClass::informational) append(i);
-  if(c.numerics.warped_face_correction==true) {
-    const auto& a=setup::approximation_info(setup::Approximation::wfgc);
-    out.push_back({std::string(a.setting),"Warped-face gradient correction","approximable",std::string(a.name),
-      "Fluent corrects gradients for nonplanar faces. Kutta does not yet implement Fluent's warped-face correction and will run with WFGC off only when you opt in with --approximate wfgc. "+std::string(a.measured_effect)+".",std::string(a.effect_documentation)});
+  // A rejected case still reports WFGC, which needs no other setting to decide.
+  if(c.numerics.warped_face_correction==true && std::ranges::find(used,setup::Approximation::wfgc)==used.end())
+    used.insert(used.begin(),setup::Approximation::wfgc);
+  for(const auto id:used) {
+    using enum setup::Approximation;
+    const auto& a=setup::approximation_info(id);
+    const std::string_view label=id==wfgc?"Warped-face gradient correction":id==compressibility?"Turbulence compressibility correction":"k-epsilon solver options";
+    const std::string_view text=id==wfgc
+      ?"Fluent corrects gradients for nonplanar faces. Kutta does not yet implement Fluent's warped-face correction and will run with WFGC off only when you opt in with --approximate wfgc."
+      :id==compressibility
+      ?"Fluent adds dilatation dissipation to the turbulence equations. Kutta solves constant-density flow without it and will run only when you opt in with --approximate compressibility."
+      :"Fluent enables k-epsilon solver switches whose equations are not documented. Kutta solves the documented standard k-epsilon model and will run only when you opt in with --approximate ke-options.";
+    out.push_back({std::string(a.setting),std::string(label),"approximable",std::string(a.name),
+      std::string(text)+" "+std::string(a.measured_effect)+".",std::string(a.effect_documentation)});
   }
   return out;
 }

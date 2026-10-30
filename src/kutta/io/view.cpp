@@ -23,7 +23,7 @@ Vec3d polygon_area(std::span<const Vec3d> p) {
 bool visible(std::string_view name,bool wall) {
   const auto at=name.find('@');name=name.substr(0,at);
   if(name=="mass_flux")return false;
-  if(name.starts_with("wall_shear") || name.starts_with("skin_friction") || name=="y_plus")return wall;
+  if(name.starts_with("wall_shear") || name.starts_with("skin_friction") || name=="y_plus" || name=="y_star")return wall;
   if(name=="velocity" || name=="velocity_magnitude")return !wall;
   return true;
 }

@@ -51,20 +51,23 @@ triangle normals. Absolute positions must be representable as finite float32.
 | --- | --- | --- |
 | `pressure` | Pa | all surfaces and slices; gauge pressure |
 | `pressure_coefficient` | 1 | when saved reference pressure, positive density and speed exist; `(p - p_ref) / (0.5 rho_ref U_ref^2)` |
-| `wall_shear` | Pa | walls; xyz stress **on the fluid** |
+| `wall_shear` | Pa | walls; xyz stress **on the fluid** from the active closure (laminar: viscous stress) |
 | `wall_shear_magnitude` | Pa | walls; face stress magnitude |
-| `y_plus` | 1 | walls; SST u-star definition |
+| `y_plus` | 1 | walls, SST only; u-star definition |
+| `y_star` | 1 | walls, k-epsilon only; wall-function y* = rho Cmu^0.25 k^0.5 y / mu |
 | `velocity` | m/s | non-wall surfaces and slices; xyz |
 | `velocity_magnitude` | m/s | non-wall surfaces and slices |
-| `k` | m^2/s^2 | slices |
-| `omega` | 1/s | slices |
-| `viscosity_ratio` | 1 | slices; dynamic turbulent/molecular viscosity |
+| `k` | m^2/s^2 | slices; SST and k-epsilon |
+| `omega` | 1/s | slices; SST |
+| `epsilon` | m^2/s^3 | slices; k-epsilon |
+| `viscosity_ratio` | 1 | slices; dynamic turbulent/molecular viscosity; turbulent models |
 
 Surface vertex values are face-area-weighted averages **within that zone**.
 Magnitude and Cp are derived before averaging. Kutta boundary pressure uses the
 solver's reconstructed pressure; non-wall velocity uses the inlet value,
 tangential symmetry value, or extrapolated outlet owner value. Wall stress and
-y-plus use solver SST diagnostics, with no new wall law in the exporter.
+y-plus/y-star use the solver's wall diagnostics, with no new wall law in the exporter.
+Laminar runs export pressure, velocity and wall shear only.
 
 Slices intersect cell faces with the requested plane, connect intersection
 segments into closed polygons, and triangulate the polygons. Fields use the

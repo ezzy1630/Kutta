@@ -43,19 +43,25 @@ view::Fields collect_view_fields(Device& dev,const fv::SteadySolver& solver,
   view::Fields s;s.reference=reference!=nullptr;s.provenance=provenance;
   s.properties={setup.settings.density,setup.settings.viscosity,c.reference.density,c.reference.velocity,c.reference.pressure,c.reference.area,c.reference.length};
   const auto& m=solver.mesh();const auto nb=m.n_faces()-m.n_internal_faces();
-  const auto& t=solver.turbulence();
+  // Turbulence fields and y+ exist only for the active closure.
+  const bool sst=setup.settings.sst.has_value(),epsilon=setup.settings.realizable_ke.has_value();
   auto cell_velocity=vector_field(dev,"velocity","m/s",solver.velocity());
   if(volume) {
     s.cells.push_back(std::move(cell_velocity));
     s.cells.push_back({"pressure","Pa",1,dev.download(solver.pressure())});
-    s.cells.push_back({"k","m^2/s^2",1,dev.download(solver.kinetic_energy())});
-    s.cells.push_back({"omega","1/s",1,dev.download(solver.specific_dissipation())});
-    auto ratio=dev.download(t.mu_t);for(auto& v:ratio)v=float(v/setup.settings.viscosity);
-    s.cells.push_back({"viscosity_ratio","1",1,std::move(ratio)});
+    if(sst || epsilon) s.cells.push_back({"k","m^2/s^2",1,dev.download(solver.kinetic_energy())});
+    if(sst) s.cells.push_back({"omega","1/s",1,dev.download(solver.specific_dissipation())});
+    if(epsilon) s.cells.push_back({"epsilon","m^2/s^3",1,dev.download(solver.dissipation())});
+    if(sst || epsilon) {
+      auto ratio=dev.download(sst?solver.turbulence().mu_t:solver.realizable_turbulence().mu_t);for(auto& v:ratio)v=float(v/setup.settings.viscosity);
+      s.cells.push_back({"viscosity_ratio","1",1,std::move(ratio)});
+    }
   }
   s.boundary.push_back({"pressure","Pa",1,dev.download(solver.boundary_pressure())});
-  s.boundary.push_back(vector_field(dev,"wall_shear","Pa",t.wall_shear));
-  s.boundary.push_back({"y_plus","1",1,dev.download(t.wall_y_plus)});
+  s.boundary.push_back(vector_field(dev,"wall_shear","Pa",solver.wall_shear()));
+  // k-epsilon wall functions report y*, Fluent's wall-function coordinate.
+  if(sst) s.boundary.push_back({"y_plus","1",1,dev.download(solver.turbulence().wall_y_plus)});
+  if(epsilon) s.boundary.push_back({"y_star","1",1,dev.download(solver.realizable_turbulence().wall_y_star)});
   Field velocity{"velocity","m/s",3,std::vector<float>(std::size_t(nb)*3)};
   for(const auto& p:m.patches) {
     auto bc=std::find_if(setup.boundaries.begin(),setup.boundaries.end(),[&](const auto& b){return b.patch==p.name;});
@@ -89,7 +95,7 @@ view::Fields collect_view_fields(Device& dev,const fv::SteadySolver& solver,
     };
     if(volume) {
       for(const auto& [name,source,unit]:std::vector<std::array<std::string,3>>{
-          {"pressure","SV_P","Pa"},{"k","SV_K","m^2/s^2"},{"omega","SV_O","1/s"},{"viscosity_ratio","SV_MU_T","1"}}) {
+          {"pressure","SV_P","Pa"},{"k","SV_K","m^2/s^2"},{"omega","SV_O","1/s"},{"epsilon","SV_D","m^2/s^3"},{"viscosity_ratio","SV_MU_T","1"}}) {
         if(!reference->cell_fields.contains(source))continue;
         Field f{name+"@fluent",unit,1,{}};f.values.reserve(ids.size());
         for(auto id:ids){const auto v=sample(reference->cell_fields,source,id);f.values.push_back(name=="viscosity_ratio"?float(v/setup.settings.viscosity):v);}s.cells.push_back(std::move(f));

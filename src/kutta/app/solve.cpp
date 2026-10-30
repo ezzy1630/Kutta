@@ -76,7 +76,7 @@ std::string csv(const std::string& s) {
   std::string out="\"";for(auto c:s) out+=c=='"'?"\"\"":std::string(1,c);return out+'"';
 }
 double seconds(Clock::time_point start) {return std::chrono::duration<double>(Clock::now()-start).count();}
-void write_fields(Device& dev,const fv::SteadySolver& solver,const std::filesystem::path& path,std::string_view notice) {
+void write_fields(Device& dev,const fv::SteadySolver& solver,const fv::SolverSettings& settings,const std::filesystem::path& path,std::string_view notice) {
   const auto download=[&](const Buffer<float>& b) {
     const auto v=dev.download(b);
     KUTTA_REQUIRE(std::all_of(v.begin(),v.end(),[](float q){return std::isfinite(q);}),"non-finite result field");
@@ -85,8 +85,17 @@ void write_fields(Device& dev,const fv::SteadySolver& solver,const std::filesyst
   const auto x=download(solver.velocity().x),y=download(solver.velocity().y),z=download(solver.velocity().z);
   std::vector<double> u;u.reserve(3*x.size());
   for(std::size_t i=0;i<x.size();++i) {u.push_back(x[i]);u.push_back(y[i]);u.push_back(z[i]);}
-  const auto p=download(solver.pressure()),k=download(solver.kinetic_energy()),omega=download(solver.specific_dissipation()),mu=download(solver.turbulence().mu_t);
-  const CellField fields[]={{"u",3,u},{"p",1,p},{"k",1,k},{"omega",1,omega},{"mu_t",1,mu}};
+  const auto p=download(solver.pressure());
+  std::vector<CellField> fields{{"u",3,u},{"p",1,p}};
+  // Turbulence fields exist only for the active closure; laminar has none.
+  std::vector<double> k,omega,mu;
+  if(settings.sst) {
+    k=download(solver.kinetic_energy());omega=download(solver.specific_dissipation());mu=download(solver.turbulence().mu_t);
+    fields.insert(fields.end(),{{"k",1,k},{"omega",1,omega},{"mu_t",1,mu}});
+  } else if(settings.realizable_ke) {
+    k=download(solver.kinetic_energy());omega=download(solver.dissipation());mu=download(solver.realizable_turbulence().mu_t);
+    fields.insert(fields.end(),{{"k",1,k},{"epsilon",1,omega},{"mu_t",1,mu}});
+  }
   // Fields and geometry both use the solver's owned RCM order.
   write_vtu(path,solver.mesh(),fields,notice);
 }
@@ -180,9 +189,13 @@ int solve(int argc,char** argv) {
     std::filesystem::remove(o.out/"loads.json");std::filesystem::remove(o.out/"aero.json");
     auto residuals=output(o.out/"residuals.csv");
     if(!notice.empty()) residuals<<"# "<<notice<<'\n';
-    residuals<<"iteration,continuity,x-velocity,y-velocity,z-velocity,k,omega,seconds_per_iteration\n";
-    if(!jsonl)human<<"Backend: "<<backend_name(dev->backend())<<"; device: "<<dev->name()<<"\n"
-             <<"  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter\n";
+    const auto residual_names=setup::solved_residuals(c.viscous.model);
+    residuals<<"iteration";for(auto name:residual_names)residuals<<','<<name;residuals<<",seconds_per_iteration\n";
+    if(!jsonl) {
+      human<<"Backend: "<<backend_name(dev->backend())<<"; device: "<<dev->name()<<"\n  iter";
+      for(auto name:residual_names)human<<std::setw(14)<<name;
+      human<<"       sec/iter\n";
+    }
     const auto run_start=Clock::now();
     bool stopped=false,converged=false;
     setup::ConvergenceMonitor monitor(convergence);std::vector<std::string> met_by;
@@ -219,8 +232,10 @@ int solve(int argc,char** argv) {
       if(iter%setup->settings.monitor_interval!=0 && iter!=o.iterations && !stopped)continue;
       const auto r=solver.report().residual_iteration==iter?solver.report():solver.monitor();
       dev->synchronize();const auto per_iteration=(seconds(batch)-batch_snapshot_time)/batch_count;
-      const double values[]={r.continuity.fluent_scaled,r.u.fluent_scaled,r.v.fluent_scaled,r.w.fluent_scaled,r.k.fluent_scaled,r.omega.fluent_scaled};
-      static_assert(std::size(values)==setup::residual_equations.size());
+      std::vector<double> values{r.continuity.fluent_scaled,r.u.fluent_scaled,r.v.fluent_scaled,r.w.fluent_scaled};
+      if(setup->settings.sst) values.insert(values.end(),{r.k.fluent_scaled,r.omega.fluent_scaled});
+      if(setup->settings.realizable_ke) values.insert(values.end(),{r.k.fluent_scaled,r.epsilon.fluent_scaled});
+      KUTTA_REQUIRE(values.size()==residual_names.size(),"residual names do not match the solved equations");
       residuals<<r.iteration;
       if(!jsonl)human<<std::setw(6)<<r.iteration<<std::scientific<<std::setprecision(6);
       for(double v:values) {
@@ -235,7 +250,7 @@ int solve(int argc,char** argv) {
       std::optional<setup::ConvergenceSample> state;
       if(convergence.check) {
         std::map<std::string,double> residual_values,report_values;
-        for(std::size_t i=0;i<std::size(values);++i)residual_values.emplace(setup::residual_equations[i],values[i]);
+        for(std::size_t i=0;i<std::size(values);++i)residual_values.emplace(residual_names[i],values[i]);
         for(std::size_t i=0;i<report_forces.size();++i)report_values.emplace(reports[i].name,dot(report_forces[i].force(),*reports[i].direction));
         state=monitor.sample(r.iteration,residual_values,report_values);
       }
@@ -243,7 +258,7 @@ int solve(int argc,char** argv) {
       else {
         std::ostringstream event;event.imbue(std::locale::classic());event<<std::setprecision(17);
         event<<"{\"v\":1,\"event\":\"iteration\",\"iter\":"<<r.iteration<<",\"residuals\":{";
-        for(std::size_t i=0;i<std::size(values);++i){if(i)event<<',';event<<json_string(setup::residual_equations[i])<<':'<<values[i];}
+        for(std::size_t i=0;i<std::size(values);++i){if(i)event<<',';event<<json_string(residual_names[i])<<':'<<values[i];}
         event<<"},\"reports\":{";
         for(std::size_t i=0;i<reports.size();++i) {
           const auto& d=reports[i];if(i)event<<',';
@@ -268,7 +283,7 @@ int solve(int argc,char** argv) {
       batch=Clock::now();batch_count=0;batch_snapshot_time=0;
     }
     const auto wall_time=seconds(run_start);residuals.close();
-    write_fields(*dev,solver,o.out/"result.vtu",notice);
+    write_fields(*dev,solver,setup->settings,o.out/"result.vtu",notice);
     auto forces=output(o.out/"forces.csv");
     if(!notice.empty()) forces<<"# "<<notice<<'\n';
     forces<<"kind,name,zone_id,pressure_x,pressure_y,pressure_z,viscous_x,viscous_y,viscous_z,total_x,total_y,total_z,direction_x,direction_y,direction_z,pressure_projection,viscous_projection,total_projection,coefficient\n";
@@ -304,7 +319,7 @@ int solve(int argc,char** argv) {
       // the forces.csv evaluation refreshed them; totals match its wall rows.
       post::Loads loads;loads.reference={c.reference.area,c.reference.density,c.reference.velocity,c.reference.length,c.reference.pressure};
       for(const auto& d:reports)for(const auto& p:d.patches)if(std::find(loads.report_zones.begin(),loads.report_zones.end(),p)==loads.report_zones.end())loads.report_zones.push_back(p);
-      const auto pressure=dev->download(solver.boundary_pressure());const auto& shear=solver.turbulence().wall_shear;
+      const auto pressure=dev->download(solver.boundary_pressure());const auto& shear=solver.wall_shear();
       const auto sx=dev->download(shear.x),sy=dev->download(shear.y),sz=dev->download(shear.z);
       const auto& g=solver.geometry();const auto& m=solver.mesh();const double p_ref=c.reference.pressure.value_or(0);
       for(const auto& p:m.patches)if(p.kind==PatchKind::Wall) {
