@@ -106,6 +106,9 @@ int solve(int argc,char** argv) {
     setup::RunControls controls{o.iterations,20};
     auto inventory=setup::settings_inventory(c,controls,!o.data.empty());
     const auto applied=o.setup_file.empty()?Json::Object{}:setup::apply_setup(o.setup_file,inventory);
+    // Only case-changing overrides make a result MODIFIED; run controls are
+    // still applied and echoed.
+    Json::Object changes,run_controls;for(const auto& [path,v]:applied)(setup::run_control(path)?run_controls:changes).emplace(path,v);
     o.iterations=controls.iterations;
     auto mesh=read_mesh(o.input);
     std::optional<setup::FluentSetup> setup;std::optional<setup::Initialization> fields;
@@ -125,9 +128,9 @@ int solve(int argc,char** argv) {
     };
     setup->settings.monitor_interval=controls.monitor_interval;
     notice=setup::approximation_notice(setup->approximations);
-    if(!applied.empty()) {
+    if(!changes.empty()) {
       if(!notice.empty())notice+="; ";
-      notice+="MODIFIED RESULT: setup overrides applied relative to the case file; "+dump_json(applied);
+      notice+="MODIFIED RESULT: setup overrides applied relative to the case file; "+dump_json(changes);
     }
     if(!notice.empty() && !jsonl) human<<notice<<std::endl;
     if(!jsonl)for(const auto& note:setup->convergence_notes) human<<"Setup: "<<note<<'\n';
@@ -150,7 +153,7 @@ int solve(int argc,char** argv) {
         <<",\"device\":"<<json_string(dev->name())<<",\"approximations\":[";
       for(std::size_t i=0;i<setup->approximations.size();++i){if(i)std::cout<<',';std::cout<<json_string(setup::approximation_info(setup->approximations[i]).name);}
       const auto init=!o.data.empty()?"fluent-data":std::holds_alternative<fv::HybridInitialization>(*fields)?"hybrid":"standard";
-      std::cout<<"],\"init\":"<<json_string(init)<<",\"overrides\":"<<dump_json(applied)<<",\"modified\":"<<(applied.empty()?"false":"true");
+      std::cout<<"],\"init\":"<<json_string(init)<<",\"overrides\":"<<dump_json(applied)<<",\"run_controls\":"<<dump_json(run_controls)<<",\"modified\":"<<(changes.empty()?"false":"true");
       if(live)std::cout<<",\"live_view\":"<<dump_json(live_configuration());
       std::cout<<'}'<<std::endl;
       if(!notice.empty())warning(notice);
@@ -267,7 +270,7 @@ int solve(int argc,char** argv) {
     fluxes.close();
     app::save_view_input(o.out/"view-input.bin",*dev,solver,c,reference?&*reference:nullptr,*setup,notice);
     auto summary=output(o.out/"summary.json");
-    summary<<"{\n  \"v\": 1,\n  \"modified\": "<<(applied.empty()?"false":"true")<<",\n  \"overrides\": "<<dump_json(applied)<<",\n  \"approximate\": "<<(setup->approximations.empty()?"false":"true")<<",\n  \"approximation_notice\": "<<json_string(setup::approximation_notice(setup->approximations))
+    summary<<"{\n  \"v\": 1,\n  \"modified\": "<<(changes.empty()?"false":"true")<<",\n  \"overrides\": "<<dump_json(applied)<<",\n  \"run_controls\": "<<dump_json(run_controls)<<",\n  \"approximate\": "<<(setup->approximations.empty()?"false":"true")<<",\n  \"approximation_notice\": "<<json_string(setup::approximation_notice(setup->approximations))
       <<",\n  \"approximations\": [";
     for(std::size_t i=0;i<setup->approximations.size();++i) {
       const auto& info=setup::approximation_info(setup->approximations[i]);

@@ -1,4 +1,4 @@
-# Sidecar protocol verification
+# App protocol verification
 
 Evidence from the implementation checkout on Apple M4 Pro, 2026-10-30. This
 covers CLI/data behavior, not acceptance of the solver's physical accuracy.

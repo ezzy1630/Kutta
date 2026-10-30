@@ -16,7 +16,7 @@
 namespace kutta::app {
 // No worker thread and no blocking stdin read. Handlers only set a flag; the
 // solver observes it between outer iterations and writes normal final outputs.
-// EOF means "stop" only on a pipe, which is how the app holds the sidecar's
+// EOF means "stop" only on a pipe, which is how the app holds the child's
 // stdin. A file, /dev/null, a terminal or no stdin at all would otherwise turn
 // a scripted run into an immediate zero-iteration stop.
 class StopRequest {

@@ -1,4 +1,4 @@
-"""Exercise the sidecar boundary; keep stdin open until explicitly stopping."""
+"""Exercise the CLI child-process boundary; keep stdin open until explicitly stopping."""
 import hashlib
 import concurrent.futures
 import json
@@ -192,15 +192,18 @@ def solve_setup(overrides, name, *, reject=False):
         return
     events = finish(p)
     p.stdin.close()
-    assert events[0]["overrides"] == overrides and events[0]["modified"] is bool(overrides)
+    # Run controls are applied and echoed, but only case changes are MODIFIED.
+    controls = {k: v for k, v in overrides.items() if k.startswith("run/")}
+    modified = len(controls) < len(overrides)
+    assert events[0]["overrides"] == overrides and events[0]["run_controls"] == controls and events[0]["modified"] is modified
     summary = json.loads((out / "summary.json").read_text())
-    assert summary["overrides"] == overrides and summary["modified"] is bool(overrides)
+    assert summary["overrides"] == overrides and summary["run_controls"] == controls and summary["modified"] is modified
     assert summary["approximate"] is False and summary["approximation_notice"] == ""
-    if overrides:
-        assert "MODIFIED RESULT" in (out / "result.vtu").read_text()
-        assert "MODIFIED RESULT" in (out / "fluxes.csv").read_text()
-        command("export-view", out)
-        assert "MODIFIED RESULT" in json.loads((out / "view/manifest.json").read_text())["provenance"]
+    command("export-view", out)
+    for text in [(out / "result.vtu").read_text(), (out / "fluxes.csv").read_text(), (out / "residuals.csv").read_text(),
+                 json.loads((out / "view/manifest.json").read_text())["provenance"]]:
+        assert ("MODIFIED RESULT" in text) is modified
+        assert "run/iterations" not in text and "run/monitor-interval" not in text
     return out, events
 
 
@@ -221,6 +224,8 @@ assert math.isclose(base_flux["inlet"], -1, abs_tol=1e-6), base_flux
 assert math.isclose(changed_flux["inlet"], -2, abs_tol=1e-6), changed_flux
 assert not math.isclose(base_flux["outlet"], changed_flux["outlet"], abs_tol=1e-6)
 assert hashlib.sha256((root / "inlet.cas.h5").read_bytes()).hexdigest() == source_hash
+_, events = solve_setup({"run/iterations": 2, "run/monitor-interval": 1}, "run-controls-only")
+assert events[-1]["iterations"] == 2 and [e["iter"] for e in events if e["event"] == "iteration"] == [1, 2]
 solve_setup({"missing/setting": 1, "general/operating-pressure": 10, "run/iterations": 1.5,
              "boundary/inlet/velocity-magnitude": -1, "methods/momentum-scheme": "central",
              "run/monitor-interval": "ten", "boundary/inlet/direction": [0, 0, 0]}, "invalid", reject=True)

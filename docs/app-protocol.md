@@ -122,7 +122,7 @@ iteration ran. A request during setup completes initialization before writing
 a zero-iteration run. `done` and `summary.json` add `stop_reason: "stopped"` or
 `"iteration_limit"`. `converged` remains false until the adapter exposes case
 convergence criteria. JSONL mode watches stdin EOF only when stdin is a pipe
-at startup; keep the sidecar's stdin pipe open while it runs. Any received
+at startup; the app keeps the child process's stdin pipe open while it runs. Any received
 bytes are ignored. A file, `/dev/null`, a terminal or absent stdin never stops a run. Human mode retains
 normal redirected-stdin behavior and responds to SIGINT / CTRL_BREAK. Neither
 signal handler runs solver or file I/O. SIGKILL/forced process termination cannot
@@ -217,8 +217,14 @@ no override can opt into an unsupported physics model or approximation.
 Overrides apply to in-memory configuration, preserving the original case file
 and its SHA256. They apply after CLI defaults, so `run/iterations` in a setup file
 wins over `--iterations`. `setup` and `summary.json` echo the applied object as
-`overrides` and add `modified: true` when it is nonempty. Modified VTU/CSV headers
-and view provenance carry `MODIFIED RESULT`, separately from approximation state.
+`overrides`, and its run controls (`run/iterations`, `run/monitor-interval`)
+again as `run_controls`. `modified` is true only when a case-changing override
+was applied; run controls alone never mark a result modified. Modified VTU/CSV
+headers and view provenance carry `MODIFIED RESULT` with the case-changing
+overrides only, separately from approximation state. The monitor interval is
+still part of the run's recipe: the solver's monitor refresh currently changes
+the unconverged iterate path, so runs compared at equal iteration counts should
+use equal intervals.
 `fluxes.csv` gives each boundary zone's integrated outward mass flow in kg/s,
 using the solver's final mass flux, and carries the same provenance notice.
 

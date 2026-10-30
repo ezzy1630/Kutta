@@ -25,6 +25,10 @@ struct Setting {
   std::function<void(const Json&)> apply;
   std::function<std::string(const Json&)> validate;
 };
+// Run controls (run/iterations, run/monitor-interval) say how long and how
+// often to report, not what case is solved, so they never mark a result
+// modified.
+inline bool run_control(std::string_view path) {return path.starts_with("run/");}
 std::vector<Setting> settings_inventory(fluent::FluentCase&,RunControls&,bool seeded=false);
 Json settings_json(std::span<const Setting>);
 // Validate every entry first, then apply atomically to the in-memory case.
