@@ -1,0 +1,1 @@
+{"v":1,"synthetic":true,"devices":[{"backend":"cuda","name":"NVIDIA GeForce RTX 4070 (synthetic fixture)","memory_bytes":12878610432,"ordinal":0,"default":true},{"backend":"cpu","name":"CPU reference (serial)","memory_bytes":68719476736,"ordinal":0,"default":false}]}

@@ -1,0 +1,1 @@
+{"v":1,"devices":[{"backend":"metal","name":"Apple M4 Pro","memory_bytes":19069665280,"ordinal":0,"default":true},{"backend":"cpu","name":"CPU reference (serial)","memory_bytes":25769803776,"ordinal":0,"default":false}]}
