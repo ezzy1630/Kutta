@@ -104,7 +104,9 @@ endif()
 file(GLOB KUTTA_APP_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/kutta/app/*.cpp)
 if(KUTTA_APP_SOURCES)
   add_executable(kutta-cli ${KUTTA_APP_SOURCES})
-  set_target_properties(kutta-cli PROPERTIES OUTPUT_NAME kutta)
+  # MSVC writes an import library next to kutta.exe; keep it from colliding
+  # with the static library kutta.lib (LNK1149).
+  set_target_properties(kutta-cli PROPERTIES OUTPUT_NAME kutta ARCHIVE_OUTPUT_NAME kutta-cli)
   target_link_libraries(kutta-cli PRIVATE kutta)
   execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE KUTTA_COMMIT OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
