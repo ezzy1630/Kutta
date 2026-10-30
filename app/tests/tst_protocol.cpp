@@ -17,9 +17,28 @@ private slots:
         const CaseSummary& cs = c.value();
         QCOMPARE(cs.cells, 17822);
         QCOMPARE(int(cs.settings.size()), 9844);
-        QCOMPARE(int(std::count_if(cs.settings.begin(), cs.settings.end(), [](const Setting& s) { return s.editable; })), 26);
+        // Includes each inlet's and outlet's turbulence method and the values
+        // of the methods it does not use, so switching method is possible.
+        QCOMPARE(int(std::count_if(cs.settings.begin(), cs.settings.end(), [](const Setting& s) { return s.editable; })), 41);
         QVERIFY(cs.zone("cold-inlet"));
         QCOMPARE(cs.zone("cold-inlet")->type, QString("velocity-inlet"));
+
+        // Enum codes carry Fluent's words, and fields follow their method.
+        auto find = [&](const QString& p) -> const Setting& {
+            static const Setting none;
+            auto it = std::find_if(cs.settings.begin(), cs.settings.end(), [&](const Setting& s) { return s.path == p; });
+            return it == cs.settings.end() ? none : *it;
+        };
+        const Setting& spec = find("boundary/cold-inlet/turbulence-specification");
+        QCOMPARE(spec.value.toInt(), 3);
+        QCOMPARE(spec.valueLabel, QString("Intensity and Hydraulic Diameter"));
+        QCOMPARE(spec.labelFor(1), QString("Intensity and Length Scale"));
+        QVERIFY(spec.editable);
+        const Setting& k = find("boundary/cold-inlet/k");
+        QCOMPARE(k.dependsOn, spec.path);
+        QVERIFY(!k.active);
+        QVERIFY(find("boundary/cold-inlet/turb-hydraulic-diam").active);
+        QCOMPARE(find("boundary/cold-inlet/velocity-specification").valueLabel, QString("Magnitude, Normal to Boundary"));
     }
 
     void approximationsBlockUntilApproved()

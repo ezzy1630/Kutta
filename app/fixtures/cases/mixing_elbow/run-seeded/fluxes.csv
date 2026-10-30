@@ -2,7 +2,7 @@
 name,zone_id,mass_flow_outward
 "wall-elbow",34,0
 "wall-inlet",33,0
-"outlet",32,0.0051141545393420529
+"outlet",32,0.0051141540183152756
 "cold-inlet",31,-0.0047670772364654113
 "hot-inlet",30,-0.00034707683835222269
 "symmetry-xyplane",29,0
