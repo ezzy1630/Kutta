@@ -14,6 +14,7 @@
 
 #include "kernels.hpp"
 #include "../tests/linalg/instrumented_device.hpp"
+#include "../tests/linalg/matrices.hpp"
 #include "../validation/cases/ke_channel.hpp"
 #include "sst_channel.hpp"
 
@@ -54,6 +55,31 @@ void latency(kutta::Backend backend) {
     for (int i = 0; i < reductions; ++i) dev->dot_into(x, y, n, out);
     dev->synchronize();
     if (pass) report("queued_device_reduction", reductions, seconds_since(start));
+    {
+      auto status = dev->alloc<kutta::Index>(3);
+      auto scalars = dev->alloc<float>(24);
+      dev->fill(status, 0); dev->fill(scalars, 1.0f);
+      auto host_matrix = kutta::test_linalg::poisson(80, 1);
+      auto a = kutta::upload(*dev, host_matrix);
+      start = Clock::now();
+      for (int i = 0; i < reductions; ++i) kutta::kern::solver_bicg_alpha(*dev, 1, scalars, status);
+      dev->synchronize();
+      if (pass) report("queued_scalar_kernel", reductions, seconds_since(start));
+      start = Clock::now();
+      for (int i = 0; i < reductions; ++i)
+        kutta::kern::csr_spmv_guarded(*dev, n, a.row_ptr, a.col, a.val, x, y, status);
+      dev->synchronize();
+      if (pass) report("queued_spmv", reductions, seconds_since(start));
+      start = Clock::now();
+      for (int i = 0; i < reductions; ++i) {
+        kutta::kern::csr_spmv_guarded(*dev, n, a.row_ptr, a.col, a.val, x, y, status);
+        kutta::kern::solver_bicg_alpha(*dev, 1, scalars, status);
+        dev->dot_into(x, y, n, scalars, 2);
+        kutta::kern::axpy(*dev, n, y, x, 1e-7f);
+      }
+      dev->synchronize();
+      if (pass) report("queued_mixed_dispatch", 4 * reductions, seconds_since(start));
+    }
     constexpr int round_trips = 2000;
     start = Clock::now();
     for (int i = 0; i < round_trips; ++i) { kutta::kern::axpy(*dev, n, y, x, 1e-7f); (void)dev->max_abs(y, n); }
@@ -61,6 +87,24 @@ void latency(kutta::Backend backend) {
     start = Clock::now();
     for (int i = 0; i < round_trips; ++i) { kutta::kern::axpy(*dev, n, y, x, 1e-7f); dev->synchronize(); }
     if (pass) report("dispatch_plus_synchronize", round_trips, seconds_since(start));
+    {
+      // Short BiCGStab-Jacobi solves that stay above the float residual floor:
+      // per update this is mostly dispatch cost (plus two waits per solve).
+      auto host_matrix = kutta::test_linalg::poisson(80, 1, 1, 1, false, false, 0.5);
+      auto a = kutta::upload(*dev, host_matrix);
+      auto solver = kutta::make_solver(kutta::SolverKind::BicgstabJacobi, *dev, host_matrix);
+      auto rhs = dev->alloc<float>(80), solution = dev->alloc<float>(80);
+      dev->fill(rhs, 1.0f);
+      constexpr int updates = 30, solves = 20;
+      int total = 0;
+      start = Clock::now();
+      for (int k = 0; k < solves; ++k) {
+        dev->fill(solution, 0.0f);
+        solver->refresh(*dev, a);
+        total += solver->solve(*dev, a, solution, rhs, {1e-30, 0, updates, updates}).iterations;
+      }
+      if (pass) report("bicgstab_jacobi_update", total, seconds_since(start));
+    }
     std::vector<float> host(n, 1.0f);
     start = Clock::now();
     for (int i = 0; i < round_trips; ++i) { kutta::kern::axpy(*dev, n, y, x, 1e-7f); dev->upload<float>(x, host); }

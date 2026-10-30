@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <climits>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
+#include <string>
 #include <vector>
 
 #include "kernels.hpp"
@@ -42,28 +44,14 @@ float2 finish_single(float2 p, uint width) {
   for (uint d = width / 2; d > 0; d /= 2) a = pair_add(a, float2(0.0f));
   return a;
 }
-kernel void runtime_reduce(const device float* x [[buffer(0)]],
-                           const device float* y [[buffer(1)]],
-                           device float2* partial [[buffer(2)]],
-                           constant uint& n [[buffer(3)]],
-                           constant uint& mode [[buffer(4)]],
-                           const device float* u [[buffer(5)]],
-                           const device float* v [[buffer(6)]],
-                           device float* out [[buffer(7)]],
-                           constant uint& offset [[buffer(8)]],
-                           constant uint& fused [[buffer(9)]],
-                           uint gid [[thread_position_in_grid]],
-                           uint tid [[thread_index_in_threadgroup]],
-                           uint group [[threadgroup_position_in_grid]],
-                           uint width [[threads_per_simdgroup]],
-                           uint lane [[thread_index_in_simdgroup]],
-                           uint simd [[simdgroup_index_in_threadgroup]],
-                           uint threads [[threads_per_threadgroup]],
-                           uint groups [[threadgroups_per_grid]]) {
-  threadgroup float2 scratch[32];
-  threadgroup float2 second[32];
-  float2 a = float2(0.0f), c = float2(0.0f);
-  for (uint i = gid; i < n; i += threads * groups) {
+// One threadgroup's (hi, lo) partial, valid in lane 0 of SIMD group 0. Shared
+// by runtime_reduce and runtime_sequence so both run identical arithmetic.
+void reduce_group(const device float* x, const device float* y, const device float* u,
+                  const device float* v, uint n, uint mode, uint gid, uint stride, uint width,
+                  uint lane, uint simd, uint threads, threadgroup float2* scratch,
+                  threadgroup float2* second, thread float2& a, thread float2& c) {
+  a = float2(0.0f); c = float2(0.0f);
+  for (uint i = gid; i < n; i += stride) {
     if (mode == 2) a.x = nan_max(a.x, abs(x[i]));
     else {
       float h = mode == 1 || mode == 3 ? x[i] * y[i] : x[i];
@@ -92,18 +80,88 @@ kernel void runtime_reduce(const device float* x [[buffer(0)]],
       if (mode == 3 && lane + d < width) c = pair_add(c, e);
       if (lane + d < width) a = mode == 2 ? float2(nan_max(a.x, b.x), 0) : pair_add(a, b);
     }
-    if (lane == 0 && fused) {
-      // Single threadgroup: finish here instead of in runtime_reduce_into.
-      a = finish_single(a, width);
-      out[offset] = a.x; out[offset + 1] = a.y;
-      if (mode == 3) {
-        c = finish_single(c, width);
-        out[offset + 2] = c.x; out[offset + 3] = c.y;
-      }
-    } else if (lane == 0) {
-      partial[group] = a;
-      if (mode == 3) partial[1024 + group] = c;
+  }
+}
+// Writes the group partial(s), or with `fused` (one threadgroup only) the
+// finished pair(s) at out[offset].
+void reduce_store(float2 a, float2 c, uint mode, uint fused, uint width, uint group,
+                  device float2* partial, device float* out, uint offset) {
+  if (fused) {
+    // Single threadgroup: finish here instead of in runtime_reduce_into.
+    a = finish_single(a, width);
+    out[offset] = a.x; out[offset + 1] = a.y;
+    if (mode == 3) {
+      c = finish_single(c, width);
+      out[offset + 2] = c.x; out[offset + 3] = c.y;
     }
+  } else {
+    partial[group] = a;
+    if (mode == 3) partial[1024 + group] = c;
+  }
+}
+kernel void runtime_reduce(const device float* x [[buffer(0)]],
+                           const device float* y [[buffer(1)]],
+                           device float2* partial [[buffer(2)]],
+                           constant uint& n [[buffer(3)]],
+                           constant uint& mode [[buffer(4)]],
+                           const device float* u [[buffer(5)]],
+                           const device float* v [[buffer(6)]],
+                           device float* out [[buffer(7)]],
+                           constant uint& offset [[buffer(8)]],
+                           constant uint& fused [[buffer(9)]],
+                           uint gid [[thread_position_in_grid]],
+                           uint group [[threadgroup_position_in_grid]],
+                           uint width [[threads_per_simdgroup]],
+                           uint lane [[thread_index_in_simdgroup]],
+                           uint simd [[simdgroup_index_in_threadgroup]],
+                           uint threads [[threads_per_threadgroup]],
+                           uint groups [[threadgroups_per_grid]]) {
+  threadgroup float2 scratch[32];
+  threadgroup float2 second[32];
+  float2 a, c;
+  reduce_group(x, y, u, v, n, mode, gid, threads * groups, width, lane, simd, threads,
+               scratch, second, a, c);
+  if (simd == 0 && lane == 0) reduce_store(a, c, mode, fused, width, group, partial, out, offset);
+}
+// Replays recorded small operations in one threadgroup, in order, with a
+// device-memory barrier between steps: the same visibility that ordered serial
+// dispatches give. Kernel bodies are the generated ksrc functions; reductions
+// use reduce_group with the layout of a one-group runtime_reduce dispatch.
+struct SequenceStep { uint op; uint n; uint mode; uint offset; ulong arg[32]; };
+constant uint kSequenceFill = 0xFFFF0001u, kSequenceCopy = 0xFFFF0002u, kSequenceReduce = 0xFFFF0003u;
+kernel void runtime_sequence(constant SequenceStep* steps [[buffer(0)]],
+                             constant uint& count [[buffer(1)]],
+                             uint tid [[thread_index_in_threadgroup]],
+                             uint width [[threads_per_simdgroup]],
+                             uint lane [[thread_index_in_simdgroup]],
+                             uint simd [[simdgroup_index_in_threadgroup]],
+                             uint threads [[threads_per_threadgroup]]) {
+  threadgroup float2 scratch[32];
+  threadgroup float2 second[32];
+  for (uint s = 0; s < count; ++s) {
+    constant SequenceStep& step = steps[s];
+    if (step.op == kSequenceReduce) {
+      float2 a, c;
+      reduce_group(reinterpret_cast<const device float*>(step.arg[0]),
+                   reinterpret_cast<const device float*>(step.arg[1]),
+                   reinterpret_cast<const device float*>(step.arg[2]),
+                   reinterpret_cast<const device float*>(step.arg[3]),
+                   step.n, step.mode, tid, threads, width, lane, simd, threads, scratch, second, a, c);
+      if (simd == 0 && lane == 0)
+        reduce_store(a, c, step.mode, uint(step.arg[5]), width, 0,
+                     reinterpret_cast<device float2*>(step.arg[4]),
+                     reinterpret_cast<device float*>(step.arg[4]), step.offset);
+    } else if (step.op == kSequenceFill) {
+      device uint* dst = reinterpret_cast<device uint*>(step.arg[0]);
+      for (uint i = tid; i < step.n; i += threads) dst[i] = uint(step.arg[1]);
+    } else if (step.op == kSequenceCopy) {
+      device uint* dst = reinterpret_cast<device uint*>(step.arg[0]);
+      const device uint* src = reinterpret_cast<const device uint*>(step.arg[1]);
+      for (uint i = tid; i < step.n; i += threads) dst[i] = src[i];
+    } else {
+      for (uint i = tid; i < step.n; i += threads) kutta_sequence_call(step.op, int(i), step.arg);
+    }
+    threadgroup_barrier(mem_flags::mem_device | mem_flags::mem_threadgroup);
   }
 }
 // A second fixed tree finishes partials on the device. A serial 1024-pair
@@ -157,14 +215,17 @@ class MetalBuffer final : public BufferHandle {
     buffer = [device newBufferWithLength:std::max(bytes, std::size_t{4})
                                 options:MTLResourceStorageModeShared];
     KUTTA_REQUIRE(buffer != nil, "Metal buffer allocation failed");
+    address = buffer.gpuAddress;
   }
   std::size_t bytes() const override { return bytes_; }
   id<MTLBuffer> buffer;
+  std::uint64_t address;  // cached: recording a sequence step reads it per argument
  private:
   std::size_t bytes_;
 };
 
 id<MTLBuffer> metal(const BufferHandle& h) { return static_cast<const MetalBuffer&>(h).buffer; }
+std::uint64_t address(const BufferHandle& h) { return static_cast<const MetalBuffer&>(h).address; }
 
 class MetalDevice final : public Device {
  public:
@@ -205,6 +266,13 @@ class MetalDevice final : public Device {
       reduce_ = pipeline("runtime_reduce");
       reduce_into_ = pipeline("runtime_reduce_into");
       fill_ = pipeline("runtime_fill");
+      sequence_ = pipeline("runtime_sequence");
+      // Replayed reductions must use runtime_reduce's one-group layout.
+      sequence_threads_ = threads(reduce_);
+      const char* toggle = std::getenv("KUTTA_METAL_SEQUENCE");
+      sequence_enabled_ = !(toggle && std::string(toggle) == "0") &&
+          sequence_.maxTotalThreadsPerThreadgroup >= sequence_threads_ &&
+          sequence_.threadExecutionWidth == reduce_.threadExecutionWidth;
     }
   }
   ~MetalDevice() override {
@@ -218,6 +286,25 @@ class MetalDevice final : public Device {
     KUTTA_REQUIRE(k < pipelines_.size(), "launch: bad kernel id");
     check_size(n);
     if (!n) return;
+    if (sequence_eligible(n) && args.size() <= 32) {
+      SequenceStep step{static_cast<std::uint32_t>(k), static_cast<std::uint32_t>(n), 0, 0, {}};
+      for (std::size_t i = 0; i < args.size(); ++i) {
+        const auto& a = args[i];
+        if (a.kind == KernelArg::Kind::Buffer) {
+          step.arg[i] = address(*a.buffer);
+          step_buffers_[i] = metal(*a.buffer);
+        } else {
+          KUTTA_REQUIRE(a.scalar_size == 4, "Metal sequence scalars are 32-bit");
+          std::uint32_t bits;
+          std::memcpy(&bits, a.scalar, 4);
+          step.arg[i] = bits;
+          step_buffers_[i] = nil;
+        }
+      }
+      record(step, args.size());
+      return;
+    }
+    flush_sequence();
     auto encoder = compute();
     [encoder setComputePipelineState:pipelines_[k]];
     for (std::size_t i = 0; i < args.size(); ++i) {
@@ -231,6 +318,7 @@ class MetalDevice final : public Device {
   }
   void synchronize() override {
     @autoreleasepool {
+      flush_sequence();
       commit();
       // Wait for every buffer before reporting, so no GPU work is still writing
       // shared memory when the caller handles the error.
@@ -240,6 +328,7 @@ class MetalDevice final : public Device {
         if (first_error.empty()) first_error = error;
       }
       pending_.clear();
+      reclaim_step_buffers();
       if (!first_error.empty()) throw Error("Metal execution: " + first_error);
     }
   }
@@ -314,6 +403,14 @@ class MetalDevice final : public Device {
   }
   void copy_bytes(BufferHandle& dst, const BufferHandle& src, std::size_t bytes) override {
     if (!bytes || &dst == &src) return;
+    if (bytes % 4 == 0 && sequence_eligible(bytes / 4)) {
+      SequenceStep step{kSequenceCopy, static_cast<std::uint32_t>(bytes / 4), 0, 0, {}};
+      step.arg[0] = address(dst); step_buffers_[0] = metal(dst);
+      step.arg[1] = address(src); step_buffers_[1] = metal(src);
+      record(step, 2);
+      return;
+    }
+    flush_sequence();
     @autoreleasepool {
       end_compute();
       open();
@@ -327,6 +424,16 @@ class MetalDevice final : public Device {
     KUTTA_REQUIRE(size == 4, "Metal fill requires a 32-bit value");
     check_size(n);
     if (!n) return;
+    if (sequence_eligible(n)) {
+      SequenceStep step{kSequenceFill, static_cast<std::uint32_t>(n), 0, 0, {}};
+      std::uint32_t bits;
+      std::memcpy(&bits, value, 4);
+      step.arg[0] = address(dst); step_buffers_[0] = metal(dst);
+      step.arg[1] = bits; step_buffers_[1] = nil;
+      record(step, 2);
+      return;
+    }
+    flush_sequence();
     auto encoder = compute();
     auto count = static_cast<std::uint32_t>(n);
     [encoder setComputePipelineState:fill_];
@@ -373,8 +480,9 @@ class MetalDevice final : public Device {
     if (buffer.status != MTLCommandBufferStatusError) return {};
     return buffer.error.localizedDescription.UTF8String;
   }
-  void count_dispatch() {
-    if (++dispatches_ == 256) {
+  void count_dispatch(std::size_t weight = 1) {
+    dispatches_ += weight;
+    if (dispatches_ >= 256) {
       commit();
       // Bound command-buffer/resource retention for long host-only launch loops,
       // waiting only on the oldest buffer so the GPU stays busy.
@@ -396,6 +504,140 @@ class MetalDevice final : public Device {
        threadsPerThreadgroup:MTLSizeMake(threads(pipeline), 1, 1)];
     count_dispatch();
   }
+  // ---- Small-operation sequences ----
+  // Tiny meshes are dominated by per-dispatch GPU cost, not by bandwidth.
+  // Launches, fills, copies and one-group reductions of at most kSequenceRows
+  // elements are recorded and replayed by runtime_sequence in one dispatch.
+  // Each step runs the same kernel body or reduction tree as its own dispatch,
+  // so results are bitwise identical. Any other operation or wait flushes
+  // first, which keeps the Device ordering contract. KUTTA_METAL_SEQUENCE=0
+  // disables replay (diagnostics and A/B timing).
+  struct SequenceStep { std::uint32_t op, n, mode, offset; std::uint64_t arg[32]; };
+  static_assert(sizeof(SequenceStep) == 272, "must match runtime_sequence's SequenceStep");
+  static constexpr std::uint32_t kSequenceFill = 0xFFFF0001u, kSequenceCopy = 0xFFFF0002u,
+      kSequenceReduce = 0xFFFF0003u;
+  static constexpr std::size_t kSequenceRows = 2048, kSequenceSteps = 4096;
+  bool sequence_eligible(std::size_t n) const { return sequence_enabled_ && n <= kSequenceRows; }
+  // step_buffers_[0, count) holds the step's buffers in argument order (nil
+  // for scalars), for residency and for re-encoding a lone step natively.
+  void record(const SequenceStep& step, std::size_t count) {
+    if (steps_.size() == kSequenceSteps) flush_sequence();
+    steps_.push_back(step);
+    last_count_ = count;
+    // A flush references few distinct buffers; a linear scan beats hashing.
+    // resources_ holds the strong references that keep recorded addresses valid.
+    for (std::size_t i = 0; i < count; ++i) {
+      const void* key = (__bridge const void*)step_buffers_[i];
+      if (key && std::find(resource_keys_.begin(), resource_keys_.end(), key) == resource_keys_.end()) {
+        resource_keys_.push_back(key);
+        resources_.push_back(step_buffers_[i]);
+      }
+    }
+  }
+  void flush_sequence() {
+    if (steps_.empty()) return;
+    @autoreleasepool {
+      if (steps_.size() == 1) {
+        // A lone step gains nothing from replay; encode its own dispatch.
+        const SequenceStep step = steps_.front();
+        clear_sequence();
+        encode_native(step);
+        return;
+      }
+      auto encoder = compute();
+      const auto bytes = steps_.size() * sizeof(SequenceStep);
+      id<MTLBuffer> buffer = step_buffer(bytes);
+      std::memcpy(buffer.contents, steps_.data(), bytes);
+      const auto count = static_cast<std::uint32_t>(steps_.size());
+      [encoder setComputePipelineState:sequence_];
+      [encoder setBuffer:buffer offset:0 atIndex:0];
+      [encoder setBytes:&count length:sizeof count atIndex:1];
+      [encoder useResources:resources_.data() count:resources_.size()
+                      usage:MTLResourceUsageRead | MTLResourceUsageWrite];
+      [encoder dispatchThreadgroups:MTLSizeMake(1, 1, 1)
+              threadsPerThreadgroup:MTLSizeMake(sequence_threads_, 1, 1)];
+      clear_sequence();
+      // Weight by steps so a long replay is committed as early as the
+      // dispatches it replaces would have been.
+      count_dispatch(count);
+    }
+  }
+  void clear_sequence() {
+    steps_.clear();
+    resources_.clear();
+    resource_keys_.clear();
+  }
+  void encode_native(const SequenceStep& step) {
+    if (step.op == kSequenceCopy) {
+      end_compute();
+      open();
+      id<MTLBlitCommandEncoder> blit = [command_ blitCommandEncoder];
+      [blit copyFromBuffer:step_buffers_[1] sourceOffset:0 toBuffer:step_buffers_[0]
+         destinationOffset:0 size:std::size_t(step.n) * 4];
+      [blit endEncoding];
+      count_dispatch();
+      return;
+    }
+    auto encoder = compute();
+    if (step.op == kSequenceFill) {
+      const auto value = static_cast<std::uint32_t>(step.arg[1]);
+      [encoder setComputePipelineState:fill_];
+      [encoder setBuffer:step_buffers_[0] offset:0 atIndex:0];
+      [encoder setBytes:&value length:sizeof value atIndex:1];
+      [encoder setBytes:&step.n length:sizeof step.n atIndex:2];
+      dispatch(fill_, step.n);
+      return;
+    }
+    if (step.op == kSequenceReduce) {
+      const auto fused = static_cast<std::uint32_t>(step.arg[5]);
+      [encoder setComputePipelineState:reduce_];
+      for (int i = 0; i < 4; ++i)
+        [encoder setBuffer:step_buffers_[i] offset:0 atIndex:i < 2 ? i : i + 3];
+      [encoder setBuffer:step_buffers_[4] offset:step.arg[4] - step_buffers_[4].gpuAddress atIndex:2];
+      [encoder setBytes:&step.n length:sizeof step.n atIndex:3];
+      [encoder setBytes:&step.mode length:sizeof step.mode atIndex:4];
+      [encoder setBuffer:step_buffers_[4] offset:0 atIndex:7];
+      [encoder setBytes:&step.offset length:sizeof step.offset atIndex:8];
+      [encoder setBytes:&fused length:sizeof fused atIndex:9];
+      [encoder dispatchThreadgroups:MTLSizeMake(1, 1, 1)
+              threadsPerThreadgroup:MTLSizeMake(threads(reduce_), 1, 1)];
+      count_dispatch();
+      return;
+    }
+    [encoder setComputePipelineState:pipelines_[step.op]];
+    for (std::size_t i = 0; i < last_count_; ++i) {
+      if (step_buffers_[i]) [encoder setBuffer:step_buffers_[i] offset:0 atIndex:i];
+      else {
+        const auto bits = static_cast<std::uint32_t>(step.arg[i]);
+        [encoder setBytes:&bits length:sizeof bits atIndex:i];
+      }
+    }
+    [encoder setBytes:&step.n length:sizeof step.n atIndex:last_count_];
+    dispatch(pipelines_[step.op], step.n);
+  }
+  // Step lists live in shared buffers until their command buffer completes.
+  id<MTLBuffer> step_buffer(std::size_t bytes) {
+    reclaim_step_buffers();
+    constexpr std::size_t size = kSequenceSteps * sizeof(SequenceStep);
+    KUTTA_REQUIRE(bytes <= size, "Metal sequence exceeds its step buffer");
+    id<MTLBuffer> buffer = nil;
+    if (!free_step_buffers_.empty()) {
+      buffer = free_step_buffers_.back();
+      free_step_buffers_.pop_back();
+    } else {
+      buffer = [device_ newBufferWithLength:size options:MTLResourceStorageModeShared];
+      KUTTA_REQUIRE(buffer != nil, "Metal sequence buffer allocation failed");
+    }
+    used_step_buffers_.push_back({buffer, command_});
+    return buffer;
+  }
+  void reclaim_step_buffers() {
+    std::erase_if(used_step_buffers_, [&](const auto& used) {
+      if (used.second.status < MTLCommandBufferStatusCompleted) return false;
+      free_step_buffers_.push_back(used.first);
+      return true;
+    });
+  }
   std::size_t group_count(std::size_t n) {
     return std::min<std::size_t>((n + threads(reduce_) - 1) / threads(reduce_), kMaxGroups);
   }
@@ -416,6 +658,20 @@ class MetalDevice final : public Device {
     KUTTA_REQUIRE(!out || groups == 1, "Metal fused reduction needs one threadgroup");
     const auto out_offset = static_cast<std::uint32_t>(offset);
     const std::uint32_t fused = out ? 1 : 0;
+    if (groups == 1 && sequence_eligible(n)) {
+      SequenceStep step{kSequenceReduce, count, mode, out_offset, {}};
+      const Buffer<float>* inputs[]{&x, &y, &u, &v};
+      for (int i = 0; i < 4; ++i) {
+        step.arg[i] = address(*inputs[i]->handle());
+        step_buffers_[i] = metal(*inputs[i]->handle());
+      }
+      step_buffers_[4] = out ? metal(*out->handle()) : partial.buffer;
+      step.arg[4] = out ? address(*out->handle()) : partial.address + partial_offset;
+      step.arg[5] = fused; step_buffers_[5] = nil;
+      record(step, 6);
+      return 1;
+    }
+    flush_sequence();
     auto encoder = compute();
     [encoder setComputePipelineState:reduce_];
     [encoder setBuffer:metal(*x.handle()) offset:0 atIndex:0];
@@ -458,8 +714,18 @@ class MetalDevice final : public Device {
   id<MTLComputeCommandEncoder> encoder_;
   std::vector<id<MTLCommandBuffer>> pending_;
   std::vector<id<MTLComputePipelineState>> pipelines_;
-  id<MTLComputePipelineState> reduce_, reduce_into_, fill_;
-  unsigned dispatches_ = 0;
+  id<MTLComputePipelineState> reduce_, reduce_into_, fill_, sequence_;
+  std::size_t dispatches_ = 0;
+  bool sequence_enabled_ = false;
+  NSUInteger sequence_threads_ = 0;
+  std::vector<SequenceStep> steps_;
+  std::size_t last_count_ = 0;
+  // Unretained: every recorded buffer is also strongly held in resources_.
+  __unsafe_unretained id<MTLBuffer> step_buffers_[32];
+  std::vector<id<MTLBuffer>> resources_;
+  std::vector<const void*> resource_keys_;
+  std::vector<std::pair<id<MTLBuffer>, id<MTLCommandBuffer>>> used_step_buffers_;
+  std::vector<id<MTLBuffer>> free_step_buffers_;
   static constexpr std::size_t kMaxGroups = 1024;
   std::unique_ptr<MetalBuffer> partial_, batch_;
 };

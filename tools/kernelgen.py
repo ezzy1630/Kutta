@@ -268,6 +268,25 @@ def gen_metal(kernels: list[Kernel], paths: list[pathlib.Path], prelude: pathlib
         src.append(f"// ---- {p.name}")
         src.append(strip_includes(p.read_text()))
     src.append("}  // namespace ksrc")
+    # One switch over every kernel body lets the Metal runtime replay a
+    # recorded sequence of small launches inside a single threadgroup.
+    # Arguments arrive as 64-bit words: GPU addresses or scalar bits.
+    for k in kernels:
+        if len(k.params) > 32:
+            fail(f"{k.name}: Metal sequence steps carry at most 32 arguments")
+    src.append("inline void kutta_sequence_call(uint op, int i, constant ulong* a) {")
+    src.append("  switch (op) {")
+    for index, k in enumerate(kernels):
+        args = ["i"]
+        for j, p in enumerate(k.params):
+            if p.kind == "scalar":
+                args.append(f"as_type<{p.ctype}>(uint(a[{j}]))")
+            else:
+                const = "const " if p.kind == "in" else ""
+                args.append(f"reinterpret_cast<{const}device {p.ctype}*>(a[{j}])")
+        src.append(f"    case {index}: ksrc::{k.name}({', '.join(args)}); return;")
+    src.append("  }")
+    src.append("}")
     for k in kernels:
         n_idx = len(k.params)
         params = [metal_param(p, i) for i, p in enumerate(k.params)]
