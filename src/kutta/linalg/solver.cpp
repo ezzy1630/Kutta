@@ -116,17 +116,19 @@ class Krylov final : public LinearSolver {
     if (nullspace_) project(dev, r_, projection_);
     best_residual_ = stats.initial_residual;
     dev.copy(best_, x);
-    // Thresholds use the same double host calculation as the public norm API.
-    // Upload only at the solve boundary; iteration state is reset by kernels.
-    std::array<float, 24> scalars{};
-    auto pair = [&](int offset, double value) {
-      scalars[offset] = static_cast<float>(value);
-      scalars[offset + 1] = std::isfinite(scalars[offset]) ?
-          static_cast<float>(value - double(scalars[offset])) : 0;
-    };
-    pair(20, target * target);
-    pair(22, 1e6 * stats.initial_residual * stats.initial_residual);
-    dev.upload<float>(scalars_, scalars);
+    if (kind_ != SolverKind::Jacobi) {
+      // Thresholds use the same double host calculation as the public norm API.
+      // Upload only at the solve boundary; iteration state is reset by kernels.
+      std::array<float, 24> scalars{};
+      auto pair = [&](int offset, double value) {
+        scalars[offset] = static_cast<float>(value);
+        scalars[offset + 1] = std::isfinite(scalars[offset]) ?
+            static_cast<float>(value - double(scalars[offset])) : 0;
+      };
+      pair(20, target * target);
+      pair(22, 1e6 * stats.initial_residual * stats.initial_residual);
+      dev.upload<float>(scalars_, scalars);
+    }
     reset(dev, 0);
     if (kind_ == SolverKind::Jacobi) {
       for (int i = 0; i < c.max_iter; ++i) {

@@ -110,6 +110,13 @@ TEST_CASE("fused coarse Jacobi preserves the ordinary sweep arithmetic") {
         kern::amg_coarse_solve(*dev, 1, matrix.row_ptr, matrix.col, matrix.val,
                                x, b, di, status, count, sweeps);
         CHECK(dev->download(x) == dev->download(y));
+        dev->fill(x, 0);
+        for (int sweep = 0; sweep < sweeps; ++sweep) {
+          kern::amg_smooth(*dev, count, matrix.row_ptr, matrix.col, matrix.val,
+                            x, b, di, r, status);
+          std::swap(x, r);
+        }
+        CHECK(dev->download(x) == dev->download(y));
       }
       dev->fill(status, 2); dev->fill(x, 42);
       kern::amg_coarse_solve(*dev, 1, matrix.row_ptr, matrix.col, matrix.val,
