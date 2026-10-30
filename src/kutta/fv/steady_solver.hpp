@@ -93,6 +93,15 @@ struct RealizableKeSettings {
 // Fluent's flow/scheme. Coupled solves momentum and continuity as one block
 // system (fv/coupled_solver.hpp); both share one discrete fixed point.
 enum class PressureVelocityCoupling { Simplec, Coupled };
+// Fluent pressure-velocity options (Theory Guide, pressure-based solver).
+// Rhie-Chow always uses the unrelaxed physical diagonal, so none of these
+// changes the converged fixed point except the two face interpolations.
+enum class PressureCorrection { Simplec, Simple };
+// Face velocity in the face mass flux, TG 23-48 (distance) and 23-49 (momentum).
+enum class FaceVelocityWeights { Momentum, Distance };
+// Face pressure in the momentum pressure force, TG 23-43 (second order) and
+// 23-42 (standard, momentum-coefficient weighted).
+enum class PressureInterpolation { SecondOrder, Standard };
 
 struct SolverSettings {
   double density=1, viscosity=.01;
@@ -102,6 +111,12 @@ struct SolverSettings {
   // SIMPLEC: implicit momentum and pressure-correction relaxation. Coupled:
   // Fluent's pseudo-time explicit relaxation of the block update.
   double momentum_relaxation=.7, pressure_relaxation=1;
+  // False is Fluent's classic steady formulation: no pseudo-time term, only
+  // the implicit under-relaxation factors.
+  bool pseudo_transient=true;
+  PressureCorrection pressure_correction=PressureCorrection::Simplec;
+  FaceVelocityWeights face_velocity=FaceVelocityWeights::Momentum;
+  PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
   double pseudo_time_scale=1;
   // Zero selects the conservative global automatic time scale, updated only
   // at monitor intervals (where speed reductions are already permitted).
@@ -182,6 +197,9 @@ class SteadySolver {
   const Buffer<float>& kinetic_energy() const;
   const Buffer<float>& specific_dissipation() const;
   const SstFields& turbulence() const;
+  // Wall shear stress on the fluid per boundary face (zero off walls) for the
+  // active closure; force on the wall is -shear*|A|. Laminar refreshes it.
+  const DeviceVec3& wall_shear() const;
   const SaFields& sa_turbulence() const;
   const SaWallFields& sa_wall() const;
   const RealizableKeFields& realizable_turbulence() const;

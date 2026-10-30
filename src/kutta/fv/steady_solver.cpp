@@ -97,6 +97,10 @@ struct SteadySolver::Impl {
   Buffer<float> kinetic,omega,rho_cell,mu_cell,boundary_k,boundary_omega,turbulence_a,turbulence_b;
   Buffer<Index> turbulence_spec,turbulence_kind,zero_mask,total_pressure;
   Buffer<float> wall_diagonal,wall_rhs,physical_diagonal,consistent_inverse;
+  // Distance-based Rhie-Chow (TG 23-48) is the momentum-weighted face
+  // interpolation with equal weights.
+  Buffer<float> unit_diagonal;
+  Buffer<float> wall_mask;DeviceVec3 laminar_wall_shear;
   DeviceVec3 transpose_stress;
   DeviceVec3 velocity,body,boundary_velocity,prescribed_velocity,source,face_velocity;
   Buffer<float> pressure,mass,viscosity,boundary_pressure,prescribed_pressure;
@@ -185,6 +189,7 @@ struct SteadySolver::Impl {
     std::vector<Index> totals(nb,0);
     physical_diagonal=dev.alloc<float>(n);consistent_inverse=dev.alloc<float>(n);
     dev.fill(physical_diagonal,1);dev.fill(consistent_inverse,0);
+    if(settings.face_velocity==FaceVelocityWeights::Distance) {unit_diagonal=dev.alloc<float>(n);dev.fill(unit_diagonal,1);}
     std::vector<Index> kinds(nb);std::vector<float> pressures(nb,0);std::vector<Vec3d> velocities(nb);
     std::vector<Index> open_kinds(nb,0);std::vector<Vec3d> directions(nb);
     std::map<std::string,std::pair<double,double>> inlet_areas;
@@ -234,7 +239,11 @@ struct SteadySolver::Impl {
     std::vector<BoundaryObservation> independent_velocity(nb),independent_pressure(nb),independent_k(nb),independent_omega(nb);
     for(Index b=0;b<nb;++b) {
       independent_velocity[b]=kinds[b]==3?NormalFootValue:((kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted);
-      independent_pressure[b]=(kinds[b]==2 || kinds[b]==4)?FaceValue:Omitted;
+      // Second-order pressure extrapolates unprescribed boundary values, so they
+      // carry no information. The standard scheme's zero normal derivative is
+      // data: it closes wall-cell fits whose neighbours lie in one plane.
+      const bool zero_normal=settings.pressure_interpolation==PressureInterpolation::Standard;
+      independent_pressure[b]=(kinds[b]==2 || kinds[b]==4)?FaceValue:(zero_normal?NormalFootValue:Omitted);
       independent_k[b]=kinds[b]==1?FaceValue:Omitted;independent_omega[b]=(kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted;
       // BEGIN FSAE physics: pressure inlets prescribe transported inflow data.
       if(open_kinds[b]==1) {independent_velocity[b]=FaceValue;independent_k[b]=FaceValue;independent_omega[b]=FaceValue;}
@@ -467,6 +476,7 @@ struct SteadySolver::Impl {
   }
   void update_time(double maximum_speed) {
     velocity_scale=std::max({.1*bc_speed,maximum_speed,pressure_speed,1e-10});
+    if(!settings.pseudo_transient) {time_step=0;return;}
     time_step=settings.pseudo_time_step>0?float(settings.pseudo_time_step):
       float(.3*length*settings.pseudo_time_scale/velocity_scale);
   }
@@ -475,7 +485,7 @@ struct SteadySolver::Impl {
   // the step a run takes; it used to be refreshed only in monitor(), which
   // made the solution depend on the monitor interval.
   void refresh_time_step() {
-    if(settings.pseudo_time_step>0) return;
+    if(settings.pseudo_time_step>0 || !settings.pseudo_transient) return;
     kern::fv_speed(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,speed);
     update_time(dev.max_abs(speed,mesh.n_cells));
   }
@@ -508,6 +518,9 @@ struct SteadySolver::Impl {
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
       prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
+    if(settings.pressure_interpolation==PressureInterpolation::Standard)
+      kern::fv_standard_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,pressure,
+        boundary_pressure,mesh.n_internal_faces);
     apply_backflow_pressure();
     reconstruct_pressure(pressure,boundary_pressure,grad_p);
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
@@ -518,7 +531,18 @@ struct SteadySolver::Impl {
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,face_pressure,pressure_jump,mesh.n_internal_faces);
-
+    if(settings.pressure_interpolation==PressureInterpolation::Standard)
+      kern::fv_standard_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
+        pressure,physical_diagonal,face_pressure,boundary_pressure,mesh.n_internal_faces);
+  }
+  const Buffer<float>& face_velocity_weights() const {
+    return settings.face_velocity==FaceVelocityWeights::Distance?unit_diagonal:physical_diagonal;
+  }
+  // SIMPLE replaces SIMPLEC's consistent inverse with the relaxed diagonal's.
+  void momentum_correction_coefficient(int component) {
+    if(settings.pressure_correction!=PressureCorrection::Simple) return;
+    auto& eq=*momentum[component];
+    kern::fv_simple_inverse(dev,mesh.n_cells,eq.matrix.diag,eq.matrix.val,eq.consistent_inverse);
   }
   void update_flux() {
     reconstruct_velocity();
@@ -539,12 +563,12 @@ struct SteadySolver::Impl {
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
-      physical_diagonal,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
+      face_velocity_weights(),boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
       face_velocity.x,face_velocity.y,face_velocity.z,mesh.n_internal_faces);
     if(diffusion_reconstruction) {
-      diffusion_reconstruction->momentum_values(velocity.x,boundary_velocity.x,physical_diagonal,face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
-      diffusion_reconstruction->momentum_values(velocity.y,boundary_velocity.y,physical_diagonal,face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
-      diffusion_reconstruction->momentum_values(velocity.z,boundary_velocity.z,physical_diagonal,face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
+      diffusion_reconstruction->momentum_values(velocity.x,boundary_velocity.x,face_velocity_weights(),face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
+      diffusion_reconstruction->momentum_values(velocity.y,boundary_velocity.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
+      diffusion_reconstruction->momentum_values(velocity.z,boundary_velocity.z,face_velocity_weights(),face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
     }
     kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,
@@ -618,6 +642,7 @@ struct SteadySolver::Impl {
     const Buffer<float>* src[]{&source.x,&source.y,&source.z};
     for(int k=0;k<3;++k) {
       momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport,wall_terms(k));
+      momentum_correction_coefficient(k);
       report.momentum[k]=momentum[k]->solve(*q[k],settings.momentum_linear);
     }
     update_momentum_diagonal();
@@ -645,6 +670,32 @@ struct SteadySolver::Impl {
     if(report.iteration<=5 || report.iteration%settings.monitor_interval==0) monitor();
   }
 
+  // Viscous force on each masked wall face for the active closure. Callers
+  // refresh boundaries, pressure and the velocity gradients first.
+  void viscous_face_forces(const Buffer<float>& mask,DeviceVec3& viscous) {
+    const auto n=mask.size();const auto& m=mesh;const auto& gu=momentum[0]->grad;const auto& gv=momentum[1]->grad;const auto& gw=momentum[2]->grad;
+    if(sst || rke) {
+      update_turbulence();const auto& shear=sst?sst->fields().wall_shear:rke->fields().wall_shear;
+      kern::fv_sst_force(dev,n,mask,m.area.x,m.area.y,m.area.z,
+        shear.x,shear.y,shear.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces);
+    } else if(diffusion_reconstruction) {
+      kern::fv_wall_viscous_force(dev,n,m.owner,mask,m.area.x,m.area.y,m.area.z,
+        m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,velocity.x,velocity.y,velocity.z,
+        gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+        boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,viscous.x,viscous.y,viscous.z,
+        m.n_internal_faces,float(settings.viscosity));
+      diffusion_reconstruction->flux_gradient(velocity.x,boundary_velocity.x,m,stencil,projected_gradient[0]);
+      diffusion_reconstruction->flux_gradient(velocity.y,boundary_velocity.y,m,stencil,projected_gradient[1]);
+      diffusion_reconstruction->flux_gradient(velocity.z,boundary_velocity.z,m,stencil,projected_gradient[2]);
+      const auto& u=projected_gradient[0];const auto& v=projected_gradient[1];const auto& w=projected_gradient[2];
+      kern::fv_wall_projected_viscous_force(dev,n,mask,diffusion_reconstruction->mask(),m.area.x,m.area.y,m.area.z,
+        u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces,float(settings.viscosity));
+    } else kern::fv_wall_viscous_force(dev,n,m.owner,mask,m.area.x,m.area.y,m.area.z,
+      m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,velocity.x,velocity.y,velocity.z,
+      gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+      boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,viscous.x,viscous.y,viscous.z,
+      m.n_internal_faces,float(settings.viscosity));
+  }
   IterationReport monitor() {
     refresh_time_step();
     update_boundaries();update_pressure();
@@ -657,10 +708,13 @@ struct SteadySolver::Impl {
     // The components share one CSR value buffer, so each residual must follow
     // its own assembly.
     momentum[0]->assemble_reconstructed(velocity.x,boundary_velocity.x,scalar_kind,mass,viscosity,source.x,transport,wall_terms(0));
+    momentum_correction_coefficient(0);
     residual(dev,momentum[0]->matrix,velocity.x,momentum[0]->rhs,residual_u);
     momentum[1]->assemble_reconstructed(velocity.y,boundary_velocity.y,scalar_kind,mass,viscosity,source.y,transport,wall_terms(1));
+    momentum_correction_coefficient(1);
     residual(dev,momentum[1]->matrix,velocity.y,momentum[1]->rhs,residual_v);
     momentum[2]->assemble_reconstructed(velocity.z,boundary_velocity.z,scalar_kind,mass,viscosity,source.z,transport,wall_terms(2));
+    momentum_correction_coefficient(2);
     residual(dev,momentum[2]->matrix,velocity.z,momentum[2]->rhs,residual_w);
     update_momentum_diagonal();
     kern::fv_monitor_cell(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
@@ -738,7 +792,7 @@ void SteadySolver::initialize_fields(std::span<const Vec3d> velocity,std::span<c
   }
 }
 void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
-  KUTTA_REQUIRE(!impl_->sa && !impl_->rke,"SA/k-epsilon: hybrid turbulence initialization is not implemented");
+  KUTTA_REQUIRE(!impl_->sa,"SA: hybrid turbulence initialization is not implemented");
   auto& s=*impl_;auto& dev=s.dev;
   KUTTA_REQUIRE(h.iterations>0,"FV hybrid initialization needs positive iteration count");
   const auto n=s.mesh.n_cells,nb=s.mesh.n_boundary_faces();
@@ -750,8 +804,13 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
   // Turbulence recipes: k=k0+k2*|u|^2, omega=w0+w1*|u|+w2*|u|^2.
   std::array<double,5> recipe{};
   const auto add_recipe=[&](const TurbulenceCondition& spec,double area) {
+    // k-epsilon specifications enter through omega = epsilon/(Cmu k), Cmu=.09.
     if(const auto* v=std::get_if<TurbulenceValues>(&spec)) {recipe[0]+=area*v->k;recipe[2]+=area*v->omega;}
-    else if(const auto* v=std::get_if<IntensityLength>(&spec)) {
+    else if(const auto* v=std::get_if<KeValues>(&spec)) {recipe[0]+=area*v->k;recipe[2]+=area*v->epsilon/(.09*v->k);}
+    else if(const auto* v=std::get_if<IntensityDiameter>(&spec)) {
+      recipe[1]+=area*1.5*v->intensity*v->intensity;
+      recipe[3]+=area*std::sqrt(1.5)*v->intensity/(std::pow(.09,.25)*.07*v->diameter);
+    } else if(const auto* v=std::get_if<IntensityLength>(&spec)) {
       recipe[1]+=area*1.5*v->intensity*v->intensity;
       recipe[3]+=area*std::sqrt(1.5)*v->intensity/(std::pow(.09,.25)*v->length);
     } else {
@@ -776,7 +835,7 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
         flux[b]=float(dot(u,area_vector));source[c]+=flux[b]/float(s.geom.cell_volume[c]);
         normal[b]=float(dot(u,area_vector)/area*dot(s.geom.face_centroid[f]-s.geom.cell_centroid[c],area_vector)/area);
         inlet_area+=area;direction=direction+u*area;speed_sum+=norm(u)*area;
-        if(s.sst) add_recipe(*in->turbulence,area);
+        if(s.sst || s.rke) add_recipe(*in->turbulence,area);
         if(initial_pressure!=h.inlet_pressure.end()) {pkind[b]=0;pvalue[b]=float(initial_pressure->second);pressure_sum+=area*initial_pressure->second;pressure_area+=area;}
       }
       // BEGIN FSAE physics: constant-density mass flow supplies potential flux;
@@ -784,7 +843,7 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
       if(const auto* in=std::get_if<MassFlowInlet>(&bc)) {
         const auto u=mass_flow_velocity(*in,area_vector,mass_patch_area,mass_projected,s.settings.density);
         flux[b]=float(dot(u,area_vector));inlet_area+=area;direction=direction+u*area;speed_sum+=norm(u)*area;
-        if(s.sst) add_recipe(*in->turbulence,area);
+        if(s.sst || s.rke) add_recipe(*in->turbulence,area);
       }
       if(const auto* in=std::get_if<PressureInlet>(&bc)) {
         kind[b]=0;pkind[b]=0;pvalue[b]=float(in->total_pressure);
@@ -800,7 +859,7 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
   }
   KUTTA_REQUIRE(inlet_area==0 || outlet_area>0,"FV hybrid velocity inlets require a pressure outlet");
   if(inlet_area>0) {direction=direction/inlet_area;speed_sum/=inlet_area;for(auto& r:recipe) r/=inlet_area;}
-  else if(s.sst) {add_recipe(IntensityViscosityRatio{h.turbulence_intensity,h.turbulence_viscosity_ratio},1);}
+  else if(s.sst || s.rke) {add_recipe(IntensityViscosityRatio{h.turbulence_intensity,h.turbulence_viscosity_ratio},1);}
   if(outlet_area>0) outlet_center=outlet_center/outlet_area;
   std::fill(source.begin(),source.end(),0);
   for(Index f=s.mesh.n_internal_faces;f<s.mesh.n_faces;++f) {
@@ -861,6 +920,18 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
       s.settings.sst->model.k_floor,s.settings.sst->model.omega_floor);
     if(h.averaged_turbulence) {const auto k=dev.sum(old,n)/volume,w=dev.sum(s.scale,n)/volume;dev.fill(s.kinetic,float(k));dev.fill(s.omega,float(w));}
   }
+  if(s.rke) {
+    // The SST recipe gives domain-averaged k and omega; epsilon = Cmu k omega.
+    // Fluent's k-epsilon averaging is undocumented; this is startup only.
+    KUTTA_REQUIRE(h.averaged_turbulence,"k-epsilon hybrid initialization requires domain-averaged turbulence");
+    const auto& o=s.settings.realizable_ke->model;
+    auto kinetic=dev.alloc<float>(n),omega=dev.alloc<float>(n);
+    kern::fv_hybrid_turbulence(dev,n,s.velocity.x,s.velocity.y,s.velocity.z,s.mesh.volume,kinetic,omega,old,s.scale,
+      float(recipe[0]),float(recipe[1]),float(recipe[2]),float(recipe[3]),float(recipe[4]),o.k_floor,o.epsilon_floor);
+    const auto k=std::max(dev.sum(old,n)/volume,double(o.k_floor)),w=dev.sum(s.scale,n)/volume;
+    const std::vector<double> ks(n,k),es(n,std::max(.09*k*w,double(o.epsilon_floor)));
+    s.rke->initialize(ks,es,s.permutation);
+  }
   s.dev.fill(s.physical_diagonal,1);s.dev.fill(s.consistent_inverse,0);
   s.update_boundaries();s.update_pressure();s.update_flux();s.update_turbulence();
   for(int pass=0;pass<3;++pass) {s.monitor();s.update_flux();s.update_boundaries();s.update_pressure();}
@@ -908,30 +979,10 @@ ForceReport SteadySolver::forces(std::span<const std::string> patches,double ref
   s.reconstruct_velocity();
   auto mask=s.dev.upload<float>(selected);
   auto pressure=vector_field(s.dev,selected.size()),viscous=vector_field(s.dev,selected.size());
-  const auto& m=s.mesh;const auto& gu=s.momentum[0]->grad;const auto& gv=s.momentum[1]->grad;const auto& gw=s.momentum[2]->grad;
+  const auto& m=s.mesh;
   kern::fv_wall_pressure_force(s.dev,selected.size(),mask,m.area.x,m.area.y,m.area.z,s.face_pressure,
     pressure.x,pressure.y,pressure.z,m.n_internal_faces,float(reference_pressure));
-  if(s.sst || s.rke) {
-    s.update_turbulence();const auto& shear=s.sst?s.sst->fields().wall_shear:s.rke->fields().wall_shear;
-    kern::fv_sst_force(s.dev,selected.size(),mask,m.area.x,m.area.y,m.area.z,
-      shear.x,shear.y,shear.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces);
-  } else if(s.diffusion_reconstruction) {
-    kern::fv_wall_viscous_force(s.dev,selected.size(),m.owner,mask,m.area.x,m.area.y,m.area.z,
-      m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,s.velocity.x,s.velocity.y,s.velocity.z,
-      gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
-      s.boundary_velocity.x,s.boundary_velocity.y,s.boundary_velocity.z,viscous.x,viscous.y,viscous.z,
-      m.n_internal_faces,float(s.settings.viscosity));
-    s.diffusion_reconstruction->flux_gradient(s.velocity.x,s.boundary_velocity.x,m,s.stencil,s.projected_gradient[0]);
-    s.diffusion_reconstruction->flux_gradient(s.velocity.y,s.boundary_velocity.y,m,s.stencil,s.projected_gradient[1]);
-    s.diffusion_reconstruction->flux_gradient(s.velocity.z,s.boundary_velocity.z,m,s.stencil,s.projected_gradient[2]);
-    const auto& u=s.projected_gradient[0];const auto& v=s.projected_gradient[1];const auto& w=s.projected_gradient[2];
-    kern::fv_wall_projected_viscous_force(s.dev,selected.size(),mask,s.diffusion_reconstruction->mask(),m.area.x,m.area.y,m.area.z,
-      u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces,float(s.settings.viscosity));
-  } else kern::fv_wall_viscous_force(s.dev,selected.size(),m.owner,mask,m.area.x,m.area.y,m.area.z,
-    m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,s.velocity.x,s.velocity.y,s.velocity.z,
-    gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
-    s.boundary_velocity.x,s.boundary_velocity.y,s.boundary_velocity.z,viscous.x,viscous.y,viscous.z,
-    m.n_internal_faces,float(s.settings.viscosity));
+  s.viscous_face_forces(mask,viscous);
   return {{s.dev.sum(pressure.x,selected.size()),s.dev.sum(pressure.y,selected.size()),s.dev.sum(pressure.z,selected.size())},
     {s.dev.sum(viscous.x,selected.size()),s.dev.sum(viscous.y,selected.size()),s.dev.sum(viscous.z,selected.size())},area,reference_pressure};
 }
@@ -943,6 +994,23 @@ const Buffer<float>& SteadySolver::pressure() const {return impl_->pressure;}
 const Buffer<float>& SteadySolver::mass_flux() const {return impl_->mass;}
 const Buffer<float>& SteadySolver::kinetic_energy() const {KUTTA_REQUIRE(impl_->sst || impl_->rke,"FV two-equation turbulence disabled");return impl_->rke?impl_->rke->kinetic():impl_->kinetic;}
 const Buffer<float>& SteadySolver::specific_dissipation() const {KUTTA_REQUIRE(impl_->sst,"FV SST disabled");return impl_->omega;}
+const DeviceVec3& SteadySolver::wall_shear() const {
+  auto& s=*impl_;
+  if(s.sst) return s.sst->fields().wall_shear;
+  if(s.rke) return s.rke->fields().wall_shear;
+  // Laminar: the same face forces as forces(), on every wall face.
+  const auto nb=s.mesh.n_boundary_faces();
+  if(s.laminar_wall_shear.x.size()!=std::size_t(nb)) {
+    std::vector<float> walls(nb,0);
+    for(const auto& p:s.host.patches) if(p.kind==PatchKind::Wall) for(Index f=p.start;f<p.start+p.size;++f) walls[f-s.mesh.n_internal_faces]=1;
+    s.wall_mask=s.dev.upload<float>(walls);s.laminar_wall_shear=vector_field(s.dev,nb);
+  }
+  s.update_boundaries();s.update_pressure();s.reconstruct_velocity();
+  auto force=vector_field(s.dev,nb);s.viscous_face_forces(s.wall_mask,force);
+  kern::fv_force_to_shear(s.dev,nb,s.wall_mask,s.mesh.area.x,s.mesh.area.y,s.mesh.area.z,force.x,force.y,force.z,
+    s.laminar_wall_shear.x,s.laminar_wall_shear.y,s.laminar_wall_shear.z,s.mesh.n_internal_faces);
+  return s.laminar_wall_shear;
+}
 const SstFields& SteadySolver::turbulence() const {KUTTA_REQUIRE(impl_->sst,"FV SST disabled");return impl_->sst->fields();}
 const SaFields& SteadySolver::sa_turbulence() const {KUTTA_REQUIRE(impl_->sa,"FV SA disabled");return impl_->sa->fields();}
 const SaWallFields& SteadySolver::sa_wall() const {KUTTA_REQUIRE(impl_->sa,"FV SA disabled");return impl_->sa->wall_fields();}

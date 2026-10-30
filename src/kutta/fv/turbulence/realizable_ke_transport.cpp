@@ -14,7 +14,11 @@ RealizableKeTransport::RealizableKeTransport(Device& d,const DeviceMesh& m,const
   d.fill(k_,settings_.model.k_floor);d.fill(epsilon_,settings_.model.epsilon_floor);d.fill(rho_cell_,rho_);d.fill(mu_cell_,mu_);
   bk_=d.alloc<float>(nb);be_=d.alloc<float>(nb);kind_=d.alloc<Index>(nb);zero_=d.alloc<Index>(n);d.fill(zero_,0);
   std::vector<Index> methods(nb,0);std::vector<float> first(nb,0),second(nb,0);
-  std::vector<BoundaryObservation> observations(nb,BoundaryObservation::Omitted);
+  // Wall-function k has dk/dn=0 at walls (TG "Wall Treatment for
+  // epsilon-based Models"): a zero-difference normal row, which also closes
+  // wall-cell fits whose interior neighbours lie in one plane. Wall epsilon
+  // is fixed in the wall cell, so its face data stay omitted.
+  std::vector<BoundaryObservation> observations(nb,BoundaryObservation::Omitted),k_observations(nb,BoundaryObservation::Omitted);
   for(const auto& p:m.patches) {
     const auto& condition=bc.at(p.name);const std::optional<TurbulenceCondition>* spec=nullptr;
     if(const auto* inlet=std::get_if<VelocityInlet>(&condition)) spec=&inlet->turbulence;
@@ -31,10 +35,11 @@ RealizableKeTransport::RealizableKeTransport(Device& d,const DeviceMesh& m,const
     }
     for(Index f=p.start;f<p.start+p.size;++f) {
       auto j=f-m.n_internal_faces;methods[j]=method;first[j]=a;second[j]=b;
-      if(p.kind==PatchKind::VelocityInlet) observations[j]=BoundaryObservation::FaceValue;
+      if(p.kind==PatchKind::VelocityInlet) observations[j]=k_observations[j]=BoundaryObservation::FaceValue;
+      if(p.kind==PatchKind::Wall) k_observations[j]=BoundaryObservation::NormalFootValue;
     }
   }
-  spec_=d.upload<Index>(methods);a_=d.upload<float>(first);b_=d.upload<float>(second);lsq_=boundary_least_squares(d,h,g,observations);
+  spec_=d.upload<Index>(methods);a_=d.upload<float>(first);b_=d.upload<float>(second);k_lsq_=boundary_least_squares(d,h,g,k_observations);e_lsq_=boundary_least_squares(d,h,g,observations);
 }
 void RealizableKeTransport::initialize(std::span<const double> kinetic,std::span<const double> dissipation,const MeshPermutation& p) {
   KUTTA_REQUIRE(kinetic.size()==std::size_t(mesh_.n_cells) && dissipation.size()==kinetic.size(),"realizable k-epsilon: initialization size mismatch");
@@ -50,7 +55,7 @@ void RealizableKeTransport::update(const DeviceVec3& velocity,const DeviceVec3& 
   mass_=&mass;model_.update({velocity,g,rho_cell_,mu_cell_,k_,epsilon_,boundary});
   kern::rke_boundary(d_,mesh_.n_boundary_faces(),mesh_.owner,kind,spec_,a_,b_,mass,boundary.x,boundary.y,boundary.z,
     k_,epsilon_,bk_,be_,kind_,mesh_.n_internal_faces,rho_,mu_);
-  // k/epsilon omit extrapolated wall/outlet observations, like SST k.
+  // Outlet observations are extrapolated and omitted, like SST k.
   // model_.update does not depend on these scalar gradients.
   kern::fv_effective_viscosity(d_,mesh_.n_faces,mesh_.owner,mesh_.neighbour,kind,mesh_.weight,
     model_.fields().mu_t,viscosity,mesh_.n_internal_faces,mu_);
@@ -61,7 +66,7 @@ void RealizableKeTransport::assemble(bool epsilon,float time_step) {
   TransportSettings t;t.density=rho_;t.pseudo_time_step=time_step;t.limit=limit_;
   t.convection=epsilon?settings_.epsilon_convection:settings_.k_convection;
   t.relaxation=float(epsilon?settings_.epsilon_relaxation:settings_.k_relaxation);
-  gradient(d_,mesh_,stencil_,lsq_,epsilon?epsilon_:k_,epsilon?be_:bk_,eq.grad);
+  gradient(d_,mesh_,stencil_,epsilon?e_lsq_:k_lsq_,epsilon?epsilon_:k_,epsilon?be_:bk_,eq.grad);
   eq.assemble_reconstructed(epsilon?epsilon_:k_,epsilon?be_:bk_,kind_,*mass_,epsilon?f.face_diffusivity_epsilon:f.face_diffusivity_k,
     epsilon?f.epsilon_source:f.k_source,t,{epsilon?&f.epsilon_sink:&f.k_sink});
   if(epsilon) kern::fv_fixed_rows(d_,mesh_.n_cells,eq.matrix.row_ptr,eq.matrix.diag,f.fixed_epsilon_mask,f.fixed_epsilon,eq.matrix.val,eq.rhs);

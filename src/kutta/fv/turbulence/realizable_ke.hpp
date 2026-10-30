@@ -2,14 +2,24 @@
 #include "kutta/fv/turbulence/sst.hpp"
 
 namespace kutta {
-enum class KeWallTreatment { Scalable, Enhanced };
+enum class KeWallTreatment { Scalable, Enhanced, Standard };
+// The k-epsilon family shares transport, boundaries and wall-cell coupling.
+// Standard (TG 4.3.1) uses constant Cmu, c1/c2_standard and sigma_epsilon=1.3;
+// select it with standard_ke_options().
+enum class KeVariant { Realizable, Standard };
 struct RealizableKeOptions {
+  KeVariant variant=KeVariant::Realizable;
   float a0=4.04f,c2=1.9f,sigma_k=1,sigma_epsilon=1.2f;
+  float cmu_standard=.09f,c1_standard=1.44f,c2_standard=1.92f;
   float k_floor=1e-14f,epsilon_floor=1e-20f,max_viscosity_ratio=1e5f;
   // TG 4-61: high-Re k-epsilon production uses mu_t+C*mu, default C=1.
   float molecular_production=1;
   KeWallTreatment wall=KeWallTreatment::Scalable;
 };
+// Standard k-epsilon with standard wall functions, Fluent's defaults.
+inline RealizableKeOptions standard_ke_options() {
+  RealizableKeOptions o;o.variant=KeVariant::Standard;o.sigma_epsilon=1.3f;o.wall=KeWallTreatment::Standard;return o;
+}
 struct RealizableKeInputs {
   const DeviceVec3& velocity;SstVelocityGradients velocity_gradient;
   const Buffer<float>& density;const Buffer<float>& viscosity;

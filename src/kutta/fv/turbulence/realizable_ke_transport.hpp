@@ -17,7 +17,7 @@ class RealizableKeTransport {
  private:
   void assemble(bool epsilon,float time_step);
   Device& d_;const DeviceMesh& mesh_;const Stencil& stencil_;RealizableKeSettings settings_;float rho_,mu_;bool limit_;
-  RealizableKeModel model_;TransportEquation k_equation_,e_equation_;BoundaryLeastSquares lsq_;
+  RealizableKeModel model_;TransportEquation k_equation_,e_equation_;BoundaryLeastSquares k_lsq_,e_lsq_;
   Buffer<float> k_,epsilon_,rho_cell_,mu_cell_,bk_,be_,a_,b_,residual_,absolute_,scale_,fluent_scale_;
   Buffer<Index> spec_,kind_,zero_;const Buffer<float>* mass_=nullptr;
 };

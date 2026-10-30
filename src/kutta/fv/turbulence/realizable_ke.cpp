@@ -6,10 +6,10 @@ namespace {
 template<class T> void size(const Buffer<T>& b,std::size_t n) {KUTTA_REQUIRE(b.handle() && b.size()==n,"realizable k-epsilon: invalid buffer");}
 }
 RealizableKeModel::RealizableKeModel(Device& d,const DeviceMesh& m,RealizableKeOptions o):dev_(d),mesh_(m),options_(o) {
-  for(float x:{o.a0,o.c2,o.sigma_k,o.sigma_epsilon,o.k_floor,o.epsilon_floor,o.max_viscosity_ratio})
+  for(float x:{o.a0,o.c2,o.sigma_k,o.sigma_epsilon,o.k_floor,o.epsilon_floor,o.max_viscosity_ratio,o.cmu_standard,o.c1_standard,o.c2_standard})
     KUTTA_REQUIRE(std::isfinite(x) && x>0,"realizable k-epsilon: invalid constant");
   KUTTA_REQUIRE(std::isfinite(o.molecular_production) && o.molecular_production>=0,"realizable k-epsilon: invalid molecular production");
-  KUTTA_REQUIRE(o.wall==KeWallTreatment::Scalable,"realizable k-epsilon: full EWT transport is unavailable; blend width and discrete epsilon coupling are not specified by Fluent TG");
+  KUTTA_REQUIRE(o.wall!=KeWallTreatment::Enhanced,"realizable k-epsilon: full EWT transport is unavailable; blend width and discrete epsilon coupling are not specified by Fluent TG");
   KUTTA_REQUIRE(m.n_cells>0,"realizable k-epsilon: empty mesh");
   size(m.owner,m.n_faces);size(m.neighbour,m.n_internal_faces);size(m.weight,m.n_internal_faces);
   size(m.area.x,m.n_faces);size(m.area.y,m.n_faces);size(m.area.z,m.n_faces);
@@ -34,16 +34,25 @@ void RealizableKeModel::update(const RealizableKeInputs& in) {
   for(const auto* b:{&in.density,&in.viscosity,&in.k,&in.epsilon,&in.velocity.x,&in.velocity.y,&in.velocity.z,
       &g.u.x,&g.u.y,&g.u.z,&g.v.x,&g.v.y,&g.v.z,&g.w.x,&g.w.y,&g.w.z}) size(*b,n);
   for(const auto* b:{&in.wall_velocity.x,&in.wall_velocity.y,&in.wall_velocity.z}) size(*b,nb);
-  kern::rke_viscosity(d,n,in.density,in.viscosity,in.k,in.epsilon,g.u.x,g.u.y,g.u.z,g.v.x,g.v.y,g.v.z,g.w.x,g.w.y,g.w.z,
+  const bool standard=o.variant==KeVariant::Standard;
+  if(standard) kern::ske_viscosity(d,n,in.density,in.viscosity,in.k,in.epsilon,g.u.x,g.u.y,g.u.z,g.v.x,g.v.y,g.v.z,g.w.x,g.w.y,g.w.z,
+    f.mu_t,f.cmu,f.strain,o.cmu_standard,o.k_floor,o.epsilon_floor,o.max_viscosity_ratio);
+  else kern::rke_viscosity(d,n,in.density,in.viscosity,in.k,in.epsilon,g.u.x,g.u.y,g.u.z,g.v.x,g.v.y,g.v.z,g.w.x,g.w.y,g.w.z,
     f.mu_t,f.cmu,f.strain,o.a0,o.k_floor,o.epsilon_floor,o.max_viscosity_ratio);
-  kern::rke_scalable_wall(d,nb,mesh_.owner,wall_,mesh_.wall_normal_distance,mesh_.area.x,mesh_.area.y,mesh_.area.z,
+  if(o.wall==KeWallTreatment::Standard) kern::ske_standard_wall(d,nb,mesh_.owner,wall_,mesh_.wall_normal_distance,mesh_.area.x,mesh_.area.y,mesh_.area.z,
+    in.velocity.x,in.velocity.y,in.velocity.z,in.wall_velocity.x,in.wall_velocity.y,in.wall_velocity.z,in.density,in.viscosity,in.k,
+    f.wall_coefficient,f.wall_y_star,f.wall_tau,f.wall_epsilon,f.wall_production,f.wall_shear.x,f.wall_shear.y,f.wall_shear.z,mesh_.n_internal_faces,o.k_floor,o.epsilon_floor);
+  else kern::rke_scalable_wall(d,nb,mesh_.owner,wall_,mesh_.wall_normal_distance,mesh_.area.x,mesh_.area.y,mesh_.area.z,
     in.velocity.x,in.velocity.y,in.velocity.z,in.wall_velocity.x,in.wall_velocity.y,in.wall_velocity.z,in.density,in.viscosity,in.k,
     f.wall_coefficient,f.wall_y_star,f.wall_tau,f.wall_epsilon,f.wall_production,f.wall_shear.x,f.wall_shear.y,f.wall_shear.z,mesh_.n_internal_faces,o.k_floor,o.epsilon_floor);
   // Cell source production is separate from the per-face diagnostics.
   auto& prod=wall_production_cell_;
   kern::rke_wall_cells(d,n,mesh_.cell_face_offsets,mesh_.cell_faces,wall_,mesh_.wall_normal_distance,
     f.wall_epsilon,f.wall_production,f.fixed_epsilon_mask,selected_,f.fixed_epsilon,prod,mesh_.n_internal_faces);
-  kern::rke_sources(d,n,in.density,in.viscosity,in.k,in.epsilon,f.mu_t,f.strain,f.fixed_epsilon_mask,prod,f.fixed_epsilon,
+  if(standard) kern::ske_sources(d,n,in.density,in.viscosity,in.k,in.epsilon,f.mu_t,f.strain,f.fixed_epsilon_mask,prod,f.fixed_epsilon,
+    f.k_source,f.k_sink,f.epsilon_source,f.epsilon_sink,f.diffusivity_k,f.diffusivity_epsilon,o.c1_standard,o.c2_standard,o.sigma_k,o.sigma_epsilon,
+    o.molecular_production,o.k_floor,o.epsilon_floor);
+  else kern::rke_sources(d,n,in.density,in.viscosity,in.k,in.epsilon,f.mu_t,f.strain,f.fixed_epsilon_mask,prod,f.fixed_epsilon,
     f.k_source,f.k_sink,f.epsilon_source,f.epsilon_sink,f.diffusivity_k,f.diffusivity_epsilon,o.c2,o.sigma_k,o.sigma_epsilon,
     o.molecular_production,o.k_floor,o.epsilon_floor);
   kern::rke_face_diffusion(d,mesh_.n_faces,mesh_.owner,mesh_.neighbour,mesh_.weight,wall_,in.viscosity,
