@@ -216,9 +216,14 @@ jobs:
           $pkg = "$env:RUNNER_TEMP/pkg"
           Expand-Archive (Get-Item build-app/package/Kutta-*-windows.zip).FullName -DestinationPath $pkg
           $env:PATH = "$env:SystemRoot\system32;$env:SystemRoot"
-          & "$pkg/Kutta/solver/kutta.exe" devices
+          $kutta = "$pkg/Kutta/solver/kutta.exe"
+          & $kutta devices
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          & $cmake -DAPP="$pkg/Kutta/Kutta.exe" -DOUT="$env:RUNNER_TEMP/pkg-smoke" -P app/cmake/screenshot_smoke.cmake
+          # Reads an HDF5 mesh, so the bundled HDF5 libraries load.
+          & $kutta export-geometry validation/fluent_examples/simple_duct/simple-duct.msh.h5 --out "$env:RUNNER_TEMP/pkg-geometry"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          # Scenarios otherwise pick the build tree's fixture CLI, which is not in the package.
+          & $cmake -DAPP="$pkg/Kutta/Kutta.exe" -DCLI="$kutta" -DSCENARIOS=start -DOUT="$env:RUNNER_TEMP/pkg-smoke" -P app/cmake/screenshot_smoke.cmake
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         if: always()

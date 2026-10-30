@@ -1,18 +1,23 @@
 # Screenshot smoke test (cmake -P): render scenarios through the platform's GPU
 # API and check each PNG has the expected size and is not blank. On GPU-less
 # Windows runners Qt's D3D11 backend falls back to WARP.
-#   -DAPP=<Kutta executable> -DOUT=<directory> [-DSCENARIOS=a;b]
+#   -DAPP=<Kutta executable> -DOUT=<directory> [-DSCENARIOS=a;b] [-DCLI=<kutta>]
+# Without CLI, scenarios use the build tree's fixture CLI when it exists.
 cmake_minimum_required(VERSION 3.26)
 if(NOT SCENARIOS)
   set(SCENARIOS start elbow-setup car-results)
 endif()
 file(REMOVE_RECURSE "${OUT}")
 file(MAKE_DIRECTORY "${OUT}")
+set(cli_args)
+if(CLI)
+  set(cli_args --cli "${CLI}")
+endif()
 foreach(s ${SCENARIOS})
   foreach(theme dark light)
     set(png "${OUT}/${s}-${theme}.png")
     execute_process(COMMAND "${APP}" --data-dir "${OUT}/data-${s}-${theme}" --scenario ${s} --theme ${theme}
-                            --size 1200x800 --screenshot "${png}"
+                            --size 1200x800 --screenshot "${png}" ${cli_args}
                     RESULT_VARIABLE rc OUTPUT_VARIABLE out ERROR_VARIABLE err TIMEOUT 300)
     if(NOT rc EQUAL 0 OR NOT EXISTS "${png}")
       message(FATAL_ERROR "${s} (${theme}) failed (${rc}):\n${out}${err}")
