@@ -5,6 +5,14 @@ nullspace sums and optional K-cycle corrections stay on the device; the host
 polls a three-int status buffer between batches. Kernels gather, own their output
 row/entry, use float arithmetic and require no atomics.
 
+Reused Krylov solves cap each batch at the previous converged iteration count
+plus one, up to `residual_check_interval`. Device convergence guards and the
+reported update count are unchanged; shorter batches avoid queued frozen work.
+Jacobi refresh reuses its validation buffer. A candidate's verified `b-A*x`
+norm is reused at solve exit when x has not changed; constant-nullspace solves
+retain their final projection and verification. The dated SST measurements are
+in [`fv/VERIFICATION.md`](../fv/VERIFICATION.md#performance).
+
 A normal caller uploads one matrix and reuses the solver:
 
 ```cpp

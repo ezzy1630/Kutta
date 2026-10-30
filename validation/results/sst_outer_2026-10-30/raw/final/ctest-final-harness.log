@@ -1,0 +1,9 @@
+Test project /Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/build
+    Start 1: kutta-tests
+1/2 Test #1: kutta-tests ......................   Passed   14.10 sec
+    Start 3: lint-portability
+2/2 Test #3: lint-portability .................   Passed    0.06 sec
+
+100% tests passed out of 2
+
+Total Test time (real) =  14.17 sec

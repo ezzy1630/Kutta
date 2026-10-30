@@ -1,0 +1,98 @@
+[
+  {
+    "case": "cpu-cold-hybrid",
+    "cells": 17822,
+    "baseline_sha256": "59f8250f9da317485894df5a55de472d879b1c99ec438271d57f109161478f89",
+    "final_sha256": "3557f85f86a55b935369f21e7e2d0ebd5910d5e34d6c7fc83e282d1e9d5c33de",
+    "fields": {
+      "velocity": {
+        "relative_L2": 4.2817927496133806e-07,
+        "max_absolute": 5.591660737991333e-06
+      },
+      "pressure": {
+        "relative_L2": 6.507010872471807e-06,
+        "max_absolute": 5.841255187988281e-06
+      },
+      "k": {
+        "relative_L2": 4.3639756515180257e-07,
+        "max_absolute": 3.725290298461914e-08
+      },
+      "omega": {
+        "relative_L2": 5.009291880682807e-07,
+        "max_absolute": 0.04833984375
+      }
+    }
+  },
+  {
+    "case": "cpu-seeded",
+    "cells": 17822,
+    "baseline_sha256": "3c4ddb92415c06802dd7149ea9adb6250ecf4cc188b0c9de0d4949c218145ccc",
+    "final_sha256": "dcffa86370617f413c5017a06332d9358315576a2936db813bf9158065c31b10",
+    "fields": {
+      "velocity": {
+        "relative_L2": 2.4216134722905323e-07,
+        "max_absolute": 2.3460015654563904e-06
+      },
+      "pressure": {
+        "relative_L2": 1.0187890176939444e-05,
+        "max_absolute": 6.5267086029052734e-06
+      },
+      "k": {
+        "relative_L2": 3.5737926560322803e-07,
+        "max_absolute": 3.166496753692627e-08
+      },
+      "omega": {
+        "relative_L2": 2.1165886223267344e-07,
+        "max_absolute": 0.01953125
+      }
+    }
+  },
+  {
+    "case": "metal-cold-hybrid",
+    "cells": 17822,
+    "baseline_sha256": "acdd55ccd8a4a279d6abd17242eb510e195979fd583437b0ea712c2d68313f06",
+    "final_sha256": "3ab8f75facfba4a6951564d47da25a8149451bc01314e9256184b552ef4d5956",
+    "fields": {
+      "velocity": {
+        "relative_L2": 5.142838655445835e-07,
+        "max_absolute": 5.815178155899048e-06
+      },
+      "pressure": {
+        "relative_L2": 1.1714824321297177e-05,
+        "max_absolute": 7.927417755126953e-06
+      },
+      "k": {
+        "relative_L2": 4.441834869027977e-07,
+        "max_absolute": 3.3527612686157227e-08
+      },
+      "omega": {
+        "relative_L2": 5.985702696044805e-07,
+        "max_absolute": 0.056640625
+      }
+    }
+  },
+  {
+    "case": "metal-seeded",
+    "cells": 17822,
+    "baseline_sha256": "a62d36a57c69726f26f361d8a14559e6eb3a9e1c4c60f89d68876d63a52d3d13",
+    "final_sha256": "f7aaf2193c7cc64ec9f896b44200314332ea1b8fa02734cc8e7225237a6bcb94",
+    "fields": {
+      "velocity": {
+        "relative_L2": 3.973149794622226e-07,
+        "max_absolute": 5.863606929779053e-06
+      },
+      "pressure": {
+        "relative_L2": 2.72147783188849e-06,
+        "max_absolute": 4.887580871582031e-06
+      },
+      "k": {
+        "relative_L2": 6.211523856512289e-07,
+        "max_absolute": 5.960464477539063e-08
+      },
+      "omega": {
+        "relative_L2": 3.943323980440731e-07,
+        "max_absolute": 0.0302734375
+      }
+    }
+  }
+]

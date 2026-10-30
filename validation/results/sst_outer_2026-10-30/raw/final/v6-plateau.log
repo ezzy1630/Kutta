@@ -1,0 +1,269 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+V6 Fluent=22.2 cells=17822 saved_iterations=absent last_residual_iteration=294 reports=0
+V6_FLUENT_RESIDUAL continuity raw=2.475884062e-06 scale=0.002614088497 scaled=0.000947130927
+V6_FLUENT_RESIDUAL energy raw=0.003127095862 scale=231923.8785 scaled=1.348328547e-08
+V6_FLUENT_RESIDUAL k raw=2.496480082e-07 scale=0.004837463694 scaled=5.160721071e-05
+V6_FLUENT_RESIDUAL omega raw=0.001920308188 scale=91.09322473 scaled=2.108069172e-05
+V6_FLUENT_RESIDUAL x-velocity raw=2.356566155e-06 scale=1.686371385 scaled=1.397418253e-06
+V6_FLUENT_RESIDUAL y-velocity raw=6.556134085e-06 scale=1.68649825 scaled=3.887424185e-06
+V6_FLUENT_RESIDUAL z-velocity raw=1.701407993e-06 scale=1.698761099 scaled=1.001558132e-06
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:97:
+TEST SUITE: slow
+TEST CASE:  FV V6 Fluent mixing elbow fixed point and cold start
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:115: ERROR: CHECK_NOTHROW( setup::fluent_setup(c,mesh) ) THREW exception: "Fluent setup rejected:
+  recon/cell-lsf? (warped-face gradient correction): warped-face gradient correction is not implemented"
+
+V6_DIAGNOSTIC approximations: recon/cell-lsf? disabled; cold start uses stored hybrid initialization settings
+V6_FIELD initial_wall_distance relative_L2=2.093238401e-05 max_absolute=1.164756306e-05 relative_max=0.0002387150477
+V6_FIELD initial_mu_t relative_L2=0.01032625292 max_absolute=3.890476553e-05 relative_max=0.1048400386
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
+  values: CHECK( 0.00225861 <  0.0008 )
+  logged: backend: cpu
+
+V6_INITIAL backend=cpu mode=seeded u=0.001147066684 v=0.002116594032 w=0.0006007901733 pseudo_time_step=0.02452421188 continuity_raw=0.002258611838 k=0.009387766435 omega=0.02537896159
+V6_SAVED_RESIDUAL backend=cpu equation=x-velocity raw=0.0008810771906 steady_scaled=0.001147066684 Fluent_scaled=0.0004918575615 normalization=1.791325903
+V6_SAVED_RESIDUAL backend=cpu equation=y-velocity raw=0.001625784054 steady_scaled=0.002116594032 Fluent_scaled=0.0009075226979 normalization=1.791452774
+V6_SAVED_RESIDUAL backend=cpu equation=z-velocity raw=0.0004614749304 steady_scaled=0.0006007901733 Fluent_scaled=0.0002558480214 normalization=1.803707248
+V6_SAVED_RESIDUAL backend=cpu equation=k raw=4.102013504e-05 steady_scaled=0.009387766435 Fluent_scaled=0.008019877978 normalization=0.005114807875
+V6_SAVED_RESIDUAL backend=cpu equation=omega raw=2.082973543 steady_scaled=0.02537896159 Fluent_scaled=0.02199469605 normalization=94.70344754
+V6_ITER backend=cpu mode=seeded iteration=50 u=0.0001509563129 v=0.0001774162751 w=0.0001060527664 k=0.0006865678852 omega=0.0002523968923 continuity=6.486548476e-05 corrected_mass=1.015011879e-07 max_u=1.671662688
+V6_ITER backend=cpu mode=seeded iteration=100 u=7.83093833e-05 v=0.0001279597695 w=6.036435148e-05 k=0.0003105924448 omega=0.0001155714 continuity=8.113062588e-05 corrected_mass=1.298000216e-07 max_u=1.668331861
+V6_ITER backend=cpu mode=seeded iteration=150 u=1.963542408e-05 v=4.516672411e-05 w=1.734825279e-05 k=8.121791335e-05 omega=3.252563665e-05 continuity=2.847107108e-05 corrected_mass=5.303609185e-08 max_u=1.668985486
+V6_ITER backend=cpu mode=seeded iteration=200 u=4.111622438e-06 v=9.907684731e-06 w=3.686588115e-06 k=1.986605246e-05 omega=7.529368831e-06 continuity=7.147115819e-06 corrected_mass=3.891455621e-08 max_u=1.66897583
+V6_ITER backend=cpu mode=seeded iteration=250 u=1.025159857e-06 v=2.349647752e-06 w=1.000795424e-06 k=5.54983719e-06 omega=1.804819883e-06 continuity=8.288481881e-07 corrected_mass=3.448482107e-08 max_u=1.668921709
+V6_ITER backend=cpu mode=seeded iteration=300 u=3.240566761e-07 v=8.031738011e-07 w=2.525331434e-07 k=1.662059567e-06 omega=6.50542866e-07 continuity=4.840596156e-07 corrected_mass=3.332222871e-08 max_u=1.66891849
+V6_ITER backend=cpu mode=seeded iteration=350 u=1.952264583e-07 v=4.759165143e-07 w=1.994694452e-07 k=7.116582523e-07 omega=2.673555708e-07 continuity=1.297947246e-06 corrected_mass=3.294326059e-08 max_u=1.66892457
+V6_INITIAL_CONTINUITY backend=cpu mode=seeded scaled=0.04561146478 first_five_scale=0.04951851138
+V6_RESULT backend=cpu mode=seeded iterations=350 seconds=37.90934704 converged=1
+V6_FIELD velocity relative_L2=0.03601602396 max_absolute=0.3416302551 relative_max=0.2057526476
+V6_FIELD pressure relative_L2=0.0296254007 max_absolute=0.112197517 relative_max=0.09789327368
+V6_FIELD k relative_L2=0.1548204557 max_absolute=0.0154873479 relative_max=0.5490409314
+V6_FIELD omega relative_L2=0.08474913253 max_absolute=10979.1198 relative_max=0.1218186039
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+  values: CHECK( 0.036016 <  0.005 )
+  logged: backend: cpu
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
+  values: CHECK( 0.15482 <  0.001 )
+  logged: backend: cpu
+
+V6_ZONE_PRESSURE wall-elbow ours=0.2403554198 Fluent=0.2443336319
+V6_FORCE wall-elbow pressure ours=0.006418966127,-0.005943250164,0.01525405445 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01557188092
+V6_FORCE wall-elbow shear ours=0.0003329839955,0.000687645388,-5.868215581e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.02258903777
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.022589 <  0.005 )
+  logged: backend: cpu
+
+V6_FORCE wall-elbow total ours=0.006751950123,-0.005255604776,0.0151953723 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.01506546909
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0150655 <  0.005 )
+  logged: backend: cpu
+
+V6_ZONE_PRESSURE wall-inlet ours=0.7719656467 Fluent=0.7882671307
+V6_FORCE wall-inlet pressure ours=7.329196001e-05,-4.916830718e-06,0.001579482194 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02073610336
+V6_FORCE wall-inlet shear ours=1.266201242e-06,7.126292029e-05,3.891584198e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.006096570751
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.00609657 <  0.005 )
+  logged: backend: cpu
+
+V6_FORCE wall-inlet total ours=7.455816126e-05,6.634608957e-05,0.001579871352 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.02070215056
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0207022 <  0.005 )
+  logged: backend: cpu
+
+V6_ZONE_PRESSURE outlet ours=0 Fluent=0
+V6_ZONE_PRESSURE cold-inlet ours=0.5075208966 Fluent=0.5016180027
+V6_ZONE_PRESSURE hot-inlet ours=1.100890091 Fluent=1.087188619
+V6_ZONE_PRESSURE symmetry-xyplane ours=0.255798427 Fluent=0.2603867108
+V6_PRESSURE_DROP ours=0.5414627733 Fluent=0.5351137855 relative=0.01186474343
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+  values: CHECK( 0.0118647 <  0.005 )
+  logged: backend: cpu
+
+V6_PLATEAU backend=cpu mode=seeded iteration=1200 u=6.746618281e-08 v=9.311390352e-08 w=6.701871846e-08 k=4.900459688e-08 omega=5.270114992e-08 continuity=4.748045061e-07
+V6_INITIAL backend=cpu mode=cold-hybrid u=0.009049881598 v=0.01024192521 w=0.001242852245 pseudo_time_step=0.01712153479 continuity_raw=9.159623666e-06 k=0.0114446229 omega=0.02896653271
+V6_ITER backend=cpu mode=cold-hybrid iteration=50 u=0.00127098775 v=0.001376758497 w=0.0005845769519 k=0.004397520836 omega=0.002620907163 continuity=0.0005845102916 corrected_mass=6.390948313e-07 max_u=1.64525044
+V6_ITER backend=cpu mode=cold-hybrid iteration=100 u=0.0006179849325 v=0.001196400986 w=0.0003663915426 k=0.003285055482 omega=0.001094030341 continuity=0.0004177020299 corrected_mass=6.046402253e-07 max_u=1.672698736
+V6_ITER backend=cpu mode=cold-hybrid iteration=150 u=0.0001725987647 v=0.0005903815703 w=0.0001414539153 k=0.001272552331 omega=0.0003914437771 continuity=0.0001384027489 corrected_mass=1.698116047e-07 max_u=1.669665098
+V6_ITER backend=cpu mode=cold-hybrid iteration=200 u=5.141973351e-05 v=0.0001938804206 w=4.612711526e-05 k=0.0004100999081 omega=0.000123512034 continuity=5.767619925e-05 corrected_mass=9.350834845e-08 max_u=1.668800354
+V6_ITER backend=cpu mode=cold-hybrid iteration=250 u=1.807075363e-05 v=4.950185643e-05 w=1.575583187e-05 k=0.0001243923117 omega=3.69954362e-05 continuity=2.355818697e-05 corrected_mass=5.470841102e-08 max_u=1.668816566
+V6_ITER backend=cpu mode=cold-hybrid iteration=300 u=6.528123482e-06 v=1.607595072e-05 w=4.989599098e-06 k=4.681476943e-05 omega=1.315749474e-05 continuity=7.379959312e-06 corrected_mass=3.936945256e-08 max_u=1.668896317
+V6_ITER backend=cpu mode=cold-hybrid iteration=350 u=2.986408974e-06 v=8.481223993e-06 w=2.376727047e-06 k=1.965881495e-05 omega=5.863972015e-06 continuity=5.169693193e-06 corrected_mass=3.674553173e-08 max_u=1.668928266
+V6_ITER backend=cpu mode=cold-hybrid iteration=400 u=1.360997584e-06 v=4.248431196e-06 w=1.125016907e-06 k=8.113082595e-06 omega=2.609541971e-06 continuity=3.566490407e-06 corrected_mass=3.588529171e-08 max_u=1.668939471
+V6_ITER backend=cpu mode=cold-hybrid iteration=450 u=5.780513775e-07 v=1.818927185e-06 w=4.952558988e-07 k=3.156563975e-06 omega=1.070890509e-06 continuity=9.789200606e-07 corrected_mass=3.334501936e-08 max_u=1.668937922
+V6_ITER backend=cpu mode=cold-hybrid iteration=500 u=2.524294564e-07 v=7.11108897e-07 w=2.276768541e-07 k=1.186280483e-06 omega=4.293896179e-07 continuity=7.715593881e-07 corrected_mass=3.344168073e-08 max_u=1.668932915
+V6_ITER backend=cpu mode=cold-hybrid iteration=550 u=1.164550711e-07 v=2.700513363e-07 w=8.553582846e-08 k=4.219433033e-07 omega=1.840499345e-07 continuity=8.904294951e-07 corrected_mass=3.250526869e-08 max_u=1.668929338
+V6_INITIAL_CONTINUITY backend=cpu mode=cold-hybrid scaled=0.0003669684328 first_five_scale=0.02496024957
+V6_RESULT backend=cpu mode=cold-hybrid iterations=550 seconds=54.98702996 converged=1
+V6_FIELD velocity relative_L2=0.03601460363 max_absolute=0.3416062848 relative_max=0.205738211
+V6_FIELD pressure relative_L2=0.02961664678 max_absolute=0.1121864529 relative_max=0.09788362015
+V6_FIELD k relative_L2=0.1547893152 max_absolute=0.01548798679 relative_max=0.5490635806
+V6_FIELD omega relative_L2=0.08474907474 max_absolute=10979.09538 relative_max=0.121818333
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+  values: CHECK( 0.0360146 <  0.005 )
+  logged: backend: cpu
+
+V6_ZONE_PRESSURE wall-elbow ours=0.2403551183 Fluent=0.2443336319
+V6_FORCE wall-elbow pressure ours=0.006418916663,-0.005943221911,0.01525403719 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01557221564
+V6_FORCE wall-elbow shear ours=0.0003329843086,0.000687641319,-5.868111792e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.02258947014
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0225895 <  0.005 )
+  logged: backend: cpu
+
+V6_FORCE wall-elbow total ours=0.006751900972,-0.005255580592,0.01519535607 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.01506589893
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0150659 <  0.005 )
+  logged: backend: cpu
+
+V6_ZONE_PRESSURE wall-inlet ours=0.771965364 Fluent=0.7882671307
+V6_FORCE wall-inlet pressure ours=7.329057104e-05,-4.916838923e-06,0.00157948163 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02073661504
+V6_FORCE wall-inlet shear ours=1.266226771e-06,7.126303295e-05,3.8917127e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.006098049993
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.00609805 <  0.005 )
+  logged: backend: cpu
+
+V6_FORCE wall-inlet total ours=7.455679781e-05,6.634619403e-05,0.001579870801 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.02070264517
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0207026 <  0.005 )
+  logged: backend: cpu
+
+V6_ZONE_PRESSURE outlet ours=0 Fluent=0
+V6_ZONE_PRESSURE cold-inlet ours=0.507517364 Fluent=0.5016180027
+V6_ZONE_PRESSURE hot-inlet ours=1.10088976 Fluent=1.087188619
+V6_ZONE_PRESSURE symmetry-xyplane ours=0.2557995621 Fluent=0.2603867108
+V6_PRESSURE_DROP ours=0.5414594238 Fluent=0.5351137855 relative=0.01185848401
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+  values: CHECK( 0.0118585 <  0.005 )
+  logged: backend: cpu
+
+V6_PLATEAU backend=cpu mode=cold-hybrid iteration=1200 u=1.318811219e-07 v=2.02170716e-07 w=1.960549454e-07 k=5.514050448e-08 omega=5.738153396e-08 continuity=9.191368908e-07
+V6_FIELD initial_wall_distance relative_L2=2.093238401e-05 max_absolute=1.164756306e-05 relative_max=0.0002387150477
+V6_FIELD initial_mu_t relative_L2=0.01032625273 max_absolute=3.890473643e-05 relative_max=0.1048399602
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
+  values: CHECK( 0.00225861 <  0.0008 )
+  logged: backend: metal
+
+V6_INITIAL backend=metal mode=seeded u=0.001147066633 v=0.002116593996 w=0.0006007901805 pseudo_time_step=0.02452421188 continuity_raw=0.002258611829 k=0.009387766869 omega=0.02537896139
+V6_SAVED_RESIDUAL backend=metal equation=x-velocity raw=0.0008810771517 steady_scaled=0.001147066633 Fluent_scaled=0.0004918575398 normalization=1.791325903
+V6_SAVED_RESIDUAL backend=metal equation=y-velocity raw=0.001625784026 steady_scaled=0.002116593996 Fluent_scaled=0.0009075226822 normalization=1.791452774
+V6_SAVED_RESIDUAL backend=metal equation=z-velocity raw=0.0004614749358 steady_scaled=0.0006007901805 Fluent_scaled=0.0002558480244 normalization=1.803707247
+V6_SAVED_RESIDUAL backend=metal equation=k raw=4.102013693e-05 steady_scaled=0.009387766869 Fluent_scaled=0.008019878348 normalization=0.005114807875
+V6_SAVED_RESIDUAL backend=metal equation=omega raw=2.082973527 steady_scaled=0.02537896139 Fluent_scaled=0.02199469587 normalization=94.70344753
+V6_ITER backend=metal mode=seeded iteration=50 u=0.0001509780877 v=0.0001774868409 w=0.0001061245737 k=0.0006865700119 omega=0.0002523989994 continuity=6.470702637e-05 corrected_mass=9.945155427e-08 max_u=1.671662807
+V6_ITER backend=metal mode=seeded iteration=100 u=7.825873869e-05 v=0.0001278602465 w=6.023309432e-05 k=0.0003105998807 omega=0.0001155677572 continuity=8.21941493e-05 corrected_mass=1.276867467e-07 max_u=1.668331504
+V6_ITER backend=metal mode=seeded iteration=150 u=1.964279537e-05 v=4.517062633e-05 w=1.734362471e-05 k=8.124005059e-05 omega=3.253392508e-05 continuity=2.760711438e-05 corrected_mass=5.392611817e-08 max_u=1.66898489
+V6_ITER backend=metal mode=seeded iteration=200 u=4.14142287e-06 v=9.963910397e-06 w=3.763377371e-06 k=1.988128941e-05 omega=7.531544269e-06 continuity=5.380136765e-06 corrected_mass=3.83333555e-08 max_u=1.668975711
+V6_ITER backend=metal mode=seeded iteration=250 u=9.540044333e-07 v=2.163081242e-06 w=7.605259898e-07 k=5.548023416e-06 omega=1.798619766e-06 continuity=1.487735233e-06 corrected_mass=3.429176204e-08 max_u=1.668921947
+V6_ITER backend=metal mode=seeded iteration=300 u=3.182513829e-07 v=7.717659605e-07 w=2.194078175e-07 k=1.658389406e-06 omega=6.490782494e-07 continuity=4.219897098e-07 corrected_mass=3.267584926e-08 max_u=1.66891849
+V6_ITER backend=metal mode=seeded iteration=350 u=1.656748633e-07 v=3.810776044e-07 w=1.149837239e-07 k=7.079930912e-07 omega=2.610668404e-07 continuity=7.469555135e-07 corrected_mass=3.282012714e-08 max_u=1.668924689
+V6_INITIAL_CONTINUITY backend=metal mode=seeded scaled=0.04561211104 first_five_scale=0.04951780958
+V6_RESULT backend=metal mode=seeded iterations=350 seconds=9.374825208 converged=1
+V6_FIELD velocity relative_L2=0.03601603208 max_absolute=0.3416306658 relative_max=0.2057528949
+V6_FIELD pressure relative_L2=0.02962295937 max_absolute=0.1122026281 relative_max=0.09789773316
+V6_FIELD k relative_L2=0.1548204167 max_absolute=0.01548734604 relative_max=0.5490408654
+V6_FIELD omega relative_L2=0.08474894594 max_absolute=10979.08659 relative_max=0.1218182355
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+  values: CHECK( 0.036016 <  0.005 )
+  logged: backend: metal
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
+  values: CHECK( 0.15482 <  0.001 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE wall-elbow ours=0.2403588309 Fluent=0.2443336319
+V6_FORCE wall-elbow pressure ours=0.006418981561,-0.00594325375,0.01525427524 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01555992477
+V6_FORCE wall-elbow shear ours=0.0003329841248,0.0006876455757,-5.868208374e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.02258893334
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0225889 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-elbow total ours=0.006751965686,-0.005255608174,0.01519559316 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.01505325806
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0150533 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE wall-inlet ours=0.7719708949 Fluent=0.7882671307
+V6_FORCE wall-inlet pressure ours=7.329307432e-05,-4.916849248e-06,0.001579492834 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02072950537
+V6_FORCE wall-inlet shear ours=1.266208317e-06,7.126292239e-05,3.891669304e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.0060966439
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.00609664 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-inlet total ours=7.455928263e-05,6.634607314e-05,0.001579882001 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.02069554925
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0206955 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE outlet ours=0 Fluent=0
+V6_ZONE_PRESSURE cold-inlet ours=0.5075266661 Fluent=0.5016180027
+V6_ZONE_PRESSURE hot-inlet ours=1.100895092 Fluent=1.087188619
+V6_ZONE_PRESSURE symmetry-xyplane ours=0.2558030625 Fluent=0.2603867108
+V6_PRESSURE_DROP ours=0.5414684988 Fluent=0.5351137855 relative=0.01187544305
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+  values: CHECK( 0.0118754 <  0.005 )
+  logged: backend: metal
+
+V6_PLATEAU backend=metal mode=seeded iteration=1200 u=9.892805282e-08 v=1.232647966e-07 w=1.152990792e-07 k=4.859123918e-08 omega=4.883269132e-08 continuity=2.144744249e-07
+V6_INITIAL backend=metal mode=cold-hybrid u=0.009049881601 v=0.01024192522 w=0.001242852245 pseudo_time_step=0.01712153479 continuity_raw=9.159623666e-06 k=0.01144462292 omega=0.0289665323
+V6_ITER backend=metal mode=cold-hybrid iteration=50 u=0.00127098474 v=0.001376737849 w=0.0005845554656 k=0.004397523057 omega=0.002620902992 continuity=0.000583310589 corrected_mass=6.438530952e-07 max_u=1.645250201
+V6_ITER backend=metal mode=cold-hybrid iteration=100 u=0.0006180017164 v=0.001196449516 w=0.0003664332878 k=0.003285056075 omega=0.001094029888 continuity=0.0004178599622 corrected_mass=6.068975794e-07 max_u=1.672698617
+V6_ITER backend=metal mode=cold-hybrid iteration=150 u=0.0001725656337 v=0.0005902531476 w=0.0001413333193 k=0.001272549836 omega=0.0003914479382 continuity=0.0001383438023 corrected_mass=1.696062466e-07 max_u=1.669665217
+V6_ITER backend=metal mode=cold-hybrid iteration=200 u=5.140632846e-05 v=0.000193848321 w=4.608729639e-05 k=0.0004100987395 omega=0.0001235118924 continuity=5.805039029e-05 corrected_mass=9.297707065e-08 max_u=1.668800116
+V6_ITER backend=metal mode=cold-hybrid iteration=250 u=1.815047879e-05 v=4.961648783e-05 w=1.593776128e-05 k=0.000124404733 omega=3.702132425e-05 continuity=1.965132995e-05 corrected_mass=4.890453895e-08 max_u=1.668816686
+V6_ITER backend=metal mode=cold-hybrid iteration=300 u=6.511961588e-06 v=1.605271837e-05 w=4.957972696e-06 k=4.681462567e-05 omega=1.315376715e-05 continuity=7.275821694e-06 corrected_mass=3.921167449e-08 max_u=1.668896437
+V6_ITER backend=metal mode=cold-hybrid iteration=350 u=2.944937474e-06 v=8.337553679e-06 w=2.239422587e-06 k=1.965814372e-05 omega=5.86930728e-06 continuity=4.912023332e-06 corrected_mass=3.6546004e-08 max_u=1.668928266
+V6_ITER backend=metal mode=cold-hybrid iteration=400 u=1.376324394e-06 v=4.285487987e-06 w=1.158287336e-06 k=8.113279884e-06 omega=2.6102177e-06 continuity=3.889162908e-06 corrected_mass=3.629360957e-08 max_u=1.668939233
+V6_ITER backend=metal mode=cold-hybrid iteration=450 u=6.322079923e-07 v=1.956696454e-06 w=6.29639464e-07 k=3.154027752e-06 omega=1.067369404e-06 continuity=1.103755463e-06 corrected_mass=3.395384468e-08 max_u=1.668937922
+V6_ITER backend=metal mode=cold-hybrid iteration=500 u=2.392442554e-07 v=7.04159611e-07 w=1.85149314e-07 k=1.191463457e-06 omega=4.288141209e-07 continuity=7.46420732e-07 corrected_mass=3.308733246e-08 max_u=1.668933153
+V6_ITER backend=metal mode=cold-hybrid iteration=550 u=1.421602593e-07 v=3.411147607e-07 w=1.635429027e-07 k=4.242456133e-07 omega=1.806447033e-07 continuity=8.869371837e-07 corrected_mass=3.331412628e-08 max_u=1.668929219
+V6_INITIAL_CONTINUITY backend=metal mode=cold-hybrid scaled=0.0003669665112 first_five_scale=0.02496038027
+V6_RESULT backend=metal mode=cold-hybrid iterations=550 seconds=13.952969 converged=1
+V6_FIELD velocity relative_L2=0.0360145971 max_absolute=0.3416064399 relative_max=0.2057383045
+V6_FIELD pressure relative_L2=0.02961920831 max_absolute=0.1121836217 relative_max=0.09788114989
+V6_FIELD k relative_L2=0.1547892423 max_absolute=0.01548801659 relative_max=0.5490646371
+V6_FIELD omega relative_L2=0.0847490635 max_absolute=10979.12956 relative_max=0.1218187123
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+  values: CHECK( 0.0360146 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE wall-elbow ours=0.2403535479 Fluent=0.2443336319
+V6_FORCE wall-elbow pressure ours=0.006418907998,-0.005943220719,0.01525393572 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01557769411
+V6_FORCE wall-elbow shear ours=0.0003329841574,0.0006876411621,-5.868105938e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.02258968184
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0225897 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-elbow total ours=0.006751892156,-0.005255579557,0.01519525466 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.01507149287
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0150715 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE wall-inlet ours=0.7719607396 Fluent=0.7882671307
+V6_FORCE wall-inlet pressure ours=7.328966311e-05,-4.916821751e-06,0.001579472277 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02074240598
+V6_FORCE wall-inlet shear ours=1.266251106e-06,7.12629673e-05,3.891871746e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.006097486508
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.00609749 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-inlet total ours=7.455591422e-05,6.634614555e-05,0.001579861464 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.02070842143
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0207084 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE outlet ours=0 Fluent=0
+V6_ZONE_PRESSURE cold-inlet ours=0.5075144661 Fluent=0.5016180027
+V6_ZONE_PRESSURE hot-inlet ours=1.100885793 Fluent=1.087188619
+V6_ZONE_PRESSURE symmetry-xyplane ours=0.2557966081 Fluent=0.2603867108
+V6_PRESSURE_DROP ours=0.5414564647 Fluent=0.5351137855 relative=0.01185295427
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+  values: CHECK( 0.011853 <  0.005 )
+  logged: backend: metal
+
+V6_PLATEAU backend=metal mode=cold-hybrid iteration=1200 u=7.759270996e-08 v=1.047046233e-07 w=8.371740611e-08 k=4.973634731e-08 omega=5.387027659e-08 continuity=2.773107723e-07
+===============================================================================
+[doctest] test cases:    1 |    0 passed |  1 failed | 178 skipped
+[doctest] assertions: 2605 | 2576 passed | 29 failed |
+[doctest] Status: FAILURE!

@@ -1,0 +1,6 @@
+STREAM: 256 MiB/array, 3 arrays, best of 7; decimal GB/s; wall-clock including completion. Commit e21866d7c4ae9511cc65c33e7ea939f12721d7c1
+backend   copy     scale    add      triad    sum      dot      maxabs   small-sync-us small-batch-us zero-us
+cpu       120.57   119.18   119.41   119.14   8.25     16.16    3.00     0.01     0.01     0.00     
+{"device":"CPU reference (serial)","backend":"cpu","commit":"e21866d7c4ae9511cc65c33e7ea939f12721d7c1","array_bytes":268435456,"trials":7,"dispatches_per_stream_trial":8,"copy_GB_s":120.565846,"scale_GB_s":119.181328,"add_GB_s":119.414847,"triad_GB_s":119.144133,"sum_GB_s":8.252781,"dot_GB_s":16.163670,"max_abs_GB_s":3.002306,"small_synchronized_us":0.005375,"small_batched_us":0.005375,"zero_launch_us":0.003717}
+metal     161.44   161.43   240.03   239.07   220.81   242.66   227.84   78.23    1.50     0.00     
+{"device":"Apple M4 Pro","backend":"metal","commit":"e21866d7c4ae9511cc65c33e7ea939f12721d7c1","array_bytes":268435456,"trials":7,"dispatches_per_stream_trial":8,"copy_GB_s":161.443438,"scale_GB_s":161.426248,"add_GB_s":240.027608,"triad_GB_s":239.070461,"sum_GB_s":220.805683,"dot_GB_s":242.658016,"max_abs_GB_s":227.841601,"small_synchronized_us":78.232708,"small_batched_us":1.502417,"zero_launch_us":0.004675}

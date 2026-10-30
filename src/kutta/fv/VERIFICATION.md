@@ -286,6 +286,264 @@ Re=100/400/1000 on CPU and Metal.
 
 ## Performance
 
+### SST outer cost, 2026-10-30
+
+Apple M4 Pro, 24 GiB, macOS 26.6.2 (25G83), AppleClang
+21.0.0.21000101, Release C++20. Baseline solver source is
+`e21866d7c4ae9511cc65c33e7ea939f12721d7c1`; the measured optimized solver is
+`c329d5d74749c20edf8126bd1bc6937c31bb8c19`. All changes are local commits.
+`src/kutta/app/**`, `src/kutta/setup/**`, convergence thresholds and numerical
+acceptance protocols are unchanged.
+
+The requested same-channel steady-convergence result remains **unmet** on both
+source versions. Rates below cover transient outer iterations. The retained
+V1–V6 gates have no new failures; V6 supplies separate matched-converged-field
+evidence. This is not an accepted steady FSAE speed result.
+
+The generated channel has **983,040 tetrahedra / 1,987,072 faces**: six
+Freudenthal tets per brick, 128x32x40 bricks in a 4x1x0.5 domain, tanh wall
+spacing with parameter 1.2 and a smooth interior x-skew of amplitude .015.
+The first brick layer is .01460649 high; tet centroids resolve smaller wall
+normal distances. Inlet velocity is 1, k=.0015 and omega=10; y walls are
+stationary and z boundaries are symmetry. Momentum is SOU, turbulence FOU,
+URFs .3/.05/.75/.75, fixed pseudo time .01. SST is active throughout.
+This exercises unstructured gathers and graded wall cells. It is **not** a
+Fluent poly-hexcore/prism mesh or an accepted FSAE validation case.
+
+Five warmup steps, including their compulsory monitors, are excluded. Wall
+throughput measures asynchronous outer steps 6–8 plus final completion, with
+no periodic monitor. Profiling measures step 6 in a separate process with
+completion around every operation; its times cannot be used as asynchronous
+phase percentages. Setup/initialization are excluded from both. The million-cell
+runs are transient; they were not run to convergence.
+
+The primary comparison uses **Re_H=10,000** (viscosity .0001). Both versions
+use the identical latest benchmark harness; the baseline library was rebuilt
+from a `git archive` of e21866d. All 82 archived files under `src/kutta` were
+checked byte for byte against that commit. The archive's CMake benchmark
+version string is pinned to e21866d; its numerical sources are untouched.
+The final harness is `fa2fcac1e080336c2b8f48f18259cae5a58c7506`.
+
+| Re_H=10,000, 983,040 tets | Before ms/outer | After ms/outer | Before outer/s | After outer/s | Speedup |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Metal | 218.127 | **170.311** | 4.58449 | **5.87162** | **1.281x** |
+| CPU serial oracle | 5,203.329 | **3,701.443** | .192185 | **.270165** | **1.406x** |
+
+Metal is the median of three runs per version; final samples span
+166.595–171.694 ms. CPU entries are single runs. These timing processes ran
+after this lane's slow tier and other measurements finished; the subsequently
+observed other-lane jobs start after the complete timing window. All six last
+inner solves converge. Last u/v/w/pressure/k/omega counts are
+2/2/2/26/3/3 before and 2/2/2/33/3/3 after; final pressure relative residual
+is 9.85049e-4 against the unchanged 1e-3 target. Queued kernel calls fall
+4,047 -> 3,345 per outer. The blocking-call/allocation inventory below is
+the same as the pilot.
+
+![Higher-Re measured SST outer cost](../../../validation/results/sst_outer_2026-10-30/highre-performance.png)
+
+Higher-Re FV+SST traffic is **10,252.75 -> 9,035.21 logical B/cell/outer**;
+all operations are **51,241.18 -> 34,003.89**. The pre-campaign STREAM reference is
+**239.070 GB/s Metal / 119.14 GB/s CPU**. Using that Metal reference, the
+higher-Re all-operation model implies **139.821 ms**, versus 170.311 observed:
+**196.27 logical GB/s**, 82.1% of STREAM. A later run gives 217.274 /
+111.733 GB/s and 85.20 us synchronized / .987 us batched dispatch, but overlaps
+another lane's validation process; it is retained as a contended sample and
+excluded from this roofline comparison. The high-Re timing logs close at
+03:02:12 PDT; the other lane's first observed validation starts at 03:02:43.
+The model/counter limits below apply.
+
+After outer 8, corresponding higher-Re transient fields change by at most
+2.05e-4 relative L2 for pressure and 2.67e-6 for velocity/k/omega/flux across
+CPU and Metal. Converged-field evidence is the separate V6 comparison below.
+These measured field differences are not mathematical residual-to-error bounds.
+
+
+The Re_H=1,000 pilot provides per-change evidence on the same mesh and outer
+window. Metal entries are medians of three independent runs except the
+2+2-sweep experiment (one). CPU baseline is the median of two; other CPU
+entries are single runs. Raw samples retain their spread. Intermediate stages were built before
+their commits; their embedded source string is the then-current HEAD.
+Metadata records the working changes and saved binary hashes. The final
+comparisons use the clean source/artifact identities above.
+
+| Incremental change, Re_H=1,000 | Metal ms/outer | CPU ms/outer |
+| --- | ---: | ---: |
+| Baseline | 206.424 | 5,087.357 |
+| Reused Jacobi validation allocation; adaptive Krylov batches | 192.326 | 5,168.522 |
+| Reused velocity fits; fused limiter/scale and SST blending/viscosity | 186.436 | 4,851.332 |
+| SST pressure AMG V-cycle, 2+2 rather than 5+5 sweeps | 161.224 | Not separately measured |
+| Reused final verified residual | **159.020** | **3,445.172** |
+
+Final pilot throughput is **6.28851 outer/s Metal** and **.290261 outer/s
+CPU**, versus 4.84439 and .196566: **1.298x / 1.477x**. The batching-only
+CPU result is slower; no CPU win is claimed for that isolated change.
+
+![Measured SST outer cost](../../../validation/results/sst_outer_2026-10-30/performance.png)
+
+Krylov batches are capped by the previous converged solve's update count plus
+one, up to the caller's `residual_check_interval`. Device convergence tests,
+reliable residual replacement, breakdown handling and update counts are
+unchanged. The final actual residual is reused only if x has not changed;
+constant-nullspace solves retain the original final projection/verification.
+Jacobi validation now owns persistent scratch rather than allocating at each
+refresh. That adds one persistent float per equation row (about 19.7 MB across
+five equations here), while removing five transient Device allocations/outer.
+
+The SST driver retains velocity derivative fits after k changes, and reuses
+its momentum reconstruction between transpose stress and assembly. New
+cell-local fusions retain the staged kernels as independent entrypoints.
+Tests compare staged and fused outputs bitwise on CPU and Metal. All six
+saved fields plus face flux after outer 8 remain **bitwise identical** through
+the batching/reuse/fusion changes on both backends. Only the cheaper pressure
+preconditioner changes intermediate iterates. It uses equal pre/post counts,
+retaining a symmetric V-cycle; the general AMG default remains 5+5.
+
+The pilot's last u/v/w/pressure/k/omega inner update counts change from
+2/1/1/28/3/3 to 2/1/1/35/3/3. All six final Metal diagnostic solves converge; pressure
+relative residual is 8.38179e-4 against the unchanged 1e-3 target. More cheap
+pressure cycles reduce total work. The final 3,329 queued kernels/outer compare
+with 4,047 before.
+
+| Public Device costs / outer, excluding final benchmark sync | Before | After |
+| --- | ---: | ---: |
+| Blocking norm reads | 41 | 35 |
+| Status downloads | 9 | 10 |
+| Scalar threshold uploads (blocking on Metal) | 6 | 6 |
+| Total blocking API calls on Metal | 56 | 51 |
+| Device allocations | 5 | 0 |
+| Requested transient allocation bytes | 19,660,800 | 0 |
+
+These count Device calls after warmup, not host C++ heap allocations or
+backend/driver command-buffer and reduction scratch allocations. CPU has the
+same API calls but no GPU waits. Profiler-imposed completion calls are excluded.
+
+The profiler counts each entire buffer argument once per call (copy counts
+read+write), including guarded queued work. These are **logical bytes**, not
+measured DRAM traffic or a strict bound. Gather reuse, cache residency, boundary
+subranges and frozen kernels change actual traffic. The Metal counter inventory
+on this machine exposes only `GPUTimestamp`, so no DRAM-byte measurement is claimed.
+
+| Intrusive Metal kernel group, Re_H=10,000 | Before ms | After ms | Before B/cell/outer | After B/cell/outer |
+| --- | ---: | ---: | ---: | ---: |
+| AMG-specific kernels | 412.086 | 327.954 | 24,773.86 | 12,894.26 |
+| CSR/Krylov/validation kernels | 138.716 | 109.645 | 12,901.89 | 9,684.87 |
+| FV kernels | 45.712 | 41.321 | 7,992.05 | 6,918.51 |
+| SST kernels | 13.271 | 12.908 | 2,260.70 | 2,116.70 |
+| Reductions | 51.752 | 35.334 | 2,960.61 | 2,000.61 |
+| Runtime copies/fills | 26.980 | 32.298 | 352.08 | 388.95 |
+
+These are name-based groups, not instrumented application phase boundaries.
+Per-kernel calls, CPU/Metal times and logical bytes are preserved in the raw
+logs and `kernels.json`. Examples: velocity vector fits fall from 6 to 4,
+jump fits 9 to 6, true CSR residual passes 18 to 12, and `amg_smooth` dispatches
+2,706 to 2,132 in profiled step 6. The latter's modeled payload halves from
+24,000.77 to 11,959.18 B/cell despite more pressure Krylov iterations.
+
+FV+SST logical traffic falls **10,252.75 -> 9,035.21 B/cell/outer**; all
+operations fall **51,241.18 -> 33,557.26**. The ~2 KB FV target remains unmet.
+The pre-campaign STREAM triad is **239.070 GB/s Metal / 119.14 GB/s CPU**; Metal
+synchronized dispatch is 78.23 us, batched dispatch 1.50 us. At the measured
+Metal STREAM rate, the final pilot's all-operation model implies **137.985 ms**,
+versus 159.020 ms observed: **207.45 logical GB/s**, or 86.8% of STREAM.
+This is a bandwidth-model position, not proof of DRAM saturation or a complete
+FLOP/byte roofline measurement.
+
+For the higher-Re payload, a bandwidth-only **projection** gives 43.983 ms /
+22.74 outer/s on RTX 3080 10GB (760 GB/s), and 33.162 ms / 30.16 outer/s on
+RTX 4090 (1,008 GB/s). At 70% of nominal bandwidth the projections are
+15.92 / 21.11 outer/s. Card bandwidths are from NVIDIA's
+[Ampere whitepaper, Table 2](https://www.nvidia.com/content/dam/en-zz/Solutions/geforce/ampere/pdf/NVIDIA-ampere-GA102-GPU-Architecture-Whitepaper-V1.pdf)
+and [Ada whitepaper, Table 1](https://images.nvidia.com/aem-dam/Solutions/geforce/ada/nvidia-ada-gpu-architecture.pdf).
+These estimates assume the logical-byte model transfers unchanged and omit
+CUDA dispatch, host waits, cache behavior and instruction throughput. They are
+**not CUDA timings**; CUDA has never executed on an NVIDIA GPU here.
+
+Verification uses the unchanged protocols and the external fixtures at
+`/Users/ezzy/.Others/Kutta/validation/fluent_examples`.
+
+| Check | Observed result |
+| --- | --- |
+| Native quick tier | PASS: 169 cases / 1,539,982 assertions; 11.58 s |
+| Final-harness `ctest -LE slow`, including portability lint | PASS: 2/2, 14.17 s while slow validation was active; earlier 10.13 s |
+| Complete `-ts=slow -d` | Expected nonzero: 10 cases / 3,563 assertions, **50 retained failures**, 2,636.45 s |
+| V1–V4 + Couette | Exactly six tet-force failures; all **308** numerical/progress lines identical to the retained main baseline |
+| V5 plate + bump | **15 failures / 83**, versus 16 before; no added gate failure |
+| V6 | **29 failures / 2,601**, unchanged; seeded/hybrid stops remain 350/550 on both backends |
+| CUDA 13.0.2 image, CI configure options, HDF5 enabled | PASS: entire build for `75-real;86-real;89-real;120` |
+| CUDA-container CPU quick tier + portability lint | PASS: 168 cases / 826,914 assertions; compiled-GPU-presence test excluded as in CI |
+| CUDA GPU execution | Unverified: no NVIDIA device here |
+
+The six flat-plate convergence failures remain. Its Cf/CD changes are below
+7e-7 relative. Its normalized continuity changes at the known float floor;
+it is not reported as an unchanged residual or as convergence. The fine CPU
+bump advances 2,300 rather than 2,200 steps within the unchanged 600-second
+budget (600.83 s at the next 100-step checkpoint). Its later transient endpoint
+passes one former Cf gate. The bump retains nine failures rather than ten;
+all Cp gates and three-grid trend gates retain their outcomes. It still fails
+iterative convergence and fine-load stability. Fewer failed assertions do not
+establish an accepted V5 solution.
+
+A separate fixed-point check extends each V6 seeded/hybrid solve to 1,200
+steps after every original gate, then compares all 17,822 corresponding cells
+against the baseline at the same count, without resampling or gauge alignment:
+
+| Baseline versus final relative L2 | CPU seeded | CPU hybrid | Metal seeded | Metal hybrid |
+| --- | ---: | ---: | ---: | ---: |
+| Velocity | 2.422e-7 | 4.282e-7 | 3.973e-7 | 5.143e-7 |
+| Pressure | 1.019e-5 | 6.507e-6 | 2.721e-6 | 1.171e-5 |
+| k | 3.574e-7 | 4.364e-7 | 6.212e-7 | 4.442e-7 |
+| omega | 2.117e-7 | 5.009e-7 | 3.943e-7 | 5.986e-7 |
+
+Velocity/k/omega differences remain below 1e-6. Pressure differences are below
+the configured 1e-3 inner tolerance, but do not meet a 1e-6 relative field bound.
+The original V6 accuracy/WFGC/fixed-point-drift failures remain. The optional
+CSV-export run has four extra file-open assertions; it is separate from the
+2,601-assertion original V6 gate.
+
+The allocation/batch/final-read regressions fail before the changes (14 failed
+assertions) and pass afterward. Staged/fused kernels match bitwise on CPU/Metal,
+including limiter clipping, constitutive limits and low-Re/viscosity branches.
+No acceptance assertion or tolerance was relaxed.
+
+The smaller generated 24x8x4-brick / 4,608-tet Re_H=1,000 channel does **not**
+converge in 3,000 steps on either baseline or final Metal. Its final transport
+residuals remain O(1e-2), and normalized provisional continuity is thousands.
+The benchmark now returns failure when that budget is exhausted. Consequently,
+the requested smaller **same-channel** convergence result remains unmet.
+A half-resolution 64x16x20-brick / 122,880-tet Re_H=10,000 check also fails:
+the baseline reaches the linear solver's nonfinite-input guard after reported
+checkpoint 2,840; the final run remains unconverged at 3,000 with unphysical
+loads. The failure is not limited to the smallest mesh. V6 is
+a separate converged unstructured SST diagnostic, not a substitute for that
+missing result. Fixing the synthetic channel's stability and validating real
+poly-hexcore/prism convergence remain necessary before a production speed claim.
+
+Remaining measured costs are pressure smoothing, CSR/Krylov passes and repeated
+SST reconstruction/constitutive work. No fixed momentum/turbulence sweep policy,
+face-payload compression or new reordering was adopted without evidence; the
+existing RCM order is retained. There are still 51 blocking calls/outer in the
+pilot, and actual DRAM traffic, same-channel convergence, CUDA runtime performance
+and a same-case Fluent wall-clock comparison remain unverified.
+
+Reproduction and complete evidence (source/artifact hashes, frozen protocol
+hashes, raw timings, test logs, kernel groups and numerical comparisons) are in
+[`validation/results/sst_outer_2026-10-30`](../../../validation/results/sst_outer_2026-10-30/metadata.json).
+
+```sh
+cmake -S . -B build -G Ninja && cmake --build build
+./build/bench_fv --case sst-tet --nx 128 --ny 32 --nz 40 --backend metal --repeats 3
+./build/bench_fv --case sst-tet --nx 128 --ny 32 --nz 40 --backend cpu --repeats 3
+./build/bench_fv --case sst-tet --nx 128 --ny 32 --nz 40 --backend metal --repeats 1 --profile 1
+./build/bench_fv --case sst-tet --nx 128 --ny 32 --nz 40 --viscosity .0001 --backend metal --repeats 3
+./build/bench_fv --case sst-tet --nx 24 --ny 8 --nz 4 --backend metal --converge 3000
+python3 validation/results/sst_outer_2026-10-30/analyze.py
+KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples ./build/kutta-tests --test-suite-exclude=slow
+KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples ./build/kutta-tests -ts=slow -d
+KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples ctest --test-dir build -LE slow --output-on-failure
+```
+
+### Historical 100-cubed laminar measurement
+
 `bench_fv --size 100 --repeats 3` uses a 100³-cell moving-lid box, viscosity 0.01,
 momentum relaxation 1 and pseudo-time scale 5. Mesh/solver setup and five warmup
 steps are excluded. Outer step 6 is profiled with synchronization around every

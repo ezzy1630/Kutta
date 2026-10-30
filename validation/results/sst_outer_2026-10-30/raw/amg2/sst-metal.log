@@ -1,0 +1,3 @@
+FV source=2bd6e7f58d3b7f85f1fc9ca1b8931ac1b72ef0b3
+FV_CASE case=sst-tet backend=metal device="Apple M4 Pro" source=2bd6e7f58d3b7f85f1fc9ca1b8931ac1b72ef0b3 cells=983040 faces=1987072 nx=128 ny=32 nz=40 setup_s=4.460496375
+FV_PERFORMANCE case=sst-tet backend=metal source=2bd6e7f58d3b7f85f1fc9ca1b8931ac1b72ef0b3 cells=983040 warmup=5 outer_iterations=3 profile=0 wall_s_per_outer=0.161224194333 outer_iterations_per_s=6.20254301245 host_norms_per_outer=41 downloads_per_outer=10 uploads_per_outer=6 explicit_syncs=1 allocations_per_outer=0 allocated_bytes_per_outer=0 launches_per_outer=3335 fv_logical_bytes_per_cell=0 all_logical_bytes_per_cell=0 profile_s_per_outer=0 u_iterations=2 v_iterations=1 w_iterations=1 pressure_iterations=35 k_iterations=3 omega_iterations=3

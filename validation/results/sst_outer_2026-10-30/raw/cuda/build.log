@@ -1,0 +1,99 @@
+[0/2] Re-checking globbed directories...
+[1/83] Generating kernel entry points
+[2/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/case/sexpr.cpp.o
+[3/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/core/parse.cpp.o
+[4/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/case/fluent_data.cpp.o
+[5/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/case/case_file.cpp.o
+[6/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/core/sha256.cpp.o
+[7/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/device_mesh.cpp.o
+[8/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/operators.cpp.o
+[9/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/turbulence/sst.cpp.o
+[10/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/transport.cpp.o
+[11/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/case/fluent_case.cpp.o
+[12/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/steady_solver.cpp.o
+[13/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/fluent_common.cpp.o
+[14/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/fluent_msh.cpp.o
+[15/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/mesh_io.cpp.o
+[16/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/fluent_cff.cpp.o
+[17/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/generators.cpp.o
+[18/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/plot3d.cpp.o
+[19/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/vtu.cpp.o
+[20/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/io/plot3d_nmf.cpp.o
+[21/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/csr.cpp.o
+[22/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/amg.cpp.o
+[23/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/solver.cpp.o
+[24/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/mesh/mesh.cpp.o
+[25/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/runtime/device.cpp.o
+[26/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/runtime/cpu/cpu_device.cpp.o
+[27/83] Building CXX object CMakeFiles/kutta.dir/generated/kernels_host.cpp.o
+[28/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/mesh/topology.cpp.o
+[29/83] Building CXX object CMakeFiles/kutta.dir/generated/kernels_cpu.cpp.o
+[30/83] Building CXX object CMakeFiles/kutta.dir/src/kutta/setup/fluent.cpp.o
+[31/83] Building CXX object CMakeFiles/kutta-cli.dir/src/kutta/app/main.cpp.o
+[32/83] Building CXX object CMakeFiles/bench_bandwidth.dir/bench/bench_bandwidth.cpp.o
+[33/83] Building CUDA object CMakeFiles/kutta.dir/src/kutta/runtime/cuda/cuda_device.cu.o
+[34/83] Building CXX object CMakeFiles/kutta-cli.dir/src/kutta/app/solve.cpp.o
+[35/83] Building CXX object CMakeFiles/bench_galerkin.dir/bench/bench_galerkin.cpp.o
+[36/83] Building CXX object CMakeFiles/bench_linalg.dir/bench/bench_linalg.cpp.o
+[37/83] Building CXX object CMakeFiles/bench_fv.dir/bench/bench_fv.cpp.o
+In file included from /usr/include/c++/13/bits/stl_algo.h:61,
+                 from /usr/include/c++/13/chrono:48,
+                 from /source/bench/bench_fv.cpp:2:
+/usr/include/c++/13/bits/stl_heap.h: In function 'constexpr void std::__adjust_heap(_RandomAccessIterator, _Distance, _Distance, _Tp, _Compare) [with _RandomAccessIterator = __gnu_cxx::__normal_iterator<pair<double, double>*, vector<pair<double, double> > >; _Distance = long int; _Tp = pair<double, double>; _Compare = __gnu_cxx::__ops::_Iter_less_iter]':
+/usr/include/c++/13/bits/stl_heap.h:224:5: note: parameter passing for argument of type 'std::pair<double, double>' when C++17 is enabled changed to match C++14 in GCC 10.1
+  224 |     __adjust_heap(_RandomAccessIterator __first, _Distance __holeIndex,
+      |     ^~~~~~~~~~~~~
+[38/83] Building CXX object CMakeFiles/bench_pressure.dir/bench/bench_pressure.cpp.o
+[39/83] Building CXX object CMakeFiles/bench_startup.dir/bench/bench_startup.cpp.o
+[40/83] Building CXX object CMakeFiles/bench_tmr.dir/bench/bench_tmr.cpp.o
+[41/83] Building CUDA object CMakeFiles/kutta.dir/generated/kernels_cuda.cu.o
+[42/83] Linking CXX static library libkutta.a
+[43/83] Linking CXX executable bench_bandwidth
+[44/83] Linking CXX executable bench_galerkin
+[45/83] Linking CXX executable bench_fv
+[46/83] Linking CXX executable bench_linalg
+[47/83] Linking CXX executable bench_pressure
+[48/83] Linking CXX executable kutta
+[49/83] Linking CXX executable bench_startup
+[50/83] Linking CXX executable bench_tmr
+[51/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/app/test_inspect.cpp.o
+[52/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/case/test_data.cpp.o
+[53/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/app/test_solve.cpp.o
+[54/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/case/test_real_data.cpp.o
+[55/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/core/test_parse.cpp.o
+[56/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/case/test_sexpr.cpp.o
+[57/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_device_mesh.cpp.o
+[58/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/case/test_case.cpp.o
+[59/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_flow_kernels.cpp.o
+[60/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_cavity.cpp.o
+In file included from /usr/include/c++/13/bits/stl_algo.h:61,
+                 from /usr/include/c++/13/algorithm:61,
+                 from /source/tests/fv/../../validation/cases/cavity.hpp:3,
+                 from /source/tests/fv/test_cavity.cpp:4:
+/usr/include/c++/13/bits/stl_heap.h: In function 'constexpr void std::__adjust_heap(_RandomAccessIterator, _Distance, _Distance, _Tp, _Compare) [with _RandomAccessIterator = __gnu_cxx::__normal_iterator<pair<double, double>*, vector<pair<double, double> > >; _Distance = long int; _Tp = pair<double, double>; _Compare = __gnu_cxx::__ops::_Iter_less_iter]':
+/usr/include/c++/13/bits/stl_heap.h:224:5: note: parameter passing for argument of type 'std::pair<double, double>' when C++17 is enabled changed to match C++14 in GCC 10.1
+  224 |     __adjust_heap(_RandomAccessIterator __first, _Distance __holeIndex,
+      |     ^~~~~~~~~~~~~
+[61/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_gradient.cpp.o
+[62/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_hybrid.cpp.o
+[63/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_navier_stokes.cpp.o
+[64/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_pressure_gradient.cpp.o
+[65/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_fluent_elbow.cpp.o
+[66/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_pressure_matrix.cpp.o
+[67/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_scalar.cpp.o
+[68/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_rans.cpp.o
+[69/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_steady.cpp.o
+[70/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/io/test_fluent_real.cpp.o
+[71/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/io/test_cff.cpp.o
+[72/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_tmr.cpp.o
+[73/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/linalg/test_kernels.cpp.o
+[74/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/io/test_plot3d_nmf.cpp.o
+[75/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/mesh/test_mesh.cpp.o
+[76/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/io/test_io.cpp.o
+[77/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/main.cpp.o
+[78/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/linalg/test_solvers.cpp.o
+[79/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/runtime/test_device.cpp.o
+[80/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/runtime/test_backends.cpp.o
+[81/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/turbulence/test_sst.cpp.o
+[82/83] Building CXX object CMakeFiles/kutta-tests.dir/tests/turbulence/test_fluent_sst.cpp.o
+[83/83] Linking CXX executable kutta-tests

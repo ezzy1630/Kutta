@@ -1,0 +1,788 @@
+{
+  "baseline_commit": "e21866d7c4ae9511cc65c33e7ea939f12721d7c1",
+  "benchmark_commit": "18196bfbffa05f76d93069a9f6ae60169b3e9b06",
+  "performance_commit": "c329d5d74749c20edf8126bd1bc6937c31bb8c19",
+  "checkout": "/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c",
+  "platform": {
+    "device": "Apple M4 Pro",
+    "memory_GiB": 24,
+    "os": "macOS 26.6.2 (25G83)",
+    "compiler": "AppleClang 21.0.0.21000101",
+    "configuration": "Release C++20"
+  },
+  "case": {
+    "type": "graded skewed Freudenthal tetrahedral channel",
+    "cells": 983040,
+    "faces": 1987072,
+    "bricks": [
+      128,
+      32,
+      40
+    ],
+    "domain": [
+      4,
+      1,
+      0.5
+    ],
+    "grading": 1.2,
+    "skew_amplitude": 0.015,
+    "density": 1,
+    "viscosity": 0.001,
+    "inlet_velocity": [
+      1,
+      0,
+      0
+    ],
+    "inlet_k": 0.0015,
+    "inlet_omega": 10,
+    "momentum_relaxation": 0.3,
+    "pressure_relaxation": 0.05,
+    "pseudo_time_step": 0.01,
+    "turbulence_convection": "FOU",
+    "momentum_convection": "SOU",
+    "warmup_outer": 5,
+    "throughput_outer": [
+      6,
+      7,
+      8
+    ],
+    "profile_outer": 6,
+    "reynolds_H": 1000
+  },
+  "unchanged_protocol_sha256": {
+    "tests/fv/test_cavity.cpp": "3320aee47ce40c76dd5a29fc07c240d6ddf4c1de3f6ce00db8d805f59a0f492c",
+    "tests/fv/test_navier_stokes.cpp": "a81f1ebc5231fda4ca9b3a5590720c032682f6dd6b2896f98487fe61fdb1c1b8",
+    "tests/fv/test_scalar.cpp": "7ee94e045b082b5c24c9fd04d4f3f00a836e7f0a0b59cb5b08c9b8478f96d7fb",
+    "tests/fv/test_tmr.cpp": "2bbd7dd168af7e819fe4ed7781280248999d253fbe521aa5eb950bac398ee6d3",
+    "tests/fv/test_fluent_elbow.cpp": "da250d6ed06a7bb67099ebbf8782fed741eee02c1f8dce213312a146bdae057d",
+    "validation/cases/tmr.hpp": "886ece45f58fd9e4170b3e9ba4c9b95e44ac5872be71c2b23f125e3096e014fc",
+    ".github/workflows/ci.yml": "4f04acdf39f096ccf43d42aae4ff93bee1e581cfc984cf58d9f2e6840947711f"
+  },
+  "limitations": [
+    "Channel timings are transient; coarse channel does not converge in 3000 steps.",
+    "Logical buffer-argument bytes are not measured DRAM traffic. Only timestamp Metal counters are exposed.",
+    "V6 is a separate converged unstructured SST case, not the same channel.",
+    "CUDA GPU execution and real poly-hexcore/prism performance are unverified.",
+    "Counts cover Device allocation requests, not backend/driver/host heap allocations."
+  ],
+  "performance_artifacts": {
+    "commit": "c329d5d74749c20edf8126bd1bc6937c31bb8c19",
+    "executable_sha256": {
+      "build/bench_fv": "70942e7c1eda62a4bc99dff788a023cb3a43442a6a62d2c1f3ebed6dd439d0e9",
+      "build/kutta-tests": "98a0d5de9fede4270b212bccd517a0987135c5299df394b3743aaa8ea76efb15"
+    },
+    "runs": [
+      {
+        "log": "sst-metal-1.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--backend",
+          "metal",
+          "--repeats",
+          "3",
+          "--output",
+          "build/performance/final/fields"
+        ],
+        "exit": 0
+      },
+      {
+        "log": "sst-metal-2.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--backend",
+          "metal",
+          "--repeats",
+          "3"
+        ],
+        "exit": 0
+      },
+      {
+        "log": "sst-metal-3.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--backend",
+          "metal",
+          "--repeats",
+          "3"
+        ],
+        "exit": 0
+      },
+      {
+        "log": "sst-profile-metal.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--backend",
+          "metal",
+          "--repeats",
+          "1",
+          "--profile",
+          "1"
+        ],
+        "exit": 0
+      },
+      {
+        "log": "sst-cpu.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--backend",
+          "cpu",
+          "--repeats",
+          "3",
+          "--output",
+          "build/performance/final/fields"
+        ],
+        "exit": 0
+      },
+      {
+        "log": "sst-profile-cpu.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--backend",
+          "cpu",
+          "--repeats",
+          "1",
+          "--profile",
+          "1"
+        ],
+        "exit": 0
+      },
+      {
+        "log": "fused-cpu.log",
+        "command": [
+          "./build/performance/fused/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--backend",
+          "cpu",
+          "--repeats",
+          "3"
+        ],
+        "exit": 0
+      },
+      {
+        "log": "slow.log",
+        "command": [
+          "./build/kutta-tests",
+          "-ts=slow",
+          "-d"
+        ],
+        "exit": 1
+      }
+    ]
+  },
+  "cuda": {
+    "image": "nvidia/cuda:13.0.2-devel-ubuntu24.04",
+    "image_digest": "sha256:5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6",
+    "architecture": "arm64",
+    "cuda_architectures": "75-real;86-real;89-real;120",
+    "hdf5_enabled": true,
+    "configure_build_directory": "/tmp/kutta-build",
+    "source_commit": "fa2fcac1e080336c2b8f48f18259cae5a58c7506"
+  },
+  "plotting": {
+    "matplotlib": "3.11.2",
+    "isolated_environment": "build/performance/plot-env"
+  },
+  "benchmark_harness_commit": "fa2fcac1e080336c2b8f48f18259cae5a58c7506",
+  "checks_so_far": {
+    "quick_cases": 169,
+    "quick_assertions": 1539982,
+    "ctest_entries": 2,
+    "ctest_seconds": 14.17,
+    "cuda_cpu_cases": 168,
+    "cuda_cpu_assertions": 826914,
+    "v1_v4_numerical_lines_identical": 308,
+    "v1_v4_retained_failures": 6,
+    "v6_retained_failures": 29,
+    "full_slow": {
+      "cases": 10,
+      "assertions": 3563,
+      "failed_assertions": 50,
+      "expected_exit": 1,
+      "seconds": 2636.45,
+      "v2_tet_failures": 6,
+      "v6_failures": 29,
+      "v5_failures": 15,
+      "baseline_v5_failures": 16,
+      "new_failures": 0
+    }
+  },
+  "highre_case": {
+    "type": "graded skewed Freudenthal tetrahedral channel",
+    "cells": 983040,
+    "faces": 1987072,
+    "bricks": [
+      128,
+      32,
+      40
+    ],
+    "domain": [
+      4,
+      1,
+      0.5
+    ],
+    "grading": 1.2,
+    "skew_amplitude": 0.015,
+    "density": 1,
+    "viscosity": 0.0001,
+    "inlet_velocity": [
+      1,
+      0,
+      0
+    ],
+    "inlet_k": 0.0015,
+    "inlet_omega": 10,
+    "momentum_relaxation": 0.3,
+    "pressure_relaxation": 0.05,
+    "pseudo_time_step": 0.01,
+    "turbulence_convection": "FOU",
+    "momentum_convection": "SOU",
+    "warmup_outer": 5,
+    "throughput_outer": [
+      6,
+      7,
+      8
+    ],
+    "profile_outer": 6,
+    "reynolds_H": 10000
+  },
+  "highre_runs": {
+    "solver_baseline": "e21866d7c4ae9511cc65c33e7ea939f12721d7c1",
+    "final_harness_commit": "fa2fcac1e080336c2b8f48f18259cae5a58c7506",
+    "executable_sha256": {
+      "build/performance/baseline-build/bench_fv": "370642dda15c5ac4c22c8037ab81a88f61c5820afcf9e6b8088ff0e261b6107f",
+      "build/bench_fv": "65390d2e44c503f4b6609a7f2acf4886321de9884e1b541e55186192be5f0a15"
+    },
+    "runs": [
+      {
+        "stage": "highre-baseline",
+        "log": "sst-metal-1.log",
+        "command": [
+          "./build/performance/baseline-build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "metal",
+          "--repeats",
+          "3",
+          "--output",
+          "build/performance/highre-baseline/fields"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-baseline",
+        "log": "sst-metal-2.log",
+        "command": [
+          "./build/performance/baseline-build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "metal",
+          "--repeats",
+          "3"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-baseline",
+        "log": "sst-metal-3.log",
+        "command": [
+          "./build/performance/baseline-build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "metal",
+          "--repeats",
+          "3"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-baseline",
+        "log": "sst-profile-metal.log",
+        "command": [
+          "./build/performance/baseline-build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "metal",
+          "--repeats",
+          "1",
+          "--profile",
+          "1"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-final",
+        "log": "sst-metal-1.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "metal",
+          "--repeats",
+          "3",
+          "--output",
+          "build/performance/highre-final/fields"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-final",
+        "log": "sst-metal-2.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "metal",
+          "--repeats",
+          "3"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-final",
+        "log": "sst-metal-3.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "metal",
+          "--repeats",
+          "3"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-final",
+        "log": "sst-profile-metal.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "metal",
+          "--repeats",
+          "1",
+          "--profile",
+          "1"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-baseline",
+        "log": "sst-cpu.log",
+        "command": [
+          "./build/performance/baseline-build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "cpu",
+          "--repeats",
+          "3",
+          "--output",
+          "build/performance/highre-baseline/fields"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-baseline",
+        "log": "sst-profile-cpu.log",
+        "command": [
+          "./build/performance/baseline-build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "cpu",
+          "--repeats",
+          "1",
+          "--profile",
+          "1"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-final",
+        "log": "sst-cpu.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "cpu",
+          "--repeats",
+          "3",
+          "--output",
+          "build/performance/highre-final/fields"
+        ],
+        "exit": 0
+      },
+      {
+        "stage": "highre-final",
+        "log": "sst-profile-cpu.log",
+        "command": [
+          "./build/bench_fv",
+          "--case",
+          "sst-tet",
+          "--nx",
+          "128",
+          "--ny",
+          "32",
+          "--nz",
+          "40",
+          "--viscosity",
+          ".0001",
+          "--backend",
+          "cpu",
+          "--repeats",
+          "1",
+          "--profile",
+          "1"
+        ],
+        "exit": 0
+      }
+    ]
+  },
+  "highre_baseline_build": {
+    "method": "git archive e21866d; latest benchmark harness copied into archive; only CMake benchmark version pinned to e21866d",
+    "source": "build/performance/baseline-source",
+    "binary": "build/performance/baseline-build/bench_fv",
+    "library_numerical_source": "e21866d7c4ae9511cc65c33e7ea939f12721d7c1",
+    "all_numerical_source_files_match_baseline": true
+  },
+  "field_artifacts": {
+    "build/performance/baseline/fields-metal.bin": {
+      "bytes": 31541248,
+      "sha256": "7849faa164be141219d82efedf4f0ef4ee6e0b08082132260e3bb07bd2606045"
+    },
+    "build/performance/baseline/fields-cpu.bin": {
+      "bytes": 31541248,
+      "sha256": "613ac1c38fadf6a77b13aedb5eaa72f71c0bacf5275e06218ef6200e4ebb5be8"
+    },
+    "build/performance/batching/fields-metal.bin": {
+      "bytes": 31541248,
+      "sha256": "7849faa164be141219d82efedf4f0ef4ee6e0b08082132260e3bb07bd2606045"
+    },
+    "build/performance/batching/fields-cpu.bin": {
+      "bytes": 31541248,
+      "sha256": "613ac1c38fadf6a77b13aedb5eaa72f71c0bacf5275e06218ef6200e4ebb5be8"
+    },
+    "build/performance/fused/fields-metal.bin": {
+      "bytes": 31541248,
+      "sha256": "7849faa164be141219d82efedf4f0ef4ee6e0b08082132260e3bb07bd2606045"
+    },
+    "build/performance/final/fields-metal.bin": {
+      "bytes": 31541248,
+      "sha256": "3cd9d316ad966ed8a43c6c232acff3f9c7920d0ddd030a261877f36385328019"
+    },
+    "build/performance/final/fields-cpu.bin": {
+      "bytes": 31541248,
+      "sha256": "d781bd9132fed9ccebb18978bffc51fb1ea94587b0e6ccb881725a59fcaa2835"
+    },
+    "build/performance/highre-baseline/fields-metal.bin": {
+      "bytes": 31541248,
+      "sha256": "26ddb2651495e491af3f6ed36fe6187b6be9330e72211e84a7ebfab922318eb6"
+    },
+    "build/performance/highre-baseline/fields-cpu.bin": {
+      "bytes": 31541248,
+      "sha256": "704fe33fdd1bd8ea6234ea7f4fa1ded7a2d149521c44976695926606cdb82d18"
+    },
+    "build/performance/highre-final/fields-metal.bin": {
+      "bytes": 31541248,
+      "sha256": "dbd8880ec144c06923b7a776c7c24fcd92204480bde2b6807387169a0145bb9e"
+    },
+    "build/performance/highre-final/fields-cpu.bin": {
+      "bytes": 31541248,
+      "sha256": "20617cc7144074873bcc7b804e4a985653a7bfd9cd2be0c449aca8cb84e6a412"
+    }
+  },
+  "source_sha256": {
+    "src/kutta/linalg/solver.cpp": "39c4dba22cfb152c65f7a01e80a3a74aa939e888ada0b1fbc970f284e4375994",
+    "src/kutta/fv/steady_solver.cpp": "34e44617e8099368d3577cfe9fda523c8b33b431d19b7fd6c48e680cc949ede4",
+    "src/kutta/fv/turbulence/sst.cpp": "760ce014ef7da2a4fd071738d8fae3fccd124b4dcc54179eb1960d5dc3c7b63e",
+    "src/kutta/kernels/fv_gradient.kern.h": "cf9388e62f762629339d2dcf4699110690d1c5b007b7fa6d2a109fedd937c2a2",
+    "src/kutta/kernels/sst.kern.h": "718ade7d99051af2fbf856c0507d967a570d2e8bd61c9f5ae0092b4548537aea",
+    "bench/bench_fv.cpp": "87d4d4ee6948889f5335891315604312331aeb69e85695dcf94dcdfdae7b7a8c",
+    "bench/sst_channel.hpp": "6c134ee8199e8723387ba14170705ee7dea701bd44254efa8c8d6bc04ed2dd11"
+  },
+  "bench_executable_sha256": "65390d2e44c503f4b6609a7f2acf4886321de9884e1b541e55186192be5f0a15",
+  "native_test_executable_sha256": "98a0d5de9fede4270b212bccd517a0987135c5299df394b3743aaa8ea76efb15",
+  "date": "2026-10-30",
+  "stability_checks": {
+    "4608_tet_Re1000": "baseline and final not converged in 3000",
+    "4608_tet_Re10000": "baseline and final not converged in 3000",
+    "122880_tet_Re10000": {
+      "baseline": "nonfinite-input guard after last reported checkpoint2840",
+      "final": "not converged at3000; unphysical loads"
+    }
+  },
+  "stream_before": {
+    "device": "Apple M4 Pro",
+    "backend": "metal",
+    "commit": "e21866d7c4ae9511cc65c33e7ea939f12721d7c1",
+    "array_bytes": 268435456,
+    "trials": 7,
+    "dispatches_per_stream_trial": 8,
+    "copy_GB_s": 161.443438,
+    "scale_GB_s": 161.426248,
+    "add_GB_s": 240.027608,
+    "triad_GB_s": 239.070461,
+    "sum_GB_s": 220.805683,
+    "dot_GB_s": 242.658016,
+    "max_abs_GB_s": 227.841601,
+    "small_synchronized_us": 78.232708,
+    "small_batched_us": 1.502417,
+    "zero_launch_us": 0.004675
+  },
+  "stream_after": {
+    "device": "Apple M4 Pro",
+    "backend": "metal",
+    "commit": "fa2fcac1e080336c2b8f48f18259cae5a58c7506",
+    "array_bytes": 268435456,
+    "trials": 7,
+    "dispatches_per_stream_trial": 8,
+    "copy_GB_s": 158.930367,
+    "scale_GB_s": 156.220155,
+    "add_GB_s": 210.994422,
+    "triad_GB_s": 217.274485,
+    "sum_GB_s": 222.337361,
+    "dot_GB_s": 228.326096,
+    "max_abs_GB_s": 221.382581,
+    "small_synchronized_us": 85.195875,
+    "small_batched_us": 0.987167,
+    "zero_launch_us": 0.004542,
+    "contended": true,
+    "excluded_from_roofline": true
+  },
+  "scope": {
+    "app_setup_unchanged": true,
+    "public_contract_headers_unchanged": true,
+    "pushed": false
+  },
+  "intermediate_measurement_provenance": {
+    "note": "Intermediate stages were measured before their commits; embedded FV source identifies the last committed HEAD, not the whole working tree. Final pilot and high-Re comparisons have the exact clean source and artifact identities recorded separately.",
+    "batching": {
+      "binary": "build/performance/batching/bench_fv",
+      "sha256": "6df19e8e01c78690355ab9b4e78b952c3447dae355c28d72e39d59592bd7cd41",
+      "changes": "Jacobi scratch reuse plus previous-iteration batch cap; final066600b also makes the integer cap overflow safe."
+    },
+    "fused": {
+      "binary": "build/performance/fused/bench_fv",
+      "sha256": "b9c586ceab8c2816c98733cfb10f227c7dd7f5a7a1b18c2998fdaf0e86f15901",
+      "changes": "Batching plus velocity-fit reuse and local fusions, committed in066600b and2bd6e7f."
+    },
+    "amg2": {
+      "changes": "2bd6e7f plus the SST2+2 pressure working patch, before final-residual reuse. One exploratory timing; no clean-commit claim."
+    }
+  },
+  "small_case_gate": "unmet on both4608 and122880 cell channel refinements; no accepted steady-channel solution",
+  "measurement_windows": {
+    "build/performance/highre-baseline/sst-cpu.log": {
+      "start_envelope": "2026-10-30T02:59:11.083718-07:00",
+      "end_envelope": "2026-10-30T03:00:06.312075-07:00"
+    },
+    "build/performance/highre-baseline/sst-metal-1.log": {
+      "start_envelope": "2026-10-30T02:58:08.957574-07:00",
+      "end_envelope": "2026-10-30T02:58:17.083560-07:00"
+    },
+    "build/performance/highre-baseline/sst-metal-2.log": {
+      "start_envelope": "2026-10-30T02:58:17.171074-07:00",
+      "end_envelope": "2026-10-30T02:58:25.065623-07:00"
+    },
+    "build/performance/highre-baseline/sst-metal-3.log": {
+      "start_envelope": "2026-10-30T02:58:25.096342-07:00",
+      "end_envelope": "2026-10-30T02:58:32.974730-07:00"
+    },
+    "build/performance/highre-baseline/sst-profile-cpu.log": {
+      "start_envelope": "2026-10-30T03:00:06.428514-07:00",
+      "end_envelope": "2026-10-30T03:00:53.179264-07:00"
+    },
+    "build/performance/highre-baseline/sst-profile-metal.log": {
+      "start_envelope": "2026-10-30T02:58:33.010323-07:00",
+      "end_envelope": "2026-10-30T02:58:40.915750-07:00"
+    },
+    "build/performance/highre-final/sst-cpu.log": {
+      "start_envelope": "2026-10-30T03:00:53.236917-07:00",
+      "end_envelope": "2026-10-30T03:01:37.353674-07:00"
+    },
+    "build/performance/highre-final/sst-metal-1.log": {
+      "start_envelope": "2026-10-30T02:58:40.942717-07:00",
+      "end_envelope": "2026-10-30T02:58:48.392782-07:00"
+    },
+    "build/performance/highre-final/sst-metal-2.log": {
+      "start_envelope": "2026-10-30T02:58:48.453578-07:00",
+      "end_envelope": "2026-10-30T02:58:55.956804-07:00"
+    },
+    "build/performance/highre-final/sst-metal-3.log": {
+      "start_envelope": "2026-10-30T02:58:55.988219-07:00",
+      "end_envelope": "2026-10-30T02:59:03.480689-07:00"
+    },
+    "build/performance/highre-final/sst-profile-cpu.log": {
+      "start_envelope": "2026-10-30T03:01:37.466151-07:00",
+      "end_envelope": "2026-10-30T03:02:12.341401-07:00"
+    },
+    "build/performance/highre-final/sst-profile-metal.log": {
+      "start_envelope": "2026-10-30T02:59:03.516668-07:00",
+      "end_envelope": "2026-10-30T02:59:11.038458-07:00"
+    }
+  },
+  "known_subsequent_jobs": [
+    {
+      "meaning": "Other lane V7 validation",
+      "started_local": "2026-10-30T03:02:43-07:00",
+      "checkout": "/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00"
+    },
+    {
+      "meaning": "Other lane V8 validation",
+      "started_local": "2026-10-30T03:11:23-07:00",
+      "checkout": "/Users/ezzy/.t3/worktrees/Kutta/t3-c2bfbf00"
+    }
+  ]
+}

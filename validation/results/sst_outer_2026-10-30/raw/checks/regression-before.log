@@ -1,0 +1,79 @@
+[0/2] Re-checking globbed directories...
+[1/2] Re-running CMake...
+-- Kutta HDF5 mesh reader: ON
+CMake Warning (deprecated) at build/_deps/doctest-src/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+This warning is for project developers.  Use -Wno-author or -Wno-deprecated
+to suppress it.
+
+-- Configuring done (0.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/build
+[0/4] Re-checking globbed directories...
+[1/9] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/solver.cpp.o
+[2/9] Linking CXX static library libkutta.a
+[3/9] Building CXX object CMakeFiles/kutta-cli.dir/src/kutta/app/main.cpp.o
+[4/9] Building CXX object CMakeFiles/kutta-cli.dir/src/kutta/app/solve.cpp.o
+[5/9] Linking CXX executable kutta
+[6/9] Linking CXX executable kutta-tests
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:359:
+TEST CASE:  reused transport solves allocate nothing and avoid frozen reduction batches
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:374: ERROR: CHECK( dev.allocations==allocations ) is NOT correct!
+  values: CHECK( 34 == 33 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:374: ERROR: CHECK( dev.allocations==allocations ) is NOT correct!
+  values: CHECK( 35 == 34 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:379: ERROR: CHECK( dev.device_reductions<first_reductions ) is NOT correct!
+  values: CHECK( 40 <  40 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:374: ERROR: CHECK( dev.allocations==allocations ) is NOT correct!
+  values: CHECK( 36 == 35 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:379: ERROR: CHECK( dev.device_reductions<first_reductions ) is NOT correct!
+  values: CHECK( 40 <  40 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:374: ERROR: CHECK( dev.allocations==allocations ) is NOT correct!
+  values: CHECK( 34 == 33 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:374: ERROR: CHECK( dev.allocations==allocations ) is NOT correct!
+  values: CHECK( 35 == 34 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:379: ERROR: CHECK( dev.device_reductions<first_reductions ) is NOT correct!
+  values: CHECK( 40 <  40 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:374: ERROR: CHECK( dev.allocations==allocations ) is NOT correct!
+  values: CHECK( 36 == 35 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:379: ERROR: CHECK( dev.device_reductions<first_reductions ) is NOT correct!
+  values: CHECK( 40 <  40 )
+
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:393:
+TEST CASE:  Krylov exits do not reread an already verified current residual
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:405: ERROR: CHECK( dev.reductions==4 ) is NOT correct!
+  values: CHECK( 5 == 4 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:405: ERROR: CHECK( dev.reductions==4 ) is NOT correct!
+  values: CHECK( 5 == 4 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:405: ERROR: CHECK( dev.reductions==4 ) is NOT correct!
+  values: CHECK( 5 == 4 )
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-71d11e7c/tests/linalg/test_solvers.cpp:405: ERROR: CHECK( dev.reductions==4 ) is NOT correct!
+  values: CHECK( 5 == 4 )
+
+===============================================================================
+[doctest] test cases:  2 |  0 passed |  2 failed | 177 skipped
+[doctest] assertions: 56 | 42 passed | 14 failed |
+[doctest] Status: FAILURE!
