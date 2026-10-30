@@ -98,14 +98,13 @@ void SstModel::update(const SstInputs& in) {
   auto& d = device_; auto& f = fields_; const auto& o = options_;
   kern::sst_rates(d, nc, g.u.x, g.u.y, g.u.z, g.v.x, g.v.y, g.v.z, g.w.x, g.w.y, g.w.z,
                   f.strain, f.vorticity);
-  kern::sst_blending(d, nc, in.density, in.viscosity, in.k, in.omega, mesh_.wall_distance,
+  kern::sst_blending_viscosity(d, nc, in.density, in.viscosity, in.k, in.omega, mesh_.wall_distance,
       in.k_gradient.x, in.k_gradient.y, in.k_gradient.z,
       in.omega_gradient.x, in.omega_gradient.y, in.omega_gradient.z,
-      f.f1, f.f2, f.cdkw, o.cdkw_floor, o.k_floor, o.omega_floor);
-  kern::sst_viscosity(d, nc, in.density, in.viscosity, in.k, in.omega,
-      f.strain, f.vorticity, f.f1, f.f2, f.mu_t, f.diffusivity_k, f.diffusivity_omega,
+      f.strain, f.vorticity, f.f1, f.f2, f.cdkw, f.mu_t, f.diffusivity_k, f.diffusivity_omega,
+      o.cdkw_floor, o.k_floor, o.omega_floor,
       o.low_re, o.viscosity_limiter == SstViscosityLimiter::Vorticity,
-      o.max_viscosity_ratio, o.k_floor, o.omega_floor);
+      o.max_viscosity_ratio);
   kern::sst_wall(d, nb, mesh_.owner, wall_mask_, mesh_.n_internal_faces,
       mesh_.area.x, mesh_.area.y, mesh_.area.z,
       in.velocity.x, in.velocity.y, in.velocity.z,

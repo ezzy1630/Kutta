@@ -60,6 +60,15 @@ KUTTA_KERNEL void fv_scale_gradient(int i,KIn(float) gx,KIn(float) gy,KIn(float)
   x[i]=limiter[i]*gx[i];y[i]=limiter[i]*gy[i];z[i]=limiter[i]*gz[i];
 }
 
+KUTTA_KERNEL void fv_limiter_scale(int i,KIn(int) offsets,KIn(int) adjacent,
+    KIn(float) rx,KIn(float) ry,KIn(float) rz,
+    KIn(float) cell,KIn(float) boundary,
+    KIn(float) gx,KIn(float) gy,KIn(float) gz,KOut(float) limiter,
+    KOut(float) x,KOut(float) y,KOut(float) z) {
+  fv_limiter(i,offsets,adjacent,rx,ry,rz,cell,boundary,gx,gy,gz,limiter);
+  fv_scale_gradient(i,gx,gy,gz,limiter,x,y,z);
+}
+
 // Single pass only: iterating this correction feeds jumps back into themselves.
 KUTTA_KERNEL void fv_jump_gradient(int i,KIn(int) offsets,KIn(int) faces,KIn(int) adjacent,KIn(float) sign,
     KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) inverse,

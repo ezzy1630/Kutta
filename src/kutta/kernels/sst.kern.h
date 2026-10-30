@@ -85,6 +85,23 @@ KUTTA_KERNEL void sst_viscosity(int i,
   gamma_w[i] = mu[i] + mt * sst_inv_sigma_w(f1[i]);
 }
 
+// These cell-local stages have no neighbour dependency. Retain their separate
+// entrypoints as numerical oracles; the fused path keeps the same float stores.
+KUTTA_KERNEL void sst_blending_viscosity(int i,
+    KIn(float) rho, KIn(float) mu, KIn(float) k, KIn(float) omega, KIn(float) distance,
+    KIn(float) kx, KIn(float) ky, KIn(float) kz,
+    KIn(float) ox, KIn(float) oy, KIn(float) oz,
+    KIn(float) strain, KIn(float) vorticity,
+    KOut(float) f1, KOut(float) f2, KOut(float) cdkw,
+    KOut(float) mut, KOut(float) gamma_k, KOut(float) gamma_w,
+    float cd_floor, float k_floor, float omega_floor,
+    int low_re, int use_vorticity, float max_ratio) {
+  sst_blending(i,rho,mu,k,omega,distance,kx,ky,kz,ox,oy,oz,
+    f1,f2,cdkw,cd_floor,k_floor,omega_floor);
+  sst_viscosity(i,rho,mu,k,omega,strain,vorticity,f1,f2,mut,gamma_k,gamma_w,
+    low_re,use_vorticity,max_ratio,k_floor,omega_floor);
+}
+
 KUTTA_KERNEL void sst_wall(int i,
     KIn(int) owner, KIn(int) wall, int n_internal,
     KIn(float) ax, KIn(float) ay, KIn(float) az,

@@ -255,14 +255,16 @@ struct SteadySolver::Impl {
     sst->update({velocity,{strain_gradient[0],strain_gradient[1],strain_gradient[2]},rho_cell,mu_cell,
       kinetic,omega,k_equation->grad,omega_equation->grad,boundary_velocity});
   }
-  void update_turbulence() {
+  void update_turbulence(bool velocity_changed=true) {
     if(!sst) return;
-    vector_gradient(dev,mesh,stencil,strain_lsq,velocity,boundary_velocity,
-      strain_base[0],strain_base[1],strain_base[2]);
-    const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
-    const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
-    for(int k=0;k<3;++k)
-      jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],strain_base[k],strain_gradient[k]);
+    if(velocity_changed) {
+      vector_gradient(dev,mesh,stencil,strain_lsq,velocity,boundary_velocity,
+        strain_base[0],strain_base[1],strain_base[2]);
+      const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+      const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+      for(int k=0;k<3;++k)
+        jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],strain_base[k],strain_gradient[k]);
+    }
     evaluate_turbulence(); // bootstrap gradient-independent wall-face omega
     turbulence_boundaries();
     gradient(dev,mesh,stencil,k_lsq,kinetic,boundary_k,k_equation->grad);
@@ -273,7 +275,6 @@ struct SteadySolver::Impl {
   }
   void add_transpose_stress() {
     if(!sst) return;
-    reconstruct_velocity();
     const auto& u=momentum[0]->grad;const auto& v=momentum[1]->grad;const auto& w=momentum[2]->grad;
     kern::fv_transpose_stress(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,mesh.weight,viscosity,
       mesh.area.x,mesh.area.y,mesh.area.z,u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,
@@ -306,7 +307,9 @@ struct SteadySolver::Impl {
     update_boundaries();update_turbulence();assemble_turbulence(false);
     report.turbulence[0]=k_equation->solve(kinetic,settings.sst->linear);
     kern::fv_floor(dev,mesh.n_cells,kinetic,settings.sst->model.k_floor);
-    update_turbulence();assemble_turbulence(true);
+    // k changed; velocity and its boundary values did not. Keep the derivative
+    // gradients used for strain/production, while refreshing both scalar fits.
+    update_turbulence(false);assemble_turbulence(true);
     report.turbulence[1]=omega_equation->solve(omega,settings.sst->linear);
     kern::fv_floor(dev,mesh.n_cells,omega,settings.sst->model.omega_floor);
   }
@@ -364,9 +367,13 @@ struct SteadySolver::Impl {
     const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
     for(int k=0;k<3;++k) {
       auto& eq=*momentum[k];auto& g=limited_gradient[k];
-      if(settings.limit) limit_gradient(dev,mesh,stencil,*q[k],*bc[k],eq.grad,eq.limiter);
-      else dev.fill(eq.limiter,1);
-      kern::fv_scale_gradient(dev,mesh.n_cells,eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
+      if(settings.limit) kern::fv_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
+        stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*bc[k],
+        eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
+      else {
+        dev.fill(eq.limiter,1);
+        kern::fv_scale_gradient(dev,mesh.n_cells,eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
+      }
     }
     const auto& gu=limited_gradient[0];const auto& gv=limited_gradient[1];const auto& gw=limited_gradient[2];
     kern::fv_momentum_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
@@ -388,7 +395,7 @@ struct SteadySolver::Impl {
     kern::fv_momentum_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
       mesh.area.x,mesh.area.y,mesh.area.z,face_pressure,mesh.volume,body.x,body.y,body.z,
       source.x,source.y,source.z);
-    add_transpose_stress();
+    reconstruct_velocity();add_transpose_stress();
     TransportSettings transport;
     transport.convection=settings.convection;transport.limit=settings.limit;
     transport.density=float(settings.density);transport.pseudo_time_step=time_step;
@@ -396,7 +403,6 @@ struct SteadySolver::Impl {
     Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
     const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
     const Buffer<float>* src[]{&source.x,&source.y,&source.z};
-    reconstruct_velocity();
     for(int k=0;k<3;++k) {
       momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport,wall_terms(k));
       report.momentum[k]=momentum[k]->solve(*q[k],settings.momentum_linear);
@@ -432,12 +438,11 @@ struct SteadySolver::Impl {
     kern::fv_momentum_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
       mesh.area.x,mesh.area.y,mesh.area.z,face_pressure,mesh.volume,body.x,body.y,body.z,
       source.x,source.y,source.z);
-    add_transpose_stress();
+    reconstruct_velocity();add_transpose_stress();
     TransportSettings transport;
     transport.convection=settings.convection;transport.limit=settings.limit;
     transport.density=float(settings.density);transport.pseudo_time_step=time_step;
     transport.relaxation=float(settings.momentum_relaxation);
-    reconstruct_velocity();
     // The components share one CSR value buffer, so each residual must follow
     // its own assembly.
     momentum[0]->assemble_reconstructed(velocity.x,boundary_velocity.x,scalar_kind,mass,viscosity,source.x,transport,wall_terms(0));

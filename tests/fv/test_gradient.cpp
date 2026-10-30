@@ -1,5 +1,6 @@
 #include <iostream>
 #include <limits>
+#include "kernels.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
 #include "../backend_helpers.hpp"
@@ -197,5 +198,29 @@ TEST_CASE("FV jump derivative satisfies independent face-row normal equations") 
       CHECK(norm(lhs-rhs)<3e-6);
     }
     CHECK(nonzero>.01);
+  }
+}
+
+TEST_CASE("fused limiter and scaling preserve staged reconstruction") {
+  const auto host=make_box_tet(4,3,2,{0,0,0},{1,.5,.25});
+  const auto geom=compute_geometry(host);
+  std::vector<float> cell,boundary;
+  const auto value=[](Vec3d p) {return float(std::sin(11*p.x)+.7*p.y*p.z);};
+  for(auto p:geom.cell_centroid) cell.push_back(value(p));
+  for(Index f=host.n_internal_faces();f<host.n_faces();++f) boundary.push_back(value(geom.face_centroid[f]));
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=upload_mesh(*dev,host,geom);auto s=fv::make_stencil(*dev,host,geom);
+    auto q=dev->upload<float>(cell),bc=dev->upload<float>(boundary);
+    auto g=fv::vector_field(*dev,m.n_cells),staged=fv::vector_field(*dev,m.n_cells),fused=fv::vector_field(*dev,m.n_cells);
+    auto psi=dev->alloc<float>(m.n_cells),fused_psi=dev->alloc<float>(m.n_cells);
+    fv::gradient(*dev,m,s,q,bc,g);
+    fv::limit_gradient(*dev,m,s,q,bc,g,psi);
+    kern::fv_scale_gradient(*dev,m.n_cells,g.x,g.y,g.z,psi,staged.x,staged.y,staged.z);
+    kern::fv_limiter_scale(*dev,m.n_cells,m.cell_face_offsets,s.adjacent,
+      s.face_delta.x,s.face_delta.y,s.face_delta.z,q,bc,g.x,g.y,g.z,fused_psi,fused.x,fused.y,fused.z);
+    CHECK(dev->download(psi)==dev->download(fused_psi));
+    CHECK(dev->download(staged.x)==dev->download(fused.x));
+    CHECK(dev->download(staged.y)==dev->download(fused.y));
+    CHECK(dev->download(staged.z)==dev->download(fused.z));
   }
 }

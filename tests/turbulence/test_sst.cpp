@@ -1,5 +1,6 @@
 #include <cmath>
 #include <limits>
+#include "kernels.hpp"
 
 #include "../backend_helpers.hpp"
 #include "support.hpp"
@@ -14,6 +15,35 @@ double gamma1994(double f1) {
   return f1*(.075/.09 - .41*.41/(2*.3)) + (1-f1)*(.0828/.09 - .41*.41/(1.168*.3));
 }
 }  // namespace
+
+TEST_CASE("fused SST constitutive update equals staged kernels on every backend") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    constexpr int n=97;
+    std::vector<float> positive(n),signed_values(n),distance(n);
+    for(int i=0;i<n;++i) {
+      positive[i]=std::pow(10.f,float(i%17-8));
+      signed_values[i]=float(i%13-6)*.017f;
+      distance[i]=std::pow(10.f,float(i%11-5));
+    }
+    distance.back()=std::numeric_limits<float>::infinity();
+    auto rho=filled(*dev,n,1.2f),mu=filled(*dev,n,1.8e-5f);
+    auto k=dev->upload<float>(positive),omega=dev->upload<float>(positive);
+    auto d=dev->upload<float>(distance),g=dev->upload<float>(signed_values);
+    auto rate=filled(*dev,n,7.3f),vorticity=filled(*dev,n,11.1f);
+    std::array<Buffer<float>,6> staged,fused;
+    for(auto* out:{&staged,&fused}) for(auto& q:*out) q=dev->alloc<float>(n);
+    for(int low_re:{0,1}) for(int use_vorticity:{0,1}) for(float cap:{2.f,1e5f}) {
+      kern::sst_blending(*dev,n,rho,mu,k,omega,d,g,g,g,g,g,g,
+        staged[0],staged[1],staged[2],1e-10f,1e-14f,1e-20f);
+      kern::sst_viscosity(*dev,n,rho,mu,k,omega,rate,vorticity,staged[0],staged[1],
+        staged[3],staged[4],staged[5],low_re,use_vorticity,cap,1e-14f,1e-20f);
+      kern::sst_blending_viscosity(*dev,n,rho,mu,k,omega,d,g,g,g,g,g,g,rate,vorticity,
+        fused[0],fused[1],fused[2],fused[3],fused[4],fused[5],
+        1e-10f,1e-14f,1e-20f,low_re,use_vorticity,cap);
+      for(std::size_t j=0;j<staged.size();++j) CHECK(dev->download(staged[j])==dev->download(fused[j]));
+    }
+  }
+}
 
 TEST_CASE("SST constants, F1/F2 limits, signed cross diffusion and implicit sinks") {
   KUTTA_FOR_EACH_BACKEND(dev) {
