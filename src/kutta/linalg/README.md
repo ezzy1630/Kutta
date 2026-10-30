@@ -1,8 +1,9 @@
 CSR operations, Krylov iteration, smoothing, transfer and coarse-operator refresh
 use Device buffers and generated kernels. The host builds aggregation structure
-once. Solve/refresh do not download or traverse device arrays; scalar reductions
-are blocking host round-trips. Kernels gather, own their output row/entry, use
-float arithmetic and require no atomics.
+once. Solve/refresh do not download or traverse field arrays. Iteration scalars,
+nullspace sums and optional K-cycle corrections stay on the device; the host
+polls a three-int status buffer between batches. Kernels gather, own their output
+row/entry, use float arithmetic and require no atomics.
 
 A normal caller uploads one matrix and reuses the solver:
 
@@ -75,8 +76,8 @@ one-level failure, not every permutation-dependent difference in quality.
 Isolated diagonal rows have aggregate -1, receive smoothing, and are omitted
 from restriction/prolongation and the coarse grid. Only connected rows count
 in the 0.85 coarsening-stall check. Defaults stop at <=24 rows or 24 levels;
-the coarsest solve is 32 device sweeps. A connected graph that stalls falls
-back to smoothing at its current size.
+the coarsest solve is 32 device sweeps, fused into one dispatch at <=24 rows.
+A connected graph that stalls falls back to smoothing at its current size.
 
 Interpolation is piecewise constant, restriction its transpose. Each coarse
 entry owns a sorted list of contributing fine entries, implementing
@@ -97,17 +98,31 @@ Reductions, exits and storage
 
 SolveControl uses `max(abs_tol, rel_tol * initial_residual)`. Norms are absolute
 L2 norms of b-A*x, including nonzero initial guesses. Device reductions return
-double, using double accumulation on CPU/CUDA and compensated float pairs on
-Metal. Residual kernels use Neumaier summation and Dekker product correction
-in float; above 1e30 the product correction falls back to a rounded product to
+double when requested by the host. Asynchronous `sum_into`, `dot_into` and
+`dot2_into` write normalized `(hi, lo)` float pairs to a caller-owned device
+buffer. CPU/CUDA accumulate in FP64; Metal uses compensated pairs including FMA
+product residuals. Both stages have fixed reduction order and no atomics. Scalar
+kernels retain both words through coefficient arithmetic before rounding the
+coefficient to float. Pairs have about 48 significant bits and float's exponent
+range; solver fields still need O(1) scaling on Metal. Residual kernels use
+Neumaier summation and Dekker product correction in float; above 1e30 the product correction falls back to a rounded product to
 avoid splitting overflow. Backends must preserve expression order and disable
 fast-math reassociation.
 
-BiCGStab caches ||s|| once per iteration. Jacobi still computes the residual
-field every sweep, but checks its norm every residual_check_interval sweeps
-(default 8), and on the final sweep. This is additive to SolveControl; the
-existing three-field aggregate initialization remains valid. Iterations count
-attempted Krylov updates or Jacobi sweeps; a satisfied initial tolerance takes
+All solvers honor `residual_check_interval` (default 8). PCG/BiCGStab evaluate
+recursive norms and coefficient/breakdown guards on the device every update,
+then poll status once per batch. A convergence candidate, divergence candidate,
+or 50-update reliable replacement freezes updates until the host verifies the
+full stored operator's residual. Frozen dispatches do not count as iterations;
+large stencil/preconditioner sweeps skip their memory work. A failed candidate
+within ten times the requested target switches recovery to one-update batches,
+avoiding unused queued cycles near a float storage floor. This changes polling,
+not the target or acceptance test. BiCGStab fuses t.t and t.s in one reduction.
+The optional K-cycle also evaluates its adaptive exit and scalar guards on the
+device. Jacobi still computes its residual field every sweep and verifies its
+norm every batch and on the final sweep. The existing three-field aggregate
+initialization remains valid. Iterations count attempted Krylov updates or
+Jacobi sweeps; a satisfied initial tolerance takes
 zero updates. A verified residual above 1000 times the initial residual, or a
 nonfinite residual, exits with converged=false. Numerical exits restore the
 best *verified* x, including the initial guess, rather than returning a worse
@@ -121,7 +136,139 @@ residual, including max_iter=0. Invalid CSR/control, nonfinite inputs,
 incompatible Neumann forcing and invalid diagonals throw Error. The one-row
 7*x=1 test prevents false convergence below float representability.
 
-Measured reduction/allocation regressions, before -> after:
+Device-scalar batching measurements (2026-10-29)
+------------------------------------------------
+
+Machine: Apple M4 Pro, 14-core CPU, 24 GB, macOS 26.6.2 (25G83), AppleClang 21,
+Release CMake/Ninja build. Same deterministic benchmark RHS and matrix family.
+Before: `bdbb18a77b8feebb75b8a1af54f6d1e71792c8d4`; after:
+`0430a94d64921824833e96d12ea9233c53e7d363`, descended from that base.
+Times below are **best of three** sequential runs per phase (setup/refresh
+excluded). Raw records, including every sample, full residuals, source identities
+and blocking/asynchronous reduction counts, are in
+[benchmarks-device-scalars.jsonl](benchmarks-device-scalars.jsonl).
+No convergence tolerance or test threshold changed. Commands for each sample:
+
+```sh
+cmake -S . -B build -G Ninja && cmake --build build
+./build/bench_linalg
+./build/bench_linalg --small 64 --large 64 --wind 20
+```
+
+Both commands run CPU and Metal. Default V5, rel_tol=1e-6, abs_tol=1e-12,
+max_iter=2000, residual_check_interval=8. The default command also records the
+anisotropic 64^3 case. Benchmark solve times include the final synchronization.
+Baseline sample 1 overlapped the initial test-suite run; samples 2/3 and the
+final three after samples had no other task-owned checks running.
+
+| Backend | Case / solver | Before ms | After ms | Speedup | Iterations before / after | Final relative residual before / after |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| metal | 64^3, AmgPcg | 35.65 | 19.43 | 1.83x | 15 / 15 | 7.86701089e-07 / 7.86701089e-07 |
+| metal | 128^3, AmgPcg | 229.11 | 215.35 | 1.06x | 21 / 21 | 8.61293301e-07 / 8.61293301e-07 |
+| metal | 64^3, wind 20, BicgstabJacobi | 94.09 | 38.95 | 2.42x | 69 / 69 | 6.52857681e-07 / 6.52857681e-07 |
+| metal | 64^3, wind 20, AmgBicgstab | 31.34 | 18.26 | 1.72x | 7 / 7 | 7.49268702e-07 / 7.49268736e-07 |
+| metal | 64^3, PcgJacobi | 170.60 | 79.19 | 2.15x | 278 / 278 | 6.83041863e-07 / 6.83041863e-07 |
+| metal | 128^3, PcgJacobi | 1016.03 | 830.00 | 1.22x | 640 / 640 | 7.16956407e-07 / 7.16956407e-07 |
+| cpu | 64^3, AmgPcg | 653.82 | 717.33 | 0.91x | 15 / 15 | 7.86701089e-07 / 7.86701089e-07 |
+| cpu | 128^3, AmgPcg | 7521.80 | 8099.05 | 0.93x | 21 / 21 | 8.61293301e-07 / 8.61293301e-07 |
+| cpu | 64^3, wind 20, BicgstabJacobi | 196.26 | 223.68 | 0.88x | 69 / 69 | 6.52857681e-07 / 6.52857681e-07 |
+| cpu | 64^3, wind 20, AmgBicgstab | 609.88 | 691.53 | 0.88x | 7 / 7 | 7.49268702e-07 / 7.49268736e-07 |
+| cpu | 64^3, PcgJacobi | 386.57 | 452.23 | 0.85x | 278 / 278 | 6.83041863e-07 / 6.83041863e-07 |
+| cpu | 128^3, PcgJacobi | 7258.99 | 7977.55 | 0.91x | 640 / 640 | 7.16956407e-07 / 7.16956407e-07 |
+
+All these cases converge. Iteration counts are unchanged. Pressure and
+Jacobi-BiCGStab final residuals match at the recorded precision. AMG-BiCGStab's
+relative residual changes by 3.5e-14 absolute (4.6e-8 relative), consistent with
+retaining about 48 rather than 53 coefficient bits in the device pair format.
+The final norm is still freshly computed from b-A*x with the host double-return
+reduction API. The exact CPU/Metal comparison regressions remain bitwise equal.
+
+The serial CPU oracle is 8-17% slower on these cases: it executes the same scalar
+state, guard kernels and frozen dispatch loops, without a GPU wait to remove.
+Metal gains most on the scalar-heavy Jacobi Krylov solvers. At 128^3 the default
+V-cycle already had no internal waits, so removing the 63 ordinary scalar waits
+cannot account for most of its 229 ms baseline. The final implementation also
+skips frozen memory sweeps, finishes reductions with a parallel tree, and fuses
+coarse sweeps and smoothing. AMG smoothing uses alternating uniquely owned buffers and
+the identical compensated residual arithmetic, removing one memory pass and
+one dispatch per sweep. The <=24-row coarsest solve uses one owning thread and
+local Jacobi arrays, with exactly the same 32 simultaneous sweep updates.
+Larger coarsest levels retain the device sweep fallback.
+
+The anisotropic forcing still does not converge at 1e-6: AMG-PCG takes 38
+iterations and returns 1.51462927e-6 before and after. Metal improves from
+69.63 to 57.92 ms; CPU changes from 1716.40 to 1808.91 ms. Recovery preserves
+the verified best iterate and never reports that storage floor as convergence.
+
+Synchronization inventory (Device call trace plus instrumented solve counts):
+
+| Ordinary iteration or cycle | Before: blocking scalar reads | After: blocking scalar reads |
+| --- | ---: | ---: |
+| Fixed-preconditioner PCG iteration | 3 (p.Ap, r.r, next r.z); initial r.z once | 0; device coefficients and norms |
+| Flexible PCG outer recurrence | 4, plus recursive K-cycle work | 0 |
+| Full BiCGStab iteration | 6 (rho, rhat.v, s.s, t.t, t.s, r.r); s-only exit uses 3 | 0; t.t/t.s fused |
+| Jacobi sweep | 1 every 8 sweeps, plus final check | same |
+| V-cycle, NullSpace::None, including coarsest | 0 | 0 |
+| V-cycle constant projection, L levels | 2(L-1), plus 1 fine correction sum at Krylov boundary | 0 |
+| Optional K-cycle inner correction, excluding recursion/projection | 4 at early exit, up to 7 for both corrections | 0 |
+| Coarsest 32-sweep solve | 0; 64 residual/update dispatches | 0; 1 dispatch at <=24 rows |
+
+Alpha/beta/omega were host calculations fed by those reads; their ratios, signs,
+zero/NaN/range guards now run on device pairs. Only the outer batch boundary
+polls the three-int phase/count/short-step state. Convergence candidates freeze
+updates, so polling at iteration 16 can truthfully report 15 attempted updates.
+Reliable verification and best-x restoration retain their actual-residual
+semantics, including max_iter=0, negative curvature and numerical breakdowns.
+
+Whole-solve blocking calls below include input/final norm reads, status polls,
+and the one boundary upload of scalar thresholds; they exclude setup, refresh
+and the benchmark's final timing synchronize. CPU counts are the same API costs,
+not GPU waits. Metal's bounded command-buffer backpressure may also wait after
+8 pending 256-dispatch buffers; ordinary V-cycle batches stay below that bound.
+Long K-cycle batches can still reach that resource-retention bound.
+
+| Case | Before | After host norms | After status polls | After boundary uploads | After total |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 64^3 AmgPcg | 50 | 5 | 2 | 1 | 8 |
+| 128^3 AmgPcg | 68 | 5 | 3 | 1 | 9 |
+| 64^3 BicgstabJacobi wind 20 | 420 | 6 | 10 | 1 | 17 |
+| 64^3 AmgBicgstab wind 20 | 44 | 5 | 1 | 1 | 7 |
+| 64^3 PcgJacobi | 845 | 11 | 63 | 1 | 75 |
+| 128^3 PcgJacobi | 1938 | 18 | 210 | 1 | 229 |
+
+Verification on the implementation above:
+
+- `cmake -S . -B build -G Ninja && cmake --build build && ./build/kutta-tests`:
+  **127 tests / 1,439,199 assertions pass on CPU and Metal**.
+- `ctest --test-dir build --output-on-failure`: both the full suite and
+  `lint-portability` pass. Initially the untouched baseline had one missing-file
+  inventory failure; all external Fluent examples were fetched from their
+  documented source and verified against SOURCE.md hashes. No acceptance test
+  was weakened or excluded from the native run.
+- New tests cover device sum/dot/fused-dot precision, empty reductions,
+  cancellation, scratch reuse and deterministic repeats; exact zero-omega and
+  zero-shadow-product BiCGStab breakdowns at batch sizes 1/8/31; zero/NaN/Inf
+  rho/omega guards; K/V-cycle and Neumann host-call budgets; and exact fused
+  coarse/smoothing equivalence with ordinary Jacobi sweeps.
+- Docker `nvidia/cuda:13.0.2-devel-ubuntu24.04` (local arm64 image) compiles the
+  entire project with `-DKUTTA_ENABLE_CUDA=ON`,
+  `-DCMAKE_CUDA_ARCHITECTURES="75-real;86-real;89-real;120"` and
+  `-DKUTTA_ENABLE_HDF5=OFF`; the focused CPU-oracle selection passes 14 tests /
+  155 assertions. The CI configure with HDF5 enabled stopped in pre-existing
+  `case/hdf5.hpp`: Ubuntu's HDF5 lacks `H5L_info2_t`/`H5Lget_info2`. The optional
+  reader was disabled for the CUDA compile check; its source was not changed.
+  CUDA runtime correctness/performance remains unverified: no NVIDIA GPU here.
+- `LinearSolver` public signatures, Buffer element types and convergence
+  tolerances are unchanged. No files under `src/kutta/fv/**` were changed, and
+  the other branch's FV flow benchmark was not available for measurement.
+
+Historical measurements before device-scalar batching
+----------------------------------------------------
+
+The following measurements and verification counts predate the device-scalar
+work described above. The current comparison is recorded separately above.
+
+Measured reduction/allocation regressions in that earlier work, before -> after:
 
 | Check | Before | After |
 | --- | ---: | ---: |
@@ -288,8 +435,8 @@ supports a storage-rounding explanation, not a proof of the minimum residual
 over all float vectors. The requested 1e-6 remains unmet on that forcing;
 higher-precision solution storage would require a deliberate contract change.
 
-Verification
-------------
+Historical verification
+-----------------------
 
 All **34 tests / 1,254,455 assertions pass on CPU and Metal**. A separate
 CPU Debug AddressSanitizer + UndefinedBehaviorSanitizer build passes all
