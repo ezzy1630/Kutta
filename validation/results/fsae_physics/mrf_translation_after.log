@@ -1,0 +1,8 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FSAE V9.3 backend=cpu velocity_L2=0.00452067 pressure_relative_L2=0.00303022
+FSAE V9.3 backend=metal velocity_L2=0.00452067 pressure_relative_L2=0.00303022
+===============================================================================
+[doctest] test cases:  2 |  2 passed | 0 failed | 194 skipped
+[doctest] assertions: 33 | 33 passed | 0 failed |
+[doctest] Status: SUCCESS!

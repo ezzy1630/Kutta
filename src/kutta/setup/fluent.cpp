@@ -1,4 +1,5 @@
 #include "kutta/setup/fluent.hpp"
+#include "kutta/setup/fluent_physics.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -98,12 +99,12 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   require(c.viscous.model==ViscousModel::kw_sst,"viscous-model (requires SST)");
   require(c.mesh.cells && *c.mesh.cells==std::uint64_t(mesh.n_cells),"mesh/cell-count");
   FluentSetup out;auto& s=out.settings;const auto& n=c.numerics;const auto& t=c.viscous;
+  try {s.cell_zone_physics=fluent_zone_physics(c);} catch(const Error& e) {errors.push_back(e.what());}
   require(!c.cell_zones.empty(),"cell zones");
   std::optional<double> rho,mu;
   for(const auto& z:c.cell_zones) {
     const auto prefix="zone/"+std::to_string(z.id)+"/";
-    require(z.type==ZoneType::fluid,prefix+"type");require(z.frame_motion==false,prefix+"mrf-motion?");
-    require(z.porous==false,prefix+"porous?");require(z.laminar==false,prefix+"laminar?");
+    require(z.type==ZoneType::fluid,prefix+"type");require(z.laminar==false,prefix+"laminar?");
     const auto it=std::find_if(c.materials.begin(),c.materials.end(),[&](const auto& m){return z.material==m.name;});
     require(it!=c.materials.end(),prefix+"material");
     if(it==c.materials.end()) continue;
@@ -194,6 +195,16 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   }
   require(!flag(c.config,"rp-des?"),"rp-des?");
   s.reference_point={number(c.variables,"pressure-reference/x"),number(c.variables,"pressure-reference/y"),number(c.variables,"pressure-reference/z")};
+  for(const auto& z:c.boundaries) if(z.type==ZoneType::fan)
+    require(false,"zone/"+std::to_string(z.id)+"/"+z.fluent_type,
+      "the fan polynomial solver path is analytic-verified; native Fluent fan polynomial input conventions still require a reference fixture");
+  for(const auto& z:c.boundaries) if(z.type==ZoneType::porous_jump) {
+    const auto key="zone/"+std::to_string(z.id)+"/";
+    out.settings.interior_conditions.push_back({int(z.id),PorousJump{
+      scalar(z.jump_permeability,key+"alpha"),scalar(z.jump_thickness,key+"dm"),scalar(z.jump_inertial,key+"c2")}});
+    const auto face_zone=std::find_if(mesh.internal_face_zones.begin(),mesh.internal_face_zones.end(),[&](const auto& f){return f.source_zone_id==z.id;});
+    require(face_zone!=mesh.internal_face_zones.end(),key+"identity","porous jump requires retained internal face-zone metadata");
+  }
   for(const auto& patch:mesh.patches) {
     const auto it=std::find_if(c.boundaries.begin(),c.boundaries.end(),[&](const auto& z){return z.id==patch.source_zone_id;});
     require(it!=c.boundaries.end() && it->name==patch.name,"mesh/patch identity: "+patch.name);
@@ -203,10 +214,11 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
     require(patch.size>0,prefix+"empty patch");
     if(patch.size<=0) continue;
     if(z.type==ZoneType::wall) {
-      require(z.wall_motion==WallMotion::stationary,prefix+"motion-bc","only stationary walls are supported");
+      require(z.wall_motion!=WallMotion::rotating,prefix+"motion-bc",
+        "native rotating-wall support held: V7.2 polyhedral pressure accuracy still exceeds the 1% gate; the C++ verification path remains available");
       require(z.specified_shear==false && z.shear_bc==0 && z.rough_bc==0,prefix+"shear-bc","requires specified-shear?=false, shear-bc=0 and rough-bc=0");
       require(scalar(z.roughness_height,prefix+"roughness-height")==0,prefix+"roughness-height");
-      out.boundaries.push_back({patch.name,Wall{}});
+      try {out.boundaries.push_back({patch.name,fluent_wall(z)});} catch(const Error& e) {errors.push_back(e.what());}
     } else if(z.type==ZoneType::symmetry) out.boundaries.push_back({patch.name,Symmetry{}});
     else if(z.type==ZoneType::velocity_inlet) {
       require(z.frame_of_reference==0,prefix+"frame-of-reference");
@@ -230,6 +242,21 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
       const auto type=required(z.backflow_pressure_spec,prefix+"p-backflow-spec");require(type==0 || type==1,prefix+"p-backflow-spec");
       out.boundaries.push_back({patch.name,PressureOutlet{scalar(z.gauge_pressure,prefix+"p"),NormalBackflow{},
         type==0?BackflowPressure::Total:BackflowPressure::Static,turbulence(z)}});
+    } else if(z.type==ZoneType::pressure_inlet || z.type==ZoneType::mass_flow_inlet) {
+      require(z.prevent_reverse_flow!=true,prefix+"prevent-reverse-flow?","reverse-flow suppression is unsupported");
+      require(z.frame_of_reference==0,prefix+"frame-of-reference","only absolute inlet data is implemented");
+      require(z.direction_spec==0 || z.direction_spec==1,prefix+"direction-spec","only Cartesian direction or inward normal is implemented");
+      std::optional<Vec3d> direction;
+      if(z.direction_spec==0) {direction=vector(z.direction,prefix+"direction");require(norm(*direction)>0,prefix+"direction");}
+      if(z.type==ZoneType::pressure_inlet) out.boundaries.push_back({patch.name,PressureInlet{scalar(z.total_pressure,prefix+"p0"),direction,turbulence(z)}});
+      else {
+        require(z.mass_flow_spec==0 || z.mass_flow_spec==1,prefix+"flow-spec","only uniform mass-flow rate or uniform mass flux are implemented");
+        double rate=0;
+        if(z.mass_flow_spec==0) rate=scalar(z.mass_flow,prefix+"mass-flow");
+        else {const auto geometry=compute_geometry(mesh);double area=0;for(Index f=patch.start;f<patch.start+patch.size;++f) area+=norm(geometry.face_area[f]);rate=area*scalar(z.mass_flux,prefix+"mass-flux");}
+        require(rate>=0,prefix+"mass-flow","negative mass-flow inlet is unsupported");
+        out.boundaries.push_back({patch.name,MassFlowInlet{rate,direction,turbulence(z)}});
+      }
     } else require(false,prefix+"type");
   }
   finish();return out;
@@ -295,6 +322,16 @@ Initialization initial_fields(const FluentCase& c,const PolyMesh& mesh) {
   CellFields out;out.velocity.assign(mesh.n_cells,{v.number(c.variables,"x-velocity/default"),v.number(c.variables,"y-velocity/default"),v.number(c.variables,"z-velocity/default")});
   out.pressure.assign(mesh.n_cells,v.number(c.variables,"pressure/default"));
   out.k.assign(mesh.n_cells,v.number(c.variables,"k/default"));out.omega.assign(mesh.n_cells,v.number(c.variables,"omega/default"));
+  // BEGIN FSAE physics: Fluent standard initialization may be relative even
+  // when the transported solution variables are absolute velocities.
+  if(std::any_of(c.cell_zones.begin(),c.cell_zones.end(),[](const auto& z){return z.frame_motion==true;})) {
+    const bool relative=v.flag(c.variables,"init-relative?");
+    try {
+      const auto physics=fluent_zone_physics(c);const auto frames=cell_frames(mesh,physics);const auto geometry=compute_geometry(mesh);
+      if(relative) for(Index i=0;i<mesh.n_cells;++i) out.velocity[i]=out.velocity[i]+frames[i].velocity(geometry.cell_centroid[i]);
+    } catch(const Error& e) {v.require(false,"initialization/frame",e.what());}
+  }
+  // END FSAE physics
   v.require(out.k.empty() || out.k.front()>=0,"k/default","requires nonnegative turbulent kinetic energy");
   v.require(out.omega.empty() || out.omega.front()>0,"omega/default","requires positive specific dissipation");
   v.finish();return out;

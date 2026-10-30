@@ -312,11 +312,19 @@ ZoneType zone_type(std::string_view s) {
     return ZoneType::pressure_outlet;
   if (s == "interior")
     return ZoneType::interior;
+  if (s == "pressure-inlet") return ZoneType::pressure_inlet;
+  if (s == "mass-flow-inlet") return ZoneType::mass_flow_inlet;
+  if (s == "pressure-far-field") return ZoneType::pressure_far_field;
+  if (s == "fan") return ZoneType::fan;
+  if (s == "porous-jump") return ZoneType::porous_jump;
   return ZoneType::other;
 }
 bool epsilon_model(const FluentCase &c) {
   return c.viscous.model == ViscousModel::ke_standard || c.viscous.model == ViscousModel::ke_rng ||
          c.viscous.model == ViscousModel::ke_realizable;
+}
+bool vector_active(const RawSettings& raw,std::string_view key) {
+  return raw.entry(key) && boolean(raw.value(key))!=false;
 }
 void model_flag_support(FluentCase &c) {
   for (const auto &key : c.variables.unparsed_names()) {
@@ -658,7 +666,8 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
     flags("radiating? laminar-mut-zero? none? equib-thermal? react? electrolyte? "
           "mp-boiling-zone? beach-damp-relative? active-wetsteam-zone?", true);
   }
-  if (type == ZoneType::velocity_inlet || type == ZoneType::pressure_outlet) {
+  if (type == ZoneType::velocity_inlet || type == ZoneType::pressure_outlet ||
+      type == ZoneType::pressure_inlet || type == ZoneType::mass_flow_inlet) {
     flags("open-channel-wave-bc? ocw-vel-segregated? moving-object-direction-components "
           "secondary-phase-direction-components primary-phase-direction-components "
           "axis-direction-component axis-origin-component non-equil-boundary? vm-mass-conservation? "
@@ -696,14 +705,17 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
   };
   if (type == ZoneType::fluid) {
     selector("motion-spec");
-    selector("mrf-relative-to-thread", -1);
   }
   if (type == ZoneType::wall)
     for (auto key : {"method?", "shear-bc", "rough-bc"})
       selector(key);
-  if (type == ZoneType::velocity_inlet) {
+  if (type == ZoneType::velocity_inlet || type == ZoneType::pressure_inlet || type == ZoneType::mass_flow_inlet) {
     selector("coordinate-system");
-    selector("omega-swirl");
+    if(type==ZoneType::velocity_inlet) selector("omega-swirl");
+    else {
+      if(type==ZoneType::pressure_inlet) selector("flow-spec");
+      selector("den-spec");
+    }
   }
   if (type == ZoneType::pressure_outlet)
     for (auto key : {"gen-nrbc-spec", "p-backflow-spec", "p-backflow-spec-gen", "press-spec-gen"})
@@ -762,9 +774,9 @@ void thread(FluentCase &c, const SExpr &e) {
     z.relative_to_zone = x.code("mrf-relative-to-thread");
     z.motion_spec = x.code("motion-spec");
     z.relative_resistance = x.flag("rel-vel-resistance?", false);
-    z.frame_velocity = x.vector({"mrf-grid-x-vel", "mrf-grid-y-vel", "mrf-grid-z-vel"});
-    z.axis_origin = x.vector({"mrf-x-origin", "mrf-y-origin", "mrf-z-origin"});
-    z.axis_direction = x.vector({"mrf-ai", "mrf-aj", "mrf-ak"});
+    z.frame_velocity = x.vector({"mrf-grid-x-vel", "mrf-grid-y-vel", "mrf-grid-z-vel"},!vector_active(z.raw,"reference-frame-velocity-components"));
+    z.axis_origin = x.vector({"mrf-x-origin", "mrf-y-origin", "mrf-z-origin"},!vector_active(z.raw,"reference-frame-axis-origin-components"));
+    z.axis_direction = x.vector({"mrf-ai", "mrf-aj", "mrf-ak"},!vector_active(z.raw,"reference-frame-axis-direction-components"));
     x.vector_override("reference-frame-velocity-components", z.frame_velocity);
     x.vector_override("reference-frame-axis-origin-components", z.axis_origin);
     x.vector_override("reference-frame-axis-direction-components", z.axis_direction);
@@ -772,13 +784,16 @@ void thread(FluentCase &c, const SExpr &e) {
     z.laminar = x.flag("laminar?");
     z.porosity = x.scalar("porosity");
     z.viscous_resistance =
-        x.vector({"porous-r/1", "porous-r/2", "porous-r/3"}, z.porous.value_or(false));
+        x.vector({"porous-r/1", "porous-r/2", "porous-r/3"}, z.porous.value_or(false) && !vector_active(z.raw,"viscous-resistance-components"));
     z.inertial_resistance =
-        x.vector({"porous-c/1", "porous-c/2", "porous-c/3"}, z.porous.value_or(false));
+        x.vector({"porous-c/1", "porous-c/2", "porous-c/3"}, z.porous.value_or(false) && !vector_active(z.raw,"inertial-resistance-components"));
+    x.vector_override("viscous-resistance-components",z.viscous_resistance);
+    x.vector_override("inertial-resistance-components",z.inertial_resistance);
     for (int i = 0; i < 3; ++i) {
       auto p = "direction-" + std::to_string(i + 1) + "/";
       z.porous_directions[i] =
-          x.vector({p + "x", p + "y", p + "z"}, z.porous.value_or(false) && i < 2);
+          x.vector({p + "x", p + "y", p + "z"}, z.porous.value_or(false) && i < 2 && !vector_active(z.raw,"direction-"+std::to_string(i+1)+"-components"));
+      if(i<2) x.vector_override("direction-"+std::to_string(i+1)+"-components",z.porous_directions[i]);
     }
     zone_support(c, z.raw, ztype, z.id);
     if (ztype == ZoneType::solid)
@@ -794,7 +809,8 @@ void thread(FluentCase &c, const SExpr &e) {
   z.type = ztype;
   z.raw.alist = e.elements[2];
   Extractor x(c, z.raw, "zone/" + std::to_string(z.id) + "/");
-  bool inlet = ztype == ZoneType::velocity_inlet, outlet = ztype == ZoneType::pressure_outlet,
+  bool velocity_inlet = ztype == ZoneType::velocity_inlet;
+  bool inlet = velocity_inlet || ztype==ZoneType::pressure_inlet || ztype==ZoneType::mass_flow_inlet, outlet = ztype == ZoneType::pressure_outlet,
        wall = ztype == ZoneType::wall;
   if (wall) {
     auto motion = x.code("motion-bc");
@@ -809,10 +825,10 @@ void thread(FluentCase &c, const SExpr &e) {
     if (z.wall_motion == WallMotion::translating && z.wall_components)
       z.velocity_spec = *z.wall_components ? VelocitySpec::components : VelocitySpec::magnitude_direction;
   }
-  if (inlet)
+  if (velocity_inlet)
     z.velocity_spec = x.enumeration("velocity-spec",
         {VelocitySpec::magnitude_direction, VelocitySpec::components, VelocitySpec::normal});
-  if (inlet || z.wall_motion == WallMotion::translating) {
+  if (velocity_inlet || z.wall_motion == WallMotion::translating) {
     if (z.velocity_spec == VelocitySpec::components) {
       const std::string key = inlet ? "velocity-component" : "velocity-components";
       const bool vector_active = z.raw.entry(key) && boolean(z.raw.value(key)) != false;
@@ -821,7 +837,7 @@ void thread(FluentCase &c, const SExpr &e) {
     } else if (z.velocity_spec) {
       z.velocity_magnitude = x.scalar("vmag");
       if (z.velocity_spec == VelocitySpec::magnitude_direction) {
-        z.direction = x.vector({"ni", "nj", "nk"});
+        z.direction = x.vector({"ni", "nj", "nk"},!vector_active(z.raw,wall?"wall-translation-vector":"flow-direction-component") && !vector_active(z.raw,"reference-direction-components"));
         x.vector_override("reference-direction-components", z.direction, true);
         x.vector_override("flow-direction-component", z.direction, true);
         if (wall)
@@ -829,6 +845,27 @@ void thread(FluentCase &c, const SExpr &e) {
       }
     }
     z.frame_of_reference = x.code("frame-of-reference", inlet);
+  }
+  if(ztype==ZoneType::pressure_inlet || ztype==ZoneType::mass_flow_inlet) {
+    z.prevent_reverse_flow=x.flag("prevent-reverse-flow?",false);
+    z.frame_of_reference=x.code("frame-of-reference");
+    z.direction_spec=x.code("direction-spec");
+    if(z.direction_spec==0) {
+      z.direction=x.vector({"ni","nj","nk"});
+      x.vector_override("flow-direction-component",z.direction,true);
+    } else x.vector_override("flow-direction-component",z.direction);
+    if(ztype==ZoneType::pressure_inlet) z.total_pressure=x.scalar("p0");
+    else {
+      z.mass_flow_spec=x.code("flow-spec");
+      z.mass_flow=x.scalar("mass-flow",z.mass_flow_spec==0);
+      z.mass_flux=x.scalar("mass-flux",z.mass_flow_spec==1);
+    }
+    ScalarVector axis,origin;
+    x.vector_override("axis-direction-component",axis);
+    x.vector_override("axis-origin-component",origin);
+  }
+  if(ztype==ZoneType::porous_jump) {
+    z.jump_permeability=x.scalar("alpha");z.jump_thickness=x.scalar("dm");z.jump_inertial=x.scalar("c2");
   }
   if (inlet || outlet) {
     z.gauge_pressure = x.scalar("p");
@@ -863,8 +900,8 @@ void thread(FluentCase &c, const SExpr &e) {
     z.relative_motion = x.flag("relative?");
     if (z.wall_motion == WallMotion::rotating) {
       z.angular_velocity = x.scalar("omega");
-      z.axis_origin = x.vector({"x-origin", "y-origin", "z-origin"});
-      z.axis_direction = x.vector({"ai", "aj", "ak"});
+      z.axis_origin = x.vector({"x-origin", "y-origin", "z-origin"},!vector_active(z.raw,"axis-origin-component") && !vector_active(z.raw,"position-of-rotation-axis"));
+      z.axis_direction = x.vector({"ai", "aj", "ak"},!vector_active(z.raw,"axis-direction-component") && !vector_active(z.raw,"direction-component-of-rotation-axis"));
     }
     z.specified_shear = x.flag("specified-shear?");
     z.shear_bc = x.code("shear-bc");
@@ -880,6 +917,8 @@ void thread(FluentCase &c, const SExpr &e) {
   }
   if (ztype == ZoneType::other)
     c.issues.push_back({"zone/" + std::to_string(z.id), "unparsed boundary type: " + *type});
+  if(ztype==ZoneType::pressure_far_field)
+    c.issues.push_back({"zone/"+std::to_string(z.id),"unsupported: Fluent pressure far-field requires compressible ideal-gas characteristics; incompressible constant-density flow has no Mach/isentropic far-field formulation"});
   zone_support(c, z.raw, ztype, z.id);
   c.boundaries.push_back(std::move(z));
 }
@@ -1059,6 +1098,9 @@ FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,
   else
     c.issues.push_back({"Thread Variables", "absent: boundary/cell-zone settings unavailable"});
   std::set<std::int64_t> ids;
+  for(const auto& z:c.cell_zones) if(z.relative_to_zone && *z.relative_to_zone!=-1 &&
+      std::none_of(c.cell_zones.begin(),c.cell_zones.end(),[&](const auto& parent){return parent.id==*z.relative_to_zone;}))
+    c.issues.push_back({"zone/"+std::to_string(z.id)+"/mrf-relative-to-thread","unsupported: reference names an absent cell zone"});
   for (auto &z : c.cell_zones)
     if (!ids.insert(z.id).second)
       throw std::runtime_error("duplicate thread ID");

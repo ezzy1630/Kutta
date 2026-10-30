@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "kutta/core/types.hpp"
+#include "kutta/mesh/face_zones.hpp"
 
 namespace kutta {
 
@@ -58,6 +59,8 @@ struct PolyMesh {
   Index n_cells = 0;
   std::vector<Patch> patches;
   std::vector<CellZone> cell_zones;
+  // Interior BC identity and source orientation; optional on generated meshes.
+  std::vector<InternalFaceZone> internal_face_zones;
 
   Index n_faces() const { return static_cast<Index>(owner.size()); }
   Index n_internal_faces() const { return static_cast<Index>(neighbour.size()); }

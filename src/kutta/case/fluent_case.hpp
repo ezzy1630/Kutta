@@ -57,6 +57,11 @@ enum class ZoneType {
   velocity_inlet,
   pressure_outlet,
   interior,
+  pressure_inlet,
+  mass_flow_inlet,
+  pressure_far_field,
+  fan,
+  porous_jump,
   other
 };
 enum class VelocitySpec { magnitude_direction = 0, components = 1, normal = 2 };
@@ -125,6 +130,9 @@ struct BoundaryZone {
   ZoneType type = ZoneType::other;
   std::optional<VelocitySpec> velocity_spec;
   std::optional<ScalarValue> velocity_magnitude, gauge_pressure;
+  std::optional<ScalarValue> total_pressure,mass_flow,mass_flux;
+  std::optional<int> direction_spec,mass_flow_spec;
+  std::optional<ScalarValue> jump_permeability,jump_thickness,jump_inertial;
   ScalarVector velocity, direction;
   std::optional<TurbulenceSpec> turbulence_spec;
   std::map<std::string, ScalarValue> turbulence;

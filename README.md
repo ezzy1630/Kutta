@@ -19,6 +19,11 @@ warped-face correction.
 See [the measured results](src/kutta/fv/VERIFICATION.md#v6-mixing-elbow-sst)
 and the gates in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+FSAE wall motion, porous resistance, absolute-velocity MRF and additional flow
+boundaries now have [dedicated implementation and analytic gates](docs/research/fsae-physics.md).
+Native rotating-wall and fan polynomial import remain held by failing V7.2/V12
+gates. These tests do not establish Fluent same-mesh agreement.
+
 ## Build
 
 ```

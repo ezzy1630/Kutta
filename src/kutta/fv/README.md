@@ -51,6 +51,8 @@ cell velocity and exerts no net viscous force. Its normal component coefficient
 is implicit, balanced by the same explicit term. Outlets convect cell velocity;
 their viscous flux retains the transpose stress. Pressure outlets impose gauge
 static pressure.
+Wall normal motion is constrained relative to the adjacent MRF frame; its
+absolute velocity still drives the SST shear closure.
 Wall force is pressure relative to the requested reference, minus the viscous
 traction on the fluid, integrated using Device double/compensated reductions.
 
@@ -193,3 +195,9 @@ correction, normalized by its maximum over iterations 1–5. The corrected mass
 imbalance is reported separately. This distinguishes linear pressure tolerance
 from outer convergence. Zero denominators preserve unknown/infinite ratios
 rather than reporting a false zero.
+
+Moving/rotating walls, superficial porous resistance, absolute-velocity MRF,
+pressure and mass-flow inlets, and interior pressure jumps are documented in
+[`fsae-physics.md`](../../../docs/research/fsae-physics.md). Native Fluent fan
+polynomial import remains rejected; its V12 acceptance gate remains red.
+Native rotating-wall acceptance is also held by V7.2's polyhedral pressure error.

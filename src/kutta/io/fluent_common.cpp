@@ -165,6 +165,20 @@ FluentMeshData assemble_fluent(const FluentRaw& r, double thickness) {
     validate(result.mesh);
   }
   std::set<Index> paired;
+  // Preserve internal face-zone identity; face numbering alone loses fan and
+  // porous-jump BCs after owner/neighbour sorting. File winding points into c0.
+  std::map<int,std::size_t> internal_zones;
+  for(const auto& [id,f]:r.faces) if(f.c0 && f.c1) {
+    const auto z=r.zones.find(f.zone);
+    KUTTA_REQUIRE(z!=r.zones.end(),"Fluent: internal face has no zone metadata");
+    if(z->second.type=="interior") continue; // ordinary faces need no duplicated identity arrays
+    if(!internal_zones.contains(f.zone)) {
+      internal_zones.emplace(f.zone,result.mesh.internal_face_zones.size());
+      result.mesh.internal_face_zones.push_back({z->second.name,z->second.type,f.zone,{}});
+    }
+    const bool owner_is_c0=cell_map.at(f.c0)<cell_map.at(f.c1);
+    result.mesh.internal_face_zones[internal_zones.at(f.zone)].faces.push_back({face_map.at(id),owner_is_c0?-1:1});
+  }
   for (auto pair : r.periodic) {
     auto f = r.faces.find(pair.face), s = r.faces.find(pair.shadow);
     KUTTA_REQUIRE(f != r.faces.end() && s != r.faces.end(),

@@ -8,13 +8,19 @@
 #include <utility>
 
 #include "kutta/fv/transport.hpp"
+#include "kutta/fv/zone_physics.hpp"
+#include "kutta/fv/interior_jump.hpp"
 #include "kutta/fv/turbulence/sst.hpp"
 #include "kutta/mesh/topology.hpp"
 
 namespace kutta::fv {
 
 using VelocityProfile=std::variant<Vec3d,std::function<Vec3d(Vec3d)>>;
-struct Wall { Vec3d velocity{}; };
+struct Wall {
+  Vec3d velocity{};
+  std::optional<Rotation> rotation;
+  bool relative_to_zone=false;
+};
 struct TurbulenceValues { double k=0,omega=0; };
 struct IntensityLength { double intensity=0,length=0; };
 struct IntensityViscosityRatio { double intensity=0,ratio=0; };
@@ -32,7 +38,18 @@ struct PressureOutlet {
   std::optional<TurbulenceCondition> turbulence;
 };
 struct Symmetry {};
-using BoundaryCondition=std::variant<Wall,VelocityInlet,PressureOutlet,Symmetry>;
+struct PressureInlet {
+  double total_pressure=0;
+  // Absent means inward face normal. Otherwise global Cartesian direction.
+  std::optional<Vec3d> direction;
+  std::optional<TurbulenceCondition> turbulence;
+};
+struct MassFlowInlet {
+  double mass_flow=0; // kg/s, positive into the domain, for the WHOLE patch
+  std::optional<Vec3d> direction;
+  std::optional<TurbulenceCondition> turbulence;
+};
+using BoundaryCondition=std::variant<Wall,VelocityInlet,PressureOutlet,Symmetry,PressureInlet,MassFlowInlet>;
 struct PatchCondition { std::string patch; BoundaryCondition condition; };
 
 // Initialization controls affect no steady equation. The adapter validates
@@ -71,6 +88,10 @@ struct SolverSettings {
   // containing this point, as at Fluent's reference pressure location.
   Vec3d reference_point{};
   std::optional<SstSettings> sst;
+  // BEGIN FSAE physics: Fluent source IDs survive the owned RCM permutation.
+  std::vector<CellZonePhysics> cell_zone_physics;
+  std::vector<InteriorCondition> interior_conditions;
+  // END FSAE physics
 };
 
 struct ResidualValue {

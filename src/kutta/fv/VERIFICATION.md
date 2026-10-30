@@ -1,5 +1,12 @@
 # Lane D verification
 
+FSAE physics gates V7–V12 and their measured results are tracked separately in
+[`validation/results/fsae_physics/REPORT.md`](../../../validation/results/fsae_physics/REPORT.md).
+Their [formulation and input contracts](../../../docs/research/fsae-physics.md)
+distinguish analytic proof from native Fluent input evidence. V12 remains a
+failing native-fan acceptance gate, and V7.2 retains its polyhedral pressure
+accuracy failure. Existing V1–V6 gates are unchanged.
+
 This branch preserves the Fluent-class discretization and checks its operator
 consistency separately from integrated-load accuracy. The former tet pointwise
 pressure ≥1.8 gate was mathematically incompatible with that operator. The new

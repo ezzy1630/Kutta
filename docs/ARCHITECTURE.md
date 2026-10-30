@@ -47,6 +47,11 @@ Contracts live in the headers: `runtime/device.hpp`, `kernels/prelude.h`, `mesh/
 
 ### Mesh layout
 
+Special internal face zones retain their source ID and oriented face list in
+`PolyMesh::internal_face_zones`. Import and RCM preserve these identities for
+fan/porous-jump coupling. Ordinary interior faces need no duplicate list.
+Sparse jump kernels gather one unique affected cell or face per thread.
+
 The mesh is face-based: owner/neighbour, with internal faces first and boundary faces grouped by patch (see `mesh.hpp` for the invariants). 2D meshes are extruded one cell thick, with Symmetry patches `front`/`back`. Assembly is per cell over a cell→face CSR list (gather), never per face with atomic scatter.
 
 ### Linear solvers

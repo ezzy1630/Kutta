@@ -215,9 +215,19 @@ MeshPermutation renumber_cells_rcm(PolyMesh& m) {
     for (auto& c : z.cells) c = old_to_new[c];
   std::vector<detail::Face> ordered;
   for (auto f : p.faces_new_to_old) ordered.push_back(std::move(fs[f]));
+  auto face_zones=std::move(m.internal_face_zones);
+  std::vector<Index> inverse_faces(m.n_faces());
+  for(Index f=0;f<m.n_faces();++f) inverse_faces[p.faces_new_to_old[f]]=f;
+  for(auto& zone:face_zones) for(auto& face:zone.faces) {
+    const auto f=face.face;
+    KUTTA_REQUIRE(f>=0 && f<m.n_internal_faces(),"internal face-zone index outside internal faces");
+    if(old_to_new[m.owner[f]]>old_to_new[m.neighbour[f]]) face.direction=-face.direction;
+    face.face=inverse_faces[f];
+  }
   // Already sorted by the same internal owner/neighbour key used by pack.
   m = detail::pack(std::move(m.points), m.n_cells, std::move(ordered),
                    std::move(m.patches), std::move(zones));
+  m.internal_face_zones=std::move(face_zones);
   validate(m);
   return p;
 }

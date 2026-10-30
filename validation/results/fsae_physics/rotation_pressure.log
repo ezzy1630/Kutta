@@ -1,0 +1,41 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FSAE V7.2 backend=cpu poly=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309432 momentum=4.65705e-08
+FSAE V7.2 backend=metal poly=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309432 momentum=4.65705e-08
+FSAE V7.2 backend=cpu poly=1 velocity_L2=0.00523078 pressure_relative_L2=0.0907639 momentum=4.71227e-08
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:98:
+TEST SUITE: slow
+TEST CASE:  FSAE V7.2 rotating-wall Taylor Couette hex and poly
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:113: ERROR: CHECK( ep<.01 ) is NOT correct!
+  values: CHECK( 0.0907639 <  0.01 )
+  logged: backend: cpu
+
+FSAE V7.2 backend=metal poly=1 velocity_L2=0.00523078 pressure_relative_L2=0.0907639 momentum=4.71227e-08
+/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:113: ERROR: CHECK( ep<.01 ) is NOT correct!
+  values: CHECK( 0.0907639 <  0.01 )
+  logged: backend: metal
+
+FSAE V9 backend=cpu solid=1 frame_omega=0 velocity_L2=0.000101465 pressure_relative_L2=0.000730474 frame_Linf=0
+FSAE V9 backend=cpu solid=1 frame_omega=0.4 velocity_L2=0.000101802 pressure_relative_L2=0.000529659 frame_Linf=9.53674e-07
+FSAE V9 backend=cpu solid=1 frame_omega=1 velocity_L2=0.00010236 pressure_relative_L2=0.000266503 frame_Linf=2.5034e-06
+FSAE V9 backend=metal solid=1 frame_omega=0 velocity_L2=0.000101465 pressure_relative_L2=0.000730474 frame_Linf=0
+FSAE V9 backend=metal solid=1 frame_omega=0.4 velocity_L2=0.000101802 pressure_relative_L2=0.000529659 frame_Linf=9.53674e-07
+FSAE V9 backend=metal solid=1 frame_omega=1 velocity_L2=0.00010236 pressure_relative_L2=0.000266503 frame_Linf=2.5034e-06
+FSAE V9 backend=cpu solid=0 frame_omega=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309498 frame_Linf=0
+FSAE V9 backend=cpu solid=0 frame_omega=0.4 velocity_L2=0.00452066 pressure_relative_L2=0.00302964 frame_Linf=1.72853e-06
+FSAE V9 backend=cpu solid=0 frame_omega=1 velocity_L2=0.0045225 pressure_relative_L2=0.00349889 frame_Linf=2.17557e-06
+FSAE V9 backend=metal solid=0 frame_omega=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309498 frame_Linf=0
+FSAE V9 backend=metal solid=0 frame_omega=0.4 velocity_L2=0.00452066 pressure_relative_L2=0.00302964 frame_Linf=1.72853e-06
+FSAE V9 backend=metal solid=0 frame_omega=1 velocity_L2=0.0045225 pressure_relative_L2=0.00349889 frame_Linf=2.17557e-06
+FSAE V10.2 backend=cpu mode=0 k_relative_Linf=0 omega_relative_Linf=0
+FSAE V10.2 backend=cpu mode=1 k_relative_Linf=0 omega_relative_Linf=0
+FSAE V10.2 backend=cpu mode=2 k_relative_Linf=1.48651e-06 omega_relative_Linf=1.11959e-06
+FSAE V10.2 backend=metal mode=0 k_relative_Linf=0 omega_relative_Linf=0
+FSAE V10.2 backend=metal mode=1 k_relative_Linf=0 omega_relative_Linf=0
+FSAE V10.2 backend=metal mode=2 k_relative_Linf=1.48651e-06 omega_relative_Linf=1.11959e-06
+===============================================================================
+[doctest] test cases:   3 |   2 passed | 1 failed | 189 skipped
+[doctest] assertions: 968 | 966 passed | 2 failed |
+[doctest] Status: FAILURE!

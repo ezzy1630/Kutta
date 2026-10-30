@@ -1,0 +1,82 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_fsae_native_gate.cpp:6:
+TEST SUITE: slow
+TEST CASE:  FSAE V12 native Fluent polynomial fan import acceptance
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_fsae_native_gate.cpp:11: FATAL ERROR: REQUIRE( (fixture && std::filesystem::is_regular_file(fixture)) ) is NOT correct!
+  values: REQUIRE( false )
+  logged: Native fan input remains unverified: KUTTA_FSAE_FAN_CASE must identify a saved Fluent case with a polynomial fan thread
+
+FSAE V7.1 backend=cpu poly=0 velocity_L2=6.87511e-08 momentum=2.74156e-08
+FSAE V7.1 backend=metal poly=0 velocity_L2=6.87511e-08 momentum=2.74156e-08
+FSAE V7.1 backend=cpu poly=1 velocity_L2=1.23545e-05 momentum=2.09138e-08
+FSAE V7.1 backend=metal poly=1 velocity_L2=1.23545e-05 momentum=2.09138e-08
+FSAE V7.2 backend=cpu poly=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309582 momentum=6.57222e-08
+FSAE V7.2 backend=metal poly=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309582 momentum=6.57222e-08
+FSAE V7.2 backend=cpu poly=1 velocity_L2=0.000324131 pressure_relative_L2=0.0169127 momentum=9.26867e-08
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:115:
+TEST SUITE: slow
+TEST CASE:  FSAE V7.2 rotating-wall Taylor Couette hex and poly
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:133: ERROR: CHECK( ep<.01 ) is NOT correct!
+  values: CHECK( 0.0169127 <  0.01 )
+  logged: backend: cpu
+
+FSAE V7.2 backend=metal poly=1 velocity_L2=0.000324131 pressure_relative_L2=0.0169127 momentum=9.26867e-08
+/Users/ezzy/.t3/worktrees/Kutta/t3-4931ced7/tests/fv/test_zone_physics.cpp:133: ERROR: CHECK( ep<.01 ) is NOT correct!
+  values: CHECK( 0.0169127 <  0.01 )
+  logged: backend: metal
+
+FSAE V8 backend=cpu angle=0 porosity=0.35 pressure_Linf=1.90735e-05 velocity_L2=1.01304e-07
+FSAE V8 backend=metal angle=0 porosity=0.35 pressure_Linf=1.90735e-05 velocity_L2=1.01304e-07
+FSAE V8 backend=cpu angle=0 porosity=1 pressure_Linf=1.90735e-05 velocity_L2=1.01304e-07
+FSAE V8 backend=metal angle=0 porosity=1 pressure_Linf=1.90735e-05 velocity_L2=1.01304e-07
+FSAE V8 backend=cpu angle=0.6 porosity=0.35 pressure_Linf=1.85966e-05 velocity_L2=1.36624e-07
+FSAE V8 backend=metal angle=0.6 porosity=0.35 pressure_Linf=1.85966e-05 velocity_L2=1.36624e-07
+FSAE V8 backend=cpu angle=0.6 porosity=1 pressure_Linf=1.85966e-05 velocity_L2=1.36624e-07
+FSAE V8 backend=metal angle=0.6 porosity=1 pressure_Linf=1.85966e-05 velocity_L2=1.36624e-07
+FSAE V9 backend=cpu solid=1 frame_omega=0 velocity_L2=0.000101465 pressure_relative_L2=0.000730474 frame_Linf=0
+FSAE V9 backend=cpu solid=1 frame_omega=0.4 velocity_L2=0.000101802 pressure_relative_L2=0.000529659 frame_Linf=9.53674e-07
+FSAE V9 backend=cpu solid=1 frame_omega=1 velocity_L2=0.00010236 pressure_relative_L2=0.000266503 frame_Linf=2.5034e-06
+FSAE V9 backend=metal solid=1 frame_omega=0 velocity_L2=0.000101465 pressure_relative_L2=0.000730474 frame_Linf=0
+FSAE V9 backend=metal solid=1 frame_omega=0.4 velocity_L2=0.000101802 pressure_relative_L2=0.000529659 frame_Linf=9.53674e-07
+FSAE V9 backend=metal solid=1 frame_omega=1 velocity_L2=0.00010236 pressure_relative_L2=0.000266503 frame_Linf=2.5034e-06
+FSAE V9 backend=cpu solid=0 frame_omega=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309498 frame_Linf=0
+FSAE V9 backend=cpu solid=0 frame_omega=0.4 velocity_L2=0.00452066 pressure_relative_L2=0.00302964 frame_Linf=1.72853e-06
+FSAE V9 backend=cpu solid=0 frame_omega=1 velocity_L2=0.0045225 pressure_relative_L2=0.00349889 frame_Linf=2.17557e-06
+FSAE V9 backend=metal solid=0 frame_omega=0 velocity_L2=0.00452144 pressure_relative_L2=0.00309498 frame_Linf=0
+FSAE V9 backend=metal solid=0 frame_omega=0.4 velocity_L2=0.00452066 pressure_relative_L2=0.00302964 frame_Linf=1.72853e-06
+FSAE V9 backend=metal solid=0 frame_omega=1 velocity_L2=0.0045225 pressure_relative_L2=0.00349889 frame_Linf=2.17557e-06
+FSAE V10 backend=cpu pressure=0 velocity_L2=2.58141e-07
+FSAE V10 backend=metal pressure=0 velocity_L2=2.58141e-07
+FSAE V10 backend=cpu pressure=1 velocity_L2=1.92284e-06
+FSAE V10 backend=metal pressure=1 velocity_L2=1.92284e-06
+FSAE V11 backend=cpu mode=0 expected_jump=3 pressure_Linf=7.39098e-06 velocity_L2=1.32731e-07 momentum=4.46268e-08
+FSAE V11 backend=metal mode=0 expected_jump=3 pressure_Linf=7.39098e-06 velocity_L2=1.32731e-07 momentum=4.46268e-08
+FSAE V11 backend=cpu mode=1 expected_jump=-3 pressure_Linf=6.67572e-06 velocity_L2=2.31354e-07 momentum=4.79754e-08
+FSAE V11 backend=metal mode=1 expected_jump=-3 pressure_Linf=6.67572e-06 velocity_L2=2.31354e-07 momentum=4.79754e-08
+FSAE V11 backend=cpu mode=2 expected_jump=-2.8 pressure_Linf=6.38962e-06 velocity_L2=1.1292e-07 momentum=4.37359e-08
+FSAE V11 backend=metal mode=2 expected_jump=-2.8 pressure_Linf=6.38962e-06 velocity_L2=1.1292e-07 momentum=4.37359e-08
+FSAE V11 backend=cpu mode=3 expected_jump=2.8 pressure_Linf=9.01222e-06 velocity_L2=1.32131e-07 momentum=4.12588e-08
+FSAE V11 backend=metal mode=3 expected_jump=2.8 pressure_Linf=9.01222e-06 velocity_L2=1.32131e-07 momentum=4.12588e-08
+FSAE V7.3 backend=cpu shift=0 velocity_Linf=0 k_Linf=0 omega_relative_Linf=0
+FSAE V7.3 backend=cpu shift=2 velocity_Linf=2.38419e-07 k_Linf=3.63798e-12 omega_relative_Linf=6.43594e-08
+FSAE V7.3 backend=metal shift=0 velocity_Linf=0 k_Linf=0 omega_relative_Linf=0
+FSAE V7.3 backend=metal shift=2 velocity_Linf=3.27826e-07 k_Linf=3.63798e-12 omega_relative_Linf=1.21774e-07
+FSAE V9.2 backend=cpu velocity_L2=0.00523233 momentum=4.56267e-08
+FSAE V9.2 backend=metal velocity_L2=0.00523233 momentum=4.56267e-08
+FSAE V10.2 backend=cpu mode=0 k_relative_Linf=0 omega_relative_Linf=0
+FSAE V10.2 backend=cpu mode=1 k_relative_Linf=0 omega_relative_Linf=0
+FSAE V10.2 backend=cpu mode=2 k_relative_Linf=1.48651e-06 omega_relative_Linf=1.11959e-06
+FSAE V10.2 backend=metal mode=0 k_relative_Linf=0 omega_relative_Linf=0
+FSAE V10.2 backend=metal mode=1 k_relative_Linf=0 omega_relative_Linf=0
+FSAE V10.2 backend=metal mode=2 k_relative_Linf=1.48651e-06 omega_relative_Linf=1.11959e-06
+FSAE V9.3 backend=cpu velocity_L2=0.00452067 pressure_relative_L2=0.00303022
+FSAE V9.3 backend=metal velocity_L2=0.00452067 pressure_relative_L2=0.00303022
+===============================================================================
+[doctest] test cases:   11 |    9 passed | 2 failed | 185 skipped
+[doctest] assertions: 7207 | 7204 passed | 3 failed |
+[doctest] Status: FAILURE!

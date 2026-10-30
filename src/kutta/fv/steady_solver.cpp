@@ -10,6 +10,7 @@
 #include "kernels.hpp"
 #include "kutta/linalg/amg.hpp"
 #include "kutta/kernels/prelude.h"
+#include "kutta/fv/boundary_physics.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
 
@@ -78,6 +79,13 @@ struct SteadySolver::Impl {
   DeviceVec3 absolute_residual,fluent_scale;
   IterationReport report;
   std::map<std::string,BoundaryCondition> boundaries;
+  // BEGIN FSAE physics: isolated volume sources and open-boundary overrides.
+  std::unique_ptr<ZonePhysics> zone_physics;
+  std::unique_ptr<InteriorJumps> interior_jumps;
+  Buffer<Index> open_boundary_kind;
+  DeviceVec3 inlet_direction;
+  bool pressure_inlets=false;
+  // END FSAE physics
   Index reference=-1;
   double length=0,bc_speed=0,pressure_speed=0,continuity_scale=0;
   double first_five_continuity[5]{};
@@ -99,6 +107,8 @@ struct SteadySolver::Impl {
       KUTTA_REQUIRE(it!=boundaries.end(),"FV missing boundary: "+patch.name);
       if(std::holds_alternative<Wall>(it->second)) patch.kind=PatchKind::Wall;
       if(std::holds_alternative<VelocityInlet>(it->second)) patch.kind=PatchKind::VelocityInlet;
+      if(std::holds_alternative<MassFlowInlet>(it->second)) patch.kind=PatchKind::VelocityInlet;
+      if(std::holds_alternative<PressureInlet>(it->second)) {patch.kind=PatchKind::PressureInlet;outlet=true;}
       if(std::holds_alternative<PressureOutlet>(it->second)) {patch.kind=PatchKind::PressureOutlet;outlet=true;}
       if(std::holds_alternative<Symmetry>(it->second)) patch.kind=PatchKind::Symmetry;
     }
@@ -112,6 +122,12 @@ struct SteadySolver::Impl {
       if(!seen[neighbours.cells[j]]) {seen[neighbours.cells[j]]=true;stack.push_back(neighbours.cells[j]);}
     KUTTA_REQUIRE(stack.size()==std::size_t(host.n_cells),"FV disconnected domains require separate solvers");
     mesh=upload_mesh(dev,host,geom);stencil=make_stencil(dev,host,geom);
+    // BEGIN FSAE physics
+    zone_physics=std::make_unique<ZonePhysics>(dev,host,geom,settings.cell_zone_physics,settings.density,settings.viscosity);
+    interior_jumps=std::make_unique<InteriorJumps>(dev,host,geom,settings.interior_conditions,settings.density,settings.viscosity);
+    const auto frames=settings.cell_zone_physics.empty()?std::vector<RigidFrame>{}:cell_frames(host,settings.cell_zone_physics);
+    const auto adjacent_frame=[&](Index face) {return frames.empty()?RigidFrame{}:frames[host.owner[face]];};
+    // END FSAE physics
     const auto n=mesh.n_cells,nf=mesh.n_faces,nb=mesh.n_boundary_faces();
     velocity=vector_field(dev,n);face_velocity=vector_field(dev,nf);body=vector_field(dev,n);source=vector_field(dev,n);
     boundary_velocity=vector_field(dev,nb);prescribed_velocity=vector_field(dev,nb);
@@ -133,12 +149,37 @@ struct SteadySolver::Impl {
     physical_diagonal=dev.alloc<float>(n);consistent_inverse=dev.alloc<float>(n);
     dev.fill(physical_diagonal,1);dev.fill(consistent_inverse,0);
     std::vector<Index> kinds(nb);std::vector<float> pressures(nb,0);std::vector<Vec3d> velocities(nb);
+    std::vector<Index> open_kinds(nb,0);std::vector<Vec3d> directions(nb);
+    std::map<std::string,std::pair<double,double>> inlet_areas;
+    for(const auto& patch:host.patches) if(const auto* inlet=std::get_if<MassFlowInlet>(&boundaries.at(patch.name))) {
+      auto& [area,projected]=inlet_areas[patch.name];
+      for(Index f=patch.start;f<patch.start+patch.size;++f) {
+        area+=norm(geom.face_area[f]);
+        if(inlet->direction && norm(*inlet->direction)>0) projected-=dot(*inlet->direction/norm(*inlet->direction),geom.face_area[f]);
+      }
+    }
     double pmin=std::numeric_limits<double>::infinity(),pmax=-pmin;
     for(const auto& patch:host.patches) for(Index f=patch.start;f<patch.start+patch.size;++f) {
       const auto b=f-mesh.n_internal_faces;const auto& bc=boundaries.at(patch.name);
-      if(const auto* wall=std::get_if<Wall>(&bc)) {kinds[b]=0;velocities[b]=wall->velocity;}
+      if(const auto* wall=std::get_if<Wall>(&bc)) {kinds[b]=0;velocities[b]=wall_velocity(*wall,geom.face_centroid[f],adjacent_frame(f));}
       if(const auto* inlet=std::get_if<VelocityInlet>(&bc)) {kinds[b]=1;velocities[b]=evaluate(inlet->velocity,geom.face_centroid[f]);}
+      // BEGIN FSAE physics: mass flow is integrated over the whole patch.
+      if(const auto* inlet=std::get_if<MassFlowInlet>(&bc)) {
+        const auto [area,projected]=inlet_areas.at(patch.name);
+        kinds[b]=1;velocities[b]=mass_flow_velocity(*inlet,geom.face_area[f],area,projected,settings.density);
+      }
+      if(const auto* inlet=std::get_if<PressureInlet>(&bc)) {
+        KUTTA_REQUIRE(std::isfinite(inlet->total_pressure),"pressure-inlet: nonfinite total pressure");
+        kinds[b]=4;totals[b]=1;pressures[b]=float(inlet->total_pressure);open_kinds[b]=1;pressure_inlets=true;
+        directions[b]=inlet->direction.value_or(geom.face_area[f]*(-1/norm(geom.face_area[f])));
+        KUTTA_REQUIRE(finite(directions[b]) && dot(directions[b],geom.face_area[f])<0,"pressure-inlet: direction must enter every face");
+        pmin=std::min(pmin,inlet->total_pressure);pmax=std::max(pmax,inlet->total_pressure);
+        KUTTA_REQUIRE(norm(adjacent_frame(f).velocity(geom.face_centroid[f]))==0,"pressure-inlet: moving adjacent frame is not yet verified");
+      }
+      // END FSAE physics
       if(const auto* out=std::get_if<PressureOutlet>(&bc)) {
+        KUTTA_REQUIRE(norm(adjacent_frame(f).velocity(geom.face_centroid[f]))==0,
+          "pressure-outlet: moving adjacent frame/backflow conventions are not yet verified");
         const bool normal=std::holds_alternative<NormalBackflow>(out->backflow_velocity);
         kinds[b]=normal?4:2;
         velocities[b]=normal?Vec3d{}:evaluate(out->backflow_velocity,geom.face_centroid[f]);
@@ -151,12 +192,16 @@ struct SteadySolver::Impl {
     }
     pressure_speed=outlet?.1*std::sqrt((pmax-pmin)/settings.density):0;
     dev.upload<Index>(total_pressure,totals);
+    open_boundary_kind=dev.upload<Index>(open_kinds);inlet_direction=vector_field(dev,nb);upload_vectors(dev,inlet_direction,directions);
     using enum BoundaryObservation;
     std::vector<BoundaryObservation> independent_velocity(nb),independent_pressure(nb),independent_k(nb),independent_omega(nb);
     for(Index b=0;b<nb;++b) {
       independent_velocity[b]=kinds[b]==3?NormalFootValue:((kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted);
       independent_pressure[b]=(kinds[b]==2 || kinds[b]==4)?FaceValue:Omitted;
       independent_k[b]=kinds[b]==1?FaceValue:Omitted;independent_omega[b]=(kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted;
+      // BEGIN FSAE physics: pressure inlets prescribe transported inflow data.
+      if(open_kinds[b]==1) {independent_velocity[b]=FaceValue;independent_k[b]=FaceValue;independent_omega[b]=FaceValue;}
+      // END FSAE physics
     }
     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
     upload_vectors(dev,prescribed_velocity,velocities);
@@ -187,6 +232,8 @@ struct SteadySolver::Impl {
         const std::optional<TurbulenceCondition>* spec=nullptr;
         if(const auto* in=std::get_if<VelocityInlet>(&bc)) spec=&in->turbulence;
         if(const auto* out=std::get_if<PressureOutlet>(&bc)) spec=&out->turbulence;
+        if(const auto* in=std::get_if<PressureInlet>(&bc)) spec=&in->turbulence;
+        if(const auto* in=std::get_if<MassFlowInlet>(&bc)) spec=&in->turbulence;
         if(!spec) continue;
         KUTTA_REQUIRE(spec->has_value(),"FV missing turbulence specification: "+patch.name);
         for(Index f=patch.start;f<patch.start+patch.size;++f) {
@@ -244,6 +291,10 @@ struct SteadySolver::Impl {
   void apply_backflow_pressure() {
     kern::fv_backflow_pressure(dev,mesh.n_boundary_faces(),mesh.owner,total_pressure,mass,
       velocity.x,velocity.y,velocity.z,boundary_pressure,mesh.n_internal_faces,float(settings.density));
+    // BEGIN FSAE physics: inlet Bernoulli uses the inlet-plane speed.
+    if(pressure_inlets) kern::fv_pressure_inlet_pressure(dev,mesh.n_boundary_faces(),open_boundary_kind,mass,
+      prescribed_pressure,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,boundary_pressure,mesh.n_internal_faces,float(settings.density));
+    // END FSAE physics
   }
   void update_momentum_diagonal() {
     kern::fv_momentum_diagonal(dev,mesh.n_cells,momentum[0]->diagonal,momentum[1]->diagonal,momentum[2]->diagonal,
@@ -279,6 +330,9 @@ struct SteadySolver::Impl {
       mesh.weight,sst->fields().mu_t,viscosity,mesh.n_internal_faces,float(settings.viscosity));
   }
   void add_transpose_stress() {
+    // BEGIN FSAE physics: each side sees its own discontinuous face pressure.
+    interior_jumps->momentum(mesh,source);
+    // END FSAE physics
     if(!sst) return;
     const auto& u=momentum[0]->grad;const auto& v=momentum[1]->grad;const auto& w=momentum[2]->grad;
     kern::fv_transpose_stress(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,mesh.weight,viscosity,
@@ -293,6 +347,9 @@ struct SteadySolver::Impl {
       viscosity,stencil.diffusion,
       velocity.x,velocity.y,velocity.z,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
       wall_diagonal,wall_rhs,mesh.n_internal_faces,component,sst?1:0);
+    // BEGIN FSAE physics: same implicit terms in iteration and residual assembly.
+    zone_physics->momentum(component,velocity,mesh.volume,wall_diagonal,wall_rhs);
+    // END FSAE physics
     return {nullptr,&wall_diagonal,&wall_rhs};
   }
   void assemble_turbulence(bool is_omega) {
@@ -343,6 +400,12 @@ struct SteadySolver::Impl {
       mesh.area.x,mesh.area.y,mesh.area.z,velocity.x,velocity.y,velocity.z,
       prescribed_velocity.x,prescribed_velocity.y,prescribed_velocity.z,mass,
       boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,scalar_kind,mesh.n_internal_faces,float(settings.density));
+    // BEGIN FSAE physics
+    if(pressure_inlets) pressure_inlet_velocity(dev,mesh,open_boundary_kind,inlet_direction,mass,boundary_velocity,settings.density);
+    if(zone_physics->has_frame_motion()) kern::fv_frame_wall_velocity(dev,mesh.n_boundary_faces(),boundary_kind,
+      zone_physics->frame_normal_flux(),mesh.area.x,mesh.area.y,mesh.area.z,
+      boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,mesh.n_internal_faces,float(settings.density));
+    // END FSAE physics
   }
   void reconstruct_velocity() {
     vector_gradient(dev,mesh,stencil,velocity_lsq,velocity,boundary_velocity,
@@ -350,8 +413,14 @@ struct SteadySolver::Impl {
   }
   void reconstruct_pressure(const Buffer<float>& field,const Buffer<float>& boundary,DeviceVec3& grad) {
     gradient(dev,mesh,stencil,pressure_lsq,field,boundary,grad);
+    // BEGIN FSAE physics: the frozen physical jump is absent from p-correction.
+    if(&field==&pressure) interior_jumps->gradient(mesh,pressure_lsq,grad);
+    // END FSAE physics
   }
   void update_pressure() {
+    // BEGIN FSAE physics
+    interior_jumps->update(mass);
+    // END FSAE physics
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
       prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
@@ -392,6 +461,10 @@ struct SteadySolver::Impl {
       physical_diagonal,consistent_inverse,face_velocity.x,face_velocity.y,face_velocity.z,
       pressure_jump,
       mass,coefficient,mesh.n_internal_faces,float(settings.density));
+    // BEGIN FSAE physics
+    zone_physics->relative_flux(boundary_kind,mesh.n_internal_faces, mass);
+    interior_jumps->flux(mesh,stencil,physical_diagonal,mass,coefficient);
+    // END FSAE physics
   }
 
   void step() {
@@ -556,6 +629,11 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
   };
   for(const auto& patch:s.host.patches) {
     const auto& bc=s.boundaries.at(patch.name);
+    double mass_patch_area=0,mass_projected=0;
+    if(const auto* in=std::get_if<MassFlowInlet>(&bc)) for(Index j=patch.start;j<patch.start+patch.size;++j) {
+      mass_patch_area+=norm(s.geom.face_area[j]);
+      if(in->direction && norm(*in->direction)>0) mass_projected-=dot(*in->direction/norm(*in->direction),s.geom.face_area[j]);
+    }
     const auto initial_pressure=std::find_if(h.inlet_pressure.begin(),h.inlet_pressure.end(),[&](const auto& p){return p.first==patch.name;});
     for(Index f=patch.start;f<patch.start+patch.size;++f) {
       const auto b=f-s.mesh.n_internal_faces,c=s.host.owner[f];
@@ -568,6 +646,18 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
         if(s.sst) add_recipe(*in->turbulence,area);
         if(initial_pressure!=h.inlet_pressure.end()) {pkind[b]=0;pvalue[b]=float(initial_pressure->second);pressure_sum+=area*initial_pressure->second;pressure_area+=area;}
       }
+      // BEGIN FSAE physics: constant-density mass flow supplies potential flux;
+      // pressure inlets supply a pressure anchor, with speed solved afterward.
+      if(const auto* in=std::get_if<MassFlowInlet>(&bc)) {
+        const auto u=mass_flow_velocity(*in,area_vector,mass_patch_area,mass_projected,s.settings.density);
+        flux[b]=float(dot(u,area_vector));inlet_area+=area;direction=direction+u*area;speed_sum+=norm(u)*area;
+        if(s.sst) add_recipe(*in->turbulence,area);
+      }
+      if(const auto* in=std::get_if<PressureInlet>(&bc)) {
+        kind[b]=0;pkind[b]=0;pvalue[b]=float(in->total_pressure);
+        pressure_sum+=area*in->total_pressure;pressure_area+=area;
+      }
+      // END FSAE physics
       if(const auto* out=std::get_if<PressureOutlet>(&bc)) {
         kind[b]=0;pkind[b]=0;pvalue[b]=float(out->pressure);outlet_area+=area;
         outlet_center=outlet_center+s.geom.face_centroid[f]*area;
@@ -630,7 +720,7 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
     equation.face_correction,prescribed_flux,potential_value,s.mesh.area.x,s.mesh.area.y,s.mesh.area.z,
     potential_flux,s.mesh.n_internal_faces,float(s.settings.density),float(direction.x),float(direction.y),float(direction.z));
   dev.fill(s.pressure,float(h.solve[1] && pressure_area>0?pressure_sum/pressure_area:h.initial_scalar[1]));
-  if(h.solve[1] && !h.inlet_pressure.empty() && outlet_area>0)
+  if(h.solve[1] && (!h.inlet_pressure.empty() || s.pressure_inlets) && outlet_area>0)
     solve_scalar(s.pressure,pkind,pvalue,std::vector<float>(nb,0),std::vector<float>(n,0),1);
   if(s.sst) {
     kern::fv_hybrid_turbulence(dev,n,s.velocity.x,s.velocity.y,s.velocity.z,s.mesh.volume,s.kinetic,s.omega,old,s.scale,
@@ -641,7 +731,12 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
   s.dev.fill(s.physical_diagonal,1);s.dev.fill(s.consistent_inverse,0);
   s.update_boundaries();s.update_pressure();s.update_flux();s.update_turbulence();
   for(int pass=0;pass<3;++pass) {s.monitor();s.update_flux();s.update_boundaries();s.update_pressure();}
-  if(!h.constant_speed && h.solve[0]) dev.copy(s.mass,potential_flux);
+  if(!h.constant_speed && h.solve[0]) {
+    dev.copy(s.mass,potential_flux);
+    // BEGIN FSAE physics: the potential field is expressed in absolute velocity.
+    s.zone_physics->relative_flux(s.boundary_kind,s.mesh.n_internal_faces,s.mass);
+    // END FSAE physics
+  }
   kern::fv_continuity(dev,n,s.mesh.cell_face_offsets,s.mesh.cell_faces,s.mesh.cell_face_sign,s.mass,s.provisional_continuity);
 }
 void SteadySolver::set_source(const std::function<Vec3d(Vec3d)>& source) {

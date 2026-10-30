@@ -1,0 +1,16 @@
+[0/2] Re-checking globbed directories...
+[1/43] Generating kernel entry points
+[2/16] Building CXX object CMakeFiles/kutta.dir/generated/kernels_metal.cpp.o
+[3/16] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/zone_physics.cpp.o
+[4/16] Building CXX object CMakeFiles/kutta.dir/generated/kernels_cpu.cpp.o
+[5/16] Linking CXX static library libkutta.a
+[6/16] Linking CXX executable bench_bandwidth
+[7/16] Linking CXX executable kutta
+[8/16] Linking CXX executable bench_galerkin
+[9/16] Linking CXX executable bench_linalg
+[10/16] Linking CXX executable bench_pressure
+[11/16] Linking CXX executable bench_fv
+[12/16] Linking CXX executable bench_startup
+[13/16] Linking CXX executable bench_tmr
+[14/16] Building CXX object CMakeFiles/kutta-tests.dir/tests/fv/test_zone_physics.cpp.o
+[15/16] Linking CXX executable kutta-tests
