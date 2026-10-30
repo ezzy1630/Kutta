@@ -128,3 +128,15 @@ actual molecular viscosity, reference density, reference velocity, reference
 pressure, reference area, reference length. A `mass_flux` boundary field stores
 the solver's integrated outward kg/s per boundary face. Readers accept both
 versions. Public protocol and public KUTV/KUTL versions remain 1.
+
+
+## Live surface publication
+
+`solve --live-view DIR` uses the same KUTV v1 zone files and view manifest under
+`DIR/live/<run_id>/snapshot-<sequence>/`. The small `DIR/live/manifest.json` pointer
+has `v`, `run_id`, `sequence`, `iter`, `elapsed` and a relative `manifest` path.
+`live_view.cpp` closes and renames the snapshot staging directory before replacing
+that pointer by same-filesystem rename. Existing immutable snapshots remain
+readable. A snapshot progress event is emitted after publication and uses an
+absolute UTF-8 view-manifest path. The app never reads an in-progress payload or
+loads the volume. See the app protocol for cadence, budget and retention.

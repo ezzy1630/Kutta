@@ -27,8 +27,8 @@ bool visible(std::string_view name,bool wall) {
   if(name=="velocity" || name=="velocity_magnitude")return !wall;
   return true;
 }
-Geometry surface(const Snapshot& s,const Patch& patch,std::vector<Index>& local) {
-  const auto& m=s.mesh;Geometry g;std::vector<Index> vertices;std::vector<double> area(patch.size);
+Geometry surface(const PolyMesh& m,const Fields& s,const Patch& patch,std::vector<Index>& local) {
+  Geometry g;std::vector<Index> vertices;std::vector<double> area(patch.size);
   for(Index f=patch.start;f<patch.start+patch.size;++f) {
     std::vector<Vec3d> points;std::vector<std::uint32_t> ids;
     for(auto n:nodes(m,f)) {
@@ -132,6 +132,27 @@ void payload(const std::filesystem::path& path,const Geometry& g,std::ostream& m
   const auto text=dump_json(artifact.descriptor);manifest<<','<<text.substr(1);
 }
 }
+void write_surface_view(const std::filesystem::path& directory,const PolyMesh& mesh,const Fields& fields) {
+  KUTTA_REQUIRE(!mesh.points.empty(),"live view mesh has no points");
+  for(const auto& field:fields.boundary)KUTTA_REQUIRE((field.components==1 || field.components==3) && field.values.size()==std::size_t(mesh.n_faces()-mesh.n_internal_faces())*field.components,"invalid surface field shape: "+field.name);
+  KUTTA_REQUIRE(std::filesystem::create_directory(directory),"surface staging directory already exists");
+  std::ofstream manifest(directory/"manifest.json");manifest.exceptions(std::ios::failbit|std::ios::badbit);manifest.imbue(std::locale::classic());manifest<<std::setprecision(17);
+  manifest<<"{\"v\":1,\"format\":{\"name\":\"kutta-view\",\"version\":1,\"endian\":\"little\",\"header_bytes\":32},\"reference\":"<<(fields.reference?"true":"false")<<",\"provenance\":"<<json_string(fields.provenance)<<",\"bounds\":";bounds_json(manifest,mesh.points);
+  std::map<std::string,std::pair<Field,Range>> catalog;std::vector<Index> local(mesh.points.size(),-1);
+  manifest<<",\"zones\":[";
+  for(std::size_t i=0;i<mesh.patches.size();++i) {
+    const auto& patch=mesh.patches[i];auto geometry=surface(mesh,fields,patch,local);if(i)manifest<<',';
+    manifest<<"{\"id\":"<<patch.source_zone_id<<",\"name\":"<<json_string(patch.name)<<",\"type\":"<<json_string(patch.source_type)<<",\"faces\":"<<patch.size;
+    payload(directory/("zone-"+std::to_string(i)+".surface.bin"),geometry,manifest,catalog);
+  }
+  manifest<<"],\"slices\":[],\"fields\":[";bool first=true;
+  for(const auto& [name,entry]:catalog) {
+    if(!first)manifest<<',';
+    first=false;
+    manifest<<"{\"name\":"<<json_string(name)<<",\"unit\":"<<json_string(entry.first.unit)<<",\"components\":"<<entry.first.components<<",\"location\":\"vertex\"";range_json(manifest,entry.second);manifest<<'}';
+  }
+  manifest<<"]}\n";manifest.close();
+}
 void export_view(const std::filesystem::path& directory,const Snapshot& s,std::span<const Plane> planes,const post::Request* request) {
   KUTTA_REQUIRE(!s.mesh.points.empty(),"view snapshot has no points");
   const auto token=std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
@@ -143,7 +164,7 @@ void export_view(const std::filesystem::path& directory,const Snapshot& s,std::s
     std::map<std::string,std::pair<Field,Range>> catalog;std::vector<Index> local(s.mesh.points.size(),-1);
     manifest<<",\"zones\":[";bool first=true;
     for(std::size_t i=0;i<s.mesh.patches.size();++i) {
-      const auto& p=s.mesh.patches[i];auto g=surface(s,p,local);
+      const auto& p=s.mesh.patches[i];auto g=surface(s.mesh,s,p,local);
       if(!first)manifest<<',';
       first=false;manifest<<"{\"id\":"<<p.source_zone_id<<",\"name\":"<<json_string(p.name)<<",\"type\":"<<json_string(p.source_type)<<",\"faces\":"<<p.size;
       payload(stage/("zone-"+std::to_string(i)+".surface.bin"),g,manifest,catalog);

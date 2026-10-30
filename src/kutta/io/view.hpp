@@ -29,6 +29,9 @@ Plane parse_plane(std::string_view);
 void write_snapshot(const std::filesystem::path&,const PolyMesh&,const Fields&);
 inline void write_snapshot(const std::filesystem::path& path,const Snapshot& s) {write_snapshot(path,s.mesh,s);}
 Snapshot read_snapshot(const std::filesystem::path&);
+// Write a surface-only view into a new, caller-owned staging directory.
+// Borrows the mesh and never constructs a volume snapshot or copies topology.
+void write_surface_view(const std::filesystem::path&,const PolyMesh&,const Fields&);
 // Ordinary surfaces/slices keep storage proportional to visible geometry.
 // Optional post requests may construct volume gradients and nodal caches.
 void export_view(const std::filesystem::path& directory,const Snapshot&,std::span<const Plane> planes={},const post::Request* request=nullptr);
