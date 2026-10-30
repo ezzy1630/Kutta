@@ -96,6 +96,12 @@ and mass flux without taking an outer step. `permutation()` exposes both maps
 for comparison with source data. `setup/fluent.hpp` supplies the strict case
 adapter and source-ID field mapping. It rejects unsupported spatial settings
 and initialization methods by name; see V6 for the current elbow blockers.
+Hybrid initialization is supported through `initialize_hybrid()`. The adapter's
+`initial_fields()` returns either source-cell fields or stored hybrid controls;
+`setup::initialize()` dispatches that plan on the chosen Device. The potential,
+pressure and turbulence recipes, including every choice left unspecified by
+Fluent's public description, are in
+[`hybrid-initialization.md`](../../../docs/research/hybrid-initialization.md).
 Total-pressure outlets apply `p=p0-rho*|u_cell|^2/2` only on backflow faces.
 
 ```cpp
@@ -130,6 +136,10 @@ weighted cell point to the face centroid. The independently reconstructed side
 mean was rejected by the V2 wall-load refinement gates. Outlet flux predictors
 use cell velocity. Rhie–Chow uses the LSQ-reconstructed pressure jump; the
 momentum Green–Gauss alternative adds tet pressure-order failures. Pressure
+skew correction is retained within one centroid-link length of the link's
+midpoint, fades between one and two lengths, and uses the shared link derivative
+beyond two lengths. This bounds remote face extrapolation on stretched wall
+cells while preserving the original reconstruction on ordinary meshes.
 LSQ omits extrapolated observations, and projected symmetry velocity values
 are located at the normal foot of the cell centroid. Symmetry retains its
 zero-normal-velocity constraint and zero tangential traction. All flow models

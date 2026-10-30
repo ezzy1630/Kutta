@@ -78,3 +78,26 @@ TEST_CASE("FV pressure symmetry boundary uses the full centroid displacement") {
     }
   }
 }
+
+TEST_CASE("Rhie-Chow bounds remote face extrapolation and preserves local reconstruction") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    const auto owner=dev->upload<Index>(std::vector<Index>{0}),neighbour=dev->upload<Index>(std::vector<Index>{1});
+    auto p=dev->upload<float>(std::vector<float>{2,5});
+    auto gx=dev->upload<float>(std::vector<float>{1,3}),gy=dev->upload<float>(std::vector<float>{4,-2});
+    auto zero=dev->alloc<float>(2);dev->fill(zero,0);
+    auto rx=dev->alloc<float>(1),nx=dev->alloc<float>(1),ry=dev->alloc<float>(1),ny=dev->alloc<float>(1);
+    auto face=dev->alloc<float>(1),jump=dev->alloc<float>(1),boundary=dev->alloc<float>(0);
+    // Preserve the side-jump at modest skew; remote tangential displacement
+    // must not amplify curvature. The original formula adds 6*skew here.
+    for(float skew:{0.f,.25f,86.f}) {
+      dev->fill(rx,.5f);dev->fill(nx,-.5f);dev->fill(ry,skew);dev->fill(ny,skew);
+      kern::fv_pressure_faces(*dev,1,owner,neighbour,rx,ry,zero,nx,ny,zero,p,gx,gy,zero,boundary,face,jump,1);
+      CHECK(dev->download(jump)[0]==doctest::Approx(skew<1?-1+6*skew:-1));
+      CHECK(dev->download(face)[0]==doctest::Approx(3+skew));
+    }
+    // A common affine gradient cancels the pressure difference exactly.
+    dev->fill(gx,3);dev->fill(gy,0);
+    kern::fv_pressure_faces(*dev,1,owner,neighbour,rx,ry,zero,nx,ny,zero,p,gx,gy,zero,boundary,face,jump,1);
+    CHECK(dev->download(jump)[0]==0);
+  }
+}

@@ -50,7 +50,17 @@ KUTTA_KERNEL void fv_pressure_faces(int i,KIn(int) owner,KIn(int) neighbour,
   if(i<internal) {
     int n=neighbour[i];
     float pn=p[n]+gx[n]*nx[i]+gy[n]*ny[i]+gz[n]*nz[i];
-    face[i]=0.5f*(pp+pn);jump[i]=pp-pn;
+    face[i]=0.5f*(pp+pn);
+    // Side reconstructions add (gP-gN) dot face_skew to the shared centroid-
+    // link derivative. Preserve that correction within one link length;
+    // fade it to zero at two lengths, where it is an uncontrolled extrapolation
+    // on thin skew wall layers. Forces retain the actual face reconstructions.
+    float dx=px[i]-nx[i],dy=py[i]-ny[i],dz=pz[i]-nz[i];
+    float sx=0.5f*(px[i]+nx[i]),sy=0.5f*(py[i]+ny[i]),sz=0.5f*(pz[i]+nz[i]);
+    float d2=dx*dx+dy*dy+dz*dz,s2=sx*sx+sy*sy+sz*sz;
+    float trust=kmax(0.0f,kmin(1.0f,(4.0f*d2-s2)/(3.0f*d2)));
+    float shared=p[c]-p[n]+0.5f*((gx[c]+gx[n])*dx+(gy[c]+gy[n])*dy+(gz[c]+gz[n])*dz);
+    jump[i]=trust==1.0f?pp-pn:shared+trust*((pp-pn)-shared);
   } else {face[i]=boundary[i-internal];jump[i]=pp-boundary[i-internal];}
 }
 

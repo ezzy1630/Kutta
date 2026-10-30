@@ -21,6 +21,17 @@ TEST_CASE("TMR reference reader preserves independent code zones and interpolati
   const auto cp=read_reference(root/"2DBC_bump/sst2003/cp_bump_sst2003.dat");
   REQUIRE(cp.size()==2);CHECK(std::isfinite(reference_station(cp.front(),.75)));
 }
+TEST_CASE("TMR uniform bump startup stays bounded on skew wall cells") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    Options options;options.max_iterations=24;
+    const auto result=run(*dev,root,Case::Bump,0,options);
+    CHECK_MESSAGE(result.failure.empty(),result.failure);
+    CHECK(result.iterations==24);
+    CHECK(std::isfinite(result.residual.maximum_velocity));
+    CHECK(result.residual.maximum_velocity<2);
+    CHECK(std::isfinite(result.values.drag));
+  }
+}
 TEST_CASE("V5 TMR flat plate SST accuracy and three-grid trend" * doctest::test_suite("slow")) {
   const double ref_cf=finest(read_reference(root/"2DZP_flatplate/sst/cf_convergence_sstv.dat"));
   const double ref_cd=finest(read_reference(root/"2DZP_flatplate/sst/drag_convergence_sstv.dat"));
