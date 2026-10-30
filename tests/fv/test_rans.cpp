@@ -90,3 +90,24 @@ TEST_CASE("FV transport integrates implicit sinks and component wall terms befor
     eq.solve(field,{1e-7,1e-12,10});CHECK(dev->download(field)[0]==doctest::Approx(4.2));
   }
 }
+
+TEST_CASE("SIMPLEC non-solenoidal startup falls back to a positive momentum inverse") {
+  auto host=make_box_hex(2,1,1,{0,0,0},{2,1,1});auto geom=compute_geometry(host);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto mesh=upload_mesh(*dev,host,geom);auto stencil=make_stencil(*dev,host,geom);
+    TransportEquation eq(*dev,mesh,stencil,host,geom);
+    auto field=dev->alloc<float>(2),source=dev->alloc<float>(2);
+    auto boundary=dev->alloc<float>(mesh.n_boundary_faces()),flux=dev->alloc<float>(mesh.n_faces),mu=dev->alloc<float>(mesh.n_faces);
+    auto kind=dev->alloc<Index>(mesh.n_boundary_faces());
+    dev->fill(field,1);dev->fill(source,0);dev->fill(boundary,1);dev->fill(flux,0);dev->fill(mu,0);dev->fill(kind,1);
+    // A provisional inflow through the internal face leaves a negative
+    // local continuity defect in its owner before the pressure correction.
+    std::vector<float> f(mesh.n_faces,0);f[0]=-2;dev->upload<float>(flux,f);
+    TransportSettings settings;settings.relaxation=.7f;settings.pseudo_time_step=1;
+    eq.assemble(field,boundary,kind,flux,mu,source,settings);
+    const auto inverse=dev->download(eq.consistent_inverse),values=dev->download(eq.matrix.val);
+    const auto diagonal=values[stencil.pattern.diag[0]];
+    CHECK(inverse[0]==doctest::Approx(1./diagonal));
+    CHECK(std::isfinite(inverse[0]));
+  }
+}

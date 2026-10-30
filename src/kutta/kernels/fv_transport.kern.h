@@ -55,9 +55,11 @@ KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,
   float relaxed=(ap+time)/relax;
   b+=(relaxed-ap)*old[i];
   values[diag[i]]=relaxed; rhs[i]=b;
-  // SIMPLEC subtracts the neighbour sum from the relaxed diagonal. Pseudo
-  // time/under-relaxation keep this positive for convection-dominated cells.
-  consistent_inverse[i]=1.0f/kmax(relaxed+offsum,1.0e-20f);
+  // A non-solenoidal startup flux can make the SIMPLEC denominator negative
+  // despite relaxation/pseudo time. Use SIMPLE's positive diagonal then;
+  // clamping the negative value to 1e-20 creates a spurious 1e20 inverse.
+  float consistent=relaxed+offsum;
+  consistent_inverse[i]=1.0f/kmax(consistent>0.0f?consistent:relaxed,1.0e-20f);
 }
 
 // Each matrix is rebuilt on the next assembly; no persistent constraints.
