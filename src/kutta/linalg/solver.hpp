@@ -38,9 +38,13 @@ enum class SolverKind : std::uint8_t {
 };
 
 enum class NullSpace : std::uint8_t { None, Constant };
+enum class OperatorStructure : std::uint8_t { General, SymmetricMMatrix };
 
 struct SolverOptions {
   NullSpace nullspace = NullSpace::None;  // the equation, not rounded row sums, decides
+  // Caller guarantees symmetry, nonpositive off-diagonals and stored row
+  // diagonal dominance, including on refresh. AMG preserves this construction.
+  OperatorStructure structure = OperatorStructure::General;
 };
 
 class LinearSolver {

@@ -24,41 +24,49 @@ KUTTA_KERNEL void fv_transport_faces(int i, KIn(int) owner, KIn(int) neighbour,
 }
 
 KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,
-    KIn(float) sign, KIn(int) adjacent, KIn(int) entry, KIn(int) diag,
+    KIn(float) sign, KIn(int) adjacent, KIn(int) entry, KIn(int) rows, KIn(int) diag,
     KIn(float) diffusion, KIn(float) flux, KIn(float) mu,
     KIn(int) kind, KIn(float) boundary, KIn(float) correction,
     KIn(float) source, KIn(float) volume, KIn(float) old,
     KIn(float) sink,KIn(float) extra_diagonal,KIn(float) extra_rhs,
     KOut(float) values, KOut(float) rhs, KOut(float) diagonal,
     KOut(float) consistent_inverse, int internal, float rho, float dt, float relax) {
-  float ap=sink[i]*volume[i]+extra_diagonal[i],offsum=0.0f,b=source[i]*volume[i]+extra_rhs[i];
+  kupper_sum ap={sink[i]*volume[i],0.0f};ap=kupper_add(ap,extra_diagonal[i]);
+  float b=source[i]*volume[i]+extra_rhs[i];
   for(int j=offsets[i];j<offsets[i+1];++j) if(adjacent[j]>=0) values[entry[j]]=0.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int f=faces[j],n=adjacent[j];
     float F=sign[j]*flux[f],D=mu[f]*diffusion[f];
+    // aP = sum(|stored aN|) + net outward mass flux + boundary anchors/sinks.
+    // A negative net flux is a real transport term: do not clamp it to force
+    // diagonal dominance during a non-solenoidal SIMPLE transient.
+    ap=kupper_add(ap,F);
     if(n>=0) {
       float a=-D+kmin(F,0.0f);
-      values[entry[j]]+=a; offsum+=a;
-      ap+=D+kmax(F,0.0f);
+      values[entry[j]]+=a;
     } else {
       int bf=f-internal;
       if(kind[bf]!=0) D=0.0f;
       // Extrapolated outflow has F*phi_P on the implicit diagonal; prescribed
       // backflow is on the RHS and uses the same upwind sign as an inlet.
-      ap+=D+kmax(F,0.0f);
+      ap=kupper_add(ap,D);ap=kupper_add(ap,-kmin(F,0.0f));
       b+=(D-kmin(F,0.0f))*boundary[bf];
     }
     b+=sign[j]*correction[f];
   }
-  diagonal[i]=ap;
+  for(int j=rows[i];j<rows[i+1];++j) if(j!=diag[i]) ap=kupper_add(ap,-values[j]);
+  float physical=kupper_value(ap);
+  diagonal[i]=physical;
   float time=dt>0.0f?rho*volume[i]/dt:0.0f;
-  float relaxed=(ap+time)/relax;
-  b+=(relaxed-ap)*old[i];
+  float relaxed=kadd_up(physical,time)/relax;
+  b+=(relaxed-physical)*old[i];
   values[diag[i]]=relaxed; rhs[i]=b;
   // A non-solenoidal startup flux can make the SIMPLEC denominator negative
   // despite relaxation/pseudo time. Use SIMPLE's positive diagonal then;
   // clamping the negative value to 1e-20 creates a spurious 1e20 inverse.
-  float consistent=relaxed+offsum;
+  kupper_sum denominator={relaxed,0.0f};
+  for(int j=rows[i];j<rows[i+1];++j) if(j!=diag[i]) denominator=kupper_add(denominator,values[j]);
+  float consistent=kupper_value(denominator);
   consistent_inverse[i]=1.0f/kmax(consistent>0.0f?consistent:relaxed,1.0e-20f);
 }
 

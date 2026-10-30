@@ -8,6 +8,7 @@
 #include <set>
 
 #include "kernels.hpp"
+#include "kutta/kernels/prelude.h"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
 
@@ -203,22 +204,28 @@ struct SteadySolver::Impl {
     CsrMatrixHost initial{stencil.pattern,std::vector<double>(stencil.pattern.nnz(),0)};
     const auto cf=build_cell_faces(host);
     for(Index c=0;c<n;++c) {
-      double ap=0;
+      kupper_sum ap{0,0};
       for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
         auto f=cf.faces[j];auto other=f<mesh.n_internal_faces?(host.owner[f]==c?host.neighbour[f]:host.owner[f]):-1;
         if(other<0 && kinds[f-mesh.n_internal_faces]!=2 && kinds[f-mesh.n_internal_faces]!=4) continue;
         auto d=(other>=0?geom.cell_centroid[other]:geom.face_centroid[f])-geom.cell_centroid[c];
-        double a=dot(geom.face_area[f],geom.face_area[f])/std::abs(dot(geom.face_area[f],d));
-        ap+=a;
+        const float a=float(dot(geom.face_area[f],geom.face_area[f])/std::abs(dot(geom.face_area[f],d)));
+        if(other<0 || other==reference) ap=kupper_add(ap,a);
         if(other>=0 && other!=reference && c!=reference) {
           auto index=std::lower_bound(initial.pattern.col.begin()+initial.pattern.row_ptr[c],
             initial.pattern.col.begin()+initial.pattern.row_ptr[c+1],other)-initial.pattern.col.begin();
-          initial.val[index]-=a;
+          initial.val[index]=float(float(initial.val[index])-a);
         }
       }
-      initial.val[initial.pattern.diag[c]]=c==reference?1:ap;
+      // The hierarchy is built from the same stored-float M-matrix contract as
+      // runtime assembly, rather than independently rounded double diagonals.
+      for(Index j=initial.pattern.row_ptr[c];j<initial.pattern.row_ptr[c+1];++j) {
+        if(j!=initial.pattern.diag[c]) ap=kupper_add(ap,-float(initial.val[j]));
+      }
+      initial.val[initial.pattern.diag[c]]=c==reference?1:kupper_value(ap);
     }
-    pressure_solver=make_solver(pressure_solver_kind,dev,initial);
+    pressure_solver=make_solver(pressure_solver_kind,dev,initial,
+      {.structure=OperatorStructure::SymmetricMMatrix});
     const double volume=std::accumulate(geom.cell_volume.begin(),geom.cell_volume.end(),0.);
     Vec3d lo=host.points.front(),hi=lo;
     for(auto p:host.points) {lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
@@ -398,7 +405,7 @@ struct SteadySolver::Impl {
     update_boundaries();update_flux();
     kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
     kern::fv_pressure_assemble(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
-      stencil.adjacent,stencil.matrix_entry,pressure_matrix->diag,coefficient,mass,
+      stencil.adjacent,stencil.matrix_entry,pressure_matrix->row_ptr,pressure_matrix->diag,coefficient,mass,
       pressure_matrix->val,pressure_rhs,reference);
     pressure_solver->refresh(dev,*pressure_matrix);dev.fill(correction,0);
     report.pressure=pressure_solver->solve(dev,*pressure_matrix,correction,pressure_rhs,settings.pressure_linear);

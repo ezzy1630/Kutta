@@ -37,6 +37,26 @@ KUTTA_KERNEL void amg_galerkin(int i, KIn(int) offsets, KIn(int) entries,
   coarse[i] = sum + error;
 }
 
+// For a symmetric M-matrix, P^T A P is another graph Laplacian plus the
+// aggregated fine-row surpluses. Reconstruct its diagonal from stored coarse
+// edges instead of independently rounding cancellation-prone Galerkin sums.
+// The caller supplies canonical edge order to keep opposite entries identical.
+KUTTA_KERNEL void amg_m_matrix_diagonal(int i,KIn(int) offsets,KIn(int) members,
+    KIn(int) fine_rows,KIn(int) fine_diag,KIn(float) fine,
+    KIn(int) rows,KIn(int) diag,KOut(float) coarse) {
+  kupper_sum diagonal={0.0f,0.0f};
+  for(int m=offsets[i];m<offsets[i+1];++m) {
+    int row=members[m];
+    kupper_sum surplus={fine[fine_diag[row]],0.0f};
+    for(int j=fine_rows[row];j<fine_rows[row+1];++j)
+      if(j!=fine_diag[row]) surplus=kupper_add(surplus,fine[j]);
+    diagonal=kupper_add(diagonal,kupper_value(surplus));
+  }
+  for(int j=rows[i];j<rows[i+1];++j)
+    if(j!=diag[i]) diagonal=kupper_add(diagonal,-coarse[j]);
+  coarse[diag[i]]=kupper_value(diagonal);
+}
+
 // Memory-saving alternative, timed by bench_galerkin. One thread owns a
 // coarse row and gathers directly through its member rows; no fine-nnz map.
 KUTTA_KERNEL void amg_galerkin_rows(int i, KIn(int) coarse_rows, KIn(int) coarse_cols,

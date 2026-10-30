@@ -15,6 +15,7 @@ struct AmgOptions {
   int aggregation_passes = 3;
   double strength_threshold = 0.25;
   NullSpace nullspace = NullSpace::None;
+  OperatorStructure structure = OperatorStructure::General;
 };
 
 // Same lifecycle as make_solver; only AmgPcg/AmgBicgstab are accepted.

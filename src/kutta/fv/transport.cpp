@@ -49,7 +49,7 @@ void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const 
     grad.x,grad.y,grad.z,limiter,flux,mu,kind,face_correction,m.n_internal_faces,
     settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
   kern::fv_transport_assemble(dev,m.n_cells,m.cell_face_offsets,m.cell_faces,m.cell_face_sign,
-    s.adjacent,s.matrix_entry,matrix.diag,s.diffusion,flux,mu,kind,bc,face_correction,
+    s.adjacent,s.matrix_entry,matrix.row_ptr,matrix.diag,s.diffusion,flux,mu,kind,bc,face_correction,
     source,m.volume,field,terms.sink?*terms.sink:zero_,terms.diagonal?*terms.diagonal:zero_,
     terms.rhs?*terms.rhs:zero_,matrix.val,rhs,diagonal,consistent_inverse,m.n_internal_faces,
     settings.density,settings.pseudo_time_step,settings.relaxation);

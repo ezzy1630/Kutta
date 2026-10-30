@@ -5,9 +5,11 @@
 #include <limits>
 #include <numeric>
 #include <sstream>
+#include <tuple>
 #include <utility>
 
 #include "kutta/linalg/detail.hpp"
+#include "kutta/kernels/prelude.h"
 
 namespace kutta {
 namespace {
@@ -72,7 +74,8 @@ std::vector<Index> pairs(const CsrMatrixHost& a, double threshold, bool exclude_
   return map;
 }
 
-Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool entry_map) {
+Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool entry_map,
+                  bool m_matrix) {
   Coarsening c;
   c.aggregate = std::move(aggregate);
   const Index nc = c.aggregate.empty() ? 0 : *std::max_element(c.aggregate.begin(), c.aggregate.end()) + 1;
@@ -90,7 +93,7 @@ Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool
 
   // Sort only one aggregate row at a time, not a global nnz-sized tuple array.
   // Source indices are tie-breakers, fixing the sum order across all backends.
-  std::vector<std::pair<Index, Index>> row;
+  std::vector<std::tuple<Index, Index, Index>> row;
   if (entry_map) {
     c.entries.reserve(fine.pattern.nnz());
     c.entry_offsets.push_back(0);
@@ -100,13 +103,25 @@ Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool
     for (Index m = c.member_offsets[g]; m < c.member_offsets[g + 1]; ++m) {
       Index i = c.members[m];
       for (Index j = fine.pattern.row_ptr[i]; j < fine.pattern.row_ptr[i + 1]; ++j)
-        if (c.aggregate[fine.pattern.col[j]] >= 0)
-          row.emplace_back(c.aggregate[fine.pattern.col[j]], j);
+        if (c.aggregate[fine.pattern.col[j]] >= 0) {
+          Index canonical=j;
+          if(m_matrix) {
+            const auto col=fine.pattern.col[j];
+            const auto first=fine.pattern.col.begin()+fine.pattern.row_ptr[col];
+            const auto last=fine.pattern.col.begin()+fine.pattern.row_ptr[col+1];
+            const auto opposite=std::lower_bound(first,last,i)-fine.pattern.col.begin();
+            canonical=std::min(j,static_cast<Index>(opposite));
+          }
+          // Opposite coarse entries sum the very same float edges in the
+          // same order, even if fine CSR row order differs on their two sides.
+          row.emplace_back(c.aggregate[fine.pattern.col[j]], canonical, j);
+        }
     }
     std::sort(row.begin(), row.end());
     Index previous = -1;
     float sum = 0, error = 0;
-    for (auto [col, source] : row) {
+    for (auto [col, canonical, source] : row) {
+      (void)canonical;
       if (col != previous) {
         if (previous != -1) c.matrix.val.back() = sum + error;
         sum = error = 0;
@@ -125,6 +140,19 @@ Coarsening coarsen(const CsrMatrixHost& fine, std::vector<Index> aggregate, bool
     if (previous != -1) c.matrix.val.back() = sum + error;
     if (entry_map) c.entry_offsets.push_back(static_cast<Index>(c.entries.size()));
     cp.row_ptr[g + 1] = static_cast<Index>(cp.col.size());
+    if(m_matrix) {
+      kupper_sum diagonal{0,0};
+      for(Index m=c.member_offsets[g];m<c.member_offsets[g+1];++m) {
+        const auto i=c.members[m];
+        kupper_sum surplus{float(fine.val[fine.pattern.diag[i]]),0};
+        for(Index j=fine.pattern.row_ptr[i];j<fine.pattern.row_ptr[i+1];++j)
+          if(j!=fine.pattern.diag[i]) surplus=kupper_add(surplus,float(fine.val[j]));
+        diagonal=kupper_add(diagonal,kupper_value(surplus));
+      }
+      for(Index j=cp.row_ptr[g];j<cp.row_ptr[g+1];++j)
+        if(j!=cp.diag[g]) diagonal=kupper_add(diagonal,-float(c.matrix.val[j]));
+      c.matrix.val[cp.diag[g]]=kupper_value(diagonal);
+    }
   }
   return c;
 }
@@ -134,12 +162,14 @@ Coarsening aggregate(const CsrMatrixHost& a, const AmgOptions& options) {
   for (int pass = 1; pass < options.aggregation_passes; ++pass) {
     // Pairing only needs the intermediate operator; entry maps are built once
     // for the final transfer. Release it before rebuilding from the fine grid.
-    auto intermediate = coarsen(a, std::move(map), false);
+    auto intermediate = coarsen(a, std::move(map), false,
+                                options.structure==OperatorStructure::SymmetricMMatrix);
     auto next = pairs(intermediate.matrix, options.strength_threshold, false);
     map = std::move(intermediate.aggregate);
     for (auto& g : map) if (g >= 0) g = next[g];
   }
-  auto c = coarsen(a, std::move(map), true);
+  auto c = coarsen(a, std::move(map), true,
+                    options.structure==OperatorStructure::SymmetricMMatrix);
   return c;
 }
 
@@ -211,6 +241,9 @@ class Aggregation final : public linalg_detail::Preconditioner {
         auto& coarse = levels_[i + 1].matrix;
         auto& t = l.transfer;
         kern::amg_galerkin(dev, coarse.nnz, t.entry_offsets, t.entries, matrix->val, coarse.val);
+        if(options_.structure==OperatorStructure::SymmetricMMatrix)
+          kern::amg_m_matrix_diagonal(dev,coarse.n_rows,t.member_offsets,t.members,
+            matrix->row_ptr,matrix->diag,matrix->val,coarse.row_ptr,coarse.diag,coarse.val);
         matrix = &coarse;
       }
     }
@@ -318,6 +351,24 @@ std::unique_ptr<LinearSolver> make_amg_solver(SolverKind kind, Device& dev,
   // Validate the public host CSR boundary before traversing any arrays.
   linalg_detail::validate_host(a);
   linalg_detail::check_nullspace(a, options.nullspace);
+  KUTTA_REQUIRE(options.structure==OperatorStructure::General ||
+                options.structure==OperatorStructure::SymmetricMMatrix,"AMG: invalid operator structure");
+  if(options.structure==OperatorStructure::SymmetricMMatrix) {
+    const auto& p=a.pattern;
+    for(Index i=0;i<p.n_rows;++i) {
+      long double sum=0;
+      for(Index j=p.row_ptr[i];j<p.row_ptr[i+1];++j) {
+        const float value=float(a.val[j]);sum+=value;
+        const auto col=p.col[j];
+        const auto first=p.col.begin()+p.row_ptr[col],last=p.col.begin()+p.row_ptr[col+1];
+        const auto opposite=std::lower_bound(first,last,i);
+        KUTTA_REQUIRE(opposite!=last && *opposite==i &&
+          value==float(a.val[opposite-p.col.begin()]) && (col==i || value<=0),
+          "AMG M-matrix: expected symmetric nonpositive edges");
+      }
+      KUTTA_REQUIRE(sum>=0,"AMG M-matrix: expected diagonally dominant rows");
+    }
+  }
   return linalg_detail::krylov_solver(kind, dev, a,
       std::make_unique<Aggregation>(kind, dev, a, options), options.nullspace);
 }
@@ -331,7 +382,7 @@ std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const Cs
   switch (kind) {
     case SolverKind::AmgPcg:
     case SolverKind::AmgBicgstab: {
-      AmgOptions amg; amg.nullspace = options.nullspace;
+      AmgOptions amg; amg.nullspace = options.nullspace;amg.structure=options.structure;
       return make_amg_solver(kind, dev, a, amg);
     }
     case SolverKind::Jacobi:

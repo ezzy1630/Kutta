@@ -30,6 +30,7 @@ using namespace metal;
 #define KUTTA_LOG metal::log
 #define KUTTA_TANH metal::tanh
 #define KUTTA_POW metal::pow
+#define KUTTA_NEXTAFTER metal::nextafter
 #elif defined(__CUDACC__)
 #define KUTTA_FN __device__ __forceinline__
 #define KOut(T) T* __restrict__
@@ -44,6 +45,7 @@ typedef unsigned int uint;
 #define KUTTA_LOG logf
 #define KUTTA_TANH tanhf
 #define KUTTA_POW powf
+#define KUTTA_NEXTAFTER nextafterf
 #else
 #include <cmath>
 #define KUTTA_FN inline
@@ -59,6 +61,7 @@ typedef unsigned int uint;
 #define KUTTA_LOG std::log
 #define KUTTA_TANH std::tanh
 #define KUTTA_POW std::pow
+#define KUTTA_NEXTAFTER std::nextafter
 #endif
 
 #define KUTTA_KERNEL KUTTA_FN
@@ -72,6 +75,29 @@ KUTTA_FN float kexp(float x) { return KUTTA_EXP(x); }
 KUTTA_FN float klog(float x) { return KUTTA_LOG(x); }
 KUTTA_FN float ktanh(float x) { return KUTTA_TANH(x); }
 KUTTA_FN float kpow(float x, float y) { return KUTTA_POW(x, y); }
+
+// TwoSum exposes the exact rounding error of a finite float addition. Advance
+// only when round-to-nearest went down; unlike an epsilon shift this retains
+// exactly representable sums, including zero. No FP64 is needed on Metal.
+KUTTA_FN float kadd_up(float a, float b) {
+  float sum = a + b;
+  float part = sum - a;
+  float error = (a - (sum - part)) + (b - part);
+  return error > 0.0f ? KUTTA_NEXTAFTER(sum, INFINITY) : sum;
+}
+
+// A tight upper bound for a sum: TwoSum retains the high-word error and only
+// the low-word accumulation rounds upward. The final ceiling usually costs
+// at most one ulp, rather than one ulp for every face of a polyhedron.
+struct kupper_sum { float sum, error; };
+KUTTA_FN kupper_sum kupper_add(kupper_sum a, float b) {
+  float sum = a.sum + b;
+  float part = sum - a.sum;
+  float error = (a.sum - (sum - part)) + (b - part);
+  kupper_sum result = {sum, kadd_up(a.error, error)};
+  return result;
+}
+KUTTA_FN float kupper_value(kupper_sum a) { return kadd_up(a.sum, a.error); }
 
 struct kvec3 {
   float x, y, z;

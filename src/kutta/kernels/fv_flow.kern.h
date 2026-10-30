@@ -129,19 +129,24 @@ KUTTA_KERNEL void fv_rhie_chow(int i,KIn(int) owner,KIn(int) neighbour,
 }
 
 KUTTA_KERNEL void fv_pressure_assemble(int i,KIn(int) offsets,KIn(int) faces,
-    KIn(float) sign,KIn(int) adjacent,KIn(int) entry,KIn(int) diag,
+    KIn(float) sign,KIn(int) adjacent,KIn(int) entry,KIn(int) rows,KIn(int) diag,
     KIn(float) coefficient,KIn(float) flux,KOut(float) values,KOut(float) rhs,
     int reference) {
-  float ap=0.0f,b=0.0f;
+  kupper_sum ap={0.0f,0.0f};float b=0.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) if(adjacent[j]>=0) values[entry[j]]=0.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int f=faces[j],n=adjacent[j];float d=coefficient[f];
     b-=sign[j]*flux[f];
-    ap+=d;
+    // Boundary and eliminated reference couplings are nonnegative anchors.
+    if(n<0 || n==reference) ap=kupper_add(ap,d);
     // Eliminate the reference column as well as its row, keeping SPD for CG.
     if(n>=0 && n!=reference && i!=reference) values[entry[j]]-=d;
   }
-  values[diag[i]]=i==reference?1.0f:ap;rhs[i]=i==reference?0.0f:b;
+  // Sum the final stored entries, once per neighbour (several faces may share
+  // one CSR entry). Upward rounding makes the stored symmetric M-matrix weakly
+  // diagonally dominant even across arbitrarily graded coefficient scales.
+  for(int j=rows[i];j<rows[i+1];++j) if(j!=diag[i]) ap=kupper_add(ap,-values[j]);
+  values[diag[i]]=i==reference?1.0f:kupper_value(ap);rhs[i]=i==reference?0.0f:b;
 }
 
 KUTTA_KERNEL void fv_correct_flux(int i,KIn(int) owner,KIn(int) neighbour,
