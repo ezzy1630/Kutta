@@ -45,7 +45,7 @@ KUTTA_KERNEL void rke_scalable_wall(int i,KIn(int) owner,KIn(int) wall,KIn(float
     KIn(float) ax,KIn(float) ay,KIn(float) az,KIn(float) u,KIn(float) v,KIn(float) w,
     KIn(float) bu,KIn(float) bv,KIn(float) bw,KIn(float) rho,KIn(float) mu,KIn(float) k,
     KOut(float) coefficient,KOut(float) ystar,KOut(float) tau,KOut(float) epsilon,
-    KOut(float) production,KOut(float) tx,KOut(float) ty,KOut(float) tz,int internal,float k_floor) {
+    KOut(float) production,KOut(float) tx,KOut(float) ty,KOut(float) tz,int internal,float k_floor,float e_floor) {
   coefficient[i]=0.0f;ystar[i]=0.0f;tau[i]=0.0f;epsilon[i]=0.0f;production[i]=0.0f;tx[i]=0.0f;ty[i]=0.0f;tz[i]=0.0f;
   if(!wall[i]) return;
   int c=owner[i+internal],f=i+internal;
@@ -59,7 +59,7 @@ KUTTA_KERNEL void rke_scalable_wall(int i,KIn(int) owner,KIn(int) wall,KIn(float
   // Replace y* in EVERY wall-function formula, TG 4-357, not only U+.
   float effective_distance=effective*mu[c]/(rho[c]*us);
   float dissipation=us*us*us/(0.4187f*effective_distance);
-  coefficient[i]=coeff;ystar[i]=y;tau[i]=stress;epsilon[i]=dissipation;
+  coefficient[i]=coeff;ystar[i]=y;tau[i]=stress;epsilon[i]=kmax(dissipation,e_floor);
   production[i]=stress*stress/(0.4187f*rho[c]*us*effective_distance);
   tx[i]=-coeff*tangent.x;ty[i]=-coeff*tangent.y;tz[i]=-coeff*tangent.z;
 }

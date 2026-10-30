@@ -61,6 +61,10 @@ TEST_CASE("Realizable KE scalable walls clamp every y-star formula and retain mo
     else {REQUIRE(values.size()==cpu.size());for(std::size_t j=0;j<values.size();++j) for(std::size_t i=0;i<values[j].size();++i) CHECK(near(values[j][i],cpu[j][i]));}
     dev->fill(s.velocity.x,2);model.update({s.velocity,{s.gu,s.gv,s.gw},s.rho,s.mu,s.k,s.omega,s.wall_velocity});
     CHECK(dev->max_abs(f.wall_tau,6)==0);CHECK(dev->download(f.wall_coefficient)[0]>0);
+    dev->fill(s.k,0);model.update({s.velocity,{s.gu,s.gv,s.gw},s.rho,s.mu,s.k,s.omega,s.wall_velocity});
+    // A fixed wall row must be attainable after the transport floor is applied.
+    CHECK(dev->download(f.fixed_epsilon)[0]==1e-20f);
+    for(float value:dev->download(f.wall_epsilon)) CHECK(value==1e-20f);
   }
 }
 TEST_CASE("Realizable KE explicit EWT algebra and Kader asymptotes are portable") {

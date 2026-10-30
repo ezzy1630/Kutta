@@ -38,7 +38,7 @@ void RealizableKeModel::update(const RealizableKeInputs& in) {
     f.mu_t,f.cmu,f.strain,o.a0,o.k_floor,o.epsilon_floor,o.max_viscosity_ratio);
   kern::rke_scalable_wall(d,nb,mesh_.owner,wall_,mesh_.wall_normal_distance,mesh_.area.x,mesh_.area.y,mesh_.area.z,
     in.velocity.x,in.velocity.y,in.velocity.z,in.wall_velocity.x,in.wall_velocity.y,in.wall_velocity.z,in.density,in.viscosity,in.k,
-    f.wall_coefficient,f.wall_y_star,f.wall_tau,f.wall_epsilon,f.wall_production,f.wall_shear.x,f.wall_shear.y,f.wall_shear.z,mesh_.n_internal_faces,o.k_floor);
+    f.wall_coefficient,f.wall_y_star,f.wall_tau,f.wall_epsilon,f.wall_production,f.wall_shear.x,f.wall_shear.y,f.wall_shear.z,mesh_.n_internal_faces,o.k_floor,o.epsilon_floor);
   // Cell source production is separate from the per-face diagnostics.
   auto& prod=wall_production_cell_;
   kern::rke_wall_cells(d,n,mesh_.cell_face_offsets,mesh_.cell_faces,wall_,mesh_.wall_normal_distance,
