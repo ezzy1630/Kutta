@@ -3,6 +3,7 @@
 #include "kutta/io/live_view.hpp"
 #include "test_support.hpp"
 #include <doctest/doctest.h>
+#include <chrono>
 #include <future>
 #include <thread>
 
@@ -55,8 +56,14 @@ TEST_CASE("Live manifest swaps expose complete immutable views with monotonic "
     try {
       double previous = 0;
       while (!done || reads == 0) {
-        const auto pointer =
-            object(parse_json(mesh_text(writer.directory() / "manifest.json")));
+        // On Windows the pointer cannot be opened for a moment while it is
+        // swapped; it is never written in place, so an empty read is transient.
+        std::string text;
+        for (int attempt = 0; text.empty() && attempt < 200; ++attempt) {
+          if (attempt) std::this_thread::sleep_for(std::chrono::milliseconds(1));
+          text = mesh_text(writer.directory() / "manifest.json");
+        }
+        const auto pointer = object(parse_json(text));
         const auto sequence = number(pointer.at("sequence"));
         KUTTA_REQUIRE(sequence >= previous, "live sequence moved backwards");
         previous = sequence;
@@ -121,7 +128,7 @@ TEST_CASE("Live manifest swaps expose complete immutable views with monotonic "
   }
   done = true;
   reader.join();
-  CHECK(error.empty());
+  CHECK_MESSAGE(error.empty(), error);
   CHECK(reads > 0);
   CHECK(writer.sequence() == 12);
   const auto before = mesh_text(writer.directory() / "manifest.json");

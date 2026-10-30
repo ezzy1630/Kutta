@@ -455,11 +455,13 @@ contours before the new run publishes its first snapshot.
 
 Published snapshots are immutable and retained. Readers may finish reading an
 older sequence while the solver publishes another. A publication failure leaves
-the previous pointer/assets readable and emits the ordinary terminal `error`;
-unpublished staging data is removed. One solver owns each DIR. The caller owns
-cleanup of retained run directories after readers close them. On Windows the
-pointer swap uses replacement rename, with a bounded retry for readers briefly
-holding the pointer file open; consumers should close it after reading. Atomicity
+the previous pointer/assets readable, removes unpublished staging data and emits a
+`warning`; the solve continues, since live view is a preview. One solver owns each
+DIR. The caller owns cleanup of retained run directories after readers close them.
+On Windows the pointer swap uses replacement rename, with a bounded retry for
+readers briefly holding the pointer file open; consumers should close it after
+reading, and retry when it cannot be opened for a moment during a swap. The
+pointer is never written in place, so a failed or empty read is always transient. Atomicity
 means visibility to concurrent readers on the same filesystem, not a guarantee
 against storage failure or power loss.
 

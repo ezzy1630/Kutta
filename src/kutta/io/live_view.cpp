@@ -17,13 +17,15 @@ namespace {
 void replace(const std::filesystem::path &source,
              const std::filesystem::path &target) {
 #ifdef _WIN32
-  // std::filesystem::rename cannot replace an existing file on Windows. Retry
-  // sharing violations while a polling reader closes its manifest handle.
+  // std::filesystem::rename cannot replace an existing file on Windows. A
+  // polling reader's open handle makes the replace fail with a sharing
+  // violation or, without FILE_SHARE_DELETE, access denied; retry until it
+  // closes the manifest (about one second at most).
   for (int attempt = 0;; ++attempt) {
     if (MoveFileExW(source.c_str(), target.c_str(), MOVEFILE_REPLACE_EXISTING))
       return;
     const auto error = GetLastError();
-    if (error != ERROR_SHARING_VIOLATION || attempt == 99)
+    if ((error != ERROR_SHARING_VIOLATION && error != ERROR_ACCESS_DENIED) || attempt == 99)
       throw std::filesystem::filesystem_error(
           "publish live manifest", source, target,
           std::error_code(int(error), std::system_category()));

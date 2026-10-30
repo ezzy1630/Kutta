@@ -20,8 +20,12 @@ struct Json {
   Json(const char* v):value(std::string(v)){}
   Json(Array v):value(std::move(v)){}
   Json(Object v):value(std::move(v)){}
-  bool operator==(const Json&) const=default;
 };
+// Defined after Json is complete. A defaulted in-class operator== makes libc++
+// 19 (Xcode 16) evaluate its relocation trait while Json is incomplete and cache
+// "trivially relocatable"; vector growth then memcpys Object maps, leaving their
+// self-referential tree nodes pointing into freed storage.
+inline bool operator==(const Json& a,const Json& b) {return a.value==b.value;}
 // Strict JSON: duplicate keys, nonfinite numbers, invalid escapes and trailing
 // text are rejected. Input is bounded by the setup-file boundary (1 MiB).
 Json parse_json(std::string_view);

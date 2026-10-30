@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <iostream>
 #include <locale>
+#include <optional>
 #include <sstream>
 #include <set>
 
@@ -183,9 +184,18 @@ int solve(int argc,char** argv) {
       if(live && solver.report().residual_iteration==iter && cadence.due(iter,seconds(run_start)-cadence.total_seconds())) {
         const auto snapshot_start=Clock::now();
         const auto snapshot_fields=app::collect_view_fields(*dev,solver,c,reference?&*reference:nullptr,*setup,notice,false);
-        auto event=live->publish(solver.mesh(),snapshot_fields,iter,seconds(run_start));
+        // Live view is a preview: a failed snapshot is reported and skipped,
+        // never allowed to end the solve.
+        std::optional<Json::Object> event;std::string failure;
+        try {event=live->publish(solver.mesh(),snapshot_fields,iter,seconds(run_start));}
+        catch(const std::exception& e) {failure=e.what();}
         const auto cost=seconds(snapshot_start);cadence.record(iter,cost);batch_snapshot_time+=cost;
-        if(jsonl){event.emplace("event","snapshot");event.emplace("snapshot_seconds",cost);std::cout<<dump_json(event)<<std::endl;}
+        if(event && jsonl){event->emplace("event","snapshot");event->emplace("snapshot_seconds",cost);std::cout<<dump_json(*event)<<std::endl;}
+        if(!failure.empty()) {
+          const auto message="live snapshot at iteration "+std::to_string(iter)+" skipped: "+failure;
+          if(jsonl)std::cout<<dump_json(Json::Object{{"v",1},{"event","warning"},{"message",message}})<<std::endl;
+          std::cerr<<message<<std::endl;
+        }
         stopped=stop.requested();
       }
       if(iter%setup->settings.monitor_interval!=0 && iter!=o.iterations && !stopped)continue;
