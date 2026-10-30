@@ -133,7 +133,7 @@ produce final outputs.
 `inspect --json` also returns `settings`, an array with these exact fields:
 
 ```json
-{"path":"boundary/velocity-inlet-5/velocity-magnitude","label":"Velocity magnitude","group":"Boundary Conditions","value":0.4,"unit":"m/s","kind":"number","options":[],"min":0,"max":1000000000000000,"editable":true,"reason":""}
+{"path":"boundary/velocity-inlet-5/velocity-magnitude","label":"Velocity magnitude","group":"Boundary Conditions","value":0.4,"unit":"m/s","kind":"number","options":[],"option_labels":[],"value_label":"","min":0,"max":1000000000000000,"editable":true,"reason":"","active":true,"depends_on":"boundary/velocity-inlet-5/velocity-specification","active_when":[0,2]}
 ```
 
 Groups use Fluent's vocabulary: General, Models, Materials, Cell Zone Conditions,
@@ -143,6 +143,27 @@ Monitors, Initialization, Run Calculation. `kind` is `number`, `integer`, `enum`
 inclusive and null when unbounded. For vec3 they constrain each component.
 Unavailable values are null. Read-only entries have a plain `reason`; fields
 which would need solver changes say `not yet configurable in Kutta`.
+
+`option_labels` is parallel to `options` (`[]` when there are no options).
+`value_label` gives Fluent's words for the current `value` of an enum or code
+when known, else `""`; zone, material and report `type` labels are the Fluent
+type string. Integer codes stay integers: `turbulence-specification` 0 "K and
+Omega" ("K and Epsilon" for k-epsilon models), 1 "Intensity and Length Scale",
+2 "Intensity and Viscosity Ratio", 3 "Intensity and Hydraulic Diameter";
+`velocity-specification` (velocity inlets) 0 "Magnitude and Direction",
+1 "Components", 2 "Magnitude, Normal to Boundary". Retained raw settings have
+no labels.
+
+`active` says whether the case as saved uses the setting, as Fluent's panel
+would show it. When `depends_on` names a controlling enum path, `active` is
+exactly whether that setting's current `value` is in `active_when`; otherwise
+`depends_on` is null, `active_when` is `[]` and `active` is static. Turbulence
+values depend on the zone's `turbulence-specification`: intensity [1,2,3],
+length scale [1], viscosity ratio [2], hydraulic diameter [3], k [0], omega
+[0] for k-omega models, epsilon [0] for k-epsilon models. Inlet magnitude
+depends on `velocity-specification` [0,2], components [1], direction [0].
+Velocity inputs on non-inlets, gauge pressure on non-outlets and the turbulence
+specification of zones without one (walls, symmetry) are inactive.
 
 Paths are stable lowercase slash-separated identities. Boundary and cell-zone
 paths use the exact Fluent zone name, materials and reports use their names.
@@ -156,15 +177,24 @@ read-only strings, preserving their original structure and meaning. Absent
 required adapter controls also appear, with null values.
 
 Only entries with `editable: true` may be changed. Initial editable controls are:
-active inlet speed/components/direction, active inlet/outlet turbulence values,
-outlet gauge pressure, active constant material density/viscosity, used reference
-area/density/speed/pressure, implemented momentum/k/omega upwind schemes, gradient
-limiting, pseudo-time scale and active equation relaxation, standard numeric
-initialization values when not seeded, force-report directions, and run iteration
-and monitor intervals. Changing the initialization method, operating pressure,
-unused reference length/viscosity, model selection, wall motion, turbulence
-specification or convergence criteria is read-only. A displayed Fluent value is
-not evidence that Kutta can edit it.
+active inlet speed/components/direction, inlet/outlet turbulence values and
+turbulence specification (k-omega models), outlet gauge pressure, active
+constant material density/viscosity, used reference area/density/speed/pressure,
+implemented momentum/k/omega upwind schemes, gradient limiting, pseudo-time
+scale and active equation relaxation, standard numeric initialization values
+when not seeded, force-report directions, and run iteration and monitor
+intervals. Changing the initialization method, operating pressure, unused
+reference length/viscosity, model selection, velocity specification, wall
+motion or convergence criteria is read-only. A displayed Fluent value is not
+evidence that Kutta can edit it.
+
+The turbulence specification's `options` are restricted to the methods whose
+required values were saved as constants or resolved expressions (plus the
+current method), so switching never runs on a guessed value. Turbulence values
+a method of the case's model can use stay editable while inactive, so the app
+can switch method and set its values in one setup file; an override of an
+inactive value is accepted and has no effect, as Fluent keeps such values.
+Values no method of the model reads (epsilon for k-omega) are read-only.
 
 ```sh
 kutta solve case.cas.h5 --setup setup.json --out run --progress jsonl

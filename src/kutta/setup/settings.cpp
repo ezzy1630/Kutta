@@ -2,6 +2,7 @@
 #include "kutta/mesh/detail.hpp"
 #include <algorithm>
 #include <cmath>
+#include <deque>
 #include <fstream>
 #include <limits>
 #include <set>
@@ -39,8 +40,22 @@ std::string group(std::string_view key) {
   if(key.starts_with("kw") || key.starts_with("ke") || key.starts_with("sst") || key.starts_with("turb") || key.find("energy")!=std::string_view::npos)return "Models";
   return "General";
 }
+std::string scheme_label(Scheme s) {
+  switch(s){case Scheme::first_upwind:return "First Order Upwind";case Scheme::second_upwind:return "Second Order Upwind";case Scheme::power_law:return "Power Law";case Scheme::central:return "Central Differencing";
+    case Scheme::quick:return "QUICK";case Scheme::muscl:return "Third-Order MUSCL";case Scheme::bounded_central:return "Bounded Central Differencing";case Scheme::standard_pressure:return "Standard";
+    case Scheme::linear_pressure:return "Linear";case Scheme::second_pressure:return "Second Order";case Scheme::body_force_weighted:return "Body Force Weighted";case Scheme::presto:return "PRESTO!";}
+  return "";
+}
+std::string viscous_label(ViscousModel m) {
+  switch(m){case ViscousModel::kw_sst:return "k-omega SST";case ViscousModel::kw_bsl:return "k-omega BSL";case ViscousModel::kw_standard:return "k-omega Standard";case ViscousModel::ke_standard:return "k-epsilon Standard";
+    case ViscousModel::ke_rng:return "k-epsilon RNG";case ViscousModel::ke_realizable:return "k-epsilon Realizable";case ViscousModel::spalart_allmaras:return "Spalart-Allmaras";case ViscousModel::laminar:return "Laminar";}
+  return "";
+}
+// Label the current value from the parallel option lists.
+void label_value(Setting& s) {for(std::size_t i=0;i<s.options.size() && i<s.option_labels.size();++i)if(s.options[i]==s.value)s.value_label=std::get<std::string>(s.option_labels[i].value);}
 class Inventory {
-  std::vector<Setting> out;
+  // A deque keeps references from add() valid while later entries are added.
+  std::deque<Setting> out;
   std::map<const RawSettings*,std::set<std::string>> consumed;
  public:
   void consume(const RawSettings& raw,std::string key){consumed[&raw].insert(std::move(key));}
@@ -57,22 +72,34 @@ class Inventory {
     }
   }
   void editable(Setting& s,std::function<void(const Json&)> setter,std::optional<double> min={},std::optional<double> max={}) {s.editable=true;s.reason.clear();s.apply=std::move(setter);s.min=min;s.max=max;}
-  void scalar(std::string path,std::string label,std::string group,std::optional<ScalarValue>& v,std::string unit,bool active,std::optional<double> min={},std::optional<double> max={}) {
+  void depends(Setting& s,const std::string& control,Json::Array when){s.depends_on=control;s.active_when=std::move(when);}
+  Setting& scalar(std::string path,std::string label,std::string group,std::optional<ScalarValue>& v,std::string unit,bool active,std::optional<double> min={},std::optional<double> max={}) {
     auto& s=add(std::move(path),std::move(label),std::move(group),value(v),std::move(unit),"number");
     if(active && v && (v->constant || v->resolved))editable(s,[target=&v](const Json& j){ScalarValue v;v.kind=ScalarValue::Kind::constant;v.constant=std::get<double>(j.value);*target=std::move(v);},min,max);
+    return s;
   }
   void number(std::string path,std::string label,std::string group,std::optional<double>& v,std::string unit,bool active,std::optional<double> min={},std::optional<double> max={}) {
     auto& s=add(std::move(path),std::move(label),std::move(group),v?Json(*v):Json(nullptr),std::move(unit),"number");
     if(active && v)editable(s,[target=&v](const Json& j){*target=std::get<double>(j.value);},min,max);
   }
-  void vector(std::string path,std::string label,ScalarVector& v,std::string unit,bool active,bool nonzero=false) {
+  Setting& vector(std::string path,std::string label,ScalarVector& v,std::string unit,bool active,bool nonzero=false) {
     auto& s=add(std::move(path),std::move(label),"Boundary Conditions",vector_value(v),std::move(unit),"vec3");
     if(active && std::all_of(v.begin(),v.end(),[](const auto& x){return x && (x->constant || x->resolved);})) {
       editable(s,[target=&v](const Json& j){const auto& a=std::get<Json::Array>(j.value);for(int i=0;i<3;++i){ScalarValue x;x.kind=ScalarValue::Kind::constant;x.constant=std::get<double>(a[i].value);(*target)[i]=x;}},-1e30,1e30);
       if(nonzero)s.validate=[](const Json& j){const auto& a=std::get<Json::Array>(j.value);const double n=std::hypot(std::get<double>(a[0].value),std::get<double>(a[1].value),std::get<double>(a[2].value));return n>0?std::string{}:"direction must be nonzero";};
     }
+    return s;
   }
-  std::vector<Setting> finish(){std::sort(out.begin(),out.end(),[](const auto& a,const auto& b){return a.path<b.path;});for(std::size_t i=1;i<out.size();++i)KUTTA_REQUIRE(out[i-1].path!=out[i].path,"duplicate settings identity: "+out[i].path);return std::move(out);}
+  std::vector<Setting> finish() {
+    std::vector<Setting> sorted(std::make_move_iterator(out.begin()),std::make_move_iterator(out.end()));
+    std::sort(sorted.begin(),sorted.end(),[](const auto& a,const auto& b){return a.path<b.path;});
+    std::map<std::string,const Json*> values;
+    for(std::size_t i=0;i<sorted.size();++i){KUTTA_REQUIRE(i==0 || sorted[i-1].path!=sorted[i].path,"duplicate settings identity: "+sorted[i].path);values.emplace(sorted[i].path,&sorted[i].value);}
+    // Activity follows the controlling value as saved, so it cannot disagree
+    // with the inventory the app displays.
+    for(auto& s:sorted)if(s.depends_on){const auto it=values.find(*s.depends_on);KUTTA_REQUIRE(it!=values.end(),"missing controlling setting: "+*s.depends_on);s.active=std::find(s.active_when.begin(),s.active_when.end(),*it->second)!=s.active_when.end();}
+    return sorted;
+  }
 };
 }
 std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seeded) {
@@ -81,7 +108,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   auto& general=b.add("general/operating-pressure","Operating pressure","General",c.operating_pressure?Json(*c.operating_pressure):Json(nullptr),"Pa","number");
   general.reason="not yet configurable in Kutta";b.consume(c.variables,"operating-pressure");
   b.add("general/dimension","Dimension","General",c.dimension?Json(*c.dimension):Json(nullptr),"","integer");
-  b.add("models/viscous","Viscous model","Models",c.viscous.model?Json(std::string(name(*c.viscous.model))):Json(nullptr),"","enum");
+  b.add("models/viscous","Viscous model","Models",c.viscous.model?Json(std::string(name(*c.viscous.model))):Json(nullptr),"","enum").value_label=c.viscous.model?viscous_label(*c.viscous.model):"";
   b.add("models/energy","Energy equation","Models",c.energy?Json(*c.energy):Json(nullptr),"","bool");
   b.consume(c.variables,"case-config");b.raw(c.config,"general/case-config/");
   b.consume(c.variables,"materials");
@@ -91,28 +118,57 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     b.scalar(prefix+"density","Density","Materials",m.density,"kg/m^3",active && m.nonconstant_density==false,positive,1e30);
     b.scalar(prefix+"viscosity","Dynamic viscosity","Materials",m.viscosity,"Pa s",active && m.nonconstant_viscosity==false,positive,1e30);
     b.consume(m.raw,"density");b.consume(m.raw,"viscosity");b.raw(m.raw,prefix+"raw/","Materials");
-    b.add(prefix+"type","Material type","Materials",m.type,"","enum");
+    b.add(prefix+"type","Material type","Materials",m.type,"","enum").value_label=m.type;
   }
-  for(auto& z:c.cell_zones){const auto prefix="cell-zone/"+segment(z.name)+"/";b.add(prefix+"type","Zone type","Cell Zone Conditions",z.fluent_type,"","enum");b.raw(z.raw,prefix+"raw/","Cell Zone Conditions");}
+  for(auto& z:c.cell_zones){const auto prefix="cell-zone/"+segment(z.name)+"/";b.add(prefix+"type","Zone type","Cell Zone Conditions",z.fluent_type,"","enum").value_label=z.fluent_type;b.raw(z.raw,prefix+"raw/","Cell Zone Conditions");}
+  const bool omega_model=c.viscous.model==ViscousModel::kw_sst || c.viscous.model==ViscousModel::kw_bsl || c.viscous.model==ViscousModel::kw_standard;
+  const bool epsilon_model=c.viscous.model==ViscousModel::ke_standard || c.viscous.model==ViscousModel::ke_rng || c.viscous.model==ViscousModel::ke_realizable;
   for(auto& z:c.boundaries) {
     const auto prefix="boundary/"+segment(z.name)+"/";
-    b.add(prefix+"type","Boundary type","Boundary Conditions",z.fluent_type,"","enum");
+    b.add(prefix+"type","Boundary type","Boundary Conditions",z.fluent_type,"","enum").value_label=z.fluent_type;
     const bool inlet=z.type==ZoneType::velocity_inlet,outlet=z.type==ZoneType::pressure_outlet;
-    b.scalar(prefix+"velocity-magnitude","Velocity magnitude","Boundary Conditions",z.velocity_magnitude,"m/s",inlet && (z.velocity_spec==VelocitySpec::normal || z.velocity_spec==VelocitySpec::magnitude_direction),0,1e15);
-    b.vector(prefix+"velocity","Velocity components",z.velocity,"m/s",inlet && z.velocity_spec==VelocitySpec::components);
-    b.vector(prefix+"direction","Flow direction",z.direction,"1",inlet && z.velocity_spec==VelocitySpec::magnitude_direction,true);
-    b.scalar(prefix+"gauge-pressure","Gauge pressure","Boundary Conditions",z.gauge_pressure,"Pa",outlet,-1e30,1e30);
+    const auto velocity_spec=prefix+"velocity-specification";
+    if(inlet) {
+      auto& s=b.add(velocity_spec,"Velocity specification method","Boundary Conditions",z.velocity_spec?Json(int(*z.velocity_spec)):Json(nullptr),"","enum");
+      s.options={0,1,2};s.option_labels={"Magnitude and Direction","Components","Magnitude, Normal to Boundary"};label_value(s);b.consume(z.raw,"velocity-spec");
+    }
+    // Inlet velocity inputs follow Fluent's specification method; other zone
+    // types never use them as inlet velocity.
+    const auto velocity=[&](Setting& s,Json::Array when){if(inlet)b.depends(s,velocity_spec,std::move(when));else s.active=false;};
+    velocity(b.scalar(prefix+"velocity-magnitude","Velocity magnitude","Boundary Conditions",z.velocity_magnitude,"m/s",inlet && (z.velocity_spec==VelocitySpec::normal || z.velocity_spec==VelocitySpec::magnitude_direction),0,1e15),{0,2});
+    velocity(b.vector(prefix+"velocity","Velocity components",z.velocity,"m/s",inlet && z.velocity_spec==VelocitySpec::components),{1});
+    velocity(b.vector(prefix+"direction","Flow direction",z.direction,"1",inlet && z.velocity_spec==VelocitySpec::magnitude_direction,true),{0});
+    b.scalar(prefix+"gauge-pressure","Gauge pressure","Boundary Conditions",z.gauge_pressure,"Pa",outlet,-1e30,1e30).active=outlet;
     for(auto key:{"vmag","p","u","v","w","ni","nj","nk","direction-0","direction-1","direction-2","velocity-vector","flow-direction-component","reference-direction-components","flow-direction"})b.consume(z.raw,key);
-    const auto spec=z.turbulence_spec;
-    b.add(prefix+"turbulence-specification","Turbulence specification","Boundary Conditions",spec?Json(int(*spec)):Json(nullptr),"","enum");b.consume(z.raw,"ke-spec");
+    const auto spec=z.turbulence_spec;const auto spec_path=prefix+"turbulence-specification";
+    // The values the adapter reads for each spec (setup/fluent.cpp
+    // turbulence()). A switch is offered only to specs whose values were saved,
+    // so it can never run on a guessed value.
+    const std::array<std::vector<std::string>,4> required{{{"k","omega"},{"turb-intensity","turb-length-scale"},{"turb-intensity","turb-viscosity-ratio"},{"turb-intensity","turb-hydraulic-diam"}}};
+    const Json::Array labels{epsilon_model?"K and Epsilon":"K and Omega","Intensity and Length Scale","Intensity and Viscosity Ratio","Intensity and Hydraulic Diameter"};
+    const auto saved=[&](const std::string& key){const auto it=z.turbulence.find(key);if(it==z.turbulence.end())return false;const auto n=it->second.constant?it->second.constant:it->second.resolved;return n && std::isfinite(*n);};
+    auto& specification=b.add(spec_path,"Turbulence specification method","Boundary Conditions",spec?Json(int(*spec)):Json(nullptr),"","enum");
+    specification.options={0,1,2,3};specification.option_labels=labels;label_value(specification);specification.active=spec.has_value();b.consume(z.raw,"ke-spec");
+    if((inlet || outlet) && omega_model && spec) {
+      specification.options.clear();specification.option_labels.clear();
+      for(int i=0;i<4;++i)if(i==int(*spec) || std::all_of(required[i].begin(),required[i].end(),saved)){specification.options.push_back(i);specification.option_labels.push_back(labels[i]);}
+      b.editable(specification,[target=&z.turbulence_spec](const Json& j){*target=TurbulenceSpec(int(std::get<double>(j.value)));});
+    }
     for(auto& [key,v]:z.turbulence) {
-      const bool active=(inlet || outlet) && ((spec==TurbulenceSpec::k_dissipation && (key=="k" || key=="omega")) ||
-        (spec && spec!=TurbulenceSpec::k_dissipation && (key=="turb-intensity" || (key=="turb-viscosity-ratio" && spec==TurbulenceSpec::intensity_viscosity_ratio) ||
-        (key=="turb-length-scale" && spec==TurbulenceSpec::intensity_length) || (key=="turb-hydraulic-diam" && spec==TurbulenceSpec::intensity_diameter))));
+      static const std::map<std::string,std::tuple<std::string,std::string,std::vector<int>>> known{
+        {"turb-intensity",{"Turbulent intensity","1",{1,2,3}}},{"turb-length-scale",{"Turbulent length scale","m",{1}}},{"turb-viscosity-ratio",{"Turbulent viscosity ratio","1",{2}}},
+        {"turb-hydraulic-diam",{"Hydraulic diameter","m",{3}}},{"k",{"Turbulent kinetic energy","m^2/s^2",{0}}},{"omega",{"Specific dissipation rate","1/s",{0}}},{"epsilon",{"Turbulent dissipation rate","m^2/s^3",{0}}}};
+      const auto it=known.find(key);
       std::optional<ScalarValue> wrapped=v;
-      const auto unit=key=="k"?"m^2/s^2":key=="omega"?"1/s":key=="turb-length-scale" || key=="turb-hydraulic-diam"?"m":"1";
-      auto& s=b.add(prefix+key,key,"Boundary Conditions",value(wrapped),unit,"number");
-      if(active && (v.constant || v.resolved))b.editable(s,[target=&v](const Json& j){ScalarValue x;x.kind=ScalarValue::Kind::constant;x.constant=std::get<double>(j.value);*target=x;},key=="k" || key=="turb-intensity"?0:positive,key=="turb-intensity"?1:1e30);
+      auto& s=b.add(prefix+key,it!=known.end()?std::get<0>(it->second):key,"Boundary Conditions",value(wrapped),it!=known.end()?std::get<1>(it->second):"1","number");
+      Json::Array when;
+      if(it!=known.end() && (key!="omega" || omega_model) && (key!="epsilon" || epsilon_model))for(auto i:std::get<2>(it->second))when.push_back(i);
+      if(it!=known.end())b.depends(s,spec_path,when);
+      else s.active=false; // e.g. SA nut: its selector mapping is unsupported
+      // Inactive values stay editable, so a user can switch method and then
+      // set its values; Fluent likewise keeps values the method does not use.
+      // A value no method of this model reads (epsilon for k-omega) is not.
+      if((inlet || outlet) && !when.empty() && (v.constant || v.resolved))b.editable(s,[target=&v](const Json& j){ScalarValue x;x.kind=ScalarValue::Kind::constant;x.constant=std::get<double>(j.value);*target=x;},key=="k" || key=="turb-intensity"?0:positive,key=="turb-intensity"?1:1e30);
       b.consume(z.raw,key=="omega"?"o":key=="epsilon"?"e":key);
     }
     b.raw(z.raw,prefix+"raw/","Boundary Conditions");
@@ -130,7 +186,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   for(auto [path,label,key,target]:std::vector<std::tuple<std::string,std::string,std::string,std::optional<Scheme>*>>{
       {"momentum-scheme","Momentum","mom/scheme",&c.numerics.momentum},{"k-scheme","Turbulent kinetic energy","k/scheme",&c.numerics.k},{"omega-scheme","Specific dissipation rate","omega/scheme",&c.numerics.omega}}) {
     auto& s=b.add("methods/"+path,label,"Methods",*target?Json(**target==Scheme::first_upwind?"first-order-upwind":**target==Scheme::second_upwind?"second-order-upwind":std::string(name(**target))):Json(nullptr),"","enum");
-    s.options={"first-order-upwind","second-order-upwind"};
+    s.options={"first-order-upwind","second-order-upwind"};s.option_labels={"First Order Upwind","Second Order Upwind"};if(*target)s.value_label=scheme_label(**target);
     if(*target)b.editable(s,[target](const Json& j){*target=std::get<std::string>(j.value)=="first-order-upwind"?Scheme::first_upwind:Scheme::second_upwind;});
     b.consume(c.variables,key);
   }
@@ -151,7 +207,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   b.add("monitors/convergence-criteria","Convergence criteria","Monitors",nullptr,"","string");
   const auto* hybrid=c.variables.value("hyb-init?");
   auto& init=b.add("initialization/method","Initialization method","Initialization",seeded?"fluent-data":hybrid && hybrid->kind==SExpr::Kind::boolean?(hybrid->boolean?"hybrid":"standard"):"unparsed","","enum");
-  init.options={"standard","hybrid","fluent-data"};b.consume(c.variables,"hyb-init?");
+  init.options={"standard","hybrid","fluent-data"};init.option_labels={"Standard Initialization","Hybrid Initialization","From Fluent data file"};label_value(init);b.consume(c.variables,"hyb-init?");
   // The method itself stays read-only: changing it would require values which
   // a saved case may not contain. Standard numeric defaults can be overridden.
   if(!seeded && hybrid && hybrid->kind==SExpr::Kind::boolean && !hybrid->boolean)for(auto [key,label,unit,min]:std::vector<std::tuple<std::string,std::string,std::string,double>>{
@@ -173,7 +229,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   }
   b.consume(c.variables,"monitor/report-definitions");
   for(auto& r:c.reports) {
-    const auto prefix="reports/"+segment(r.name)+"/";b.add(prefix+"type","Report type","Report Definitions",r.fluent_type,"","enum");
+    const auto prefix="reports/"+segment(r.name)+"/";b.add(prefix+"type","Report type","Report Definitions",r.fluent_type,"","enum").value_label=r.fluent_type;
     auto& direction=b.add(prefix+"direction","Force direction","Report Definitions",r.direction?Json(Json::Array{(*r.direction)[0],(*r.direction)[1],(*r.direction)[2]}):Json(nullptr),"1","vec3");
     if(r.direction && (r.kind==ReportDefinition::Kind::force || r.kind==ReportDefinition::Kind::drag || r.kind==ReportDefinition::Kind::lift || r.kind==ReportDefinition::Kind::downforce)) {
       b.editable(direction,[target=&r.direction](const Json& j){const auto& a=std::get<Json::Array>(j.value);*target=std::array{std::get<double>(a[0].value),std::get<double>(a[1].value),std::get<double>(a[2].value)};},-1e15,1e15);
@@ -188,7 +244,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
 }
 Json settings_json(std::span<const Setting> settings) {
   Json::Array out;out.reserve(settings.size());
-  for(const auto& s:settings){Json::Object row{{"path",s.path},{"label",s.label},{"group",s.group},{"value",s.value},{"unit",s.unit},{"kind",s.kind},{"options",s.options},{"min",s.min?Json(*s.min):Json(nullptr)},{"max",s.max?Json(*s.max):Json(nullptr)},{"editable",s.editable},{"reason",s.reason}};out.emplace_back(std::move(row));}
+  for(const auto& s:settings){Json::Object row{{"path",s.path},{"label",s.label},{"group",s.group},{"value",s.value},{"unit",s.unit},{"kind",s.kind},{"options",s.options},{"option_labels",s.option_labels},{"value_label",s.value_label},{"active",s.active},{"depends_on",s.depends_on?Json(*s.depends_on):Json(nullptr)},{"active_when",s.active_when},{"min",s.min?Json(*s.min):Json(nullptr)},{"max",s.max?Json(*s.max):Json(nullptr)},{"editable",s.editable},{"reason",s.reason}};out.emplace_back(std::move(row));}
   return out;
 }
 Json::Object apply_setup(const std::filesystem::path& path,std::span<const Setting> settings) {
@@ -212,6 +268,7 @@ Json::Object apply_setup(const std::filesystem::path& path,std::span<const Setti
     if(s.kind=="number" || s.kind=="integer"){if(const auto* n=std::get_if<double>(&value.value)){valid=std::isfinite(*n) && (s.kind!="integer" || std::floor(*n)==*n);numbers.push_back(*n);}}
     else if(s.kind=="bool")valid=std::holds_alternative<bool>(value.value);
     else if(s.kind=="vec3"){if(const auto* a=std::get_if<Json::Array>(&value.value);a && a->size()==3){valid=true;for(const auto& x:*a){if(const auto* n=std::get_if<double>(&x.value);n && std::isfinite(*n))numbers.push_back(*n);else valid=false;}}}
+    else if(s.kind=="enum")valid=std::holds_alternative<std::string>(value.value) || std::holds_alternative<double>(value.value);
     else valid=std::holds_alternative<std::string>(value.value);
     if(!valid){fail(path,"expected "+s.kind);continue;}
     if(!s.options.empty() && std::find(s.options.begin(),s.options.end(),value)==s.options.end()){fail(path,"value is not one of the supported options");continue;}
