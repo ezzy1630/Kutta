@@ -8,6 +8,7 @@
 #include <set>
 
 #include "kernels.hpp"
+#include "kutta/linalg/amg.hpp"
 #include "kutta/kernels/prelude.h"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
@@ -224,7 +225,11 @@ struct SteadySolver::Impl {
       }
       initial.val[initial.pattern.diag[c]]=c==reference?1:kupper_value(ap);
     }
-    pressure_solver=make_solver(pressure_solver_kind,dev,initial,
+    if(settings.sst) {
+      AmgOptions options;options.pre_sweeps=options.post_sweeps=2;
+      options.structure=OperatorStructure::SymmetricMMatrix;
+      pressure_solver=make_amg_solver(pressure_solver_kind,dev,initial,options);
+    } else pressure_solver=make_solver(pressure_solver_kind,dev,initial,
       {.structure=OperatorStructure::SymmetricMMatrix});
     const double volume=std::accumulate(geom.cell_volume.begin(),geom.cell_volume.end(),0.);
     Vec3d lo=host.points.front(),hi=lo;
