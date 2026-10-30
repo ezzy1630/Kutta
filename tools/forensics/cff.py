@@ -6,7 +6,9 @@ All ids in the file are 1-based; everything returned here is 0-based.
 Forensics scripts in this directory (see docs/research/fluent-sst-forensics.md):
     python -I <script>.py [case_dir] [stem] [cache_dir]
 Defaults: validation/fluent_examples/mixing_elbow, mixing_elbow, /tmp/kutta-forensics/cache.
-Order: settings.py, check_basics.py, walldist.py, mut_limiter.py, wall_treatment.py, residuals.py.
+Order: settings.py, check_basics.py, walldist.py, mut_limiter.py, wall_treatment.py, residuals.py;
+then strain_gradient.py, face_flux.py (fluent-flux-gradient-forensics.md) and momentum_residual.py,
+energy_residual.py, turbulence_residual.py (fluent-momentum-forensics.md; building blocks in momentum.py).
 Needs numpy, scipy, h5py (e.g. a uv venv outside the repo).
 """
 import os
