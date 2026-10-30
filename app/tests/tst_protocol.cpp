@@ -71,6 +71,17 @@ private slots:
         QCOMPARE(decodePathSegment("%43ortex%20%56ariables"), QString("Cortex Variables"));
     }
 
+    // Source locations from kutta's internal checks move to the end, without
+    // the build machine's directories; other text is untouched.
+    void cliMessagesDropBuildPaths()
+    {
+        QCOMPARE(cliMessage("/build/kutta/src/kutta/post/request.cpp:30: unknown post-processing property: x"),
+                 QString("unknown post-processing property: x (request.cpp:30)"));
+        QCOMPARE(cliMessage("kutta export-view: C:\\b\\src\\view.cpp:7: bad view\nsecond line"),
+                 QString("kutta export-view: bad view (view.cpp:7)\nsecond line"));
+        QCOMPARE(cliMessage("cannot open HDF5 file: /tmp/a.cas.h5"), QString("cannot open HDF5 file: /tmp/a.cas.h5"));
+    }
+
     void progressEvents()
     {
         auto setup = parseProgressLine(R"({"v":1,"event":"setup","cells":17822,"backend":"metal","device":"M4","approximations":["wfgc"],"init":"hybrid","overrides":{},"modified":false})");

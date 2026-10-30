@@ -141,6 +141,12 @@ struct SnapshotEvent { int iter = 0; QString manifest; QString runId; int sequen
 using ProgressEvent = std::variant<SetupEvent, IterationEvent, WarningEvent, DoneEvent, ErrorEvent, SnapshotEvent>;
 Result<ProgressEvent> parseProgressLine(const QByteArray& line);
 
+// kutta's internal checks prefix messages with the source file that raised
+// them ("/build/dir/src/kutta/post/request.cpp:30: unknown property"). The
+// user reads the message first; the location stays, without the build
+// machine's directories, for bug reports: "unknown property (request.cpp:30)".
+QString cliMessage(const QString& text);
+
 // Residual names in Fluent's display order.
 QStringList residualOrder(const QStringList& present);
 QString residualLabel(const QString& name);

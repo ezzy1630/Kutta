@@ -3,6 +3,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QLocale>
+#include <QRegularExpression>
 #include <QUrl>
 
 #include <cmath>
@@ -237,6 +238,16 @@ Result<CaseSummary> parseCaseSummary(const QJsonObject& json)
     return c;
 }
 
+QString cliMessage(const QString& text)
+{
+    // Per line: an optional "kutta <command>: " lead, then [C:]path/file.ext:line: .
+    static const QRegularExpression loc(QStringLiteral(R"(^((?:kutta [\w-]+: )?)(?:(?:[A-Za-z]:)?[^\s:]*[/\\])?([\w.-]+\.(?:cpp|hpp|cu|h)):(\d+): (.*)$)"));
+    QStringList lines = text.split('\n');
+    for (QString& l : lines)
+        if (const auto m = loc.match(l); m.hasMatch()) l = QStringLiteral("%1%2 (%3:%4)").arg(m.captured(1), m.captured(4), m.captured(2), m.captured(3));
+    return lines.join('\n');
+}
+
 Result<ProgressEvent> parseProgressLine(const QByteArray& line)
 {
     using R = Result<ProgressEvent>;
@@ -285,7 +296,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
     }
     if (ev == "error") {
         ErrorEvent e;
-        e.message = o.value("message").toString();
+        e.message = cliMessage(o.value("message").toString());
         for (const QJsonValue& iv : o.value("issues").toArray()) {
             const QJsonObject io = iv.toObject();
             e.issues.push_back(parseIssue(io));

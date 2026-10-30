@@ -93,7 +93,7 @@ SolveProcess::SolveProcess(const CliInfo& cli, const SolveRequest& req, QObject*
     m_proc.setProcessChannelMode(QProcess::SeparateChannels);
     connect(&m_proc, &QProcess::readyReadStandardOutput, this, &SolveProcess::readStdout);
     connect(&m_proc, &QProcess::readyReadStandardError, this,
-            [this] { emit stderrText(QString::fromUtf8(m_proc.readAllStandardError())); });
+            [this] { emit stderrText(cliMessage(QString::fromUtf8(m_proc.readAllStandardError()))); });
     connect(&m_proc, &QProcess::finished, this, [this](int code, QProcess::ExitStatus st) {
         m_stopEscalation.stop();
         readStdout();
@@ -209,7 +209,7 @@ QString failureText(int code, const QByteArray& out, const QByteArray& err)
         auto ev = parseProgressLine(line);
         if (ev && std::holds_alternative<ErrorEvent>(ev.value())) return std::get<ErrorEvent>(ev.value()).message;
     }
-    const QString e = QString::fromUtf8(err).trimmed();
+    const QString e = cliMessage(QString::fromUtf8(err).trimmed());
     return e.isEmpty() ? QStringLiteral("kutta exited with code %1").arg(code) : e;
 }
 
