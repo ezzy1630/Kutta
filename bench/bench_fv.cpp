@@ -224,7 +224,11 @@ bool sst_performance(kutta::Backend backend,int nx,int ny,int nz,int repeats,int
       <<" profile_s_per_outer="<<profiled/repeats
       <<" u_iterations="<<r.momentum[0].iterations<<" v_iterations="<<r.momentum[1].iterations
       <<" w_iterations="<<r.momentum[2].iterations<<" pressure_iterations="<<r.pressure.iterations
-      <<" k_iterations="<<r.turbulence[0].iterations<<" omega_iterations="<<r.turbulence[1].iterations<<std::endl;
+      <<" k_iterations="<<r.turbulence[0].iterations<<" omega_iterations="<<r.turbulence[1].iterations
+      <<" pressure_converged="<<r.pressure.converged
+      <<" pressure_relative_residual="<<r.pressure.final_residual/r.pressure.initial_residual
+      <<" momentum_converged="<<(r.momentum[0].converged && r.momentum[1].converged && r.momentum[2].converged)
+      <<" turbulence_converged="<<(r.turbulence[0].converged && r.turbulence[1].converged)<<std::endl;
   }
   if(!output.empty()) {
     std::ofstream file(output+"-"+kutta::backend_name(backend)+".bin",std::ios::binary);
