@@ -44,7 +44,7 @@ user opts in with `--approximate <approximation>`) or `informational`.
 One JSON object per line, in order:
 
 ```json
-{"v":1,"event":"setup","cells":17822,"backend":"metal","device":"Apple M4 Pro","approximations":["wfgc"],"init":"hybrid"}
+{"v":1,"event":"setup","cells":17822,"backend":"metal","device":"Apple M4 Pro","approximations":["wfgc"],"init":"hybrid","pressure_velocity_coupling":"coupled"}
 {"v":1,"event":"iteration","iter":20,"residuals":{"continuity":1e-3,"x-velocity":1e-4,"y-velocity":1e-4,"z-velocity":1e-4,"k":1e-3,"omega":1e-3},
  "reports":{"drag":{"force":0.0123,"coefficient":0.31}},"sec_per_iter":0.042,"elapsed":0.9}
 {"v":1,"event":"warning","message":"…"}
@@ -136,6 +136,11 @@ explicit setup allowlist (currently `wfgc`). An unparsed WFGC flag is unsupporte
 not approximable. A downforce report is normally a lift report whose direction
 points down; its sign and reference scaling are preserved.
 
+`setup` and `summary.json` carry `pressure_velocity_coupling` (v1 additive):
+`"coupled"` or `"simplec"`, the algorithm that actually ran. A case saved with
+Fluent's Coupled scheme runs Kutta's Coupled solver; SIMPLE, SIMPLEC and PISO
+cases run SIMPLEC (SIMPLE and PISO with a convergence-path warning).
+
 On valid runs `setup` is the first event, followed by warnings and iterations;
 `done` is last and means outputs are closed. Rejected/setup-failed runs may emit
 just `error`. No `done` follows an error. Usage errors return 2 and also emit
@@ -209,7 +214,9 @@ active inlet speed/components/direction, inlet/outlet turbulence values and
 turbulence specification (k-omega models), outlet gauge pressure, active
 constant material density/viscosity, reference area/density/speed/pressure and
 length (length scales moment coefficients in `kutta aero`),
-implemented momentum/k/omega upwind schemes, gradient limiting, pseudo-time
+implemented momentum/k/omega upwind schemes, gradient limiting, the
+pressure-velocity coupling (`methods/pressure-velocity-coupling`, options
+`simplec` and `coupled`), pseudo-time
 scale and active equation relaxation, standard numeric initialization values
 when not seeded, force-report directions, and run iteration and monitor
 intervals, and the convergence controls under `monitors/` (below). Changing the
@@ -247,7 +254,11 @@ Overrides apply to in-memory configuration, preserving the original case file
 and its SHA256. They apply after CLI defaults, so `run/iterations` in a setup file
 wins over `--iterations`. `setup` and `summary.json` echo the applied object as
 `overrides`, and its run controls (`run/iterations`, `run/monitor-interval`)
-again as `run_controls`. `modified` is true only when a case-changing override
+again as `run_controls`. Switching `methods/pressure-velocity-coupling` changes
+the algorithm only: the case's saved scheme still selects which pseudo-time
+controls and relaxation keys apply (`controls/mom-relaxation` stays the saved
+scheme's value), and a warning reports the convergence-path change. Both
+algorithms solve the same discrete equations. `modified` is true only when a case-changing override
 was applied; run controls alone never mark a result modified. Modified VTU/CSV
 headers and view provenance carry `MODIFIED RESULT` with the case-changing
 overrides only, separately from approximation state. The monitor interval is

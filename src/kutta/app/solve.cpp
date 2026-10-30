@@ -143,6 +143,8 @@ int solve(int argc,char** argv) {
     if(!notice.empty() && !jsonl) human<<notice<<std::endl;
     if(!jsonl)for(const auto& note:setup->convergence_notes) human<<"Setup: "<<note<<'\n';
     if(!jsonl && !convergence_warning.empty())human<<convergence_warning<<'\n';
+    const auto coupling=setup->settings.coupling==fv::PressureVelocityCoupling::Coupled?"coupled":"simplec";
+    if(!jsonl)human<<"Pressure-velocity coupling: "<<(setup->settings.coupling==fv::PressureVelocityCoupling::Coupled?"Coupled":"SIMPLEC")<<".\n";
     auto dev=device(o.backend);
     fv::SteadySolver solver(*dev,std::move(mesh),setup->boundaries,setup->settings);
     setup::initialize(solver,*fields);
@@ -161,7 +163,8 @@ int solve(int argc,char** argv) {
         <<",\"device\":"<<json_string(dev->name())<<",\"approximations\":[";
       for(std::size_t i=0;i<setup->approximations.size();++i){if(i)std::cout<<',';std::cout<<json_string(setup::approximation_info(setup->approximations[i]).name);}
       const auto init=!o.data.empty()?"fluent-data":std::holds_alternative<fv::HybridInitialization>(*fields)?"hybrid":"standard";
-      std::cout<<"],\"init\":"<<json_string(init)<<",\"overrides\":"<<dump_json(applied)<<",\"run_controls\":"<<dump_json(run_controls)<<",\"modified\":"<<(changes.empty()?"false":"true")<<",\"convergence\":"<<dump_json(convergence.json());
+      std::cout<<"],\"init\":"<<json_string(init)<<",\"overrides\":"<<dump_json(applied)<<",\"run_controls\":"<<dump_json(run_controls)<<",\"modified\":"<<(changes.empty()?"false":"true")
+        <<",\"pressure_velocity_coupling\":"<<json_string(coupling)<<",\"convergence\":"<<dump_json(convergence.json());
       if(live)std::cout<<",\"live_view\":"<<dump_json(live_configuration());
       std::cout<<'}'<<std::endl;
       if(!notice.empty())warning(notice);
@@ -336,7 +339,8 @@ int solve(int argc,char** argv) {
       <<",\n  \"data_file\": "<<(o.data.empty()?"null":json_string(o.data.string()))<<",\n  \"data_sha256\": "<<(o.data.empty()?"null":json_string(data_hash))
       <<",\n  \"kutta_version\": "<<json_string(KUTTA_VERSION)<<",\n  \"kutta_commit\": "<<json_string(KUTTA_COMMIT)
       <<",\n  \"backend\": "<<json_string(backend_name(dev->backend()))<<",\n  \"device\": "<<json_string(dev->name())
-      <<",\n  \"cells\": "<<solver.mesh().n_cells<<",\n  \"iterations\": "<<solver.report().iteration
+      <<",\n  \"cells\": "<<solver.mesh().n_cells<<",\n  \"pressure_velocity_coupling\": "<<json_string(coupling)
+      <<",\n  \"iterations\": "<<solver.report().iteration
       <<",\n  \"wall_time_seconds\": "<<wall_time<<",\n  \"setup_time_seconds\": "<<setup_time;
     if(live)summary<<",\n  \"live_view\": "<<dump_json(live_statistics(wall_time));
     summary<<",\n  \"peak_device_memory_bytes\": null,\n  \"converged\": "<<(converged?"true":"false")<<",\n  \"stop_reason\": "<<json_string(stop_reason)

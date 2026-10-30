@@ -15,7 +15,8 @@ int main(int argc,char** argv) {
     const std::set<std::string> keys{"--case","--backend","--model","--level","--iterations","--data","--fixture",
       "--nx","--ny","--nz","--viscosity","--interval","--dt","--time-scale","--momentum-relaxation",
       "--pressure-relaxation","--momentum-tolerance","--pressure-tolerance","--absolute-tolerance",
-      "--turbulence-tolerance","--turbulence-relaxation","--max-seconds"};
+      "--turbulence-tolerance","--turbulence-relaxation","--max-seconds","--scheme","--coupled-tolerance",
+      "--coupled-iterations"};
     for(int i=1;i<argc;i+=2) {KUTTA_REQUIRE(i+1<argc,"expected --key value");KUTTA_REQUIRE(keys.contains(argv[i]),"unknown option: "+std::string(argv[i]));KUTTA_REQUIRE(args.emplace(argv[i],argv[i+1]).second,"duplicate option");}
     auto str=[&](const std::string& key,const std::string& fallback) {auto i=args.find(key);return i==args.end()?fallback:i->second;};
     auto number=[&](const std::string& key,double fallback) {auto i=args.find(key);if(i==args.end()) return fallback;auto q=parse_double(i->second);KUTTA_REQUIRE(q && std::isfinite(*q),"invalid number: "+key);return *q;};
@@ -64,13 +65,22 @@ int main(int argc,char** argv) {
     s.momentum_linear.abs_tol=number("--absolute-tolerance",s.momentum_linear.abs_tol);s.pressure_linear.abs_tol=number("--absolute-tolerance",s.pressure_linear.abs_tol);
     if(s.sst) {s.sst->k_relaxation=s.sst->omega_relaxation=number("--turbulence-relaxation",s.sst->k_relaxation);s.sst->linear.abs_tol=number("--absolute-tolerance",s.sst->linear.abs_tol);s.sst->linear.rel_tol=number("--turbulence-tolerance",s.sst->linear.rel_tol);}
     if(s.sa) {s.sa->relaxation=number("--turbulence-relaxation",s.sa->relaxation);s.sa->linear.abs_tol=number("--absolute-tolerance",s.sa->linear.abs_tol);s.sa->linear.rel_tol=number("--turbulence-tolerance",s.sa->linear.rel_tol);}
+    // Elbow follows its case's flow/scheme (Coupled) unless --scheme overrides.
+    if(const auto scheme=str("--scheme","");!scheme.empty()) {
+      KUTTA_REQUIRE(scheme=="simplec" || scheme=="coupled","invalid scheme");
+      s.coupling=scheme=="coupled"?PressureVelocityCoupling::Coupled:PressureVelocityCoupling::Simplec;
+    }
+    s.coupled_linear.rel_tol=number("--coupled-tolerance",s.coupled_linear.rel_tol);
+    s.coupled_linear.max_iter=integer("--coupled-iterations",s.coupled_linear.max_iter);
     SteadySolver solver(*dev,std::move(mesh),std::move(bc),s);const auto n=solver.mesh().n_cells;
     if(initialization) setup::initialize(solver,*initialization);
     else if(channel) bench::initialize_channel(solver);
     else if(model=="sa") solver.initialize_sa_fields(std::vector<Vec3d>(n,{1,0,0}),std::vector<double>(n,0),std::vector<double>(n,3*s.viscosity));
     else solver.initialize_fields(std::vector<Vec3d>(n,{1,0,0}),std::vector<double>(n,0),std::vector<double>(n,2.25e-7),std::vector<double>(n,25e-6/s.viscosity));
     using Clock=std::chrono::steady_clock;dev->synchronize();const auto start=Clock::now();
-    std::cout<<std::setprecision(12)<<"CASE source="<<KUTTA_BENCH_COMMIT<<" name="<<name<<" model="<<model<<" backend="<<backend<<" cells="<<n<<" dt="<<s.pseudo_time_step<<" momentum_relaxation="<<s.momentum_relaxation<<" pressure_relaxation="<<s.pressure_relaxation<<std::endl;
+    std::cout<<std::setprecision(12)<<"CASE source="<<KUTTA_BENCH_COMMIT<<" name="<<name<<" model="<<model<<" backend="<<backend<<" cells="<<n<<" dt="<<s.pseudo_time_step<<" momentum_relaxation="<<s.momentum_relaxation<<" pressure_relaxation="<<s.pressure_relaxation
+      <<" scheme="<<(s.coupling==PressureVelocityCoupling::Coupled?"coupled":"simplec")
+      <<" coupled_bytes_per_cell="<<double(solver.coupled_solver_bytes())/n<<std::endl;
     std::deque<std::pair<int,Sample>> window;bool converged=false;
     while(solver.report().iteration<iterations) {
       try {solver.iterate(std::min(interval,iterations-solver.report().iteration));}

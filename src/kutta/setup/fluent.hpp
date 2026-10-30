@@ -31,7 +31,8 @@ struct FluentSetup {
 };
 // Strict by default: collect every unrepresentable setting path and reason.
 // Named opt-ins permit only the setup allowlist; all other failures remain.
-// Coupled -> SIMPLEC is a reported convergence-path change.
+// Coupled runs the coupled solver; SIMPLE/PISO -> SIMPLEC is a reported
+// convergence-path change.
 // Only explicitly allowed, applicable approximations are recorded in the result.
 FluentSetup fluent_setup(const fluent::FluentCase& input,const PolyMesh& mesh,
                          std::span<const Approximation> allowed = {});

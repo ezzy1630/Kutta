@@ -213,6 +213,17 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   auto& limit=b.add("methods/gradient-limiting","Gradient limiting","Methods",c.numerics.limiting?Json(*c.numerics.limiting):Json(nullptr),"","bool");
   if(c.numerics.limiting)b.editable(limit,[target=&c.numerics.limiting](const Json& j){*target=std::get<bool>(j.value);});
   b.consume(c.variables,"recon/limit?");
+  // Fluent's flow/scheme. Coupled runs the coupled solver and SIMPLEC its own
+  // path; saved SIMPLE or PISO run as SIMPLEC and may be switched to either.
+  {
+    const auto& scheme=c.numerics.run_coupling?c.numerics.run_coupling:c.numerics.coupling;
+    const auto id=[](Coupling v) {return v==Coupling::coupled?std::string("coupled"):v==Coupling::simplec?std::string("simplec"):v==Coupling::simple?std::string("simple"):std::string("piso");};
+    auto& s=b.add("methods/pressure-velocity-coupling","Pressure-velocity coupling","Methods",scheme?Json(id(*scheme)):Json(nullptr),"","enum");
+    s.options={"simplec","coupled"};s.option_labels={"SIMPLEC","Coupled"};label_value(s);
+    if(scheme && s.value_label.empty())s.value_label=std::string(name(*scheme));
+    if(scheme)b.editable(s,[target=&c.numerics.run_coupling](const Json& j){*target=std::get<std::string>(j.value)=="coupled"?Coupling::coupled:Coupling::simplec;});
+    b.consume(c.variables,"flow/scheme");
+  }
   b.number("controls/pseudo-time-scale-factor","Pseudo-time scale factor","Controls",c.numerics.pseudo.scale_factor,"1",true,positive,1e15);b.consume(c.variables,"pseudo-auto-time-step-scale-factor");
   const bool coupled=c.numerics.coupling==Coupling::coupled;
   for(auto eq:{"mom","pressure","k","omega"}) {

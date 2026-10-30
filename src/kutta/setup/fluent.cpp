@@ -135,7 +135,15 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   require(n.wall_distance_method==2,"wall-distance/method","only wall-distance method 2 is supported");
   require(n.wall_distance_quad_correction==true,"wall-distance/quad-correction?","requires quadrilateral wall-distance correction");
   const auto coupling=required(n.coupling,"flow/scheme");
-  if(coupling!=Coupling::simplec) out.convergence_notes.push_back("flow/scheme: SIMPLEC replaces "+std::string(name(coupling))+"; convergence path only, Majumdar physical diagonal");
+  // Coupled runs natively; SIMPLE and PISO keep SIMPLEC's convergence path.
+  // An override changes the algorithm only: the saved scheme's pseudo-time
+  // controls and relaxation factors stay in force, so the fixed point is the
+  // same and only the convergence path changes.
+  const auto run=n.run_coupling.value_or(coupling);
+  if(run==Coupling::coupled) s.coupling=fv::PressureVelocityCoupling::Coupled;
+  if(run!=coupling) out.convergence_notes.push_back("flow/scheme: "+std::string(run==Coupling::coupled?"Coupled":"SIMPLEC")+
+    " selected by setup override for a "+std::string(name(coupling))+" case; its pseudo-time controls and relaxation factors apply; convergence path only");
+  else if(run!=Coupling::simplec && run!=Coupling::coupled) out.convergence_notes.push_back("flow/scheme: SIMPLEC replaces "+std::string(name(coupling))+"; convergence path only, Majumdar physical diagonal");
   if(required(n.high_order_relaxation,"recon/relax/relax?")) out.convergence_notes.push_back("high-order term relaxation omitted; same fixed point");
   const bool pseudo=required(n.pseudo.formulation,"pseudo-transient-formulation?");
   require(pseudo,"pseudo-transient-formulation? (zero-pseudo SIMPLEC not adapted)");

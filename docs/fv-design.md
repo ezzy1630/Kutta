@@ -13,7 +13,7 @@ One exception: the Rhie–Chow coefficient `d_f` depends on `a_P`, which include
 
 ## Algorithm
 
-1. **Coupling.** Use SIMPLEC with pseudo-transient relaxation (`ρV/Δτ` added to `a_P`, Fluent's automatic conservative Δτ), segregated. It is simpler and needs less memory than a block-coupled solve. All per-cell work is embarrassingly parallel, and the pressure solve reuses `AmgPcg`. Revisit block-coupled (Fluent's default) only if the outer-iteration counts measured on real cases are too high. It needs roughly 3–4× the memory per cell.
+1. **Coupling.** Use SIMPLEC with pseudo-transient relaxation (`ρV/Δτ` added to `a_P`, Fluent's automatic conservative Δτ), segregated. It is simpler and needs less memory than a block-coupled solve. All per-cell work is embarrassingly parallel, and the pressure solve reuses `AmgPcg`. Fluent's block-coupled default is also implemented (`src/kutta/fv/coupled_solver.hpp`). It solves the same residual, so both share the fixed point; measurements are in `validation/results/coupled/REPORT.md`.
 2. **One outer iteration:**
    - gradients (LSQ) for u, v, w, p, k, ω, with the limiter;
    - assemble and relax momentum, then a few Jacobi or BiCGStab sweeps;

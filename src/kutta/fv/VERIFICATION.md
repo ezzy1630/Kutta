@@ -732,9 +732,11 @@ Other consequential case settings:
   The [Fluent WFGC documentation](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_ug/flu_ug_sec_solve_conv_stab.html)
   describes its purpose but gives no reproducible algorithm. The adapter errors
   rather than silently disabling it.
-- Coupled is replaced by SIMPLEC; implicit relaxation uses the recorded numerical
-  factors (momentum/pressure .5, k/omega .75). Conservative automatic global
-  pseudo-time uses scale 1. These substitutions affect the convergence path.
+- Coupled runs natively (`coupled_solver.hpp`) with the recorded explicit
+  relaxation (momentum/pressure .5) and implicit k/omega .75. It solves the
+  SIMPLEC residual in delta form, so only the convergence path differs; the
+  SIMPLEC override reproduces the earlier substitution. Conservative automatic
+  global pseudo-time uses scale 1. Evidence: `validation/results/coupled/REPORT.md`.
   Rhie-Chow uses the trace/3 of physical component momentum diagonals, including
   wall drag and excluding relaxation/pseudo-time. The scalar trace choice is
   rotationally invariant; exact equivalence to Fluent's undocumented high-order

@@ -168,3 +168,36 @@ TEST_CASE("Mixing elbow convergence controls read Fluent residual criteria and s
   MESSAGE("SKIP: HDF5 disabled");
 #endif
 }
+TEST_CASE("Mixing elbow runs Fluent's Coupled scheme natively and can switch to SIMPLEC") {
+#if KUTTA_HAS_HDF5
+  using kutta::Json;
+  const auto path=fluent_examples()/"mixing_elbow/mixing_elbow.cas.h5";
+  if(!std::filesystem::exists(path)){MESSAGE("SKIP: optional Fluent mixing elbow absent");return;}
+  auto c=kutta::fluent::read_case(path);kutta::setup::RunControls run;
+  const auto mesh=kutta::read_mesh(path);
+  const kutta::setup::Approximation wfgc[]={kutta::setup::Approximation::wfgc};
+  const auto notes=[](const kutta::setup::FluentSetup& s) {
+    std::string all;for(const auto& note:s.convergence_notes)all+=note+'\n';return all;
+  };
+  const auto saved=kutta::setup::fluent_setup(c,mesh,wfgc);
+  CHECK(saved.settings.coupling==kutta::fv::PressureVelocityCoupling::Coupled);
+  CHECK(notes(saved).find("flow/scheme")==std::string::npos);
+  // Fluent's pseudo-time explicit relaxation factors of the Coupled scheme.
+  CHECK(saved.settings.momentum_relaxation==.5);CHECK(saved.settings.pressure_relaxation==.5);
+  const auto settings=kutta::setup::settings_inventory(c,run);
+  const auto it=std::find_if(settings.begin(),settings.end(),[](const auto& s){return s.path=="methods/pressure-velocity-coupling";});
+  REQUIRE(it!=settings.end());
+  CHECK(it->value==Json("coupled"));CHECK(it->value_label=="Coupled");CHECK(it->editable);
+  CHECK(it->options==Json::Array{"simplec","coupled"});
+  MeshTemp t;
+  mesh_text(t.path("simplec.json"),"{\"v\":1,\"overrides\":{\"methods/pressure-velocity-coupling\":\"simplec\"}}");
+  CHECK(kutta::setup::apply_setup(t.path("simplec.json"),settings).size()==1);
+  const auto switched=kutta::setup::fluent_setup(c,mesh,wfgc);
+  CHECK(switched.settings.coupling==kutta::fv::PressureVelocityCoupling::Simplec);
+  // The saved Coupled pseudo-time controls still apply; only the path changes.
+  CHECK(switched.settings.momentum_relaxation==.5);CHECK(switched.settings.pseudo_time_scale==saved.settings.pseudo_time_scale);
+  CHECK(notes(switched).find("SIMPLEC selected by setup override for a Coupled case")!=std::string::npos);
+#else
+  MESSAGE("SKIP: HDF5 disabled");
+#endif
+}

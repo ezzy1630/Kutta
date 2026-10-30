@@ -104,6 +104,9 @@ struct Numerics {
   std::optional<bool> wall_distance_quad_correction;
   std::optional<double> high_order_steady_relax;
   std::optional<Coupling> coupling;
+  // Kutta's run selection from a setup override; never read from a file.
+  // Pseudo-time controls and relaxation keys still follow the saved scheme.
+  std::optional<Coupling> run_coupling;
   struct PseudoTime {
     std::optional<bool> formulation, automatic;
     // Raw integer selectors: 0 is off; other meanings are version dependent.

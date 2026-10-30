@@ -1,6 +1,7 @@
 #include "kutta/fv/steady_solver.hpp"
 #include "kutta/fv/turbulence/sa_transport.hpp"
 #include "kutta/fv/turbulence/realizable_ke_transport.hpp"
+#include "kutta/fv/coupled_solver.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -106,6 +107,7 @@ struct SteadySolver::Impl {
   DeviceVec3 projected_gradient[3];
   std::shared_ptr<CsrMatrix> pressure_matrix;
   std::unique_ptr<LinearSolver> pressure_solver;
+  std::unique_ptr<CoupledSolver> coupled;
   Buffer<float> pressure_rhs,correction,correction_boundary,coefficient,face_pressure,pressure_jump;
   DeviceVec3 grad_correction;
   Buffer<float> residual_u,residual_v,residual_w,continuity,provisional_continuity,scale,speed;
@@ -123,6 +125,7 @@ struct SteadySolver::Impl {
   double length=0,bc_speed=0,pressure_speed=0,continuity_scale=0;
   double first_five_continuity[5]{};
   float time_step=0;
+  double velocity_scale=1; // the automatic time step's velocity scale
 
   Impl(Device& device,PolyMesh input,std::vector<PatchCondition> conditions,SolverSettings options)
       :dev(device),host(std::move(input)),settings(options) {
@@ -335,6 +338,8 @@ struct SteadySolver::Impl {
     // Fluent's conservative length scale: min(domain volume^(1/3), largest extent).
     length=std::min(std::cbrt(volume),std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z}));
     update_time(bc_speed);
+    if(settings.coupling==PressureVelocityCoupling::Coupled)
+      coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference);
     dev.fill(momentum[0]->diagonal,1);dev.fill(momentum[0]->consistent_inverse,0);
     update_boundaries();update_pressure();update_flux();
   }
@@ -461,8 +466,9 @@ struct SteadySolver::Impl {
     report.k=measure(false);report.omega=measure(true);
   }
   void update_time(double maximum_speed) {
+    velocity_scale=std::max({.1*bc_speed,maximum_speed,pressure_speed,1e-10});
     time_step=settings.pseudo_time_step>0?float(settings.pseudo_time_step):
-      float(.3*length*settings.pseudo_time_scale/std::max({.1*bc_speed,maximum_speed,pressure_speed,1e-10}));
+      float(.3*length*settings.pseudo_time_scale/velocity_scale);
   }
   // The automatic pseudo time step follows the current flow. step() and
   // monitor() both refresh it from the same state, so monitoring never changes
@@ -551,7 +557,51 @@ struct SteadySolver::Impl {
     // END FSAE physics
   }
 
+  // Coupled has no implicit momentum relaxation: its relaxation is explicit.
+  TransportSettings momentum_transport() const {
+    TransportSettings transport;
+    transport.convection=settings.convection;transport.limit=settings.limit;
+    transport.density=float(settings.density);transport.pseudo_time_step=time_step;
+    transport.relaxation=coupled?1.f:float(settings.momentum_relaxation);
+    return transport;
+  }
+  void momentum_sources() {
+    kern::fv_momentum_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
+      mesh.area.x,mesh.area.y,mesh.area.z,face_pressure,mesh.volume,body.x,body.y,body.z,
+      source.x,source.y,source.z);
+    reconstruct_velocity();add_transpose_stress();
+  }
+  // One pseudo-time Coupled iteration (Fluent Theory Guide 23.4.3.2 and the
+  // pseudo-time form 23-101). The block RHS is the steady residual at the
+  // current state: momentum b - A u with the explicit reconstructed face
+  // pressure, and the Rhie-Chow mass imbalance. Turbulence follows segregated.
+  void coupled_step() {
+    refresh_time_step();
+    update_boundaries();update_pressure();update_turbulence();momentum_sources();
+    const auto transport=momentum_transport();
+    Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+    const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+    const Buffer<float>* src[]{&source.x,&source.y,&source.z};
+    Buffer<float>* res[]{&residual_u,&residual_v,&residual_w};
+    for(int k=0;k<3;++k) {
+      momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport,wall_terms(k));
+      residual(dev,momentum[k]->matrix,*q[k],momentum[k]->rhs,*res[k]);
+      coupled->capture_diagonal(k,momentum[k]->matrix);
+      report.momentum[k]={};
+    }
+    update_momentum_diagonal();
+    report.pressure=coupled->solve({residual_u,residual_v,residual_w,mass,viscosity,physical_diagonal,
+      settings.density,velocity_scale},settings.coupled_linear);
+    coupled->update(velocity,pressure,settings.momentum_relaxation,settings.pressure_relaxation);
+    update_boundaries();update_pressure();update_flux();
+    kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
+    solve_turbulence();
+    ++report.iteration;
+    if(report.iteration<=5 || report.iteration%settings.monitor_interval==0) monitor();
+  }
+
   void step() {
+    if(coupled) {coupled_step();return;}
     refresh_time_step();
     update_boundaries();update_pressure();
     update_turbulence();
@@ -603,10 +653,7 @@ struct SteadySolver::Impl {
       mesh.area.x,mesh.area.y,mesh.area.z,face_pressure,mesh.volume,body.x,body.y,body.z,
       source.x,source.y,source.z);
     reconstruct_velocity();add_transpose_stress();
-    TransportSettings transport;
-    transport.convection=settings.convection;transport.limit=settings.limit;
-    transport.density=float(settings.density);transport.pseudo_time_step=time_step;
-    transport.relaxation=float(settings.momentum_relaxation);
+    const auto transport=momentum_transport();
     // The components share one CSR value buffer, so each residual must follow
     // its own assembly.
     momentum[0]->assemble_reconstructed(velocity.x,boundary_velocity.x,scalar_kind,mass,viscosity,source.x,transport,wall_terms(0));
@@ -905,6 +952,7 @@ const Buffer<float>& SteadySolver::modified_viscosity() const {KUTTA_REQUIRE(imp
 const MeshPermutation& SteadySolver::permutation() const {return impl_->permutation;}
 const Buffer<float>& SteadySolver::boundary_pressure() const {return impl_->boundary_pressure;}
 const IterationReport& SteadySolver::report() const {return impl_->report;}
+std::size_t SteadySolver::coupled_solver_bytes() const {return impl_->coupled?impl_->coupled->bytes():0;}
 Vec3d ForceReport::force() const {return pressure+viscous;}
 double ForceReport::coefficient(Vec3d direction,const ReferenceValues& ref) const {
   KUTTA_REQUIRE(ref.density>0 && ref.velocity>0 && ref.area>0,"FV positive force references required");

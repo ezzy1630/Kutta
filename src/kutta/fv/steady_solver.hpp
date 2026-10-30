@@ -90,10 +90,17 @@ struct RealizableKeSettings {
   SolveControl linear{1e-3,1e-12,100};
 };
 
+// Fluent's flow/scheme. Coupled solves momentum and continuity as one block
+// system (fv/coupled_solver.hpp); both share one discrete fixed point.
+enum class PressureVelocityCoupling { Simplec, Coupled };
+
 struct SolverSettings {
   double density=1, viscosity=.01;
+  PressureVelocityCoupling coupling=PressureVelocityCoupling::Simplec;
   ConvectionScheme convection=ConvectionScheme::SecondOrderUpwind;
   bool limit=true;
+  // SIMPLEC: implicit momentum and pressure-correction relaxation. Coupled:
+  // Fluent's pseudo-time explicit relaxation of the block update.
   double momentum_relaxation=.7, pressure_relaxation=1;
   double pseudo_time_scale=1;
   // Zero selects the conservative global automatic time scale, updated only
@@ -101,6 +108,9 @@ struct SolverSettings {
   double pseudo_time_step=0;
   SolveControl momentum_linear{1e-2,1e-10,100};
   SolveControl pressure_linear{1e-3,1e-12,300};
+  // Coupled block solve: one order of residual reduction per outer
+  // iteration, Fluent's default AMG termination criterion.
+  SolveControl coupled_linear{.1,1e-12,20};
   int monitor_interval=20;
   // Closed (pure-Neumann) domains only: gauge pressure is zero in the cell
   // containing this point, as at Fluent's reference pressure location.
@@ -180,6 +190,8 @@ class SteadySolver {
   const MeshPermutation& permutation() const;
   const Buffer<float>& boundary_pressure() const;
   const IterationReport& report() const;
+  // Device bytes the Coupled block solver owns beyond SIMPLEC; zero for SIMPLEC.
+  std::size_t coupled_solver_bytes() const;
  private:
   struct Impl;
   std::unique_ptr<Impl> impl_;
