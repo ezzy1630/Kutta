@@ -27,6 +27,24 @@ void upload_vectors(Device& dev,DeviceVec3& to,const std::vector<Vec3d>& values)
   }
   dev.upload<float>(to.x,x);dev.upload<float>(to.y,y);dev.upload<float>(to.z,z);
 }
+// The cell whose face planes all enclose the point, else the nearest centroid
+// (points outside the domain, or nonconvex cells).
+Index locate_cell(const PolyMesh& mesh,const MeshGeometry& geom,Vec3d point) {
+  KUTTA_REQUIRE(finite(point),"FV nonfinite pressure reference point");
+  const auto cf=build_cell_faces(mesh);
+  Index nearest=0;double best=std::numeric_limits<double>::infinity();
+  for(Index c=0;c<mesh.n_cells;++c) {
+    bool inside=true;
+    for(Index j=cf.offsets[c];j<cf.offsets[c+1] && inside;++j) {
+      const auto f=cf.faces[j];const auto s=geom.face_area[f]*double(cf.signs[j]);
+      inside=dot(s,point-geom.face_centroid[f])<=1e-12*norm(s)*std::cbrt(geom.cell_volume[c]);
+    }
+    if(inside) return c;
+    const auto d=point-geom.cell_centroid[c];
+    if(dot(d,d)<best) {best=dot(d,d);nearest=c;}
+  }
+  return nearest;
+}
 }
 
 struct SteadySolver::Impl {
@@ -75,10 +93,7 @@ struct SteadySolver::Impl {
     }
     renumber_cells_rcm(host);geom=compute_geometry(host);
     KUTTA_REQUIRE(host.n_cells>0,"FV steady solver needs a nonempty mesh");
-    if(!outlet) {
-      KUTTA_REQUIRE(settings.reference_cell>=0 && settings.reference_cell<host.n_cells,"FV pressure reference out of range");
-      reference=settings.reference_cell;
-    }
+    if(!outlet) reference=locate_cell(host,geom,settings.reference_point);
     // A single pin cannot constrain disconnected Neumann components.
     const auto neighbours=build_cell_neighbours(host);
     std::vector<bool> seen(host.n_cells);std::vector<Index> stack{0};seen[0]=true;
@@ -100,7 +115,7 @@ struct SteadySolver::Impl {
     residual_u=dev.alloc<float>(n);residual_v=dev.alloc<float>(n);residual_w=dev.alloc<float>(n);
     continuity=dev.alloc<float>(n);provisional_continuity=dev.alloc<float>(n);dev.fill(provisional_continuity,0);scale=dev.alloc<float>(n);speed=dev.alloc<float>(n);
     std::vector<Index> kinds(nb);std::vector<float> pressures(nb,0);std::vector<Vec3d> velocities(nb);
-    double pmin=0,pmax=0;
+    double pmin=std::numeric_limits<double>::infinity(),pmax=-pmin;
     for(const auto& patch:host.patches) for(Index f=patch.start;f<patch.start+patch.size;++f) {
       const auto b=f-mesh.n_internal_faces;const auto& bc=boundaries.at(patch.name);
       if(const auto* wall=std::get_if<Wall>(&bc)) {kinds[b]=0;velocities[b]=wall->velocity;}
@@ -115,7 +130,7 @@ struct SteadySolver::Impl {
       if(std::holds_alternative<Symmetry>(bc)) kinds[b]=3;
       bc_speed=std::max(bc_speed,norm(velocities[b]));
     }
-    pressure_speed=.1*std::sqrt((pmax-pmin)/settings.density);
+    pressure_speed=outlet?.1*std::sqrt((pmax-pmin)/settings.density):0;
     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
     upload_vectors(dev,prescribed_velocity,velocities);
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
@@ -142,7 +157,8 @@ struct SteadySolver::Impl {
     const double volume=std::accumulate(geom.cell_volume.begin(),geom.cell_volume.end(),0.);
     Vec3d lo=host.points.front(),hi=lo;
     for(auto p:host.points) {lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
-    length=std::min(std::cbrt(volume/n),std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z}));
+    // Fluent's conservative length scale: min(domain volume^(1/3), largest extent).
+    length=std::min(std::cbrt(volume),std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z}));
     update_time(bc_speed);
     dev.fill(momentum[0]->diagonal,1);dev.fill(momentum[0]->consistent_inverse,0);
     update_boundaries();update_pressure();update_flux();
@@ -239,11 +255,13 @@ struct SteadySolver::Impl {
     transport.density=float(settings.density);transport.pseudo_time_step=time_step;
     transport.relaxation=float(settings.momentum_relaxation);
     vector_gradient(dev,mesh,stencil,velocity,boundary_velocity,momentum[0]->grad,momentum[1]->grad,momentum[2]->grad);
+    // The components share one CSR value buffer, so each residual must follow
+    // its own assembly.
     momentum[0]->assemble_reconstructed(velocity.x,boundary_velocity.x,scalar_kind,mass,viscosity,source.x,transport);
-    momentum[1]->assemble_reconstructed(velocity.y,boundary_velocity.y,scalar_kind,mass,viscosity,source.y,transport);
-    momentum[2]->assemble_reconstructed(velocity.z,boundary_velocity.z,scalar_kind,mass,viscosity,source.z,transport);
     residual(dev,momentum[0]->matrix,velocity.x,momentum[0]->rhs,residual_u);
+    momentum[1]->assemble_reconstructed(velocity.y,boundary_velocity.y,scalar_kind,mass,viscosity,source.y,transport);
     residual(dev,momentum[1]->matrix,velocity.y,momentum[1]->rhs,residual_v);
+    momentum[2]->assemble_reconstructed(velocity.z,boundary_velocity.z,scalar_kind,mass,viscosity,source.z,transport);
     residual(dev,momentum[2]->matrix,velocity.z,momentum[2]->rhs,residual_w);
     kern::fv_monitor_cell(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
       mass,velocity.x,velocity.y,velocity.z,momentum[0]->diagonal,residual_u,residual_v,residual_w,

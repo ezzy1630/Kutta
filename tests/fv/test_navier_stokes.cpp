@@ -52,7 +52,7 @@ Errors manufactured(Device& dev,int n,bool tet) {
   for(auto& patch:mesh.patches)
     if(patch.name=="zmin" || patch.name=="zmax") bc.push_back({patch.name,Symmetry{}});
     else bc.push_back({patch.name,Wall{}});
-  SolverSettings settings;settings.viscosity=.1;settings.pseudo_time_scale=3;settings.limit=false;
+  SolverSettings settings;settings.viscosity=.1;settings.limit=false;
   settings.momentum_linear={1e-3,1e-10,200};settings.pressure_linear={1e-4,1e-12,300};
   SteadySolver solver(dev,std::move(mesh),bc,settings);
   solver.initialize(exact_velocity,exact_pressure);solver.set_source(source);

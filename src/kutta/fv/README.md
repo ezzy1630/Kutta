@@ -78,13 +78,16 @@ pressure extrapolation uses only the tangential centroid-to-face displacement.
 The undocumented Fluent high-order Rhie–Chow correction and warped-face
 gradient correction are not implemented or claimed as matched.
 
-Closed domains use one reference cell (default RCM cell 0). Both its pressure
+Closed domains pin the cell containing `reference_point` (Fluent's reference
+pressure location, default the origin; nearest centroid if no cell contains
+it). Both its pressure
 correction row and column are eliminated, preserving symmetry for AMG-PCG.
 Pressure outlets remove the need for a pin. Disconnected domains are rejected;
 one pin would leave additional unconstrained pressure modes. Solver kinds are
 centralized in `transport.hpp` and use the current `solver.hpp` factory.
 
-Automatic pseudo-time uses `.3 * min(cbrt(mean volume), max domain extent) /
+Automatic pseudo-time uses Fluent's conservative length scale,
+`.3 * min(cbrt(domain volume), max domain extent) /
 max(domain speed, .1*boundary speed, .1*sqrt(outlet pressure range/rho))`, times
 the supplied scale. Speed is refreshed at monitor intervals. A fixed positive
 time step overrides this. The flow loop has no field downloads. The first five

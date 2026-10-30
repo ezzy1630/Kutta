@@ -31,7 +31,9 @@ struct SolverSettings {
   SolveControl momentum_linear{1e-2,1e-10,100};
   SolveControl pressure_linear{1e-3,1e-12,300};
   int monitor_interval=20;
-  Index reference_cell=0;  // symmetric pin for closed, pure-Neumann pressure
+  // Closed (pure-Neumann) domains only: gauge pressure is zero in the cell
+  // containing this point, as at Fluent's reference pressure location.
+  Vec3d reference_point{};
 };
 
 struct ResidualValue { double raw=0,scaled=0; };

@@ -46,7 +46,7 @@ TEST_CASE("FV SIMPLEC develops planar Couette flow with moving and slip walls" *
     else boundaries.push_back({p.name,Symmetry{}});
   }
   KUTTA_FOR_EACH_BACKEND(dev) {
-    SolverSettings settings;settings.viscosity=1;settings.pseudo_time_scale=5;
+    SolverSettings settings;settings.viscosity=1;
     SteadySolver solver(*dev,mesh,boundaries,settings);
     for(int k=0;k<20;++k) solver.iterate(20);
     auto u=dev->download(solver.velocity().x),v=dev->download(solver.velocity().y);
@@ -84,5 +84,29 @@ TEST_CASE("FV pressure outlet defaults to flux-consistent normal backflow") {
     for(auto u:dev->download(solver.velocity().x)) CHECK(u==doctest::Approx(-1).epsilon(1e-6));
     CHECK(dev->max_abs(solver.velocity().y,mesh.n_cells)<1e-6);
     CHECK(dev->max_abs(solver.pressure(),mesh.n_cells)<1e-6);
+  }
+}
+
+TEST_CASE("FV closed-domain gauge pressure is zero at the reference point's cell") {
+  auto mesh=make_box_hex(6,6,1,{0,0,0},{1,1,.1});
+  std::vector<PatchCondition> conditions;
+  for(const auto& p:mesh.patches) {
+    if(p.name=="ymax") conditions.push_back({p.name,Wall{{1,0,0}}});
+    else if(p.name=="zmin" || p.name=="zmax") conditions.push_back({p.name,Symmetry{}});
+    else conditions.push_back({p.name,Wall{}});
+  }
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    SolverSettings settings;settings.reference_point={.75,.25,.05};  // cell centre (5/12, 1/12 grid)
+    SteadySolver solver(*dev,mesh,conditions,settings);
+    solver.initialize([](Vec3d){return Vec3d{};},[](Vec3d x){return x.x+2*x.y;});
+    solver.iterate(10);
+    const auto p=dev->download(solver.pressure());
+    const auto& centres=solver.geometry().cell_centroid;
+    Index pinned=-1;
+    for(Index c=0;c<mesh.n_cells;++c)
+      if(std::abs(centres[c].x-.75)<1e-9 && std::abs(centres[c].y-.25)<1e-9) pinned=c;
+    REQUIRE(pinned>=0);
+    CHECK(p[pinned]==0.f);
+    CHECK(dev->max_abs(solver.pressure(),mesh.n_cells)>1e-3);
   }
 }

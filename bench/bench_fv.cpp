@@ -100,7 +100,7 @@ void performance(kutta::Backend backend,int size,int repeats) {
     if(p.name=="zmin" || p.name=="zmax") boundaries.push_back({p.name,kutta::fv::Symmetry{}});
     else boundaries.push_back({p.name,kutta::fv::Wall{{p.name=="ymax"?1.:0.,0,0}}});
   }
-  kutta::fv::SolverSettings settings;settings.pseudo_time_scale=5;settings.momentum_relaxation=1;
+  kutta::fv::SolverSettings settings;settings.momentum_relaxation=1;
   kutta::fv::SteadySolver solver(dev,std::move(mesh),boundaries,settings);
   solver.iterate(5);dev.synchronize();
   KUTTA_REQUIRE(std::isfinite(solver.report().maximum_velocity) && solver.report().maximum_velocity>0,
