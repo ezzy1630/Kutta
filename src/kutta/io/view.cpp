@@ -1,4 +1,5 @@
 #include "view.hpp"
+#include "view_geometry.hpp"
 #include "binary.hpp"
 #include "kutta/core/json.hpp"
 #include "kutta/mesh/detail.hpp"
@@ -15,62 +16,15 @@ namespace kutta::view {
 namespace {
 using namespace detail;
 constexpr float missing=std::numeric_limits<float>::quiet_NaN();
-struct Geometry {
-  std::vector<float> positions;
-  std::vector<std::uint32_t> indices;
-  std::vector<Field> fields;
-};
 Vec3d polygon_area(std::span<const Vec3d> p) {
   Vec3d area;for(std::size_t i=1;i+1<p.size();++i)area=area+cross(p[i]-p[0],p[i+1]-p[0])*.5;return area;
 }
-// Ear clipping in the dominant projection preserves concave Fluent polygons.
-// Convex faces take a linear fan path. Warped faces use the same projection;
-// triangles retain original 3D vertices and outward winding.
-std::vector<std::uint32_t> triangulate(std::span<const Vec3d> p) {
-  KUTTA_REQUIRE(p.size()>=3,"view polygon has fewer than three vertices");
-  const auto area=polygon_area(p);KUTTA_REQUIRE(norm(area)>0,"view polygon has zero area");
-  int axis=0;if(std::abs(area.y)>std::abs(area.x))axis=1;if(std::abs(area.z)>(axis==0?std::abs(area.x):std::abs(area.y)))axis=2;
-  const double direction=(axis==0?area.x:axis==1?area.y:area.z)>0?1:-1;
-  const auto turn=[&](Vec3d a,Vec3d b,Vec3d c){const auto v=cross(b-a,c-a);return direction*(axis==0?v.x:axis==1?v.y:v.z);};
-  double scale=0;for(auto v:p)scale=std::max(scale,norm(v-p[0]));const double eps=scale*scale*1e-13;
-  bool convex=true;for(std::size_t i=0;i<p.size();++i)convex &= turn(p[i],p[(i+1)%p.size()],p[(i+2)%p.size()])>eps;
-  std::vector<std::uint32_t> out;out.reserve((p.size()-2)*3);
-  if(convex){for(std::uint32_t i=1;i+1<p.size();++i)out.insert(out.end(),{0,i,i+1});return out;}
-  std::vector<std::uint32_t> ring(p.size());std::iota(ring.begin(),ring.end(),0);
-  // Slice triangles can introduce collinear points along face diagonals.
-  for(std::size_t i=0;ring.size()>3 && i<ring.size();) {
-    const auto a=ring[(i+ring.size()-1)%ring.size()],b=ring[i],c=ring[(i+1)%ring.size()];
-    if(std::abs(turn(p[a],p[b],p[c]))<=eps){ring.erase(ring.begin()+std::ptrdiff_t(i));i=0;}else ++i;
-  }
-  while(ring.size()>3) {
-    bool found=false;
-    for(std::size_t i=0;i<ring.size();++i) {
-      const auto a=ring[(i+ring.size()-1)%ring.size()],b=ring[i],c=ring[(i+1)%ring.size()];
-      if(turn(p[a],p[b],p[c])<=eps)continue;
-      bool inside=false;for(auto j:ring)if(j!=a && j!=b && j!=c && turn(p[a],p[b],p[j])>=-eps && turn(p[b],p[c],p[j])>=-eps && turn(p[c],p[a],p[j])>=-eps){inside=true;break;}
-      if(inside)continue;
-      out.insert(out.end(),{a,b,c});ring.erase(ring.begin()+std::ptrdiff_t(i));found=true;break;
-    }
-    KUTTA_REQUIRE(found,"cannot triangulate self-intersecting or degenerate view polygon");
-  }
-  out.insert(out.end(),ring.begin(),ring.end());return out;
-}
-void add_deltas(std::vector<Field>& fields) {
-  const auto count=fields.size();
-  for(std::size_t i=0;i<count;++i) {
-    const auto& f=fields[i];if(!f.name.ends_with("@fluent"))continue;
-    const auto name=f.name.substr(0,f.name.size()-7);
-    auto base=std::find_if(fields.begin(),fields.begin()+std::ptrdiff_t(count),[&](const auto& b){return b.name==name;});
-    if(base==fields.begin()+std::ptrdiff_t(count))continue;
-    Field d{name+"@delta",f.unit,f.components,{}};d.values.reserve(f.values.size());
-    for(std::size_t j=0;j<f.values.size();++j)d.values.push_back(base->values[j]-f.values[j]);
-    fields.push_back(std::move(d));
-  }
-}
 bool visible(std::string_view name,bool wall) {
   const auto at=name.find('@');name=name.substr(0,at);
-  return name=="pressure" || name=="pressure_coefficient" ||
-    (wall?(name=="wall_shear" || name=="wall_shear_magnitude" || name=="y_plus"):(name=="velocity" || name=="velocity_magnitude"));
+  if(name=="mass_flux")return false;
+  if(name.starts_with("wall_shear") || name.starts_with("skin_friction") || name=="y_plus")return wall;
+  if(name=="velocity" || name=="velocity_magnitude")return !wall;
+  return true;
 }
 Geometry surface(const Snapshot& s,const Patch& patch,std::vector<Index>& local) {
   const auto& m=s.mesh;Geometry g;std::vector<Index> vertices;std::vector<double> area(patch.size);
@@ -99,7 +53,7 @@ Geometry surface(const Snapshot& s,const Patch& patch,std::vector<Index>& local)
     if(std::any_of(out.values.begin(),out.values.end(),[](float v){return std::isfinite(v);}))g.fields.push_back(std::move(out));
   }
   for(auto n:vertices)local[n]=-1;
-  add_deltas(g.fields);return g;
+  append_deltas(g.fields);return g;
 }
 void append_polygon(Geometry& g,std::vector<Vec3d> ring,const Plane& plane,Index cell,std::span<const Field> fields) {
   if(ring.size()<3 || norm(polygon_area(ring))==0)return;
@@ -163,38 +117,18 @@ Geometry slice(const Snapshot& s,const Plane& plane,const kutta::CellFaces& cf,d
     }
   }
   std::erase_if(g.fields,[](const auto& f){return !f.values.empty() && std::none_of(f.values.begin(),f.values.end(),[](float v){return std::isfinite(v);});});
-  add_deltas(g.fields);return g;
+  append_deltas(g.fields);return g;
 }
 struct Range {double lo=std::numeric_limits<double>::infinity(),hi=-lo;void add(double n){if(std::isfinite(n)){lo=std::min(lo,n);hi=std::max(hi,n);}}};
-Range range(const Field& f) {
-  Range out;for(std::size_t i=0;i<f.values.size();i+=f.components) {
-    const auto n=f.components==1?double(f.values[i]):std::hypot(double(f.values[i]),double(f.values[i+1]),double(f.values[i+2]));out.add(n);
-  }
-  return out;
-}
 void range_json(std::ostream& out,Range r) {out<<",\"min\":";json_number(out,r.lo);out<<",\"max\":";json_number(out,r.hi);}
 void bounds_json(std::ostream& out,std::span<const Vec3d> points) {
   Vec3d lo=points.front(),hi=lo;for(auto p:points){lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
   out<<"[["<<lo.x<<','<<lo.y<<','<<lo.z<<"],["<<hi.x<<','<<hi.y<<','<<hi.z<<"]]";
 }
 void payload(const std::filesystem::path& path,const Geometry& g,std::ostream& manifest,std::map<std::string,std::pair<Field,Range>>& catalog) {
-  KUTTA_REQUIRE(g.positions.size()/3<=UINT32_MAX && g.indices.size()<=UINT32_MAX && g.fields.size()<=UINT32_MAX,"view exceeds uint32 capacity");
-  binary::Writer w(path);w.scalar(std::uint32_t(0x5654554b));w.scalar(std::uint32_t(1));w.scalar(std::uint32_t(32));
-  w.scalar(std::uint32_t(g.positions.size()/3));w.scalar(std::uint32_t(g.indices.size()));w.scalar(std::uint32_t(g.fields.size()));w.scalar(std::uint32_t(0));w.scalar(std::uint32_t(0));
-  for(float p:g.positions)KUTTA_REQUIRE(std::isfinite(p),"position cannot be represented as float32");
-  w.array<float>(g.positions);w.array<std::uint32_t>(g.indices);
-  manifest<<",\"file\":"<<json_string(path.filename().string())<<",\"vertices\":"<<g.positions.size()/3<<",\"indices\":"<<g.indices.size()<<",\"fields\":[";
-  std::uint64_t offset=32+g.positions.size()*4+g.indices.size()*4;bool first=true;
-  for(const auto& f:g.fields) {
-    KUTTA_REQUIRE(f.values.size()==g.positions.size()/3*f.components,"view vertex field shape mismatch");
-    w.array<float>(f.values);auto r=range(f);
-    if(!first)manifest<<',';
-    first=false;
-    manifest<<"{\"name\":"<<json_string(f.name)<<",\"unit\":"<<json_string(f.unit)<<",\"components\":"<<f.components<<",\"location\":\"vertex\",\"offset_bytes\":"<<offset;range_json(manifest,r);manifest<<'}';
-    offset+=f.values.size()*4;
-    auto& entry=catalog[f.name];entry.first.name=f.name;entry.first.unit=f.unit;entry.first.components=f.components;entry.second.add(r.lo);entry.second.add(r.hi);
-  }
-  manifest<<"]}";w.close();
+  const auto artifact=write_geometry(path,g);
+  for(const auto& r:artifact.fields){auto& entry=catalog[r.name];entry.first={r.name,r.unit,r.components,{}};if(r.min)entry.second.add(*r.min);if(r.max)entry.second.add(*r.max);}
+  const auto text=dump_json(artifact.descriptor);manifest<<','<<text.substr(1);
 }
 }
 void export_view(const std::filesystem::path& directory,const Snapshot& s,std::span<const Plane> planes) {
@@ -225,7 +159,8 @@ void export_view(const std::filesystem::path& directory,const Snapshot& s,std::s
         payload(stage/("slice-"+std::to_string(i)+".bin"),g,manifest,catalog);
       }
     }
-    manifest<<"],\"fields\":[";first=true;
+    manifest<<']';
+    manifest<<",\"fields\":[";first=true;
     for(const auto& [name,entry]:catalog){if(!first)manifest<<',';
     first=false;manifest<<"{\"name\":"<<json_string(name)<<",\"unit\":"<<json_string(entry.first.unit)<<",\"components\":"<<entry.first.components<<",\"location\":\"vertex\"";range_json(manifest,entry.second);manifest<<'}';}
     manifest<<"]}\n";manifest.close();

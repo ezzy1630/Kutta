@@ -39,17 +39,22 @@ Plane parse_plane(std::string_view text) {
 void write_snapshot(const std::filesystem::path& path,const PolyMesh& m,const Fields& s) {
   validate_fields(s.cells,m.n_cells);validate_fields(s.boundary,m.n_faces()-m.n_internal_faces());
   binary::Writer w(path);
-  w.scalar(magic);w.scalar(std::uint32_t(1));w.scalar(std::uint32_t(s.reference));w.string(s.provenance);
+  w.scalar(magic);w.scalar(std::uint32_t(2));w.scalar(std::uint32_t(s.reference));w.string(s.provenance);
   for(auto n:{m.n_points(),m.n_faces(),m.n_internal_faces(),m.n_cells,detail::index(m.face_nodes.size()),detail::index(m.patches.size())})w.scalar(n);
   // Double coordinates preserve translated meshes when cutting planes. View
   // payloads are float32; this private snapshot is never loaded by the UI.
   for(auto p:m.points){w.scalar(p.x);w.scalar(p.y);w.scalar(p.z);}
   w.array<Index>(m.face_offsets);w.array<Index>(m.face_nodes);w.array<Index>(m.owner);w.array<Index>(m.neighbour);
   for(const auto& p:m.patches){w.string(p.name);w.string(p.source_type);w.scalar(std::uint32_t(p.kind));w.scalar(std::int32_t(p.source_zone_id));w.scalar(p.start);w.scalar(p.size);}
-  write_fields(w,s.cells);write_fields(w,s.boundary);w.close();
+  write_fields(w,s.cells);write_fields(w,s.boundary);
+  for(const auto& n:{s.properties.density,s.properties.viscosity,s.properties.reference_density,s.properties.velocity,s.properties.pressure,s.properties.area,s.properties.length}) {
+    w.scalar(std::uint32_t(n.has_value()));if(n){KUTTA_REQUIRE(std::isfinite(*n),"nonfinite snapshot reference");w.scalar(*n);}
+  }
+  w.close();
 }
 Snapshot read_snapshot(const std::filesystem::path& path) {
-  binary::Reader r(path);KUTTA_REQUIRE(r.scalar<std::uint32_t>()==magic && r.scalar<std::uint32_t>()==1,"unknown run snapshot format/version");
+  binary::Reader r(path);KUTTA_REQUIRE(r.scalar<std::uint32_t>()==magic,"unknown run snapshot format");
+  const auto version=r.scalar<std::uint32_t>();KUTTA_REQUIRE(version==1 || version==2,"unknown run snapshot version");
   Snapshot s;const auto reference=r.scalar<std::uint32_t>();KUTTA_REQUIRE(reference<=1,"invalid snapshot reference flag");s.reference=reference;s.provenance=r.string();
   auto& m=s.mesh;
   const auto np=r.scalar<Index>(),nf=r.scalar<Index>(),ni=r.scalar<Index>(),nc=r.scalar<Index>(),nn=r.scalar<Index>(),nz=r.scalar<Index>();
@@ -64,6 +69,11 @@ Snapshot read_snapshot(const std::filesystem::path& path) {
   KUTTA_REQUIRE(nz<=nf,"invalid snapshot patch count");Index next=ni;std::set<std::string> names;
   for(Index i=0;i<nz;++i){Patch p;p.name=r.string();p.source_type=r.string();const auto kind=r.scalar<std::uint32_t>();KUTTA_REQUIRE(kind<=std::uint32_t(PatchKind::Other),"invalid patch kind");p.kind=PatchKind(kind);p.source_zone_id=r.scalar<std::int32_t>();p.start=r.scalar<Index>();p.size=r.scalar<Index>();KUTTA_REQUIRE(p.start==next && p.size>=0 && p.size<=nf-next && names.insert(p.name).second,"invalid snapshot patch range");next+=p.size;m.patches.push_back(std::move(p));}
   KUTTA_REQUIRE(next==nf,"incomplete snapshot patches");
-  s.cells=read_fields(r,nc);s.boundary=read_fields(r,nf-ni);KUTTA_REQUIRE(r.remaining()==0,"trailing snapshot bytes");return s;
+  s.cells=read_fields(r,nc);s.boundary=read_fields(r,nf-ni);
+  if(version==2)for(auto* value:{&s.properties.density,&s.properties.viscosity,&s.properties.reference_density,&s.properties.velocity,&s.properties.pressure,&s.properties.area,&s.properties.length}) {
+    const auto present=r.scalar<std::uint32_t>();KUTTA_REQUIRE(present<=1,"invalid reference presence flag");
+    if(present){const auto n=r.scalar<double>();KUTTA_REQUIRE(std::isfinite(n),"nonfinite snapshot reference");*value=n;}
+  }
+  KUTTA_REQUIRE(r.remaining()==0,"trailing snapshot bytes");return s;
 }
 } // namespace kutta::view

@@ -37,6 +37,11 @@ TEST_CASE("View export preserves known surface and slice geometry, area weights 
   view::write_snapshot(t.path("view-input.bin"),s);
   const auto copy=view::read_snapshot(t.path("view-input.bin"));
   CHECK(copy.mesh.face_nodes==s.mesh.face_nodes);CHECK(copy.cells[0].values==s.cells[0].values);CHECK(copy.reference);
+  // A v1 snapshot ends before the seven optional v2 properties. Preserve
+  // backwards reads rather than making old finished runs unusable.
+  {std::ifstream file(t.path("view-input.bin"),std::ios::binary);std::string bytes{std::istreambuf_iterator<char>(file),{}};bytes[4]=1;bytes.resize(bytes.size()-7*4);mesh_text(t.path("legacy.bin"),bytes);}
+  const auto legacy=view::read_snapshot(t.path("legacy.bin"));CHECK(legacy.cells[0].values==s.cells[0].values);CHECK_FALSE(legacy.properties.density);
+
   mesh_text(t.path("summary.json"),"{\"v\":1}");
   std::vector<view::Plane> planes;
   for(auto text:{"0.5,0,0,1,0,0","0,0.5,0,0,1,0","1,0,0,1,0,0","5,0,0,1,0,0","0,1,0,1,1,0"})planes.push_back(view::parse_plane(text));
@@ -54,7 +59,7 @@ TEST_CASE("View export preserves known surface and slice geometry, area weights 
   // Truncated, unknown-version and invalid-topology snapshots fail at the
   // file boundary rather than allocating from untrusted lengths.
   mesh_text(t.path("bad.bin"),"KUTR");CHECK_THROWS(view::read_snapshot(t.path("bad.bin")));
-  {std::fstream f(t.path("view-input.bin"),std::ios::in|std::ios::out|std::ios::binary);f.seekp(4);const char version=2;f.write(&version,1);}
+  {std::fstream f(t.path("view-input.bin"),std::ios::in|std::ios::out|std::ios::binary);f.seekp(4);const char version=99;f.write(&version,1);}
   CHECK_THROWS(view::read_snapshot(t.path("view-input.bin")));
 }
 TEST_CASE("View export triangulates a concave polygon and its nonconvex volume slice") {

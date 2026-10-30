@@ -23,7 +23,7 @@ patch ordinals, avoiding path characters and duplicate/unavailable source IDs;
 All integers are **uint32 little endian**, all values **IEEE-754 float32 little
 endian**. No padding, compression, strings or interleaving between arrays.
 Offsets in the manifest are absolute byte offsets from the start of the file.
-Writers are `view.cpp::payload` and `binary.hpp`.
+Writers are `view_geometry.cpp::write_geometry` and `binary.hpp`.
 
 | Byte offset | Type | Meaning |
 | --- | --- | --- |
@@ -103,3 +103,28 @@ and its float32 array of known row count. Strings use uint32 byte lengths.
 The reader rejects unknown versions, trailing bytes, invalid sizes, ranges and
 indices before exporting. Full solver geometry validation already ran before
 the trusted snapshot was written.
+
+## Polyline geometry, KUTL version 1
+
+Streamlines, pathlines and probes use the same scalar representation as KUTV.
+Their header is eight uint32 words: ASCII `KUTL`, version 1, header size 32,
+vertex count V, index count I, field count F, line count L, reserved zero.
+Positions (3 V float32) and indices (I uint32) follow. Next are **L+1 uint32
+line offsets**, starting at zero and ending at I. A line uses the concatenated
+index interval `[offset[j], offset[j+1])`; one-point lines and zero lines are
+valid. Vertex fields then follow in manifest order, at their absolute byte
+offsets. Geometry descriptors include `primitive:"polylines"` and `line_count`.
+KUTV headers/payloads remain unchanged and add `primitive:"triangles"` metadata.
+Polyline index counts need not be multiples of three. Never feed KUTL to a
+triangle renderer. Missing probe/reference values are quiet NaNs and must be
+masked; every stored geometry coordinate is finite.
+
+## Private snapshot v2
+
+New solves write KUTR version 2. The v1 layout remains unchanged through the two
+field lists. Seven optional float64 properties follow, each encoded as uint32
+presence (0 or 1) then a float64 value when present, in this order: actual density,
+actual molecular viscosity, reference density, reference velocity, reference
+pressure, reference area, reference length. A `mass_flux` boundary field stores
+the solver's integrated outward kg/s per boundary face. Readers accept both
+versions. Public protocol and public KUTV/KUTL versions remain 1.
