@@ -93,7 +93,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     b.consume(m.raw,"density");b.consume(m.raw,"viscosity");b.raw(m.raw,prefix+"raw/","Materials");
     b.add(prefix+"type","Material type","Materials",m.type,"","enum");
   }
-  for(auto& z:c.cell_zones){const auto prefix="cell-zone/"+segment(z.name)+"/";b.add(prefix+"type","Zone type","Cell Zone Conditions",z.fluent_type,"","enum");b.raw(z.raw,prefix,"Cell Zone Conditions");}
+  for(auto& z:c.cell_zones){const auto prefix="cell-zone/"+segment(z.name)+"/";b.add(prefix+"type","Zone type","Cell Zone Conditions",z.fluent_type,"","enum");b.raw(z.raw,prefix+"raw/","Cell Zone Conditions");}
   for(auto& z:c.boundaries) {
     const auto prefix="boundary/"+segment(z.name)+"/";
     b.add(prefix+"type","Boundary type","Boundary Conditions",z.fluent_type,"","enum");
@@ -115,7 +115,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
       if(active && (v.constant || v.resolved))b.editable(s,[target=&v](const Json& j){ScalarValue x;x.kind=ScalarValue::Kind::constant;x.constant=std::get<double>(j.value);*target=x;},key=="k" || key=="turb-intensity"?0:positive,key=="turb-intensity"?1:1e30);
       b.consume(z.raw,key=="omega"?"o":key=="epsilon"?"e":key);
     }
-    b.raw(z.raw,prefix,"Boundary Conditions");
+    b.raw(z.raw,prefix+"raw/","Boundary Conditions");
   }
   for(auto [key,label,unit,v,editable]:std::vector<std::tuple<std::string,std::string,std::string,std::optional<double>*,bool>>{
       {"area","Reference area","m^2",&c.reference.area,true},{"length","Reference length","m",&c.reference.length,false},
@@ -190,7 +190,9 @@ Json settings_json(std::span<const Setting> settings) {
 }
 Json::Object apply_setup(const std::filesystem::path& path,std::span<const Setting> settings) {
   KUTTA_REQUIRE(std::filesystem::file_size(path)<=1024*1024,"setup JSON exceeds 1 MiB");std::ifstream in(path,std::ios::binary);KUTTA_REQUIRE(in,"cannot open setup JSON");
-  const std::string text{std::istreambuf_iterator<char>(in),{}};const auto parsed=parse_json(text);const auto* root=std::get_if<Json::Object>(&parsed.value);
+  const std::string text{std::istreambuf_iterator<char>(in),{}};Json parsed;
+  try {parsed=parse_json(text);}catch(const std::exception& e){throw RejectedSettings({{"setup",e.what()}});}
+  const auto* root=std::get_if<Json::Object>(&parsed.value);
   std::vector<SettingIssue> errors;
   const auto fail=[&](std::string path,std::string reason){errors.push_back({std::move(path),std::move(reason)});};
   if(!root)throw RejectedSettings({{"setup","expected object with v and overrides"}});

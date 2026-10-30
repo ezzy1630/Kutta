@@ -1,6 +1,8 @@
 #include "kutta/case/fluent_case.hpp"
 #include "kutta/case/fluent_data.hpp"
 #include "solve.hpp"
+#include "protocol.hpp"
+#include "export.hpp"
 #include <algorithm>
 #include <iostream>
 
@@ -393,6 +395,10 @@ void data_summary(const FluentCase &c, const FluentData &d) {
 } // namespace
 int main(int argc, char **argv) {
   if(argc>=2 && std::string_view(argv[1])=="solve") return solve(argc,argv);
+  if(argc>=2 && std::string_view(argv[1])=="export-view") return kutta::app::export_view(argc,argv);
+  if(argc>=2 && std::string_view(argv[1])=="devices") return kutta::app::devices(argc,argv);
+  if(argc>=2 && std::string_view(argv[1])=="inspect")
+    for(int i=2;i<argc;++i) if(std::string_view(argv[i])=="--json") return kutta::app::inspect_json(argc,argv);
   if ((argc != 3 && argc != 5) || std::string_view(argv[1]) != "inspect" ||
       (argc == 5 && std::string_view(argv[3]) != "--data")) {
     std::cerr << "Usage: kutta solve <file.cas.h5> [--data file.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--approximate SETTING[,SETTING...]]\n       kutta inspect <file.cas.h5|file.cas> [--data file.dat.h5]\n";

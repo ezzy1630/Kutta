@@ -38,6 +38,8 @@ def decode(entry):
         a, b, c = [p[n] for n in indices[i:i + 3]]
         u, v = [b[j] - a[j] for j in range(3)], [c[j] - a[j] for j in range(3)]
         cross = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]
+        normal = entry.get("normal", {"xmin": [-1, 0, 0], "xmax": [1, 0, 0], "ymin": [0, -1, 0], "ymax": [0, 1, 0], "zmin": [0, 0, -1], "zmax": [0, 0, 1]}.get(entry.get("name")))
+        assert normal is not None and sum(x * n for x, n in zip(cross, normal)) > 0
         area += math.sqrt(sum(x * x for x in cross)) / 2
     return p, fields, area
 
