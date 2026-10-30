@@ -3,6 +3,9 @@
 // host footprint and phase times. Diagnostic only, never a gate.
 //
 //   bench_memory <cpu|metal|cuda> <nx> <ny> <nz> [iterations]
+//   bench_memory <cpu|metal|cuda> --mesh <file.msh|file.cas.h5> [iterations]
+// A mesh file keeps its patches: walls, velocity inlets and pressure outlets
+// keep their kind, anything else becomes a wall.
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -181,13 +184,14 @@ class SizedDevice final : public kutta::Device {
 int main(int argc, char** argv) {
   using namespace kutta;
   try {
-    KUTTA_REQUIRE(argc >= 5, "usage: bench_memory <cpu|metal|cuda> <nx> <ny> <nz> [iterations]");
+    KUTTA_REQUIRE(argc >= 4, "usage: bench_memory <cpu|metal|cuda> <nx> <ny> <nz> | --mesh <file> [iterations]");
+    const bool from_file = std::string(argv[2]) == "--mesh";
+    KUTTA_REQUIRE(from_file || argc >= 5, "bench_memory: box dimensions needed");
     const std::string backend_name_arg = argv[1];
     Backend backend = Backend::Cpu;
     for (auto b : {Backend::Cpu, Backend::Metal, Backend::Cuda})
       if (backend_name_arg == kutta::backend_name(b)) backend = b;
-    const int nx = std::stoi(argv[2]), ny = std::stoi(argv[3]), nz = std::stoi(argv[4]);
-    const int iterations = argc > 5 ? std::stoi(argv[5]) : 3;
+    const int iterations = from_file ? (argc > 4 ? std::stoi(argv[4]) : 3) : (argc > 5 ? std::stoi(argv[5]) : 3);
     std::cout << std::setprecision(6);
     const auto phase = [&](const char* name, double seconds) {
       std::cout << "MEMORY_PHASE source=" << KUTTA_BENCH_COMMIT << " phase=" << name << " seconds=" << seconds
@@ -199,13 +203,20 @@ int main(int argc, char** argv) {
     dev.attribute = std::getenv("KUTTA_MEMORY_SITES") != nullptr;
     phase("device", seconds_since(start));
     start = Clock::now();
-    auto mesh = make_box_hex(nx, ny, nz, {0, 0, 0}, {4, 1, .5});
+    auto mesh = from_file ? read_mesh(argv[3]) :
+        make_box_hex(std::stoi(argv[2]), std::stoi(argv[3]), std::stoi(argv[4]), {0, 0, 0}, {4, 1, .5});
     std::vector<fv::PatchCondition> bc;
-    for (const auto& p : mesh.patches) {
-      if (p.name == "xmin") bc.push_back({p.name, fv::VelocityInlet{Vec3d{1, 0, 0}, fv::TurbulenceValues{.0015, 10}}});
+    const fv::TurbulenceValues inflow{.0015, 10};
+    if (from_file) for (const auto& p : mesh.patches) {
+      if (p.kind == PatchKind::VelocityInlet) bc.push_back({p.name, fv::VelocityInlet{Vec3d{1, 0, 0}, inflow}});
+      else if (p.kind == PatchKind::PressureOutlet)
+        bc.push_back({p.name, fv::PressureOutlet{0, fv::NormalBackflow{}, fv::BackflowPressure::Static, inflow}});
+      else bc.push_back({p.name, fv::Wall{}});
+    }
+    else for (const auto& p : mesh.patches) {
+      if (p.name == "xmin") bc.push_back({p.name, fv::VelocityInlet{Vec3d{1, 0, 0}, inflow}});
       else if (p.name == "xmax")
-        bc.push_back({p.name, fv::PressureOutlet{0, fv::NormalBackflow{}, fv::BackflowPressure::Static,
-                                                fv::TurbulenceValues{.0015, 10}}});
+        bc.push_back({p.name, fv::PressureOutlet{0, fv::NormalBackflow{}, fv::BackflowPressure::Static, inflow}});
       else if (p.name == "ymin" || p.name == "ymax") bc.push_back({p.name, fv::Wall{}});
       else bc.push_back({p.name, fv::Symmetry{}});
     }
