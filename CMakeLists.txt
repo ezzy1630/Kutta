@@ -31,6 +31,7 @@ add_custom_command(
 
 # ---- Core library ---------------------------------------------------------------
 file(GLOB_RECURSE KUTTA_CORE_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_SOURCE_DIR}/src/kutta/setup/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/case/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/core/*.cpp
   ${CMAKE_SOURCE_DIR}/src/kutta/mesh/*.cpp

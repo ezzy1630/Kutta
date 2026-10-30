@@ -6,6 +6,7 @@ Research date: 2026-10-29. Target: Ansys Fluent 2026 R1, steady incompressible R
 > - A1: `kw-sst-strain? #f` means the μt limiter uses strain S.
 > - A2: ω is imposed as a fixed value in wall cells, using β_i = 0.072 and κ = 0.4187. Δy is the normal distance to the wall face plane.
 > - B6: `SV_WALL_SHEAR` is a force per face (not a stress), antiparallel to the near-wall velocity. In residual arrays, column 1 is the normalisation. SST data files also carry `SV_WALL_DIST` and `SV_WALL_YPLUS_UTAU`.
+> - A4: the inlet length-scale relation is `omega = sqrt(k)/(C_mu^(1/4)*ell)`, `C_mu=0.09`, `ell=0.07*D_h`. The v261 SVG for UG 8-79 omits the exponent on C_mu. The elbow's saved inlet values settle it: cold `k=.00375`, `omega=15.72038792`, `D_h=.1016`; hot `k=.0054`, `omega=75.45786201`, `D_h=.0254`. Both give denominator factor `.5477225575`, not `.09`.
 
 **Evidence tags**
 
@@ -259,6 +260,17 @@ Sources: UG `flu_ug_bcs_sec_bound_cond.html` (8.4), `flu_ug_bcs_sec_cell_zones.h
 | **Symmetry (half car)** | Zero normal velocity and zero normal gradients of all variables, i.e. a slip wall [D]. With zero-shear walls, the turbulence wall treatment is removed by default (Neumann) [D]. | zone type `symmetry` (bc-type 7) |
 | **Porous radiator** | S_i = −(μ/α · v_i + C2 · ½ρ\|v\| v_i) per direction (Darcy + inertial; 8-1/8-2), with 1/α and C2 given per direction. Superficial velocity formulation by default [D]. Turbulence is solved in the zone unless "laminar zone" is set [D]. Force reports can include porous zones [D]. | fluid-zone keys (porous?, viscous/inertial resistance vectors) [I names] |
 | **Operating pressure** | Default 101325 Pa. **All input and reported pressures are gauge.** Not used for constant density [D]. | `operating-pressure` |
+
+Implementation clarification (2026-10-29): [UG 8.4.9.1.3, backflow](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/flu_ug/flu_ug_bcs_sec_bound_cond.html#flu_ug_sec_bcs_po_backflow)
+uses the **adjacent cell velocity** in the dynamic contribution. For a stationary,
+constant-density zone, UG Eq. 8-88 gives `p_s=p_0-rho*|v_cell|^2/2` on backflow
+faces when total pressure is selected; static selection imposes `p_s=p_spec`.
+Outflow always imposes the specified static pressure. This is separate from the
+normal backflow velocity used to advect momentum/turbulence.
+The same [UG boundary-condition chapter](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/flu_ug/flu_ug_bcs_sec_bound_cond.html)
+gives `k=1.5*(U*I)^2` (8-75), length from hydraulic diameter (8-73), and
+`omega=rho*k/(mu*(mu_t/mu))` (8-80). Intensity in stored thread variables is a
+fraction, not a percentage. The saved-data correction to 8-79 is above.
 
 ### Forces and coefficients [D]
 
