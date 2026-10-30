@@ -16,7 +16,7 @@
 
 namespace kapp {
 
-enum class ItemKind { Zone, Slice, IsoSurface, Streamlines };
+enum class ItemKind { Zone, Slice, IsoSurface, Streamlines, Probe };
 
 // Value written for missing samples; shaders treat anything above 1e37 as missing.
 constexpr float kMissingSentinel = 3.0e38f;
@@ -51,7 +51,7 @@ private:
 };
 
 struct SceneItem {
-    QString id;         // stable: "zone:<name>", "slice:<n>", "post:<id>"
+    QString id;         // stable: "zone:<name>", "slice:<n>", "post:<operation name>"
     QString label;      // shown in lists: Fluent zone name, "z = 0.025 m", ...
     ItemKind kind = ItemKind::Zone;
     QString zoneType;   // wall, velocity-inlet, ... for zones
@@ -76,10 +76,8 @@ struct SceneData {
     QString unitOf(const QString& quantity) const;
 };
 
-// Load a view manifest's zones and slices into a scene.
+// Load a view manifest's zones, slices, iso-surfaces, traces and probes into a scene.
 Result<std::shared_ptr<SceneData>> loadScene(const ViewManifest& m, const QString& label);
-// Add a post-processing manifest's parts (iso-surfaces, streamlines).
-QString addPostParts(SceneData& scene, const QJsonObject& postManifest, const QString& dir);
 // Run A − Run B on parts with identical topology; parts that differ are reported, not guessed.
 std::shared_ptr<SceneData> runDifference(const SceneData& a, const SceneData& b, QStringList* skipped);
 

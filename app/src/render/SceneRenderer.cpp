@@ -371,7 +371,7 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
         if (!visible.contains(item.id) || !item.mesh) continue;
         const PreparedMesh* mesh = item.mesh.get();
         GpuMesh* g = gpu(mesh, u);
-        if (item.kind == ItemKind::Streamlines) {
+        if (mesh->data().polylines) {
             if (forPick) continue;
             // Lines without the shown field are drawn neutral, never coloured by
             // another field against this legend.

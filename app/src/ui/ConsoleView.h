@@ -3,6 +3,7 @@
 #include "core/Session.h"
 
 #include <QPlainTextEdit>
+#include <QTimer>
 
 namespace kapp {
 
@@ -15,9 +16,15 @@ public:
     void append(ConsoleLevel level, const QString& text);
     QString plainText() const { return toPlainText(); }
 
+protected:
+    void resizeEvent(QResizeEvent* e) override;
+
 private:
     void restyle();
-    std::vector<std::pair<ConsoleLevel, QString>> m_lines;  // for re-colouring on theme change
+    QString wrapped(ConsoleLevel level, const QString& text) const;
+    std::vector<std::pair<ConsoleLevel, QString>> m_lines;  // for re-colouring and re-wrapping
+    QTimer m_rewrap;
+    int m_columns = 0;
 };
 
 } // namespace kapp

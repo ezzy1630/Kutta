@@ -3,6 +3,8 @@
 
 #include "core/Session.h"
 
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -66,7 +68,8 @@ private slots:
         QCOMPARE(r->status, RunStatus::Completed);
         QCOMPARE(r->iterationsDone, 200);
         QCOMPARE(r->approximations, QStringList{"wfgc"});
-        QCOMPARE(r->overrides.value("run/iterations").toInt(), 200);
+        QCOMPARE(r->iterationsRequested, 200);
+        QVERIFY(!r->modified());  // the iteration count is a run control, not a case change
         QVERIFY(r->fixture);
         // The events the app received are kept with the run.
         const RunProgress p = s->history().progress(id);
@@ -83,6 +86,69 @@ private slots:
             loaded = true;
         });
         QTRY_VERIFY_WITH_TIMEOUT(loaded, 20000);
+    }
+
+    // Each operation joins the run's batch and the whole view is republished;
+    // a rejected operation leaves the batch and the published view as they were.
+    void postProcessingRepublishesTheRunView()
+    {
+        auto s = open();
+        QVERIFY(s);
+        s->setApproximationApproved("wfgc", true);
+        QCOMPARE(s->settings()->setValue("run/iterations", 40), QString());
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString id = s->run();
+        QVERIFY(finished.wait(60000));
+
+        std::optional<Result<PostOutput>> section;
+        s->postProcess(id, PostKind::Probe,
+                       {{"name", "Section"}, {"type", "section"}, {"zones", QJsonArray{"wall-elbow"}},
+                        {"origin", QJsonArray{0, 0, 0.025}}, {"normal", QJsonArray{0, 0, 1}}, {"fields", QJsonArray{"pressure"}}},
+                       [&](Result<PostOutput> r) { section = r; });
+        QTRY_VERIFY_WITH_TIMEOUT(section.has_value(), 20000);
+        QVERIFY2(section->ok(), qPrintable(*section ? QString() : section->error()));
+        QVERIFY(section->value().part.lineCount >= 1);
+        QVERIFY(section->value().scene->item("post:Section"));
+
+        std::optional<Result<PostOutput>> report;
+        s->postProcess(id, PostKind::Integral, {{"name", "Ports"}, {"zones", QJsonArray{"cold-inlet", "outlet"}}, {"fields", QJsonArray{"pressure"}}},
+                       [&](Result<PostOutput> r) { report = r; });
+        QTRY_VERIFY_WITH_TIMEOUT(report.has_value(), 20000);
+        QVERIFY2(report->ok(), qPrintable(*report ? QString() : report->error()));
+        QCOMPARE(report->value().report.value("zones").toArray().size(), 2);
+        QVERIFY(report->value().scene->item("post:Section"));  // earlier results persist
+
+        // The recorded elbow has no volume fields: tracing fails and changes nothing.
+        std::optional<Result<PostOutput>> traces;
+        s->postProcess(id, PostKind::Streamlines,
+                       {{"name", "Pathlines"}, {"seeds", QJsonObject{{"type", "rake"}, {"start", QJsonArray{0, 0, 0}}, {"end", QJsonArray{0, 0.1, 0}}, {"count", 4}}}},
+                       [&](Result<PostOutput> r) { traces = r; });
+        QTRY_VERIFY_WITH_TIMEOUT(traces.has_value(), 20000);
+        QVERIFY(!traces->ok());
+        QFile batch(QDir(s->history().find(id)->dir).filePath("app-post.json"));
+        QVERIFY(batch.open(QIODevice::ReadOnly));
+        const QJsonObject b = QJsonDocument::fromJson(batch.readAll()).object();
+        QVERIFY(!b.contains("streamlines"));
+        QCOMPARE(b.value("probes").toArray().size(), 1);
+        auto view = loadViewManifest(QDir(s->history().find(id)->dir).filePath("view/manifest.json"));
+        QVERIFY(view && view.value().probes.size() == 1);
+    }
+
+    void liveSnapshotsFollowThisRun()
+    {
+        auto s = open();
+        QVERIFY(s);
+        s->setApproximationApproved("wfgc", true);
+        s->setLiveViewInterval(20);
+        QCOMPARE(s->settings()->setValue("run/iterations", 150), QString());
+        QSignalSpy live(s.get(), &Session::liveSceneChanged);
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        s->run();
+        QVERIFY(finished.wait(60000));
+        QVERIFY(live.count() >= 2);  // recorded snapshots at 40 and 120
+        QCOMPARE(s->live().lastSnapshotSequence, live.count());
+        QVERIFY(!s->live().setup->liveRunId.isEmpty());
+        QVERIFY(s->sceneIfLoaded("live"));
     }
 
     void stopEndsTheRunCleanly()

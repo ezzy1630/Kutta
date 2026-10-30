@@ -270,7 +270,6 @@ void SettingsForm::addNote(const QString& text, const QString& role)
     l->setProperty("role", role);
     l->setWordWrap(true);
     l->setTextFormat(Qt::PlainText);
-    l->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     m_grid->addWidget(l, m_row++, 1, 1, 4);
 }
 

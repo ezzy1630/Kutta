@@ -264,46 +264,24 @@ Result<std::shared_ptr<SceneData>> loadScene(const ViewManifest& m, const QStrin
         it.mesh = std::make_shared<PreparedMesh>(std::move(mesh).value(), true, s.normal);
         scene->items.push_back(std::move(it));
     }
+    auto addPost = [&](const std::vector<ViewPart>& parts, ItemKind kind) -> QString {
+        for (const auto& p : parts) {
+            auto mesh = readMeshFile(dir.filePath(p.file), p);
+            if (!mesh) return mesh.error();
+            SceneItem it;
+            it.id = "post:" + p.name;
+            it.label = p.name;
+            it.kind = kind;
+            it.mesh = std::make_shared<PreparedMesh>(std::move(mesh).value());
+            scene->items.push_back(std::move(it));
+        }
+        return {};
+    };
+    for (const QString& err : {addPost(m.isosurfaces, ItemKind::IsoSurface), addPost(m.streamlines, ItemKind::Streamlines),
+                               addPost(m.probes, ItemKind::Probe)})
+        if (!err.isEmpty()) return R::failure(err);
     if (!scene->bounds.valid) scene->bounds = m.bounds;
     return scene;
-}
-
-QString addPostParts(SceneData& scene, const QJsonObject& post, const QString& dirPath)
-{
-    const QDir dir(dirPath);
-    const QString id = post.value("id").toString();
-    for (const QJsonValue& pv : post.value("parts").toArray()) {
-        const QJsonObject po = pv.toObject();
-        const QString kind = po.value("kind").toString();
-        const PartKind pk = kind == "streamlines" ? PartKind::Streamlines : PartKind::IsoSurface;
-        ViewPart part;
-        part.kind = pk;
-        part.file = po.value("file").toString();
-        part.name = po.value("name").toString();
-        part.vertices = quint32(po.value("vertices").toDouble());
-        part.indices = quint32(po.value(pk == PartKind::Streamlines ? "polylines" : "indices").toDouble());
-        for (const QJsonValue& fv : po.value("fields").toArray()) {
-            const QJsonObject fo = fv.toObject();
-            FieldDesc d;
-            d.name = fo.value("name").toString();
-            d.unit = fo.value("unit").toString();
-            d.components = fo.value("components").toInt(1);
-            d.offsetBytes = qint64(fo.value("offset_bytes").toDouble());
-            part.fields.push_back(d);
-        }
-        if (part.file.contains('/') || part.file.contains('\\')) return "unsafe post-processing file name";
-        auto mesh = readMeshFile(dir.filePath(part.file), part);
-        if (!mesh) return mesh.error();
-        SceneItem it;
-        it.id = QStringLiteral("post:%1:%2").arg(id, part.name);
-        it.label = part.name;
-        it.kind = pk == PartKind::Streamlines ? ItemKind::Streamlines : ItemKind::IsoSurface;
-        it.mesh = std::make_shared<PreparedMesh>(std::move(mesh).value());
-        // Replace an earlier result with the same id rather than stacking duplicates.
-        std::erase_if(scene.items, [&](const SceneItem& e) { return e.id == it.id; });
-        scene.items.push_back(std::move(it));
-    }
-    return {};
 }
 
 std::shared_ptr<SceneData> runDifference(const SceneData& a, const SceneData& b, QStringList* skipped)
@@ -316,8 +294,9 @@ std::shared_ptr<SceneData> runDifference(const SceneData& a, const SceneData& b,
     out->bounds = a.bounds;
     for (const auto& ia : a.items) {
         const SceneItem* ib = b.item(ia.id);
-        if (!ib || !ia.mesh || !ib->mesh || ia.kind == ItemKind::Streamlines) {
-            if (skipped && ia.kind != ItemKind::Streamlines) *skipped << ia.label;
+        const bool lines = ia.mesh && ia.mesh->data().polylines;
+        if (!ib || !ia.mesh || !ib->mesh || lines) {
+            if (skipped && !lines) *skipped << ia.label;
             continue;
         }
         const MeshData& ma = ia.mesh->data();

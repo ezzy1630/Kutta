@@ -7,15 +7,12 @@
 #include "ui/PageKit.h"
 #include "ui/SettingWidgets.h"
 
-#include <QAbstractTableModel>
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QPointer>
-#include <QSettings>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QInputDialog>
@@ -23,13 +20,15 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QPointer>
 #include <QRadioButton>
+#include <QSettings>
 #include <QSortFilterProxyModel>
 #include <QSpinBox>
-#include <QTableView>
+#include <QStandardItemModel>
 #include <QTableWidget>
+#include <QTreeView>
 #include <QTimer>
-#include <QUuid>
 
 #include <cmath>
 #include <numeric>
@@ -92,6 +91,14 @@ QLineEdit* numberEdit(double v, const QString& name)
     return e;
 }
 
+// A table exactly as tall as its rows (up to maxRows, then it scrolls).
+void fitRows(QTableWidget* t, int maxRows)
+{
+    const int rows = std::min(t->rowCount(), maxRows);
+    const int rowH = t->verticalHeader()->defaultSectionSize();
+    t->setFixedHeight(t->horizontalHeader()->sizeHint().height() + rows * rowH + 2 * t->frameWidth() + 2);
+}
+
 std::optional<double> numberOf(QLineEdit* e)
 {
     bool ok = false;
@@ -100,7 +107,15 @@ std::optional<double> numberOf(QLineEdit* e)
     return ok && std::isfinite(v) ? std::optional<double>(v) : std::nullopt;
 }
 
-struct Vec3Edit { QWidget* widget; std::array<QLineEdit*, 3> e; std::optional<QVector3D> value() const; };
+struct Vec3Edit {
+    QWidget* widget;
+    std::array<QLineEdit*, 3> e;
+    std::optional<QVector3D> value() const;
+    void set(const QVector3D& v) const
+    {
+        for (int i = 0; i < 3; ++i) e[std::size_t(i)]->setText(QString::number(v[i], 'g', 6));
+    }
+};
 std::optional<QVector3D> Vec3Edit::value() const
 {
     QVector3D v;
@@ -173,6 +188,7 @@ QListWidget* surfaceList(const InspectorContext& c)
     addGroup(QObject::tr("Boundaries"), [](const SceneItem& i) { return i.kind == ItemKind::Zone && i.zoneType != "wall"; });
     addGroup(QObject::tr("Planes"), [](const SceneItem& i) { return i.kind == ItemKind::Slice; });
     addGroup(QObject::tr("Iso-surfaces and pathlines"), [](const SceneItem& i) { return i.kind == ItemKind::IsoSurface || i.kind == ItemKind::Streamlines; });
+    addGroup(QObject::tr("Probes"), [](const SceneItem& i) { return i.kind == ItemKind::Probe; });
     list->setMinimumHeight(std::min(320, 12 + list->count() * 24));
     QObject::connect(list, &QListWidget::itemChanged, list, [c, list] {
         QStringList ids;
@@ -212,7 +228,6 @@ void reportError(QLabel* l, const QString& message)
     l->setVisible(!message.isEmpty());
 }
 
-QString newPostId(const QString& kind) { return kind + "-" + QUuid::createUuid().toString(QUuid::Id128).left(8); }
 
 } // namespace
 
@@ -406,7 +421,7 @@ void finishPostPage(PostForm& pf)
     pf.body->addWidget(pf.error);
 }
 
-void runPost(const InspectorContext& c, PostForm pf, QJsonObject item, std::function<void(const QJsonObject&)> onDone)
+void runPost(const InspectorContext& c, PostForm pf, PostKind kind, const QJsonObject& op, std::function<void(const PostOutput&)> onDone)
 {
     const QString run = currentRunId(c);
     if (run.isEmpty()) return reportError(pf.error, QObject::tr("Run the calculation first."));
@@ -416,7 +431,7 @@ void runPost(const InspectorContext& c, PostForm pf, QJsonObject item, std::func
     pf.status->show();
     QPointer<QPushButton> go = pf.go;
     QPointer<QLabel> err = pf.error, st = pf.status;
-    c.session->postProcess(run, item, [go, err, st, onDone](Result<QJsonObject> r) {
+    c.session->postProcess(run, kind, op, [go, err, st, onDone](Result<PostOutput> r) {
         if (go) go->setEnabled(true);
         if (st) st->hide();
         if (!r) {
@@ -427,12 +442,51 @@ void runPost(const InspectorContext& c, PostForm pf, QJsonObject item, std::func
     });
 }
 
+// The preferred quantities kutta can sample for this run. Before the run's
+// view is first published the list is unknown and the preferences stand.
+QStringList sampleable(const InspectorContext& c, const QStringList& preferred, bool volumeOnly)
+{
+    const auto avail = c.session->availableFields(currentRunId(c));
+    if (avail.empty()) return preferred;
+    QStringList out;
+    for (const QString& q : preferred)
+        if (std::any_of(avail.begin(), avail.end(), [&](const AvailableField& a) { return a.name == q && (a.volume || !volumeOnly); }))
+            out << q;
+    return out;
+}
+
+bool hasFluentField(const InspectorContext& c, const QString& q)
+{
+    const auto avail = c.session->availableFields(currentRunId(c));
+    return std::any_of(avail.begin(), avail.end(), [&](const AvailableField& a) { return a.name == q + "@fluent"; });
+}
+
+QJsonArray json(const QVector3D& v) { return {v.x(), v.y(), v.z()}; }
+
+std::optional<QVector3D> vec(const QJsonValue& v)
+{
+    const QJsonArray a = v.toArray();
+    if (a.size() != 3) return std::nullopt;
+    return QVector3D(float(a[0].toDouble()), float(a[1].toDouble()), float(a[2].toDouble()));
+}
+
+// The current run's previous request from this form, so the form reopens as left.
+QJsonObject lastOperation(const InspectorContext& c, const QString& name)
+{
+    return c.session->postOperation(currentRunId(c), name);
+}
+
+void selectData(QComboBox* box, const QJsonValue& v)
+{
+    if (const int i = box->findData(v.toString()); i >= 0) box->setCurrentIndex(i);
+}
+
 } // namespace
 
 QWidget* pathlines(const InspectorContext& c)
 {
     PostForm pf = postPage(c, QObject::tr("Pathlines"), QObject::tr("Results ▸ Graphics"), QObject::tr("Compute pathlines"));
-    pf.body->addWidget(label(QObject::tr("Streamlines of the converged velocity field, seeded along a straight rake."), "muted"));
+    pf.body->addWidget(label(QObject::tr("Streamlines of the solved velocity field, released along a line or from a boundary."), "muted"));
     const CaseSummary* cs = c.session->hasCase() ? &c.session->caseSummary() : nullptr;
     QVector3D from(-0.6f, -0.5f, 0.12f), to(-0.6f, 0.5f, 0.12f);
     if (cs && cs->bounds.valid && !std::any_of(cs->zones.begin(), cs->zones.end(), [](const Zone& z) { return z.name.contains("ground"); })) {
@@ -441,23 +495,50 @@ QWidget* pathlines(const InspectorContext& c)
         to = QVector3D(a.x(), b.y(), m.z());
     }
     auto* f = formLayout();
+    auto* release = new QComboBox;
+    release->setAccessibleName(QObject::tr("Release from"));
+    release->addItem(QObject::tr("Line (rake)"), QString());
+    if (cs)
+        for (const auto& z : cs->zones)
+            if (z.type.contains("inlet")) release->addItem(z.name, z.name);
     auto rakeFrom = vec3Edit(from, QObject::tr("Rake start"));
     auto rakeTo = vec3Edit(to, QObject::tr("Rake end"));
     auto* count = new QSpinBox;
-    count->setRange(1, 400);
+    count->setRange(1, 2000);
     count->setValue(40);
     count->setAccessibleName(QObject::tr("Number of pathlines"));
+    f->addRow(QObject::tr("Release from"), release);
     f->addRow(QObject::tr("Rake start (m)"), rakeFrom.widget);
     f->addRow(QObject::tr("Rake end (m)"), rakeTo.widget);
     f->addRow(QObject::tr("Pathlines"), count);
+    QObject::connect(release, &QComboBox::currentIndexChanged, release, [release, rakeFrom, rakeTo] {
+        const bool rake = release->currentData().toString().isEmpty();
+        rakeFrom.widget->setEnabled(rake);
+        rakeTo.widget->setEnabled(rake);
+    });
+    if (const QJsonObject last = lastOperation(c, QObject::tr("Pathlines")); !last.isEmpty()) {
+        const QJsonObject seeds = last.value("seeds").toObject();
+        count->setValue(seeds.value("count").toInt(count->value()));
+        if (seeds.value("type").toString() == "surface") selectData(release, seeds.value("zones").toArray().first());
+        if (auto a = vec(seeds.value("start"))) rakeFrom.set(*a);
+        if (auto b = vec(seeds.value("end"))) rakeTo.set(*b);
+    }
     pf.body->addLayout(f);
     finishPostPage(pf);
-    QObject::connect(pf.go, &QPushButton::clicked, pf.page, [c, pf, rakeFrom, rakeTo, count] {
-        auto a = rakeFrom.value(), b = rakeTo.value();
-        if (!a || !b) return reportError(pf.error, QObject::tr("Enter numbers for both rake points."));
-        QJsonObject item{{"id", newPostId("pathlines")}, {"kind", "streamlines"}, {"name", QObject::tr("Pathlines (%1)").arg(count->value())},
-                         {"seed", QJsonObject{{"from", QJsonArray{a->x(), a->y(), a->z()}}, {"to", QJsonArray{b->x(), b->y(), b->z()}}, {"count", count->value()}}}};
-        runPost(c, pf, item, [c](const QJsonObject&) {
+    QObject::connect(pf.go, &QPushButton::clicked, pf.page, [c, pf, release, rakeFrom, rakeTo, count] {
+        const QString zone = release->currentData().toString();
+        QJsonObject seeds;
+        if (zone.isEmpty()) {
+            auto a = rakeFrom.value(), b = rakeTo.value();
+            if (!a || !b) return reportError(pf.error, QObject::tr("Enter numbers for both rake points."));
+            seeds = {{"type", "rake"}, {"start", json(*a)}, {"end", json(*b)}, {"count", count->value()}};
+        } else {
+            seeds = {{"type", "surface"}, {"zones", QJsonArray{zone}}, {"count", count->value()}, {"distribution", "uniform"}, {"offset", 0}};
+        }
+        const QStringList fields = sampleable(c, {"velocity_magnitude", "pressure", "pressure_coefficient", "total_pressure_coefficient"}, true);
+        const QJsonObject op{{"name", QObject::tr("Pathlines")}, {"mode", "streamline"}, {"seeds", seeds}, {"direction", "forward"},
+                             {"fields", QJsonArray::fromStringList(fields)}};
+        runPost(c, pf, PostKind::Streamlines, op, [c](const PostOutput&) {
             editDisplay(c, [](ViewDisplay& d) { d.field = {"velocity_magnitude", FieldRole::Kutta, -1}; d.contours = true; });
         });
     });
@@ -470,20 +551,25 @@ QWidget* isoSurfaces(const InspectorContext& c)
     auto* f = formLayout();
     auto* field = new QComboBox;
     field->setAccessibleName(QObject::tr("Field"));
-    for (const char* q : {"total_pressure_coefficient", "velocity_magnitude", "pressure_coefficient", "pressure", "viscosity_ratio"})
-        field->addItem(fluentLabel(q), QString::fromLatin1(q));
+    for (const QString& q : sampleable(c, {"total_pressure_coefficient", "q_criterion", "velocity_magnitude", "velocity_x", "pressure_coefficient",
+                                           "pressure", "vorticity_magnitude", "viscosity_ratio"}, true))
+        field->addItem(fluentLabel(q), q);
     auto* value = numberEdit(0, QObject::tr("Iso-value"));
     f->addRow(QObject::tr("Field"), field);
     f->addRow(QObject::tr("Value"), value);
     pf.body->addLayout(f);
-    pf.body->addWidget(label(QObject::tr("Total pressure coefficient = 0 outlines the wake: where the flow has lost its free-stream total pressure."), "faint"));
+    pf.body->addWidget(label(QObject::tr("Total pressure coefficient = 0 outlines the wake: where the flow has lost its free-stream total pressure. "
+                                         "A positive Q criterion shows vortex cores."), "faint"));
     finishPostPage(pf);
     QObject::connect(pf.go, &QPushButton::clicked, pf.page, [c, pf, field, value] {
         auto val = numberOf(value);
         if (!val) return reportError(pf.error, QObject::tr("Enter a number."));
-        QJsonObject item{{"id", newPostId("iso")}, {"kind", "iso-surface"}, {"field", field->currentData().toString()}, {"value", *val},
-                         {"name", QStringLiteral("%1 = %2").arg(field->currentText(), formatNumber(*val))}};
-        runPost(c, pf, item, [](const QJsonObject&) {});
+        const QString q = field->currentData().toString();
+        QStringList extra = sampleable(c, {"velocity_magnitude", "pressure"}, true);
+        extra.removeAll(q);
+        const QJsonObject op{{"name", QStringLiteral("%1 = %2").arg(field->currentText(), formatNumber(*val))}, {"field", q}, {"value", *val},
+                             {"fields", QJsonArray::fromStringList(extra)}};
+        runPost(c, pf, PostKind::IsoSurface, op, [](const PostOutput&) {});
     });
     return pf.page;
 }
@@ -606,61 +692,53 @@ QWidget* xyPlot(const InspectorContext& c)
     auto a = vec3Edit(from, QObject::tr("Line start"));
     auto b = vec3Edit(to, QObject::tr("Line end"));
     auto* samples = new QSpinBox;
-    samples->setRange(10, 5000);
+    samples->setRange(2, 100000);
     samples->setValue(200);
     samples->setAccessibleName(QObject::tr("Samples"));
     auto* field = new QComboBox;
     field->setAccessibleName(QObject::tr("Field"));
-    for (const char* q : {"velocity_magnitude", "pressure", "pressure_coefficient", "total_pressure_coefficient", "k", "omega"})
-        field->addItem(fluentLabel(q), QString::fromLatin1(q));
+    for (const QString& q : sampleable(c, {"velocity_magnitude", "velocity_x", "pressure", "pressure_coefficient", "total_pressure_coefficient",
+                                           "vorticity_magnitude", "k", "omega"}, true))
+        field->addItem(fluentLabel(q), q);
+    if (const QJsonObject last = lastOperation(c, QObject::tr("XY line")); !last.isEmpty()) {
+        if (auto p = vec(last.value("start"))) a.set(*p);
+        if (auto p = vec(last.value("end"))) b.set(*p);
+        samples->setValue(last.value("count").toInt(samples->value()));
+        selectData(field, last.value("fields").toArray().first());
+    }
     f->addRow(QObject::tr("Start (m)"), a.widget);
     f->addRow(QObject::tr("End (m)"), b.widget);
     f->addRow(QObject::tr("Samples"), samples);
     f->addRow(QObject::tr("Field"), field);
     pf.body->addLayout(f);
+    pf.body->addWidget(label(QObject::tr("Fluent's values are plotted dashed when the case was opened with its data file."), "faint"));
     finishPostPage(pf);
     QObject::connect(pf.go, &QPushButton::clicked, pf.page, [c, pf, a, b, samples, field] {
         auto pa = a.value(), pb = b.value();
         if (!pa || !pb) return reportError(pf.error, QObject::tr("Enter numbers for both points."));
         const QString q = field->currentData().toString();
-        QJsonObject item{{"id", newPostId("line")}, {"kind", "line-probe"}, {"samples", samples->value()},
-                         {"from", QJsonArray{pa->x(), pa->y(), pa->z()}}, {"to", QJsonArray{pb->x(), pb->y(), pb->z()}},
-                         {"fields", QJsonArray{q}}};
+        QJsonArray fields{q};
+        if (hasFluentField(c, q)) fields.append(q + "@fluent");
+        const QJsonObject op{{"name", QObject::tr("XY line")}, {"type", "line"}, {"start", json(*pa)}, {"end", json(*pb)},
+                             {"count", samples->value()}, {"fields", fields}};
         const QString runId = currentRunId(c);
-        runPost(c, pf, item, [c, q, runId](const QJsonObject& m) {
-            std::vector<PlotSeries> series;
-            int k = 0;
-            QString unit;
-            for (const QJsonValue& sv : m.value("series").toArray()) {
-                const QJsonObject so = sv.toObject();
-                PlotSeries ps;
-                ps.name = displayLabel(FieldRef::parse(so.value("name").toString()));
-                unit = so.value("unit").toString();
-                for (const QJsonValue& x : so.value("x").toArray()) ps.x.push_back(x.toDouble());
-                for (const QJsonValue& y : so.value("y").toArray()) ps.y.push_back(y.isDouble() ? y.toDouble() : NAN);
-                ps.color = tokens().series[std::size_t(k++) % tokens().series.size()];
-                series.push_back(std::move(ps));
-            }
+        runPost(c, pf, PostKind::Probe, op, [c, q, runId](const PostOutput& out) {
             const RunRecord* r = c.session->history().find(runId);
-            QStringList badges;
-            if (m.value("synthetic").toBool()) badges << "SYNTHETIC";
-            const QString prov = m.value("provenance").toString();
-            if (prov.contains("APPROXIMATE")) badges << "APPROXIMATE";
-            if (prov.contains("MODIFIED")) badges << "MODIFIED";
-            c.charts->setXY(QObject::tr("%1 along line · %2").arg(fluentLabel(q), r ? r->title() : QString()),
-                            QObject::tr("Distance [m]"), unit.isEmpty() ? fluentLabel(q) : QStringLiteral("%1 [%2]").arg(fluentLabel(q), prettyUnit(unit)),
-                            std::move(series), badges, prov);
+            c.charts->plotProbe(out, QObject::tr("%1 along line · %2").arg(fluentLabel(q), r ? r->title() : QString()), -1);
         });
     });
 
-    // Section through surfaces: Cp along a wing chord, the elbow's wall pressure.
+    // Section through surfaces: Cp around a wing section, the elbow's wall pressure.
     pf.body->addSpacing(8);
     pf.body->addWidget(section(QObject::tr("Section through surfaces")));
     auto* sf = formLayout();
-    auto originEdit = vec3Edit(QVector3D(0, 0.3f, 0), QObject::tr("Section origin"));
-    auto normalEdit = vec3Edit(QVector3D(0, 1, 0), QObject::tr("Section normal"));
+    // Default: the plane the viewports slice by (the car's centre plane, the elbow's mid-depth).
+    const std::vector<Plane> planes = c.session->hasCase() ? c.session->defaultSlices() : std::vector<Plane>{};
+    auto originEdit = vec3Edit(planes.empty() ? QVector3D() : planes[0].origin, QObject::tr("Section origin"));
+    auto normalEdit = vec3Edit(planes.empty() ? QVector3D(0, 1, 0) : planes[0].normal, QObject::tr("Section normal"));
     auto* sfield = new QComboBox;
-    for (const char* q : {"pressure_coefficient", "pressure", "wall_shear_magnitude", "y_plus"}) sfield->addItem(fluentLabel(q), QString::fromLatin1(q));
+    for (const QString& q : sampleable(c, {"pressure_coefficient", "pressure", "skin_friction", "wall_shear_magnitude", "y_plus"}, false))
+        sfield->addItem(fluentLabel(q), q);
     sfield->setAccessibleName(QObject::tr("Section field"));
     auto* zones = new QListWidget;
     zones->setAccessibleName(QObject::tr("Section surfaces"));
@@ -672,10 +750,29 @@ QWidget* xyPlot(const InspectorContext& c)
                 it->setCheckState(Qt::Unchecked);
                 zones->addItem(it);
             }
-    if (zones->count()) zones->item(0)->setCheckState(Qt::Checked);
-    zones->setMaximumHeight(130);
+    const QJsonObject lastSection = lastOperation(c, QObject::tr("Section"));
+    const QJsonArray lastZones = lastSection.value("zones").toArray();
+    for (int i = 0; i < zones->count(); ++i)
+        if (lastZones.contains(zones->item(i)->text())) zones->item(i)->setCheckState(Qt::Checked);
+    if (lastZones.isEmpty() && c.session->hasCase()) {
+        // The largest wall: usually the body of interest.
+        const Zone* biggest = nullptr;
+        for (const auto& z : c.session->caseSummary().zones)
+            if (z.type == "wall" && !z.name.contains("ground") && (!biggest || z.faces > biggest->faces)) biggest = &z;
+        for (int i = 0; i < zones->count(); ++i)
+            zones->item(i)->setCheckState(biggest && zones->item(i)->text() == biggest->name ? Qt::Checked : Qt::Unchecked);
+    }
+    if (!lastSection.isEmpty()) {
+        if (auto p = vec(lastSection.value("origin"))) originEdit.set(*p);
+        if (auto p = vec(lastSection.value("normal"))) normalEdit.set(*p);
+        selectData(sfield, lastSection.value("fields").toArray().first());
+    }
+    zones->setMaximumHeight(std::min(130, 8 + zones->count() * 28));
     auto* xAxis = new QComboBox;
-    xAxis->addItems({"x", "y", "z"});
+    xAxis->addItem(QObject::tr("x"), 0);
+    xAxis->addItem(QObject::tr("y"), 1);
+    xAxis->addItem(QObject::tr("z"), 2);
+    xAxis->addItem(QObject::tr("Distance along curve"), -1);
     xAxis->setAccessibleName(QObject::tr("Horizontal axis"));
     sf->addRow(QObject::tr("Origin (m)"), originEdit.widget);
     sf->addRow(QObject::tr("Normal"), normalEdit.widget);
@@ -698,40 +795,16 @@ QWidget* xyPlot(const InspectorContext& c)
         if (zl.isEmpty()) return reportError(secErr, QObject::tr("Choose at least one surface."));
         reportError(secErr, {});
         const QString q = sfield->currentData().toString();
-        QJsonObject item{{"id", newPostId("section")}, {"kind", "section"}, {"field", q}, {"zones", zl}, {"x_axis", xAxis->currentIndex()},
-                         {"origin", QJsonArray{o->x(), o->y(), o->z()}}, {"normal", QJsonArray{n->x(), n->y(), n->z()}}};
+        QJsonArray fields{q};
+        if (hasFluentField(c, q)) fields.append(q + "@fluent");
+        const QJsonObject op{{"name", QObject::tr("Section")}, {"type", "section"}, {"zones", zl}, {"origin", json(*o)}, {"normal", json(*n)},
+                             {"fields", fields}};
         PostForm sp = pf;
         sp.go = secGo;
         sp.error = secErr;
-        runPost(c, sp, item, [c, q](const QJsonObject& m) {
-            std::vector<PlotSeries> series;
-            int k = 0;
-            QString unit;
-            for (const QJsonValue& sv : m.value("series").toArray()) {
-                const QJsonObject so = sv.toObject();
-                PlotSeries ps;
-                ps.name = so.value("name").toString();
-                unit = so.value("unit").toString();
-                for (const QJsonValue& x : so.value("x").toArray()) ps.x.push_back(x.toDouble());
-                for (const QJsonValue& y : so.value("y").toArray()) ps.y.push_back(y.isDouble() ? y.toDouble() : NAN);
-                // Section samples are unordered segment end points: plot as markers.
-                std::vector<std::size_t> idx(ps.x.size());
-                std::iota(idx.begin(), idx.end(), 0);
-                std::sort(idx.begin(), idx.end(), [&](std::size_t a, std::size_t b) { return ps.x[a] < ps.x[b]; });
-                PlotSeries sorted = ps;
-                for (std::size_t i = 0; i < idx.size(); ++i) { sorted.x[i] = ps.x[idx[i]]; sorted.y[i] = ps.y[idx[i]]; }
-                sorted.markers = true;
-                sorted.dashed = false;
-                sorted.color = tokens().series[std::size_t(k++) % tokens().series.size()];
-                series.push_back(std::move(sorted));
-            }
-            QStringList badges;
-            if (m.value("synthetic").toBool()) badges << "SYNTHETIC";
-            const QString prov = m.value("provenance").toString();
-            if (prov.contains("APPROXIMATE")) badges << "APPROXIMATE";
-            c.charts->setXY(QObject::tr("%1 on section").arg(fluentLabel(q)), m.value("x_label").toString() + " [m]",
-                            unit.isEmpty() || unit == "1" ? fluentLabel(q) : QStringLiteral("%1 [%2]").arg(fluentLabel(q), prettyUnit(unit)),
-                            std::move(series), badges, prov);
+        const int axis = xAxis->currentData().toInt();
+        runPost(c, sp, PostKind::Probe, op, [c, q, axis](const PostOutput& out) {
+            c.charts->plotProbe(out, QObject::tr("%1 on section").arg(fluentLabel(q)), axis);
         });
     });
     return pf.page;
@@ -872,21 +945,40 @@ QWidget* forces(const InspectorContext& c)
     return page;
 }
 
+namespace {
+
+// One surface-report value from a reports.json zone or total entry.
+std::optional<double> reportValue(const QJsonObject& z, const QString& report, const QString& field)
+{
+    auto num = [](const QJsonValue& v) { return v.isDouble() ? std::optional<double>(v.toDouble()) : std::nullopt; };
+    if (report == "area") return num(z.value("area"));
+    if (report == "mass_flow") return num(z.value("mass_flow"));
+    const QJsonObject a = z.value("averages").toObject().value(field).toObject();
+    return num(a.value(report));
+}
+
+} // namespace
+
 QWidget* integrals(const InspectorContext& c)
 {
     PostForm pf = postPage(c, QObject::tr("Surface Integrals"), QObject::tr("Results ▸ Reports"), QObject::tr("Compute"));
     auto* f = formLayout();
     auto* report = new QComboBox;
-    report->addItem(QObject::tr("Area-weighted average"), "area-weighted-average");
-    report->addItem(QObject::tr("Integral"), "integral");
+    report->addItem(QObject::tr("Area-weighted average"), "area_weighted_average");
+    report->addItem(QObject::tr("Mass-weighted average"), "mass_flow_weighted_average");
+    report->addItem(QObject::tr("Integral"), "area_integral");
     report->addItem(QObject::tr("Area"), "area");
-    report->addItem(QObject::tr("Minimum"), "minimum");
-    report->addItem(QObject::tr("Maximum"), "maximum");
+    report->addItem(QObject::tr("Mass flow rate"), "mass_flow");
     report->setAccessibleName(QObject::tr("Report type"));
     auto* field = new QComboBox;
     field->setAccessibleName(QObject::tr("Field"));
-    for (const char* q : {"pressure", "pressure_coefficient", "velocity_magnitude", "wall_shear_magnitude", "y_plus"})
-        field->addItem(fluentLabel(q), QString::fromLatin1(q));
+    for (const QString& q : sampleable(c, {"pressure", "total_pressure", "pressure_coefficient", "total_pressure_coefficient", "velocity_magnitude",
+                                           "wall_shear_magnitude", "skin_friction", "y_plus"}, false))
+        field->addItem(fluentLabel(q), q);
+    QObject::connect(report, &QComboBox::currentIndexChanged, field, [report, field] {
+        const QString r = report->currentData().toString();
+        field->setEnabled(r != "area" && r != "mass_flow");
+    });
     auto* withFluent = new QCheckBox(QObject::tr("Also compute on Fluent's field (needs a data file)"));
     withFluent->setEnabled(c.session->hasCase() && !c.session->dataPath().isEmpty());
     auto* zones = new QListWidget;
@@ -900,7 +992,7 @@ QWidget* integrals(const InspectorContext& c)
             it->setCheckState(z.type.contains("inlet") || z.type.contains("outlet") ? Qt::Checked : Qt::Unchecked);
             zones->addItem(it);
         }
-    zones->setMinimumHeight(std::min(220, 10 + zones->count() * 24));
+    zones->setFixedHeight(std::min(220, 6 + zones->count() * 28));
     f->addRow(QObject::tr("Report"), report);
     f->addRow(QObject::tr("Field"), field);
     f->addRow(QObject::tr("Surfaces"), zones);
@@ -923,45 +1015,54 @@ QWidget* integrals(const InspectorContext& c)
             if (zones->item(i)->checkState() == Qt::Checked) zl.append(zones->item(i)->data(Qt::UserRole).toString());
         if (zl.isEmpty()) return reportError(pf.error, QObject::tr("Choose at least one surface."));
         const QString q = field->currentData().toString();
-        auto showRows = [table, note](const QJsonObject& m, int col) {
-            const QJsonArray rows = m.value("rows").toArray();
-            table->show();
-            if (table->rowCount() < rows.size() + 1) table->setRowCount(int(rows.size()) + 1);
-            const QString unit = prettyUnit(m.value("unit").toString());
-            auto num = [](const QJsonValue& x) {
-                auto* it = new QTableWidgetItem(x.isDouble() ? formatNumber(x.toDouble(), 6) : QStringLiteral("—"));
+        const QString kind = report->currentData().toString();
+        const bool fluent = withFluent->isChecked() && field->isEnabled();
+        QJsonArray fields{q};
+        if (fluent) fields.append(q + "@fluent");
+        const QJsonObject op{{"name", QObject::tr("Surface integrals")}, {"zones", zl}, {"fields", fields}};
+        runPost(c, pf, PostKind::Integral, op, [table, note, q, kind, fluent](const PostOutput& out) {
+            const QJsonObject rep = out.report;
+            const QJsonArray rows = rep.value("zones").toArray();
+            const QJsonObject units = rep.value("units").toObject();
+            QString unit = kind == "area" ? units.value("area").toString() : kind == "mass_flow" ? units.value("mass_flow").toString()
+                                                                                                 : rep.value("total").toObject().value("averages").toObject().value(q).toObject().value("unit").toString();
+            if (kind == "area_integral") unit = unit == "1" ? QStringLiteral("m^2") : unit + " m^2";
+            unit = prettyUnit(unit);
+            auto cell = [](std::optional<double> v) {
+                auto* it = new QTableWidgetItem(v ? formatNumber(*v, 6) : QStringLiteral("—"));
                 it->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
                 return it;
             };
+            table->setRowCount(int(rows.size()) + 1);
+            table->setColumnHidden(2, !fluent);
             for (int i = 0; i < rows.size(); ++i) {
-                const QJsonObject r = rows[i].toObject();
-                table->setItem(i, 0, new QTableWidgetItem(r.value("zone").toString()));
-                table->setItem(i, col, num(r.value("value")));
+                const QJsonObject z = rows[i].toObject();
+                table->setItem(i, 0, new QTableWidgetItem(z.value("zone").toString()));
+                table->setItem(i, 1, cell(reportValue(z, kind, q)));
+                table->setItem(i, 2, cell(reportValue(z, kind, q + "@fluent")));
             }
+            const QJsonObject total = rep.value("total").toObject();
             auto* tot = new QTableWidgetItem(QObject::tr("Net"));
             QFont bf = tot->font();
             bf.setBold(true);
             tot->setFont(bf);
             table->setItem(int(rows.size()), 0, tot);
-            table->setItem(int(rows.size()), col, num(m.value("total")));
+            table->setItem(int(rows.size()), 1, cell(reportValue(total, kind, q)));
+            table->setItem(int(rows.size()), 2, cell(reportValue(total, kind, q + "@fluent")));
             table->setHorizontalHeaderItem(1, new QTableWidgetItem(unit.isEmpty() ? QObject::tr("Kutta") : QObject::tr("Kutta [%1]").arg(unit)));
+            table->setHorizontalHeaderItem(2, new QTableWidgetItem(unit.isEmpty() ? QObject::tr("Fluent") : QObject::tr("Fluent [%1]").arg(unit)));
             table->resizeColumnsToContents();
             table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
             table->setMinimumHeight(34 + table->rowCount() * 26);
-            const QString prov = m.value("provenance").toString();
-            note->setText(QObject::tr("Integrated over the exported surface triangles by kutta post.") + (prov.isEmpty() ? QString() : "\n" + prov));
-        };
-        table->setRowCount(0);
-        table->setColumnHidden(2, !withFluent->isChecked());
-        QJsonObject item{{"id", newPostId("integral")}, {"kind", "surface-integral"}, {"field", q}, {"report", report->currentData().toString()}, {"zones", zl}};
-        const bool fluent = withFluent->isChecked();
-        runPost(c, pf, item, [c, pf, showRows, item, q, fluent](const QJsonObject& m) {
-            showRows(m, 1);
-            if (!fluent) return;
-            QJsonObject ref = item;
-            ref["id"] = newPostId("integral");
-            ref["field"] = q + "@fluent";
-            runPost(c, pf, ref, [showRows](const QJsonObject& m2) { showRows(m2, 2); });
+            table->show();
+            QString text = QObject::tr("Discrete face integrals of the saved solution, computed by kutta export-view.");
+            if (kind == "mass_flow") text += " " + QObject::tr("Mass flow is positive out of the domain.");
+            QStringList marks;
+            if (out.provenance.contains("APPROXIMATE")) marks << "APPROXIMATE";
+            if (out.provenance.contains("MODIFIED")) marks << "MODIFIED";
+            if (!marks.isEmpty()) text += " " + QObject::tr("These values are %1; the console and this note's tooltip give the details.").arg(marks.join(" and "));
+            note->setText(text);
+            note->setToolTip(out.provenance);
         });
     });
     return pf.page;
@@ -1244,7 +1345,7 @@ QWidget* compare(const InspectorContext& c)
             }
             t->resizeColumnsToContents();
             t->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-            t->setMinimumHeight(34 + t->rowCount() * 26);
+            fitRows(t, 8);
             cv->addWidget(t);
         }
 
@@ -1282,7 +1383,7 @@ QWidget* compare(const InspectorContext& c)
             }
             t->resizeColumnsToContents();
             t->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-            t->setMinimumHeight(std::min(360, 34 + t->rowCount() * 26));
+            fitRows(t, 12);
             cv->addWidget(t);
         }
 
@@ -1290,13 +1391,15 @@ QWidget* compare(const InspectorContext& c)
         auto* row = new QHBoxLayout;
         auto* diff = button(QObject::tr("Show A − B"), "blend", "primary");
         auto* side = button(QObject::tr("Side by side"), "columns-2");
-        auto* res = button(QObject::tr("Overlay residuals"), "chart-line");
+        auto* res = button(QObject::tr("Residuals"), "chart-line");
+        res->setToolTip(QObject::tr("Overlay both runs' residuals"));
         row->addWidget(diff);
         row->addWidget(side);
         row->addWidget(res);
         row->addStretch(1);
         cv->addLayout(row);
         cv->addWidget(label(QObject::tr("A − B is computed on surfaces with identical geometry; others are listed in the console and left out. Differences use a diverging map: white means agreement."), "faint"));
+        cv->addStretch(1);
         const QString ia = ra->id, ib = rb->id;
         const QString titleA = ra->title(), titleB = rb->title();
         QObject::connect(diff, &QPushButton::clicked, diff, [c, ia, ib, titleA, titleB] {
@@ -1328,54 +1431,122 @@ QWidget* compare(const InspectorContext& c)
 
 namespace {
 
-class SettingsTableModel : public QAbstractTableModel {
+// Leaf rows carry the setting path; group rows carry none.
+constexpr int kPathRole = Qt::UserRole;
+constexpr int kSearchRole = Qt::UserRole + 1;
+constexpr int kRetainedRole = Qt::UserRole + 2;  // the raw-settings folder
+
+// Settings grouped as Fluent's outline: group, then zone or material, then
+// Kutta's controls before the retained raw Fluent settings, which sit in their
+// own collapsed folder so 7,000 rp entries never bury the 26 that matter.
+class SettingsTree : public QStandardItemModel {
 public:
-    explicit SettingsTableModel(SettingsModel* m, QObject* parent) : QAbstractTableModel(parent), m_model(m)
+    SettingsTree(SettingsModel* m, QObject* parent) : QStandardItemModel(parent), m_model(m)
     {
-        QObject::connect(m, &SettingsModel::valueChanged, this, [this](const QString& path) {
-            const auto& all = m_model->settings();
-            for (int i = 0; i < int(all.size()); ++i)
-                if (all[std::size_t(i)].path == path) emit dataChanged(index(i, 0), index(i, 3));
-        });
-    }
-    int rowCount(const QModelIndex& p = {}) const override { return p.isValid() ? 0 : int(m_model->settings().size()); }
-    int columnCount(const QModelIndex& = {}) const override { return 4; }
-    QVariant headerData(int s, Qt::Orientation o, int role) const override
-    {
-        if (o != Qt::Horizontal || role != Qt::DisplayRole) return {};
-        static const char* h[] = {"Setting", "Value", "Unit", "Status"};
-        return QObject::tr(h[s]);
-    }
-    QVariant data(const QModelIndex& idx, int role) const override
-    {
-        const Setting& s = m_model->settings()[std::size_t(idx.row())];
-        const bool mod = m_model->isModified(s.path);
-        if (role == Qt::DisplayRole) {
-            switch (idx.column()) {
-            case 0: return s.path;
-            case 1: {
-                QString t = displayValue(s, m_model->value(s.path));
-                const DisplayUnit du = displayUnit(s);
-                if (!du.unit.isEmpty() && t.endsWith(" " + du.unit)) t.chop(du.unit.size() + 1);
-                return t.left(160);
+        setHorizontalHeaderLabels({QObject::tr("Setting"), QObject::tr("Value"), QObject::tr("Unit")});
+        static const QStringList order{"General", "Models", "Materials", "Cell Zone Conditions", "Boundary Conditions", "Reference Values",
+                                       "Methods", "Controls", "Report Definitions", "Monitors", "Initialization", "Run Calculation"};
+        std::map<int, std::vector<const Setting*>> byGroup;
+        QStringList extra;
+        for (const auto& st : m->settings()) {
+            qsizetype g = order.indexOf(st.group);
+            if (g < 0) {
+                if (!extra.contains(st.group)) extra << st.group;
+                g = order.size() + extra.indexOf(st.group);
             }
-            case 2: return displayUnit(s).unit;
-            case 3: return mod ? QObject::tr("Modified") : s.editable ? QObject::tr("Editable") : s.reason;
+            byGroup[int(g)].push_back(&st);
+        }
+        for (const auto& [g, list] : byGroup) {
+            const QString name = g < order.size() ? order[g] : extra[g - order.size()];
+            int editable = 0;
+            for (const Setting* st : list) editable += st->editable;
+            QStandardItem* group = folder(QStringLiteral("%1   %2").arg(name, counts(int(list.size()), editable)));
+            QHash<QString, QStandardItem*> owners;
+            QStandardItem* raw = nullptr;
+            int rawCount = 0;
+            for (const Setting* st : list) rawCount += st->raw;
+            for (const Setting* st : list) {
+                QStandardItem* parent = group;
+                if (st->raw) {
+                    if (!raw) {
+                        raw = folder(QObject::tr("Retained Fluent settings   %1").arg(QLocale().toString(rawCount)));
+                        raw->setData(true, kRetainedRole);
+                    }
+                    parent = raw;
+                } else if (!st->owner.isEmpty()) {
+                    QStandardItem*& o = owners[st->owner];
+                    if (!o) group->appendRow({o = folder(st->owner), blank(), blank()});
+                    parent = o;
+                }
+                parent->appendRow(row(*st));
             }
+            if (raw) group->appendRow({raw, blank(), blank()});
+            appendRow({group, blank(), blank()});
         }
-        if (role == Qt::ToolTipRole) return QStringLiteral("%1\n%2").arg(s.path, s.editable ? QObject::tr("Editable") : s.reason);
-        if (role == Qt::ForegroundRole) {
-            const auto& t = tokens();
-            if (idx.column() == 3) return mod ? (t.dark ? t.amber : t.amberText) : s.editable ? t.text : t.faint;
-            if (idx.column() == 0 && !s.editable) return t.muted;
-        }
-        if (role == Qt::UserRole) return s.path;
-        if (role == Qt::UserRole + 1) return QStringLiteral("%1 %2 %3").arg(s.path, s.label, s.group);
-        return {};
+        QObject::connect(m, &SettingsModel::valueChanged, this, [this](const QString& path) { refresh(path); });
     }
 
+    const Setting* setting(const QModelIndex& i) const { return m_model->find(i.siblingAtColumn(0).data(kPathRole).toString()); }
+
 private:
+    static QString counts(int n, int editable)
+    {
+        return editable ? QObject::tr("%1 · %2 editable").arg(QLocale().toString(n)).arg(editable) : QLocale().toString(n);
+    }
+    static QStandardItem* blank()
+    {
+        auto* it = new QStandardItem;
+        it->setEditable(false);
+        return it;
+    }
+    static QStandardItem* folder(const QString& text)
+    {
+        auto* it = new QStandardItem(text);
+        it->setEditable(false);
+        QFont f = it->font();
+        f.setWeight(QFont::DemiBold);
+        it->setFont(f);
+        return it;
+    }
+    QList<QStandardItem*> row(const Setting& st)
+    {
+        auto* name = new QStandardItem(settingLabel(st));
+        name->setData(st.path, kPathRole);
+        name->setData(QStringLiteral("%1 %2 %3 %4").arg(st.path, st.label, settingLabel(st), st.owner), kSearchRole);
+        name->setEditable(false);
+        auto* value = blank();
+        auto* unit = new QStandardItem(displayUnit(st).unit);
+        unit->setEditable(false);
+        m_rows.insert(st.path, {name, value});
+        QList<QStandardItem*> r{name, value, unit};
+        paint(st, r);
+        return r;
+    }
+    void paint(const Setting& st, const QList<QStandardItem*>& r)
+    {
+        const auto& t = tokens();
+        const bool mod = m_model->isModified(st.path);
+        QString v = displayValue(st, m_model->value(st.path));
+        const DisplayUnit du = displayUnit(st);
+        if (!du.unit.isEmpty() && v.endsWith(" " + du.unit)) v.chop(du.unit.size() + 1);
+        r[1]->setText(v.left(160));
+        const QColor fg = mod ? (t.dark ? t.amber : t.amberText) : st.editable ? t.text : t.muted;
+        for (auto* it : r) it->setForeground(fg);
+        const QString tip = QStringLiteral("%1\n%2").arg(st.path, mod ? QObject::tr("Modified") : st.editable ? QObject::tr("Editable") : st.reason);
+        for (auto* it : r) it->setToolTip(tip);
+    }
+    void refresh(const QString& path)
+    {
+        auto it = m_rows.find(path);
+        const Setting* st = m_model->find(path);
+        if (it == m_rows.end() || !st) return;
+        QStandardItem* name = it->first;
+        QStandardItem* parent = name->parent() ? name->parent() : invisibleRootItem();
+        paint(*st, {name, it->second, parent->child(name->row(), 2)});
+    }
+
     SettingsModel* m_model;
+    QHash<QString, std::pair<QStandardItem*, QStandardItem*>> m_rows;
 };
 
 class SettingsFilter : public QSortFilterProxyModel {
@@ -1385,15 +1556,20 @@ public:
     bool editableOnly = false, modifiedOnly = false;
     SettingsModel* model = nullptr;
     void apply() { beginFilterChange(); endFilterChange(); }
+    bool filtering() const { return !text.isEmpty() || editableOnly || modifiedOnly; }
 
 protected:
-    bool filterAcceptsRow(int row, const QModelIndex&) const override
+    // Recursive filtering keeps the folders of every matching setting.
+    bool filterAcceptsRow(int row, const QModelIndex& parent) const override
     {
-        const Setting& s = model->settings()[std::size_t(row)];
-        if (editableOnly && !s.editable) return false;
-        if (modifiedOnly && !model->isModified(s.path)) return false;
-        if (text.isEmpty()) return true;
-        const QString hay = sourceModel()->index(row, 0).data(Qt::UserRole + 1).toString();
+        const QModelIndex idx = sourceModel()->index(row, 0, parent);
+        const QString path = idx.data(kPathRole).toString();
+        if (path.isEmpty()) return !filtering();
+        const Setting* s = model->find(path);
+        if (!s) return false;
+        if (editableOnly && !s->editable) return false;
+        if (modifiedOnly && !model->isModified(s->path)) return false;
+        const QString hay = idx.data(kSearchRole).toString();
         for (const QString& w : text.split(' ', Qt::SkipEmptyParts))
             if (!hay.contains(w, Qt::CaseInsensitive)) return false;
         return true;
@@ -1427,49 +1603,132 @@ QWidget* allSettings(const InspectorContext& c, const QString& filter)
     const int total = int(sm->settings().size());
     int editable = 0;
     for (const auto& s : sm->settings()) editable += s.editable;
-    cv->addWidget(label(QObject::tr("Every setting the case contains: %1 in total, %2 editable in Kutta. Read-only settings show why; Kutta reads them to decide whether it can reproduce the case.")
+    cv->addWidget(label(QObject::tr("Every setting saved in the case: %1, of which %2 are editable in Kutta. Kutta reads the rest to decide whether it can reproduce the case; select one to see why it is read-only.")
                             .arg(QLocale().toString(total), QLocale().toString(editable)), "muted"));
     auto* search = new QLineEdit(filter);
-    search->setPlaceholderText(QObject::tr("Filter by path or name, e.g. inlet turb"));
+    search->setPlaceholderText(QObject::tr("Search names and paths, e.g. inlet turb"));
     search->setClearButtonEnabled(true);
-    search->setAccessibleName(QObject::tr("Filter settings"));
+    search->setAccessibleName(QObject::tr("Search settings"));
     cv->addWidget(search);
     auto* opts = new QHBoxLayout;
     auto* ed = new QCheckBox(QObject::tr("Editable only"));
-    auto* mo = new QCheckBox(QObject::tr("Modified only"));
+    auto* mo = new QCheckBox(QObject::tr("Changed only"));
     auto* countLabel = label({}, "faint");
+    countLabel->setWordWrap(false);
     opts->addWidget(ed);
     opts->addWidget(mo);
     opts->addStretch(1);
     opts->addWidget(countLabel);
     cv->addLayout(opts);
-    auto* view = new QTableView;
-    auto* model = new SettingsTableModel(sm, view);
+    auto* view = new QTreeView;
+    auto* model = new SettingsTree(sm, view);
     auto* proxy = new SettingsFilter(view);
     proxy->model = sm;
+    proxy->setRecursiveFilteringEnabled(true);
     proxy->setSourceModel(model);
     proxy->text = filter;
     view->setModel(proxy);
-    view->verticalHeader()->hide();
-    view->verticalHeader()->setDefaultSectionSize(24);
+    view->setUniformRowHeights(true);  // keeps scrolling through 10,000 rows cheap
+    view->setIndentation(14);
     view->setSelectionBehavior(QAbstractItemView::SelectRows);
-    view->setShowGrid(false);
     view->setWordWrap(false);
     view->setAccessibleName(QObject::tr("Case settings"));
-    view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Interactive);
-    view->setColumnWidth(1, 150);
-    view->setColumnWidth(2, 60);
-    view->setColumnWidth(3, 170);
-    view->setMinimumHeight(420);
-    view->setTextElideMode(Qt::ElideMiddle);
+    view->header()->setStretchLastSection(false);
+    view->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    view->header()->setSectionResizeMode(1, QHeaderView::Interactive);
+    view->header()->setSectionResizeMode(2, QHeaderView::Fixed);
+    view->setColumnWidth(1, 96);
+    view->setColumnWidth(2, 50);
+    view->setMinimumHeight(380);
+    view->setTextElideMode(Qt::ElideRight);
     cv->addWidget(view, 1);
-    auto refresh = [proxy, search, ed, mo, countLabel] {
+
+    // Details of the selected setting: its identity, value and why it is (not) editable.
+    auto* detail = new QFrame;
+    detail->setProperty("callout", "neutral");
+    auto* dv = new QVBoxLayout(detail);
+    dv->setContentsMargins(10, 8, 10, 10);
+    dv->setSpacing(3);
+    auto* dTitle = label({});
+    QFont tf = dTitle->font();
+    tf.setWeight(QFont::DemiBold);
+    dTitle->setFont(tf);
+    auto* dPath = label({}, "faint");
+    dPath->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    auto* dValue = label({});
+    auto* dWhy = label({}, "muted");
+    auto* dGo = button(QObject::tr("Edit on its page"), "chevron-right");
+    dv->addWidget(dTitle);
+    dv->addWidget(dPath);
+    dv->addWidget(dValue);
+    dv->addWidget(dWhy);
+    dv->addWidget(dGo, 0, Qt::AlignLeft);
+    detail->hide();
+    cv->addWidget(detail);
+    auto showDetail = [=](const QModelIndex& idx) {
+        const Setting* s = model->setting(proxy->mapToSource(idx));
+        detail->setVisible(s != nullptr);
+        if (!s) return;
+        dTitle->setText(settingLabel(*s));
+        dPath->setText(s->path);
+        dValue->setText(QObject::tr("Value: %1").arg(displayValue(*s, sm->value(s->path))));
+        dWhy->setText(sm->isModified(s->path) ? QObject::tr("Changed from the case value %1.").arg(displayValue(*s, s->value))
+                      : s->editable           ? QObject::tr("Editable in Kutta.")
+                                              : QObject::tr("Read-only: %1").arg(s->reason));
+        dGo->setVisible(s->editable);
+        dGo->setProperty("target", pageFor(*s));
+    };
+    QObject::connect(dGo, &QPushButton::clicked, page, [c, dGo] { c.navigate(dGo->property("target").toString()); });
+    QObject::connect(view->selectionModel(), &QItemSelectionModel::currentRowChanged, page, [showDetail](const QModelIndex& i) { showDetail(i); });
+
+    auto refresh = [proxy, view, search, ed, mo, countLabel] {
         proxy->text = search->text().trimmed();
         proxy->editableOnly = ed->isChecked();
         proxy->modifiedOnly = mo->isChecked();
         proxy->apply();
-        countLabel->setText(QObject::tr("%1 shown").arg(QLocale().toString(proxy->rowCount())));
+        int shown = 0;
+        std::function<void(const QModelIndex&)> countLeaves = [&](const QModelIndex& parent) {
+            for (int r = 0; r < proxy->rowCount(parent); ++r) {
+                const QModelIndex i = proxy->index(r, 0, parent);
+                if (i.data(kPathRole).toString().isEmpty()) countLeaves(i);
+                else ++shown;
+            }
+        };
+        countLeaves({});
+        countLabel->setText(proxy->filtering() ? QObject::tr("%1 match").arg(QLocale().toString(shown)) : QString());
+        // Folder rows span the columns so their names and counts stay readable.
+        std::function<void(const QModelIndex&)> span = [&](const QModelIndex& parent) {
+            for (int r = 0; r < proxy->rowCount(parent); ++r) {
+                const QModelIndex i = proxy->index(r, 0, parent);
+                if (!i.data(kPathRole).toString().isEmpty()) continue;
+                view->setFirstColumnSpanned(r, parent, true);
+                span(i);
+            }
+        };
+        span({});
+        // Open the folders of a focused result, except retained Fluent settings
+        // when Kutta's own controls also match.
+        if (!proxy->filtering() || shown > 400) return view->collapseAll();
+        view->expandAll();
+        if (shown == 0) return;
+        std::function<int(const QModelIndex&)> controls = [&](const QModelIndex& parent) {
+            int n = 0;
+            for (int r = 0; r < proxy->rowCount(parent); ++r) {
+                const QModelIndex i = proxy->index(r, 0, parent);
+                if (i.data(kRetainedRole).toBool()) continue;
+                n += i.data(kPathRole).toString().isEmpty() ? controls(i) : 1;
+            }
+            return n;
+        };
+        if (controls({}) == 0) return;
+        std::function<void(const QModelIndex&)> fold = [&](const QModelIndex& parent) {
+            for (int r = 0; r < proxy->rowCount(parent); ++r) {
+                const QModelIndex i = proxy->index(r, 0, parent);
+                if (i.data(kRetainedRole).toBool()) view->collapse(i);
+                else if (i.data(kPathRole).toString().isEmpty()) fold(i);
+            }
+        };
+        fold({});
     };
     auto* debounce = new QTimer(page);
     debounce->setSingleShot(true);
@@ -1478,9 +1737,8 @@ QWidget* allSettings(const InspectorContext& c, const QString& filter)
     QObject::connect(search, &QLineEdit::textChanged, debounce, qOverload<>(&QTimer::start));
     QObject::connect(ed, &QCheckBox::toggled, page, refresh);
     QObject::connect(mo, &QCheckBox::toggled, page, refresh);
-    QObject::connect(view, &QTableView::activated, page, [c, proxy, sm](const QModelIndex& idx) {
-        const QString path = proxy->data(proxy->index(idx.row(), 0), Qt::UserRole).toString();
-        if (const Setting* s = sm->find(path); s && s->editable) c.navigate(pageFor(*s));
+    QObject::connect(view, &QTreeView::activated, page, [c, model, proxy](const QModelIndex& idx) {
+        if (const Setting* s = model->setting(proxy->mapToSource(idx)); s && s->editable) c.navigate(pageFor(*s));
     });
     refresh();
     return page;

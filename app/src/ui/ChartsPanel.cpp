@@ -3,6 +3,9 @@
 #include "ui/Theme.h"
 
 #include <QComboBox>
+#include <QJsonArray>
+
+#include <cmath>
 #include <QHBoxLayout>
 #include <QTabWidget>
 #include <QVBoxLayout>
@@ -138,7 +141,7 @@ void ChartsPanel::rebuild()
     QStringList provenance;
     QStringList hidden;
     for (const auto& s : m_residuals->series())
-        if (!s.visible) hidden << s.name;
+        if (!s.visible) hidden << s.legendKey();
     for (std::size_t k = 0; k < src.size(); ++k) {
         const auto& s = src[k];
         for (const QString& b : s.badges)
@@ -151,11 +154,12 @@ void ChartsPanel::rebuild()
             const int n = int(r.names.indexOf(order[i]));
             PlotSeries ps;
             ps.name = (multi ? s.title + " · " : QString()) + residualLabel(order[i]);
+            ps.legend = residualLabel(order[i]);  // runs differ by dash; one chip per equation
             ps.x = xs;
             ps.y = r.values[std::size_t(n)];
             ps.color = t.series[std::size_t(i) % t.series.size()];
             ps.dashed = k > 0;
-            ps.visible = !hidden.contains(ps.name);
+            ps.visible = !hidden.contains(ps.legendKey());
             res.push_back(std::move(ps));
         }
         const bool coeff = m_reportQuantity->currentData().toString() == "coefficient";
@@ -170,7 +174,12 @@ void ChartsPanel::rebuild()
             rep.push_back(std::move(ps));
         }
     }
-    QString title = src.empty() ? QString() : src.size() == 1 ? src.front().title : tr("%1 runs").arg(src.size());
+    QString title = src.empty() ? QString() : src.front().title;
+    if (multi) {
+        QStringList dashed;
+        for (std::size_t k = 1; k < src.size(); ++k) dashed << src[k].title;
+        title = tr("%1 solid, %2 dashed").arg(src.front().title, dashed.join(", "));
+    }
     m_residuals->setTitle(title.isEmpty() ? tr("Scaled Residuals") : tr("Scaled Residuals · %1").arg(title));
     m_reports->setTitle(title.isEmpty() ? tr("Report Plots") : tr("Report Plots · %1").arg(title));
     m_residuals->setBadges(badges);
@@ -192,6 +201,63 @@ void ChartsPanel::setXY(const QString& title, const QString& xLabel, const QStri
     m_xy->setSeries(std::move(series));
     m_xy->resetView();
     showTab(Tab::XY);
+}
+
+} // namespace kapp
+
+namespace kapp {
+
+void ChartsPanel::plotProbe(const PostOutput& probe, const QString& title, int xAxis)
+{
+    const auto* item = probe.scene ? probe.scene->item("post:" + probe.name) : nullptr;
+    if (!item || !item->mesh) return;
+    const MeshData& m = item->mesh->data();
+    const MeshData::Field* arc = m.field("arc_length");
+    const MeshData::Field* valid = m.field("valid");
+    const QJsonArray lines = probe.part.meta.value("lines").toArray();
+    QStringList quantities;
+    QString unit;
+    std::vector<PlotSeries> series;
+    int colour = -1;
+    for (const auto& f : m.fields) {
+        if (f.desc.name == "arc_length" || f.desc.name == "valid") continue;
+        const FieldRef ref = FieldRef::parse(f.desc.name);
+        // Kutta and Fluent values of one quantity share a colour.
+        const qsizetype q = quantities.indexOf(ref.quantity);
+        if (q < 0) {
+            quantities << ref.quantity;
+            unit = f.desc.unit;
+            ++colour;
+        }
+        const int c = f.desc.components;
+        for (std::size_t j = 0; j + 1 < m.indices.size(); ++j) {
+            PlotSeries ps;
+            ps.name = displayLabel(ref);
+            const QString zone = lines.at(qsizetype(j)).toObject().value("zone").toString();
+            if (m.indices.size() > 2) ps.name += zone.isEmpty() ? QStringLiteral(" · curve %1").arg(j + 1) : QStringLiteral(" · %1 (%2)").arg(zone).arg(j + 1);
+            ps.color = tokens().series[std::size_t(q < 0 ? colour : q) % tokens().series.size()];
+            ps.dashed = ref.role == FieldRole::Fluent;
+            for (std::uint32_t v = m.indices[j]; v < m.indices[j + 1]; ++v) {
+                ps.x.push_back(xAxis >= 0 ? m.positions[3 * v + std::size_t(xAxis)] : arc ? arc->values[v] : double(v));
+                double y = f.values[std::size_t(c) * v];
+                if (c == 3) y = std::hypot(y, double(f.values[3 * v + 1]), double(f.values[3 * v + 2]));
+                if (valid && valid->values[v] == 0) y = NAN;
+                ps.y.push_back(y);
+            }
+            series.push_back(std::move(ps));
+        }
+    }
+    QStringList badges;
+    if (probe.synthetic) badges << "SYNTHETIC";
+    if (probe.provenance.contains("APPROXIMATE")) badges << "APPROXIMATE";
+    if (probe.provenance.contains("MODIFIED")) badges << "MODIFIED";
+    const QString xLabel = xAxis >= 0 ? QStringLiteral("%1 [m]").arg(QChar('x' + xAxis)) : tr("Distance along curve [m]");
+    QString yLabel = tr("Value");
+    if (quantities.size() == 1) {
+        const QString u = prettyUnit(unit);
+        yLabel = u.isEmpty() ? fluentLabel(quantities[0]) : QStringLiteral("%1 [%2]").arg(fluentLabel(quantities[0]), u);
+    }
+    setXY(title, xLabel, yLabel, std::move(series), badges, probe.provenance);
 }
 
 } // namespace kapp

@@ -220,17 +220,21 @@ QWidget* noCase(const InspectorContext& c, const QString& title)
     if (!c.samples.isEmpty()) {
         v->addSpacing(6);
         v->addWidget(section(QObject::tr("Samples")));
+        auto* grid = new QGridLayout;
+        grid->setHorizontalSpacing(10);
+        grid->setVerticalSpacing(4);
+        grid->setColumnStretch(1, 1);
+        int row = 0;
         for (const QString& p : c.samples) {
             const bool synthetic = QFileInfo(p).fileName().startsWith("fsae_car");
-            auto* row = new QHBoxLayout;
             auto* b = button(QFileInfo(p).fileName(), synthetic ? "wind" : "waves");
             b->setProperty("flat", true);
             QObject::connect(b, &QPushButton::clicked, b, [c, p] { c.openPath(p); });
-            row->addWidget(b);
-            row->addWidget(label(synthetic ? QObject::tr("Synthetic FSAE car for trying the workbench. Not a CFD result.")
-                                           : QObject::tr("Ansys mixing elbow. Replays a recorded Kutta run."), "faint"), 1);
-            v->addLayout(row);
+            grid->addWidget(b, row, 0, Qt::AlignLeft | Qt::AlignTop);
+            grid->addWidget(label(synthetic ? QObject::tr("Synthetic FSAE car for trying the workbench. Not a CFD result.")
+                                            : QObject::tr("Ansys mixing elbow. Replays a recorded Kutta run."), "faint"), row++, 1);
         }
+        v->addLayout(grid);
     }
     const QStringList recent = c.session->recentCases();
     if (!recent.isEmpty()) {
@@ -270,8 +274,9 @@ QWidget* general(const InspectorContext& c)
     QString statusText = cs.status == SupportStatus::Supported ? QObject::tr("Kutta solves this case as Fluent defines it.")
                          : unsupported ? QObject::tr("Kutta cannot solve this case; see below.")
                                        : QObject::tr("Kutta can solve this case only with the approximations below. Results are marked APPROXIMATE everywhere.");
-    statusRow->addWidget(label(statusText, "muted"), 1);
+    statusRow->addStretch(1);
     v->addLayout(statusRow);
+    v->addWidget(label(statusText, "muted"));
 
     std::vector<const SupportIssue*> approx, blockers, notes;
     for (const auto& i : cs.issues) {
@@ -361,7 +366,8 @@ QWidget* general(const InspectorContext& c)
 
     if (!notes.empty()) {
         v->addWidget(section(QObject::tr("Notes")));
-        auto* toggle = button(QObject::tr("%n setting(s) Kutta treats differently but that do not affect this case", nullptr, int(notes.size())), "info");
+        auto* toggle = button(notes.size() == 1 ? QObject::tr("1 note on a setting that does not affect this case")
+                                                : QObject::tr("%1 notes on settings that do not affect this case").arg(notes.size()), "info");
         toggle->setProperty("flat", true);
         toggle->setCheckable(true);
         auto* list = new QWidget;
@@ -689,10 +695,11 @@ QWidget* run(const InspectorContext& c)
         box->layout()->addWidget(label(QObject::tr("This run will be APPROXIMATE (%1). Its results are marked wherever they appear.").arg(names.join(", "))));
         f->addWidget(box);
     }
-    const int mods = s->settings()->modifiedCount();
+    const int mods = s->settings()->caseModifiedCount();
     if (mods) {
         auto* box = callout("neutral");
-        box->layout()->addWidget(label(QObject::tr("%n setting(s) differ from the case. The run and its results are marked MODIFIED.", nullptr, mods)));
+        box->layout()->addWidget(label(mods == 1 ? QObject::tr("1 setting differs from the case. The run and its results are marked MODIFIED.")
+                                                 : QObject::tr("%1 settings differ from the case. The run and its results are marked MODIFIED.").arg(mods)));
         f->addWidget(box);
     }
 

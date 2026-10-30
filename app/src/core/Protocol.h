@@ -107,6 +107,7 @@ struct SetupEvent {
     QStringList approximations;
     QJsonObject overrides;
     bool modified = false;
+    QString liveRunId;  // live_view.run_id: snapshots from any other run are stale
 };
 struct IterationEvent {
     int iter = 0;
@@ -123,7 +124,8 @@ struct DoneEvent {
 };
 struct ErrorEvent { QString message; std::vector<SupportIssue> issues; QStringList paths; };
 // Proposed: a field snapshot written during the solve (docs/app-protocol-requests.md).
-struct SnapshotEvent { int iter = 0; QString manifest; };
+// A live surface view was published; `manifest` is an absolute path.
+struct SnapshotEvent { int iter = 0; QString manifest; QString runId; int sequence = 0; };
 
 using ProgressEvent = std::variant<SetupEvent, IterationEvent, WarningEvent, DoneEvent, ErrorEvent, SnapshotEvent>;
 Result<ProgressEvent> parseProgressLine(const QByteArray& line);

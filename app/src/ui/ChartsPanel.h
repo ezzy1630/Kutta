@@ -26,6 +26,9 @@ public:
     QStringList shownRuns() const { return m_runs; }
     void setXY(const QString& title, const QString& xLabel, const QString& yLabel, std::vector<PlotSeries> series,
                const QStringList& badges, const QString& provenance);
+    // Plot an export-view probe: one series per field and curve, against arc
+    // length (xAxis -1) or a coordinate (0..2). Fluent fields are dashed.
+    void plotProbe(const PostOutput& probe, const QString& title, int xAxis);
     PlotWidget* residuals() const { return m_residuals; }
     PlotWidget* reports() const { return m_reports; }
     PlotWidget* xy() const { return m_xy; }

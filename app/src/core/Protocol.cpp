@@ -238,6 +238,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
         s.device = o.value("device").toString();
         s.init = o.value("init").toString();
         s.approximations = strings(o.value("approximations"));
+        s.liveRunId = o.value("live_view").toObject().value("run_id").toString();
         s.overrides = o.value("overrides").toObject();
         s.modified = o.value("modified").toBool();
         return ProgressEvent{s};
@@ -277,7 +278,9 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
         }
         return ProgressEvent{e};
     }
-    if (ev == "snapshot") return ProgressEvent{SnapshotEvent{o.value("iter").toInt(), o.value("view").toString()}};
+    if (ev == "snapshot")
+        return ProgressEvent{SnapshotEvent{o.value("iter").toInt(), o.value("manifest").toString(),
+                                           o.value("run_id").toString(), o.value("sequence").toInt()}};
     return R::failure(QStringLiteral("unknown event '%1'").arg(ev));
 }
 

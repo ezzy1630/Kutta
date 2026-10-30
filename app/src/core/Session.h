@@ -22,6 +22,19 @@ namespace kapp {
 enum class RunState { Idle, Starting, Running, Stopping };
 enum class ConsoleLevel { Command, Info, Warning, Error, Table, Success };
 
+// export-view --post operation families, in the batch's key order.
+enum class PostKind { Streamlines, IsoSurface, Probe, Integral };
+
+// What one post-processing operation produced in the republished run view.
+struct PostOutput {
+    QString name;
+    ViewPart part;        // geometry operations (not integrals)
+    QJsonObject report;   // integrals: the reports.json entry
+    QString provenance;
+    bool synthetic = false;
+    std::shared_ptr<const SceneData> scene;  // the run's reloaded dataset
+};
+
 struct LiveRun {
     QString runId;
     int requestedIterations = 0;
@@ -29,6 +42,7 @@ struct LiveRun {
     RunProgress progress;
     std::optional<IterationEvent> last;
     int lastSnapshotIter = 0;
+    int lastSnapshotSequence = 0;
     QElapsedTimer clock;
 };
 
@@ -86,9 +100,14 @@ public:
     std::vector<Plane> slices(const QString& runId) const;
     void setSlices(const QString& runId, const std::vector<Plane>& planes, SceneCallback done);
     std::vector<Plane> defaultSlices() const;
-    // Post-processing; results come back as a manifest. Surface parts are
-    // merged into the run's dataset.
-    void postProcess(const QString& runId, QJsonObject item, std::function<void(Result<QJsonObject>)> done);
+    // Post-processing. Each run keeps one batch (app-post.json); adding an
+    // operation replaces any of the same name and republishes the whole view,
+    // so traces, iso-surfaces and probes persist with the run.
+    void postProcess(const QString& runId, PostKind kind, const QJsonObject& op, std::function<void(Result<PostOutput>)> done);
+    // The run's last request of that name (forms reopen with it), or empty.
+    QJsonObject postOperation(const QString& runId, const QString& name) const;
+    // Fields export-view can sample for a run whose view has been published.
+    std::vector<AvailableField> availableFields(const QString& runId) const;
 
 signals:
     void devicesChanged();
@@ -112,6 +131,9 @@ private:
     void printResidualRow(const IterationEvent& e);
     void loadSceneNow(const QString& key, SceneCallback done);
     void exportAndLoad(const QString& runId, const std::vector<Plane>& planes, SceneCallback done);
+    void exportNow(const QString& runId, const std::vector<Plane>& planes, bool retried, SceneCallback done);
+    QJsonObject postBatch(const QString& runId) const;
+    void writePostBatch(const QString& runId, const QJsonObject& batch) const;
 
     CliClient* m_cli;
     std::vector<Device> m_devices;
@@ -128,6 +150,9 @@ private:
     RunHistory m_history;
     QHash<QString, std::shared_ptr<SceneData>> m_scenes;
     QHash<QString, std::vector<SceneCallback>> m_loading;
+    QHash<QString, ViewManifest> m_views;  // run id -> last published view
+    // One export-view per run directory at a time: it republishes view/.
+    QHash<QString, std::vector<std::function<void()>>> m_exportQueue;
     int m_tableRows = 0;
     QStringList m_tableNames;
 };

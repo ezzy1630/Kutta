@@ -137,11 +137,6 @@ void SceneView::fitView()
     const double w = std::max(1, width()), h = std::max(1, height());
     const QMarginsF reserve(m_display.contours ? 118 / w : 16 / w, 58 / h, 16 / w, 30 / h);
     m_display.camera.fit(visibleBounds(), aspect(), reserve);
-    if (qEnvironmentVariableIsSet("KUTTA_DEBUG_CAMERA")) {
-        const Bounds b = visibleBounds();
-        qDebug("fit: size %dx%d aspect %.3f bounds (%.3f %.3f %.3f)-(%.3f %.3f %.3f) dist %.4f yaw %.1f pitch %.1f fov %.1f", width(), height(), aspect(),
-               b.min.x(), b.min.y(), b.min.z(), b.max.x(), b.max.y(), b.max.z(), m_display.camera.distance, m_display.camera.yaw, m_display.camera.pitch, m_display.camera.fovY);
-    }
     m_display.cameraInitialized = true;
     cameraEdited();
 }
@@ -170,7 +165,13 @@ void SceneView::render(QRhiCommandBuffer* cb)
 {
     const bool benchmarking = m_benchRemaining > 0;
     if (benchmarking && m_benchClock.isValid()) m_benchTimes.push_back(m_benchClock.nsecsElapsed() / 1e6);
-    if (benchmarking) m_benchClock.restart();
+    if (benchmarking) {
+        m_benchClock.restart();
+        // Measure interaction, not a static frame: orbit a little every frame.
+        m_display.camera.orbit(1.0f, 0.0f);
+        m_renderer.setDisplay(m_display);
+        m_overlayState.view = m_display.camera.view();
+    }
     m_renderer.render(cb, renderTarget(), renderTarget()->pixelSize());
     ++m_framesRendered;
     // Readbacks complete on a later frame; keep frames coming only while one is

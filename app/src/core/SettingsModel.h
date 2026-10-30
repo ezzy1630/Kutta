@@ -42,7 +42,12 @@ public:
     QString applyOverrides(const QJsonObject& overrides, const QString& description);
 
     QJsonObject overrides() const;
-    QJsonObject setupJson() const;  // {"v":1,"overrides":{...}}
+    // Overrides that change the case being solved. The iteration count is a
+    // run control passed as --iterations; it does not make results MODIFIED.
+    QJsonObject caseOverrides() const;
+    int caseModifiedCount() const { return int(caseOverrides().size()); }
+    static bool isRunControl(const QString& path) { return path == QLatin1String("run/iterations"); }
+    QJsonObject setupJson() const;  // {"v":1,"overrides":{case overrides}}
 
     QUndoStack* undoStack() { return &m_undo; }
 

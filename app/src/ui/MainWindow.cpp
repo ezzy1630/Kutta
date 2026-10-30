@@ -265,7 +265,7 @@ void MainWindow::buildDocks()
     auto* outlineArea = m_docks->addDockWidget(ads::LeftDockWidgetArea, outlineDock);
     auto* inspectorDock = dock(tr("Inspector"), m_inspector, "inspector");
     inspectorDock->setMinimumSize(320, 200);
-    auto* inspectorArea = m_docks->addDockWidget(ads::RightDockWidgetArea, inspectorDock, outlineArea);
+    m_docks->addDockWidget(ads::RightDockWidgetArea, inspectorDock, outlineArea);
     auto* consoleDock = dock(tr("Console"), m_console, "console");
     auto* bottomArea = m_docks->addDockWidget(ads::BottomDockWidgetArea, consoleDock, centralArea);
     auto* chartsDock = dock(tr("Charts"), m_charts, "charts");
@@ -436,7 +436,7 @@ void MainWindow::refreshToolbar()
         else {
             QStringList marks;
             if (!s->approvedApproximations().isEmpty()) marks << tr("approximate");
-            if (s->settings()->modifiedCount()) marks << tr("%n setting(s) modified", nullptr, s->settings()->modifiedCount());
+            if (const int n = s->settings()->caseModifiedCount()) marks << (n == 1 ? tr("1 setting modified") : tr("%1 settings modified").arg(n));
             state = marks.isEmpty() ? tr("Ready") : tr("Ready · ") + marks.join(", ");
         }
         break;

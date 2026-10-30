@@ -26,7 +26,12 @@ Session::Session(const CliInfo& cli, const QString& dataRoot, QObject* parent)
 
 Session::~Session()
 {
-    if (m_proc) m_proc->stop();
+    // The process's destructor closes stdin and waits for kutta to write its
+    // outputs; nothing may call back into this half-destroyed session meanwhile.
+    if (m_proc) {
+        m_proc->disconnect(this);
+        delete m_proc.data();
+    }
 }
 
 void Session::refreshDevices()
@@ -141,7 +146,7 @@ QString Session::run()
     rec.casePath = m_casePath;
     rec.caseSha = m_case->sha256;
     rec.dataPath = m_dataPath;
-    rec.overrides = m_settings.overrides();
+    rec.overrides = m_settings.caseOverrides();
     rec.approximations = m_approved;
     rec.iterationsRequested = requestedIterations();
     rec.liveViewInterval = m_liveView;
@@ -158,12 +163,11 @@ QString Session::run()
     req.backend = m_backend;
     req.outDir = rec.dir;
     req.liveViewInterval = m_liveView;
+    req.iterations = rec.iterationsRequested;
     if (!rec.overrides.isEmpty()) {
         req.setupFile = QDir(rec.dir).filePath("setup.json");
         QFile f(req.setupFile);
         if (f.open(QIODevice::WriteOnly)) f.write(QJsonDocument(m_settings.setupJson()).toJson(QJsonDocument::Indented));
-    } else {
-        req.iterations = rec.iterationsRequested;
     }
     m_current = rec;
     m_live = LiveRun{};
@@ -281,6 +285,11 @@ void Session::onProgress(const ProgressEvent& ev)
                     emit consoleLine(ConsoleLevel::Error, QStringLiteral("  %1: %2").arg(i.setting, i.explanation));
             record({{"v", 1}, {"event", "error"}, {"message", e.message}});
         } else if constexpr (std::is_same_v<T, SnapshotEvent>) {
+            // Snapshots are immutable and sequenced; skip another run's or an older one.
+            const QString expected = m_live.setup ? m_live.setup->liveRunId : QString();
+            if (!expected.isEmpty() && e.runId != expected) return;
+            if (e.sequence > 0 && e.sequence <= m_live.lastSnapshotSequence) return;
+            m_live.lastSnapshotSequence = e.sequence;
             auto m = loadViewManifest(e.manifest);
             if (!m) {
                 emit consoleLine(ConsoleLevel::Warning, "Live snapshot unreadable: " + m.error());
@@ -386,18 +395,100 @@ std::vector<Plane> Session::slices(const QString& runId) const
     return out;
 }
 
-void Session::exportAndLoad(const QString& runId, const std::vector<Plane>& planes, SceneCallback done)
+namespace {
+
+// Derived fields added to every exported surface and slice. Each needs
+// reference values or SST wall data; when a run lacks them the export is
+// retried with the CLI's own selection of available fields.
+const QStringList kSurfaceFields{"pressure_coefficient", "total_pressure_coefficient", "skin_friction",
+                                 "vorticity_magnitude", "velocity_x"};
+
+const char* batchKey(PostKind k)
+{
+    switch (k) {
+    case PostKind::Streamlines: return "streamlines";
+    case PostKind::IsoSurface: return "isosurfaces";
+    case PostKind::Probe: return "probes";
+    case PostKind::Integral: return "integrals";
+    }
+    return "";
+}
+
+} // namespace
+
+QJsonObject Session::postBatch(const QString& runId) const
 {
     const RunRecord* r = m_history.find(runId);
-    if (!r) return done("run:" + runId, Result<std::shared_ptr<SceneData>>::failure("unknown run " + runId));
+    QFile f(r ? QDir(r->dir).filePath("app-post.json") : QString());
+    if (r && f.open(QIODevice::ReadOnly)) {
+        const QJsonObject o = QJsonDocument::fromJson(f.readAll()).object();
+        if (o.value("v").toInt() == 1) return o;
+    }
+    return {{"v", 1}, {"fields", QJsonArray::fromStringList(kSurfaceFields)}};
+}
+
+void Session::writePostBatch(const QString& runId, const QJsonObject& batch) const
+{
+    const RunRecord* r = m_history.find(runId);
+    if (!r) return;
+    QFile f(QDir(r->dir).filePath("app-post.json"));
+    if (f.open(QIODevice::WriteOnly)) f.write(QJsonDocument(batch).toJson(QJsonDocument::Indented));
+}
+
+QJsonObject Session::postOperation(const QString& runId, const QString& name) const
+{
+    const QJsonObject batch = postBatch(runId);
+    for (const char* k : {"streamlines", "isosurfaces", "probes", "integrals"})
+        for (const QJsonValue& v : batch.value(k).toArray())
+            if (v.toObject().value("name").toString() == name) return v.toObject();
+    return {};
+}
+
+std::vector<AvailableField> Session::availableFields(const QString& runId) const
+{
+    auto it = m_views.find(runId);
+    return it == m_views.end() ? std::vector<AvailableField>{} : it->availableFields;
+}
+
+void Session::exportAndLoad(const QString& runId, const std::vector<Plane>& planes, SceneCallback done)
+{
+    auto job = [this, runId, planes, done] {
+        exportNow(runId, planes, false, [this, runId, done](const QString& key, Result<std::shared_ptr<SceneData>> s) {
+            auto& q = m_exportQueue[runId];
+            q.erase(q.begin());
+            const auto next = q.empty() ? std::function<void()>{} : q.front();
+            if (q.empty()) m_exportQueue.remove(runId);
+            done(key, s);
+            if (next) next();  // a copy: the queue may change while it runs
+        });
+    };
+    auto& queue = m_exportQueue[runId];
+    queue.push_back(job);
+    if (queue.size() == 1) job();
+}
+
+void Session::exportNow(const QString& runId, const std::vector<Plane>& planes, bool retried, SceneCallback done)
+{
+    const QString key = "run:" + runId;
+    const RunRecord* r = m_history.find(runId);
+    if (!r) return done(key, Result<std::shared_ptr<SceneData>>::failure("unknown run " + runId));
     const QString dir = r->dir, title = r->title();
+    QJsonObject batch = postBatch(runId);
+    writePostBatch(runId, batch);
     QJsonArray arr;
     for (const Plane& p : planes) arr.append(QJsonArray{p.origin.x(), p.origin.y(), p.origin.z(), p.normal.x(), p.normal.y(), p.normal.z()});
-    m_cli->exportView(dir, planes, [this, runId, dir, title, arr, done](Result<ViewManifest> m) {
-        const QString key = "run:" + runId;
+    m_cli->exportView(dir, planes, QDir(dir).filePath("app-post.json"),
+                      [this, runId, planes, retried, batch, dir, title, arr, key, done](Result<ViewManifest> m) mutable {
+        if (!m && !retried && batch.contains("fields") && m.error().contains("unavailable")) {
+            emit consoleLine(ConsoleLevel::Warning, "Some derived fields are unavailable for this run; exporting the fields kutta can compute.");
+            batch.remove("fields");
+            writePostBatch(runId, batch);
+            return exportNow(runId, planes, true, done);
+        }
         if (!m) return done(key, Result<std::shared_ptr<SceneData>>::failure(m.error()));
         QFile f(QDir(dir).filePath("app-view.json"));
         if (f.open(QIODevice::WriteOnly)) f.write(QJsonDocument(QJsonObject{{"slices", arr}}).toJson());
+        m_views.insert(runId, m.value());
         auto scene = kapp::loadScene(m.value(), title);
         if (scene) {
             m_scenes.insert(key, scene.value());
@@ -432,6 +523,7 @@ void Session::loadSceneNow(const QString& key, SceneCallback done)
         if (QFileInfo::exists(manifest)) {
             auto m = loadViewManifest(manifest);
             if (m) {
+                m_views.insert(id, m.value());
                 auto scene = kapp::loadScene(m.value(), r->title());
                 if (scene) m_scenes.insert(key, scene.value());
                 return done(key, scene);
@@ -467,36 +559,56 @@ void Session::setSlices(const QString& runId, const std::vector<Plane>& planes, 
     exportAndLoad(runId, planes, done);
 }
 
-void Session::postProcess(const QString& runId, QJsonObject item, std::function<void(Result<QJsonObject>)> done)
+void Session::postProcess(const QString& runId, PostKind kind, const QJsonObject& op, std::function<void(Result<PostOutput>)> done)
 {
+    using R = Result<PostOutput>;
     const RunRecord* r = m_history.find(runId);
-    if (!r) return done(Result<QJsonObject>::failure("unknown run"));
+    if (!r) return done(R::failure("unknown run"));
+    const QString name = op.value("name").toString();
+    const QJsonObject before = postBatch(runId);
+    QJsonObject batch = before;
+    for (const char* k : {"streamlines", "isosurfaces", "probes", "integrals"}) {
+        QJsonArray a = batch.value(k).toArray();
+        for (qsizetype i = a.size() - 1; i >= 0; --i)
+            if (a[i].toObject().value("name").toString() == name) a.removeAt(i);
+        if (a.isEmpty()) batch.remove(k);
+        else batch[k] = a;
+    }
+    QJsonArray a = batch.value(batchKey(kind)).toArray();
+    a.append(op);
+    batch[batchKey(kind)] = a;
+    writePostBatch(runId, batch);
+    m_scenes.remove("run:" + runId);
+    for (const QString& k : m_scenes.keys())
+        if (k.startsWith("diff:") && k.contains(runId)) m_scenes.remove(k);
     const QString dir = r->dir;
-    auto go = [this, runId, dir, item, done] {
-        m_cli->post(dir, item, [this, runId, dir, done](Result<QJsonObject> m) {
-            if (!m) {
-                emit consoleLine(ConsoleLevel::Error, "Post-processing failed: " + m.error());
-                return done(m);
-            }
-            const QJsonObject manifest = m.value();
-            if (manifest.contains("parts")) {
-                if (auto scene = m_scenes.value("run:" + runId)) {
-                    const QString err = addPostParts(*scene, manifest, QDir(dir).filePath("post/" + manifest.value("id").toString()));
-                    if (!err.isEmpty()) emit consoleLine(ConsoleLevel::Error, err);
-                    emit sceneChanged("run:" + runId);
-                }
-            }
-            done(m);
-        });
-    };
-    // Post-processing reads the exported view; make sure it exists first.
-    if (!m_scenes.contains("run:" + runId))
-        loadScene("run:" + runId, [go, done](const QString&, Result<std::shared_ptr<SceneData>> s) {
-            if (!s) return done(Result<QJsonObject>::failure(s.error()));
-            go();
-        });
-    else
-        go();
+    exportAndLoad(runId, slices(runId), [this, runId, kind, name, before, dir, done](const QString&, Result<std::shared_ptr<SceneData>> s) {
+        if (!s) {
+            // A rejected operation must not poison later exports; the CLI kept the old view.
+            writePostBatch(runId, before);
+            emit consoleLine(ConsoleLevel::Error, "Post-processing failed: " + s.error());
+            return done(R::failure(s.error()));
+        }
+        const ViewManifest& m = m_views[runId];
+        PostOutput out;
+        out.name = name;
+        out.provenance = m.provenance;
+        out.synthetic = m.synthetic;
+        out.scene = s.value();
+        if (kind == PostKind::Integral) {
+            QFile f(QDir(m.dir).filePath(m.reportsFile.isEmpty() ? QStringLiteral("reports.json") : m.reportsFile));
+            if (!f.open(QIODevice::ReadOnly)) return done(R::failure("kutta wrote no reports.json"));
+            for (const QJsonValue& v : QJsonDocument::fromJson(f.readAll()).object().value("reports").toArray())
+                if (v.toObject().value("name").toString() == name) out.report = v.toObject();
+            if (out.report.isEmpty()) return done(R::failure("reports.json has no report named " + name));
+            return done(out);
+        }
+        const auto& parts = kind == PostKind::Streamlines ? m.streamlines : kind == PostKind::IsoSurface ? m.isosurfaces : m.probes;
+        auto it = std::find_if(parts.begin(), parts.end(), [&](const ViewPart& p) { return p.name == name; });
+        if (it == parts.end()) return done(R::failure("the exported view has no result named " + name));
+        out.part = *it;
+        done(out);
+    });
 }
 
 } // namespace kapp

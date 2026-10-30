@@ -172,7 +172,15 @@ QJsonObject SettingsModel::overrides() const
     return o;
 }
 
-QJsonObject SettingsModel::setupJson() const { return QJsonObject{{"v", 1}, {"overrides", overrides()}}; }
+QJsonObject SettingsModel::caseOverrides() const
+{
+    QJsonObject o = overrides();
+    for (const QString& k : o.keys())
+        if (isRunControl(k)) o.remove(k);
+    return o;
+}
+
+QJsonObject SettingsModel::setupJson() const { return QJsonObject{{"v", 1}, {"overrides", caseOverrides()}}; }
 
 QString SettingsModel::formatValue(const Setting& s, const QJsonValue& v, bool withUnit)
 {

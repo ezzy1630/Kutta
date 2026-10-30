@@ -55,6 +55,16 @@ QString fluentLabel(const QString& q)
         {"omega", "Specific Dissipation Rate"},
         {"viscosity_ratio", "Turbulent Viscosity Ratio"},
         {"vorticity_magnitude", "Vorticity Magnitude"},
+        {"vorticity", "Vorticity"},
+        {"total_pressure", "Total Pressure"},
+        {"velocity_x", "X Velocity"},
+        {"velocity_y", "Y Velocity"},
+        {"velocity_z", "Z Velocity"},
+        {"q_criterion", "Q Criterion"},
+        {"helicity", "Helicity"},
+        {"skin_friction", "Skin Friction Coefficient"},
+        {"skin_friction_vector", "Skin Friction"},
+        {"arc_length", "Arc Length"},
     };
     if (auto it = labels.find(q); it != labels.end()) return *it;
     QString s = q;
@@ -104,13 +114,17 @@ QString prettyUnit(const QString& unit)
 
 int quantityOrder(const QString& q)
 {
-    static const QStringList order{"pressure", "pressure_coefficient", "total_pressure_coefficient",
-                                   "velocity_magnitude", "velocity", "wall_shear_magnitude", "wall_shear",
-                                   "y_plus", "k", "omega", "viscosity_ratio", "vorticity_magnitude"};
+    static const QStringList order{"pressure", "pressure_coefficient", "total_pressure", "total_pressure_coefficient",
+                                   "velocity_magnitude", "velocity", "velocity_x", "velocity_y", "velocity_z",
+                                   "wall_shear_magnitude", "wall_shear", "skin_friction", "skin_friction_vector", "y_plus",
+                                   "k", "omega", "viscosity_ratio", "vorticity_magnitude", "vorticity", "q_criterion", "helicity"};
     const qsizetype i = order.indexOf(q);
     return i < 0 ? 1000 : int(i);
 }
 
-bool isVectorQuantity(const QString& q) { return q == "velocity" || q == "wall_shear"; }
+bool isVectorQuantity(const QString& q)
+{
+    return q == "velocity" || q == "wall_shear" || q == "vorticity" || q == "skin_friction_vector";
+}
 
 } // namespace kapp

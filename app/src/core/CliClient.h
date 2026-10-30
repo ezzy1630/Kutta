@@ -23,9 +23,10 @@ struct CliInfo {
     QString describe() const;
 };
 
-// Where to find the CLI: explicit path, KUTTA_CLI, the packaged copy, then the
-// development fixture CLI (dev builds only).
-CliInfo locateCli(const QString& explicitPath = {}, const QString& devFixture = {});
+// Where to find the CLI. A real solver always wins over the fixture: explicit
+// path, KUTTA_CLI, the packaged copy, the in-tree build, `kutta` on PATH; only
+// then a packaged or development fixture CLI.
+CliInfo locateCli(const QString& explicitPath = {}, const QString& devRealCli = {}, const QString& devFixture = {});
 
 struct Plane { QVector3D origin, normal; QString arg() const; };
 
@@ -36,7 +37,7 @@ struct SolveRequest {
     int iterations = 0;          // 0: leave to the case/setup file
     QString outDir;
     QString setupFile;           // written by the app from the overrides
-    int liveViewInterval = 0;    // proposed --live-view N; 0 disables
+    int liveViewInterval = 0;    // --live-view OUT --live-every N; 0 disables
 };
 
 class SolveProcess : public QObject {
@@ -74,11 +75,10 @@ public:
 
     void devices(std::function<void(Result<std::vector<Device>>)> done);
     void inspect(const QString& casePath, const QString& dataPath, std::function<void(Result<CaseSummary>)> done);
-    void exportView(const QString& runDir, const std::vector<Plane>& slices,
+    // Publishes DIR/view atomically. `postFile` (optional) is an export-view
+    // --post batch: derived fields, traces, iso-surfaces, probes and reports.
+    void exportView(const QString& runDir, const std::vector<Plane>& slices, const QString& postFile,
                     std::function<void(Result<ViewManifest>)> done);
-    // Proposed post-processing (docs/app-protocol-requests.md). The CLI writes
-    // DIR/post/<id>/manifest.json; the callback receives that manifest.
-    void post(const QString& runDir, const QJsonObject& request, std::function<void(Result<QJsonObject>)> done);
 
     SolveProcess* solve(const SolveRequest& req, QObject* parent);
 

@@ -1,9 +1,47 @@
 #include "core/Geometry.h"
 
 #include <cmath>
+#include <deque>
 #include <limits>
+#include <map>
+#include <tuple>
 
 namespace kapp {
+
+std::vector<std::vector<SectionPoint>> sectionCurves(const std::vector<SectionPoint>& seg, float tolerance)
+{
+    using Key = std::tuple<long long, long long, long long>;
+    auto key = [tolerance](const QVector3D& p) {
+        return Key{std::llround(p.x() / tolerance), std::llround(p.y() / tolerance), std::llround(p.z() / tolerance)};
+    };
+    const std::size_t n = seg.size() / 2;
+    std::map<Key, std::vector<std::size_t>> ends;  // end point index (2k, 2k+1) by location
+    for (std::size_t i = 0; i < 2 * n; ++i) ends[key(seg[i].position)].push_back(i);
+    std::vector<bool> used(n, false);
+    auto next = [&](std::size_t end) -> std::optional<std::size_t> {
+        for (std::size_t e : ends[key(seg[end].position)])
+            if (!used[e / 2]) return e;
+        return std::nullopt;
+    };
+    std::vector<std::vector<SectionPoint>> curves;
+    for (std::size_t s0 = 0; s0 < n; ++s0) {
+        if (used[s0]) continue;
+        used[s0] = true;
+        std::deque<SectionPoint> c{seg[2 * s0], seg[2 * s0 + 1]};
+        for (std::size_t tail = 2 * s0 + 1; auto e = next(tail);) {
+            used[*e / 2] = true;
+            tail = *e ^ 1;
+            c.push_back(seg[tail]);
+        }
+        for (std::size_t head = 2 * s0; auto e = next(head);) {
+            used[*e / 2] = true;
+            head = *e ^ 1;
+            c.push_front(seg[head]);
+        }
+        curves.emplace_back(c.begin(), c.end());
+    }
+    return curves;
+}
 
 double triangleArea(const float* a, const float* b, const float* c)
 {

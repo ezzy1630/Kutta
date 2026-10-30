@@ -118,10 +118,14 @@ PlotWidget::Layout PlotWidget::layout(const QRectF& r, const QFontMetricsF& fm) 
     double x = r.left() + 10, y = r.top() + kHeader;
     const double h = fm.height() + 6;
     bool any = false;
-    for (const auto& s : m_series) {
-        const double w = fm.horizontalAdvance(s.name) + 26;
+    QStringList keys;
+    for (std::size_t i = 0; i < m_series.size(); ++i) {
+        const QString key = m_series[i].legendKey();
+        if (keys.contains(key)) continue;
+        keys << key;
+        const double w = fm.horizontalAdvance(key) + 26;
         if (x + w > r.right() - 8 && x > r.left() + 10) { x = r.left() + 10; y += h; }
-        l.legend.emplace_back(x, y, w, h);
+        l.legend.push_back({QRectF(x, y, w, h), i});
         x += w + 6;
         any = true;
     }
@@ -193,16 +197,16 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
 
     // Legend chips (click to hide a series).
     p.setFont(small);
-    for (std::size_t i = 0; i < m_series.size() && i < l.legend.size(); ++i) {
-        const auto& s = m_series[i];
-        const QRectF c = l.legend[i];
+    for (const Chip& chip : l.legend) {
+        const auto& s = m_series[chip.series];
+        const QRectF c = chip.rect;
         const double cy = c.center().y();
         QPen pen(s.visible ? s.color : t.faint, 2);
         if (s.dashed) pen.setStyle(Qt::DashLine);
         p.setPen(pen);
         p.drawLine(QPointF(c.left() + 2, cy), QPointF(c.left() + 16, cy));
         p.setPen(s.visible ? t.muted : t.faint);
-        p.drawText(QRectF(c.left() + 20, c.top(), c.width() - 20, c.height()), Qt::AlignVCenter | Qt::AlignLeft, s.name);
+        p.drawText(QRectF(c.left() + 20, c.top(), c.width() - 20, c.height()), Qt::AlignVCenter | Qt::AlignLeft, s.legendKey());
     }
 
     const QRectF plot = l.plot;
@@ -241,11 +245,14 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
         p.drawText(QRectF(plot.left(), r.bottom() - fm.height() - 6, plot.width(), fm.height()), Qt::AlignCenter, m_xLabel);
     }
     if (!m_yLabel.isEmpty()) {
+        // Centred on the plot when it fits; otherwise on the whole widget height, elided.
+        const bool fits = fm.horizontalAdvance(m_yLabel) <= plot.height();
+        const double span = fits ? plot.height() : r.height() - 8;
         p.save();
-        p.translate(r.left() + 6 + fm.ascent(), plot.center().y());
+        p.translate(r.left() + 6 + fm.ascent(), fits ? plot.center().y() : r.center().y());
         p.rotate(-90);
         p.setPen(t.muted);
-        p.drawText(QRectF(-plot.height() / 2, -fm.ascent(), plot.height(), fm.height()), Qt::AlignCenter, m_yLabel);
+        p.drawText(QRectF(-span / 2, -fm.ascent(), span, fm.height()), Qt::AlignCenter, fm.elidedText(m_yLabel, Qt::ElideRight, int(span)));
         p.restore();
     }
 
@@ -411,10 +418,13 @@ void PlotWidget::mouseMoveEvent(QMouseEvent* e)
 void PlotWidget::mousePressEvent(QMouseEvent* e)
 {
     const Layout l = layout(rect(), QFontMetricsF(font()));
-    for (std::size_t i = 0; i < l.legend.size() && i < m_series.size(); ++i)
-        if (l.legend[i].contains(e->position()) && e->button() == Qt::LeftButton) {
-            m_series[i].visible = !m_series[i].visible;
-            emit seriesToggled(m_series[i].name, m_series[i].visible);
+    for (const Chip& chip : l.legend)
+        if (chip.rect.contains(e->position()) && e->button() == Qt::LeftButton) {
+            const QString key = m_series[chip.series].legendKey();
+            const bool visible = !m_series[chip.series].visible;
+            for (auto& s : m_series)
+                if (s.legendKey() == key) s.visible = visible;
+            emit seriesToggled(key, visible);
             if (m_follow) fitData();
             update();
             return;

@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QMenu>
 #include <QStandardItemModel>
+#include <QTimer>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -297,10 +298,10 @@ QString ViewportPanel::probeText(const PickResult& r) const
     return lines.join('\n');
 }
 
-void ViewportPanel::showProbe(const std::optional<PickResult>& r)
+void ViewportPanel::showProbe(const std::optional<PickResult>& r, bool keepValue)
 {
     m_probe = r;
-    if (m_probe && m_probe->hit) {
+    if (m_probe && m_probe->hit && !keepValue) {
         // Re-sample this viewport's own field at the shared world point.
         const auto s = m_view->scene();
         m_probe->value.reset();
@@ -385,8 +386,12 @@ GraphicsArea::GraphicsArea(Session* session, QWidget* parent) : QWidget(parent),
             emit displayChanged(src);
         });
         connect(p, &ViewportPanel::probed, this, [this](ViewportPanel* src, const PickResult& r) {
-            for (auto* o : m_panels)
-                if (o != src) o->showProbe(r.hit ? std::optional<PickResult>(r) : std::nullopt);
+            for (auto* o : m_panels) {
+                if (o == src) continue;
+                // Same dataset and field: show the picked value itself, not a re-sample.
+                const bool same = o->scene() == src->scene() && o->display().field == src->display().field;
+                o->showProbe(r.hit ? std::optional<PickResult>(r) : std::nullopt, same);
+            }
         });
         connect(p, &ViewportPanel::exportRequested, this, [this](ViewportPanel* src) {
             const QString f = QFileDialog::getSaveFileName(this, tr("Save viewport image"),
@@ -435,6 +440,11 @@ void GraphicsArea::setViewLayout(Layout l)
         }
     }
     if (m_active && m_active->index() >= visibleCount()) setActive(m_panels[0]);
+    // Views changed shape: frame their contents again once the layout settles.
+    QTimer::singleShot(0, this, [this] {
+        for (int i = 0; i < visibleCount(); ++i)
+            if (m_panels[std::size_t(i)]->scene()) m_panels[std::size_t(i)]->view()->fitView();
+    });
 }
 
 void GraphicsArea::relayout()

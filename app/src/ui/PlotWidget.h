@@ -20,6 +20,10 @@ struct PlotSeries {
     bool dashed = false;
     bool visible = true;
     bool markers = false;
+    // Series sharing a legend key get one chip, which toggles them together
+    // (one per residual when several runs overlay). Empty: the name.
+    QString legend;
+    QString legendKey() const { return legend.isEmpty() ? name : legend; }
 };
 
 class PlotWidget : public QWidget {
@@ -67,7 +71,8 @@ protected:
     void keyPressEvent(QKeyEvent* e) override;
 
 private:
-    struct Layout { QRectF plot; std::vector<QRectF> legend; };
+    struct Chip { QRectF rect; std::size_t series; };  // series: the first with the chip's key
+    struct Layout { QRectF plot; std::vector<Chip> legend; };
     Layout layout(const QRectF& r, const QFontMetricsF& fm) const;
     void paintTo(QPainter& p, const QRectF& r, bool forExport) const;
     void fitData();

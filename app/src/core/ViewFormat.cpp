@@ -6,6 +6,7 @@
 #include <QJsonDocument>
 #include <QtEndian>
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -62,7 +63,9 @@ Result<ViewPart> parsePart(const QJsonObject& o, PartKind kind, int index)
     p.type = o.value("type").toString();
     p.file = o.value("file").toString();
     p.vertices = quint32(o.value("vertices").toDouble());
-    p.indices = quint32(o.value(kind == PartKind::Streamlines ? "polylines" : "indices").toDouble());
+    p.indices = quint32(o.value("indices").toDouble());
+    p.lineCount = quint32(o.value("line_count").toDouble());
+    p.meta = o;
     if (p.file.isEmpty() || p.file.contains('/') || p.file.contains('\\') || p.file.startsWith('.'))
         return Result<ViewPart>::failure(QStringLiteral("unsafe or missing file name '%1'").arg(p.file));
     if (kind == PartKind::Slice) {
@@ -165,6 +168,28 @@ Result<ViewManifest> parseViewManifest(const QJsonObject& json, const QString& d
         if (!p) return Result<ViewManifest>::failure(p.error());
         m.slices.push_back(std::move(p).value());
     }
+    auto parts = [&](const char* key, PartKind kind, std::vector<ViewPart>& out) -> QString {
+        int n = 0;
+        for (const QJsonValue& v : json.value(key).toArray()) {
+            auto p = parsePart(v.toObject(), kind, n++);
+            if (!p) return p.error();
+            out.push_back(std::move(p).value());
+        }
+        return {};
+    };
+    for (const QString& err : {parts("streamlines", PartKind::Streamlines, m.streamlines),
+                               parts("isosurfaces", PartKind::IsoSurface, m.isosurfaces),
+                               parts("probes", PartKind::Probe, m.probes)})
+        if (!err.isEmpty()) return Result<ViewManifest>::failure(err);
+    for (const QJsonValue& av : json.value("available_fields").toArray()) {
+        const QJsonObject a = av.toObject();
+        m.availableFields.push_back({a.value("name").toString(), a.value("unit").toString(), a.value("components").toInt(1),
+                                     a.value("location").toString() == "volume"});
+    }
+    m.reportsFile = json.value("reports_file").toString();
+    if (m.reportsFile.contains('/') || m.reportsFile.contains('\\') || m.reportsFile.startsWith('.'))
+        return Result<ViewManifest>::failure("unsafe reports file name");
+    m.referenceValues = json.value("reference_values").toObject();
     for (const QJsonValue& fv : json.value("fields").toArray()) {
         auto f = parseField(fv.toObject(), false);
         if (!f) return Result<ViewManifest>::failure(f.error());
@@ -196,33 +221,49 @@ Result<MeshData> readMeshBytes(const QByteArray& bytes, const ViewPart& part)
     auto u32 = [d](int off) { return qFromLittleEndian<quint32>(d + off); };
     if (u32(4) != 1) return R::failure(part.file + ": unsupported version");
     if (u32(8) != kHeaderBytes) return R::failure(part.file + ": unexpected header size");
-    const quint64 V = u32(12), I = u32(16), F = u32(20);
-    if (V != part.vertices || I != part.indices)
+    const quint64 V = u32(12), I = u32(16), F = u32(20), L = lines ? u32(24) : 0;
+    if (V != part.vertices || I != part.indices || (lines && L != part.lineCount))
         return R::failure(QStringLiteral("%1: counts (%2, %3) disagree with the manifest (%4, %5)")
                               .arg(part.file).arg(V).arg(I).arg(part.vertices).arg(part.indices));
     if (F != part.fields.size()) return R::failure(part.file + ": field count disagrees with the manifest");
-    const quint64 indexCount = lines ? I + 1 : I;
     if (!lines && I % 3 != 0) return R::failure(part.file + ": index count is not a multiple of 3");
     const quint64 posEnd = kHeaderBytes + 12 * V;
-    const quint64 idxEnd = posEnd + 4 * indexCount;
+    const quint64 offEnd = posEnd + 4 * I;
+    const quint64 idxEnd = offEnd + (lines ? 4 * (L + 1) : 0);
     if (idxEnd > size) return R::failure(part.file + ": truncated geometry");
 
     MeshData m;
     m.polylines = lines;
-    m.positions.resize(3 * V);
-    m.indices.resize(indexCount);
+    std::vector<std::uint32_t> index(I);
     // Little-endian hosts (every supported target) copy directly.
     static_assert(Q_BYTE_ORDER == Q_LITTLE_ENDIAN, "view files are little endian");
-    std::memcpy(m.positions.data(), d + kHeaderBytes, 12 * V);
-    std::memcpy(m.indices.data(), d + posEnd, 4 * indexCount);
+    std::memcpy(index.data(), d + posEnd, 4 * I);
+    for (auto idx : index)
+        if (idx >= V) return R::failure(part.file + ": index out of range");
+    std::vector<std::uint32_t> lineOffsets;
     if (lines) {
-        if (m.indices.front() != 0 || m.indices.back() != V)
-            return R::failure(part.file + ": polyline offsets do not span the vertices");
-        for (quint64 k = 1; k < indexCount; ++k)
-            if (m.indices[k] < m.indices[k - 1]) return R::failure(part.file + ": polyline offsets decrease");
+        lineOffsets.resize(L + 1);
+        std::memcpy(lineOffsets.data(), d + offEnd, 4 * (L + 1));
+        if (lineOffsets.front() != 0 || lineOffsets.back() != I)
+            return R::failure(part.file + ": line offsets do not span the indices");
+        for (quint64 k = 1; k <= L; ++k)
+            if (lineOffsets[k] < lineOffsets[k - 1]) return R::failure(part.file + ": line offsets decrease");
+    }
+    // Polylines index a shared vertex pool (probes skip invalid samples); gather
+    // each line's vertices in order so a line is one contiguous vertex range.
+    const bool identity = !lines || (I == V && std::all_of(index.begin(), index.end(), [i = 0u](std::uint32_t x) mutable { return x == i++; }));
+    m.positions.resize(3 * V);
+    std::memcpy(m.positions.data(), d + kHeaderBytes, 12 * V);
+    if (lines) {
+        if (!identity) {
+            std::vector<float> gathered(3 * I);
+            for (quint64 k = 0; k < I; ++k)
+                std::copy_n(m.positions.begin() + 3 * index[k], 3, gathered.begin() + 3 * k);
+            m.positions = std::move(gathered);
+        }
+        m.indices = std::move(lineOffsets);
     } else {
-        for (auto idx : m.indices)
-            if (idx >= V) return R::failure(part.file + ": triangle index out of range");
+        m.indices = std::move(index);
     }
     quint64 expectedOffset = idxEnd;
     for (const FieldDesc& fd : part.fields) {
@@ -232,6 +273,13 @@ Result<MeshData> readMeshBytes(const QByteArray& bytes, const ViewPart& part)
         MeshData::Field f{fd, std::vector<float>(n)};
         std::memcpy(f.values.data(), d + expectedOffset, 4 * n);
         expectedOffset += 4 * n;
+        if (!identity) {
+            const int c = fd.components;
+            std::vector<float> gathered(I * quint64(c));
+            for (quint64 k = 0; k < I; ++k)
+                std::copy_n(f.values.begin() + c * index[k], c, gathered.begin() + c * k);
+            f.values = std::move(gathered);
+        }
         m.fields.push_back(std::move(f));
     }
     if (expectedOffset != size) return R::failure(part.file + ": trailing bytes after the last field");
@@ -248,7 +296,9 @@ Result<MeshData> readMeshFile(const QString& path, const ViewPart& part)
 QByteArray writeMeshBytes(const MeshData& mesh, ViewPart* part)
 {
     const quint32 V = quint32(mesh.vertexCount());
-    const quint32 I = mesh.polylines ? quint32(mesh.indices.size() - 1) : quint32(mesh.indices.size());
+    // Polylines are written with sequential indices and their line offsets.
+    const quint32 L = mesh.polylines ? quint32(mesh.indices.size() - 1) : 0;
+    const quint32 I = mesh.polylines ? V : quint32(mesh.indices.size());
     QByteArray out;
     out.append(mesh.polylines ? kLineMagic : kTriMagic, 4);
     appendLE<quint32>(out, 1);
@@ -256,12 +306,15 @@ QByteArray writeMeshBytes(const MeshData& mesh, ViewPart* part)
     appendLE<quint32>(out, V);
     appendLE<quint32>(out, I);
     appendLE<quint32>(out, quint32(mesh.fields.size()));
-    appendLE<quint32>(out, 0);
+    appendLE<quint32>(out, L);
     appendLE<quint32>(out, 0);
     out.append(reinterpret_cast<const char*>(mesh.positions.data()), qsizetype(mesh.positions.size() * 4));
+    if (mesh.polylines)
+        for (quint32 i = 0; i < V; ++i) appendLE<quint32>(out, i);
     out.append(reinterpret_cast<const char*>(mesh.indices.data()), qsizetype(mesh.indices.size() * 4));
     part->vertices = V;
     part->indices = I;
+    part->lineCount = L;
     part->fields.clear();
     for (const auto& f : mesh.fields) {
         FieldDesc d = f.desc;
@@ -285,8 +338,16 @@ QJsonObject toJson(const FieldDesc& f, bool withOffset)
 
 QJsonObject toJson(const ViewPart& p)
 {
-    QJsonObject o{{"file", p.file}, {"vertices", double(p.vertices)}};
-    o[p.kind == PartKind::Streamlines ? "polylines" : "indices"] = double(p.indices);
+    QJsonObject o = p.meta;  // operation metadata first; geometry keys below win
+    o["file"] = p.file;
+    o["vertices"] = double(p.vertices);
+    o["indices"] = double(p.indices);
+    if (isPolyline(p.kind)) {
+        o["primitive"] = "polylines";
+        o["line_count"] = double(p.lineCount);
+    } else if (p.kind != PartKind::Zone && p.kind != PartKind::Slice) {
+        o["primitive"] = "triangles";
+    }
     if (p.kind == PartKind::Zone) {
         o["id"] = p.id;
         o["name"] = p.name;

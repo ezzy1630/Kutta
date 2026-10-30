@@ -137,8 +137,9 @@ void CommandPalette::filter()
     // Fit the list to its rows; the frame stays anchored at the top.
     const int rows = std::max(1, std::min(m_list->count(), 12));
     m_list->setFixedHeight(rows * 30 + 10);
-    adjustSize();
-    setFixedHeight(sizeHint().height());
+    const QMargins m = layout()->contentsMargins();
+    setFixedHeight(m.top() + m_edit->sizeHint().height() + m_list->height() + m.bottom());
+    if (parentWidget()) place();
 }
 
 void CommandPalette::activate(int row)

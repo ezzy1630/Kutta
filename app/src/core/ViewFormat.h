@@ -1,7 +1,7 @@
 #pragma once
 
-// Kutta view data (src/kutta/io/VIEW_FORMAT.md, version 1) plus the polyline
-// variant the app proposes for streamlines (docs/app-protocol-requests.md).
+// Kutta view data (src/kutta/io/VIEW_FORMAT.md, version 1): KUTV triangles,
+// KUTL polylines and the manifest, including export-view --post artifacts.
 // Reading is the trust boundary: every count, offset and size is checked
 // before any array is touched.
 
@@ -35,19 +35,29 @@ struct FieldDesc {
     std::optional<double> min, max;  // null when every sample is missing
 };
 
-enum class PartKind { Zone, Slice, IsoSurface, Streamlines };
+enum class PartKind { Zone, Slice, IsoSurface, Streamlines, Probe };
+
+inline bool isPolyline(PartKind k) { return k == PartKind::Streamlines || k == PartKind::Probe; }
 
 // One binary file listed in a manifest.
 struct ViewPart {
     PartKind kind = PartKind::Zone;
     int id = -1;          // Fluent zone id for zones
-    QString name;         // zone name; slices get a generated label
-    QString type;         // Fluent zone type for zones
+    QString name;         // zone name, operation name; slices get a generated label
+    QString type;         // Fluent zone type for zones; "line"/"section" for probes
     QString file;
-    quint32 vertices = 0, indices = 0;  // indices = polyline count for streamlines
+    quint32 vertices = 0, indices = 0, lineCount = 0;  // lineCount: KUTL only
     QVector3D origin, normal;           // slices
     std::vector<FieldDesc> fields;
+    QJsonObject meta;     // the whole descriptor (iso value, trace lines, probe csv, ...)
     const FieldDesc* field(const QString& name) const;
+};
+
+// A field export-view can sample (manifest available_fields).
+struct AvailableField {
+    QString name, unit;
+    int components = 1;
+    bool volume = false;  // false: boundary only (no iso-surfaces or volume probes)
 };
 
 struct ViewManifest {
@@ -57,6 +67,10 @@ struct ViewManifest {
     bool synthetic = false;
     Bounds bounds;
     std::vector<ViewPart> zones, slices;
+    std::vector<ViewPart> streamlines, isosurfaces, probes;  // export-view --post
+    std::vector<AvailableField> availableFields;
+    QString reportsFile;            // reports.json beside the manifest, when integrals ran
+    QJsonObject referenceValues;
     std::vector<FieldDesc> fields;  // combined ranges across files
     const FieldDesc* field(const QString& name) const;
 };
@@ -64,10 +78,12 @@ struct ViewManifest {
 Result<ViewManifest> parseViewManifest(const QJsonObject& json, const QString& dir);
 Result<ViewManifest> loadViewManifest(const QString& manifestPath);
 
-// Triangles (zones, slices, iso-surfaces) or polylines (streamlines).
+// Triangles (zones, slices, iso-surfaces) or polylines (traces, probes).
 struct MeshData {
     std::vector<float> positions;       // xyz interleaved
-    std::vector<std::uint32_t> indices; // triangle list, or polyline offsets (P+1)
+    // Triangle list, or for polylines L+1 offsets into the (sequential) vertices.
+    // KUTL index indirection is resolved on read so renderers see plain strips.
+    std::vector<std::uint32_t> indices;
     struct Field { FieldDesc desc; std::vector<float> values; };  // V * components
     std::vector<Field> fields;
     bool polylines = false;

@@ -32,7 +32,8 @@ public:
     void setDisplay(const ViewDisplay& d);
     void setActive(bool active);
     void refreshDatasets(const QList<QPair<QString, QString>>& datasets);  // key, label
-    void showProbe(const std::optional<PickResult>& r);  // linked probe from another view
+    // Linked probe from another view; re-sampled here unless keepValue.
+    void showProbe(const std::optional<PickResult>& r, bool keepValue = false);
     QImage exportImage() { return m_view->renderImage(true); }
     QString datasetLabel() const;
 

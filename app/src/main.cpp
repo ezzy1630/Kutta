@@ -13,17 +13,21 @@
 #include "ui/Outline.h"
 #include "ui/Theme.h"
 
+#include <QAbstractButton>
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
-#include <QJsonDocument>
+#include <QFileInfo>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
+#include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QStyleHints>
+#include <QTableWidget>
 #include <QTemporaryDir>
 #include <QTimer>
 
@@ -148,8 +152,13 @@ int main(int argc, char** argv)
     cli.addOptions({cliOpt, dataOpt, scenarioOpt, shotOpt, themeOpt, sizeOpt, listOpt, benchOpt, caseOpt});
     cli.process(app);
 
-    const QStringList scenarios = {"start", "elbow-setup", "palette", "elbow-run", "elbow-live", "elbow-fluent", "car-results",
-                                   "car-xy", "car-compare", "history", "settings"};
+    // elbow-* scenarios are meant for the real CLI and the Ansys mixing elbow
+    // (pass the case path; --open-data defaults to the .dat.h5 beside it).
+    // Post-processing ones need the real CLI: the fixture has no volume fields.
+    // car-* and bench use the fixture CLI's synthetic FSAE car.
+    const QStringList scenarios = {"start", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
+                                   "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare",
+                                   "car-results", "car-xy", "car-compare", "bench"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
         return 0;
@@ -184,12 +193,19 @@ int main(int argc, char** argv)
     if (cli.isSet(themeOpt)) dark = cli.value(themeOpt) != "light";
     Theme::instance().apply(app, dark);
 
-    #ifdef KUTTA_DEV_FIXTURE_CLI
+#ifdef KUTTA_DEV_FIXTURE_CLI
     const QString devFixture = QStringLiteral(KUTTA_DEV_FIXTURE_CLI);
 #else
     const QString devFixture;
 #endif
-    const CliInfo info = locateCli(cli.value(cliOpt), devFixture);
+#ifdef KUTTA_DEV_REAL_CLI
+    const QString devReal = QStringLiteral(KUTTA_DEV_REAL_CLI);
+#else
+    const QString devReal;
+#endif
+    // Scenarios are reproducible: they use the fixture unless --cli or KUTTA_CLI says otherwise.
+    const bool fixtureScenario = scripted && !cli.isSet(cliOpt) && qEnvironmentVariableIsEmpty("KUTTA_CLI") && QFileInfo(devFixture).isExecutable();
+    const CliInfo info = fixtureScenario ? locateCli(devFixture) : locateCli(cli.value(cliOpt), devReal, devFixture);
     if (info.program.isEmpty()) {
         std::fprintf(stderr, "kutta CLI not found; pass --cli or set KUTTA_CLI\n");
     }
@@ -250,17 +266,36 @@ int main(int argc, char** argv)
     auto preset = [&w](int panel, Camera::Preset p) { return [&w, panel, p](std::function<void()> next) { w.graphics()->panel(panel)->view()->applyPreset(p); next(); }; };
     auto settle = [](int ms) { return [ms](std::function<void()> next) { QTimer::singleShot(ms, next); }; };
     auto field = [](const QString& q, FieldRole role = FieldRole::Kutta) { return FieldRef{q, role, -1}; };
-    auto post = [&w, session, sc](QJsonObject item) {
-        return [&w, session, sc, item](std::function<void()> next) {
+    auto post = [session, sc](PostKind kind, QJsonObject op, std::function<void(const PostOutput&)> then = {}) {
+        return [session, sc, kind, op, then](std::function<void()> next) {
             const QString run = session->history().latestFinished() ? session->history().latestFinished()->id : QString();
-            session->postProcess(run, item, [sc, next](Result<QJsonObject> r) {
+            session->postProcess(run, kind, op, [sc, next, then](Result<PostOutput> r) {
                 if (!r) return sc->fail("post-processing: " + r.error());
+                if (then) then(r.value());
                 next();
             });
         };
     };
 
     const QString elbowCase = caseArg.isEmpty() ? elbow : caseArg;
+    QString elbowData = cli.value(caseOpt);
+    if (elbowData.isEmpty() && QFileInfo::exists(QString(elbowCase).replace(".cas.h5", ".dat.h5")))
+        elbowData = QString(elbowCase).replace(".cas.h5", ".dat.h5");
+    // Find a widget on the current inspector page by its accessible name or text.
+    auto inspectorButton = [&w](const QString& text) -> QAbstractButton* {
+        for (auto* b : w.inspector()->findChildren<QAbstractButton*>())
+            if (b->isVisible() && (b->text() == text || b->accessibleName() == text)) return b;
+        return nullptr;
+    };
+    auto runWith = [session, sc](int iterations, double coldInlet = 0) {
+        return [session, sc, iterations, coldInlet](std::function<void()> next) {
+            session->settings()->setValue("run/iterations", iterations);
+            if (coldInlet > 0) session->settings()->setValue("boundary/cold-inlet/velocity-magnitude", coldInlet);
+            const QString id = session->run();
+            if (id.isEmpty()) return sc->fail("run refused");
+            sc->waitFor([session] { return !session->running(); }, next, "run to finish", 300000);
+        };
+    };
     if (scenario == "start") {
         sc->add(go("setup/general"));
     } else if (scenario == "elbow-setup") {
@@ -276,11 +311,9 @@ int main(int argc, char** argv)
         sc->add([&w](auto next) { w.showPalette("inlet"); next(); });
     } else if (scenario == "elbow-run" || scenario == "elbow-fluent") {
         const bool withData = scenario == "elbow-fluent";
-        QString data = cli.value(caseOpt);
-        if (withData && data.isEmpty()) data = QString(elbowCase).replace(".cas.h5", ".dat.h5");
-        sc->add(open(elbowCase, withData ? data : QString()));
+        sc->add(open(elbowCase, withData ? elbowData : QString()));
         sc->add(approveAll);
-        sc->add(runToEnd);
+        sc->add(runWith(300));
         sc->add(showScene(0, "run:run-0001"));
         if (withData) {
             sc->add(layout(GraphicsArea::Layout::SideBySide));
@@ -295,12 +328,41 @@ int main(int argc, char** argv)
             sc->add(preset(0, Camera::Preset::Top));
             sc->add(go("solution/run"));
         }
+    } else if (scenario == "elbow-post") {
+        // Volume post-processing needs the real CLI: pass --cli, the case and --open-data.
+        sc->add(open(elbowCase, elbowData));
+        sc->add(approveAll);
+        sc->add(runWith(150));
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(post(PostKind::Streamlines,
+                     {{"name", "Pathlines"}, {"mode", "streamline"}, {"direction", "forward"},
+                      {"seeds", QJsonObject{{"type", "surface"}, {"zones", QJsonArray{"cold-inlet", "hot-inlet"}}, {"count", 80}, {"distribution", "uniform"}, {"offset", 0}}},
+                      {"fields", QJsonArray{"velocity_magnitude", "pressure"}}}));
+        sc->add(post(PostKind::IsoSurface,
+                     {{"name", "Velocity Magnitude = 0.9"}, {"field", "velocity_magnitude"}, {"value", 0.9}, {"fields", QJsonArray{"pressure"}}}));
+        sc->add(post(PostKind::Probe,
+                     {{"name", "Section"}, {"type", "section"}, {"zones", QJsonArray{"wall-elbow"}}, {"origin", QJsonArray{0, 0, 0.025}},
+                      {"normal", QJsonArray{0, 0, 1}}, {"fields", QJsonArray{"pressure", "pressure@fluent"}}},
+                     [&w](const PostOutput& out) { w.charts()->plotProbe(out, "Static Pressure on the elbow wall, z = 0.025 m · Run 1", -1); }));
+        sc->add(layout(GraphicsArea::Layout::Quad));
+        for (int i = 1; i < 4; ++i) sc->add(showScene(i, "run:run-0001"));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); d.visible = {"post:Pathlines", "zone:cold-inlet", "zone:hot-inlet", "zone:outlet"}; d.visibleInitialized = true; }));
+        sc->add(display(1, [&](ViewDisplay& d) { d.field = field("pressure"); d.visible = {"post:Velocity Magnitude = 0.9"}; d.visibleInitialized = true; }));
+        sc->add(display(2, [&](ViewDisplay& d) { d.field = field("pressure", FieldRole::Delta); d.visible = {"zone:symmetry-xyplane", "post:Section"}; d.visibleInitialized = true; }));
+        sc->add(display(3, [&](ViewDisplay& d) { d.field = field("total_pressure_coefficient"); d.visible = {"zone:symmetry-xyplane"}; d.visibleInitialized = true; }));
+        for (int i = 0; i < 4; ++i) sc->add(preset(i, i == 1 ? Camera::Preset::Isometric : Camera::Preset::Top));
+        sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::XY); next(); });
+        sc->add(go("results/pathlines"));
     } else if (scenario == "elbow-live") {
         qputenv("KUTTA_FIXTURE_HOLD_AT", "150");
         qputenv("KUTTA_FIXTURE_SPEED", "20");
         sc->add(open(elbowCase));
         sc->add(approveAll);
-        sc->add([session](auto next) { session->setLiveViewInterval(20); next(); });
+        sc->add([session](auto next) {
+            session->setLiveViewInterval(20);
+            session->settings()->setValue("run/iterations", 2000);  // still running at the screenshot
+            next();
+        });
         sc->add([session, sc](auto next) {
             session->run();
             sc->waitFor([session] { return session->live().lastSnapshotIter >= 120 && session->live().last && session->live().last->iter >= 150; }, next, "live snapshot");
@@ -309,14 +371,78 @@ int main(int argc, char** argv)
         sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); d.visible = {"zone:symmetry-xyplane"}; d.visibleInitialized = true; }));
         sc->add(preset(0, Camera::Preset::Top));
         sc->add(go("solution/run"));
+    } else if (scenario == "elbow-xy") {
+        sc->add(open(elbowCase, elbowData));
+        sc->add(approveAll);
+        sc->add(runWith(150));
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(go("results/xy"));
+        // Across the outlet leg, where the hot and cold streams mix.
+        sc->add(post(PostKind::Probe,
+                     {{"name", "XY line"}, {"type", "line"}, {"count", 200}, {"start", QJsonArray{0.1, 0.1, 0.012}}, {"end", QJsonArray{0.2, 0.1, 0.012}},
+                      {"fields", QJsonArray{"velocity_magnitude", "velocity_magnitude@fluent"}}},
+                     [&w](const PostOutput& out) { w.charts()->plotProbe(out, "Velocity Magnitude across the outlet leg, y = 0.1 m · Run 1", 0); }));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); d.visible = {"zone:symmetry-xyplane", "post:XY line"}; d.visibleInitialized = true; }));
+        sc->add(preset(0, Camera::Preset::Top));
+        sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::XY); next(); });
+    } else if (scenario == "elbow-integrals") {
+        sc->add(open(elbowCase, elbowData));
+        sc->add(approveAll);
+        sc->add(runWith(150));
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(go("results/integrals"));
+        // Through the page itself: Fluent column on, Compute.
+        sc->add([&w, sc, inspectorButton](auto next) {
+            auto* fluent = inspectorButton(QObject::tr("Also compute on Fluent's field (needs a data file)"));
+            auto* go = inspectorButton(QObject::tr("Compute"));
+            if (!fluent || !go) return sc->fail("surface integrals page controls not found");
+            fluent->setChecked(true);
+            go->click();
+            sc->waitFor([&w] {
+                for (auto* t : w.inspector()->findChildren<QTableWidget*>())
+                    if (t->accessibleName() == QObject::tr("Surface integral results") && t->isVisible()) return true;
+                return false;
+            }, next, "surface integrals");
+        });
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure"); d.visible = {"zone:cold-inlet", "zone:hot-inlet", "zone:outlet", "zone:wall-elbow"}; d.visibleInitialized = true; }));
+        sc->add(preset(0, Camera::Preset::Isometric));
+    } else if (scenario == "elbow-history" || scenario == "elbow-compare") {
+        sc->add(open(elbowCase));
+        sc->add(approveAll);
+        sc->add(runWith(300));
+        sc->add(runWith(300, 1.4));  // a faster cold stream
+        if (scenario == "elbow-compare") {
+            sc->add([&w](auto next) {
+                QSettings().setValue("compare/a", "run-0002");
+                QSettings().setValue("compare/b", "run-0001");
+                w.graphics()->addDataset("diff:run-0002:run-0001", "Run 2 − Run 1");
+                next();
+            });
+            sc->add(layout(GraphicsArea::Layout::SideBySide));
+            sc->add(showScene(0, "run:run-0002"));
+            sc->add(showScene(1, "diff:run-0002:run-0001"));
+            sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); d.visible = {"zone:symmetry-xyplane"}; d.visibleInitialized = true; }));
+            sc->add(display(1, [&](ViewDisplay& d) { d.field = field("velocity_magnitude", FieldRole::Run); d.visible = {"zone:symmetry-xyplane"}; d.visibleInitialized = true; }));
+            for (int i = 0; i < 2; ++i) sc->add(preset(i, Camera::Preset::Top));
+            sc->add(go("runs/compare"));
+            sc->add([&w](auto next) { w.charts()->showRuns({"run-0002", "run-0001"}); next(); });
+        } else {
+            sc->add(showScene(0, "run:run-0002"));
+            sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); d.visible = {"zone:symmetry-xyplane"}; d.visibleInitialized = true; }));
+            sc->add(preset(0, Camera::Preset::Top));
+            sc->add(go("runs/history"));
+            sc->add([&w](auto next) { w.charts()->showRuns({"run-0002", "run-0001"}); next(); });
+        }
     } else if (scenario == "car-results" || scenario == "car-xy") {
         sc->add(open(caseArg.isEmpty() ? car : caseArg));
         sc->add(approveAll);
         sc->add(runToEnd);
         sc->add(showScene(0, "run:run-0001"));
         if (scenario == "car-results") {
-            sc->add(post({{"id", "pathlines-a"}, {"kind", "streamlines"}, {"name", "Pathlines"},
-                          {"seed", QJsonObject{{"from", QJsonArray{-0.6, -0.7, 0.06}}, {"to", QJsonArray{-0.6, 0.7, 0.5}}, {"count", 48}}}}));
+            sc->add(post(PostKind::Streamlines,
+                         {{"name", "Pathlines"}, {"mode", "streamline"}, {"direction", "forward"},
+                          {"seeds", QJsonObject{{"type", "rake"}, {"start", QJsonArray{-0.6, -0.7, 0.06}}, {"end", QJsonArray{-0.6, 0.7, 0.5}}, {"count", 48}}},
+                          {"fields", QJsonArray{"velocity_magnitude", "pressure_coefficient"}}}));
             sc->add(layout(GraphicsArea::Layout::Quad));
             for (int i = 1; i < 4; ++i) sc->add(showScene(i, "run:run-0001"));
             sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); d.colormap = ColormapId::FluentRainbow; d.colormapFollowsRole = false; d.bands = 0; }));
@@ -341,29 +467,13 @@ int main(int argc, char** argv)
             sc->add(go("results/contours"));
         } else {
             sc->add(go("results/xy"));
-            sc->add(post({{"id", "line-a"}, {"kind", "line-probe"}, {"samples", 300}, {"from", QJsonArray{-1, 0, 0.1}}, {"to", QJsonArray{4, 0, 0.1}},
-                          {"fields", QJsonArray{"velocity_magnitude", "total_pressure_coefficient"}}}));
-            sc->add([&w, session](auto next) {
-                // Plot the probe through the same path the XY page uses.
-                QFile f(QDir(session->history().latestFinished()->dir).filePath("post/line-a/manifest.json"));
-                f.open(QIODevice::ReadOnly);
-                const QJsonObject m = QJsonDocument::fromJson(f.readAll()).object();
-                std::vector<PlotSeries> series;
-                int k = 0;
-                for (const QJsonValue& sv : m.value("series").toArray()) {
-                    PlotSeries ps;
-                    ps.name = displayLabel(FieldRef::parse(sv.toObject().value("name").toString()));
-                    for (const QJsonValue& x : sv.toObject().value("x").toArray()) ps.x.push_back(x.toDouble());
-                    for (const QJsonValue& y : sv.toObject().value("y").toArray()) ps.y.push_back(y.isDouble() ? y.toDouble() : NAN);
-                    ps.color = tokens().series[std::size_t(k++)];
-                    series.push_back(std::move(ps));
-                }
-                w.charts()->setXY("Along y = 0, z = 0.1 m · Run 1", "Distance [m]", "Value", std::move(series), {"SYNTHETIC"},
-                                  m.value("provenance").toString());
-                next();
-            });
+            // Plot through the same path the XY page uses.
+            sc->add(post(PostKind::Probe,
+                         {{"name", "XY line"}, {"type", "line"}, {"count", 300}, {"start", QJsonArray{-1, 0, 0.1}}, {"end", QJsonArray{4, 0, 0.1}},
+                          {"fields", QJsonArray{"velocity_magnitude", "total_pressure_coefficient"}}},
+                         [&w](const PostOutput& out) { w.charts()->plotProbe(out, "Along y = 0, z = 0.1 m · Run 1", -1); }));
         }
-    } else if (scenario == "car-compare" || scenario == "history") {
+    } else if (scenario == "car-compare") {
         sc->add(open(caseArg.isEmpty() ? car : caseArg));
         sc->add(approveAll);
         sc->add(runToEnd);
@@ -372,27 +482,38 @@ int main(int argc, char** argv)
             next();
         });
         sc->add(runToEnd);
-        if (scenario == "car-compare") {
-            sc->add([&w, session](auto next) {
-                QSettings().setValue("compare/a", "run-0002");
-                QSettings().setValue("compare/b", "run-0001");
-                w.graphics()->addDataset("diff:run-0002:run-0001", "Run 2 − Run 1");
-                next();
-            });
-            sc->add(layout(GraphicsArea::Layout::SideBySide));
-            sc->add(showScene(0, "run:run-0002"));
-            sc->add(showScene(1, "diff:run-0002:run-0001"));
-            sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
-            sc->add(display(1, [&](ViewDisplay& d) { d.field = field("pressure_coefficient", FieldRole::Run); }));
-            sc->add(go("runs/compare"));
-            sc->add([&w](auto next) { w.charts()->showRuns({"run-0002", "run-0001"}); next(); });
-        } else {
-            sc->add(showScene(0, "run:run-0002"));
-            sc->add(go("runs/history"));
-        }
+        sc->add([&w, session](auto next) {
+            QSettings().setValue("compare/a", "run-0002");
+            QSettings().setValue("compare/b", "run-0001");
+            w.graphics()->addDataset("diff:run-0002:run-0001", "Run 2 − Run 1");
+            next();
+        });
+        sc->add(layout(GraphicsArea::Layout::SideBySide));
+        sc->add(showScene(0, "run:run-0002"));
+        sc->add(showScene(1, "diff:run-0002:run-0001"));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
+        sc->add(display(1, [&](ViewDisplay& d) { d.field = field("pressure_coefficient", FieldRole::Run); }));
+        sc->add(go("runs/compare"));
+        sc->add([&w](auto next) { w.charts()->showRuns({"run-0002", "run-0001"}); next(); });
+    } else if (scenario == "bench") {
+        // Frame timing on the car's surfaces; KUTTA_FIXTURE_CAR_DETAIL scales
+        // the tessellation (5 gives about 10M triangles).
+        sc->add(open(caseArg.isEmpty() ? car : caseArg));
+        sc->add(approveAll);
+        sc->add(runToEnd);
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
+        sc->add([&w](auto next) { w.graphics()->panel(0)->view()->fitView(); next(); });
     } else if (scenario == "settings") {
         sc->add(open(elbowCase));
-        sc->add([&w](auto next) { w.inspector()->showSettingsFiltered("cold-inlet turb"); next(); });
+        sc->add([&w](auto next) {
+            // The page is built from the whole inventory (9,844 settings on the elbow).
+            QElapsedTimer t;
+            t.start();
+            w.inspector()->showSettingsFiltered("cold-inlet");
+            std::fprintf(stderr, "settings page: %lld ms for %zu settings\n", t.elapsed(), w.session()->settings()->settings().size());
+            next();
+        });
     }
 
     const QString shot = cli.value(shotOpt);
@@ -429,6 +550,22 @@ int main(int argc, char** argv)
                 return;
             }
             std::printf("wrote %s (%dx%d)\n", qPrintable(shot), img.width(), img.height());
+            // A GPU viewport showing a dataset must have drawn something: the
+            // smoke test relies on this to catch a blank or failed backend.
+            for (int i = 0; i < w.graphics()->visibleCount(); ++i) {
+                ViewportPanel* p = w.graphics()->panel(i);
+                if (!p->scene()) continue;
+                const QImage v = p->exportImage();
+                QSet<QRgb> colours;
+                for (int y = 0; y < v.height(); y += std::max(1, v.height() / 64))
+                    for (int x = 0; x < v.width(); x += std::max(1, v.width() / 64)) colours.insert(v.pixel(x, y));
+                std::printf("viewport %d: %lld sampled colours\n", i, qlonglong(colours.size()));
+                if (colours.size() < 16) {
+                    std::fprintf(stderr, "viewport %d rendered blank\n", i);
+                    QCoreApplication::exit(3);
+                    return;
+                }
+            }
         }
         session->stop();
         QTimer::singleShot(100, [] { QCoreApplication::exit(0); });

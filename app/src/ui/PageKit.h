@@ -19,9 +19,6 @@ inline QLabel* label(const QString& text, const QString& role = {}, QWidget* par
     if (!role.isEmpty()) l->setProperty("role", role);
     l->setWordWrap(true);
     l->setTextFormat(Qt::PlainText);
-    // Long wrapped text takes the width it is given instead of demanding one;
-    // otherwise QLabel's width heuristic can push a page wider than its panel.
-    if (text.size() > 48) l->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     return l;
 }
 

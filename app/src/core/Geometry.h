@@ -2,7 +2,7 @@
 
 // Geometry on exported view meshes: plane sections (XY plots along a wing
 // section) and surface integrals. Used by the fixture CLI and tests; the real
-// CLI owns these computations for real runs (docs/app-protocol-requests.md).
+// CLI computes these for real runs (export-view --post).
 
 #include "core/ViewFormat.h"
 
@@ -19,6 +19,10 @@ struct SectionPoint { QVector3D position; double value; };
 // field interpolated along edges (pairs: [2k], [2k+1] form one segment).
 std::vector<SectionPoint> planeSection(const MeshData& mesh, const QString& field, int component,
                                        const QVector3D& origin, const QVector3D& normal);
+
+// Join section segments that share end points into ordered curves. Closed
+// curves repeat their first point at the end.
+std::vector<std::vector<SectionPoint>> sectionCurves(const std::vector<SectionPoint>& segments, float tolerance);
 
 enum class IntegralKind { Area, Integral, AreaWeightedAverage, Minimum, Maximum };
 struct SurfaceIntegral { double area = 0; double value = 0; std::size_t samples = 0; };

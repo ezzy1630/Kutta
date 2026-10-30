@@ -5,9 +5,12 @@
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QRegularExpression>
 #include <QLocale>
 #include <QProcessEnvironment>
+#include <QRegularExpression>
+#include <QStandardPaths>
+
+#include <optional>
 
 #ifdef Q_OS_UNIX
 #include <csignal>
@@ -21,7 +24,7 @@ QString CliInfo::describe() const
                    : QStringLiteral("kutta CLI · %1").arg(QDir::toNativeSeparators(program));
 }
 
-CliInfo locateCli(const QString& explicitPath, const QString& devFixture)
+CliInfo locateCli(const QString& explicitPath, const QString& devRealCli, const QString& devFixture)
 {
     auto make = [](const QString& p) {
         CliInfo i;
@@ -33,25 +36,33 @@ CliInfo locateCli(const QString& explicitPath, const QString& devFixture)
     const QString env = qEnvironmentVariable("KUTTA_CLI");
     if (!env.isEmpty()) return make(env);
 #ifdef Q_OS_WIN
-    const QString exe = "kutta.exe";
+    const QString suffix = ".exe";
 #else
-    const QString exe = "kutta";
+    const QString suffix;
 #endif
     // Packaged builds ship the CLI in a folder of its own: the app is "Kutta"
     // and file systems on macOS and Windows ignore case, so "kutta" beside it
     // would be the app itself. macOS: Contents/Helpers; Windows: solver\.
     const QDir appDir(QCoreApplication::applicationDirPath());
     const QString self = QFileInfo(QCoreApplication::applicationFilePath()).canonicalFilePath();
-    for (const QString& rel : {QStringLiteral("../Helpers/"), QStringLiteral("solver/")}) {
-        const QFileInfo fi(appDir.filePath(rel + exe));
-        if (fi.isExecutable() && fi.canonicalFilePath() != self) return make(fi.filePath());
-    }
+    auto bundled = [&](const QString& name) -> std::optional<CliInfo> {
+        for (const QString& rel : {QStringLiteral("../Helpers/"), QStringLiteral("solver/")}) {
+            const QFileInfo fi(appDir.filePath(rel + name + suffix));
+            if (fi.isExecutable() && fi.canonicalFilePath() != self) return make(fi.filePath());
+        }
+        return std::nullopt;
+    };
+    if (auto c = bundled("kutta")) return *c;
+    if (!devRealCli.isEmpty() && QFileInfo(devRealCli).isExecutable()) return make(devRealCli);
+    if (const QString onPath = QStandardPaths::findExecutable("kutta"); !onPath.isEmpty() && QFileInfo(onPath).canonicalFilePath() != self)
+        return make(onPath);
+    if (auto c = bundled("kutta-fixture")) return *c;
     if (!devFixture.isEmpty() && QFileInfo(devFixture).isExecutable()) {
         CliInfo f = make(devFixture);
         f.fixture = true;
         return f;
     }
-    return make(exe);
+    return {};
 }
 
 QString Plane::arg() const
@@ -129,7 +140,8 @@ QStringList SolveProcess::arguments() const
     if (!m_req.backend.isEmpty()) a << "--backend" << m_req.backend;
     if (m_req.iterations > 0) a << "--iterations" << QString::number(m_req.iterations);
     if (!m_req.setupFile.isEmpty()) a << "--setup" << m_req.setupFile;
-    if (m_req.liveViewInterval > 0) a << "--live-view" << QString::number(m_req.liveViewInterval);
+    if (m_req.liveViewInterval > 0)
+        a << "--live-view" << m_req.outDir << "--live-every" << QString::number(m_req.liveViewInterval);
     a << "--out" << m_req.outDir << "--progress" << "jsonl";
     return a;
 }
@@ -234,30 +246,15 @@ void CliClient::inspect(const QString& casePath, const QString& dataPath, std::f
     });
 }
 
-void CliClient::exportView(const QString& runDir, const std::vector<Plane>& slices,
+void CliClient::exportView(const QString& runDir, const std::vector<Plane>& slices, const QString& postFile,
                            std::function<void(Result<ViewManifest>)> done)
 {
     QStringList args{"export-view", runDir};
+    if (!postFile.isEmpty()) args << "--post" << postFile;
     for (const Plane& p : slices) args << "--slice" << p.arg();
     run(args, [done, runDir](int code, const QByteArray& out, const QByteArray& err) {
         if (code != 0) return done(Result<ViewManifest>::failure(failureText(code, out, err)));
         done(loadViewManifest(QDir(runDir).filePath("view/manifest.json")));
-    });
-}
-
-void CliClient::post(const QString& runDir, const QJsonObject& request, std::function<void(Result<QJsonObject>)> done)
-{
-    const QString id = request.value("id").toString();
-    const QString reqPath = QDir(runDir).filePath(QStringLiteral("post-request-%1.json").arg(id));
-    QFile f(reqPath);
-    if (!f.open(QIODevice::WriteOnly)) return done(Result<QJsonObject>::failure("cannot write " + reqPath));
-    f.write(QJsonDocument(QJsonObject{{"v", 1}, {"items", QJsonArray{request}}}).toJson(QJsonDocument::Compact));
-    f.close();
-    run({"post", runDir, "--request", reqPath}, [done, runDir, id](int code, const QByteArray& out, const QByteArray& err) {
-        if (code != 0) return done(Result<QJsonObject>::failure(failureText(code, out, err)));
-        QFile m(QDir(runDir).filePath(QStringLiteral("post/%1/manifest.json").arg(id)));
-        if (!m.open(QIODevice::ReadOnly)) return done(Result<QJsonObject>::failure("post-processing wrote no manifest"));
-        done(jsonObject(m.readAll()));
     });
 }
 
