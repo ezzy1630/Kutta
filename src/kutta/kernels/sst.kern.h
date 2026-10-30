@@ -208,8 +208,11 @@ KUTTA_KERNEL void sst_sources(int i,
   k_sink[i] = r * beta_star * w;
   // Patankar linearization: negative CDkw becomes an implicit sink;
   // positive CDkw stays on the RHS. Both coefficients remain nonnegative.
-  omega_source[i] = pw + kmax(cross, 0.0f);
-  omega_sink[i] = r * sst_beta(f1[i]) * w + sst_finite_ratio(kmax(-cross, 0.0f), w);
+  // Newton linearization of -rho*beta*omega^2 about w: the matching
+  // +rho*beta*w^2 RHS preserves the nonlinear steady source exactly.
+  float destruction = r * sst_beta(f1[i]) * w;
+  omega_source[i] = pw + kmax(cross, 0.0f) + destruction*w;
+  omega_sink[i] = 2.0f*destruction + sst_finite_ratio(kmax(-cross, 0.0f), w);
   production_k[i] = pk;
 }
 

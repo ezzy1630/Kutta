@@ -59,3 +59,27 @@ KUTTA_KERNEL void fv_scale_gradient(int i,KIn(float) gx,KIn(float) gy,KIn(float)
     KIn(float) limiter,KOut(float) x,KOut(float) y,KOut(float) z) {
   x[i]=limiter[i]*gx[i];y[i]=limiter[i]*gy[i];z[i]=limiter[i]*gz[i];
 }
+
+// Single pass only: iterating this correction feeds jumps back into themselves.
+KUTTA_KERNEL void fv_jump_gradient(int i,KIn(int) offsets,KIn(int) faces,KIn(int) adjacent,KIn(float) sign,
+    KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) inverse,
+    KIn(float) rx,KIn(float) ry,KIn(float) rz,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) cell,KIn(float) boundary,KIn(float) gx,KIn(float) gy,KIn(float) gz,
+    KOut(float) x,KOut(float) y,KOut(float) z,int n) {
+  float bx=0.0f,by=0.0f,bz=0.0f;
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int f=faces[j],other=adjacent[j];
+    float own=cell[i]+gx[i]*rx[j]+gy[i]*ry[j]+gz[i]*rz[j];
+    float next=0.0f;
+    if(other<0) next=boundary[-other-1];
+    else {
+      float a=sign[j]>0.0f?nx[f]:px[f],b=sign[j]>0.0f?ny[f]:py[f],c=sign[j]>0.0f?nz[f]:pz[f];
+      next=cell[other]+gx[other]*a+gy[other]*b+gz[other]*c;
+    }
+    float jump=next-own;bx+=dx[j]*jump;by+=dy[j]*jump;bz+=dz[j]*jump;
+  }
+  x[i]=gx[i]+0.5f*(inverse[i]*bx+inverse[i+n]*by+inverse[i+2*n]*bz);
+  y[i]=gy[i]+0.5f*(inverse[i+n]*bx+inverse[i+3*n]*by+inverse[i+4*n]*bz);
+  z[i]=gz[i]+0.5f*(inverse[i+2*n]*bx+inverse[i+4*n]*by+inverse[i+5*n]*bz);
+}

@@ -36,6 +36,14 @@ void vector_gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
     const BoundaryLeastSquares& lsq,const DeviceVec3& cell,const DeviceVec3& boundary,
     DeviceVec3& u,DeviceVec3& v,DeviceVec3& w);
 
+// Face-centroid rows (1/|r_f|^2) fit the difference between the two side
+// reconstructions. This derivative correction is separate from convection.
+BoundaryLeastSquares face_jump_least_squares(Device& dev,const PolyMesh& mesh,
+    const MeshGeometry& geometry);
+void jump_corrected_gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
+    const BoundaryLeastSquares& fit,const Buffer<float>& cell,const Buffer<float>& boundary,
+    const DeviceVec3& base,DeviceVec3& result);
+
 // Boundary entries are actual face values, including extrapolated Neumann data.
 // LSQ uses inverse-distance-squared weights and includes boundary faces.
 void gradient(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,

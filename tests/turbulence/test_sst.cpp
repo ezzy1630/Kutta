@@ -27,13 +27,13 @@ TEST_CASE("SST constants, F1/F2 limits, signed cross diffusion and implicit sink
     CHECK(near(first(*dev,f.diffusivity_k),.001+.5/1.176));
     CHECK(near(first(*dev,f.diffusivity_omega),.001+.5/2));
     CHECK(near(first(*dev,f.k_sink),.18));
-    CHECK(near(first(*dev,f.omega_sink),.15));
+    CHECK(near(first(*dev,f.omega_sink),.30));
     dev->fill(m.wall_distance,1e6f);
     model.update(s.inputs());
     CHECK(first(*dev,f.f1) < 1e-18); CHECK(first(*dev,f.f2) < 1e-8);
     CHECK(near(first(*dev,f.diffusivity_k),.501));
     CHECK(near(first(*dev,f.diffusivity_omega),.001+.5/1.168));
-    CHECK(near(first(*dev,f.omega_sink),.1656));
+    CHECK(near(first(*dev,f.omega_sink),.3312));
     // A negative gradient dot product must not be replaced by CDkw's F1 floor.
     dev->fill(m.wall_distance,2); dev->fill(s.k,.1f);
     dev->fill(s.gk.x,1); dev->fill(s.go.x,-1);
@@ -43,12 +43,13 @@ TEST_CASE("SST constants, F1/F2 limits, signed cross diffusion and implicit sink
     const auto expected_f1 = std::tanh(std::pow(a,4));
     CHECK(near(first(*dev,f.f1),expected_f1));
     CHECK(near(first(*dev,f.cdkw),cd));
-    CHECK(first(*dev,f.k_source) == 0); CHECK(first(*dev,f.omega_source) == 0);
-    CHECK(near(-2*first(*dev,f.omega_sink),
+    CHECK(first(*dev,f.k_source) == 0);
+    CHECK(near(first(*dev,f.omega_source),(.075*expected_f1+.0828*(1-expected_f1))*4));
+    CHECK(near(first(*dev,f.omega_source)-2*first(*dev,f.omega_sink),
       -(.075*expected_f1+.0828*(1-expected_f1))*4 + (1-expected_f1)*cd));
     dev->fill(s.go.x,1); model.update(s.inputs());
     CHECK(first(*dev,f.cdkw) > 0);
-    CHECK(near(first(*dev,f.omega_source),(1-first(*dev,f.f1))/1.168));
+    CHECK(near(first(*dev,f.omega_source),(1-first(*dev,f.f1))/1.168+(.075*first(*dev,f.f1)+.0828*(1-first(*dev,f.f1)))*4));
   }
 }
 
@@ -64,11 +65,11 @@ TEST_CASE("SST production switches, viscosity limiter and gamma choices") {
       const auto raw = mt*1e8;
       CHECK(near(first(*dev,f.strain),10000)); CHECK(first(*dev,f.vorticity) == 0);
       CHECK(near(first(*dev,f.k_source),limiter ? 1.8 : raw));
-      CHECK(near(first(*dev,f.omega_source),gamma1994(f1)*(limiter && limit_w ? 1.8 : raw)/mt));
+      CHECK(near(first(*dev,f.omega_source),gamma1994(f1)*(limiter && limit_w ? 1.8 : raw)/mt+(.075*f1+.0828*(1-f1))*4));
       o.gamma_set = SstGammaSet::Menter2003;
       SstModel alt(*dev,m,o); alt.update(s.inputs());
       CHECK(near(first(*dev,alt.fields().omega_source),
-        (f1*5/9+(1-f1)*.44)*(limiter && limit_w ? 1.8 : raw)/mt));
+        (f1*5/9+(1-f1)*.44)*(limiter && limit_w ? 1.8 : raw)/mt+(.075*f1+.0828*(1-f1))*4));
       o.gamma_set = SstGammaSet::Computed1994;
     }
     o.production_limiter = false; o.kato_launder = true;
@@ -100,7 +101,7 @@ TEST_CASE("SST optional low-Re coefficients and explicit floors") {
     SstModel model(*dev,m,o); model.update(s.inputs()); const auto& f = model.fields();
     CHECK(near(first(*dev,f.mu_t),.024e-8));
     CHECK(near(first(*dev,f.k_sink),.024));
-    CHECK(near(first(*dev,f.omega_source),gamma1994(first(*dev,f.f1))/9));
+    CHECK(near(first(*dev,f.omega_source),gamma1994(first(*dev,f.f1))/9+(.075*first(*dev,f.f1)+.0828*(1-first(*dev,f.f1)))));
     // Test floors through the actual update path, without repairing input arrays.
     dev->fill(s.k,-1); dev->fill(s.omega,0);
     o.low_re = false; o.k_floor = 1e-6f; o.omega_floor = 1e-4f;
@@ -286,8 +287,8 @@ TEST_CASE("SST floor cross-diffusion overflow probe remains finite") {
             const double beta = .075*first(*dev,model.fields().f1)+.0828*(1-first(*dev,model.fields().f1));
             const double bound = o.cross_diffusion_clip*beta*we*we;
             const double cross = std::min((1-first(*dev,model.fields().f1))*std::abs(first(*dev,model.fields().cdkw)),bound);
-            if (sign > 0) CHECK(near(first(*dev,model.fields().omega_source)/bound,cross/bound));
-            else CHECK(near(first(*dev,model.fields().omega_sink),beta*we+cross/we));
+            if (sign > 0) CHECK(near(first(*dev,model.fields().omega_source)/bound,(cross+beta*we*we)/bound));
+            else CHECK(near(first(*dev,model.fields().omega_sink),2*beta*we+cross/we));
           }
         }
     }
@@ -337,8 +338,8 @@ TEST_CASE("SST signed cross-diffusion clip scales with omega destruction") {
       const double raw = (1-f1)*sign/1.168;
       const double cross = clip ? std::clamp(raw,-o.cross_diffusion_clip*beta*4,o.cross_diffusion_clip*beta*4) : raw;
       CHECK(near(first(*dev,f.cdkw),sign/1.168)); // F1 diagnostic is not physically clipped
-      CHECK(near(first(*dev,f.omega_source),std::max(cross,0.)));
-      CHECK(near(first(*dev,f.omega_sink),beta*2+std::max(-cross,0.)/2));
+      CHECK(near(first(*dev,f.omega_source),std::max(cross,0.)+beta*4));
+      CHECK(near(first(*dev,f.omega_sink),beta*4+std::max(-cross,0.)/2));
     }
   }
 }
@@ -371,8 +372,8 @@ TEST_CASE("SST F1 cross branch and transport match an independent double oracle"
       CHECK(near(first(*dev,f.cdkw),cd)); CHECK(near(first(*dev,f.cdkw),2*r*.856*dot/w,3e-4));
       CHECK(near(first(*dev,f.mu_t),mt));
       CHECK(near(first(*dev,f.k_source),pk)); CHECK(near(first(*dev,f.k_sink),r*.09*w));
-      CHECK(near(first(*dev,f.omega_source),gamma1994(f1)*r*pk/mt+std::max(cross,0.)));
-      CHECK(near(first(*dev,f.omega_sink),r*beta*w+std::max(-cross,0.)/w));
+      CHECK(near(first(*dev,f.omega_source),gamma1994(f1)*r*pk/mt+std::max(cross,0.)+r*beta*w*w));
+      CHECK(near(first(*dev,f.omega_sink),2*r*beta*w+std::max(-cross,0.)/w));
     }
   }
 }

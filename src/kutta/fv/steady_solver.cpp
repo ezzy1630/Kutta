@@ -54,7 +54,8 @@ struct SteadySolver::Impl {
   SolverSettings settings;
   DeviceMesh mesh;
   Stencil stencil;
-  BoundaryLeastSquares velocity_lsq,pressure_lsq,k_lsq,omega_lsq;
+  BoundaryLeastSquares velocity_lsq,pressure_lsq,k_lsq,omega_lsq,strain_lsq,jump_fit;
+  DeviceVec3 strain_base[3],strain_gradient[3];
   MeshPermutation permutation;
   std::unique_ptr<SstModel> sst;
   std::unique_ptr<TransportEquation> k_equation,omega_equation;
@@ -162,6 +163,11 @@ struct SteadySolver::Impl {
     velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity);
     pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure);
     if(settings.sst) {
+      std::vector<Index> strain_rows(nb);
+      for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0;
+      strain_lsq=boundary_least_squares(dev,host,geom,strain_rows);
+      jump_fit=face_jump_least_squares(dev,host,geom);
+      for(int k=0;k<3;++k) {strain_base[k]=vector_field(dev,n);strain_gradient[k]=vector_field(dev,n);}
       const auto& t=*settings.sst;
       KUTTA_REQUIRE(t.k_relaxation>0 && t.k_relaxation<=1 && t.omega_relaxation>0 && t.omega_relaxation<=1,"FV invalid SST relaxation");
       k_lsq=boundary_least_squares(dev,host,geom,independent_k);
@@ -239,13 +245,17 @@ struct SteadySolver::Impl {
       mesh.n_internal_faces,float(settings.density),float(settings.viscosity));
   }
   void evaluate_turbulence() {
-    sst->update({velocity,{momentum[0]->grad,momentum[1]->grad,momentum[2]->grad},rho_cell,mu_cell,
+    sst->update({velocity,{strain_gradient[0],strain_gradient[1],strain_gradient[2]},rho_cell,mu_cell,
       kinetic,omega,k_equation->grad,omega_equation->grad,boundary_velocity});
   }
   void update_turbulence() {
     if(!sst) return;
-    vector_gradient(dev,mesh,stencil,velocity_lsq,velocity,boundary_velocity,
-      momentum[0]->grad,momentum[1]->grad,momentum[2]->grad);
+    vector_gradient(dev,mesh,stencil,strain_lsq,velocity,boundary_velocity,
+      strain_base[0],strain_base[1],strain_base[2]);
+    const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+    const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+    for(int k=0;k<3;++k)
+      jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],strain_base[k],strain_gradient[k]);
     evaluate_turbulence(); // bootstrap gradient-independent wall-face omega
     turbulence_boundaries();
     gradient(dev,mesh,stencil,k_lsq,kinetic,boundary_k,k_equation->grad);
@@ -256,6 +266,7 @@ struct SteadySolver::Impl {
   }
   void add_transpose_stress() {
     if(!sst) return;
+    reconstruct_velocity();
     const auto& u=momentum[0]->grad;const auto& v=momentum[1]->grad;const auto& w=momentum[2]->grad;
     kern::fv_transpose_stress(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,mesh.weight,viscosity,
       mesh.area.x,mesh.area.y,mesh.area.z,u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,

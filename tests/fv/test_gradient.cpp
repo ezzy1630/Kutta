@@ -134,3 +134,41 @@ TEST_CASE("FV extrapolated boundaries cannot preserve seeded null-space gradient
     CHECK(dev->max_abs(grad.z,m.n_cells)==0);
   }
 }
+
+TEST_CASE("FV jump derivative satisfies independent face-row normal equations") {
+  using namespace kutta::detail;
+  auto mesh=make_box_tet(3,2,2,{0,0,0},{1,1,1});const auto geom=compute_geometry(mesh);
+  const auto cf=build_cell_faces(mesh);
+  const auto value=[](Vec3d p) {return p.x*p.x+.3*p.y*p.z;};
+  std::vector<float> cell,boundary;std::vector<Vec3d> base;
+  for(auto p:geom.cell_centroid) {cell.push_back(float(value(p)));base.push_back({2*p.x,.3*p.z,.3*p.y});}
+  for(Index f=mesh.n_internal_faces();f<mesh.n_faces();++f) boundary.push_back(float(value(geom.face_centroid[f])));
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=upload_mesh(*dev,mesh,geom);auto stencil=fv::make_stencil(*dev,mesh,geom);
+    auto fit=fv::face_jump_least_squares(*dev,mesh,geom);
+    auto q=dev->upload<float>(cell),bc=dev->upload<float>(boundary);
+    auto g=fv::vector_field(*dev,mesh.n_cells),out=fv::vector_field(*dev,mesh.n_cells);
+    std::vector<float> gx,gy,gz;
+    for(auto v:base) {gx.push_back(float(v.x));gy.push_back(float(v.y));gz.push_back(float(v.z));}
+    dev->upload<float>(g.x,gx);dev->upload<float>(g.y,gy);dev->upload<float>(g.z,gz);
+    fv::jump_corrected_gradient(*dev,m,stencil,fit,q,bc,g,out);
+    auto x=dev->download(out.x),y=dev->download(out.y),z=dev->download(out.z);
+    double nonzero=0;
+    for(Index c=0;c<mesh.n_cells;++c) {
+      Vec3d lhs{},rhs{};const Vec3d correction{x[c]-gx[c],y[c]-gy[c],z[c]-gz[c]};
+      for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
+        const auto f=cf.faces[j];const auto r=geom.face_centroid[f]-geom.cell_centroid[c];
+        const Vec3d gc{gx[c],gy[c],gz[c]};const double own=cell[c]+dot(gc,r);
+        double next=boundary[0];
+        if(f<mesh.n_internal_faces()) {
+          const auto n=mesh.owner[f]==c?mesh.neighbour[f]:mesh.owner[f];
+          next=cell[n]+dot(Vec3d{gx[n],gy[n],gz[n]},geom.face_centroid[f]-geom.cell_centroid[n]);
+        } else next=boundary[f-mesh.n_internal_faces()];
+        lhs=lhs+r*(dot(r,correction)/dot(r,r));rhs=rhs+r*(.5*(next-own)/dot(r,r));
+      }
+      nonzero+=norm(correction);
+      CHECK(norm(lhs-rhs)<3e-6);
+    }
+    CHECK(nonzero>.01);
+  }
+}

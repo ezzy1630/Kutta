@@ -146,7 +146,7 @@ FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
   model.max_viscosity_ratio=float(number(c.variables,"turb-viscosity/max-limit"));
   model.cross_diffusion_clip=float(number(c.variables,"sst-limit-cross-diff-to-n-times-w-destruct"));
   require(flag(c.variables,"sst-linearize-neg-cross-diff?"),"sst-linearize-neg-cross-diff?");
-  out.convergence_notes.push_back("kw-dissipation-newton?: Picard implicit destruction replaces Newton linearization; same source zero");
+  out.convergence_notes.push_back("kw-dissipation-newton?: Newton implicit destruction with matching RHS correction");
   const std::set<std::string> handled{"rp/turbulence/wall-omega-treatment","rp/kw-dissipation-newton?",
     "rp/kw-wall-omega-treatment-r13?","rp/sst-des-iddes-simplify_omit_fe?","rp/sst-linearize-neg-cross-diff?"};
   for(const auto& issue:c.issues) if(issue.classification==IssueClass::unsupported)

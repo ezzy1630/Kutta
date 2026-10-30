@@ -124,6 +124,36 @@ BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
   return {vectors(dev,delta),dev.upload<float>(inverse)};
 }
 
+BoundaryLeastSquares face_jump_least_squares(Device& dev,const PolyMesh& m,const MeshGeometry& g) {
+  const auto cf=build_cell_faces(m);std::vector<Vec3d> delta;
+  std::vector<float> inverse(6*m.n_cells);
+  for(Index c=0;c<m.n_cells;++c) {
+    std::array<double,6> a{};
+    for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
+      const auto r=g.face_centroid[cf.faces[j]]-g.cell_centroid[c];const double w=1/dot(r,r);
+      delta.push_back(r*w);
+      a[0]+=w*r.x*r.x;a[1]+=w*r.x*r.y;a[2]+=w*r.x*r.z;
+      a[3]+=w*r.y*r.y;a[4]+=w*r.y*r.z;a[5]+=w*r.z*r.z;
+    }
+    const double det=a[0]*(a[3]*a[5]-a[4]*a[4])-a[1]*(a[1]*a[5]-a[4]*a[2])+a[2]*(a[1]*a[4]-a[3]*a[2]);
+    KUTTA_REQUIRE(det>1e-14,"FV face-jump fit is rank deficient");
+    const std::array<double,6> inv{(a[3]*a[5]-a[4]*a[4])/det,(a[2]*a[4]-a[1]*a[5])/det,
+      (a[1]*a[4]-a[2]*a[3])/det,(a[0]*a[5]-a[2]*a[2])/det,
+      (a[1]*a[2]-a[0]*a[4])/det,(a[0]*a[3]-a[1]*a[1])/det};
+    for(int k=0;k<6;++k) inverse[c+k*m.n_cells]=float(inv[k]);
+  }
+  return {vectors(dev,delta),dev.upload<float>(inverse)};
+}
+void jump_corrected_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
+    const BoundaryLeastSquares& fit,const Buffer<float>& cell,const Buffer<float>& bc,
+    const DeviceVec3& base,DeviceVec3& out) {
+  kern::fv_jump_gradient(dev,m.n_cells,m.cell_face_offsets,m.cell_faces,s.adjacent,m.cell_face_sign,
+    fit.delta.x,fit.delta.y,fit.delta.z,fit.inverse,s.face_delta.x,s.face_delta.y,s.face_delta.z,
+    m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
+    m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
+    cell,bc,base.x,base.y,base.z,out.x,out.y,out.z,m.n_cells);
+}
+
 void gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
     const BoundaryLeastSquares& lsq,const Buffer<float>& cell,
     const Buffer<float>& bc,DeviceVec3& out) {
