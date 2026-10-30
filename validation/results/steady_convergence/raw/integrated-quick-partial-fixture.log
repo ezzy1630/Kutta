@@ -1,0 +1,9 @@
+Test project CHECKOUT/build-integrated
+    Start 1: kutta-tests
+1/2 Test #1: kutta-tests ......................   Passed   14.58 sec
+    Start 3: lint-portability
+2/2 Test #3: lint-portability .................   Passed    0.26 sec
+
+100% tests passed out of 2
+
+Total Test time (real) =  14.84 sec

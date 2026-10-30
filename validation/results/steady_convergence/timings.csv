@@ -1,0 +1,61 @@
+case,phase,backend,mode,level,cells,iterations_observed,seconds_observed,converged,seconds_to_convergence,continuity_at_stop
+V6_RESULT,baseline,cpu,seeded,,,350.0,37.10387158,True,37.10387158,
+V6_RESULT,baseline,cpu,cold-hybrid,,,550.0,57.92471742,True,57.92471742,
+V6_RESULT,baseline,metal,seeded,,,350.0,9.436514416,True,9.436514416,
+V6_RESULT,baseline,metal,cold-hybrid,,,550.0,13.44195921,True,13.44195921,
+V5 plate,baseline,cpu,,,816.0,3000.0,8.327976959,False,,0.00173634001982
+V5 plate,baseline,cpu,,,3264.0,3000.0,35.697105084,False,,0.00907996187589
+V5 plate,baseline,cpu,,,13056.0,3000.0,191.950730375,False,,0.0570495343642
+V5 plate,baseline,metal,,,816.0,3000.0,94.461517958,False,,0.000637564649602
+V5 plate,baseline,metal,,,3264.0,3000.0,99.029546666,False,,0.0164152644324
+V5 plate,baseline,metal,,,13056.0,3000.0,118.411374083,False,,0.0360507615787
+V5 bump measurement,baseline,cpu,,,3520.0,3000.0,36.500483208,False,,0.000138390837198
+V5 bump measurement,baseline,cpu,,,14080.0,3000.0,223.936493125,False,,5.30218716855e-05
+V5 bump measurement,baseline,cpu,,,56320.0,2000.0,604.136304583,False,,6.59839569928e-05
+V5 bump measurement,baseline,metal,,,3520.0,3000.0,171.144745959,False,,0.000226105635742
+V5 bump measurement,baseline,metal,,,14080.0,3000.0,152.881270541,False,,0.000348645582521
+V5 bump measurement,baseline,metal,,,56320.0,3000.0,151.543920625,False,,8.31387105515e-05
+V7 SA plate,baseline,cpu,,0.0,816.0,3000.0,5.653422667,False,,0.0125831548079
+V7 SA plate,baseline,cpu,,1.0,3264.0,3000.0,31.776480167,False,,0.00912908946308
+V7 SA plate,baseline,cpu,,2.0,13056.0,3000.0,180.579969166,False,,0.0222903342265
+V7 SA plate,baseline,metal,,0.0,816.0,3000.0,32.87591725,False,,0.0121979509251
+V7 SA plate,baseline,metal,,1.0,3264.0,3000.0,59.537335125,False,,0.00638050081936
+V7 SA plate,baseline,metal,,2.0,13056.0,3000.0,80.797944083,False,,0.0251022276804
+V7 SA bump,baseline,cpu,,0.0,3520.0,3000.0,33.629639458,False,,4.50814473866e-05
+V7 SA bump,baseline,cpu,,1.0,14080.0,3000.0,169.840648208,False,,0.000286564176603
+V7 SA bump,baseline,cpu,,2.0,56320.0,2500.0,623.76074925,False,,0.000118702608476
+V7 SA bump,baseline,metal,,0.0,3520.0,3000.0,61.954632834,False,,8.30220510178e-05
+V7 SA bump,baseline,metal,,1.0,14080.0,3000.0,82.905428792,False,,0.000269128840443
+V7 SA bump,baseline,metal,,2.0,56320.0,3000.0,98.054135667,False,,0.000249188801186
+V6_RESULT,final,cpu,seeded,,,350.0,36.63644971,True,36.63644971,
+V6_RESULT,final,cpu,cold-hybrid,,,550.0,55.81141817,True,55.81141817,
+V6_RESULT,final,metal,seeded,,,350.0,10.12234683,True,10.12234683,
+V6_RESULT,final,metal,cold-hybrid,,,550.0,14.29117529,True,14.29117529,
+V5 plate,final,cpu,,,816.0,3000.0,8.362255542,False,,0.00173634001982
+V5 plate,final,cpu,,,3264.0,3000.0,34.223790625,False,,0.00907996187589
+V5 plate,final,cpu,,,13056.0,3000.0,202.824088541,False,,0.0570495343642
+V5 plate,final,metal,,,816.0,3000.0,90.559023333,False,,0.000637564649602
+V5 plate,final,metal,,,3264.0,3000.0,98.910490958,False,,0.0164152644324
+V5 plate,final,metal,,,13056.0,3000.0,113.831677709,False,,0.0360507615787
+V5 bump measurement,final,cpu,,,3520.0,3000.0,37.194716083,False,,0.000138390837198
+V5 bump measurement,final,cpu,,,14080.0,3000.0,204.92358425,False,,5.30218716855e-05
+V5 bump measurement,final,cpu,,,56320.0,2300.0,623.8205405,False,,0.000224860009159
+V5 bump measurement,final,metal,,,3520.0,3000.0,78.004272209,False,,0.000226105635742
+V5 bump measurement,final,metal,,,14080.0,3000.0,121.300765542,False,,0.000348645582521
+V5 bump measurement,final,metal,,,56320.0,3000.0,133.22998975,False,,8.31387105515e-05
+V7 SA plate,final,cpu,,0.0,816.0,3000.0,6.7171315,False,,0.00087162186542
+V7 SA plate,final,cpu,,1.0,3264.0,3000.0,30.936743375,False,,0.0105520634652
+V7 SA plate,final,cpu,,2.0,13056.0,3000.0,175.826955375,False,,0.0511516841311
+V7 SA plate,final,metal,,0.0,816.0,3000.0,56.058493833,False,,0.0025428894373
+V7 SA plate,final,metal,,1.0,3264.0,3000.0,70.689660417,False,,0.00742045574555
+V7 SA plate,final,metal,,2.0,13056.0,3000.0,100.032299458,False,,0.0393552481062
+V7 SA bump,final,cpu,,0.0,3520.0,3000.0,31.073908333,False,,0.000171593599123
+V7 SA bump,final,cpu,,1.0,14080.0,3000.0,174.062675667,False,,0.000212883279425
+V7 SA bump,final,cpu,,2.0,56320.0,2700.0,607.931951541,False,,0.000621804525191
+V7 SA bump,final,metal,,0.0,3520.0,3000.0,59.3472455,False,,2.37260373716e-05
+V7 SA bump,final,metal,,1.0,14080.0,3000.0,84.691196875,False,,0.000187377548166
+V7 SA bump,final,metal,,2.0,56320.0,3000.0,96.840136166,False,,9.2925668309e-05
+million_cell_channel,before,cpu,,,983040,160.0,603.356090625,False,,0.210432779546
+million_cell_channel,before,metal,,,983040,3000.0,339.502512167,False,,12709511.2173
+million_cell_channel,after,cpu,,,983040,200.0,649.260053042,False,,0.191119704147
+million_cell_channel,after,metal,,,983040,3000.0,342.85366325,False,,12709511.2173

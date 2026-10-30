@@ -1,0 +1,19 @@
+{
+  "source": "FLUENT_EXAMPLES",
+  "created": [],
+  "existing_identical": [
+    "2d_box/pro_species.cas",
+    "aero/wing.msh.h5",
+    "box/poly.msh.h5",
+    "file_session/elbow1.cas.h5",
+    "file_session/elbow1.dat.h5",
+    "flow_over_cylinder/flow_over_cylinder.msh",
+    "lid_driven_cavity/lid_driven_cavity.msh",
+    "mixing_elbow/mixing_elbow.cas.h5",
+    "mixing_elbow/mixing_elbow.dat.h5",
+    "simple_duct/simple-duct.msh.h5",
+    "static_mixer/Static_Mixer_Parameters.cas.h5",
+    "static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+    "static_mixer/Static_Mixer_Parameters_legacy_text.cas"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "source": "FLUENT_EXAMPLES",
+  "created_ignored_symlinks": [
+    "validation/fluent_examples/aero/wing.msh.h5",
+    "validation/fluent_examples/box/poly.msh.h5",
+    "validation/fluent_examples/file_session/elbow1.cas.h5",
+    "validation/fluent_examples/file_session/elbow1.dat.h5",
+    "validation/fluent_examples/flow_over_cylinder/flow_over_cylinder.msh",
+    "validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5",
+    "validation/fluent_examples/mixing_elbow/mixing_elbow.dat.h5",
+    "validation/fluent_examples/static_mixer/Static_Mixer_Parameters.cas.h5",
+    "validation/fluent_examples/static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+    "validation/fluent_examples/static_mixer/Static_Mixer_Parameters_legacy_text.cas"
+  ],
+  "existing_identical_files": [
+    "validation/fluent_examples/2d_box/pro_species.cas",
+    "validation/fluent_examples/lid_driven_cavity/lid_driven_cavity.msh",
+    "validation/fluent_examples/simple_duct/simple-duct.msh.h5"
+  ]
+}

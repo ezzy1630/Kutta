@@ -1,0 +1,74 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+CHECKOUT/tests/turbulence/test_sa.cpp:17:
+TEST CASE:  SA transport coefficients match independent double equations and backend oracle
+
+CHECKOUT/tests/turbulence/test_sa.cpp:55: ERROR: CHECK( near(source[i],(growth+implicit)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+CHECKOUT/tests/turbulence/test_sa.cpp:56: ERROR: CHECK( near(sink[i],implicit) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+CHECKOUT/tests/turbulence/test_sa.cpp:55: ERROR: CHECK( near(source[i],(growth+implicit)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+CHECKOUT/tests/turbulence/test_sa.cpp:56: ERROR: CHECK( near(sink[i],implicit) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+CHECKOUT/tests/turbulence/test_sa.cpp:55: ERROR: CHECK( near(source[i],(growth+implicit)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+CHECKOUT/tests/turbulence/test_sa.cpp:56: ERROR: CHECK( near(sink[i],implicit) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+CHECKOUT/tests/turbulence/test_sa.cpp:55: ERROR: CHECK( near(source[i],(growth+implicit)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+CHECKOUT/tests/turbulence/test_sa.cpp:56: ERROR: CHECK( near(sink[i],implicit) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+CHECKOUT/tests/turbulence/test_sa.cpp:55: ERROR: CHECK( near(source[i],(growth+implicit)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+CHECKOUT/tests/turbulence/test_sa.cpp:56: ERROR: CHECK( near(sink[i],implicit) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+CHECKOUT/tests/turbulence/test_sa.cpp:55: ERROR: CHECK( near(source[i],(growth+implicit)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+CHECKOUT/tests/turbulence/test_sa.cpp:56: ERROR: CHECK( near(sink[i],implicit) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+CHECKOUT/tests/turbulence/test_sa.cpp:55: ERROR: CHECK( near(source[i],(growth+implicit)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+CHECKOUT/tests/turbulence/test_sa.cpp:56: ERROR: CHECK( near(sink[i],implicit) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+CHECKOUT/tests/turbulence/test_sa.cpp:55: ERROR: CHECK( near(source[i],(growth+implicit)*v+o.cb2/o.sigma*double(float(.1))*double(float(.1))) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+CHECKOUT/tests/turbulence/test_sa.cpp:56: ERROR: CHECK( near(sink[i],implicit) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+===============================================================================
+[doctest] test cases:   1 |   0 passed |  1 failed | 2 skipped
+[doctest] assertions: 306 | 290 passed | 16 failed |
+[doctest] Status: FAILURE!

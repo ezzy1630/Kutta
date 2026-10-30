@@ -1,0 +1,2996 @@
+{
+  "full_task_accepted": false,
+  "gate_protocol_changed": false,
+  "runs": [
+    {
+      "backend": "cpu",
+      "mode": "seeded",
+      "iterations": 350.0,
+      "seconds": 37.10387158,
+      "converged": 1.0,
+      "phase": "baseline",
+      "record": "V6_RESULT"
+    },
+    {
+      "backend": "cpu",
+      "mode": "cold-hybrid",
+      "iterations": 550.0,
+      "seconds": 57.92471742,
+      "converged": 1.0,
+      "phase": "baseline",
+      "record": "V6_RESULT"
+    },
+    {
+      "backend": "metal",
+      "mode": "seeded",
+      "iterations": 350.0,
+      "seconds": 9.436514416,
+      "converged": 1.0,
+      "phase": "baseline",
+      "record": "V6_RESULT"
+    },
+    {
+      "backend": "metal",
+      "mode": "cold-hybrid",
+      "iterations": 550.0,
+      "seconds": 13.44195921,
+      "converged": 1.0,
+      "phase": "baseline",
+      "record": "V6_RESULT"
+    },
+    {
+      "backend": "cpu",
+      "cells": 816.0,
+      "iterations": 3000.0,
+      "seconds": 8.327976959,
+      "setup_s": 0.009693458,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 2.95137998763e-07,
+      "error": 0.0164760006597,
+      "cf": [
+        0.00264910030273
+      ],
+      "drag": 0.00280631260239,
+      "continuity": 0.00173634001982,
+      "continuity_raw": 3.17990472775e-07,
+      "corrected_mass": 9.88571560723e-09,
+      "ru": 9.76762667232e-08,
+      "rv": 3.92992637313e-08,
+      "rk": 1.27630287738e-07,
+      "rw": 3.13492724566e-08,
+      "phase": "baseline",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "cpu",
+      "cells": 3264.0,
+      "iterations": 3000.0,
+      "seconds": 35.697105084,
+      "setup_s": 0.038298209,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 4.56134075298e-08,
+      "error": 0.00166393569439,
+      "cf": [
+        0.00269533095727
+      ],
+      "drag": 0.00285632812904,
+      "continuity": 0.00907996187589,
+      "continuity_raw": 2.48348638704e-07,
+      "corrected_mass": 2.4762578486e-08,
+      "ru": 1.00619693719e-07,
+      "rv": 4.47023226633e-08,
+      "rk": 8.32637206941e-08,
+      "rw": 3.76690180291e-08,
+      "phase": "baseline",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "cpu",
+      "cells": 13056.0,
+      "iterations": 3000.0,
+      "seconds": 191.950730375,
+      "setup_s": 0.167119334,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 9.86954823358e-07,
+      "error": 0.00851677770948,
+      "cf": [
+        0.00271377095153
+      ],
+      "drag": 0.00287685789147,
+      "continuity": 0.0570495343642,
+      "continuity_raw": 2.49495435595e-07,
+      "corrected_mass": 4.92580515362e-08,
+      "ru": 7.88428910224e-08,
+      "rv": 1.80354327388e-08,
+      "rk": 5.60054965529e-08,
+      "rw": 3.784604864e-08,
+      "phase": "baseline",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "metal",
+      "cells": 816.0,
+      "iterations": 3000.0,
+      "seconds": 94.461517958,
+      "setup_s": 0.020274708,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 1.35769067106e-07,
+      "error": 0.016476102261,
+      "cf": [
+        0.00264909932973
+      ],
+      "drag": 0.00280631231249,
+      "continuity": 0.000637564649602,
+      "continuity_raw": 1.16766163778e-07,
+      "corrected_mass": 9.07928754228e-09,
+      "ru": 9.18038502401e-08,
+      "rv": 2.7083746555e-08,
+      "rk": 1.19123583664e-07,
+      "rw": 3.12188930922e-08,
+      "phase": "baseline",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "metal",
+      "cells": 3264.0,
+      "iterations": 3000.0,
+      "seconds": 99.029546666,
+      "setup_s": 0.042251167,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 3.59256793261e-08,
+      "error": 0.00166397653177,
+      "cf": [
+        0.00269533106716
+      ],
+      "drag": 0.0028563281532,
+      "continuity": 0.0164152644324,
+      "continuity_raw": 4.48978551863e-07,
+      "corrected_mass": 2.60306894085e-08,
+      "ru": 9.40054147586e-08,
+      "rv": 2.5547828292e-08,
+      "rk": 7.5649382049e-08,
+      "rw": 4.2817059047e-08,
+      "phase": "baseline",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "metal",
+      "cells": 13056.0,
+      "iterations": 3000.0,
+      "seconds": 118.411374083,
+      "setup_s": 0.125354,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 1.07586949162e-06,
+      "error": 0.00851655410602,
+      "cf": [
+        0.00271377034985
+      ],
+      "drag": 0.00287685837463,
+      "continuity": 0.0360507615787,
+      "continuity_raw": 1.57661226734e-07,
+      "corrected_mass": 5.01419354471e-08,
+      "ru": 8.03916862416e-08,
+      "rv": 2.04137414351e-08,
+      "rk": 6.06813934678e-08,
+      "rw": 3.78407603565e-08,
+      "phase": "baseline",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "cpu",
+      "cells": 3520.0,
+      "iterations": 3000.0,
+      "seconds": 36.500483208,
+      "setup_s": 0.045726083,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.000518469926633,
+      "drag": 0.004387415594,
+      "cf": [
+        0.00489412283639,
+        0.00591232921508,
+        0.00296379129072
+      ],
+      "cp": [
+        -0.216295165608,
+        -0.606637686491,
+        -0.265115376521
+      ],
+      "continuity": 0.000138390837198,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "cpu",
+      "cells": 14080.0,
+      "iterations": 3000.0,
+      "seconds": 223.936493125,
+      "setup_s": 0.181185875,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.00152890688904,
+      "drag": 0.00370806756368,
+      "cf": [
+        0.0051335336283,
+        0.00656116466786,
+        0.00242232427441
+      ],
+      "cp": [
+        -0.243656329914,
+        -0.634651273489,
+        -0.244851903878
+      ],
+      "continuity": 5.30218716855e-05,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "cpu",
+      "cells": 56320.0,
+      "iterations": 2000.0,
+      "seconds": 604.136304583,
+      "setup_s": 0.788639542,
+      "converged": 0.0,
+      "budget": 1.0,
+      "change": 0.0232903748621,
+      "drag": 0.00413068367953,
+      "cf": [
+        0.00565038472317,
+        0.00692745771037,
+        0.00346181579363
+      ],
+      "cp": [
+        -0.250794614728,
+        -0.656010389328,
+        -0.253610401018
+      ],
+      "continuity": 6.59839569928e-05,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "metal",
+      "cells": 3520.0,
+      "iterations": 3000.0,
+      "seconds": 171.144745959,
+      "setup_s": 0.068823708,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.000789514607058,
+      "drag": 0.00438759201557,
+      "cf": [
+        0.00489417869428,
+        0.00591238149384,
+        0.00296380791974
+      ],
+      "cp": [
+        -0.216012469336,
+        -0.606351494789,
+        -0.264836307751
+      ],
+      "continuity": 0.000226105635742,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "metal",
+      "cells": 14080.0,
+      "iterations": 3000.0,
+      "seconds": 152.881270541,
+      "setup_s": 0.142700417,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.000178370433278,
+      "drag": 0.0037081103391,
+      "cf": [
+        0.00513354715728,
+        0.00656118027783,
+        0.00242232818979
+      ],
+      "cp": [
+        -0.243306037552,
+        -0.634299188852,
+        -0.244501310757
+      ],
+      "continuity": 0.000348645582521,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "metal",
+      "cells": 56320.0,
+      "iterations": 3000.0,
+      "seconds": 151.543920625,
+      "setup_s": 0.538767791,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.0121539327484,
+      "drag": 0.00384844032421,
+      "cf": [
+        0.00534441811664,
+        0.0065046957437,
+        0.00293550267046
+      ],
+      "cp": [
+        -0.249205715754,
+        -0.650808602571,
+        -0.250202983273
+      ],
+      "continuity": 8.31387105515e-05,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "cpu",
+      "level": 0.0,
+      "cells": 816.0,
+      "steps": 3000.0,
+      "seconds": 5.653422667,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 4.52798568688e-05,
+      "error": 0.0125826717151,
+      "Cd": 0.00289131611169,
+      "Cf": [
+        0.0027396654775,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000218921458208,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.0125831548079,
+      "u": 2.74417851852e-05,
+      "v": 3.11410956576e-07,
+      "nu_tilde": 0.00291075106658,
+      "max_yplus": 1.18838262558,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "cpu",
+      "level": 1.0,
+      "cells": 3264.0,
+      "steps": 3000.0,
+      "seconds": 31.776480167,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 4.51020226246e-08,
+      "error": 0.00749187047612,
+      "Cd": 0.00287835514001,
+      "Cf": [
+        0.00272589169606,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000194763716972,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.00912908946308,
+      "u": 8.22438008416e-08,
+      "v": 3.13443709609e-08,
+      "nu_tilde": 8.38804344337e-06,
+      "max_yplus": 0.642749905586,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "cpu",
+      "level": 2.0,
+      "cells": 13056.0,
+      "steps": 3000.0,
+      "seconds": 180.579969166,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 5.03268533263e-06,
+      "error": 0.00784240979685,
+      "Cd": 0.00288046876307,
+      "Cf": [
+        0.00272684012279,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000190340623759,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.0222903342265,
+      "u": 7.89948990263e-08,
+      "v": 2.25565725468e-08,
+      "nu_tilde": 6.52519060018e-06,
+      "max_yplus": 0.370452135801,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "metal",
+      "level": 0.0,
+      "cells": 816.0,
+      "steps": 3000.0,
+      "seconds": 32.87591725,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 2.21062768366e-05,
+      "error": 0.0126047947343,
+      "Cd": 0.00289137708762,
+      "Cf": [
+        0.00273972533401,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000218781909298,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.0121979509251,
+      "u": 2.74441714757e-05,
+      "v": 3.30695310203e-07,
+      "nu_tilde": 0.00291021555767,
+      "max_yplus": 1.18838500977,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "metal",
+      "level": 1.0,
+      "cells": 3264.0,
+      "steps": 3000.0,
+      "seconds": 59.537335125,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 4.51020228407e-08,
+      "error": 0.00749186565068,
+      "Cd": 0.00287835443942,
+      "Cf": [
+        0.002725891683,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000194442836725,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.00638050081936,
+      "u": 9.3074377598e-08,
+      "v": 2.45605328789e-08,
+      "nu_tilde": 8.38110485682e-06,
+      "max_yplus": 0.642749249935,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "metal",
+      "level": 2.0,
+      "cells": 13056.0,
+      "steps": 3000.0,
+      "seconds": 80.797944083,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 5.68736570877e-06,
+      "error": 0.00784040835004,
+      "Cd": 0.00288046771644,
+      "Cf": [
+        0.00272683470764,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000189849482621,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.0251022276804,
+      "u": 8.27607098882e-08,
+      "v": 2.63585197927e-08,
+      "nu_tilde": 6.42863530775e-06,
+      "max_yplus": 0.370451956987,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "cpu",
+      "level": 0.0,
+      "cells": 3520.0,
+      "steps": 3000.0,
+      "seconds": 33.629639458,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.000922849822826,
+      "error": 2.13024715453,
+      "Cd": 0.00441735711965,
+      "Cf": [
+        0.00501331800282,
+        0.00614455285462,
+        0.00317371874191
+      ],
+      "Cp": [
+        -0.216761638794,
+        -0.607322603464,
+        -0.266732576693
+      ],
+      "continuity": 4.50814473866e-05,
+      "u": 1.26873949857e-05,
+      "v": 3.32147645708e-06,
+      "nu_tilde": 0.000752792937024,
+      "max_yplus": 0.766009032726,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "cpu",
+      "level": 1.0,
+      "cells": 14080.0,
+      "steps": 3000.0,
+      "seconds": 169.840648208,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.000621572050838,
+      "error": 1.15892489622,
+      "Cd": 0.00370270162924,
+      "Cf": [
+        0.00523708144692,
+        0.00670599408648,
+        0.00264652114624
+      ],
+      "Cp": [
+        -0.243799924446,
+        -0.636462271214,
+        -0.246359793672
+      ],
+      "continuity": 0.000286564176603,
+      "u": 4.93947335651e-06,
+      "v": 1.65658775854e-06,
+      "nu_tilde": 0.000250187318147,
+      "max_yplus": 0.44203582406,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "cpu",
+      "level": 2.0,
+      "cells": 56320.0,
+      "steps": 2500.0,
+      "seconds": 623.76074925,
+      "converged": 0.0,
+      "budget": 1.0,
+      "load_change": 0.0163021294036,
+      "error": 0.598678984935,
+      "Cd": 0.0040152619827,
+      "Cf": [
+        0.00561094023953,
+        0.0069506046155,
+        0.00325993752906
+      ],
+      "Cp": [
+        -0.250046797255,
+        -0.653269648552,
+        -0.252219049202
+      ],
+      "continuity": 0.000118702608476,
+      "u": 3.58811070168e-06,
+      "v": 1.73236272567e-06,
+      "nu_tilde": 0.000275798753337,
+      "max_yplus": 0.26548320055,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "metal",
+      "level": 0.0,
+      "cells": 3520.0,
+      "steps": 3000.0,
+      "seconds": 61.954632834,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.00116354552117,
+      "error": 2.12846497565,
+      "Cd": 0.00441737950489,
+      "Cf": [
+        0.00501328101615,
+        0.00614451228626,
+        0.00317370771575
+      ],
+      "Cp": [
+        -0.21681895521,
+        -0.60737606883,
+        -0.266790199335
+      ],
+      "continuity": 8.30220510178e-05,
+      "u": 1.20351854124e-05,
+      "v": 3.36506160492e-06,
+      "nu_tilde": 0.000752787823167,
+      "max_yplus": 0.766124725342,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "metal",
+      "level": 1.0,
+      "cells": 14080.0,
+      "steps": 3000.0,
+      "seconds": 82.905428792,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.000310148365305,
+      "error": 1.14842454463,
+      "Cd": 0.00370260043173,
+      "Cf": [
+        0.0052370563281,
+        0.00670593802028,
+        0.00264651885618
+      ],
+      "Cp": [
+        -0.244121257024,
+        -0.636777281761,
+        -0.246675474109
+      ],
+      "continuity": 0.000269128840443,
+      "u": 5.27792263859e-06,
+      "v": 1.42077967649e-06,
+      "nu_tilde": 0.000250186842064,
+      "max_yplus": 0.442065924406,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "metal",
+      "level": 2.0,
+      "cells": 56320.0,
+      "steps": 3000.0,
+      "seconds": 98.054135667,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.0116324704442,
+      "error": 0.667888918216,
+      "Cd": 0.00388899716122,
+      "Cf": [
+        0.00548617051643,
+        0.00679548910603,
+        0.00305019243471
+      ],
+      "Cp": [
+        -0.249394671745,
+        -0.651193350554,
+        -0.2507511616
+      ],
+      "continuity": 0.000249188801186,
+      "u": 2.94930529015e-06,
+      "v": 1.06239279503e-06,
+      "nu_tilde": 0.000235884521121,
+      "max_yplus": 0.265815109015,
+      "failure": "",
+      "phase": "baseline",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "cpu",
+      "mode": "seeded",
+      "iterations": 350.0,
+      "seconds": 36.63644971,
+      "converged": 1.0,
+      "phase": "final",
+      "record": "V6_RESULT"
+    },
+    {
+      "backend": "cpu",
+      "mode": "cold-hybrid",
+      "iterations": 550.0,
+      "seconds": 55.81141817,
+      "converged": 1.0,
+      "phase": "final",
+      "record": "V6_RESULT"
+    },
+    {
+      "backend": "metal",
+      "mode": "seeded",
+      "iterations": 350.0,
+      "seconds": 10.12234683,
+      "converged": 1.0,
+      "phase": "final",
+      "record": "V6_RESULT"
+    },
+    {
+      "backend": "metal",
+      "mode": "cold-hybrid",
+      "iterations": 550.0,
+      "seconds": 14.29117529,
+      "converged": 1.0,
+      "phase": "final",
+      "record": "V6_RESULT"
+    },
+    {
+      "backend": "cpu",
+      "cells": 816.0,
+      "iterations": 3000.0,
+      "seconds": 8.362255542,
+      "setup_s": 0.010091875,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 2.95137998763e-07,
+      "error": 0.0164760006597,
+      "cf": [
+        0.00264910030273
+      ],
+      "drag": 0.00280631260239,
+      "continuity": 0.00173634001982,
+      "continuity_raw": 3.17990472775e-07,
+      "corrected_mass": 9.88571560723e-09,
+      "ru": 9.76762667232e-08,
+      "rv": 3.92992637313e-08,
+      "rk": 1.27630287738e-07,
+      "rw": 3.13492724566e-08,
+      "phase": "final",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "cpu",
+      "cells": 3264.0,
+      "iterations": 3000.0,
+      "seconds": 34.223790625,
+      "setup_s": 0.0390995,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 4.56134075298e-08,
+      "error": 0.00166393569439,
+      "cf": [
+        0.00269533095727
+      ],
+      "drag": 0.00285632812904,
+      "continuity": 0.00907996187589,
+      "continuity_raw": 2.48348638704e-07,
+      "corrected_mass": 2.4762578486e-08,
+      "ru": 1.00619693719e-07,
+      "rv": 4.47023226633e-08,
+      "rk": 8.32637206941e-08,
+      "rw": 3.76690180291e-08,
+      "phase": "final",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "cpu",
+      "cells": 13056.0,
+      "iterations": 3000.0,
+      "seconds": 202.824088541,
+      "setup_s": 0.156135208,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 9.86954823358e-07,
+      "error": 0.00851677770948,
+      "cf": [
+        0.00271377095153
+      ],
+      "drag": 0.00287685789147,
+      "continuity": 0.0570495343642,
+      "continuity_raw": 2.49495435595e-07,
+      "corrected_mass": 4.92580515362e-08,
+      "ru": 7.88428910224e-08,
+      "rv": 1.80354327388e-08,
+      "rk": 5.60054965529e-08,
+      "rw": 3.784604864e-08,
+      "phase": "final",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "metal",
+      "cells": 816.0,
+      "iterations": 3000.0,
+      "seconds": 90.559023333,
+      "setup_s": 0.024718,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 1.35769067106e-07,
+      "error": 0.016476102261,
+      "cf": [
+        0.00264909932973
+      ],
+      "drag": 0.00280631231249,
+      "continuity": 0.000637564649602,
+      "continuity_raw": 1.16766163778e-07,
+      "corrected_mass": 9.07928754228e-09,
+      "ru": 9.18038502401e-08,
+      "rv": 2.7083746555e-08,
+      "rk": 1.19123583664e-07,
+      "rw": 3.12188930922e-08,
+      "phase": "final",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "metal",
+      "cells": 3264.0,
+      "iterations": 3000.0,
+      "seconds": 98.910490958,
+      "setup_s": 0.040892833,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 3.59256793261e-08,
+      "error": 0.00166397653177,
+      "cf": [
+        0.00269533106716
+      ],
+      "drag": 0.0028563281532,
+      "continuity": 0.0164152644324,
+      "continuity_raw": 4.48978551863e-07,
+      "corrected_mass": 2.60306894085e-08,
+      "ru": 9.40054147586e-08,
+      "rv": 2.5547828292e-08,
+      "rk": 7.5649382049e-08,
+      "rw": 4.2817059047e-08,
+      "phase": "final",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "metal",
+      "cells": 13056.0,
+      "iterations": 3000.0,
+      "seconds": 113.831677709,
+      "setup_s": 0.132660542,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 1.07586949162e-06,
+      "error": 0.00851655410602,
+      "cf": [
+        0.00271377034985
+      ],
+      "drag": 0.00287685837463,
+      "continuity": 0.0360507615787,
+      "continuity_raw": 1.57661226734e-07,
+      "corrected_mass": 5.01419354471e-08,
+      "ru": 8.03916862416e-08,
+      "rv": 2.04137414351e-08,
+      "rk": 6.06813934678e-08,
+      "rw": 3.78407603565e-08,
+      "phase": "final",
+      "record": "V5 plate"
+    },
+    {
+      "backend": "cpu",
+      "cells": 3520.0,
+      "iterations": 3000.0,
+      "seconds": 37.194716083,
+      "setup_s": 0.053941667,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.000518469926633,
+      "drag": 0.004387415594,
+      "cf": [
+        0.00489412283639,
+        0.00591232921508,
+        0.00296379129072
+      ],
+      "cp": [
+        -0.216295165608,
+        -0.606637686491,
+        -0.265115376521
+      ],
+      "continuity": 0.000138390837198,
+      "failure": "",
+      "phase": "final",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "cpu",
+      "cells": 14080.0,
+      "iterations": 3000.0,
+      "seconds": 204.92358425,
+      "setup_s": 0.18683525,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.00152890688904,
+      "drag": 0.00370806756368,
+      "cf": [
+        0.0051335336283,
+        0.00656116466786,
+        0.00242232427441
+      ],
+      "cp": [
+        -0.243656329914,
+        -0.634651273489,
+        -0.244851903878
+      ],
+      "continuity": 5.30218716855e-05,
+      "failure": "",
+      "phase": "final",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "cpu",
+      "cells": 56320.0,
+      "iterations": 2300.0,
+      "seconds": 623.8205405,
+      "setup_s": 0.769846959,
+      "converged": 0.0,
+      "budget": 1.0,
+      "change": 0.0191552753347,
+      "drag": 0.00401411938753,
+      "cf": [
+        0.00552335305218,
+        0.00675619753278,
+        0.00325801211341
+      ],
+      "cp": [
+        -0.250175372744,
+        -0.654042124748,
+        -0.252479198789
+      ],
+      "continuity": 0.000224860009159,
+      "failure": "",
+      "phase": "final",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "metal",
+      "cells": 3520.0,
+      "iterations": 3000.0,
+      "seconds": 78.004272209,
+      "setup_s": 0.049344041,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.000789514607058,
+      "drag": 0.00438759201557,
+      "cf": [
+        0.00489417869428,
+        0.00591238149384,
+        0.00296380791974
+      ],
+      "cp": [
+        -0.216012469336,
+        -0.606351494789,
+        -0.264836307751
+      ],
+      "continuity": 0.000226105635742,
+      "failure": "",
+      "phase": "final",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "metal",
+      "cells": 14080.0,
+      "iterations": 3000.0,
+      "seconds": 121.300765542,
+      "setup_s": 0.141637625,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.000178370433278,
+      "drag": 0.0037081103391,
+      "cf": [
+        0.00513354715728,
+        0.00656118027783,
+        0.00242232818979
+      ],
+      "cp": [
+        -0.243306037552,
+        -0.634299188852,
+        -0.244501310757
+      ],
+      "continuity": 0.000348645582521,
+      "failure": "",
+      "phase": "final",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "metal",
+      "cells": 56320.0,
+      "iterations": 3000.0,
+      "seconds": 133.22998975,
+      "setup_s": 0.591640083,
+      "converged": 0.0,
+      "budget": 0.0,
+      "change": 0.0121539327484,
+      "drag": 0.00384844032421,
+      "cf": [
+        0.00534441811664,
+        0.0065046957437,
+        0.00293550267046
+      ],
+      "cp": [
+        -0.249205715754,
+        -0.650808602571,
+        -0.250202983273
+      ],
+      "continuity": 8.31387105515e-05,
+      "failure": "",
+      "phase": "final",
+      "record": "V5 bump measurement"
+    },
+    {
+      "backend": "cpu",
+      "level": 0.0,
+      "cells": 816.0,
+      "steps": 3000.0,
+      "seconds": 6.7171315,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 1.49023589987e-07,
+      "error": 0.00889774610442,
+      "Cd": 0.00287986494243,
+      "Cf": [
+        0.00272969546343,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000223748901039,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.00087162186542,
+      "u": 9.85686483736e-08,
+      "v": 3.50808540535e-08,
+      "nu_tilde": 7.88161912904e-06,
+      "max_yplus": 1.18794119358,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "cpu",
+      "level": 1.0,
+      "cells": 3264.0,
+      "steps": 3000.0,
+      "seconds": 30.936743375,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 7.85007796683e-08,
+      "error": 0.00749027605695,
+      "Cd": 0.00287834835433,
+      "Cf": [
+        0.00272588738217,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000194780925577,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.0105520634652,
+      "u": 9.38252987084e-08,
+      "v": 4.25674533799e-08,
+      "nu_tilde": 9.38344130183e-06,
+      "max_yplus": 0.642750561237,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "cpu",
+      "level": 2.0,
+      "cells": 13056.0,
+      "steps": 3000.0,
+      "seconds": 175.826955375,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 2.76844160199e-06,
+      "error": 0.0078403155033,
+      "Cd": 0.00288047294106,
+      "Cf": [
+        0.00272683445643,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000190862572173,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.0511516841311,
+      "u": 1.01522299049e-07,
+      "v": 5.42884880841e-08,
+      "nu_tilde": 6.67744432101e-06,
+      "max_yplus": 0.370453685522,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "metal",
+      "level": 0.0,
+      "cells": 816.0,
+      "steps": 3000.0,
+      "seconds": 56.058493833,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 2.87082543305e-07,
+      "error": 0.00889774610442,
+      "Cd": 0.00287986464969,
+      "Cf": [
+        0.00272969546343,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000223393546827,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.0025428894373,
+      "u": 1.01568668659e-07,
+      "v": 3.65650800549e-08,
+      "nu_tilde": 8.01427838025e-06,
+      "max_yplus": 1.18793869019,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "metal",
+      "level": 1.0,
+      "cells": 3264.0,
+      "steps": 3000.0,
+      "seconds": 70.689660417,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 9.57912811377e-09,
+      "error": 0.00749044816576,
+      "Cd": 0.00287834931925,
+      "Cf": [
+        0.00272588784783,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000194222112915,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.00742045574555,
+      "u": 8.7804239733e-08,
+      "v": 4.16044971543e-08,
+      "nu_tilde": 9.33390241941e-06,
+      "max_yplus": 0.642751932144,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "metal",
+      "level": 2.0,
+      "cells": 13056.0,
+      "steps": 3000.0,
+      "seconds": 100.032299458,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 2.25042527302e-06,
+      "error": 0.00784194184058,
+      "Cd": 0.00288046950772,
+      "Cf": [
+        0.00272683885668,
+        0.0,
+        0.0
+      ],
+      "Cp": [
+        0.000190599046339,
+        0.0,
+        0.0
+      ],
+      "continuity": 0.0393552481062,
+      "u": 7.9992755759e-08,
+      "v": 2.63280042838e-08,
+      "nu_tilde": 6.52120446749e-06,
+      "max_yplus": 0.370452702045,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA plate"
+    },
+    {
+      "backend": "cpu",
+      "level": 0.0,
+      "cells": 3520.0,
+      "steps": 3000.0,
+      "seconds": 31.073908333,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.00116344595711,
+      "error": 2.13287174572,
+      "Cd": 0.00441885512229,
+      "Cf": [
+        0.00501590757956,
+        0.00615113478738,
+        0.00317356039765
+      ],
+      "Cp": [
+        -0.21666565826,
+        -0.607243865728,
+        -0.266657902636
+      ],
+      "continuity": 0.000171593599123,
+      "u": 1.28932435218e-05,
+      "v": 4.04775833795e-06,
+      "nu_tilde": 0.000749577499165,
+      "max_yplus": 0.766298532486,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "cpu",
+      "level": 1.0,
+      "cells": 14080.0,
+      "steps": 3000.0,
+      "seconds": 174.062675667,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.000280700648028,
+      "error": 1.14888151357,
+      "Cd": 0.00370262350229,
+      "Cf": [
+        0.00523706714746,
+        0.00670596799885,
+        0.00264651899101
+      ],
+      "Cp": [
+        -0.244106582507,
+        -0.636763572693,
+        -0.246662478477
+      ],
+      "continuity": 0.000212883279425,
+      "u": 5.48485893552e-06,
+      "v": 1.92598092793e-06,
+      "nu_tilde": 0.000250169459122,
+      "max_yplus": 0.442028015852,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "cpu",
+      "level": 2.0,
+      "cells": 56320.0,
+      "steps": 2700.0,
+      "seconds": 607.931951541,
+      "converged": 0.0,
+      "budget": 1.0,
+      "load_change": 0.0142643867297,
+      "error": 0.635765988325,
+      "Cd": 0.00395817185101,
+      "Cf": [
+        0.00555461661161,
+        0.00688029279098,
+        0.00316568128522
+      ],
+      "Cp": [
+        -0.249567676844,
+        -0.65215703845,
+        -0.251392721571
+      ],
+      "continuity": 0.000621804525191,
+      "u": 3.82623429259e-06,
+      "v": 2.05667160652e-06,
+      "nu_tilde": 0.000260055794874,
+      "max_yplus": 0.265621483326,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "metal",
+      "level": 0.0,
+      "cells": 3520.0,
+      "steps": 3000.0,
+      "seconds": 59.3472455,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.000838619733097,
+      "error": 2.13128129512,
+      "Cd": 0.00441896115666,
+      "Cf": [
+        0.00501586559774,
+        0.00615108049423,
+        0.00317354001022
+      ],
+      "Cp": [
+        -0.216712104678,
+        -0.607291579247,
+        -0.266708779036
+      ],
+      "continuity": 2.37260373716e-05,
+      "u": 1.19039206407e-05,
+      "v": 3.16897889039e-06,
+      "nu_tilde": 0.000749519319902,
+      "max_yplus": 0.766040682793,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "metal",
+      "level": 1.0,
+      "cells": 14080.0,
+      "steps": 3000.0,
+      "seconds": 84.691196875,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.000153817873795,
+      "error": 1.14859044422,
+      "Cd": 0.0037026288825,
+      "Cf": [
+        0.00523706341985,
+        0.00670595914481,
+        0.00264652638305
+      ],
+      "Cp": [
+        -0.244113895219,
+        -0.636772304773,
+        -0.24667017119
+      ],
+      "continuity": 0.000187377548166,
+      "u": 5.06255268351e-06,
+      "v": 1.65172730466e-06,
+      "nu_tilde": 0.000250162675399,
+      "max_yplus": 0.442016273737,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA bump"
+    },
+    {
+      "backend": "metal",
+      "level": 2.0,
+      "cells": 56320.0,
+      "steps": 3000.0,
+      "seconds": 96.840136166,
+      "converged": 0.0,
+      "budget": 0.0,
+      "load_change": 0.0116273990348,
+      "error": 0.669346251781,
+      "Cd": 0.0038888289155,
+      "Cf": [
+        0.00548635618648,
+        0.00679545302251,
+        0.00305013821339
+      ],
+      "Cp": [
+        -0.249351673942,
+        -0.651149630547,
+        -0.250700026388
+      ],
+      "continuity": 9.2925668309e-05,
+      "u": 3.11965191497e-06,
+      "v": 1.15878552033e-06,
+      "nu_tilde": 0.000235863545241,
+      "max_yplus": 0.265821814537,
+      "failure": "",
+      "phase": "final",
+      "record": "V7 SA bump"
+    },
+    {
+      "record": "million_cell_channel",
+      "phase": "before",
+      "backend": "cpu",
+      "last_checkpoint": {
+        "it": 160.0,
+        "seconds": 603.356090625,
+        "defect": 0.210432779546,
+        "continuity": 0.210432779546,
+        "raw": 0.0104848079682,
+        "scale": 0.0498249749435,
+        "corrected": 1.83132578968e-05,
+        "u": 0.000396083583286,
+        "v": 6.01143301733e-05,
+        "k": 0.00429854336618,
+        "omega": 0.00185264450023,
+        "sa": 0.0,
+        "change": 0.394202557874,
+        "step_change": 0.0537913300304,
+        "drag": 0.0501417533574,
+        "cf0": 0.0,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 1.0,
+        "inner_sa": 3.0,
+        "inner_p": 24.0,
+        "p_ratio": 0.000897905243992,
+        "converged": 0.0
+      },
+      "converged": false,
+      "convergence_seconds": null
+    },
+    {
+      "record": "million_cell_channel",
+      "phase": "before",
+      "backend": "metal",
+      "last_checkpoint": {
+        "it": 3000.0,
+        "seconds": 339.502512167,
+        "defect": 12709511.2173,
+        "continuity": 12709511.2173,
+        "raw": 633252.75126,
+        "scale": 0.0498251066019,
+        "corrected": 2229.02167449,
+        "u": 0.0719811024104,
+        "v": 0.0403149557996,
+        "k": 0.0146304741031,
+        "omega": 0.0198930022141,
+        "sa": 0.0,
+        "change": 0.606857016764,
+        "step_change": 0.348795242198,
+        "drag": 20506985.368,
+        "cf0": 0.0,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 2.0,
+        "inner_sa": 6.0,
+        "inner_p": 11.0,
+        "p_ratio": 0.000984715619625,
+        "converged": 0.0
+      },
+      "converged": false,
+      "convergence_seconds": null
+    },
+    {
+      "record": "million_cell_channel",
+      "phase": "after",
+      "backend": "cpu",
+      "last_checkpoint": {
+        "it": 200.0,
+        "seconds": 649.260053042,
+        "defect": 0.191119704147,
+        "continuity": 0.191119704147,
+        "raw": 0.00952253447031,
+        "scale": 0.0498249749435,
+        "corrected": 1.65506571648e-05,
+        "u": 0.000350049802196,
+        "v": 5.93543061759e-05,
+        "k": 0.00317823938138,
+        "omega": 0.00162848779683,
+        "sa": 0.0,
+        "change": 0.311430508152,
+        "step_change": 0.0448434110573,
+        "drag": 0.0457513955125,
+        "cf0": 0.0,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 1.0,
+        "inner_sa": 3.0,
+        "inner_p": 23.0,
+        "p_ratio": 0.000798716063976,
+        "converged": 0.0
+      },
+      "converged": false,
+      "convergence_seconds": null
+    },
+    {
+      "record": "million_cell_channel",
+      "phase": "after",
+      "backend": "metal",
+      "last_checkpoint": {
+        "it": 3000.0,
+        "seconds": 342.85366325,
+        "defect": 12709511.2173,
+        "continuity": 12709511.2173,
+        "raw": 633252.75126,
+        "scale": 0.0498251066019,
+        "corrected": 2229.02167449,
+        "u": 0.0719811024104,
+        "v": 0.0403149557996,
+        "k": 0.0146304741031,
+        "omega": 0.0198930022141,
+        "sa": 0.0,
+        "change": 0.606857016764,
+        "step_change": 0.348795242198,
+        "drag": 20506985.368,
+        "cf0": 0.0,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 2.0,
+        "inner_sa": 6.0,
+        "inner_p": 11.0,
+        "p_ratio": 0.000984715619625,
+        "converged": 0.0
+      },
+      "converged": false,
+      "convergence_seconds": null
+    }
+  ],
+  "cycles": {
+    "sa-cycle-before-cpu": {
+      "last_checkpoint": {
+        "it": 1000.0,
+        "seconds": 3.484343,
+        "defect": 0.012133770097,
+        "continuity": 0.012133770097,
+        "raw": 2.27534302004e-06,
+        "scale": 0.000187521520669,
+        "corrected": 1.44147150188e-08,
+        "u": 2.74219395534e-05,
+        "v": 3.27866720687e-07,
+        "k": 0.0,
+        "omega": 0.0,
+        "sa": 0.00290966690116,
+        "change": 5.0185820356e-05,
+        "step_change": 0.0103401095854,
+        "drag": 0.00289144344379,
+        "cf0": 0.00273979206946,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 4.0,
+        "inner_sa": 3.0,
+        "inner_p": 10.0,
+        "p_ratio": 0.000982339007069,
+        "converged": 0.0
+      },
+      "tail_max_step_change": 0.0103898088233,
+      "first_transport_and_load_gate": null,
+      "all_gates_pass": false
+    },
+    "sa-cycle-before-metal": {
+      "last_checkpoint": {
+        "it": 1000.0,
+        "seconds": 46.998363917,
+        "defect": 0.0117848821956,
+        "continuity": 0.0117848821956,
+        "raw": 2.20991903022e-06,
+        "scale": 0.000187521520669,
+        "corrected": 1.48903256565e-08,
+        "u": 2.742818456e-05,
+        "v": 3.02451998221e-07,
+        "k": 0.0,
+        "omega": 0.0,
+        "sa": 0.0029095920428,
+        "change": 1.10394531608e-05,
+        "step_change": 0.0103398316881,
+        "drag": 0.00289140350844,
+        "cf0": 0.00273975041361,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 4.0,
+        "inner_sa": 3.0,
+        "inner_p": 10.0,
+        "p_ratio": 0.000982509744114,
+        "converged": 0.0
+      },
+      "tail_max_step_change": 0.0103896640159,
+      "first_transport_and_load_gate": null,
+      "all_gates_pass": false
+    },
+    "sa-cycle-after-cpu": {
+      "last_checkpoint": {
+        "it": 1000.0,
+        "seconds": 4.000094375,
+        "defect": 0.00291435228067,
+        "continuity": 0.00291435228067,
+        "raw": 5.40518022077e-07,
+        "scale": 0.000185467633979,
+        "corrected": 1.11268046721e-08,
+        "u": 8.18359456682e-08,
+        "v": 3.81000364179e-08,
+        "k": 0.0,
+        "omega": 0.0,
+        "sa": 8.01234366925e-06,
+        "change": 1.23363918963e-07,
+        "step_change": 1.6777492979e-08,
+        "drag": 0.00287986447631,
+        "cf0": 0.0027296963096,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 42.0,
+        "inner_sa": 0.0,
+        "inner_p": 9.0,
+        "p_ratio": 0.00088931668193,
+        "converged": 0.0
+      },
+      "tail_max_step_change": 3.80012471348e-07,
+      "first_transport_and_load_gate": {
+        "it": 257.0,
+        "seconds": 1.008482792,
+        "defect": 0.000778708510977,
+        "continuity": 0.000778708510977,
+        "raw": 1.4442522509e-07,
+        "scale": 0.000185467633979,
+        "corrected": 1.07761583615e-08,
+        "u": 8.81138911087e-08,
+        "v": 4.68895111862e-08,
+        "k": 0.0,
+        "omega": 0.0,
+        "sa": 7.32599922869e-06,
+        "change": 0.000984007231414,
+        "step_change": 2.20079987529e-07,
+        "drag": 0.00287988075343,
+        "cf0": 0.00272969787689,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 29.0,
+        "inner_sa": 1.0,
+        "inner_p": 11.0,
+        "p_ratio": 0.000783198077779,
+        "converged": 0.0
+      },
+      "all_gates_pass": false
+    },
+    "sa-cycle-after-metal": {
+      "last_checkpoint": {
+        "it": 1000.0,
+        "seconds": 69.709365208,
+        "defect": 0.001220555132,
+        "continuity": 0.001220555132,
+        "raw": 2.26373472472e-07,
+        "scale": 0.000185467633979,
+        "corrected": 1.13951935908e-08,
+        "u": 9.49704118188e-08,
+        "v": 3.62218378433e-08,
+        "k": 0.0,
+        "omega": 0.0,
+        "sa": 8.03252040654e-06,
+        "change": 1.94152738724e-07,
+        "step_change": 3.88305476494e-08,
+        "drag": 0.00287986394767,
+        "cf0": 0.00272969476494,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 37.0,
+        "inner_sa": 0.0,
+        "inner_p": 10.0,
+        "p_ratio": 0.000975055483077,
+        "converged": 0.0
+      },
+      "tail_max_step_change": 2.48252067221e-07,
+      "first_transport_and_load_gate": {
+        "it": 257.0,
+        "seconds": 16.01690025,
+        "defect": 0.000998145585117,
+        "continuity": 0.000998145585117,
+        "raw": 1.85123700038e-07,
+        "scale": 0.000185467633979,
+        "corrected": 1.14988831443e-08,
+        "u": 9.0502609858e-08,
+        "v": 4.30545839234e-08,
+        "k": 0.0,
+        "omega": 0.0,
+        "sa": 8.55596039359e-06,
+        "change": 0.000984275186057,
+        "step_change": 2.87189726955e-07,
+        "drag": 0.00287987928118,
+        "cf0": 0.00272969573974,
+        "cf1": 0.0,
+        "cf2": 0.0,
+        "inner_u": 48.0,
+        "inner_sa": 0.0,
+        "inner_p": 12.0,
+        "p_ratio": 0.000660585702754,
+        "converged": 0.0
+      },
+      "all_gates_pass": false
+    }
+  },
+  "channel_checkpoint_comparison": {
+    "cpu": {
+      "common_checkpoints": 8,
+      "differences_excluding_seconds": []
+    },
+    "metal": {
+      "common_checkpoints": 150,
+      "differences_excluding_seconds": []
+    }
+  },
+  "spatial": {
+    "plate0": {
+      "sum_abs_double_from_stored_faces": 3.1780352034022075e-07,
+      "region_l1": {
+        "plate_outer": 1.6128403501625144e-08,
+        "plate_low": 6.933826251359632e-08,
+        "upstream_outer": 4.207461046235039e-09,
+        "upstream_low": 2.2812939327876425e-07
+      },
+      "patch_signed_mass": {
+        "front": 0.0,
+        "back": 0.0,
+        "subsonic_inflow_pt_block1_f5_1-25_1-2": -0.00999999981435451,
+        "back_pressure_block1_f6_1-25_1-2": 0.009972910964691106,
+        "symmetry_z_strong_block1_f1_1-2_1-7": 0.0,
+        "viscous_solid_block1_f1_1-2_7-35": 0.0,
+        "farfield_riem_block1_f2_1-2_1-35": 2.7089246408706913e-05
+      },
+      "worst_cells": [
+        {
+          "cell": "795",
+          "x": "-0.26638596013494364",
+          "y": "0.00012302292806077499",
+          "p": "0.0020030941814184189",
+          "diagonal": "9.6752119134180248e-06",
+          "inverse": "164763.546875",
+          "mass_imbalance": 3.52651614576871e-08
+        },
+        {
+          "cell": "780",
+          "x": "-0.26638596013507104",
+          "y": "0.00032779112651375002",
+          "p": "0.0020027235150337219",
+          "diagonal": "5.0105718401027843e-06",
+          "inverse": "138317.4375",
+          "mass_imbalance": -2.9188337080654492e-08
+        },
+        {
+          "cell": "781",
+          "x": "-0.15896888849899998",
+          "y": "0.00020099564865049999",
+          "p": "0.0022065904922783375",
+          "diagonal": "4.3471854951349087e-06",
+          "inverse": "315679.0625",
+          "mass_imbalance": 2.4887211402813136e-08
+        },
+        {
+          "cell": "771",
+          "x": "-0.26638596013504362",
+          "y": "0.00053420855994324996",
+          "p": "0.002002594992518425",
+          "diagonal": "4.6715163080079947e-06",
+          "inverse": "97294.4375",
+          "mass_imbalance": -1.8307890314872566e-08
+        },
+        {
+          "cell": "772",
+          "x": "-0.15896888849895704",
+          "y": "0.00032779112651325004",
+          "p": "0.0022064035292714834",
+          "diagonal": "3.6500434816844063e-06",
+          "inverse": "271194.375",
+          "mass_imbalance": -1.51538550596797e-08
+        },
+        {
+          "cell": "788",
+          "x": "-0.26638596013499999",
+          "y": "0.000200995648651",
+          "p": "0.0020029335282742977",
+          "diagonal": "6.5601616370258853e-06",
+          "inverse": "168499.265625",
+          "mass_imbalance": 1.4677862480994008e-08
+        },
+        {
+          "cell": "773",
+          "x": "-0.093750234612650002",
+          "y": "0.00020099564865000001",
+          "p": "0.0025860585737973452",
+          "diagonal": "3.0328167213156121e-06",
+          "inverse": "476762.40625",
+          "mass_imbalance": 1.354417222820814e-08
+        },
+        {
+          "cell": "762",
+          "x": "-0.15896888849902638",
+          "y": "0.00053420855994225",
+          "p": "0.0022062854841351509",
+          "diagonal": "3.8356333789124619e-06",
+          "inverse": "196038.8125",
+          "mass_imbalance": -1.0967733388156375e-08
+        },
+        {
+          "cell": "761",
+          "x": "-0.26638596013494642",
+          "y": "0.00087038768239500002",
+          "p": "0.002002527704462409",
+          "diagonal": "5.4656065913150087e-06",
+          "inverse": "63201.82421875",
+          "mass_imbalance": -6.768121174616226e-09
+        },
+        {
+          "cell": "763",
+          "x": "-0.093750234612676259",
+          "y": "0.00032779112651275",
+          "p": "0.002585897222161293",
+          "diagonal": "2.8419601676432649e-06",
+          "inverse": "397446.78125",
+          "mass_imbalance": -6.311668521163938e-09
+        }
+      ]
+    },
+    "plate2-metal": {
+      "sum_abs_double_from_stored_faces": 1.5601976687001527e-07,
+      "region_l1": {
+        "plate_outer": 9.599067851695509e-08,
+        "plate_low": 7.90815880331473e-09,
+        "upstream_outer": 1.7020170606230067e-08,
+        "upstream_low": 3.5100758943515387e-08
+      },
+      "patch_signed_mass": {
+        "front": 0.0,
+        "back": 0.0,
+        "subsonic_inflow_pt_block1_f5_1-97_1-2": -0.0100000001029521,
+        "back_pressure_block1_f6_1-97_1-2": 0.009972428917560366,
+        "symmetry_z_strong_block1_f1_1-2_1-25": 0.0,
+        "viscous_solid_block1_f1_1-2_25-137": 0.0,
+        "farfield_riem_block1_f2_1-2_1-137": 2.7570252967734632e-05
+      },
+      "worst_cells": [
+        {
+          "cell": "12495",
+          "x": "-0.31329648814950001",
+          "y": "0.000432706493522",
+          "p": "0.0019869119860231876",
+          "diagonal": "3.5921182188758394e-06",
+          "inverse": "413196.59375",
+          "mass_imbalance": -1.804021598772465e-09
+        },
+        {
+          "cell": "12390",
+          "x": "-0.31329648814954392",
+          "y": "0.00062405850113125003",
+          "p": "0.0019870763644576073",
+          "diagonal": "2.8864276373496978e-06",
+          "inverse": "398931.71875",
+          "mass_imbalance": 1.1936662769329587e-09
+        },
+        {
+          "cell": "12353",
+          "x": "-0.31329648814950001",
+          "y": "0.00070505852004000005",
+          "p": "0.0019871040713042021",
+          "diagonal": "2.7410749225964537e-06",
+          "inverse": "383275.5",
+          "mass_imbalance": 1.1031428548413658e-09
+        },
+        {
+          "cell": "12113",
+          "x": "-0.21315033025749999",
+          "y": "0.0010167320005565",
+          "p": "0.0021030933130532503",
+          "diagonal": "2.13227940548677e-06",
+          "inverse": "675154.8125",
+          "mass_imbalance": -1.10190501168006e-09
+        },
+        {
+          "cell": "12461",
+          "x": "-0.31329648814950001",
+          "y": "0.00048888964984350003",
+          "p": "0.0019869611132889986",
+          "diagonal": "3.3088265354308533e-06",
+          "inverse": "414432.75",
+          "mass_imbalance": -1.0645690995403356e-09
+        },
+        {
+          "cell": "12426",
+          "x": "-0.31329648814950001",
+          "y": "0.00055235837615599998",
+          "p": "0.0019870281685143709",
+          "diagonal": "3.0747498840355547e-06",
+          "inverse": "409561.15625",
+          "mass_imbalance": 9.403444689581875e-10
+        },
+        {
+          "cell": "12112",
+          "x": "-0.24241129783299997",
+          "y": "0.001148672467985",
+          "p": "0.0020446514245122671",
+          "diagonal": "2.2968940811551875e-06",
+          "inverse": "584279.625",
+          "mass_imbalance": 8.464812184527659e-10
+        },
+        {
+          "cell": "12196",
+          "x": "-0.27561341585999999",
+          "y": "0.001016732000557",
+          "p": "0.0020057137589901686",
+          "diagonal": "2.388942220932222e-06",
+          "inverse": "570047.5",
+          "mass_imbalance": 8.346943414228036e-10
+        },
+        {
+          "cell": "12315",
+          "x": "-0.31329648814946559",
+          "y": "0.00079656551776725003",
+          "p": "0.0019871138501912355",
+          "diagonal": "2.6365362373326207e-06",
+          "inverse": "363590.28125",
+          "mass_imbalance": 7.718822109259449e-10
+        },
+        {
+          "cell": "12025",
+          "x": "-0.18735478499399999",
+          "y": "0.001148672467985",
+          "p": "0.0021742936223745346",
+          "diagonal": "2.0971172034478514e-06",
+          "inverse": "683119.1875",
+          "mass_imbalance": -7.428378467899677e-10
+        }
+      ]
+    }
+  },
+  "late_plate_trace": {
+    "cpu": {
+      "samples": 100,
+      "first_iteration": 2901,
+      "last_iteration": 3000,
+      "last_raw": 3.1799047277465686e-07,
+      "cell_u": {
+        "min": 0.9998872876167297,
+        "max": 0.9998975396156311,
+        "range": 1.0251998901367188e-05,
+        "mean": 0.9998923033475876,
+        "max_abs": 0.9998975396156311
+      },
+      "cell_v": {
+        "min": -2.658864332261146e-06,
+        "max": 2.6416835225973045e-06,
+        "range": 5.300547854858451e-06,
+        "mean": 2.459463545068097e-07,
+        "max_abs": 2.658864332261146e-06
+      },
+      "cell_p": {
+        "min": 0.002000570297241211,
+        "max": 0.002003847621381283,
+        "range": 3.277324140071869e-06,
+        "mean": 0.002002302352339029,
+        "max_abs": 0.002003847621381283
+      },
+      "delta_u": {
+        "min": -6.794929504394531e-06,
+        "max": 4.5299530029296875e-06,
+        "range": 1.1324882507324219e-05,
+        "mean": -1.609325408935547e-08,
+        "max_abs": 6.794929504394531e-06
+      },
+      "delta_v": {
+        "min": -5.300547854858451e-06,
+        "max": 4.18501440435648e-06,
+        "range": 9.48556225921493e-06,
+        "mean": 5.308548338689434e-09,
+        "max_abs": 5.300547854858451e-06
+      },
+      "delta_p": {
+        "min": -3.277324140071869e-06,
+        "max": 2.4312175810337067e-06,
+        "range": 5.7085417211055756e-06,
+        "mean": -7.867347449064255e-09,
+        "max_abs": 3.277324140071869e-06
+      },
+      "max_delta_u": {
+        "min": 5.960464477539062e-07,
+        "max": 9.953975677490234e-06,
+        "range": 9.357929229736328e-06,
+        "mean": 2.542734146118164e-06,
+        "max_abs": 9.953975677490234e-06
+      },
+      "max_delta_v": {
+        "min": 2.126271283486858e-07,
+        "max": 1.1300960522930836e-05,
+        "range": 1.108833339458215e-05,
+        "mean": 3.4390382851512414e-06,
+        "max_abs": 1.1300960522930836e-05
+      },
+      "max_delta_p": {
+        "min": 2.663873601704836e-07,
+        "max": 3.4621916711330414e-06,
+        "range": 3.195804310962558e-06,
+        "mean": 1.1839199487440055e-06,
+        "max_abs": 3.4621916711330414e-06
+      },
+      "pressure_rhs_l2": {
+        "min": 6.550418491835036e-09,
+        "max": 2.1033110830781715e-07,
+        "range": 2.0378068981598212e-07,
+        "mean": 6.172280020079412e-08,
+        "max_abs": 2.1033110830781715e-07
+      }
+    },
+    "metal": {
+      "samples": 100,
+      "first_iteration": 2901,
+      "last_iteration": 3000,
+      "last_raw": 1.1676616377791216e-07,
+      "cell_u": {
+        "min": 0.9998888969421387,
+        "max": 0.999894917011261,
+        "range": 6.020069122314453e-06,
+        "mean": 0.9998917841911316,
+        "max_abs": 0.999894917011261
+      },
+      "cell_v": {
+        "min": -1.6257358765869867e-06,
+        "max": 1.6430060441052774e-06,
+        "range": 3.268741920692264e-06,
+        "mean": 2.562628498914421e-07,
+        "max_abs": 1.6430060441052774e-06
+      },
+      "cell_p": {
+        "min": 0.0020011684391647577,
+        "max": 0.0020031719468533993,
+        "range": 2.003507688641548e-06,
+        "mean": 0.0020022658235393466,
+        "max_abs": 0.0020031719468533993
+      },
+      "delta_u": {
+        "min": -4.887580871582031e-06,
+        "max": 3.337860107421875e-06,
+        "range": 8.225440979003906e-06,
+        "mean": -3.2782554626464846e-08,
+        "max_abs": 4.887580871582031e-06
+      },
+      "delta_v": {
+        "min": -2.9947402708785376e-06,
+        "max": 3.1067417012309306e-06,
+        "range": 6.101481972109468e-06,
+        "mean": -4.225862255680113e-09,
+        "max_abs": 3.1067417012309306e-06
+      },
+      "delta_p": {
+        "min": -1.8379651010036469e-06,
+        "max": 1.89291313290596e-06,
+        "range": 3.730878233909607e-06,
+        "mean": -4.956964403390884e-09,
+        "max_abs": 1.89291313290596e-06
+      },
+      "max_delta_u": {
+        "min": 3.5762786865234375e-07,
+        "max": 7.033348083496094e-06,
+        "range": 6.67572021484375e-06,
+        "mean": 1.7970800399780273e-06,
+        "max_abs": 7.033348083496094e-06
+      },
+      "max_delta_v": {
+        "min": 2.757204242698208e-07,
+        "max": 7.408377314277459e-06,
+        "range": 7.132656890007638e-06,
+        "mean": 2.318395659379746e-06,
+        "max_abs": 7.408377314277459e-06
+      },
+      "max_delta_p": {
+        "min": 2.3304164642468095e-07,
+        "max": 2.187676727771759e-06,
+        "range": 1.954635081347078e-06,
+        "mean": 8.064141002250836e-07,
+        "max_abs": 2.187676727771759e-06
+      },
+      "pressure_rhs_l2": {
+        "min": 4.508807433906765e-09,
+        "max": 1.3356577486879724e-07,
+        "range": 1.2905696743489049e-07,
+        "mean": 4.175406180789048e-08,
+        "max_abs": 1.3356577486879724e-07
+      }
+    }
+  },
+  "regression": {
+    "before": {
+      "FV V3 Re1000 cavity refinement against Erturk": {
+        "assertions": 16,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V3 Re100 and Re400 cavity reported deviations": {
+        "assertions": 4,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V4 Fluent cavity matches its actual grid": {
+        "assertions": 763,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V6 Fluent mixing elbow fixed point and cold start": {
+        "assertions": 2601,
+        "failed": 29,
+        "exceptions": [
+          "\"Fluent setup rejected:\n  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison\""
+        ]
+      },
+      "FSAE V12 native Fluent polynomial fan import acceptance": {
+        "assertions": 1,
+        "failed": 1,
+        "exceptions": []
+      },
+      "V8 realizable KE scalable channel MKM DNS profile and momentum balance": {
+        "assertions": 18,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V2 manufactured Navier Stokes hex refinement": {
+        "assertions": 16,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V2 manufactured Navier Stokes tet refinement": {
+        "assertions": 18,
+        "failed": 6,
+        "exceptions": []
+      },
+      "FV V1 manufactured scalar diffusion and upwind refinement": {
+        "assertions": 48,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV SIMPLEC develops planar Couette flow with moving and slip walls": {
+        "assertions": 14,
+        "failed": 0,
+        "exceptions": []
+      },
+      "V5 TMR flat plate SST accuracy and three-grid trend": {
+        "assertions": 36,
+        "failed": 6,
+        "exceptions": []
+      },
+      "V5 TMR bump SST station accuracy and three-grid trend": {
+        "assertions": 47,
+        "failed": 10,
+        "exceptions": []
+      },
+      "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend": {
+        "assertions": 70,
+        "failed": 17,
+        "exceptions": []
+      },
+      "FSAE V7.1 translating-wall Couette hex and poly": {
+        "assertions": 104,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V7.2 rotating-wall Taylor Couette hex and poly": {
+        "assertions": 6668,
+        "failed": 2,
+        "exceptions": []
+      },
+      "FSAE V8 Darcy Forchheimer pressure drop and oblique directions": {
+        "assertions": 24,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance": {
+        "assertions": 48,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V10 incompressible pressure and mass-flow inlets": {
+        "assertions": 12,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V11 internal fan polynomial and porous jump pressure discontinuity": {
+        "assertions": 312,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V7.3 SST moving-wall and translating-frame invariance": {
+        "assertions": 16,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette": {
+        "assertions": 4,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport": {
+        "assertions": 12,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V9.3 rotation and translation preserve Taylor Couette pressure": {
+        "assertions": 6,
+        "failed": 0,
+        "exceptions": []
+      },
+      "Fluent research downloads retain published byte identities": {
+        "assertions": 6,
+        "failed": 0,
+        "exceptions": []
+      }
+    },
+    "after": {
+      "FV V3 Re1000 cavity refinement against Erturk": {
+        "assertions": 16,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V3 Re100 and Re400 cavity reported deviations": {
+        "assertions": 4,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V4 Fluent cavity matches its actual grid": {
+        "assertions": 763,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V6 Fluent mixing elbow fixed point and cold start": {
+        "assertions": 2601,
+        "failed": 29,
+        "exceptions": [
+          "\"Fluent setup rejected:\n  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison\""
+        ]
+      },
+      "FSAE V12 native Fluent polynomial fan import acceptance": {
+        "assertions": 1,
+        "failed": 1,
+        "exceptions": []
+      },
+      "V8 realizable KE scalable channel MKM DNS profile and momentum balance": {
+        "assertions": 18,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V2 manufactured Navier Stokes hex refinement": {
+        "assertions": 16,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV V2 manufactured Navier Stokes tet refinement": {
+        "assertions": 18,
+        "failed": 6,
+        "exceptions": []
+      },
+      "FV V1 manufactured scalar diffusion and upwind refinement": {
+        "assertions": 48,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FV SIMPLEC develops planar Couette flow with moving and slip walls": {
+        "assertions": 14,
+        "failed": 0,
+        "exceptions": []
+      },
+      "V5 TMR flat plate SST accuracy and three-grid trend": {
+        "assertions": 36,
+        "failed": 6,
+        "exceptions": []
+      },
+      "V5 TMR bump SST station accuracy and three-grid trend": {
+        "assertions": 47,
+        "failed": 9,
+        "exceptions": []
+      },
+      "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend": {
+        "assertions": 70,
+        "failed": 17,
+        "exceptions": []
+      },
+      "FSAE V7.1 translating-wall Couette hex and poly": {
+        "assertions": 104,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V7.2 rotating-wall Taylor Couette hex and poly": {
+        "assertions": 6668,
+        "failed": 2,
+        "exceptions": []
+      },
+      "FSAE V8 Darcy Forchheimer pressure drop and oblique directions": {
+        "assertions": 24,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance": {
+        "assertions": 48,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V10 incompressible pressure and mass-flow inlets": {
+        "assertions": 12,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V11 internal fan polynomial and porous jump pressure discontinuity": {
+        "assertions": 312,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V7.3 SST moving-wall and translating-frame invariance": {
+        "assertions": 16,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette": {
+        "assertions": 4,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport": {
+        "assertions": 12,
+        "failed": 0,
+        "exceptions": []
+      },
+      "FSAE V9.3 rotation and translation preserve Taylor Couette pressure": {
+        "assertions": 6,
+        "failed": 0,
+        "exceptions": []
+      },
+      "Fluent research downloads retain published byte identities": {
+        "assertions": 26,
+        "failed": 0,
+        "exceptions": []
+      }
+    },
+    "changes": [
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "aero/wing.msh.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "20553685 == 20553685",
+        "before_context": null,
+        "after_context": "aero/wing.msh.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "box/poly.msh.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "17599129 == 17599129",
+        "before_context": null,
+        "after_context": "box/poly.msh.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "file_session/elbow1.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "1121860 == 1121860",
+        "before_context": null,
+        "after_context": "file_session/elbow1.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "file_session/elbow1.dat.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "2039264 == 2039264",
+        "before_context": null,
+        "after_context": "file_session/elbow1.dat.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "flow_over_cylinder/flow_over_cylinder.msh",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "2461498 == 2461498",
+        "before_context": null,
+        "after_context": "flow_over_cylinder/flow_over_cylinder.msh",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "mixing_elbow/mixing_elbow.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "3062081 == 3062081",
+        "before_context": null,
+        "after_context": "mixing_elbow/mixing_elbow.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "mixing_elbow/mixing_elbow.dat.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "3064096 == 3064096",
+        "before_context": null,
+        "after_context": "mixing_elbow/mixing_elbow.dat.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "3646168 == 3646168",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "6504224 == 6504224",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters_legacy_text.cas",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "11215089 == 11215089",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters_legacy_text.cas",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "aero/wing.msh.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "f1a8102a94ce5a997ee01226c0601e4f4c65985fddf25377ce259fa58b8c5bf7 == f1a8102a94ce5a997ee01226c0601e4f4c65985fddf25377ce259fa58b8c5bf7",
+        "before_context": null,
+        "after_context": "aero/wing.msh.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "box/poly.msh.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "046c37b2b51cfc1c06966c0574fdff80f2a5fca463e089a0e421013081df8dfb == 046c37b2b51cfc1c06966c0574fdff80f2a5fca463e089a0e421013081df8dfb",
+        "before_context": null,
+        "after_context": "box/poly.msh.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "file_session/elbow1.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "d9e1aa38362e6187a3dc257363a11bad9a2fd1452085b3af964b26f7048acfd1 == d9e1aa38362e6187a3dc257363a11bad9a2fd1452085b3af964b26f7048acfd1",
+        "before_context": null,
+        "after_context": "file_session/elbow1.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "file_session/elbow1.dat.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "dc38e7f1337b1390c3caf54d3a27921665021675e9103fa47d5ec32b097d7a25 == dc38e7f1337b1390c3caf54d3a27921665021675e9103fa47d5ec32b097d7a25",
+        "before_context": null,
+        "after_context": "file_session/elbow1.dat.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "flow_over_cylinder/flow_over_cylinder.msh",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "5ac5c262ea1614d16e0770ae41381bc915cce87929f5f1f7a07c8591d7279b88 == 5ac5c262ea1614d16e0770ae41381bc915cce87929f5f1f7a07c8591d7279b88",
+        "before_context": null,
+        "after_context": "flow_over_cylinder/flow_over_cylinder.msh",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "mixing_elbow/mixing_elbow.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc == 8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+        "before_context": null,
+        "after_context": "mixing_elbow/mixing_elbow.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "mixing_elbow/mixing_elbow.dat.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42 == 863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42",
+        "before_context": null,
+        "after_context": "mixing_elbow/mixing_elbow.dat.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "190ddd71f96f69c699f96d8d760291b81adb7237a7ab8dc68d0cd76f950f86d9 == 190ddd71f96f69c699f96d8d760291b81adb7237a7ab8dc68d0cd76f950f86d9",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "a420f1c9234ca89d572a96f915adedfdf92609c73190cec00dfea998fc3dc8b0 == a420f1c9234ca89d572a96f915adedfdf92609c73190cec00dfea998fc3dc8b0",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters_legacy_text.cas",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "ef75e61850ff7133f68200c2c3a7c84c41edb86cfbb937d5d17f84efd14f7d27 == ef75e61850ff7133f68200c2c3a7c84c41edb86cfbb937d5d17f84efd14f7d27",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters_legacy_text.cas",
+        "state": "changed"
+      },
+      {
+        "test_case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "file": "fv/test_tmr.cpp",
+        "line": "70",
+        "expression": "cf_error<=.1",
+        "inventory_file": "",
+        "occurrence": 0,
+        "before_pass": false,
+        "after_pass": true,
+        "before_value": "0.124519 <= 0.1",
+        "after_value": "0.0992376 <= 0.1",
+        "before_context": "backend: cpu | level: 2 | station: 0.632197",
+        "after_context": "backend: cpu | level: 2 | station: 0.632197",
+        "state": "changed"
+      }
+    ],
+    "new_failures": [],
+    "missing_assertions": [],
+    "added_assertions": [
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "aero/wing.msh.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "20553685 == 20553685",
+        "before_context": null,
+        "after_context": "aero/wing.msh.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "box/poly.msh.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "17599129 == 17599129",
+        "before_context": null,
+        "after_context": "box/poly.msh.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "file_session/elbow1.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "1121860 == 1121860",
+        "before_context": null,
+        "after_context": "file_session/elbow1.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "file_session/elbow1.dat.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "2039264 == 2039264",
+        "before_context": null,
+        "after_context": "file_session/elbow1.dat.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "flow_over_cylinder/flow_over_cylinder.msh",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "2461498 == 2461498",
+        "before_context": null,
+        "after_context": "flow_over_cylinder/flow_over_cylinder.msh",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "mixing_elbow/mixing_elbow.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "3062081 == 3062081",
+        "before_context": null,
+        "after_context": "mixing_elbow/mixing_elbow.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "mixing_elbow/mixing_elbow.dat.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "3064096 == 3064096",
+        "before_context": null,
+        "after_context": "mixing_elbow/mixing_elbow.dat.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "3646168 == 3646168",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "6504224 == 6504224",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "10",
+        "expression": "std::filesystem::file_size(path)==file.bytes",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters_legacy_text.cas",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "11215089 == 11215089",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters_legacy_text.cas",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "aero/wing.msh.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "f1a8102a94ce5a997ee01226c0601e4f4c65985fddf25377ce259fa58b8c5bf7 == f1a8102a94ce5a997ee01226c0601e4f4c65985fddf25377ce259fa58b8c5bf7",
+        "before_context": null,
+        "after_context": "aero/wing.msh.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "box/poly.msh.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "046c37b2b51cfc1c06966c0574fdff80f2a5fca463e089a0e421013081df8dfb == 046c37b2b51cfc1c06966c0574fdff80f2a5fca463e089a0e421013081df8dfb",
+        "before_context": null,
+        "after_context": "box/poly.msh.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "file_session/elbow1.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "d9e1aa38362e6187a3dc257363a11bad9a2fd1452085b3af964b26f7048acfd1 == d9e1aa38362e6187a3dc257363a11bad9a2fd1452085b3af964b26f7048acfd1",
+        "before_context": null,
+        "after_context": "file_session/elbow1.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "file_session/elbow1.dat.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "dc38e7f1337b1390c3caf54d3a27921665021675e9103fa47d5ec32b097d7a25 == dc38e7f1337b1390c3caf54d3a27921665021675e9103fa47d5ec32b097d7a25",
+        "before_context": null,
+        "after_context": "file_session/elbow1.dat.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "flow_over_cylinder/flow_over_cylinder.msh",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "5ac5c262ea1614d16e0770ae41381bc915cce87929f5f1f7a07c8591d7279b88 == 5ac5c262ea1614d16e0770ae41381bc915cce87929f5f1f7a07c8591d7279b88",
+        "before_context": null,
+        "after_context": "flow_over_cylinder/flow_over_cylinder.msh",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "mixing_elbow/mixing_elbow.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc == 8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+        "before_context": null,
+        "after_context": "mixing_elbow/mixing_elbow.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "mixing_elbow/mixing_elbow.dat.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42 == 863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42",
+        "before_context": null,
+        "after_context": "mixing_elbow/mixing_elbow.dat.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters.cas.h5",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "190ddd71f96f69c699f96d8d760291b81adb7237a7ab8dc68d0cd76f950f86d9 == 190ddd71f96f69c699f96d8d760291b81adb7237a7ab8dc68d0cd76f950f86d9",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters.cas.h5",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "a420f1c9234ca89d572a96f915adedfdf92609c73190cec00dfea998fc3dc8b0 == a420f1c9234ca89d572a96f915adedfdf92609c73190cec00dfea998fc3dc8b0",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters_legacy_binary.cas",
+        "state": "changed"
+      },
+      {
+        "test_case": "Fluent research downloads retain published byte identities",
+        "file": "io/test_fluent_reference_inventory.cpp",
+        "line": "11",
+        "expression": "kutta::sha256_file(path)==file.sha256",
+        "inventory_file": "static_mixer/Static_Mixer_Parameters_legacy_text.cas",
+        "occurrence": 0,
+        "before_pass": null,
+        "after_pass": true,
+        "before_value": null,
+        "after_value": "ef75e61850ff7133f68200c2c3a7c84c41edb86cfbb937d5d17f84efd14f7d27 == ef75e61850ff7133f68200c2c3a7c84c41edb86cfbb937d5d17f84efd14f7d27",
+        "before_context": null,
+        "after_context": "static_mixer/Static_Mixer_Parameters_legacy_text.cas",
+        "state": "changed"
+      }
+    ],
+    "v1_v6_totals": {
+      "before": {
+        "cases": 10,
+        "assertions": 3563,
+        "failed": 51
+      },
+      "after": {
+        "cases": 10,
+        "assertions": 3563,
+        "failed": 50
+      }
+    },
+    "v1_v6_changes": [
+      {
+        "test_case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "file": "fv/test_tmr.cpp",
+        "line": "70",
+        "expression": "cf_error<=.1",
+        "inventory_file": "",
+        "occurrence": 0,
+        "before_pass": false,
+        "after_pass": true,
+        "before_value": "0.124519 <= 0.1",
+        "after_value": "0.0992376 <= 0.1",
+        "before_context": "backend: cpu | level: 2 | station: 0.632197",
+        "after_context": "backend: cpu | level: 2 | station: 0.632197",
+        "state": "changed"
+      }
+    ],
+    "v1_v6_missing_assertions": [],
+    "v1_v6_new_failures": []
+  },
+  "slow_totals": {
+    "baseline": {
+      "OverallResultsAsserts": {
+        "successes": 10793,
+        "failures": 71
+      },
+      "OverallResultsTestCases": {
+        "successes": 17,
+        "failures": 7,
+        "skipped": 189
+      }
+    },
+    "final": {
+      "OverallResultsAsserts": {
+        "successes": 10814,
+        "failures": 70
+      },
+      "OverallResultsTestCases": {
+        "successes": 17,
+        "failures": 7,
+        "skipped": 190
+      }
+    }
+  }
+}

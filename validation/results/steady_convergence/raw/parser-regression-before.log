@@ -1,0 +1,16 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+CHECKOUT/tests/case/test_case.cpp:518:
+TEST CASE:  Inactive SA writer flags preserve provenance without changing SST settings
+
+CHECKOUT/tests/case/test_case.cpp:521: ERROR: CHECK( plain.viscous==with_sa.viscous ) is NOT correct!
+  values: CHECK( {?} == {?} )
+
+CHECKOUT/tests/case/test_case.cpp:522: ERROR: CHECK_FALSE( with_sa.viscous.unsupported_options.contains("sa-des-maxedge?") ) is NOT correct!
+  values: CHECK_FALSE( true )
+
+===============================================================================
+[doctest] test cases: 1 | 0 passed | 1 failed | 24 skipped
+[doctest] assertions: 5 | 3 passed | 2 failed |
+[doctest] Status: FAILURE!

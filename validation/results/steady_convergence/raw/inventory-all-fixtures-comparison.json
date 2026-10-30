@@ -1,0 +1,35 @@
+{
+  "before": {
+    "Fluent research downloads retain published byte identities": {
+      "assertions": 26,
+      "failed": 0,
+      "exceptions": []
+    }
+  },
+  "after": {
+    "Fluent research downloads retain published byte identities": {
+      "assertions": 26,
+      "failed": 0,
+      "exceptions": []
+    }
+  },
+  "changes": [],
+  "new_failures": [],
+  "missing_assertions": [],
+  "added_assertions": [],
+  "v1_v6_totals": {
+    "before": {
+      "cases": 0,
+      "assertions": 0,
+      "failed": 0
+    },
+    "after": {
+      "cases": 0,
+      "assertions": 0,
+      "failed": 0
+    }
+  },
+  "v1_v6_changes": [],
+  "v1_v6_missing_assertions": [],
+  "v1_v6_new_failures": []
+}

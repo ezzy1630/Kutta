@@ -1,0 +1,10 @@
+{
+  "rows": 816,
+  "symmetric_correction_error": 0.0,
+  "normalized_correction_condition": 92025.05186380769,
+  "frozen_velocity_spectral_radius": 1.0279772086286765,
+  "unstable_modes_above_1_plus_1e_6": 8,
+  "minimum_response_eigenvalue_real": -0.027977208628676548,
+  "maximum_response_eigenvalue_real": 0.6985391049524822,
+  "scope": "Frozen momentum diagonal, velocity and turbulence at captured coarse-plate state; existing pressure reconstruction evaluated in host double with stored float coefficients. This is not the spectrum of the full pressure-velocity iteration."
+}

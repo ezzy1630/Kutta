@@ -1,0 +1,9 @@
+{
+  "stored_mass_l1": 3.1780352034022075e-07,
+  "pressure_arithmetic_change_l1": 4.53812882351551e-10,
+  "pressure_only_fixed_state_counterfactual_l1": 3.1769599170394453e-07,
+  "face_flux_arithmetic_change_l1": 1.3275894331834619e-08,
+  "double_evaluated_face_flux_l1": 3.172267312967742e-07,
+  "both_fixed_state_counterfactual_l1": 3.171200061188649e-07,
+  "scope": "Same stored cell pressures, face velocities and physical Rhie-Chow coefficients, density=1 flat plate. Evaluate final face-flux and pressure-jump arithmetic in double without resolving the flow. This does not test cell-field storage precision or the full iteration Jacobian."
+}

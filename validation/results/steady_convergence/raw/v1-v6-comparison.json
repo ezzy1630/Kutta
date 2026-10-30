@@ -1,0 +1,161 @@
+{
+  "before": {
+    "FV V3 Re1000 cavity refinement against Erturk": {
+      "assertions": 16,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV V3 Re100 and Re400 cavity reported deviations": {
+      "assertions": 4,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV V4 Fluent cavity matches its actual grid": {
+      "assertions": 763,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV V6 Fluent mixing elbow fixed point and cold start": {
+      "assertions": 2601,
+      "failed": 29,
+      "exceptions": [
+        "\"Fluent setup rejected:\n  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison\""
+      ]
+    },
+    "FV V2 manufactured Navier Stokes hex refinement": {
+      "assertions": 16,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV V2 manufactured Navier Stokes tet refinement": {
+      "assertions": 18,
+      "failed": 6,
+      "exceptions": []
+    },
+    "FV V1 manufactured scalar diffusion and upwind refinement": {
+      "assertions": 48,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV SIMPLEC develops planar Couette flow with moving and slip walls": {
+      "assertions": 14,
+      "failed": 0,
+      "exceptions": []
+    },
+    "V5 TMR flat plate SST accuracy and three-grid trend": {
+      "assertions": 36,
+      "failed": 6,
+      "exceptions": []
+    },
+    "V5 TMR bump SST station accuracy and three-grid trend": {
+      "assertions": 47,
+      "failed": 10,
+      "exceptions": []
+    }
+  },
+  "after": {
+    "FV V3 Re1000 cavity refinement against Erturk": {
+      "assertions": 16,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV V3 Re100 and Re400 cavity reported deviations": {
+      "assertions": 4,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV V4 Fluent cavity matches its actual grid": {
+      "assertions": 763,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV V6 Fluent mixing elbow fixed point and cold start": {
+      "assertions": 2601,
+      "failed": 29,
+      "exceptions": [
+        "\"Fluent setup rejected:\n  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison\""
+      ]
+    },
+    "FV V2 manufactured Navier Stokes hex refinement": {
+      "assertions": 16,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV V2 manufactured Navier Stokes tet refinement": {
+      "assertions": 18,
+      "failed": 6,
+      "exceptions": []
+    },
+    "FV V1 manufactured scalar diffusion and upwind refinement": {
+      "assertions": 48,
+      "failed": 0,
+      "exceptions": []
+    },
+    "FV SIMPLEC develops planar Couette flow with moving and slip walls": {
+      "assertions": 14,
+      "failed": 0,
+      "exceptions": []
+    },
+    "V5 TMR flat plate SST accuracy and three-grid trend": {
+      "assertions": 36,
+      "failed": 6,
+      "exceptions": []
+    },
+    "V5 TMR bump SST station accuracy and three-grid trend": {
+      "assertions": 47,
+      "failed": 9,
+      "exceptions": []
+    }
+  },
+  "changes": [
+    {
+      "test_case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "file": "fv/test_tmr.cpp",
+      "line": "70",
+      "expression": "cf_error<=.1",
+      "inventory_file": "",
+      "occurrence": 0,
+      "before_pass": false,
+      "after_pass": true,
+      "before_value": "0.124519 <= 0.1",
+      "after_value": "0.0992376 <= 0.1",
+      "before_context": "backend: cpu | level: 2 | station: 0.632197",
+      "after_context": "backend: cpu | level: 2 | station: 0.632197",
+      "state": "changed"
+    }
+  ],
+  "new_failures": [],
+  "missing_assertions": [],
+  "added_assertions": [],
+  "v1_v6_totals": {
+    "before": {
+      "cases": 10,
+      "assertions": 3563,
+      "failed": 51
+    },
+    "after": {
+      "cases": 10,
+      "assertions": 3563,
+      "failed": 50
+    }
+  },
+  "v1_v6_changes": [
+    {
+      "test_case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "file": "fv/test_tmr.cpp",
+      "line": "70",
+      "expression": "cf_error<=.1",
+      "inventory_file": "",
+      "occurrence": 0,
+      "before_pass": false,
+      "after_pass": true,
+      "before_value": "0.124519 <= 0.1",
+      "after_value": "0.0992376 <= 0.1",
+      "before_context": "backend: cpu | level: 2 | station: 0.632197",
+      "after_context": "backend: cpu | level: 2 | station: 0.632197",
+      "state": "changed"
+    }
+  ],
+  "v1_v6_missing_assertions": [],
+  "v1_v6_new_failures": []
+}

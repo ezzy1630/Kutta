@@ -1,0 +1,525 @@
+Start testing: Oct 30 06:17 PDT
+----------------------------------------------------------
+1/3 Testing: kutta-tests
+1/3 Test: kutta-tests
+Command: "CHECKOUT/build-integrated/kutta-tests" "--test-suite-exclude=slow"
+Directory: CHECKOUT/build-integrated
+"kutta-tests" start time: Oct 30 06:17 PDT
+Output:
+----------------------------------------------------------
+Solve CLI: generated CFF/data, residuals, VTU, forces, SHA256, and rejection checks passed
+App protocol: devices, inspect, JSONL event order/reports, EOF and SIGINT passed
+Setup overrides: actual inlet mass flux -1.0 -> -2.0 kg/s; rejections and provenance passed
+Live CLI: publication, paths, run identity, sequence, timing, refreshed pressure states, stop handling and option validation passed
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FV_LSQ backend=cpu cells=60 max_error=3.8147e-07
+FV_LSQ backend=metal cells=60 max_error=3.8147e-07
+FV_LSQ backend=cpu cells=144 max_error=8.58307e-07
+FV_LSQ backend=metal cells=144 max_error=8.58307e-07
+FV_LSQ backend=cpu cells=86803 max_error=5.71489e-05
+FV_LSQ backend=metal cells=86803 max_error=5.71489e-05
+FV_V2_PROGRESS backend=cpu tet=1 n=4 iter=20 ru=0.00131163 rv=0.00128623 rc=0.027333 rc_raw=0.0263686
+FV_V2_BOUNDARY backend=cpu tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.9375,0.875,0.0625 boundary=1 wall=1
+FV_V2 backend=cpu tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.25842 ru=4.8067e-08 rv=5.51712e-08 rw=4.99977e-08 rc_raw=1.15809e-06 corrected_mass=3.15767e-07
+FV_V2_FORCE backend=cpu tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.16708 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+FV_V2_PROGRESS backend=metal tet=1 n=4 iter=20 ru=0.00131163 rv=0.00128623 rc=0.027333 rc_raw=0.0263686
+FV_V2_BOUNDARY backend=metal tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.9375,0.875,0.0625 boundary=1 wall=1
+FV_V2 backend=metal tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.25842 ru=4.8067e-08 rv=5.51712e-08 rw=4.99977e-08 rc_raw=1.15809e-06 corrected_mass=3.15767e-07
+FV_V2_FORCE backend=metal tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.16708 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=4 exact_face_L2=0.0566571 momentum_L2=0.0870708 LSQ_L2=0.242695
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=8 exact_face_L2=0.0142464 momentum_L2=0.0556747 LSQ_L2=0.0889712 exact_face_order=1.99166 momentum_order=0.645167 LSQ_order=1.44773
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=16 exact_face_L2=0.00356676 momentum_L2=0.0216528 LSQ_L2=0.0301149 exact_face_order=1.99791 momentum_order=1.36247 LSQ_order=1.56286
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=4 exact_face_L2=0.236907 momentum_L2=0.365856 LSQ_L2=0.334045
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=8 exact_face_L2=0.118648 momentum_L2=0.179739 LSQ_L2=0.168973 exact_face_order=0.997635 momentum_order=1.02537 LSQ_order=0.983245
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=16 exact_face_L2=0.0593483 momentum_L2=0.0889978 LSQ_L2=0.0848384 exact_face_order=0.999409 momentum_order=1.01406 LSQ_order=0.994008
+FV_PRESSURE_OPERATOR backend=metal tet=0 n=4 exact_face_L2=0.0566571 momentum_L2=0.0870708 LSQ_L2=0.242695
+FV_PRESSURE_OPERATOR backend=metal tet=0 n=8 exact_face_L2=0.0142464 momentum_L2=0.0556747 LSQ_L2=0.0889712 exact_face_order=1.99166 momentum_order=0.645167 LSQ_order=1.44773
+FV_PRESSURE_OPERATOR backend=metal tet=0 n=16 exact_face_L2=0.00356676 momentum_L2=0.0216528 LSQ_L2=0.0301149 exact_face_order=1.99791 momentum_order=1.36247 LSQ_order=1.56286
+FV_PRESSURE_OPERATOR backend=metal tet=1 n=4 exact_face_L2=0.236907 momentum_L2=0.365856 LSQ_L2=0.334045
+FV_PRESSURE_OPERATOR backend=metal tet=1 n=8 exact_face_L2=0.118648 momentum_L2=0.179739 LSQ_L2=0.168973 exact_face_order=0.997635 momentum_order=1.02537 LSQ_order=0.983245
+FV_PRESSURE_OPERATOR backend=metal tet=1 n=16 exact_face_L2=0.0593483 momentum_L2=0.0889978 LSQ_L2=0.0848384 exact_face_order=0.999409 momentum_order=1.01406 LSQ_order=0.994008
+TMR progress cpu bump 0 it=24 defect=0.188958993466 change=inf cf=0.0105496284727 drag=0.0108165654079
+TMR progress metal bump 0 it=24 defect=0.188762684214 change=inf cf=0.010547640243 drag=0.0108140684981
+===============================================================================
+CHECKOUT/tests/io/test_fluent_real.cpp:97:
+TEST CASE:  real Fluent external mesh acceptance
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): adjoint_cylinder_tutorial/cylinder_tutorial.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): adjoint_cylinder_tutorial/cylinder_tutorial.dat
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/axial_fan.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/axial_fan.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/BaseCases/axial_fan.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/axial_fan.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/26 Mpa-solution-final.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/26 Mpa-solution-final.dat
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-26 MPa.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-26 MPa.dat
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-94 MPa.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): borealis_fracture/final solution-before-94 MPa.dat
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): catalytic_converter/catalytic_converter_param.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Ablation-tutorial/ablation.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Ablation-tutorial/ablation_Solved.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Ablation-tutorial/ablation_Solved.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/DOE-ML-Mixing-Elbow/elbow.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Dash-App-for-Post-processing/elbow.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Dash-App-for-Post-processing/elbow.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Excel-Monitor-Points/glycerol_filling_mixing_init.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Excel-Monitor-Points/glycerol_filling_mixing_init.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Fluent-Parametric/elbow_params_2.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Graphics-Demo/elbow1.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Gravity-Separator-PID/2d-separator.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Gravity-Separator-PID/2d-separator.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Intro-Demo-Mixing-Elbow/elbow.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Intro-Demo-Mixing-Elbow/elbow.cas.gz
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/MixingTank-DOE/test-laminar-visc.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PPTX-report-generation/elbow.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PPTX-report-generation/elbow.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PyFluent-ACE-Training-at-22R2/demo.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PyFluent-ACE-Training-at-22R2/elbow.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/PyFluent-ACE-Training-at-22R2/elbow1.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Remote-Execution-in-Cluster/bkd_facing_step.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Separator-Collection-Efficiency/oil_separator.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Separator-Collection-Efficiency/oil_separator.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Steady-Vortex-VOF/vortex_init.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Steady-Vortex-VOF/vortex_init.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_expressions.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_expressions.cas.gz
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_solution.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_manifold/manifold_solution.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_system/exhaust_system.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): exhaust_system/exhaust_system.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/mixing_elbow_mul_ph.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/mixing_elbow_mul_ph.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/data.zip
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/BaseCases/nozzle_para_named_1.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/nozzle_para_named_1.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/elbow_param.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/elbow_param.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/elbow_source_terms.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/mixing_elbow_for_field_data.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): optislang/mixer-ran_2019r3.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): optislang/mixer-ran_2019r3.cas.gz
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): optislang/nozzle-2D-WB.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pyprimemesh/unit_test_examples/file.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pyprimemesh/unit_test_examples/hex.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/fluid-swirl/water_pipe_flow.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/heating_tank_fmu/Fluent/fluent.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/oscillating_plate/Fluent/plate.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/oscillating_plate/Fluent/plate.cas.gz
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/oscillating_plate/oscillating_plate.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pysystem-coupling/parametric_sweep_vel/Fluent/case.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pytwin/other_files/HX_CFD.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pytwin/other_files/T_Junction.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/pyworkbench/elbow_case_file/elbow.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00005.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00010.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00015.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00020.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00025.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00030.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00035.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00040.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00045.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2-00050.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_steady-state/elbow-2.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00001.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00002.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00003.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00004.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2-00005.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-mixing_elbow_transient/elbow-2.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_phase/fluentMultiphase.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_phase/fluentMultiphase.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_species/FFF.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): other_folders/result_files/fluent-multi_species/FFF.dat.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): peridoic_rot/peridoic_rot.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): peridoicrot_withpipes/peridoicrot_withpipes.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): periodic_rot/periodic_rot.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): rotating_disk/disk.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameter_project_file/Static_Mixer_Parameters.cffdb/Static_Mixer_Parameters-Solve/Static_Mixer_Parameters.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.xxx.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.xxx.cas.gz
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.xxxx.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_binary.cas.gz
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_text.cas.gz
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_unitless.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_main.cas.h5
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.cas
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.cas.gz
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.dat
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): vki_turbine/vki_turbine.dat.gz
+
+CHECKOUT/tests/io/test_fluent_real.cpp:128: MESSAGE: SKIP: fixture absent (see SOURCE.md): wigley_hull/wigley.cas.h5
+
+REAL flow_over_cylinder/flow_over_cylinder.msh cells=46949 faces=188392 points=95090 patches=6 volume=449.214654586013 min-normal-cos=0.645058420029463 boundary-closure=1.99423858392127e-14
+REAL lid_driven_cavity/lid_driven_cavity.msh cells=3550 faces=14321 points=7344 patches=5 volume=1.00000000000001 min-normal-cos=1 boundary-closure=4.26381657866693e-16
+REAL simple_duct/simple-duct.msh.h5 cells=10 faces=51 points=44 patches=3 volume=9.99999904 min-normal-cos=1 boundary-closure=2.9906525756859e-17
+REAL box/poly.msh.h5 cells=86803 faces=591932 points=505132 patches=6 volume=0.5 min-normal-cos=0.534414873063884 boundary-closure=1.93107058326785e-16
+REAL aero/wing.msh.h5 cells=114219 faces=654343 points=478848 patches=5 volume=6995.03679818086 min-normal-cos=0.214559058459804 boundary-closure=3.45822778248212e-16
+REAL file_session/elbow1.cas.h5 cells=13852 faces=44500 points=16968 patches=5 volume=0.00263365409702418 min-normal-cos=0.648592133183826 boundary-closure=1.76213036475812e-16
+REAL mixing_elbow/mixing_elbow.cas.h5 cells=17822 faces=91581 points=66417 patches=6 volume=0.00250065665056062 min-normal-cos=0.28317016387715 boundary-closure=3.93267416104222e-16
+REAL static_mixer/Static_Mixer_Parameters.cas.h5 cells=22771 faces=119140 points=82247 patches=4 volume=3.95971337209982e-08 min-normal-cos=0.289117938578567 boundary-closure=2.01836584992582e-16
+REAL static_mixer/Static_Mixer_Parameters_legacy_text.cas cells=22771 faces=119140 points=82247 patches=4 volume=3.95971337209982e-08 min-normal-cos=0.289117938578567 boundary-closure=2.01836584992582e-16
+REAL static_mixer/Static_Mixer_Parameters_legacy_binary.cas cells=22771 faces=119140 points=82247 patches=4 volume=3.95971337209982e-08 min-normal-cos=0.289117938578567 boundary-closure=2.01836584992582e-16
+===============================================================================
+CHECKOUT/tests/io/test_io.cpp:222:
+TEST CASE:  NASA TMR real formatted grids (optional external fixtures)
+
+CHECKOUT/tests/io/test_io.cpp:247: MESSAGE: NASA TMR real grids checked: 2
+
+===============================================================================
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:36:
+TEST CASE:  NASA NMF ranges supply exact BC patches and stitch the NACA wake
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: front = 816
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back = 816
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: subsonic_inflow_pt_block1_f5_1-25_1-2 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back_pressure_block1_f6_1-25_1-2 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-7 = 6
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: viscous_solid_block1_f1_1-2_7-35 = 28
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: farfield_riem_block1_f2_1-2_1-35 = 34
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: front = 3264
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back = 3264
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: subsonic_inflow_pt_block1_f5_1-49_1-2 = 48
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back_pressure_block1_f6_1-49_1-2 = 48
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-13 = 12
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: viscous_solid_block1_f1_1-2_13-69 = 56
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: farfield_riem_block1_f2_1-2_1-69 = 68
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: front = 13056
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back = 13056
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: subsonic_inflow_pt_block1_f5_1-97_1-2 = 96
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back_pressure_block1_f6_1-97_1-2 = 96
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: viscous_solid_block1_f1_1-2_25-137 = 112
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: farfield_riem_block1_f2_1-2_1-137 = 136
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: front = 3520
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back = 3520
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: subsonic_inflow_pt_block1_f5_1-41_1-2 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back_pressure_block1_f6_1-41_1-2 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: viscous_solid_block1_f1_1-2_25-65 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_65-89 = 24
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-89 = 88
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: front = 14080
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back = 14080
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: subsonic_inflow_pt_block1_f5_1-81_1-2 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back_pressure_block1_f6_1-81_1-2 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESView format: header, geometry, winding-compatible areas, per-vertex values, ranges, deltas and replacement passed
+Post CLI: KUTV/KUTL layout, fields/ranges, pathline frame interpolation, probes/CSV, reports and atomic failures passed
+Fluent mixing elbow: streamlines, pressure/Q iso-surfaces, line/section probes, all derived/reference/delta fields and all-zone aero reports passed
+SAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-49 = 48
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: viscous_solid_block1_f1_1-2_49-129 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_129-177 = 48
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-177 = 176
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: front = 3584
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: back = 3584
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f5_1-33_1-2 = 32
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f6_1-33_1-2 = 32
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: viscous_solid_block1_f1_1-2_25-89 = 64
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f2_1-2_1-113 = 112
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: front = 14336
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: back = 14336
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f5_1-65_1-2 = 64
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f6_1-65_1-2 = 64
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: viscous_solid_block1_f1_1-2_49-177 = 128
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+CHECKOUT/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f2_1-2_1-225 = 224
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+AMG_GRID backend=cpu n=32 iterations=10 rel=8.93192236537661e-09 converged=1 PCG, aggregation AMG V-cycle, 5 levels, op complexity 1.138
+AMG_GRID backend=cpu n=64 iterations=4 rel=9.3070402651771e-09 converged=1 PCG, aggregation AMG V-cycle, 6 levels, op complexity 1.140
+AMG_GRID backend=metal n=32 iterations=10 rel=8.93192236537661e-09 converged=1 PCG, aggregation AMG V-cycle, 5 levels, op complexity 1.138
+AMG_GRID backend=metal n=64 iterations=4 rel=9.3070402651771e-09 converged=1 PCG, aggregation AMG V-cycle, 6 levels, op complexity 1.140
+AMG_RANDOM backend=cpu n=32 iterations=11 relative_residual=6.55422741403565e-07
+AMG_RANDOM backend=cpu n=64 iterations=15 relative_residual=7.8670109139099e-07
+AMG_RANDOM backend=metal n=32 iterations=11 relative_residual=6.55422741403565e-07
+AMG_RANDOM backend=metal n=64 iterations=15 relative_residual=7.8670109139099e-07
+runtime test backend: cpu (CPU reference (serial))
+runtime test backend: metal (Apple M4 Pro)
+SST Fluent 22.2 mixing_elbow: cpu / CPU reference (serial)
+  mu_t inactive identity n=11066 median=3.72593229602813e-08 p95=1.0579963594104e-07 max=1.84469393760267e-07
+  omega gradient change vs saved wall SV_O n=17822 median=0 p95=0.00594253297900222 max=0.00627284585698153
+  model wall omega: max mu_t change=0 limiter changes=0 CDkw changes=2436
+  mu_t limited, inverse-square LSQ n=6756 median=0.045967167782592 p95=0.142836575167297 max=0.309757140127843
+  mu_t inactive, inverse-square LSQ n=11066 median=4.09553719826761e-08 p95=0.0394149678676212 max=0.268264944137967
+  limiter agreement=0.902985074626866 discriminating n=2555 median S ratio=0.999075439959459 median Omega ratio=0.240745848775544 max production/cap=0.359466910847145
+  wall-face reconstruction omega n=2436 median=0.00418607180634833 p95=0.00428161636439228 max=0.00431867663868535
+  wall-cell omega n=2436 median=5.8068207774431e-06 p95=4.24771387430856e-05 max=0.000293143453000466
+  wall y+ (u*) n=2436 median=5.02705965593764e-06 p95=0.000201379079059816 max=0.0017583347155784
+  wall y+ (u_tau) n=2436 median=4.71773308391432e-06 p95=0.000185434679640023 max=0.00198188131615651
+  wall shear force magnitude n=2436 median=9.43589076107809e-06 p95=0.000370034637373229 max=0.00396057101405134
+  wall shear force vector n=2436 median=1.14324320648903e-05 p95=0.000445172450193374 max=0.00543407227532991
+  wall shear vector kernel/double-oracle n=2436 median=6.49454771459795e-08 p95=1.61632172093871e-07 max=2.97192471345895e-07
+  saved shear directional scatter (1+cos) n=2436 median=2.41534570122326e-12 p95=3.44189371448422e-09 max=1.11230539295848e-05
+  wall k zero gradient n=2436 median=4.99287583566321e-06 p95=0.000596878820532637 max=0.00463328167085786
+SST Fluent 22.2 mixing_elbow: metal / Apple M4 Pro
+  mu_t inactive identity n=11066 median=3.72593229602813e-08 p95=1.0579963594104e-07 max=1.84469393760267e-07
+  omega gradient change vs saved wall SV_O n=17822 median=0 p95=0.00594252845150475 max=0.00627284585698153
+  model wall omega: max mu_t change=0 limiter changes=0 CDkw changes=2436
+  mu_t limited, inverse-square LSQ n=6756 median=0.045967167782592 p95=0.142836575167297 max=0.309757140127843
+  mu_t inactive, inverse-square LSQ n=11066 median=4.09553719826761e-08 p95=0.0394149678676212 max=0.268265008707767
+  limiter agreement=0.902985074626866 discriminating n=2555 median S ratio=0.999075439959459 median Omega ratio=0.240745848775544 max production/cap=0.359466910847145
+  wall-face reconstruction omega n=2436 median=0.00418606297705204 p95=0.00428165864207111 max=0.00431874410981592
+  wall-cell omega n=2436 median=5.80858393484096e-06 p95=4.24771387430856e-05 max=0.000293143453000466
+  wall y+ (u*) n=2436 median=5.02705965593764e-06 p95=0.000201379079059816 max=0.0017583347155784
+  wall y+ (u_tau) n=2436 median=4.75208612055189e-06 p95=0.000185434679640023 max=0.00198188131615651
+  wall shear force magnitude n=2436 median=9.43589076107809e-06 p95=0.00037000995907488 max=0.00396057101405134
+  wall shear force vector n=2436 median=1.14324320648903e-05 p95=0.000445172450193374 max=0.00543407227532991
+  wall shear vector kernel/double-oracle n=2436 median=6.88986018790297e-08 p95=1.75527891298763e-07 max=2.97192471345895e-07
+  saved shear directional scatter (1+cos) n=2436 median=2.41534570122326e-12 p95=3.44189371448422e-09 max=1.11230539295848e-05
+  wall k zero gradient n=2436 median=4.99287583566321e-06 p95=0.000596878820532637 max=0.00463328167085786
+===============================================================================
+[doctest] test cases:     217 |     217 passed | 0 failed | 24 skipped
+[doctest] assertions: 7403642 | 7403642 passed | 0 failed |
+[doctest] Status: SUCCESS!
+<end of output>
+Test time =  21.93 sec
+----------------------------------------------------------
+Test Passed.
+"kutta-tests" end time: Oct 30 06:17 PDT
+"kutta-tests" time elapsed: 00:00:21
+----------------------------------------------------------
+
+3/3 Testing: lint-portability
+3/3 Test: lint-portability
+Command: "/opt/homebrew/Frameworks/Python.framework/Versions/3.14/bin/python3.14" "CHECKOUT/tools/lint_portability.py"
+Directory: CHECKOUT/build-integrated
+"lint-portability" start time: Oct 30 06:17 PDT
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.40 sec
+----------------------------------------------------------
+Test Passed.
+"lint-portability" end time: Oct 30 06:17 PDT
+"lint-portability" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 30 06:17 PDT

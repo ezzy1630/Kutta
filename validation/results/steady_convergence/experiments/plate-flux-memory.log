@@ -1,0 +1,2 @@
+CASE source=fb827e0d416746030eaf156f9f42fca87b712a31 name=plate model=sst backend=cpu cells=816 dt=0 momentum_relaxation=0.7 pressure_relaxation=1
+CHECKOUT/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector

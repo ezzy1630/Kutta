@@ -54,8 +54,7 @@ net physical source at the assembly state is unchanged. Strain, vorticity and
 the gradient-squared term stay frozen during this local linearization.
 This removes the coarse TMR plate's two-step source cycle at the existing
 `.75` relaxation; it does not resolve the continuity convergence failure.
-This is not a
-curvature correction or SA-neg. There is no trip source.
+This is not a curvature correction or SA-neg. There is no trip source.
 
 Fluent's documented production/destruction has **no ft2**. The explicit
 `TmrStandard` variant includes ft2=1.2*exp(-.5*chi^2), its matching destruction

@@ -1,0 +1,398 @@
+{
+  "baseline_commit": "fb827e0d416746030eaf156f9f42fca87b712a31",
+  "branch": "steady-convergence-fb827e0",
+  "checkout": "CHECKOUT",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "hardware": "Apple M4 Pro",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+  "configuration": "Release C++20; CPU serial; actual Metal; HDF5 enabled",
+  "frozen_sources": {
+    "tests/fv/test_tmr.cpp": {
+      "baseline_sha256": "2bbd7dd168af7e819fe4ed7781280248999d253fbe521aa5eb950bac398ee6d3",
+      "final_sha256": "2bbd7dd168af7e819fe4ed7781280248999d253fbe521aa5eb950bac398ee6d3",
+      "unchanged": true
+    },
+    "tests/fv/test_tmr_sa.cpp": {
+      "baseline_sha256": "4a83a2a1abfd131a6c2674aa82a02ad57f90c4c1fe5fd993ea512a6fd1a1e775",
+      "final_sha256": "4a83a2a1abfd131a6c2674aa82a02ad57f90c4c1fe5fd993ea512a6fd1a1e775",
+      "unchanged": true
+    },
+    "validation/cases/tmr.hpp": {
+      "baseline_sha256": "886ece45f58fd9e4170b3e9ba4c9b95e44ac5872be71c2b23f125e3096e014fc",
+      "final_sha256": "886ece45f58fd9e4170b3e9ba4c9b95e44ac5872be71c2b23f125e3096e014fc",
+      "unchanged": true
+    },
+    "validation/cases/tmr_sa.hpp": {
+      "baseline_sha256": "e8a8f7052162f4571a7d36b0eecebc512e3aa191c2589f983acedc007576e9db",
+      "final_sha256": "e8a8f7052162f4571a7d36b0eecebc512e3aa191c2589f983acedc007576e9db",
+      "unchanged": true
+    },
+    "tests/fv/test_fluent_elbow.cpp": {
+      "baseline_sha256": "4d632d0eaab09d024b229e47dd16ef19f34023aa9ca03b9c3a5a250c097f0c2c",
+      "final_sha256": "4d632d0eaab09d024b229e47dd16ef19f34023aa9ca03b9c3a5a250c097f0c2c",
+      "unchanged": true
+    },
+    "tests/fv/test_cavity.cpp": {
+      "baseline_sha256": "3320aee47ce40c76dd5a29fc07c240d6ddf4c1de3f6ce00db8d805f59a0f492c",
+      "final_sha256": "3320aee47ce40c76dd5a29fc07c240d6ddf4c1de3f6ce00db8d805f59a0f492c",
+      "unchanged": true
+    },
+    "tests/fv/test_navier_stokes.cpp": {
+      "baseline_sha256": "a81f1ebc5231fda4ca9b3a5590720c032682f6dd6b2896f98487fe61fdb1c1b8",
+      "final_sha256": "a81f1ebc5231fda4ca9b3a5590720c032682f6dd6b2896f98487fe61fdb1c1b8",
+      "unchanged": true
+    },
+    "tests/fv/test_scalar.cpp": {
+      "baseline_sha256": "7ee94e045b082b5c24c9fd04d4f3f00a836e7f0a0b59cb5b08c9b8478f96d7fb",
+      "final_sha256": "7ee94e045b082b5c24c9fd04d4f3f00a836e7f0a0b59cb5b08c9b8478f96d7fb",
+      "unchanged": true
+    },
+    "src/kutta/kernels/fv_flow.kern.h": {
+      "baseline_sha256": "dcaddfb02719ca01f141a389723e5e60f519b86caf4eb0c06fd38d193074c638",
+      "final_sha256": "dcaddfb02719ca01f141a389723e5e60f519b86caf4eb0c06fd38d193074c638",
+      "unchanged": true
+    },
+    "src/kutta/fv/steady_solver.cpp": {
+      "baseline_sha256": "248c7356686641c23f907e841e5bf89f3fd47241316f88aac223702c98797772",
+      "final_sha256": "248c7356686641c23f907e841e5bf89f3fd47241316f88aac223702c98797772",
+      "unchanged": true
+    },
+    "src/kutta/fv/operators.cpp": {
+      "baseline_sha256": "5aac7455a6aa1c5c3790f262a183ebb289d0719612202391cf685006c7b4b005",
+      "final_sha256": "5aac7455a6aa1c5c3790f262a183ebb289d0719612202391cf685006c7b4b005",
+      "unchanged": true
+    },
+    "src/kutta/fv/transport.cpp": {
+      "baseline_sha256": "192405a38c5a3c2c3133d73958aff7fbb756539913903f6d44639f477e2d91f5",
+      "final_sha256": "192405a38c5a3c2c3133d73958aff7fbb756539913903f6d44639f477e2d91f5",
+      "unchanged": true
+    },
+    "src/kutta/fv/transport.hpp": {
+      "baseline_sha256": "b48f3c13cec5cb289b31fff9ff44650452e917218a4ae0559ee15b06c3751094",
+      "final_sha256": "b48f3c13cec5cb289b31fff9ff44650452e917218a4ae0559ee15b06c3751094",
+      "unchanged": true
+    },
+    "src/kutta/kernels/fv_transport.kern.h": {
+      "baseline_sha256": "4aa2075a10332d9986bd5f53e5525667c1bca443e4852237df1cd5a43601a064",
+      "final_sha256": "4aa2075a10332d9986bd5f53e5525667c1bca443e4852237df1cd5a43601a064",
+      "unchanged": true
+    },
+    "src/kutta/kernels/fv_gradient.kern.h": {
+      "baseline_sha256": "cf9388e62f762629339d2dcf4699110690d1c5b007b7fa6d2a109fedd937c2a2",
+      "final_sha256": "cf9388e62f762629339d2dcf4699110690d1c5b007b7fa6d2a109fedd937c2a2",
+      "unchanged": true
+    },
+    "src/kutta/runtime/cpu/cpu_device.cpp": {
+      "baseline_sha256": "eccb94cbc1888ea7656083b78187968f555a7e0bdc28375c659fb46b90b3005e",
+      "final_sha256": "eccb94cbc1888ea7656083b78187968f555a7e0bdc28375c659fb46b90b3005e",
+      "unchanged": true
+    },
+    "src/kutta/linalg/solver.cpp": {
+      "baseline_sha256": "39c4dba22cfb152c65f7a01e80a3a74aa939e888ada0b1fbc970f284e4375994",
+      "final_sha256": "39c4dba22cfb152c65f7a01e80a3a74aa939e888ada0b1fbc970f284e4375994",
+      "unchanged": true
+    }
+  },
+  "timing_limits": "Long numerical runs overlap each other and other local work. These are observed durations, not isolated performance measurements or Fluent speed comparisons. No Fluent executable or wall time was available.",
+  "cuda": "CUDA 13.0.2 linux/amd64 image via Docker, four targets 75-real;86-real;89-real;120; compile and CPU quick tests with external Fluent fixture mount, no CUDA GPU execution in this task.",
+  "measurement_sources": {
+    "src/kutta/case/fluent_case.cpp": "bbf87179df8c1790f55e068ad7229e672b16105d8953f94d3d3728e455b4ca33",
+    "src/kutta/fv/turbulence/sa.cpp": "b5f222d0203f7df22de66652d4d7d9958fdd929cd1f4ec83f99d5ea13c2894cc",
+    "src/kutta/fv/turbulence/sa.hpp": "cae565dabbd876ced76d66d6fb933f525abe5290d86ae11354a464dbaa598659",
+    "src/kutta/kernels/sa.kern.h": "86870d7164e0525857670cf4e0ecc2d3e6454a8481ad70531f74304ff456326f",
+    "tests/case/test_case.cpp": "71945a5b1524828568e5e4158eabeef6d88f343a837aeb57cb6c75d3c310319f",
+    "tests/turbulence/test_sa.cpp": "25dd5572d15588358ffcee39fa83ef2787b57d5a2b3f7ba6afbe88270dc30a1e",
+    "bench/bench_convergence.cpp": "74bb45848f23218a19f14dc6a2db10bff41f8fb2bcb0b5dce0631b2050b20a7d"
+  },
+  "measurement_artifacts": {
+    "build/kutta-tests": "22a2ca2fff27a9ad3f0d0c7a0e38bc2f308373a14e31d314ba598850b07e9212",
+    "build-baseline/kutta-tests": "7a6220cfad23d877ad222a901db5ba98f6d629307aba5c7d7d8eab1d1697eebe",
+    "build/bench_convergence": "ec866cd71684fb760f30ea064e6cd0e9b4f820fa13f46f7e29542959c9dc221b",
+    "build-evidence/bench_convergence_baseline": "02d2f0c57cd385cb90e9b8c456d2aaa22b14283e702d5887ddf92cdd7dd11a98"
+  },
+  "rebased_main": "00a01cbe0488a684b9b45dbf4364a28848359425",
+  "integrated_code_commit": "a774809fee4077155f86027ffeee386df3bad905",
+  "integrated_sources": {
+    "src/kutta/case/fluent_case.cpp": "2a1c2dffb057a6098e71fd358fa83381eec2e3a47e71e2d35d632707fe652fc5",
+    "src/kutta/fv/turbulence/sa.cpp": "b5f222d0203f7df22de66652d4d7d9958fdd929cd1f4ec83f99d5ea13c2894cc",
+    "src/kutta/fv/turbulence/sa.hpp": "cae565dabbd876ced76d66d6fb933f525abe5290d86ae11354a464dbaa598659",
+    "src/kutta/kernels/sa.kern.h": "86870d7164e0525857670cf4e0ecc2d3e6454a8481ad70531f74304ff456326f",
+    "tests/case/test_case.cpp": "71945a5b1524828568e5e4158eabeef6d88f343a837aeb57cb6c75d3c310319f",
+    "tests/turbulence/test_sa.cpp": "25dd5572d15588358ffcee39fa83ef2787b57d5a2b3f7ba6afbe88270dc30a1e",
+    "bench/bench_convergence.cpp": "4651da1e789b04a9913360d585f17a5af32269bbf562a223d1712a7e41f062f2"
+  },
+  "integration_artifacts": {
+    "build-integrated/kutta-tests": "a1b51343fabc6389fcc103fc33def07d1f36fca3c7699fb51c13a35446577784",
+    "build-integrated/libkutta.a": "f606ca5a9941f0f49541619e067f6d5508f901b6a2826dd0ea8828e01c379f64",
+    "build-integrated/bench_convergence": "4b282e437da03b90a32c43b7c07cbad28a6447b0b88fb7339d55352620a76aac",
+    "build-evidence/cuda/compile/kutta-tests": "dc4d983fcfd82d82a37b2905a0a35cea889fd4370db4862464cc2368c87c881f"
+  },
+  "fluent_fixtures": {
+    "root": "FLUENT_EXAMPLES",
+    "sha256": {
+      "2d_box/pro_species.cas": "1da54ce149dd501192b077deb67b0614f229a0a6b70aa8edc7ba665f475699fa",
+      "aero/wing.msh.h5": "f1a8102a94ce5a997ee01226c0601e4f4c65985fddf25377ce259fa58b8c5bf7",
+      "box/poly.msh.h5": "046c37b2b51cfc1c06966c0574fdff80f2a5fca463e089a0e421013081df8dfb",
+      "file_session/elbow1.cas.h5": "d9e1aa38362e6187a3dc257363a11bad9a2fd1452085b3af964b26f7048acfd1",
+      "file_session/elbow1.dat.h5": "dc38e7f1337b1390c3caf54d3a27921665021675e9103fa47d5ec32b097d7a25",
+      "flow_over_cylinder/flow_over_cylinder.msh": "5ac5c262ea1614d16e0770ae41381bc915cce87929f5f1f7a07c8591d7279b88",
+      "lid_driven_cavity/lid_driven_cavity.msh": "9b09f1287db71978e10c67a528616c1c95118cfcf4f763abad047df565e6a6dd",
+      "mixing_elbow/mixing_elbow.cas.h5": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+      "mixing_elbow/mixing_elbow.dat.h5": "863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42",
+      "simple_duct/simple-duct.msh.h5": "28a09ec4c59381bcda2222edaf92930414abc4215fdfa394b7772d1456fc8851",
+      "static_mixer/Static_Mixer_Parameters.cas.h5": "190ddd71f96f69c699f96d8d760291b81adb7237a7ab8dc68d0cd76f950f86d9",
+      "static_mixer/Static_Mixer_Parameters_legacy_binary.cas": "a420f1c9234ca89d572a96f915adedfdf92609c73190cec00dfea998fc3dc8b0",
+      "static_mixer/Static_Mixer_Parameters_legacy_text.cas": "ef75e61850ff7133f68200c2c3a7c84c41edb86cfbb937d5d17f84efd14f7d27"
+    }
+  },
+  "tmr_grids": {
+    "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.p2dfmt": "89f23a19433919b7f20a75a1c49e05239f5d202b0442d4c6bef2b3e19e988c6d",
+    "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt": "55ae965f2151e5644e3c7c1b6fecea7ce0a16cf4c34eae6997f27683a4e2ac44",
+    "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt": "18c1d1c82cf91bdad89b2c2963129fc992fcd8b98fda4b3e79b7397ee52ba223",
+    "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt": "41c409f49afca8affaafd4a0a49c6ba934eca9007da502fe0c20afbd091500b0",
+    "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt": "f59b62b8cb51163e708b6be3f59bbec3eee369a9d667fa0cf48499b9e5a7e2b8",
+    "validation/data/nasa_tmr/2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt": "0f11cf2818516326be73b4523d84b7132f395df354b300aa1caf3971bff16902",
+    "validation/data/nasa_tmr/2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt": "0ce600d67ef2dced8c14ee936f3f68578767541deeafa718ce32cabefd7486ba"
+  },
+  "checks": {
+    "native_quick": {
+      "cases": 217,
+      "assertions": 7403642,
+      "failed": 0,
+      "real_fluent_fixtures": true,
+      "metal_executed": true
+    },
+    "cuda_compile": {
+      "architectures": [
+        "75-real",
+        "86-real",
+        "89-real",
+        "120"
+      ],
+      "passed": true,
+      "gpu_executed_in_this_task": false
+    },
+    "cuda_container_cpu_quick": {
+      "cases": 216,
+      "assertions": 3746284,
+      "failed": 0,
+      "real_fluent_fixtures": true,
+      "excluded_case": "compiled GPU backends*"
+    },
+    "v6_integrated": {
+      "assertions": 2601,
+      "failed_before": 29,
+      "failed_after": 29,
+      "pass_fail_changes": 0
+    },
+    "baseline_quick_all_fixtures": {
+      "cases": 189,
+      "assertions": 7341666,
+      "failed_assertions": 2,
+      "failed_cases": 1
+    },
+    "full_slow_baseline": {
+      "assertions": 10864,
+      "failed_assertions": 71,
+      "passed_cases": 17,
+      "failed_cases": 7
+    },
+    "full_slow_final": {
+      "assertions": 10884,
+      "failed_assertions": 70,
+      "passed_cases": 17,
+      "failed_cases": 7,
+      "runtime": "captured pre-rebase binary; source hashes recorded separately"
+    },
+    "full_slow_comparison": {
+      "new_failing_assertions": 0,
+      "missing_baseline_assertions": 0,
+      "added_passing_inventory_assertions": 20,
+      "v1_v6_assertions": 3563,
+      "v1_v6_failures_before": 51,
+      "v1_v6_failures_after": 50
+    },
+    "cuda_portability_lint": {
+      "passed": true,
+      "note": "Original integrated four-target build ran lint successfully. Later full-fixture CPU quick passed; its subsequent lint initially lacked git. Installed git and reran lint successfully without code changes."
+    },
+    "available_fixture_inventory": {
+      "baseline": 26,
+      "integrated": 26,
+      "failures": 0,
+      "pass_fail_changes": 0
+    },
+    "latest_native_quick": {
+      "cases": 217,
+      "assertions": 7403642,
+      "failed": 0,
+      "ctest_passed": 2,
+      "ctest_seconds": 22.34
+    },
+    "latest_cuda": {
+      "compile_passed": true,
+      "architectures": [
+        "75-real",
+        "86-real",
+        "89-real",
+        "120"
+      ],
+      "cpu_quick_cases": 216,
+      "cpu_quick_assertions": 3746284,
+      "cpu_quick_failures": 0,
+      "source_only_lint_passed": true,
+      "note": "Full-fixture overlay makes no-git lint fallback include ignored vendor inputs; lint rerun on tracked-source-only snapshot with fixtures mounted outside source root. No fixture or lint-rule changes."
+    }
+  },
+  "commands": {
+    "full_slow_before": "KUTTA_FLUENT_EXAMPLES=FLUENT_EXAMPLES ./build-baseline/kutta-tests --test-suite=slow --success --reporters=xml --out=build-evidence/baseline-slow.xml",
+    "full_slow_after": "KUTTA_FLUENT_EXAMPLES=FLUENT_EXAMPLES ./build/kutta-tests --test-suite=slow --success --reporters=xml --out=build-evidence/final-slow.xml",
+    "integrated_quick": "KUTTA_FLUENT_EXAMPLES=FLUENT_EXAMPLES ctest --test-dir build-integrated -LE slow --output-on-failure",
+    "integrated_v6": "KUTTA_FLUENT_EXAMPLES=FLUENT_EXAMPLES ./build-integrated/kutta-tests --test-suite=slow --test-case='FV V6*' --success --reporters=xml --out=build-evidence/integrated-v6.xml"
+  },
+  "fixture_lookup_note": "ENV-aware V6/static-mixer tests loaded fixtures from the start. Several older source-root fixture checks ignored the environment; ten gitignored file symlinks were added and native quick was repeated. CUDA quick was repeated with the same fixture directory also mounted over /src/validation/fluent_examples. The full baseline slow inventory ran before these links, so its optional inventory coverage is smaller than the final run; V1-V6 physics inputs are unchanged.",
+  "diagnostic_sources": {
+    "validation/results/steady_convergence/analyze.py": "ebffd299562c118d3d216e4ce23808c489888c723c9a42b6d717c2529f107d5c",
+    "validation/results/steady_convergence/plate_trace.cpp": "9759dac17d9c1b77b46fe9ff0baaad5c15d6c4b366214e84a96b29311296627c",
+    "validation/results/steady_convergence/plot.py": "2a9e4e8c40d14b944d56926c433f71ee01ce6b3c87b600e7b80c258aff7c0ea7",
+    "validation/results/steady_convergence/prepare_fixtures.py": "fd48606fd0c8701a3acd79c03251e85ae752b89bd09a17f3d3d724b7ff79b7ab",
+    "validation/results/steady_convergence/pressure_response.cpp": "63dc37e6cc45496dd77e2abb69bab0bbd9cf86daf73d82e1d89544afa51e966f",
+    "validation/results/steady_convergence/pressure_response.py": "80b434ecd1132705e604e22487b2a7b48e5ff93e6394927201c772d599948d67"
+  },
+  "artifact_path_normalization": {
+    "labels": [
+      "CHECKOUT",
+      "FLUENT_EXAMPLES",
+      "HOME"
+    ],
+    "numerical_data_changed": false,
+    "unmodified_originals": "build-evidence/report-unnormalized",
+    "original_file_sha256": {
+      "pressure_response.cpp": "63dc37e6cc45496dd77e2abb69bab0bbd9cf86daf73d82e1d89544afa51e966f",
+      "plot.py": "2a9e4e8c40d14b944d56926c433f71ee01ce6b3c87b600e7b80c258aff7c0ea7",
+      "sa-cycle.png": "a11740c79a96920f9349b00a10f86d47a4ed31d1458ff507cb23fd3e33144cbe",
+      "sha256.json": "f57974c73da9ba7c6a3e903a6a87c29aab586c8907996b19611ba460e9eee2b4",
+      "pressure-velocity-trace.png": "8f117c2eb48b80453c155eeefece1763905ca24e5479def7ce2d0b6e081bcb6d",
+      "pressure-velocity-trace.svg": "982c6a7c04bec40b9835be4f59d2d238a725959046fd8ad03814d0ef44a4ce4b",
+      "measurements.json": "c3cc7dc948f3e48b682e726f4005d44677461b8add8552644b772e5dd27fd7f2",
+      "sa-cycle.svg": "eee587e11c03c2554db8cb0273accc2f7c5e40fe545cded901d0e0249ed1e8df",
+      "assertions.csv": "8afc4b3fc0bff1ed21c7c270733c38b2f0c49d055b4fe45a88d09b3f01959223",
+      "metadata.json": "5fbadf85dc3a2c98d343a35356a8c2cb6177b3aa90917662c5cad36117d0faff",
+      "README.md": "1836e7ab480c11dd35553f508f1708f18276c3725b637fd822bafd061fe4b473",
+      "prepare_fixtures.py": "fd48606fd0c8701a3acd79c03251e85ae752b89bd09a17f3d3d724b7ff79b7ab",
+      "pressure_response.py": "80b434ecd1132705e604e22487b2a7b48e5ff93e6394927201c772d599948d67",
+      "continuity-spatial.svg": "d1bbc2717b4fc2032c0103798846969c3804ee263c8751b82b44942607539e42",
+      "continuity-spatial.png": "09d64786fb5c7d7d39e5191bb683fbd0affe99433840eade5fb86b47f5dca5b8",
+      "plate_trace.cpp": "9759dac17d9c1b77b46fe9ff0baaad5c15d6c4b366214e84a96b29311296627c",
+      "timings.csv": "60c17fd9cd4fe66d7a8dd2a4f6b2a4f4cab5d287e2322119eb16087ddddf8d93",
+      "analyze.py": "ebffd299562c118d3d216e4ce23808c489888c723c9a42b6d717c2529f107d5c",
+      "experiments/plate-tight.log": "db4a5b197245a27db076418c8be2b9f3df78be39af7b2ba7573942973579e3b2",
+      "experiments/channel-flux-memory2.log": "07422a31f097affe0219b647653666f0eab36856b1762e252dfea84e0a709dac",
+      "experiments/plate-flux-memory2.log": "ce0519ba318bad8a52ae1e0c569195cc8dfa01010eac909c59b15881a34ceda0",
+      "experiments/bump-combined-precision.log": "ebbfaaba9bcb963f650789d123b21096357174eb687ed549ddc717e2a66545cd",
+      "experiments/plate-flux-memory3.log": "2eddfa08f5c729cf46d679086ad6e621f43cc37d0091582ef787e89348cc5262",
+      "experiments/pressure-pair-experiment.kern.h": "09ce064ef683488a79cf2df71432ce9a247bd29582a1b24b9e78594225e1799d",
+      "experiments/frozen-velocity-experiment.patch": "36b7cc45c2afba329b606afdaf59fff90bd87a3fa556b23e2cd19aebc95eb34d",
+      "experiments/plate-four-correctors.log": "dcd750878e8a39c1e8d61e2a0c230410380ea722339c9fa06855ee482bc204d0",
+      "experiments/channel-turb1.log": "ad207d45e6185b216aeb2158b6dd2787bc7393625f04210055052827b1a03c86",
+      "experiments/channel-flux-memory.log": "fe3bfb25631afa8d42b90a9ea3e34acb3b2c43f7f1e0020f9b86870b87107760",
+      "experiments/plate-low-p.log": "046797b37d6f3d77a8d56fcf745388f3332ecd2152be40f7e7c34d14cfa6dc38",
+      "experiments/combined-precision-experiment.patch": "1ab1cf18158a877082ead63a91c393f6e29304186bfd83e25ad753487c9238d6",
+      "experiments/pressure-pair-experiment.patch": "d67aa1d8fa5e97836c548f45aee3a0f81e8239cd0cbbef3a0e8dc449232b8be7",
+      "experiments/flux-memory-experiment.patch": "19ee0b1e3748f07d2f11431cb575fd7557616f6b6dfc3e4331f8d56a737ca826",
+      "experiments/bump-flux-memory2.log": "f383bbc6e1f0c120135cbc4c84f934d1d48944e005520dfdd911dbb829ecbf27",
+      "experiments/sa-relax3.log": "276fff379c83ce0289c24871e3668c37d21e3c7fff17bb5400e11bd7393ab67c",
+      "experiments/plate-frozen-velocity.log": "4ea8873c7acfbb5ec59385fb2af15825276b5aff08fe3f3786f3a5089646ca91",
+      "experiments/plate-flux-memory.log": "ce0519ba318bad8a52ae1e0c569195cc8dfa01010eac909c59b15881a34ceda0",
+      "experiments/bump-dt1.log": "d3faede0ff18f05cd2ab66523764d38e4097bba1c06da7788698352ff83ba2f7",
+      "experiments/sa-full-newton.log": "2eebd5649f62ca56205b8900f8da269a44529be906bf5d1c64185d59d0159b83",
+      "experiments/channel-small.log": "a531f13dfcd886599eb2f6308c8557cb353547e70b7ce130329fd6289d07cda5",
+      "experiments/plate-pressure-pair.log": "8689922db7d23a8230c92bb3d9f0a9b38eaa1e5d521d0fd985975b9c96b3b5a9",
+      "experiments/bump-flux-memory.log": "d81e399eededb7a2d64178e796e74e0c763bf4eebbafe8eae3e09b0303c21911",
+      "experiments/sa-bump-full-newton.log": "718246a32a736635ca3635e23bfd8305e9c8c4b2a172cd1c627a1748d5dc56f1",
+      "experiments/conservative-experiment.patch": "dd74a09de0922271d1dba977e05ed74342eb0b72a928144b6d184f10b3287eb5",
+      "experiments/combined-precision-experiment.kern.h": "d30625d8e201b8da0a46f18c5f4d3b4f37a585f89337f112f1295719430a89b6",
+      "experiments/bump-conservative.log": "e04d6062f0ec4efd69a9a17fada5a856939a80a3c10ee682545d90362698d357",
+      "experiments/plate-combined-precision.log": "77751feccc5d6fa6c345e08dde553ba44bf454283be72dd3785c1fc68f6db4f9",
+      "experiments/sa-newton.log": "28fb5380fcf67e85c3b2357ef6627fbcb9e98db4da858054a97d612eedbb547b",
+      "experiments/sa-noabs.log": "e79474149deb4f8d474de3f1d7cd3bd86d392a7d45b83ceda0a2b9b946a4c861",
+      "experiments/channel-dt001.log": "c340fcae24d0efd61a7afa6323d99ccb3afca1d69a70c7b21b2e2ebd6a9ad49b",
+      "experiments/plate-conservative.log": "edb236ef2651b20ddce5e548329462a7313fd4122e8c2a77711fbe6ad55c8b46",
+      "raw/baseline-slow.xml.gz": "2d3261d6bda79a5e53f536972f9b68d625259ac6f31efd6bb4cd98d768846c68",
+      "raw/typed-diff.log": "183ef4afa28bfafa266def197c3259340d384ce819d2e624ad3f78b40c5accb7",
+      "raw/plate-trace-cpu.csv": "f844d3375efcba6bcd24c69ba92abfbff6dcfb77d68849dccc2f82a479180dfb",
+      "raw/plate0-cells.csv.gz": "0da2fa4c1d672fefe488463f1c9e4b00323c1bc35832159ba564d51d75bb049a",
+      "raw/fixture-links-idempotent.log": "3360d811432789d98214c3907d0dac4b27030776d054d13a2d236f70f6362d2a",
+      "raw/sa-cycle-after-metal.log.gz": "e8956ab6822c3d3b6e1d961904579d457909f81253b9f7a000f4af3f0748f8d6",
+      "raw/channel-million-before-metal.log.gz": "7b652ee0c8aad1e312b59afd988b1b98ae7694062eb39279a812248673a7dd88",
+      "raw/plate-trace-cpu.log": "f6bd30de9735d098ecd8ac9bbd45e4060b8e3c218c8f3c11b703c51f48f20e58",
+      "raw/baseline-quick.log": "08e0c2236163d9aafe2779963192063be921ec54e992c56ea57c8c73ce0a3ca3",
+      "raw/sa-cycle-before-cpu.log.gz": "d7d3130b264df4b66709f07e0cd70f13dd5232244d9413bc5037d8e80da20765",
+      "raw/plate0-faces.csv.gz": "5305dc1941a8f05c99b06405e1a3506a4519bbb3c744d11adc2d8c2905c95f91",
+      "raw/baseline-quick-all-fixtures.log": "32e36a58ac14acda75036e0f8def95f8b07746914753357a91926c2f4a6fb424",
+      "raw/sa-cycle-after-cpu.log.gz": "09e63ec787865c13e55a4cf8e72cc0ab69e79b6ac6d2e2db0c41af7e7434600b",
+      "raw/ctest-green.log": "7ec0ae4a19d24d4ac70d62df9550b690345a14ba7fd0212eda23f63a890e8e14",
+      "raw/cuda-lint-all-fixtures.log": "02ebffce93c76be5d496c580b0c8384edafb5709fb5e86e016a6ac86470ba18f",
+      "raw/baseline-slow.log": "8dd4c0d80c880329de07770544af4856f6e4fc396a2a6405e46062bd7a986b36",
+      "raw/integrated-quick.log": "f3b923ee72bbfa6586f7bc025e317353983b9676a5b017273e1775ef5b27d1f2",
+      "raw/integrated-inventory-all-fixtures.xml.gz": "f1bba70c7bd1aca12c20724fda0f246dc183b3b04df632aa0b504e8ef8a68589",
+      "raw/capture-only.patch": "7f3b58a2f643c907b0307d24537671d3d7274b6857322d0c43363cba57802ec6",
+      "raw/final-slow.log": "059c411dc5347875e088c854900f58918556c8ecdb307e79bd4c884b321d32f0",
+      "raw/v6-integrated-comparison.json": "eeb04734b564791f202c9d420ff2b866c48abc587fe6dd01f74c1bc0ad205993",
+      "raw/channel-million-after-cpu.log.gz": "155b791e9202daf26ba1423e7fe71665acf63e19c5fbbbd4e93b16d2f1657569",
+      "raw/integrated-v6.log": "8b1fde7b04dbd48ff164a59cdad2ce78b7b0e75094d032bcfdf40b83db30f616",
+      "raw/sa-cycle-before-metal.log.gz": "fc918005f81174749a7cf89a1ba34dea33ed9449dd306466928a4655a551f61c",
+      "raw/baseline-inventory-all-fixtures.xml.gz": "ed0ec1383e277a135f56566d6b8339abbeeeff5a12727018d94f8ee55d6c8744",
+      "raw/v1-v6-comparison.json": "e5be161252888694eb29a1d00d78d6a5c8ef7c3d7204c58b0a3a96b34f923e47",
+      "raw/plate-trace-summary.json": "a8f938b6c689260c1a31941bfff0d1c1c30f20cdb54356f9d5e2dcbbc7b21d6f",
+      "raw/fixture-links.json": "7228b540b925a291eae55160777e7e57fc37e032f6b8d57d924ad64e05cc38cb",
+      "raw/tmr-fixtures.log": "f5a457a6c7dd3396b8ebb3a89de1c1cb9896a54e8bbc14d5313cf652b0fff15b",
+      "raw/channel-million-after-metal.log.gz": "4876ca4b766e2547a4e571fdd32b69395509608a10618afbdcadff7e4daf5149",
+      "raw/plate2-metal-faces.csv.gz": "ff5ee09423ccb9ecc9c19d9d26a7b2696ee0a10f794b011a0c9ae2ec8ddb033a",
+      "raw/baseline-v6.xml.gz": "707d4c9c8519032264bb73d3c7845c6fd25c38a49ff78fcc92ffe58524295dc6",
+      "raw/plate2-metal.log.gz": "52a2c6ea202b9ead0f4d60766e525ecbfe6708be73189af5c481d20835f54e7c",
+      "raw/final-slow.xml.gz": "0ed78a71ffbd18e824a3a6b7d4524524fa398deda27a5d0f70f9b375081f7525",
+      "raw/cuda-quick-all-fixtures.log": "4ab09bfdd6be33af2f450ec6b700ba43aef8654eac0d76e88ead7b0294962a09",
+      "raw/parser-regression-before.log": "78baef37138366f7bf415e30a255e5bb85a473efca87673a3b440cb422e14f77",
+      "raw/inventory-all-fixtures-comparison.json": "af13126ec63937d62af5c38173a92baf235fce369c0d0df4faba492e12b7789b",
+      "raw/channel-million-before-cpu.log.gz": "0c49f083647d3405ea4ad67b2cece8bbc240b7353077a9a15e3b2286bf2742bc",
+      "raw/sa-newton-tests.log": "d75352848f98216e8b0f46667aa3966b49ec6bd1b957d3c9575abaa932c48418",
+      "raw/plate-trace-metal.csv": "659f59805f07cf21104306fab921f3443853ee01cda0d6f1f720047f831859a5",
+      "raw/plate0.log.gz": "78f789ec9eb7c6eeadec991ca05c977cb7becdb914fe73ba2d15c2a11aadde37",
+      "raw/sa-regression-before.log": "85750bac45244993f7c8d00259b781bd59b1712df679d6b9510e2a80576c9519",
+      "raw/quick-green.log": "e23768565ace000b329903528eff282628bf345612002bf51f8073a0aa313641",
+      "raw/cuda-integrated.log": "400333b07f7ebc7386d9dd9096240d63fc2ba55b98cb21d34610b6d888316df5",
+      "raw/integrated-v6.xml.gz": "4190166f37f42c039a26823eaf72010f4a5f7a4896d66aebbe907f2ade1a203a",
+      "raw/cuda-with-fixtures.log": "6ee4b1f96226c00d23a9face0cab6885f8e4f63f587c04595d63a945fd71c729",
+      "raw/integrated-quick-partial-fixture.log": "6ac613104080c8082cb24549806aef9547871eb26035ca6d4a633929729d5bb3",
+      "raw/integrated-quick-partial-fixture-detail.log": "f40cadfa8ce801b531835255425aee571941f6d6ad77af1b02534c0b035ec4b2",
+      "raw/integrated-quick-detail.log": "9d1906994d06b14473b2614d89ff8352090e21a878f7911a62bc30ac5687d3e1",
+      "raw/plate-trace-metal.log": "24b49e6c2aa2e3c838dd45d35cc0d3ea0f1f5de252f1a2b79e5100ac7e69e491",
+      "raw/plate2-metal-cells.csv.gz": "aa61c30c9191a33c11e3ed355b6dc68412f0161408197c6887f1c54fbf8a7f1c",
+      "experiments/pressure-response/pressure_response.csv.gz": "ab282cba5738a37562ef9e22c0b2a3a3a8ccc9d6cd76f34399ef6d5070d38831",
+      "experiments/pressure-response/pressure-arithmetic.json": "56dbd86812d184f4d3bc0c1f932f90db509df737c1b129a5cd30731555f6b87d",
+      "experiments/pressure-response/spectrum.json": "90c87b4dbe24207a985fd9ff95442d8993fb4c4f6f8bcdcb85b78c53cc410bad",
+      "experiments/pressure-response/pressure_state.csv.gz": "92c9146e15c570a8c2916be2c8dccaf5720bc34f6adbb8636c6cd95a86012f07",
+      "experiments/pressure-response/pressure_correction.csv.gz": "6664cee1fe22f70f9704ba7a0a97a415ba43e6db1ffa8a53b18e67e767dd4833",
+      "experiments/pressure-response/action-verification.json": "c5df33ec60a923dff1b7f06790d607bb113bd5da1506d069ec3d43d9b6009f0e",
+      "experiments/pressure-response/pressure_alpha.csv.gz": "1735ae83a291603da2ed48e84f3ec78e4df2019f49750275d15ddf8d16360731",
+      "experiments/pressure-response/rhie_chow_physical.csv.gz": "ed6f4750f3b6ae16a39e7e8f6f7c65b3a1c94320dad05f75189bd8d4db5f3fec",
+      "raw/latest-quick.log": "2cdc9fd0459d3384c7bc53456a5fe0336044cd52b3a52cc75c359e03615803b2",
+      "raw/latest-quick-detail.log": "c6f6e927da8019941be9cc7af1f1d466f87cae3ed2d379aed836fd2407f6d133",
+      "raw/cuda-latest.log": "1ce538099965a66fea3f685cdb1bed92f50d36c2e4abc89b53f00587abde5482",
+      "raw/cuda-latest-source-lint.log": "02ebffce93c76be5d496c580b0c8384edafb5709fb5e86e016a6ac86470ba18f"
+    }
+  },
+  "initial_rebase_main": "195f56b87ae13ea7b5875978af923e083acd147c",
+  "initial_integrated_code_commit": "87eb8748d4d9b2f156b12ff47d0010142290d135",
+  "latest_integration_tested_commit": "a2d157a35a567e0a3e5b7581c0330bd3c29582c9",
+  "initial_integration_artifacts": {
+    "build-integrated/kutta-tests": "e904eddf0b3ebaed8c1e301b76c1cc201342d15125446b1fe62474c4025a251a",
+    "build-integrated/libkutta.a": "a9085037bb7fa02d35ba626e26e6643692b5f1c6747ae821f2a6317b16bbf016",
+    "build-integrated/bench_convergence": "a4e57cceaf6ef6cb538eb20f0877513ab36c0bb85caa74325f40559acd282399",
+    "build-evidence/cuda/compile/kutta-tests": "f0e6a65ae58f70cc781f7f68eaf232dd8467f00532963576266ef5d6498bcc9d"
+  },
+  "latest_main_scope": "Additional Qt/workbench/view-export commits only. No FV, kernels, mesh or linear algebra changes after the initial rebase. App edits are inherited solely from main.",
+  "latest_runtime_checked_main": "e55b806de1ec942b9d0aa966098bc450c90324a5",
+  "final_rebase_note": "Final main advance changes only .github/workflows/ci.yml (Windows Qt installation); runtime source and build files are identical to the latest checked e55b806 tree."
+}
