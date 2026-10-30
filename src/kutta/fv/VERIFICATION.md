@@ -405,6 +405,9 @@ Only local commits are made; nothing is pushed.
 
 ## V6 mixing-elbow SST
 
+Historical baseline below: hybrid initialization is implemented in the
+2026-10-30 section at the end of this file. The WFGC limitation remains.
+
 **The requested same-settings accuracy gate is not achieved.** SST transport and
 momentum are coupled, but the strict adapter rejects the original elbow's
 `recon/cell-lsf?` (warped-face gradient correction, WFGC). Its hybrid initializer
@@ -2158,3 +2161,194 @@ cmake --build build
 
 Local commits only. No push, deployment, remote resource change, solver-gate
 relaxation or case-specific tuning is part of this repair.
+
+## Hybrid initialization and bounded pressure skew correction (2026-10-30)
+
+**Hybrid initialization is implemented. The uniform-start bump no longer
+diverges, but V5 is not accepted.** All twelve plate/bump grid runs are finite;
+the frozen V5 assertions retain **16 failures / 83**, down from 26 / 83 after
+the pressure M-matrix repair. V1–V4 retains exactly its six tet-force failures.
+V6 retains 29 settings/accuracy failures rather than 30: its hybrid requirement
+now passes, while the original WFGC limitation remains.
+
+Implementation commits are `8b7e954` (hybrid setup), `f7e6ef3` (pressure skew
+bound), and `4be291c` (regressions/diagnostics). Measurements use this worktree,
+`t3-6a23cb77`, Apple M4 Pro, macOS 26.6.2 arm64, Release AppleClang 21, HDF5,
+CPU serial oracle and Metal. Storage remains float with double/compensated
+reductions and deterministic gather kernels. No atomics are added. Raw logs,
+full field comparisons, hashes and reproduction commands are in
+[`validation/results/hybrid_startup`](../../../validation/results/hybrid_startup/README.md).
+
+### Hybrid recipe and real execution paths
+
+The adapter parses a standard-field or hybrid-control variant. The CLI and V6
+both call `setup::initialize()`. Hybrid initializes velocity from a Laplace
+potential with prescribed inlet normal velocity, impermeable walls/symmetry,
+and zero outlet potential. It initializes pressure with the documented boundary
+recipe/Laplace problem and k/omega from local or domain-averaged inlet recipes.
+The case's stored iteration count, scalar solve switches, tolerances, implicit
+and explicit relaxation, turbulence averaging, linear potential patch,
+constant-speed option, and specified-inlet-pressure option are used.
+
+The [implementation contract](../../../docs/research/hybrid-initialization.md)
+links the public Ansys guides and documents every gap and chosen recipe: UI/rpvar
+mapping, discretization, averaging weights, auxiliary iteration semantics,
+linear solver substitution, constant-speed magnitude, missing-boundary fallbacks,
+reference frame, and conservative face-flux reconstruction. The potential is
+stored as a perturbation to an analytical linear field to avoid float subtraction
+of large potentials across thin wall cells. Kutta AMG's substitution for Fluent's
+hybrid AMG cycles/methods is printed. Only the driver's supported flow fields
+are initialized; its existing constant-property, decoupled-energy classification
+is unchanged.
+
+The generated-CFF CLI test exercises hybrid selection without standard defaults.
+An actual 17,822-cell elbow CLI run also completes initialization and one CPU
+iteration without `--data`, writes finite fields and records `data_file=null`.
+That local diagnostic copy changes **only** `recon/cell-lsf?` to false, as in V6;
+all stored hybrid settings remain. Its summary correctly says iteration limit,
+`converged=false`. The original external case/data hashes match the earlier V6
+hashes; the original files are unchanged.
+
+### Startup mechanism and structural repair
+
+Let `rP=xf-CP`, `rN=xf-CN`, `d=CN-CP`, and
+`s=xf-(CP+CN)/2`. The previous Rhie–Chow pressure jump was
+
+```text
+Jside = pP-pN + (gP+gN)/2 dot d + (gP-gN) dot s
+Jlink = pP-pN + (gP+gN)/2 dot d
+```
+
+The final term extrapolates the **difference** of two independent gradients
+to a displaced face. On the coarse bump, `max(|s|/|d|)=53.8577`; the maximum
+boundary-centroid offset/normal-distance ratio is 109.03. The uniform/no-slip
+mismatch supplies a pressure transient, and this remote skew extrapolation
+amplifies it. SPD pressure correction does not bound that explicit nonlinear
+term. Matrix construction, pseudo-time, relaxation and the turbulence model
+are unchanged by the repair.
+
+The new jump is `Jlink + w*(Jside-Jlink)`, with a geometry-only weight:
+`w=1` for `|s|<=|d|`, `w=(4-|s|²/|d|²)/3` between one and two link lengths,
+and `w=0` beyond two lengths. The one/two-length limits are Kutta's bounded
+extrapolation choice, not a published Fluent algorithm. The original jump is
+returned exactly on ordinary faces; the actual side-reconstructed pressure
+face value used for momentum forces is retained everywhere. One rule applies
+to laminar and SST flow.
+
+The same uniform coarse CPU start, with the original pressure-jump kernel,
+fails after 16 completed steps. At the pressure assembly following step 16,
+RHS L2 is `5.21295e16`; the bounded path gives `2.76294e-3`. At step 12 the
+norms are `1.43606e6` and `4.79286e-3`. At step 1 the largest skew term on
+faces beyond two link lengths changes from `.1491368` to `8.75e-9` (float
+arithmetic in the independently evaluated diagnostic). The old-kernel
+24-step regression fails on CPU and Metal; the new one passes on both.
+The full coarse and middle grids now reach 3,000 steps on both backends.
+
+![Measured uniform-start pressure RHS](../../../validation/results/hybrid_startup/startup_rhs.png)
+
+Replacing the side jump by the shared derivative **on every face** was rejected:
+it added two tet pressure-order failures, `.844306 < .914063`. The geometry
+bound restores the original V2 results, including pressure order `.920065` on
+tet. All **308** printed V1–V4 numerical result/progress lines match a fresh
+baseline run byte for byte. The six retained tet wall-force failures remain;
+no gate was weakened to keep the startup repair.
+
+### V5 frozen rerun
+
+The original uniform initialization, three grids, SOU momentum/FOU turbulence,
+boundary conditions, SST coefficients, 3,000-step/600-second budget and all
+accuracy/convergence gates are retained. The bump still uses `dt=.01`,
+momentum relaxation `.5` and pressure relaxation `.3`. It does not use hybrid
+initialization. CPU's 626.88-second fine endpoint is the first completed
+100-step check after the unchanged 600-second cutoff.
+
+| Bump grid (nodes) | Backend | Cells | Steps | Solve s | Provisional continuity | Last-100 load change % |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 89x41 | CPU | 3,520 | 3,000 | 35.92 | 2.03313e-4 | .060016 |
+| 177x81 | CPU | 14,080 | 3,000 | 215.18 | 2.35599e-4 | .015202 |
+| 353x161 | CPU | 56,320 | 2,200 | 626.88 | 8.38414e-5 | 2.029184 |
+| 89x41 | Metal | 3,520 | 3,000 | 81.43 | 6.19219e-5 | .008397 |
+| 177x81 | Metal | 14,080 | 3,000 | 119.44 | 1.35144e-4 | .054144 |
+| 353x161 | Metal | 56,320 | 3,000 | 151.50 | 2.93230e-4 | 1.212121 |
+
+Finest completed endpoints are still transient diagnostics:
+
+| Station x | CFL3D Cf | CPU Cf (error %) | Metal Cf (error %) | CFL3D Cp | CPU Cp | Metal Cp |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| .6321975 | .005024713 | .005560066 (+10.654) | .005343011 (+6.335) | -.2505676 | -.2504592 | -.2489396 |
+| .75 | .005933283 | .006807334 (+14.731) | .006503831 (+9.616) | -.6698700 | -.6547021 | -.6505374 |
+| .8678025 | .002602456 | .003317700 (+27.483) | .002934287 (+12.751) | -.2466382 | -.2528888 | -.2499316 |
+
+All six finest Cp checks pass. CPU's three Cf checks and Metal's aft Cf check
+fail the unchanged 10% limit. Both three-grid trend gates now pass: the frozen
+error norm decreases `2.111969 -> .505597` on CPU and `2.109161 -> .644420`
+on Metal. Every bump iterative-convergence gate still fails, and the finest
+load-change gates remain above .1%. The bump retains **10 failures / 47**.
+
+Flat-plate numerical results are unchanged from the pressure-float section:
+all six runs reach 3,000 steps; finest CPU Cf/CD errors are +.851647%/+.824787%,
+and force/trend gates pass on both backends. Normalized provisional continuity
+still fails on every grid (finest .0281158 CPU / .0247128 Metal), retaining six
+convergence failures. The combined V5 result is **16 failures / 83**. Neither
+case is an accepted V5 solution; the continuity floor and fine-bump transient
+and shear-accuracy gaps remain.
+
+The first scoped run completed all plate measurements but encountered a missing
+expanded fine-bump fixture. Its partial log is labelled accordingly. After
+`tools/prepare_tmr.py` verified and expanded the bundled gzip, the complete
+six-run bump study above was rerun. No missing grid is counted as a result.
+
+### V6 initialization comparison
+
+The normal V6 stopping criteria and accuracy gates are unchanged. The original
+WFGC-enabled setup still fails its setting assertion. With the same explicitly
+disabled WFGC diagnostic used before, seeded solves take 350 steps on both
+backends, hybrid cold starts take **550**, and stored-standard-proxy starts
+take **600**. Times below cover outer iterations and exclude initialization;
+the iteration saving is not an end-to-end speedup measurement.
+
+| Backend / cold start | Steps | Solve s | Velocity L2 % | Pressure L2 % | k L2 % | omega L2 % | Drop Pa (error %) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| CPU hybrid | 550 | 69.28 | 3.601459 | 2.961922 | 15.478919 | 8.474918 | .541455295 (1.185077) |
+| CPU standard proxy | 600 | 74.20 | 3.601375 | 2.961934 | 15.478484 | 8.474925 | .541454152 (1.184863) |
+| Metal hybrid | 550 | 15.42 | 3.601459 | 2.961804 | 15.478919 | 8.474926 | .541453602 (1.184760) |
+| Metal standard proxy | 600 | 16.95 | 3.601376 | 2.961857 | 15.478487 | 8.474923 | .541454670 (1.184960) |
+
+An additional comparison extends each run to 1,200 steps **after** evaluating
+every original V6 gate. All transport defects remain below `1e-6`; continuity
+is below Fluent's stored raw target `2.475884062e-6`. Full corresponding-cell
+fields are compared without resampling or pressure-gauge alignment:
+
+| Hybrid versus standard, relative L2 | CPU | Metal |
+| --- | ---: | ---: |
+| velocity | 2.74658e-7 | 2.51230e-7 |
+| pressure | 1.52240e-5 | 4.74199e-6 |
+| k | 4.91747e-7 | 4.92487e-7 |
+| omega | 2.55432e-7 | 2.75294e-7 |
+
+Pressure spread is below the configured inner pressure tolerance `1e-3`, but
+does **not** meet a `1e-6` relative field-difference bound. The largest raw
+pressure differences are `9.95e-6 Pa` CPU and `3.64e-6 Pa` Metal. Residual
+tolerances are not componentwise field-error bounds. The recipes leave no
+initialization-specific term in the steady equations. The remaining original
+V6 saved-field, WFGC and accuracy failures are **29**, with no new failures.
+
+### Verification and artifact identity
+
+| Check | Observed result |
+| --- | --- |
+| Native quick tier, external Fluent fixtures selected | PASS: 165 cases, 1,539,822 assertions; **12.32 s** |
+| `ctest -LE slow`, including portability lint | PASS: 2/2 entries; **12.22 s** |
+| V1–V4 + Couette, CPU/Metal | 7 cases / 879 assertions; exactly **six** retained tet-force failures; 308 numerical lines identical to baseline |
+| V5, complete scoped plate + bump runs | **16 retained failures / 83**; all 12 grid outcomes finite |
+| V6, CPU/Metal hybrid and explicit standard proxy | **29 retained failures** in each study; both cold starts converge |
+| CUDA 13.0.2 image, unchanged CI configure/build | PASS, `75-real;86-real;89-real;120` |
+| CUDA-container CPU quick tier + portability lint | PASS: 164 cases / 809,561 assertions; GPU-presence test excluded as in CI |
+| CUDA GPU execution | Unverified; no NVIDIA device is available |
+
+The tested native executable SHA-256 is
+`211d5d79ddf3ad0479b5d4428f5faf6b6b7683ff1208fd1c3d2378b849ae41a5`.
+`metadata.json` binds the source kernels, baseline, unchanged protocol files,
+external inputs, build artifacts and check counts. Reproduction includes the
+same nonzero exits for retained slow gates. These are local commits; nothing
+was pushed or released.

@@ -1,0 +1,19 @@
+{
+  "case_file": "build/elbow-hybrid-cold.cas.h5",
+  "case_sha256": "b3b550e8b9c2a2902c45319d7543cc5eada682367b3e53fb8427a2748e69a0ff",
+  "data_file": null,
+  "data_sha256": null,
+  "kutta_version": "0.1.0",
+  "kutta_commit": "4be291c00029bbe8752436301cdcf966929e18af",
+  "backend": "cpu",
+  "device": "CPU reference (serial)",
+  "cells": 17822,
+  "iterations": 1,
+  "wall_time_seconds": 0.16945170800000001,
+  "setup_time_seconds": 9.3587935000000009,
+  "peak_device_memory_bytes": null,
+  "converged": false,
+  "stop_reason": "iteration_limit",
+  "convergence_criteria_available": false,
+  "boundary_wall_shear_available": false
+}

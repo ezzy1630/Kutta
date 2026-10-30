@@ -1,0 +1,9 @@
+Setup: energy is decoupled: active material density and viscosity are constant
+Setup: flow/scheme: SIMPLEC replaces Coupled; convergence path only, Majumdar physical diagonal
+Setup: kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+Case convergence criteria are not exposed by the adapter; using iteration limit 1.
+Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter
+     1  1.000000e+00  3.777369e-03  5.010883e-03  3.633751e-03  1.188617e-01  1.221786e-01   1.693771e-01
+Wrote build/elbow-hybrid-cli (1 iterations, 1.694517e-01 s solve).

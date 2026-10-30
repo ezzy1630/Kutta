@@ -1,0 +1,176 @@
+GEOMETRY max_boundary_offset_over_normal_distance=109.030229889 min_normal_distance=3.94857827193e-06
+PRESSURE_SKEW step=0 original_term=0 retained_term=0 remote_original=0 remote_retained=0 max_offset_over_link=53.8577306158
+STARTUP step=0 kernel=face_velocity cell_v_min=0 cell_v_max=0 cell_v_l2=0 face_v_min=0 face_v_max=0 face_v_l2=0
+STARTUP step=0 kernel=flux physical_min=1 physical_max=1 physical_l2=59.3295878968 inverse_min=0 inverse_max=0 inverse_l2=0 flux_min=-0.00715741422027 flux_max=0 flux_l2=0.0138834458786
+PRESSURE_SKEW step=0 original_term=0 retained_term=0 remote_original=0 remote_retained=0 max_offset_over_link=53.8577306158
+STARTUP step=0 kernel=face_velocity cell_v_min=0 cell_v_max=0 cell_v_l2=0 face_v_min=0 face_v_max=0 face_v_l2=0
+STARTUP step=0 kernel=flux physical_min=1 physical_max=1 physical_l2=59.3295878968 inverse_min=0 inverse_max=0 inverse_l2=0 flux_min=-0.0137901417911 flux_max=0.00715741422027 flux_l2=0.184694605241
+PRESSURE_SKEW step=0 original_term=0 retained_term=0 remote_original=0 remote_retained=0 max_offset_over_link=53.8577306158
+STARTUP step=0 kernel=face_velocity cell_v_min=0 cell_v_max=0 cell_v_l2=0 face_v_min=0 face_v_max=0 face_v_l2=0
+STARTUP step=0 kernel=flux physical_min=1.9209282982e-06 physical_max=0.0137931630015 physical_l2=0.189396404594 inverse_min=0.0981111824512 inverse_max=270593.6875 inverse_l2=2997854.00679 flux_min=-0.0137901417911 flux_max=0.00715741422027 flux_l2=0.184694605241
+PRESSURE_SKEW step=0 original_term=0 retained_term=0 remote_original=0 remote_retained=0 max_offset_over_link=53.8577306158
+PRESSURE_SKEW step=0 original_term=0 retained_term=0 remote_original=0 remote_retained=0 max_offset_over_link=53.8577306158
+STARTUP step=0 kernel=face_velocity cell_v_min=0 cell_v_max=0 cell_v_l2=0 face_v_min=0 face_v_max=0 face_v_l2=0
+STARTUP step=0 kernel=flux physical_min=1.9209282982e-06 physical_max=0.0137931630015 physical_l2=0.189396404594 inverse_min=0.0981111824512 inverse_max=270593.6875 inverse_l2=2997854.00679 flux_min=-0.0137901417911 flux_max=0.00715741422027 flux_l2=0.184694605241
+PRESSURE_SKEW step=0 original_term=0 retained_term=0 remote_original=0 remote_retained=0 max_offset_over_link=53.8577306158
+PRESSURE_SKEW step=0 original_term=0 retained_term=0 remote_original=0 remote_retained=0 max_offset_over_link=53.8577306158
+STARTUP step=0 kernel=face_velocity cell_v_min=0 cell_v_max=0 cell_v_l2=0 face_v_min=0 face_v_max=0 face_v_l2=0
+STARTUP step=0 kernel=flux physical_min=1.9209282982e-06 physical_max=0.0137931630015 physical_l2=0.189396404594 inverse_min=0.0981111824512 inverse_max=270593.6875 inverse_l2=2997854.00679 flux_min=-0.0137901417911 flux_max=0.00715741422027 flux_l2=0.184694605241
+PRESSURE_SKEW step=0 original_term=0 retained_term=0 remote_original=0 remote_retained=0 max_offset_over_link=53.8577306158
+PRESSURE_SKEW step=0 original_term=0 retained_term=0 remote_original=0 remote_retained=0 max_offset_over_link=53.8577306158
+STARTUP step=0 kernel=face_velocity cell_v_min=-0.408526390791 cell_v_max=0.0216652248055 cell_v_l2=0.671328509647 face_v_min=-1.27445149422 face_v_max=0.404778718948 face_v_l2=2.00158503359
+STARTUP step=0 kernel=flux physical_min=1.9209282982e-06 physical_max=0.0137931630015 physical_l2=0.189396404594 inverse_min=0.0981111824512 inverse_max=270593.6875 inverse_l2=2997854.00679 flux_min=-0.0137901417911 flux_max=0.00715741422027 flux_l2=0.184694767878
+STARTUP step=0 kernel=pressure rhs_min=-9.29985471885e-05 rhs_max=0.000218905799557 rhs_l2=0.00042948459381
+STARTUP step=0 kernel=correct correction_min=-7.72994422913 correction_max=8.37160205841 correction_l2=135.187858261 u_min=0.531274914742 u_max=1.51753377914 u_l2=58.8596627995 v_min=-0.213425397873 v_max=0.261729598045 v_l2=2.60837513866 p_min=-2.31898331642 p_max=2.51148080826 p_l2=32.6540699161
+WORST cell=2699 x=0.547917682336 y=0.0171665761543 v=0.261729598045 gy=-1317.20202637 d=0.00046450564113
+STARTUP step=1 kernel=floor value=9.99999982452e-15 field_min=2.14335699411e-07 field_max=2.78336472093e-07 field_l2=1.29259323864e-05
+STARTUP step=1 kernel=floor value=9.99999968266e-21 field_min=71.8940048218 field_max=1117527.875 field_l2=6428547.78576
+PRESSURE_SKEW step=1 original_term=1.92798141744 retained_term=1.92798134312 remote_original=0.14913682351 remote_retained=0.149136832307 max_offset_over_link=53.8577306158
+LINEAR iteration=1 momentum=1,0.000371880332397,2.11509080113e-06 momentum=1,2.95525829068e-05,2.49182361526e-07 momentum=1,3.6961456518e-18,3.6961456518e-18 pressure=1,0.00042948459381,4.16567812087e-07
+PRESSURE_SKEW step=1 original_term=1.92798141744 retained_term=1.92798134312 remote_original=0.14913682351 remote_retained=0.149136832307 max_offset_over_link=53.8577306158
+STARTUP step=1 kernel=face_velocity cell_v_min=-6.28362369537 cell_v_max=7.91322135925 cell_v_l2=35.8086724752 face_v_min=-6.28362369537 face_v_max=7.91322135925 face_v_l2=70.6113925614
+STARTUP step=1 kernel=flux physical_min=1.92497486751e-06 physical_max=0.0138008669019 physical_l2=0.189502908655 inverse_min=0.0981111899018 inverse_max=270842.34375 inverse_l2=3075461.45986 flux_min=-0.026626592502 flux_max=0.0234266612679 flux_l2=0.202000417725
+STARTUP step=1 kernel=pressure rhs_min=-0.0266262702644 rhs_max=0.0500093325973 rhs_l2=0.136197868311
+STARTUP step=1 kernel=correct correction_min=-2.65866398811 correction_max=1.93550097942 correction_l2=24.410017699 u_min=0.393362015486 u_max=2.71330142021 u_l2=58.8118425094 v_min=-14.470916748 v_max=7.85768938065 v_l2=32.5496632817 p_min=-1.9975874424 p_max=2.20607328415 p_l2=28.5948263547
+WORST cell=3428 x=-0.482487206625 y=3.49933328594e-05 v=-14.470916748 gy=5038.51513672 d=0.00301645767432
+STARTUP step=2 kernel=floor value=9.99999982452e-15 field_min=6.92527066803e-08 field_max=8.18474120479e-07 field_l2=1.35847090076e-05
+STARTUP step=2 kernel=floor value=9.99999968266e-21 field_min=9.99999968266e-21 field_max=992774.9375 field_l2=5637964.21595
+PRESSURE_SKEW step=2 original_term=2.40917257355 retained_term=2.40917217477 remote_original=0.735788427144 remote_retained=0.735788445944 max_offset_over_link=53.8577306158
+LINEAR iteration=2 momentum=1,0.000870844289018,3.18145762819e-06 momentum=1,0.00118455044025,7.0104738152e-06 momentum=1,6.46871589022e-10,5.47247391731e-11 pressure=1,0.136197868311,0.000122517784289
+PRESSURE_SKEW step=2 original_term=2.40917257355 retained_term=2.40917217477 remote_original=0.735788427144 remote_retained=0.735788445944 max_offset_over_link=53.8577306158
+STARTUP step=2 kernel=face_velocity cell_v_min=-7.38493061066 cell_v_max=4.16271924973 cell_v_l2=26.5376820201 face_v_min=-7.38493061066 face_v_max=9.33797740936 face_v_l2=55.2215480599
+STARTUP step=2 kernel=flux physical_min=1.98525162887e-06 physical_max=0.0138024352491 physical_l2=0.189527036747 inverse_min=0.0981111899018 inverse_max=325137.96875 inverse_l2=2829792.68837 flux_min=-0.0440999791026 flux_max=0.0728899240494 flux_l2=0.256754709564
+STARTUP step=2 kernel=pressure rhs_min=-0.0888312682509 rhs_max=0.114947810769 rhs_l2=0.315671988003
+STARTUP step=2 kernel=correct correction_min=-1.98543679714 correction_max=2.10191059113 correction_l2=27.1812017173 u_min=-0.544633030891 u_max=5.76923418045 u_l2=59.6138662509 v_min=-20.7946681976 v_max=38.1347579956 v_l2=76.5883863502 p_min=-1.80793082714 p_max=1.97242665291 p_l2=22.4923248862
+WORST cell=1339 x=1.98248720662 y=3.49933328594e-05 v=38.1347579956 gy=-8350.30175781 d=0.00407174549987
+STARTUP step=3 kernel=floor value=9.99999982452e-15 field_min=2.49870346636e-08 field_max=2.84701991404e-06 field_l2=2.04360144178e-05
+STARTUP step=3 kernel=floor value=9.99999968266e-21 field_min=9.99999968266e-21 field_max=902690.625 field_l2=5210935.02981
+PRESSURE_SKEW step=3 original_term=7.84941017507 retained_term=7.84940717706 remote_original=2.66431420477 remote_retained=2.66431417922 max_offset_over_link=53.8577306158
+LINEAR iteration=3 momentum=1,0.000824650116507,7.44136121899e-06 momentum=1,0.00213640533835,2.44073492917e-06 momentum=1,7.11542061867e-10,5.88624290265e-11 pressure=1,0.315671988003,0.000282630881365
+PRESSURE_SKEW step=3 original_term=7.84941017507 retained_term=7.84940717706 remote_original=2.66431420477 remote_retained=2.66431417922 max_offset_over_link=53.8577306158
+STARTUP step=3 kernel=face_velocity cell_v_min=-10.1609869003 cell_v_max=18.101442337 cell_v_l2=40.9758945337 face_v_min=-10.1609869003 face_v_max=18.101442337 face_v_l2=76.980175824
+STARTUP step=3 kernel=flux physical_min=1.99287796931e-06 physical_max=0.0138039244339 physical_l2=0.18953916527 inverse_min=0.0981111899018 inverse_max=332717.59375 inverse_l2=2619083.07879 flux_min=-0.262473791838 flux_max=0.168226450682 flux_l2=0.651196242716
+STARTUP step=3 kernel=pressure rhs_min=-0.267039328814 rhs_max=0.426577329636 rhs_l2=1.08542177923
+STARTUP step=3 kernel=correct correction_min=-1.86115765572 correction_max=3.96677780151 correction_l2=17.0218106466 u_min=-5.38249635696 u_max=13.4584140778 u_l2=64.0824815265 v_min=-259.515960693 v_max=55.2212867737 v_l2=438.318000651 p_min=-1.72738003731 p_max=1.91272854805 p_l2=19.737649002
+WORST cell=3428 x=-0.482487206625 y=3.49933328594e-05 v=-259.515960693 gy=24112.0800781 d=0.0106150222643
+STARTUP step=4 kernel=floor value=9.99999982452e-15 field_min=9.61858859228e-09 field_max=9.07592220756e-06 field_l2=3.05958046153e-05
+STARTUP step=4 kernel=floor value=9.99999968266e-21 field_min=9.99999968266e-21 field_max=875085.1875 field_l2=4967258.61219
+PRESSURE_SKEW step=4 original_term=27.5417272668 retained_term=27.5417209089 remote_original=10.3220998171 remote_retained=10.3220991295 max_offset_over_link=53.8577306158
+LINEAR iteration=4 momentum=1,0.000981844308431,2.49482379143e-06 momentum=1,0.00617263351037,1.65837650731e-05 momentum=1,7.43193452034e-10,5.56418563707e-11 pressure=1,1.08542177923,0.000893327527088
+PRESSURE_SKEW step=4 original_term=27.5417272668 retained_term=27.5417209089 remote_original=10.3220998171 remote_retained=10.3220991295 max_offset_over_link=53.8577306158
+STARTUP step=4 kernel=face_velocity cell_v_min=-174.229217529 cell_v_max=22.6163311005 cell_v_l2=283.304842834 face_v_min=-174.229217529 face_v_max=22.6163311005 face_v_l2=470.074198265
+STARTUP step=4 kernel=flux physical_min=1.8464720597e-06 physical_max=0.0138042867184 physical_l2=0.189552816283 inverse_min=0.0981111899018 inverse_max=325914.53125 inverse_l2=2829611.06346 flux_min=-0.826945781708 flux_max=0.873880565166 flux_l2=2.06750339364
+STARTUP step=4 kernel=pressure rhs_min=-1.24829959869 rhs_max=1.37911891937 rhs_l2=3.53274650234
+STARTUP step=4 kernel=correct correction_min=-21.3422966003 correction_max=28.5393505096 correction_l2=61.810147593 u_min=-14.6853713989 u_max=48.4146728516 u_l2=98.6521509851 v_min=-722.896484375 v_max=504.08581543 v_l2=1357.15117422 p_min=-3.51878404617 p_max=8.25129508972 p_l2=20.440931366
+WORST cell=3428 x=-0.482487206625 y=3.49933328594e-05 v=-722.896484375 gy=285050.34375 d=0.00230866947887
+STARTUP step=5 kernel=floor value=9.99999982452e-15 field_min=3.04848990496e-09 field_max=3.74669434677e-05 field_l2=6.9228754452e-05
+STARTUP step=5 kernel=floor value=9.99999968266e-21 field_min=9.99999968266e-21 field_max=814531.0625 field_l2=4816103.14473
+PRESSURE_SKEW step=5 original_term=83.7793835145 retained_term=83.779417545 remote_original=30.0107872597 remote_retained=30.0107885567 max_offset_over_link=53.8577306158
+LINEAR iteration=5 momentum=1,0.0114753463144,7.75093823546e-05 momentum=1,0.0859919891813,0.000547902922269 momentum=1,6.9464559271e-10,5.3890938919e-11 pressure=1,3.53274650234,0.00335587534808
+PRESSURE_SKEW step=5 original_term=83.7793835145 retained_term=83.779417545 remote_original=30.0107872597 remote_retained=30.0107885567 max_offset_over_link=53.8577306158
+STARTUP step=5 kernel=face_velocity cell_v_min=-455.364532471 cell_v_max=253.656463623 cell_v_l2=827.125543558 face_v_min=-455.364532471 face_v_max=253.656463623 face_v_l2=1457.40711557
+STARTUP step=5 kernel=flux physical_min=1.93354389921e-06 physical_max=0.0138040557504 physical_l2=0.189655675871 inverse_min=0.0981111899018 inverse_max=3099369.25 inverse_l2=4199945.04991 flux_min=-1.97011780739 flux_max=5.14429998398 flux_l2=6.3921069122
+STARTUP step=5 kernel=pressure rhs_min=-6.4251871109 rhs_max=7.06444454193 rhs_l2=10.8517809217
+STARTUP step=5 kernel=correct correction_min=-237.316146851 correction_max=86.6878433228 correction_l2=299.490060997 u_min=-125.821632385 u_max=64.5754928589 u_l2=189.491813158 v_min=-1623.25964355 v_max=1389.96264648 v_l2=2588.44586624 p_min=-72.3511962891 p_max=28.3428344727 p_l2=92.5432174259
+WORST cell=3453 x=-0.869366714859 y=5.97894199407e-05 v=-1623.25964355 gy=407040.71875 d=0.00286923428823
+STARTUP step=6 kernel=floor value=9.99999982452e-15 field_min=9.77468217478e-10 field_max=0.000172596119228 field_l2=0.000258440756076
+STARTUP step=6 kernel=floor value=9.99999968266e-21 field_min=9.99999968266e-21 field_max=786959.875 field_l2=4721132.97825
+LINEAR iteration=6 momentum=1,0.0517306343331,0.000149673452505 momentum=1,0.786780925031,0.0053387471197 momentum=1,6.87659142495e-10,5.29517168417e-11 pressure=1,10.8517809217,0.00927946450811
+PRESSURE_SKEW step=6 original_term=568.631968786 retained_term=568.632022401 remote_original=173.308658039 remote_retained=173.308650617 max_offset_over_link=53.8577306158
+STARTUP step=6 kernel=face_velocity cell_v_min=-1036.13513184 cell_v_max=15170.6816406 cell_v_l2=15257.79946 face_v_min=-1036.13513184 face_v_max=15170.6816406 face_v_l2=21690.2243176
+STARTUP step=6 kernel=flux physical_min=2.09758513847e-06 physical_max=0.013804805465 physical_l2=0.191747368169 inverse_min=0.0981111899018 inverse_max=263993.9375 inverse_l2=2743723.42059 flux_min=-15.3189258575 flux_max=2.20503306389 flux_l2=17.1087410415
+STARTUP step=6 kernel=pressure rhs_min=-15.3187990189 rhs_max=13.8756103516 rhs_l2=23.4121448987
+STARTUP step=6 kernel=correct correction_min=-882.582092285 correction_max=460.233398438 correction_l2=1232.81834985 u_min=-783.543518066 u_max=191.59362793 u_l2=825.99100103 v_min=-7302.82470703 v_max=4364.95117188 v_l2=9378.62411125 p_min=-141.643127441 p_max=132.80569458 p_l2=288.443866613
+WORST cell=1299 x=2.14780093025 y=4.55887079039e-05 v=-7302.82470703 gy=2279034 d=0.00274971317291
+STARTUP step=7 kernel=floor value=9.99999982452e-15 field_min=3.36284528002e-10 field_max=0.000955341150984 field_l2=0.00157084565471
+STARTUP step=7 kernel=floor value=9.99999968266e-21 field_min=9.99999968266e-21 field_max=785473.625 field_l2=4651555.31942
+LINEAR iteration=7 momentum=1,1.42468322564,0.0128251264533 momentum=1,14.5218417709,0.122475552164 momentum=1,7.46441334231e-10,8.44862151771e-11 pressure=1,23.4121448987,0.0200190987467
+PRESSURE_SKEW step=7 original_term=1216.79440548 retained_term=1216.79417406 remote_original=322.414633442 remote_retained=322.41463394 max_offset_over_link=53.8577306158
+STARTUP step=7 kernel=face_velocity cell_v_min=-7960.55615234 cell_v_max=3161.91577148 cell_v_l2=11535.5587448 face_v_min=-7960.55615234 face_v_max=3161.91577148 face_v_l2=17969.8391281
+STARTUP step=7 kernel=flux physical_min=2.16235480366e-06 physical_max=0.0140634700656 physical_l2=0.196856426644 inverse_min=0.0981111899018 inverse_max=25365282 inverse_l2=25509286.0234 flux_min=-3.89229178429 flux_max=23.5789012909 flux_l2=38.0019582351
+STARTUP step=7 kernel=pressure rhs_min=-23.7342605591 rhs_max=26.4454727173 rhs_l2=55.3218321263
+STARTUP step=7 kernel=correct correction_min=-314.910705566 correction_max=840.729553223 correction_l2=1861.42675361 u_min=-897.607543945 u_max=738.675109863 u_l2=1455.05446629 v_min=-10307.9755859 v_max=10742.6464844 v_l2=21144.3281583 p_min=-96.6735610962 p_max=279.010437012 p_l2=518.294813802
+WORST cell=3464 x=-1.16641194717 y=7.88278008598e-05 v=10742.6464844 gy=-2340703 d=0.00410234348855
+STARTUP step=8 kernel=floor value=9.99999982452e-15 field_min=1.31537988834e-10 field_max=0.013684653677 field_l2=0.0178191358019
+STARTUP step=8 kernel=floor value=9.99999968266e-21 field_min=9.99999968266e-21 field_max=790668.1875 field_l2=4602541.46191
+LINEAR iteration=8 momentum=1,0.819934838853,0.00769349061467 momentum=1,8.27294771012,0.0513080538444 momentum=1,6.94584470692e-10,5.92651109442e-11 pressure=1,55.3218321263,0.0124044975177
+PRESSURE_SKEW step=8 original_term=5966.46739842 retained_term=5966.4664857 remote_original=1444.89897932 remote_retained=1444.8989395 max_offset_over_link=53.8577306158
+STARTUP step=8 kernel=face_velocity cell_v_min=-5092.44287109 cell_v_max=243047.96875 cell_v_l2=245363.797336 face_v_min=-5092.44287109 face_v_max=243047.96875 face_v_l2=354499.411309
+STARTUP step=8 kernel=flux physical_min=1.91754975276e-06 physical_max=0.013792832382 physical_l2=0.192531526353 inverse_min=0.0981111899018 inverse_max=280348.4375 inverse_l2=2679283.22704 flux_min=-131.651992798 flux_max=64.9521713257 flux_l2=186.42637302
+STARTUP step=8 kernel=pressure rhs_min=-145.870330811 rhs_max=128.692779541 rhs_l2=277.562706344
+STARTUP step=8 kernel=correct correction_min=-9733.91796875 correction_max=1700.1505127 correction_l2=14331.8477235 u_min=-3446.0559082 u_max=16466.5800781 u_l2=17253.5948255 v_min=-10958.4550781 v_max=182967.5625 v_l2=190276.571881 p_min=-2668.99731445 p_max=619.326843262 p_l2=3968.65501525
+WORST cell=1176 x=2.14763121152 y=0.000339284237635 v=182967.5625 gy=31448296 d=0.00191045006018
+STARTUP step=9 kernel=floor value=9.99999982452e-15 field_min=5.37332608963e-11 field_max=0.15559913218 field_l2=0.267114879023
+STARTUP step=9 kernel=floor value=9.99999968266e-21 field_min=7.08368635178 field_max=799796.125 field_l2=4636130.40594
+LINEAR iteration=9 momentum=1,4.98235403846,0.0312908610554 momentum=1,73.4712550954,0.685483187851 momentum=1,5.56714915502e-09,7.45788525095e-11 pressure=1,277.562706344,0.121756203512
+PRESSURE_SKEW step=9 original_term=36145.842883 retained_term=36145.8367016 remote_original=7484.00052995 remote_retained=7484.0005623 max_offset_over_link=53.8577306158
+STARTUP step=9 kernel=face_velocity cell_v_min=-259126.34375 cell_v_max=2598881.5 cell_v_l2=2632508.92417 face_v_min=-259126.34375 face_v_max=2598881.5 face_v_l2=3726360.51622
+STARTUP step=9 kernel=flux physical_min=7.50849551423e-07 physical_max=0.0790256038308 physical_l2=0.333695907742 inverse_min=0.0981111824512 inverse_max=474936.59375 inverse_l2=1899961.46654 flux_min=-468.027984619 flux_max=325.20513916 flux_l2=669.740724134
+STARTUP step=9 kernel=pressure rhs_min=-656.955505371 rhs_max=793.232910156 rhs_l2=1173.39418192
+STARTUP step=9 kernel=correct correction_min=-143506.609375 correction_max=30565.8691406 correction_l2=328532.47489 u_min=-52089.3632812 u_max=106455.15625 u_l2=136616.613653 v_min=-255219.59375 v_max=2530048 v_l2=2580757.19795 p_min=-42835.8828125 p_max=9254.64550781 p_l2=99138.3651826
+WORST cell=1178 x=2.6663799434 y=0.000238677037827 v=2530048 gy=17640748 d=0.00390195543544
+STARTUP step=10 kernel=floor value=9.99999982452e-15 field_min=2.32581523485e-11 field_max=4.28275299072 field_l2=5.64506108456
+STARTUP step=10 kernel=floor value=9.99999968266e-21 field_min=9.99999968266e-21 field_max=2448079 field_l2=5566123.62416
+LINEAR iteration=10 momentum=1,116.401023998,0.476737519021 momentum=1,1602.36294943,11.2639238172 momentum=1,1.61269857007e-07,6.2235995348e-10 pressure=1,1173.39418192,0.637898241588
+PRESSURE_SKEW step=10 original_term=237620.754584 retained_term=237620.620586 remote_original=48046.9010754 remote_retained=48046.9011225 max_offset_over_link=53.8577306158
+STARTUP step=10 kernel=face_velocity cell_v_min=-382957.0625 cell_v_max=146473184 cell_v_l2=146512381.921 face_v_min=-382957.0625 face_v_max=146473184 face_v_l2=218405408.352
+STARTUP step=10 kernel=flux physical_min=3.44118848261e-06 physical_max=0.469544500113 physical_l2=0.962944741774 inverse_min=0.0981113240123 inverse_max=2042459 inverse_l2=2578469.60882 flux_min=-5592.66796875 flux_max=157.302520752 flux_l2=6084.51800406
+STARTUP step=10 kernel=pressure rhs_min=-5589.58300781 rhs_max=5069.15039062 rhs_l2=7975.40442355
+STARTUP step=10 kernel=correct correction_min=-11466097 correction_max=11346815 correction_l2=30267811.4604 u_min=-3962012 u_max=318115.34375 u_l2=4014059.28221 v_min=-315340.40625 v_max=143174112 v_l2=143201667.952 p_min=-3449155.25 p_max=3406448.25 p_l2=9005371.83221
+WORST cell=1219 x=2.66641194717 y=7.88278008598e-05 v=143174112 gy=2463901696 d=0.00133896569445
+STARTUP step=11 kernel=floor value=9.99999982452e-15 field_min=7.42427092026e-11 field_max=2174.57446289 field_l2=2401.12776439
+STARTUP step=11 kernel=floor value=9.99999968266e-21 field_min=9.99999968266e-21 field_max=14885799 field_l2=24859306.2743
+LINEAR iteration=11 momentum=1,13336.7048582,72.0613241037 momentum=1,195557.912044,791.307484512 momentum=1,7.13115874051e-06,6.60113998662e-08 pressure=1,7975.40442355,5.29944470988
+PRESSURE_SKEW step=11 original_term=37016332.3111 retained_term=37016326.5459 remote_original=8795495.22809 remote_retained=8795495.23813 max_offset_over_link=53.8577306158
+STARTUP step=11 kernel=face_velocity cell_v_min=-170119.28125 cell_v_max=575825728 cell_v_l2=621031771.719 face_v_min=-874355.3125 face_v_max=575825728 face_v_l2=966139124.387
+STARTUP step=11 kernel=flux physical_min=1.21973175737e-06 physical_max=5.24624633789 physical_l2=29.957842267 inverse_min=0.0974705442786 inverse_max=875389.5 inverse_l2=1052359.41165 flux_min=-133764.0625 flux_max=1226.84313965 flux_l2=160236.356642
+STARTUP step=11 kernel=pressure rhs_min=-133764.84375 rhs_max=77037.1875 rhs_l2=174535.604694
+STARTUP step=11 kernel=correct correction_min=-63355928576 correction_max=128539712 correction_l2=76962687689.3 u_min=-18953244 u_max=203136.671875 u_l2=26837313.7724 v_min=-3985093.75 v_max=541285120 v_l2=574287854.378 p_min=-19008722944 p_max=39046208 p_l2=23091382060.4
+WORST cell=1259 x=2.36936671486 y=5.97894199407e-05 v=541285120 gy=2.97143605658e+12 d=1.16242247498e-05
+STARTUP step=12 kernel=floor value=9.99999982452e-15 field_min=9.99999982452e-15 field_max=107043.429688 field_l2=107537.650029
+STARTUP step=12 kernel=floor value=9.99999968266e-21 field_min=16.951757431 field_max=1067911296 field_l2=1616337894.24
+LINEAR iteration=12 momentum=1,12370810.0622,55264.8017948 momentum=1,449099968.458,3732736.56542 momentum=1,0.01029768207,9.42245679818e-05 pressure=1,174535.604694,129.126075723
+PRESSURE_SKEW step=12 original_term=24310621949.4 retained_term=24310624904.1 remote_original=4070929172.43 remote_retained=4070929468.17 max_offset_over_link=53.8577306158
+STARTUP step=12 kernel=face_velocity cell_v_min=-440555680 cell_v_max=496281568 cell_v_l2=762406405.861 face_v_min=-440555680 face_v_max=496281568 face_v_l2=1195431775.59
+STARTUP step=12 kernel=flux physical_min=2.44352378331e-07 physical_max=105.238929749 physical_l2=645.574257466 inverse_min=0.00867871101946 inverse_max=149309.3125 inverse_l2=276722.152527 flux_min=-446676 flux_max=806880.4375 flux_l2=1027809.68281
+STARTUP step=12 kernel=pressure rhs_min=-813352.375 rhs_max=806880.6875 rhs_l2=1436059.58269
+STARTUP step=12 kernel=correct correction_min=-5.93517346816e+12 correction_max=61871648768 correction_l2=6.93575574873e+12 u_min=-248626800 u_max=26534084 u_l2=291704774.952 v_min=-480043840 v_max=226888784 v_l2=563122031.254 p_min=-1.78072518656e+12 p_max=18561550336 p_l2=2.0810766636e+12
+WORST cell=891 x=2.66539202855 y=0.00185523247291 v=-480043840 gy=116457291776 d=0.000339078608814
+STARTUP step=13 kernel=floor value=9.99999982452e-15 field_min=4.30615472169e-08 field_max=6404287.5 field_l2=7095765.23981
+STARTUP step=13 kernel=floor value=9.99999968266e-21 field_min=13.8851604462 field_max=9336101888 field_l2=9646942521.84
+LINEAR iteration=13 momentum=1,611764171.234,4836072.42147 momentum=1,13499223057,118765848.327 momentum=1,0.538802973408,0.00105591918237 pressure=1,1436059.58269,1236.27462055
+PRESSURE_SKEW step=13 original_term=5.42813383966e+12 retained_term=5.42813327307e+12 remote_original=1.46965093443e+12 remote_retained=1.46965093593e+12 max_offset_over_link=53.8577306158
+STARTUP step=13 kernel=face_velocity cell_v_min=-14319364096 cell_v_max=13605763072 cell_v_l2=21489762693 face_v_min=-14319364096 face_v_max=13605763072 face_v_l2=30400066816.5
+STARTUP step=13 kernel=flux physical_min=8.97198901839e-08 physical_max=8225.48144531 physical_l2=18912.7477214 inverse_min=0.000119431992061 inverse_max=26037.1171875 inverse_l2=53790.575683 flux_min=-2271205.5 flux_max=2887502.25 flux_l2=4177666.61443
+STARTUP step=13 kernel=pressure rhs_min=-2579772.5 rhs_max=2887488 rhs_l2=5505181.70545
+STARTUP step=13 kernel=correct correction_min=-4.62079865651e+12 correction_max=2.71085207552e+13 correction_l2=4.68845175225e+13 u_min=-113661919232 u_max=91982408 u_l2=114188050102 v_min=-13880996864 v_max=13822775296 v_l2=21169169258.4 p_min=-2.44784902963e+12 p_max=8.13276489318e+12 p_l2=1.4248130253e+13
+WORST cell=850 x=2.6651564144 y=0.00224526261753 v=-13880996864 gy=-1.64841717236e+14 d=2.65932091645e-06
+STARTUP step=14 kernel=floor value=9.99999982452e-15 field_min=9.99999982452e-15 field_max=239078178816 field_l2=239078365651
+STARTUP step=14 kernel=floor value=9.99999968266e-21 field_min=27.0545139313 field_max=1.13441251525e+14 field_l2=1.13441346086e+14
+LINEAR iteration=14 momentum=1,514293594587,3701476229.85 momentum=1,46210760852.4,311669946.074 momentum=1,69.5996100714,0.473829309517 pressure=1,5505181.70545,4188.20263139
+PRESSURE_SKEW step=14 original_term=1.85452114235e+13 retained_term=1.85452136081e+13 remote_original=4.80216171655e+12 remote_retained=4.80216150507e+12 max_offset_over_link=53.8577306158
+STARTUP step=14 kernel=face_velocity cell_v_min=-1.03097191629e+12 cell_v_max=6946811904 cell_v_l2=1.25324310707e+12 face_v_min=-1.03097191629e+12 face_v_max=6946811904 face_v_l2=1.77257621382e+12
+STARTUP step=14 kernel=flux physical_min=2.31767135119e-05 physical_max=26974.984375 physical_l2=124677.37779 inverse_min=3.70995912817e-05 inverse_max=31299.8222656 inverse_l2=35481.7065374 flux_min=-2126977.25 flux_max=33865740 flux_l2=49083140.9506
+STARTUP step=14 kernel=pressure rhs_min=-22650490 rhs_max=30622692 rhs_l2=55962367.907
+STARTUP step=14 kernel=correct correction_min=-4.56952173822e+14 correction_max=7.42740572766e+14 correction_l2=2.01791607152e+15 u_min=-57120632832 u_max=1038578560 u_l2=67813783588.3 v_min=-1.03075001139e+12 v_max=3006236672 v_l2=1.25186102759e+12 p_min=-1.3710710014e+14 p_max=2.2037433575e+14 p_l2=6.04979277385e+14
+WORST cell=3112 x=0.0559576731198 y=1.26359661343e-05 v=-1.03075001139e+12 gy=-1.1247164588e+13 d=1.9728005672e-05
+STARTUP step=15 kernel=floor value=9.99999982452e-15 field_min=1.48679731637e-07 field_max=94807474176 field_l2=96014321159.5
+STARTUP step=15 kernel=floor value=9.99999968266e-21 field_min=10.7966098785 field_max=6.7045427333e+16 field_l2=6.70637752339e+16
+LINEAR iteration=15 momentum=1,1.19365752524e+13,78772368846.7 momentum=1,5.28330192533e+12,38482464736.9 momentum=1,13627.849223,70.5981526298 pressure=1,55962367.907,50132.0537926
+PRESSURE_SKEW step=15 original_term=1.3699504873e+15 retained_term=1.36994999775e+15 remote_original=2.87869016489e+14 remote_retained=2.87869036461e+14 max_offset_over_link=53.8577306158
+STARTUP step=15 kernel=face_velocity cell_v_min=-1.19820938904e+14 cell_v_max=1.22953494692e+13 cell_v_l2=1.24845324e+14 face_v_min=-1.19820938904e+14 face_v_max=1.22953494692e+13 face_v_l2=1.77884701587e+14
+STARTUP step=15 kernel=flux physical_min=8.93623393949e-07 physical_max=62710.0195312 physical_l2=326378.511332 inverse_min=1.59397459356e-05 inverse_max=92493.2578125 inverse_l2=126709.728368 flux_min=-2.10790284001e+13 flux_max=8.5225111552e+12 flux_l2=2.89493079228e+13
+STARTUP step=15 kernel=pressure rhs_min=-2.1079026303e+13 rhs_max=2.96005664768e+13 rhs_l2=4.51152452935e+13
+STARTUP step=15 kernel=correct correction_min=-2.20768019163e+17 correction_max=1.07340125027e+18 correction_l2=1.31151342899e+18 u_min=-2.10929262264e+13 u_max=380629417984 u_l2=2.98622156983e+13 v_min=-5.51693515227e+14 v_max=653593214976 v_l2=5.97282552384e+14 p_min=-6.62302167705e+16 p_max=3.22020601856e+17 p_l2=3.93454459675e+17
+WORST cell=3519 x=-21.9743723941 y=0.00141246266196 v=-5.51693515227e+14 gy=1.12835731533e+17 d=0.00499831781601
+STARTUP step=16 kernel=floor value=9.99999982452e-15 field_min=2.26259444958e-07 field_max=1.05647439872e+13 field_l2=1.05651481622e+13
+STARTUP step=16 kernel=floor value=9.99999968266e-21 field_min=10.7966098785 field_max=6.7045427333e+16 field_l2=6.70637752339e+16
+LINEAR iteration=16 momentum=1,1.23574319878e+15,4.73166762351e+12 momentum=1,6.86464188439e+14,5.74172946009e+12 momentum=1,937652.183327,8047.74906453 pressure=1,4.51152452935e+13,41563202116.7
+PRESSURE_SKEW step=16 original_term=1.76035188122e+17 retained_term=1.76035216422e+17 remote_original=5.84467540693e+15 remote_retained=5.84467563304e+15 max_offset_over_link=53.8577306158
+STARTUP step=16 kernel=face_velocity cell_v_min=-5.51693515227e+14 cell_v_max=653593214976 cell_v_l2=5.97282552384e+14 face_v_min=-5.51693515227e+14 face_v_max=3.73590405939e+12 face_v_l2=9.2434946059e+14
+STARTUP step=16 kernel=flux physical_min=1.84664861536e-06 physical_max=27273025536 physical_l2=32072849959.5 inverse_min=1.83331318876e-11 inverse_max=939007.5625 inverse_l2=939265.172419 flux_min=-2.66714763252e+16 flux_max=1.14495903897e+16 flux_l2=2.96949760321e+16
+STARTUP step=16 kernel=pressure rhs_min=-3.27681566321e+16 rhs_max=3.81209958479e+16 rhs_l2=5.21295172476e+16
+STARTUP step=16 kernel=correct correction_min=-9.8841365713e+22 correction_max=2.95811123275e+24 correction_l2=3.9274258433e+24 u_min=-2.67606419938e+15 u_max=5.65777518297e+14 u_l2=3.15122366437e+15 v_min=-2.39209337422e+17 v_max=7.34962362834e+16 v_l2=2.50245595434e+17 p_min=-2.96524115153e+22 p_max=8.87433369825e+23 p_l2=1.17822777133e+24
+WORST cell=3505 x=-21.9740220362 y=0.0137486148523 v=-2.39209337422e+17 gy=4.78855785692e+19 d=0.00499543607468
+STARTUP step=17 kernel=floor value=9.99999982452e-15 field_min=2.26259444958e-07 field_max=1.05647439872e+13 field_l2=1.05651481622e+13
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector

@@ -1,0 +1,380 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=4225 iterations=100 ru=6.03706e-05 rv=5.14074e-05 rc=0.0178456 mass=1.86065e-06 update=1
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=4225 iterations=200 ru=1.48897e-06 rv=1.32202e-06 rc=0.000326621 mass=6.81319e-07 update=0.0134708
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=4225 iterations=300 ru=2.50199e-07 rv=2.26267e-07 rc=5.47195e-05 mass=6.43842e-07 update=0.000622168
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=4225 iterations=400 ru=6.11143e-08 rv=5.72835e-08 rc=1.9095e-05 mass=6.77604e-07 update=9.74536e-05
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=4225 iterations=500 ru=4.27457e-08 rv=4.26455e-08 rc=1.54454e-05 mass=6.64737e-07 update=1.54674e-05
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=4225 iterations=600 ru=4.17468e-08 rv=4.17184e-08 rc=1.42018e-05 mass=6.52848e-07 update=2.38419e-06
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=4225 iterations=700 ru=4.31337e-08 rv=4.16633e-08 rc=1.43171e-05 mass=6.64563e-07 update=8.22896e-07
+FV_CAVITY_RESULT backend=cpu case=65 Re=1000 iterations=700 converged=1 Ghia_u_max=0.0198597 Ghia_v_max=0.0119262 Erturk_u_max=0.0207536 Erturk_v_max=0.0309673
+FV_CAVITY_REFINEMENT backend=cpu n=65 u_error=0.020753588438 v_error=0.0309673371033 u_center=-0.0639747530222 v_center=0.024285113439 psi=0.116300443106 omega=2.04698054182 x=0.530627708328 y=0.567769144446
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=16641 iterations=100 ru=2.36696984875e-05 rv=2.57938711891e-05 rc=0.0258150082146 mass=2.47833385636e-06 update=1
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=16641 iterations=200 ru=4.68654626126e-07 rv=4.59525391965e-07 rc=0.000413311381424 mass=1.34806062135e-06 update=0.0142361521721
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=16641 iterations=300 ru=8.24164398306e-08 rv=8.01364614891e-08 rc=7.0172405499e-05 mass=1.34272035002e-06 update=0.000404939055443
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=16641 iterations=400 ru=4.06868517214e-08 rv=4.14431976401e-08 rc=4.22829545931e-05 mass=1.3340927083e-06 update=6.64591789246e-05
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=16641 iterations=500 ru=3.68601831177e-08 rv=3.70412784428e-08 rc=3.20170213726e-05 mass=1.34262101525e-06 update=1.13546848297e-05
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=16641 iterations=600 ru=3.49876673473e-08 rv=3.58307500523e-08 rc=2.90149626519e-05 mass=1.32841280731e-06 update=1.9371509552e-06
+FV_CAVITY_RESULT backend=cpu case=129 Re=1000 iterations=600 converged=1 Ghia_u_max=0.00595182721623 Ghia_v_max=0.0100708552119 Erturk_u_max=0.00435350234845 Erturk_v_max=0.00711267270044
+FV_CAVITY_REFINEMENT backend=cpu n=129 u_error=0.00435350234845 v_error=0.00711267270044 u_center=-0.0624767243862 v_center=0.0253188237548 psi=0.118302233113 omega=2.06234817301 x=0.530662975274 y=0.565823673933 u_order=2.2784961205 v_order=2.14619343937
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=66049 iterations=100 ru=1.25275457253e-05 rv=1.22689293079e-05 rc=0.0338940877869 mass=1.58570509197e-05 update=1
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=66049 iterations=200 ru=7.40617221218e-07 rv=9.40375449063e-07 rc=0.00249218581732 mass=4.50168808691e-06 update=0.0170719921589
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=66049 iterations=300 ru=2.4621128967e-07 rv=3.16823109209e-07 rc=0.000839471554562 mass=3.1489470711e-06 update=0.00227948278189
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=66049 iterations=400 ru=1.04808187946e-07 rv=1.25444216105e-07 rc=0.000347280609482 mass=2.82428025511e-06 update=0.000566154718399
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=66049 iterations=500 ru=6.00422028199e-08 rv=6.59898566886e-08 rc=0.000177202446148 mass=2.69396728317e-06 update=0.000153906643391
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=66049 iterations=600 ru=4.37683557762e-08 rv=4.47347776616e-08 rc=0.00011076765756 mass=2.70376057294e-06 update=4.51467931271e-05
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=66049 iterations=700 ru=3.58428484073e-08 rv=3.61454292641e-08 rc=7.44859457997e-05 mass=2.68337588288e-06 update=1.36308372021e-05
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=66049 iterations=800 ru=3.27815113137e-08 rv=3.3817338904e-08 rc=6.13046689042e-05 mass=2.70166086258e-06 update=4.63426113129e-06
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=66049 iterations=900 ru=3.21478336987e-08 rv=3.22241438248e-08 rc=5.49576727315e-05 mass=2.68729490382e-06 update=1.53481960297e-06
+FV_CAVITY_RESULT backend=cpu case=257 Re=1000 iterations=900 converged=1 Ghia_u_max=0.00631781046016 Ghia_v_max=0.016323041452 Erturk_u_max=0.000600078093619 Erturk_v_max=0.00109639785315
+FV_CAVITY_REFINEMENT backend=cpu n=257 u_error=0.000600078093619 v_error=0.00109639785315 u_center=-0.0621339678764 v_center=0.0256626941264 psi=0.118764517169 omega=2.06567508004 x=0.53074887352 y=0.565380126609 u_order=2.87506246288 v_order=2.7128194998
+FV_CAVITY_RICHARDSON backend=cpu u_center=-0.0620185248089 v_center=0.0257785123512 psi=0.118920218047 omega=2.06679560829 x=0.53077780472 y=0.565230736408
+FV_CAVITY_PRIMARY_REFERENCE source,grid,order,psi_min_abs,omega_center,x_center,y_center
+FV_CAVITY_PRIMARY_REFERENCE Erturk2005_601x601,601x601,2,0.118781,2.065530,0.5300,0.5650
+FV_CAVITY_PRIMARY_REFERENCE Erturk2005_extrapolated,Richardson(401/513/601),6,0.118942,2.067213,,
+FV_CAVITY_PRIMARY_REFERENCE BotellaPeyret1998_N160,Chebyshev N=160,spectral,0.1189366,2.067753,0.5308,0.5652
+FV_CAVITY_PRIMARY_REFERENCE BarragyCarey1997,257x257 p=8,8,0.118930,,,
+FV_CAVITY_PRIMARY_REFERENCE Ghia1982,129x129,2,0.117929,2.04968,0.5313,0.5625
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=4225 iterations=100 ru=6.03638431204e-05 rv=5.14001446222e-05 rc=0.0178975386836 mass=1.87883446756e-06 update=1
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=4225 iterations=200 ru=1.50351021054e-06 rv=1.33226722441e-06 rc=0.000329856701426 mass=6.87436241265e-07 update=0.0134699940681
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=4225 iterations=300 ru=2.50908874576e-07 rv=2.27872168612e-07 rc=5.53480490854e-05 mass=6.69240250772e-07 update=0.000628367066383
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=4225 iterations=400 ru=6.05602531389e-08 rv=5.78337662708e-08 rc=1.92803025473e-05 mass=6.86621660861e-07 update=9.84072685242e-05
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=4225 iterations=500 ru=4.50880542284e-08 rv=4.34338787312e-08 rc=1.59237591074e-05 mass=6.69664800057e-07 update=1.56462192535e-05
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=4225 iterations=600 ru=4.06040090075e-08 rv=4.20925684105e-08 rc=1.39959355026e-05 mass=6.550608731e-07 update=2.38418579102e-06
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=4225 iterations=700 ru=4.28989018949e-08 rv=4.25891229159e-08 rc=1.43393617731e-05 mass=6.30827315717e-07 update=4.76837158203e-07
+FV_CAVITY_RESULT backend=metal case=65 Re=1000 iterations=700 converged=1 Ghia_u_max=0.0198598055524 Ghia_v_max=0.0119262216436 Erturk_u_max=0.020753677845 Erturk_v_max=0.030967396708
+FV_CAVITY_REFINEMENT backend=metal n=65 u_error=0.020753677845 v_error=0.030967396708 u_center=-0.0639747977257 v_center=0.0242851376534 psi=0.116300431682 omega=2.04698097202 x=0.530627675377 y=0.567769198339
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=16641 iterations=100 ru=2.36696984875e-05 rv=2.57938711891e-05 rc=0.0258150082146 mass=2.47833385636e-06 update=1
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=16641 iterations=200 ru=4.68654626126e-07 rv=4.59525391965e-07 rc=0.000413311381424 mass=1.34806062135e-06 update=0.0142361521721
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=16641 iterations=300 ru=8.24164398306e-08 rv=8.01364614891e-08 rc=7.0172405499e-05 mass=1.34272035002e-06 update=0.000404939055443
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=16641 iterations=400 ru=4.06868517214e-08 rv=4.14431976401e-08 rc=4.22829545931e-05 mass=1.3340927083e-06 update=6.64591789246e-05
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=16641 iterations=500 ru=3.68601831177e-08 rv=3.70412784428e-08 rc=3.20170213726e-05 mass=1.34262101525e-06 update=1.13546848297e-05
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=16641 iterations=600 ru=3.49876673473e-08 rv=3.58307500523e-08 rc=2.90149626519e-05 mass=1.32841280731e-06 update=1.9371509552e-06
+FV_CAVITY_RESULT backend=metal case=129 Re=1000 iterations=600 converged=1 Ghia_u_max=0.00595182721623 Ghia_v_max=0.0100708552119 Erturk_u_max=0.00435350234845 Erturk_v_max=0.00711267270044
+FV_CAVITY_REFINEMENT backend=metal n=129 u_error=0.00435350234845 v_error=0.00711267270044 u_center=-0.0624767243862 v_center=0.0253188237548 psi=0.118302233113 omega=2.06234817301 x=0.530662975274 y=0.565823673933 u_order=2.27850240567 v_order=2.14619624749
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=66049 iterations=100 ru=1.22636529107e-05 rv=1.21199062671e-05 rc=0.0329782394813 mass=1.52977027802e-05 update=1
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=66049 iterations=200 ru=7.17203455733e-07 rv=9.2264173231e-07 rc=0.00240259578357 mass=4.1511081042e-06 update=0.0162909626961
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=66049 iterations=300 ru=2.43744781636e-07 rv=3.17114402927e-07 rc=0.000880440655316 mass=3.05862720212e-06 update=0.00226954370737
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=66049 iterations=400 ru=1.03840664695e-07 rv=1.24705820361e-07 rc=0.000343096951703 mass=2.75125262257e-06 update=0.000564020127058
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=66049 iterations=500 ru=5.93881176004e-08 rv=6.52982878471e-08 rc=0.000176755997853 mass=2.69287245624e-06 update=0.000153858214617
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=66049 iterations=600 ru=4.36919754653e-08 rv=4.50866017373e-08 rc=0.00011003832745 mass=2.70063759959e-06 update=4.45805490017e-05
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=66049 iterations=700 ru=3.52962536664e-08 rv=3.57742942192e-08 rc=7.41058923131e-05 mass=2.66558960757e-06 update=1.40964984894e-05
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=66049 iterations=800 ru=3.32882252079e-08 rv=3.37997249071e-08 rc=6.12037312967e-05 mass=2.69842559228e-06 update=4.41819429398e-06
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=66049 iterations=900 ru=3.39584006259e-08 rv=3.47561793154e-08 rc=5.70562202883e-05 mass=2.67880328053e-06 update=1.38208270073e-06
+FV_CAVITY_RESULT backend=metal case=257 Re=1000 iterations=900 converged=1 Ghia_u_max=0.00631778065784 Ghia_v_max=0.0163230281807 Erturk_u_max=0.000600091802687 Erturk_v_max=0.00109642378117
+FV_CAVITY_REFINEMENT backend=metal n=257 u_error=0.000600091802687 v_error=0.00109642378117 u_center=-0.0621339716017 v_center=0.0256627034396 psi=0.118764506625 omega=2.06567750315 x=0.530748807059 y=0.565380110919 u_order=2.87502931851 v_order=2.7127851906
+FV_CAVITY_RICHARDSON backend=metal u_center=-0.0620185297889 v_center=0.0257785248012 psi=0.118920203951 omega=2.06679884752 x=0.530777715874 y=0.565230715434
+FV_CAVITY_PRIMARY_REFERENCE source,grid,order,psi_min_abs,omega_center,x_center,y_center
+FV_CAVITY_PRIMARY_REFERENCE Erturk2005_601x601,601x601,2,0.118781,2.065530,0.5300,0.5650
+FV_CAVITY_PRIMARY_REFERENCE Erturk2005_extrapolated,Richardson(401/513/601),6,0.118942,2.067213,,
+FV_CAVITY_PRIMARY_REFERENCE BotellaPeyret1998_N160,Chebyshev N=160,spectral,0.1189366,2.067753,0.5308,0.5652
+FV_CAVITY_PRIMARY_REFERENCE BarragyCarey1997,257x257 p=8,8,0.118930,,,
+FV_CAVITY_PRIMARY_REFERENCE Ghia1982,129x129,2,0.117929,2.04968,0.5313,0.5625
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_cavity.cpp:38:
+TEST SUITE: slow
+TEST CASE:  FV V3 Re1000 cavity refinement against Erturk
+
+433.392669 s: FV V3 Re1000 cavity refinement against Erturk
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=100 ru=0.000043 rv=0.000034 rc=0.019218 mass=0.000014 update=1.000000
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=200 ru=0.000008 rv=0.000009 rc=0.007103 mass=0.000007 update=0.010410
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=300 ru=0.000004 rv=0.000004 rc=0.003580 mass=0.000004 update=0.002602
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=400 ru=0.000002 rv=0.000002 rc=0.001889 mass=0.000002 update=0.001227
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=500 ru=0.000001 rv=0.000001 rc=0.001018 mass=0.000001 update=0.000581
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=600 ru=0.000001 rv=0.000001 rc=0.000574 mass=0.000001 update=0.000282
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=700 ru=0.000000 rv=0.000000 rc=0.000336 mass=0.000001 update=0.000142
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=800 ru=0.000000 rv=0.000000 rc=0.000199 mass=0.000001 update=0.000072
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=900 ru=0.000000 rv=0.000000 rc=0.000120 mass=0.000001 update=0.000038
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=1000 ru=0.000000 rv=0.000000 rc=0.000074 mass=0.000001 update=0.000020
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=16641 iterations=1100 ru=0.000000 rv=0.000000 rc=0.000047 mass=0.000001 update=0.000011
+FV_CAVITY_RESULT backend=cpu case=129x129 Re=100 iterations=1100 converged=1 Ghia_u_max=0.005044 Ghia_v_max=0.008972
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=16641 iterations=100 ru=0.000006 rv=0.000006 rc=0.007805 mass=0.000007 update=1.000000
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=16641 iterations=200 ru=0.000001 rv=0.000001 rc=0.000800 mass=0.000001 update=0.003602
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=16641 iterations=300 ru=0.000000 rv=0.000000 rc=0.000164 mass=0.000001 update=0.000367
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=16641 iterations=400 ru=0.000000 rv=0.000000 rc=0.000049 mass=0.000001 update=0.000047
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=16641 iterations=500 ru=0.000000 rv=0.000000 rc=0.000024 mass=0.000001 update=0.000007
+FV_CAVITY_RESULT backend=cpu case=129x129 Re=400 iterations=500 converged=1 Ghia_u_max=0.002640 Ghia_v_max=0.004048
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=100 ru=0.000043 rv=0.000034 rc=0.019218 mass=0.000014 update=1.000000
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=200 ru=0.000008 rv=0.000009 rc=0.007103 mass=0.000007 update=0.010410
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=300 ru=0.000004 rv=0.000004 rc=0.003580 mass=0.000004 update=0.002602
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=400 ru=0.000002 rv=0.000002 rc=0.001889 mass=0.000002 update=0.001227
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=500 ru=0.000001 rv=0.000001 rc=0.001018 mass=0.000001 update=0.000581
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=600 ru=0.000001 rv=0.000001 rc=0.000574 mass=0.000001 update=0.000282
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=700 ru=0.000000 rv=0.000000 rc=0.000336 mass=0.000001 update=0.000142
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=800 ru=0.000000 rv=0.000000 rc=0.000199 mass=0.000001 update=0.000072
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=900 ru=0.000000 rv=0.000000 rc=0.000120 mass=0.000001 update=0.000038
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=1000 ru=0.000000 rv=0.000000 rc=0.000074 mass=0.000001 update=0.000020
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=16641 iterations=1100 ru=0.000000 rv=0.000000 rc=0.000047 mass=0.000001 update=0.000011
+FV_CAVITY_RESULT backend=metal case=129x129 Re=100 iterations=1100 converged=1 Ghia_u_max=0.005044 Ghia_v_max=0.008972
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=16641 iterations=100 ru=0.000006 rv=0.000006 rc=0.007956 mass=0.000007 update=1.000000
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=16641 iterations=200 ru=0.000001 rv=0.000001 rc=0.000801 mass=0.000001 update=0.003613
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=16641 iterations=300 ru=0.000000 rv=0.000000 rc=0.000164 mass=0.000001 update=0.000368
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=16641 iterations=400 ru=0.000000 rv=0.000000 rc=0.000048 mass=0.000001 update=0.000047
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=16641 iterations=500 ru=0.000000 rv=0.000000 rc=0.000024 mass=0.000001 update=0.000007
+FV_CAVITY_RESULT backend=metal case=129x129 Re=400 iterations=500 converged=1 Ghia_u_max=0.002640 Ghia_v_max=0.004048
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_cavity.cpp:79:
+TEST SUITE: slow
+TEST CASE:  FV V3 Re100 and Re400 cavity reported deviations
+
+81.198159 s: FV V3 Re100 and Re400 cavity reported deviations
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=100 ru=0.000023 rv=0.000040 rc=0.010262 mass=0.000004 update=1.000000
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=200 ru=0.000005 rv=0.000009 rc=0.002624 mass=0.000001 update=0.003198
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=300 ru=0.000001 rv=0.000003 rc=0.000821 mass=0.000001 update=0.000658
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=400 ru=0.000000 rv=0.000001 rc=0.000286 mass=0.000000 update=0.000173
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000107 mass=0.000000 update=0.000051
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=600 ru=0.000000 rv=0.000000 rc=0.000042 mass=0.000000 update=0.000016
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=100 ru=0.000023 rv=0.000040 rc=0.010262 mass=0.000006 update=1.000000
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=200 ru=0.000005 rv=0.000009 rc=0.002624 mass=0.000001 update=0.003197
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=300 ru=0.000001 rv=0.000003 rc=0.000821 mass=0.000001 update=0.000657
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=400 ru=0.000000 rv=0.000001 rc=0.000286 mass=0.000000 update=0.000173
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000107 mass=0.000000 update=0.000051
+FV_CAVITY_PROGRESS backend=cpu Re=100 cells=3550 iterations=600 ru=0.000000 rv=0.000000 rc=0.000042 mass=0.000000 update=0.000016
+FV_CAVITY_RESULT backend=cpu case=Fluent Re=100 iterations=600 converged=1 Ghia_u_max=0.005304 Ghia_v_max=0.009042
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=100 ru=0.000012 rv=0.000011 rc=0.004603 mass=0.000001 update=1.000000
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=200 ru=0.000000 rv=0.000000 rc=0.000078 mass=0.000000 update=0.001613
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=300 ru=0.000000 rv=0.000000 rc=0.000013 mass=0.000000 update=0.000011
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=100 ru=0.000012 rv=0.000011 rc=0.004603 mass=0.000001 update=1.000000
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=200 ru=0.000000 rv=0.000000 rc=0.000079 mass=0.000001 update=0.001612
+FV_CAVITY_PROGRESS backend=cpu Re=400 cells=3550 iterations=300 ru=0.000000 rv=0.000000 rc=0.000013 mass=0.000001 update=0.000011
+FV_CAVITY_RESULT backend=cpu case=Fluent Re=400 iterations=300 converged=1 Ghia_u_max=0.003289 Ghia_v_max=0.003436
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=100 ru=0.000077 rv=0.000063 rc=0.017724 mass=0.000002 update=1.000000
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=200 ru=0.000001 rv=0.000001 rc=0.000152 mass=0.000001 update=0.014336
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=300 ru=0.000000 rv=0.000000 rc=0.000022 mass=0.000001 update=0.000224
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=400 ru=0.000000 rv=0.000000 rc=0.000015 mass=0.000001 update=0.000034
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000014 mass=0.000001 update=0.000006
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=100 ru=0.000077 rv=0.000063 rc=0.017736 mass=0.000002 update=1.000000
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=200 ru=0.000001 rv=0.000001 rc=0.000152 mass=0.000001 update=0.014337
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=300 ru=0.000000 rv=0.000000 rc=0.000022 mass=0.000001 update=0.000226
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=400 ru=0.000000 rv=0.000000 rc=0.000015 mass=0.000001 update=0.000034
+FV_CAVITY_PROGRESS backend=cpu Re=1000 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000012 mass=0.000001 update=0.000006
+FV_CAVITY_RESULT backend=cpu case=Fluent Re=1000 iterations=500 converged=1 Ghia_u_max=0.008934 Ghia_v_max=0.004055 Erturk_u_max=0.011848 Erturk_v_max=0.021203
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=100 ru=0.000023 rv=0.000040 rc=0.010262 mass=0.000004 update=1.000000
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=200 ru=0.000005 rv=0.000009 rc=0.002624 mass=0.000001 update=0.003198
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=300 ru=0.000001 rv=0.000003 rc=0.000821 mass=0.000001 update=0.000658
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=400 ru=0.000000 rv=0.000001 rc=0.000286 mass=0.000000 update=0.000173
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000107 mass=0.000000 update=0.000051
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=600 ru=0.000000 rv=0.000000 rc=0.000042 mass=0.000000 update=0.000016
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=100 ru=0.000023 rv=0.000040 rc=0.010262 mass=0.000006 update=1.000000
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=200 ru=0.000005 rv=0.000009 rc=0.002624 mass=0.000001 update=0.003197
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=300 ru=0.000001 rv=0.000003 rc=0.000821 mass=0.000001 update=0.000657
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=400 ru=0.000000 rv=0.000001 rc=0.000286 mass=0.000000 update=0.000173
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000107 mass=0.000000 update=0.000051
+FV_CAVITY_PROGRESS backend=metal Re=100 cells=3550 iterations=600 ru=0.000000 rv=0.000000 rc=0.000042 mass=0.000000 update=0.000016
+FV_CAVITY_RESULT backend=metal case=Fluent Re=100 iterations=600 converged=1 Ghia_u_max=0.005304 Ghia_v_max=0.009042
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=3550 iterations=100 ru=0.000012 rv=0.000011 rc=0.004603 mass=0.000001 update=1.000000
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=3550 iterations=200 ru=0.000000 rv=0.000000 rc=0.000078 mass=0.000000 update=0.001613
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=3550 iterations=300 ru=0.000000 rv=0.000000 rc=0.000013 mass=0.000000 update=0.000011
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=3550 iterations=100 ru=0.000012 rv=0.000011 rc=0.004603 mass=0.000001 update=1.000000
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=3550 iterations=200 ru=0.000000 rv=0.000000 rc=0.000079 mass=0.000001 update=0.001612
+FV_CAVITY_PROGRESS backend=metal Re=400 cells=3550 iterations=300 ru=0.000000 rv=0.000000 rc=0.000013 mass=0.000001 update=0.000011
+FV_CAVITY_RESULT backend=metal case=Fluent Re=400 iterations=300 converged=1 Ghia_u_max=0.003289 Ghia_v_max=0.003436
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=100 ru=0.000077 rv=0.000063 rc=0.017724 mass=0.000002 update=1.000000
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=200 ru=0.000001 rv=0.000001 rc=0.000152 mass=0.000001 update=0.014336
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=300 ru=0.000000 rv=0.000000 rc=0.000022 mass=0.000001 update=0.000224
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=400 ru=0.000000 rv=0.000000 rc=0.000015 mass=0.000001 update=0.000034
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000014 mass=0.000001 update=0.000006
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=100 ru=0.000077 rv=0.000063 rc=0.017736 mass=0.000002 update=1.000000
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=200 ru=0.000001 rv=0.000001 rc=0.000152 mass=0.000001 update=0.014337
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=300 ru=0.000000 rv=0.000000 rc=0.000022 mass=0.000001 update=0.000226
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=400 ru=0.000000 rv=0.000000 rc=0.000015 mass=0.000001 update=0.000034
+FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000012 mass=0.000001 update=0.000006
+FV_CAVITY_RESULT backend=metal case=Fluent Re=1000 iterations=500 converged=1 Ghia_u_max=0.008934 Ghia_v_max=0.004055 Erturk_u_max=0.011848 Erturk_v_max=0.021203
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_cavity.cpp:87:
+TEST SUITE: slow
+TEST CASE:  FV V4 Fluent cavity matches its actual grid
+
+81.674116 s: FV V4 Fluent cavity matches its actual grid
+FV_V2_PROGRESS backend=cpu tet=0 n=8 iter=20 ru=0.000092 rv=0.000092 rc=0.010060 rc_raw=0.000040
+FV_V2_LAYER backend=cpu n=8 layer=1 volume_fraction=0.437500 u_L2=0.071841 p_L2=0.035652 p_square_integral=0.000070
+FV_V2_LAYER backend=cpu n=8 layer=2 volume_fraction=0.312500 u_L2=0.042971 p_L2=0.014309 p_square_integral=0.000008
+FV_V2_LAYER backend=cpu n=8 layer=3 volume_fraction=0.250000 u_L2=0.020979 p_L2=0.035232 p_square_integral=0.000039
+FV_V2_BOUNDARY backend=cpu tet=0 n=8 interior_p_L2=-1.000000 excluding_walls_p_L2=0.025796 p_Linf=0.072336 at=0.187500,0.937500,0.062500 boundary=1 wall=1
+FV_V2 backend=cpu tet=0 n=8 iterations=80 u_L2=0.054268 p_L2=0.030502 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000000 corrected_mass=0.000000
+FV_V2_FORCE backend=cpu tet=0 n=8 pressure_x=-0.359290 viscous_y=-0.312592 viscous_x=0.070407 pressure_error=0.040980 viscous_error=0.073399 total_error=0.036002
+FV_V2_PROGRESS backend=cpu tet=0 n=16 iter=20 ru=0.000062 rv=0.000062 rc=0.007175 rc_raw=0.000008
+FV_V2_LAYER backend=cpu n=16 layer=1 volume_fraction=0.234375 u_L2=0.022244 p_L2=0.013204 p_square_integral=0.000003
+FV_V2_LAYER backend=cpu n=16 layer=2 volume_fraction=0.203125 u_L2=0.016933 p_L2=0.009039 p_square_integral=0.000001
+FV_V2_LAYER backend=cpu n=16 layer=3 volume_fraction=0.562500 u_L2=0.011512 p_L2=0.009918 p_square_integral=0.000003
+FV_V2_BOUNDARY backend=cpu tet=0 n=16 interior_p_L2=-1.000000 excluding_walls_p_L2=0.009692 p_Linf=0.024969 at=0.218750,0.968750,0.031250 boundary=1 wall=1
+FV_V2 backend=cpu tet=0 n=16 iterations=120 u_L2=0.015772 p_L2=0.010620 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000000 corrected_mass=0.000000
+FV_V2_FORCE backend=cpu tet=0 n=16 pressure_x=-0.330559 viscous_y=-0.327715 viscous_x=0.019915 pressure_error=0.012249 viscous_error=0.020692 total_error=0.009504
+FV_V2_ORDER backend=cpu tet=0 n=16 u=1.782747 p=1.522112 momentum_operator=1.362470 wall_pressure=1.742247 wall_viscous=1.826675 wall_total=1.921446
+FV_V2_PROGRESS backend=cpu tet=0 n=32 iter=20 ru=0.000014 rv=0.000014 rc=0.001818 rc_raw=0.000001
+FV_V2_PROGRESS backend=cpu tet=0 n=32 iter=220 ru=0.000000 rv=0.000000 rc=0.000232 rc_raw=0.000000
+FV_V2_LAYER backend=cpu n=32 layer=1 volume_fraction=0.121094 u_L2=0.006134 p_L2=0.003898 p_square_integral=0.000000
+FV_V2_LAYER backend=cpu n=32 layer=2 volume_fraction=0.113281 u_L2=0.005256 p_L2=0.003274 p_square_integral=0.000000
+FV_V2_LAYER backend=cpu n=32 layer=3 volume_fraction=0.765625 u_L2=0.003578 p_L2=0.002801 p_square_integral=0.000000
+FV_V2_BOUNDARY backend=cpu tet=0 n=32 interior_p_L2=-1.000000 excluding_walls_p_L2=0.002866 p_Linf=0.007391 at=0.796875,0.015625,0.015625 boundary=1 wall=1
+FV_V2 backend=cpu tet=0 n=32 iterations=240 u_L2=0.004182 p_L2=0.003010 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000000 corrected_mass=0.000000
+FV_V2_FORCE backend=cpu tet=0 n=32 pressure_x=-0.321558 viscous_y=-0.331913 viscous_x=0.005128 pressure_error=0.003248 viscous_error=0.005322 total_error=0.002357
+FV_V2_ORDER backend=cpu tet=0 n=32 u=1.915134 p=1.818924 momentum_operator=1.485543 wall_pressure=1.914970 wall_viscous=1.959164 wall_total=2.011907
+FV_V2_PROGRESS backend=metal tet=0 n=8 iter=20 ru=0.000092 rv=0.000092 rc=0.010060 rc_raw=0.000040
+FV_V2_LAYER backend=metal n=8 layer=1 volume_fraction=0.437500 u_L2=0.071841 p_L2=0.035652 p_square_integral=0.000070
+FV_V2_LAYER backend=metal n=8 layer=2 volume_fraction=0.312500 u_L2=0.042971 p_L2=0.014309 p_square_integral=0.000008
+FV_V2_LAYER backend=metal n=8 layer=3 volume_fraction=0.250000 u_L2=0.020979 p_L2=0.035232 p_square_integral=0.000039
+FV_V2_BOUNDARY backend=metal tet=0 n=8 interior_p_L2=-1.000000 excluding_walls_p_L2=0.025796 p_Linf=0.072336 at=0.187500,0.937500,0.062500 boundary=1 wall=1
+FV_V2 backend=metal tet=0 n=8 iterations=80 u_L2=0.054268 p_L2=0.030502 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000000 corrected_mass=0.000000
+FV_V2_FORCE backend=metal tet=0 n=8 pressure_x=-0.359290 viscous_y=-0.312592 viscous_x=0.070407 pressure_error=0.040980 viscous_error=0.073399 total_error=0.036002
+FV_V2_PROGRESS backend=metal tet=0 n=16 iter=20 ru=0.000062 rv=0.000062 rc=0.007175 rc_raw=0.000008
+FV_V2_LAYER backend=metal n=16 layer=1 volume_fraction=0.234375 u_L2=0.022244 p_L2=0.013204 p_square_integral=0.000003
+FV_V2_LAYER backend=metal n=16 layer=2 volume_fraction=0.203125 u_L2=0.016933 p_L2=0.009039 p_square_integral=0.000001
+FV_V2_LAYER backend=metal n=16 layer=3 volume_fraction=0.562500 u_L2=0.011512 p_L2=0.009918 p_square_integral=0.000003
+FV_V2_BOUNDARY backend=metal tet=0 n=16 interior_p_L2=-1.000000 excluding_walls_p_L2=0.009692 p_Linf=0.024969 at=0.218750,0.968750,0.031250 boundary=1 wall=1
+FV_V2 backend=metal tet=0 n=16 iterations=120 u_L2=0.015772 p_L2=0.010620 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000000 corrected_mass=0.000000
+FV_V2_FORCE backend=metal tet=0 n=16 pressure_x=-0.330559 viscous_y=-0.327715 viscous_x=0.019915 pressure_error=0.012249 viscous_error=0.020692 total_error=0.009504
+FV_V2_ORDER backend=metal tet=0 n=16 u=1.782747 p=1.522112 momentum_operator=1.362470 wall_pressure=1.742247 wall_viscous=1.826675 wall_total=1.921446
+FV_V2_PROGRESS backend=metal tet=0 n=32 iter=20 ru=0.000014 rv=0.000014 rc=0.001818 rc_raw=0.000001
+FV_V2_PROGRESS backend=metal tet=0 n=32 iter=220 ru=0.000000 rv=0.000000 rc=0.000232 rc_raw=0.000000
+FV_V2_LAYER backend=metal n=32 layer=1 volume_fraction=0.121094 u_L2=0.006134 p_L2=0.003898 p_square_integral=0.000000
+FV_V2_LAYER backend=metal n=32 layer=2 volume_fraction=0.113281 u_L2=0.005256 p_L2=0.003274 p_square_integral=0.000000
+FV_V2_LAYER backend=metal n=32 layer=3 volume_fraction=0.765625 u_L2=0.003578 p_L2=0.002801 p_square_integral=0.000000
+FV_V2_BOUNDARY backend=metal tet=0 n=32 interior_p_L2=-1.000000 excluding_walls_p_L2=0.002866 p_Linf=0.007391 at=0.796875,0.015625,0.015625 boundary=1 wall=1
+FV_V2 backend=metal tet=0 n=32 iterations=240 u_L2=0.004182 p_L2=0.003010 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000000 corrected_mass=0.000000
+FV_V2_FORCE backend=metal tet=0 n=32 pressure_x=-0.321558 viscous_y=-0.331913 viscous_x=0.005128 pressure_error=0.003248 viscous_error=0.005322 total_error=0.002357
+FV_V2_ORDER backend=metal tet=0 n=32 u=1.915134 p=1.818924 momentum_operator=1.485543 wall_pressure=1.914970 wall_viscous=1.959164 wall_total=2.011907
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:164:
+TEST SUITE: slow
+TEST CASE:  FV V2 manufactured Navier Stokes hex refinement
+
+13.982413 s: FV V2 manufactured Navier Stokes hex refinement
+FV_V2_PROGRESS backend=cpu tet=1 n=4 iter=20 ru=0.001312 rv=0.001286 rc=0.027333 rc_raw=0.026369
+FV_V2_BOUNDARY backend=cpu tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.937500,0.875000,0.062500 boundary=1 wall=1
+FV_V2 backend=cpu tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.258420 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000001 corrected_mass=0.000000
+FV_V2_FORCE backend=cpu tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.167080 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+FV_V2_PROGRESS backend=cpu tet=1 n=8 iter=20 ru=0.000470 rv=0.000468 rc=0.029970 rc_raw=0.017054
+FV_V2_BOUNDARY backend=cpu tet=1 n=8 interior_p_L2=0.126227 excluding_walls_p_L2=0.136680 p_Linf=0.575174 at=0.937500,0.906250,0.968750 boundary=1 wall=0
+FV_V2 backend=cpu tet=1 n=8 iterations=200 u_L2=0.051705 p_L2=0.144610 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000002 corrected_mass=0.000001
+FV_V2_FORCE backend=cpu tet=1 n=8 pressure_x=-0.393272 viscous_y=-0.382532 viscous_x=0.123754 pressure_error=0.074963 viscous_error=0.137120 total_error=0.076599
+FV_V2_ORDER backend=cpu tet=1 n=8 u=1.735989 p=0.837554 momentum_operator=1.025370 wall_pressure=1.045933 wall_viscous=0.590303 wall_total=0.670037
+FV_V2_PROGRESS backend=cpu tet=1 n=16 iter=20 ru=0.000118 rv=0.000116 rc=0.025236 rc_raw=0.007663
+FV_V2_PROGRESS backend=cpu tet=1 n=16 iter=220 ru=0.000000 rv=0.000001 rc=0.000015 rc_raw=0.000004
+FV_V2_BOUNDARY backend=cpu tet=1 n=16 interior_p_L2=0.070079 excluding_walls_p_L2=0.075262 p_Linf=0.413604 at=0.843750,0.953125,0.984375 boundary=1 wall=0
+FV_V2 backend=cpu tet=1 n=16 iterations=400 u_L2=0.013127 p_L2=0.076424 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000004 corrected_mass=0.000001
+FV_V2_FORCE backend=cpu tet=1 n=16 pressure_x=-0.355602 viscous_y=-0.350562 viscous_x=0.071533 pressure_error=0.037293 viscous_error=0.075476 total_error=0.041858
+FV_V2_ORDER backend=cpu tet=1 n=16 u=1.977800 p=0.920065 momentum_operator=1.014063 wall_pressure=1.007284 wall_viscous=0.861350 wall_total=0.871823
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:167:
+TEST SUITE: slow
+TEST CASE:  FV V2 manufactured Navier Stokes tet refinement
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+  values: CHECK( 1.00728 >= 1.8 )
+  logged: backend: cpu
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+  values: CHECK( 0.86135 >= 1.8 )
+  logged: backend: cpu
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+  values: CHECK( 0.871823 >= 1.8 )
+  logged: backend: cpu
+
+FV_V2_PROGRESS backend=metal tet=1 n=4 iter=20 ru=0.001312 rv=0.001286 rc=0.027333 rc_raw=0.026369
+FV_V2_BOUNDARY backend=metal tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.937500,0.875000,0.062500 boundary=1 wall=1
+FV_V2 backend=metal tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.258420 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000001 corrected_mass=0.000000
+FV_V2_FORCE backend=metal tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.167080 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+FV_V2_PROGRESS backend=metal tet=1 n=8 iter=20 ru=0.000470 rv=0.000468 rc=0.029970 rc_raw=0.017054
+FV_V2_BOUNDARY backend=metal tet=1 n=8 interior_p_L2=0.126227 excluding_walls_p_L2=0.136680 p_Linf=0.575174 at=0.937500,0.906250,0.968750 boundary=1 wall=0
+FV_V2 backend=metal tet=1 n=8 iterations=200 u_L2=0.051705 p_L2=0.144610 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000002 corrected_mass=0.000001
+FV_V2_FORCE backend=metal tet=1 n=8 pressure_x=-0.393272 viscous_y=-0.382532 viscous_x=0.123754 pressure_error=0.074963 viscous_error=0.137120 total_error=0.076599
+FV_V2_ORDER backend=metal tet=1 n=8 u=1.735989 p=0.837554 momentum_operator=1.025370 wall_pressure=1.045933 wall_viscous=0.590303 wall_total=0.670037
+FV_V2_PROGRESS backend=metal tet=1 n=16 iter=20 ru=0.000118 rv=0.000116 rc=0.025236 rc_raw=0.007663
+FV_V2_PROGRESS backend=metal tet=1 n=16 iter=220 ru=0.000000 rv=0.000001 rc=0.000015 rc_raw=0.000004
+FV_V2_BOUNDARY backend=metal tet=1 n=16 interior_p_L2=0.070079 excluding_walls_p_L2=0.075262 p_Linf=0.413604 at=0.843750,0.953125,0.984375 boundary=1 wall=0
+FV_V2 backend=metal tet=1 n=16 iterations=400 u_L2=0.013127 p_L2=0.076424 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000004 corrected_mass=0.000001
+FV_V2_FORCE backend=metal tet=1 n=16 pressure_x=-0.355602 viscous_y=-0.350562 viscous_x=0.071533 pressure_error=0.037293 viscous_error=0.075476 total_error=0.041858
+FV_V2_ORDER backend=metal tet=1 n=16 u=1.977800 p=0.920065 momentum_operator=1.014063 wall_pressure=1.007284 wall_viscous=0.861350 wall_total=0.871823
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+  values: CHECK( 1.00728 >= 1.8 )
+  logged: backend: metal
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+  values: CHECK( 0.86135 >= 1.8 )
+  logged: backend: metal
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+  values: CHECK( 0.871823 >= 1.8 )
+  logged: backend: metal
+
+70.604288 s: FV V2 manufactured Navier Stokes tet refinement
+FV_V1 backend=cpu tet=0 n=8 speed=0.000000 scheme=2 iterations=3 L2=0.004579
+FV_V1 backend=cpu tet=0 n=16 speed=0.000000 scheme=2 iterations=3 L2=0.001138
+FV_V1_ORDER backend=cpu tet=0 mode=0 n=16 slope=2.008318
+FV_V1 backend=cpu tet=0 n=32 speed=0.000000 scheme=2 iterations=3 L2=0.000284
+FV_V1_ORDER backend=cpu tet=0 mode=0 n=32 slope=2.002060
+FV_V1 backend=cpu tet=0 n=8 speed=4.000000 scheme=1 iterations=3 L2=0.019031
+FV_V1 backend=cpu tet=0 n=16 speed=4.000000 scheme=1 iterations=3 L2=0.011405
+FV_V1_ORDER backend=cpu tet=0 mode=1 n=16 slope=0.738660
+FV_V1 backend=cpu tet=0 n=32 speed=4.000000 scheme=1 iterations=3 L2=0.006307
+FV_V1_ORDER backend=cpu tet=0 mode=1 n=32 slope=0.854671
+FV_V1 backend=cpu tet=0 n=8 speed=4.000000 scheme=2 iterations=8 L2=0.003348
+FV_V1 backend=cpu tet=0 n=16 speed=4.000000 scheme=2 iterations=7 L2=0.000939
+FV_V1_ORDER backend=cpu tet=0 mode=2 n=16 slope=1.835002
+FV_V1 backend=cpu tet=0 n=32 speed=4.000000 scheme=2 iterations=6 L2=0.000249
+FV_V1_ORDER backend=cpu tet=0 mode=2 n=32 slope=1.912087
+FV_V1 backend=cpu tet=1 n=8 speed=0.000000 scheme=2 iterations=14 L2=0.003899
+FV_V1 backend=cpu tet=1 n=16 speed=0.000000 scheme=2 iterations=15 L2=0.001101
+FV_V1_ORDER backend=cpu tet=1 mode=0 n=16 slope=1.824021
+FV_V1 backend=cpu tet=1 n=32 speed=0.000000 scheme=2 iterations=15 L2=0.000289
+FV_V1_ORDER backend=cpu tet=1 mode=0 n=32 slope=1.931832
+FV_V1 backend=cpu tet=1 n=8 speed=4.000000 scheme=1 iterations=13 L2=0.016235
+FV_V1 backend=cpu tet=1 n=16 speed=4.000000 scheme=1 iterations=15 L2=0.008205
+FV_V1_ORDER backend=cpu tet=1 mode=1 n=16 slope=0.984461
+FV_V1 backend=cpu tet=1 n=32 speed=4.000000 scheme=1 iterations=15 L2=0.004131
+FV_V1_ORDER backend=cpu tet=1 mode=1 n=32 slope=0.989922
+FV_V1 backend=cpu tet=1 n=8 speed=4.000000 scheme=2 iterations=15 L2=0.004031
+FV_V1 backend=cpu tet=1 n=16 speed=4.000000 scheme=2 iterations=16 L2=0.001109
+FV_V1_ORDER backend=cpu tet=1 mode=2 n=16 slope=1.861969
+FV_V1 backend=cpu tet=1 n=32 speed=4.000000 scheme=2 iterations=15 L2=0.000293
+FV_V1_ORDER backend=cpu tet=1 mode=2 n=32 slope=1.922587
+FV_V1 backend=metal tet=0 n=8 speed=0.000000 scheme=2 iterations=3 L2=0.004579
+FV_V1 backend=metal tet=0 n=16 speed=0.000000 scheme=2 iterations=3 L2=0.001138
+FV_V1_ORDER backend=metal tet=0 mode=0 n=16 slope=2.008312
+FV_V1 backend=metal tet=0 n=32 speed=0.000000 scheme=2 iterations=3 L2=0.000284
+FV_V1_ORDER backend=metal tet=0 mode=0 n=32 slope=2.002005
+FV_V1 backend=metal tet=0 n=8 speed=4.000000 scheme=1 iterations=3 L2=0.019031
+FV_V1 backend=metal tet=0 n=16 speed=4.000000 scheme=1 iterations=3 L2=0.011405
+FV_V1_ORDER backend=metal tet=0 mode=1 n=16 slope=0.738660
+FV_V1 backend=metal tet=0 n=32 speed=4.000000 scheme=1 iterations=3 L2=0.006307
+FV_V1_ORDER backend=metal tet=0 mode=1 n=32 slope=0.854671
+FV_V1 backend=metal tet=0 n=8 speed=4.000000 scheme=2 iterations=8 L2=0.003348
+FV_V1 backend=metal tet=0 n=16 speed=4.000000 scheme=2 iterations=7 L2=0.000939
+FV_V1_ORDER backend=metal tet=0 mode=2 n=16 slope=1.835002
+FV_V1 backend=metal tet=0 n=32 speed=4.000000 scheme=2 iterations=6 L2=0.000249
+FV_V1_ORDER backend=metal tet=0 mode=2 n=32 slope=1.912087
+FV_V1 backend=metal tet=1 n=8 speed=0.000000 scheme=2 iterations=14 L2=0.003899
+FV_V1 backend=metal tet=1 n=16 speed=0.000000 scheme=2 iterations=15 L2=0.001101
+FV_V1_ORDER backend=metal tet=1 mode=0 n=16 slope=1.824033
+FV_V1 backend=metal tet=1 n=32 speed=0.000000 scheme=2 iterations=14 L2=0.000289
+FV_V1_ORDER backend=metal tet=1 mode=0 n=32 slope=1.931099
+FV_V1 backend=metal tet=1 n=8 speed=4.000000 scheme=1 iterations=13 L2=0.016235
+FV_V1 backend=metal tet=1 n=16 speed=4.000000 scheme=1 iterations=15 L2=0.008205
+FV_V1_ORDER backend=metal tet=1 mode=1 n=16 slope=0.984461
+FV_V1 backend=metal tet=1 n=32 speed=4.000000 scheme=1 iterations=15 L2=0.004131
+FV_V1_ORDER backend=metal tet=1 mode=1 n=32 slope=0.989924
+FV_V1 backend=metal tet=1 n=8 speed=4.000000 scheme=2 iterations=15 L2=0.004031
+FV_V1 backend=metal tet=1 n=16 speed=4.000000 scheme=2 iterations=15 L2=0.001109
+FV_V1_ORDER backend=metal tet=1 mode=2 n=16 slope=1.861946
+FV_V1 backend=metal tet=1 n=32 speed=4.000000 scheme=2 iterations=15 L2=0.000293
+FV_V1_ORDER backend=metal tet=1 mode=2 n=32 slope=1.922585
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_scalar.cpp:53:
+TEST SUITE: slow
+TEST CASE:  FV V1 manufactured scalar diffusion and upwind refinement
+
+69.281468 s: FV V1 manufactured scalar diffusion and upwind refinement
+FV_COUETTE backend=cpu max_error=0.000000 residual=0.000000
+FV_COUETTE backend=metal max_error=0.000000 residual=0.000000
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_steady.cpp:51:
+TEST SUITE: slow
+TEST CASE:  FV SIMPLEC develops planar Couette flow with moving and slip walls
+
+10.876108 s: FV SIMPLEC develops planar Couette flow with moving and slip walls
+===============================================================================
+[doctest] test cases:   7 |   6 passed | 1 failed | 168 skipped
+[doctest] assertions: 879 | 873 passed | 6 failed |
+[doctest] Status: FAILURE!

@@ -1,0 +1,302 @@
+[
+  {
+    "backend": "cpu",
+    "mode": "seeded",
+    "iterations": "350",
+    "seconds": "45.70529812",
+    "converged": "1",
+    "fields": {
+      "velocity": {
+        "relative_L2": 0.03601602884,
+        "max_absolute": 0.3416301695,
+        "relative_max": 0.205752596
+      },
+      "pressure": {
+        "relative_L2": 0.02962121899,
+        "max_absolute": 0.112205966,
+        "relative_max": 0.09790064547
+      },
+      "k": {
+        "relative_L2": 0.1548203966,
+        "max_absolute": 0.0154873777,
+        "relative_max": 0.5490419879
+      },
+      "omega": {
+        "relative_L2": 0.08474920574,
+        "max_absolute": 10979.16081,
+        "relative_max": 0.121819059
+      }
+    },
+    "source": "verified_v6_hybrid.log",
+    "drop": {
+      "ours": 0.541470034,
+      "Fluent": 0.5351137855,
+      "relative": 0.01187831209
+    }
+  },
+  {
+    "backend": "cpu",
+    "mode": "cold-hybrid",
+    "iterations": "550",
+    "seconds": "69.27926817",
+    "converged": "1",
+    "fields": {
+      "velocity": {
+        "relative_L2": 0.03601458712,
+        "max_absolute": 0.3416064129,
+        "relative_max": 0.2057382882
+      },
+      "pressure": {
+        "relative_L2": 0.02961921958,
+        "max_absolute": 0.1121843519,
+        "relative_max": 0.09788178695
+      },
+      "k": {
+        "relative_L2": 0.1547891945,
+        "max_absolute": 0.01548799983,
+        "relative_max": 0.5490640428
+      },
+      "omega": {
+        "relative_L2": 0.08474917812,
+        "max_absolute": 10979.14909,
+        "relative_max": 0.121818929
+      },
+      "initial_wall_distance": {
+        "relative_L2": 2.093238401e-05,
+        "max_absolute": 1.164756306e-05,
+        "relative_max": 0.0002387150477
+      },
+      "initial_mu_t": {
+        "relative_L2": 0.01032625273,
+        "max_absolute": 3.890473643e-05,
+        "relative_max": 0.1048399602
+      }
+    },
+    "source": "verified_v6_hybrid.log",
+    "drop": {
+      "ours": 0.5414552951,
+      "Fluent": 0.5351137855,
+      "relative": 0.01185076847
+    }
+  },
+  {
+    "backend": "metal",
+    "mode": "seeded",
+    "iterations": "350",
+    "seconds": "9.82711825",
+    "converged": "1",
+    "fields": {
+      "velocity": {
+        "relative_L2": 0.03601601952,
+        "max_absolute": 0.3416305115,
+        "relative_max": 0.205752802
+      },
+      "pressure": {
+        "relative_L2": 0.02962224873,
+        "max_absolute": 0.1122032018,
+        "relative_max": 0.09789823371
+      },
+      "k": {
+        "relative_L2": 0.1548203749,
+        "max_absolute": 0.0154873479,
+        "relative_max": 0.5490409314
+      },
+      "omega": {
+        "relative_L2": 0.08474865954,
+        "max_absolute": 10979.04167,
+        "relative_max": 0.1218177371
+      }
+    },
+    "source": "verified_v6_hybrid.log",
+    "drop": {
+      "ours": 0.541469335,
+      "Fluent": 0.5351137855,
+      "relative": 0.01187700582
+    }
+  },
+  {
+    "backend": "metal",
+    "mode": "cold-hybrid",
+    "iterations": "550",
+    "seconds": "15.42432587",
+    "converged": "1",
+    "fields": {
+      "velocity": {
+        "relative_L2": 0.03601458988,
+        "max_absolute": 0.3416062938,
+        "relative_max": 0.2057382165
+      },
+      "pressure": {
+        "relative_L2": 0.02961803669,
+        "max_absolute": 0.1121826233,
+        "relative_max": 0.09788027879
+      },
+      "k": {
+        "relative_L2": 0.154789188,
+        "max_absolute": 0.01548802218,
+        "relative_max": 0.5490648352
+      },
+      "omega": {
+        "relative_L2": 0.08474925706,
+        "max_absolute": 10979.12077,
+        "relative_max": 0.1218186148
+      }
+    },
+    "source": "verified_v6_hybrid.log",
+    "drop": {
+      "ours": 0.5414536019,
+      "Fluent": 0.5351137855,
+      "relative": 0.01184760429
+    }
+  },
+  {
+    "backend": "cpu",
+    "mode": "seeded",
+    "iterations": "350",
+    "seconds": "45.89072142",
+    "converged": "1",
+    "fields": {
+      "velocity": {
+        "relative_L2": 0.03601602884,
+        "max_absolute": 0.3416301695,
+        "relative_max": 0.205752596
+      },
+      "pressure": {
+        "relative_L2": 0.02962121899,
+        "max_absolute": 0.112205966,
+        "relative_max": 0.09790064547
+      },
+      "k": {
+        "relative_L2": 0.1548203966,
+        "max_absolute": 0.0154873777,
+        "relative_max": 0.5490419879
+      },
+      "omega": {
+        "relative_L2": 0.08474920574,
+        "max_absolute": 10979.16081,
+        "relative_max": 0.121819059
+      }
+    },
+    "source": "verified_v6_proxy.log",
+    "drop": {
+      "ours": 0.541470034,
+      "Fluent": 0.5351137855,
+      "relative": 0.01187831209
+    }
+  },
+  {
+    "backend": "cpu",
+    "mode": "cold-standard-proxy",
+    "iterations": "600",
+    "seconds": "74.19723146",
+    "converged": "1",
+    "fields": {
+      "velocity": {
+        "relative_L2": 0.03601374799,
+        "max_absolute": 0.3416034936,
+        "relative_max": 0.20573653
+      },
+      "pressure": {
+        "relative_L2": 0.02961934492,
+        "max_absolute": 0.1121816473,
+        "relative_max": 0.0978794272
+      },
+      "k": {
+        "relative_L2": 0.1547848366,
+        "max_absolute": 0.0154879514,
+        "relative_max": 0.5490623259
+      },
+      "omega": {
+        "relative_L2": 0.08474925417,
+        "max_absolute": 10979.15105,
+        "relative_max": 0.1218189507
+      },
+      "initial_wall_distance": {
+        "relative_L2": 2.093238401e-05,
+        "max_absolute": 1.164756306e-05,
+        "relative_max": 0.0002387150477
+      },
+      "initial_mu_t": {
+        "relative_L2": 0.01032625273,
+        "max_absolute": 3.890473643e-05,
+        "relative_max": 0.1048399602
+      }
+    },
+    "source": "verified_v6_proxy.log",
+    "drop": {
+      "ours": 0.5414541523,
+      "Fluent": 0.5351137855,
+      "relative": 0.01184863294
+    }
+  },
+  {
+    "backend": "metal",
+    "mode": "seeded",
+    "iterations": "350",
+    "seconds": "10.02823146",
+    "converged": "1",
+    "fields": {
+      "velocity": {
+        "relative_L2": 0.03601601952,
+        "max_absolute": 0.3416305115,
+        "relative_max": 0.205752802
+      },
+      "pressure": {
+        "relative_L2": 0.02962224873,
+        "max_absolute": 0.1122032018,
+        "relative_max": 0.09789823371
+      },
+      "k": {
+        "relative_L2": 0.1548203749,
+        "max_absolute": 0.0154873479,
+        "relative_max": 0.5490409314
+      },
+      "omega": {
+        "relative_L2": 0.08474865954,
+        "max_absolute": 10979.04167,
+        "relative_max": 0.1218177371
+      }
+    },
+    "source": "verified_v6_proxy.log",
+    "drop": {
+      "ours": 0.541469335,
+      "Fluent": 0.5351137855,
+      "relative": 0.01187700582
+    }
+  },
+  {
+    "backend": "metal",
+    "mode": "cold-standard-proxy",
+    "iterations": "600",
+    "seconds": "16.94771817",
+    "converged": "1",
+    "fields": {
+      "velocity": {
+        "relative_L2": 0.03601376102,
+        "max_absolute": 0.3416035525,
+        "relative_max": 0.2057365654
+      },
+      "pressure": {
+        "relative_L2": 0.02961857048,
+        "max_absolute": 0.1121833907,
+        "relative_max": 0.09788094836
+      },
+      "k": {
+        "relative_L2": 0.1547848722,
+        "max_absolute": 0.01548795699,
+        "relative_max": 0.549062524
+      },
+      "omega": {
+        "relative_L2": 0.08474922826,
+        "max_absolute": 10979.14812,
+        "relative_max": 0.1218189182
+      }
+    },
+    "source": "verified_v6_proxy.log",
+    "drop": {
+      "ours": 0.54145467,
+      "Fluent": 0.5351137855,
+      "relative": 0.01184960036
+    }
+  }
+]

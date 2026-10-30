@@ -1,0 +1,45 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:24:
+TEST CASE:  TMR uniform bump startup stays bounded on skew wall cells
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:28: ERROR: CHECK( result.failure.empty() ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          /Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:29: ERROR: CHECK( result.iterations==24 ) is NOT correct!
+  values: CHECK( 16 == 24 )
+  logged: backend: cpu
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:31: ERROR: CHECK( result.residual.maximum_velocity<2 ) is NOT correct!
+  values: CHECK( 724.408 <  2 )
+  logged: backend: cpu
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:32: ERROR: CHECK( std::isfinite(result.values.drag) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:28: ERROR: CHECK( result.failure.empty() ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          /Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:29: ERROR: CHECK( result.iterations==24 ) is NOT correct!
+  values: CHECK( 13 == 24 )
+  logged: backend: metal
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:31: ERROR: CHECK( result.residual.maximum_velocity<2 ) is NOT correct!
+  values: CHECK( 724.443 <  2 )
+  logged: backend: metal
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:32: ERROR: CHECK( std::isfinite(result.values.drag) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+0.960452 s: TMR uniform bump startup stays bounded on skew wall cells
+===============================================================================
+[doctest] test cases:  1 | 0 passed | 1 failed | 174 skipped
+[doctest] assertions: 10 | 2 passed | 8 failed |
+[doctest] Status: FAILURE!

@@ -1,0 +1,50 @@
+{
+  "cpu": {
+    "velocity": {
+      "relative_l2": 2.746581245922092e-07,
+      "max_absolute": 3.6943871548307766e-06,
+      "relative_max": 2.213630944776719e-06
+    },
+    "pressure": {
+      "relative_l2": 1.5223992193314162e-05,
+      "max_absolute": 9.953975677490234e-06,
+      "relative_max": 8.510296541537789e-06
+    },
+    "k": {
+      "relative_l2": 4.917465137027495e-07,
+      "max_absolute": 4.190951585769653e-08,
+      "relative_max": 1.2397482462521309e-06
+    },
+    "omega": {
+      "relative_l2": 2.5543207423628906e-07,
+      "max_absolute": 0.0234375,
+      "relative_max": 2.6218697497058263e-07
+    },
+    "pressure_mean_difference": 5.63688732373776e-06,
+    "pressure_difference_stddev": 2.829605761088896e-06
+  },
+  "metal": {
+    "velocity": {
+      "relative_l2": 2.51230274415883e-07,
+      "max_absolute": 2.8762136261740765e-06,
+      "relative_max": 1.7233916485161623e-06
+    },
+    "pressure": {
+      "relative_l2": 4.741994331434626e-06,
+      "max_absolute": 3.635883331298828e-06,
+      "relative_max": 3.1085444612566304e-06
+    },
+    "k": {
+      "relative_l2": 4.924872173513037e-07,
+      "max_absolute": 4.6566128730773926e-08,
+      "relative_max": 1.3774971405914356e-06
+    },
+    "omega": {
+      "relative_l2": 2.7529434085255136e-07,
+      "max_absolute": 0.0263671875,
+      "relative_max": 2.9496032106365404e-07
+    },
+    "pressure_mean_difference": -1.759980902566099e-06,
+    "pressure_difference_stddev": 8.729926719334247e-07
+  }
+}

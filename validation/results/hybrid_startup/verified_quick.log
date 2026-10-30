@@ -1,0 +1,1091 @@
+Solve CLI: generated CFF/data, residuals, VTU, forces, SHA256, and rejection checks passed
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/app/test_inspect.cpp:60:
+TEST CASE:  Inspect labels active relaxation equations and issue classes
+
+0.357699 s: Inspect labels active relaxation equations and issue classes
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/app/test_inspect.cpp:80:
+TEST CASE:  Inspect real static mixer displays resolved expressions instead of saved snapshots
+
+0.039546 s: Inspect real static mixer displays resolved expressions instead of saved snapshots
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/app/test_solve.cpp:117:
+TEST CASE:  Solve CLI runs generated CFF cases and data, rejects settings, and emits parseable outputs
+
+0.118269 s: Solve CLI runs generated CFF cases and data, rejects settings, and emits parseable outputs
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/app/test_solve.cpp:130:
+TEST CASE:  SHA256 input fingerprints match standard vectors across padding boundaries
+
+0.005939 s: SHA256 input fingerprints match standard vectors across padding boundaries
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:84:
+TEST CASE:  Case extraction uses authoritative flags and never invents missing settings
+
+0.000324 s: Case extraction uses authoritative flags and never invents missing settings
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:115:
+TEST CASE:  Case expression selectors do not expose inactive numeric settings
+
+0.000033 s: Case expression selectors do not expose inactive numeric settings
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:128:
+TEST CASE:  Case BC material frame porous and force bindings stay explicit
+
+0.000167 s: Case BC material frame porous and force bindings stay explicit
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:173:
+TEST CASE:  Case malformed identities and incomplete Scheme fail at the boundary
+
+0.000274 s: Case malformed identities and incomplete Scheme fail at the boundary
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:179:
+TEST CASE:  Case legacy metadata is hexadecimal and binary bodies stay opaque
+
+0.001001 s: Case legacy metadata is hexadecimal and binary bodies stay opaque
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:207:
+TEST CASE:  Real legacy cases parse without HDF5
+
+0.042085 s: Real legacy cases parse without HDF5
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:222:
+TEST CASE:  Real mixing elbow typed settings match verified CFF values
+
+0.011379 s: Real mixing elbow typed settings match verified CFF values
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:263:
+TEST CASE:  Real elbow1 authoritative k epsilon and velocity components
+
+0.014201 s: Real elbow1 authoritative k epsilon and velocity components
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:287:
+TEST CASE:  Static mixer typed settings agree across CFF ASCII and binary legacy
+
+0.053139 s: Static mixer typed settings agree across CFF ASCII and binary legacy
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:330:
+TEST CASE:  Case support is an allowlist for authoritative physics flags
+
+0.000392 s: Case support is an allowlist for authoritative physics flags
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:348:
+TEST CASE:  Unsupported k epsilon retains its active equation schemes
+
+0.000033 s: Unsupported k epsilon retains its active equation schemes
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:356:
+TEST CASE:  Node reconstruction mapping remains explicitly unverified
+
+0.000025 s: Node reconstruction mapping remains explicitly unverified
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:361:
+TEST CASE:  Energy and gravity require proven constant flow properties
+
+0.000077 s: Energy and gravity require proven constant flow properties
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:377:
+TEST CASE:  Zone switches reject nonneutral cell inlet and outlet behavior
+
+0.000410 s: Zone switches reject nonneutral cell inlet and outlet behavior
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:392:
+TEST CASE:  Translating walls require only the active velocity representation
+
+0.000072 s: Translating walls require only the active velocity representation
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:414:
+TEST CASE:  Inlet singular vector override detects conflicting scalar components
+
+0.000034 s: Inlet singular vector override detects conflicting scalar components
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:422:
+TEST CASE:  Parameter bindings never use their inactive saved constants
+
+0.000046 s: Parameter bindings never use their inactive saved constants
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:437:
+TEST CASE:  Only complete constant expressions with recognized units resolve
+
+0.000310 s: Only complete constant expressions with recognized units resolve
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:451:
+TEST CASE:  Force report surface IDs never masquerade as thread IDs
+
+0.000047 s: Force report surface IDs never masquerade as thread IDs
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:472:
+TEST CASE:  Inactive turbulence flags remain visible in a laminar case
+
+0.000022 s: Inactive turbulence flags remain visible in a laminar case
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:478:
+TEST CASE:  Active pseudo relaxation requires turbulence factors
+
+0.000030 s: Active pseudo relaxation requires turbulence factors
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:485:
+TEST CASE:  Force reports with empty name selections cannot claim resolved zones
+
+0.000025 s: Force reports with empty name selections cannot claim resolved zones
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_case.cpp:495:
+TEST CASE:  Reading a zone selector does not silently accept unknown behavior
+
+0.000125 s: Reading a zone selector does not silently accept unknown behavior
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_data.cpp:80:
+TEST CASE:  Data chunks use Fluent IDs not ordinal positions and vectors are row major
+
+0.001648 s: Data chunks use Fluent IDs not ordinal positions and vectors are row major
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_data.cpp:108:
+TEST CASE:  Data rejects invalid ranges shapes overlaps and external links
+
+0.006190 s: Data rejects invalid ranges shapes overlaps and external links
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_data.cpp:149:
+TEST CASE:  Data Case File provenance is compared by basename without claiming mesh identity
+
+0.002048 s: Data Case File provenance is compared by basename without claiming mesh identity
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_data.cpp:170:
+TEST CASE:  Case topology requires matching thread records names and types
+
+0.005937 s: Case topology requires matching thread records names and types
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_data.cpp:200:
+TEST CASE:  CFF reads large complete Thread Variables strings with a bounded parser
+
+0.228216 s: CFF reads large complete Thread Variables strings with a bounded parser
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_real_data.cpp:19:
+TEST CASE:  Real mixing elbow data fields match mesh zones
+
+0.023805 s: Real mixing elbow data fields match mesh zones
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_real_data.cpp:67:
+TEST CASE:  Real mismatched case data pairs fail primary field coverage
+
+0.022303 s: Real mismatched case data pairs fail primary field coverage
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_real_data.cpp:76:
+TEST CASE:  Real elbow1 data fields match mesh zones
+
+0.021802 s: Real elbow1 data fields match mesh zones
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_sexpr.cpp:5:
+TEST CASE:  Scheme data handles atoms pairs quotation comments and escapes
+
+0.000016 s: Scheme data handles atoms pairs quotation comments and escapes
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_sexpr.cpp:17:
+TEST CASE:  Scheme rejects malformed or excessive input without stack overflow
+
+0.099248 s: Scheme rejects malformed or excessive input without stack overflow
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_sexpr.cpp:46:
+TEST CASE:  Scheme node budget scales beyond two million for large thread tables
+
+0.213314 s: Scheme node budget scales beyond two million for large thread tables
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/case/test_sexpr.cpp:58:
+TEST CASE:  Automatic Scheme node budgets include synthesized quote nodes
+
+0.000410 s: Automatic Scheme node budgets include synthesized quote nodes
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/core/test_parse.cpp:10:
+TEST CASE:  parse_double accepts whole decimal and exponent forms only
+
+0.000003 s: parse_double accepts whole decimal and exponent forms only
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/core/test_parse.cpp:22:
+TEST CASE:  parse_double ignores the process locale
+
+0.001804 s: parse_double ignores the process locale
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_cavity.cpp:18:
+TEST CASE:  FV cavity primary vortex diagnostic recovers analytic streamfunction
+
+0.003810 s: FV cavity primary vortex diagnostic recovers analytic streamfunction
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_device_mesh.cpp:9:
+TEST CASE:  FV upload preserves gather geometry and exact box wall distances
+
+0.201233 s: FV upload preserves gather geometry and exact box wall distances
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_device_mesh.cpp:37:
+TEST CASE:  FV wall distance is to the finite surface rather than its infinite plane
+
+0.011866 s: FV wall distance is to the finite surface rather than its infinite plane
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_flow_kernels.cpp:10:
+TEST CASE:  FV momentum face interpolation is affine exact with unequal diagonals
+
+0.011094 s: FV momentum face interpolation is affine exact with unequal diagonals
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_flow_kernels.cpp:60:
+TEST CASE:  FV pressure symmetry boundary uses the full centroid displacement
+
+0.009158 s: FV pressure symmetry boundary uses the full centroid displacement
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_flow_kernels.cpp:82:
+TEST CASE:  Rhie-Chow bounds remote face extrapolation and preserves local reconstruction
+
+0.009383 s: Rhie-Chow bounds remote face extrapolation and preserves local reconstruction
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:78:
+TEST CASE:  Fluent setup converts SST inlet specifications and rejects unsupported physics
+
+0.227618 s: Fluent setup converts SST inlet specifications and rejects unsupported physics
+FV_LSQ backend=cpu cells=60 max_error=0.000000
+FV_LSQ backend=metal cells=60 max_error=0.000000
+FV_LSQ backend=cpu cells=144 max_error=0.000001
+FV_LSQ backend=metal cells=144 max_error=0.000001
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_gradient.cpp:71:
+TEST CASE:  FV least squares is linear exact and limiter bounds face reconstructions
+
+0.020301 s: FV least squares is linear exact and limiter bounds face reconstructions
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_gradient.cpp:75:
+TEST CASE:  FV least squares is linear exact on real Fluent polyhedra
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_gradient.cpp:79: MESSAGE: SKIP: external Fluent poly box absent
+
+0.000025 s: FV least squares is linear exact on real Fluent polyhedra
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_gradient.cpp:85:
+TEST CASE:  FV fused velocity gradients equal scalar gradient kernels
+
+0.011398 s: FV fused velocity gradients equal scalar gradient kernels
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_gradient.cpp:109:
+TEST CASE:  FV extrapolated boundaries cannot preserve seeded null-space gradients
+
+0.041244 s: FV extrapolated boundaries cannot preserve seeded null-space gradients
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_gradient.cpp:138:
+TEST CASE:  FV projected symmetry observations preserve tangential affine gradients
+
+0.009664 s: FV projected symmetry observations preserve tangential affine gradients
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_gradient.cpp:165:
+TEST CASE:  FV jump derivative satisfies independent face-row normal equations
+
+0.009486 s: FV jump derivative satisfies independent face-row normal equations
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_hybrid.cpp:9:
+TEST CASE:  Hybrid potential obeys inlet flux and outlet potential, with constant and local turbulence recipes
+
+0.877813 s: Hybrid potential obeys inlet flux and outlet potential, with constant and local turbulence recipes
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_hybrid.cpp:40:
+TEST CASE:  Fluent hybrid controls are parsed strictly and do not require stale standard defaults
+
+0.000083 s: Fluent hybrid controls are parsed strictly and do not require stale standard defaults
+FV_V2_PROGRESS backend=cpu tet=1 n=4 iter=20 ru=0.001312 rv=0.001286 rc=0.027333 rc_raw=0.026369
+FV_V2_BOUNDARY backend=cpu tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.937500,0.875000,0.062500 boundary=1 wall=1
+FV_V2 backend=cpu tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.258420 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000001 corrected_mass=0.000000
+FV_V2_FORCE backend=cpu tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.167080 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+FV_V2_PROGRESS backend=metal tet=1 n=4 iter=20 ru=0.001312 rv=0.001286 rc=0.027333 rc_raw=0.026369
+FV_V2_BOUNDARY backend=metal tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.937500,0.875000,0.062500 boundary=1 wall=1
+FV_V2 backend=metal tet=1 n=4 iterations=120 u_L2=0.172235 p_L2=0.258420 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000001 corrected_mass=0.000000
+FV_V2_FORCE backend=metal tet=1 n=4 pressure_x=-0.473085 viscous_y=-0.449514 viscous_x=0.167080 pressure_error=0.154775 viscous_error=0.206442 total_error=0.121877
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:171:
+TEST CASE:  FV laminar tet manufactured solution converges without SST
+
+3.226083 s: FV laminar tet manufactured solution converges without SST
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=4 exact_face_L2=0.056657 momentum_L2=0.087071 LSQ_L2=0.242695
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=8 exact_face_L2=0.014246 momentum_L2=0.055675 LSQ_L2=0.088971 exact_face_order=1.991655 momentum_order=0.645167 LSQ_order=1.447733
+FV_PRESSURE_OPERATOR backend=cpu tet=0 n=16 exact_face_L2=0.003567 momentum_L2=0.021653 LSQ_L2=0.030115 exact_face_order=1.997914 momentum_order=1.362470 LSQ_order=1.562862
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=4 exact_face_L2=0.236907 momentum_L2=0.365856 LSQ_L2=0.334045
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=8 exact_face_L2=0.118648 momentum_L2=0.179739 LSQ_L2=0.168973 exact_face_order=0.997635 momentum_order=1.025370 LSQ_order=0.983245
+FV_PRESSURE_OPERATOR backend=cpu tet=1 n=16 exact_face_L2=0.059348 momentum_L2=0.088998 LSQ_L2=0.084838 exact_face_order=0.999409 momentum_order=1.014063 LSQ_order=0.994008
+FV_PRESSURE_OPERATOR backend=metal tet=0 n=4 exact_face_L2=0.056657 momentum_L2=0.087071 LSQ_L2=0.242695
+FV_PRESSURE_OPERATOR backend=metal tet=0 n=8 exact_face_L2=0.014246 momentum_L2=0.055675 LSQ_L2=0.088971 exact_face_order=1.991655 momentum_order=0.645167 LSQ_order=1.447733
+FV_PRESSURE_OPERATOR backend=metal tet=0 n=16 exact_face_L2=0.003567 momentum_L2=0.021653 LSQ_L2=0.030115 exact_face_order=1.997914 momentum_order=1.362470 LSQ_order=1.562862
+FV_PRESSURE_OPERATOR backend=metal tet=1 n=4 exact_face_L2=0.236907 momentum_L2=0.365856 LSQ_L2=0.334045
+FV_PRESSURE_OPERATOR backend=metal tet=1 n=8 exact_face_L2=0.118648 momentum_L2=0.179739 LSQ_L2=0.168973 exact_face_order=0.997635 momentum_order=1.025370 LSQ_order=0.983245
+FV_PRESSURE_OPERATOR backend=metal tet=1 n=16 exact_face_L2=0.059348 momentum_L2=0.088998 LSQ_L2=0.084838 exact_face_order=0.999409 momentum_order=1.014063 LSQ_order=0.994008
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_pressure_gradient.cpp:6:
+TEST CASE:  FV MMS pressure gradient operator convergence
+
+0.175471 s: FV MMS pressure gradient operator convergence
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_pressure_matrix.cpp:56:
+TEST CASE:  FV momentum and SST transport retain graded diffusion dominance
+
+0.010392 s: FV momentum and SST transport retain graded diffusion dominance
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_pressure_matrix.cpp:80:
+TEST CASE:  pressure M-matrix AMG preserves stored symmetry and dominance through refresh
+
+0.025137 s: pressure M-matrix AMG preserves stored symmetry and dominance through refresh
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_pressure_matrix.cpp:133:
+TEST CASE:  FV graded float pressure is symmetric diagonally dominant and anchored SPD
+
+0.009529 s: FV graded float pressure is symmetric diagonally dominant and anchored SPD
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_pressure_matrix.cpp:163:
+TEST CASE:  FV pressure diagonal bounds final entries with repeated neighbour faces
+
+0.007988 s: FV pressure diagonal bounds final entries with repeated neighbour faces
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_pressure_matrix.cpp:183:
+TEST CASE:  pressure M-matrix coarsening retains explicit constant nullspace projection
+
+0.019652 s: pressure M-matrix coarsening retains explicit constant nullspace projection
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_rans.cpp:10:
+TEST CASE:  FV SST coupled transport and wall force agree with CPU oracle
+
+0.094923 s: FV SST coupled transport and wall force agree with CPU oracle
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_rans.cpp:53:
+TEST CASE:  FV total-pressure outlet backflow uses adjacent-cell dynamic pressure
+
+0.010964 s: FV total-pressure outlet backflow uses adjacent-cell dynamic pressure
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_rans.cpp:71:
+TEST CASE:  FV transport integrates implicit sinks and component wall terms before relaxation
+
+0.014834 s: FV transport integrates implicit sinks and component wall terms before relaxation
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_rans.cpp:94:
+TEST CASE:  SIMPLEC non-solenoidal startup falls back to a positive momentum inverse
+
+0.008277 s: SIMPLEC non-solenoidal startup falls back to a positive momentum inverse
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_scalar.cpp:72:
+TEST CASE:  FV transport kernels preserve an affine solution on skew tetrahedra
+
+0.008992 s: FV transport kernels preserve an affine solution on skew tetrahedra
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_scalar.cpp:97:
+TEST CASE:  FV equations share one uploaded CSR pattern and value workspace
+
+0.008309 s: FV equations share one uploaded CSR pattern and value workspace
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_steady.cpp:9:
+TEST CASE:  FV symmetry constrains normal velocity in a closed box
+
+0.458547 s: FV symmetry constrains normal velocity in a closed box
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_steady.cpp:22:
+TEST CASE:  FV SIMPLEC preserves rest and uniform inlet outlet flow
+
+0.401934 s: FV SIMPLEC preserves rest and uniform inlet outlet flow
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_steady.cpp:84:
+TEST CASE:  FV pressure outlet defaults to flux-consistent normal backflow
+
+0.197821 s: FV pressure outlet defaults to flux-consistent normal backflow
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_steady.cpp:103:
+TEST CASE:  FV closed-domain gauge pressure is zero at the reference point's cell
+
+0.144063 s: FV closed-domain gauge pressure is zero at the reference point's cell
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:14:
+TEST CASE:  TMR reference reader preserves independent code zones and interpolation
+
+0.002885 s: TMR reference reader preserves independent code zones and interpolation
+TMR progress cpu bump 0 it=24 defect=0.173328300372 change=inf cf=0.011355876437 drag=0.010982619197
+TMR progress metal bump 0 it=24 defect=0.172604007790 change=inf cf=0.011354550027 drag=0.010981830759
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:24:
+TEST CASE:  TMR uniform bump startup stays bounded on skew wall cells
+
+0.845931 s: TMR uniform bump startup stays bounded on skew wall cells
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_cff.cpp:23:
+TEST CASE:  synthetic Fluent CFF HDF5: 3D tet/hex, polygon faces, section ranges and zone names
+
+0.009308 s: synthetic Fluent CFF HDF5: 3D tet/hex, polygon faces, section ranges and zone names
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_cff.cpp:60:
+TEST CASE:  synthetic Fluent CFF HDF5: 2D extrusion and malformed dataset rejection
+
+0.002296 s: synthetic Fluent CFF HDF5: 2D extrusion and malformed dataset rejection
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_cff.cpp:80:
+TEST CASE:  CFF cell type sections use ranges, with complete coverage and count checks
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  node coordinate coverage must match topology
+
+0.015319 s: CFF cell type sections use ranges, with complete coverage and count checks
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_cff.cpp:165:
+TEST CASE:  CFF legacy deflate partial chunks preserve numeric conversion and reject corruption
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  truncated compressed stream
+
+0.018936 s: CFF legacy deflate partial chunks preserve numeric conversion and reject corruption
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_cff.cpp:259:
+TEST CASE:  CFF reads a file whose name is not ASCII
+
+0.002118 s: CFF reads a file whose name is not ASCII
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:96:
+TEST CASE:  real Fluent external mesh acceptance
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): aero/wing.msh.h5
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): box/poly.msh.h5
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/elbow1.cas.h5
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/elbow1.dat.h5
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): flow_over_cylinder/flow_over_cylinder.msh
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/mixing_elbow.cas.h5
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/mixing_elbow.dat.h5
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.cas.h5
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_binary.cas
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_text.cas
+
+REAL lid_driven_cavity/lid_driven_cavity.msh cells=3550 faces=14321 points=7344 patches=5 volume=1.000000000000010 min-normal-cos=1.000000000000000 boundary-closure=0.000000000000000
+REAL simple_duct/simple-duct.msh.h5 cells=10 faces=51 points=44 patches=3 volume=9.999999039999999 min-normal-cos=1.000000000000000 boundary-closure=0.000000000000000
+0.014834 s: real Fluent external mesh acceptance
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:85:
+TEST CASE:  Fluent hand-made ASCII 2D quad, 3D hex and mixed cells
+
+0.000410 s: Fluent hand-made ASCII 2D quad, 3D hex and mixed cells
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:112:
+TEST CASE:  legacy binary floats/doubles and both byte orders
+
+0.000822 s: legacy binary floats/doubles and both byte orders
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:130:
+TEST CASE:  legacy periodic pairs survive boundary grouping and 2D extrusion
+
+0.000597 s: legacy periodic pairs survive boundary grouping and 2D extrusion
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:149:
+TEST CASE:  Fluent malformed references and unsupported adaptations fail clearly
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  unsupported extension
+
+0.001788 s: Fluent malformed references and unsupported adaptations fail clearly
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:174:
+TEST CASE:  Plot3D formatted 2D multiblock, extrusion and boundary splitting
+
+0.000472 s: Plot3D formatted 2D multiblock, extrusion and boundary splitting
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:209:
+TEST CASE:  Plot3D formatted 3D and single k-plane
+
+0.000368 s: Plot3D formatted 3D and single k-plane
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:222:
+TEST CASE:  NASA TMR real formatted grids (optional external fixtures)
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:247: MESSAGE: NASA TMR real grids checked: 2
+
+0.018285 s: NASA TMR real formatted grids (optional external fixtures)
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:250:
+TEST CASE:  VTU ASCII structure, hex/tet fast paths, polyhedron stream and fields
+
+0.001063 s: VTU ASCII structure, hex/tet fast paths, polyhedron stream and fields
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:318:
+TEST CASE:  legacy 3D mixed and polygonal cells honor file c0/c1 winding
+
+0.000275 s: legacy 3D mixed and polygonal cells honor file c0/c1 winding
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:336:
+TEST CASE:  binary periodic records and 2D nodes
+
+0.000310 s: binary periodic records and 2D nodes
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:361:
+TEST CASE:  Fluent optional dimension section is inferred from node ND
+
+0.000437 s: Fluent optional dimension section is inferred from node ND
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:372:
+TEST CASE:  Fluent face sections may precede later coordinate chunks
+
+0.000427 s: Fluent face sections may precede later coordinate chunks
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:385:
+TEST CASE:  VTU mixed fast cells and polyhedra use correct face offsets
+
+0.000539 s: VTU mixed fast cells and polyhedra use correct face offsets
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:428:
+TEST CASE:  legacy uniform binary cells have a trailer without a payload
+
+0.000662 s: legacy uniform binary cells have a trailer without a payload
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:446:
+TEST CASE:  legacy settings skip balanced lists and escaped quoted parentheses
+
+0.000768 s: legacy settings skip balanced lists and escaped quoted parentheses
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:466:
+TEST CASE:  binary node flags skip exact counts even with parentheses in raw bytes
+
+0.000777 s: binary node flags skip exact counts even with parentheses in raw bytes
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_io.cpp:484:
+TEST CASE:  Plot3D multi-block 2D dimensions on one line without an extension hint
+
+0.000402 s: Plot3D multi-block 2D dimensions on one line without an extension hint
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:36:
+TEST CASE:  NASA NMF ranges supply exact BC patches and stitch the NACA wake
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: front = 816
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back = 816
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: subsonic_inflow_pt_block1_f5_1-25_1-2 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back_pressure_block1_f6_1-25_1-2 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-7 = 6
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: viscous_solid_block1_f1_1-2_7-35 = 28
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: farfield_riem_block1_f2_1-2_1-35 = 34
+  logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: front = 3264
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back = 3264
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: subsonic_inflow_pt_block1_f5_1-49_1-2 = 48
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back_pressure_block1_f6_1-49_1-2 = 48
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-13 = 12
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: viscous_solid_block1_f1_1-2_13-69 = 56
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: farfield_riem_block1_f2_1-2_1-69 = 68
+  logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: front = 13056
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back = 13056
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: subsonic_inflow_pt_block1_f5_1-97_1-2 = 96
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back_pressure_block1_f6_1-97_1-2 = 96
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: viscous_solid_block1_f1_1-2_25-137 = 112
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: farfield_riem_block1_f2_1-2_1-137 = 136
+  logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: front = 3520
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back = 3520
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: subsonic_inflow_pt_block1_f5_1-41_1-2 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back_pressure_block1_f6_1-41_1-2 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: viscous_solid_block1_f1_1-2_25-65 = 40
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_65-89 = 24
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-89 = 88
+  logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: front = 14080
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back = 14080
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: subsonic_inflow_pt_block1_f5_1-81_1-2 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back_pressure_block1_f6_1-81_1-2 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-49 = 48
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: viscous_solid_block1_f1_1-2_49-129 = 80
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_129-177 = 48
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-177 = 176
+  logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: front = 3584
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: back = 3584
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f5_1-33_1-2 = 32
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f6_1-33_1-2 = 32
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: viscous_solid_block1_f1_1-2_25-89 = 64
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f2_1-2_1-113 = 112
+  logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: front = 14336
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: back = 14336
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f5_1-65_1-2 = 64
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f6_1-65_1-2 = 64
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: viscous_solid_block1_f1_1-2_49-177 = 128
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f2_1-2_1-225 = 224
+  logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
+
+0.269755 s: NASA NMF ranges supply exact BC patches and stitch the NACA wake
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:131:
+TEST CASE:  NMF explicit maps, discovery, strict ranges and complete coverage
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  non-symmetry cap
+
+0.015760 s: NMF explicit maps, discovery, strict ranges and complete coverage
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:178:
+TEST CASE:  NMF multi-block extrusion shares caps and stitches reversed ranges
+
+0.000624 s: NMF multi-block extrusion shares caps and stitches reversed ranges
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/io/test_plot3d_nmf.cpp:203:
+TEST CASE:  NMF native 3D swapped primary directions stitch conforming blocks
+
+0.000623 s: NMF native 3D swapped primary directions stitch conforming blocks
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_kernels.cpp:11:
+TEST CASE:  linalg kernels match explicit host calculations on every backend
+
+0.010264 s: linalg kernels match explicit host calculations on every backend
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_kernels.cpp:50:
+TEST CASE:  AMG restriction prolongation and Galerkin gather match host sums
+
+0.009141 s: AMG restriction prolongation and Galerkin gather match host sums
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_kernels.cpp:66:
+TEST CASE:  compensated CSR residual resolves product and cancellation error
+
+0.009775 s: compensated CSR residual resolves product and cancellation error
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_kernels.cpp:92:
+TEST CASE:  fused coarse Jacobi preserves the ordinary sweep arithmetic
+
+0.017529 s: fused coarse Jacobi preserves the ordinary sweep arithmetic
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_kernels.cpp:129:
+TEST CASE:  device coefficient guards hold vectors on zero or nonfinite rho and omega
+
+0.009379 s: device coefficient guards hold vectors on zero or nonfinite rho and omega
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_kernels.cpp:154:
+TEST CASE:  AMG Galerkin preserves weak terms across strong cancellation
+
+0.008850 s: AMG Galerkin preserves weak terms across strong cancellation
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:50:
+TEST CASE:  CSR validates its boundary and kernels match host double arithmetic
+
+0.008775 s: CSR validates its boundary and kernels match host double arithmetic
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:80:
+TEST CASE:  Jacobi PCG and AMG solve SPD problems against double CG
+
+0.095499 s: Jacobi PCG and AMG solve SPD problems against double CG
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:93:
+TEST CASE:  BiCGStab solves upwind convection diffusion against dense double reference
+
+0.045902 s: BiCGStab solves upwind convection diffusion against dense double reference
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:102:
+TEST CASE:  constant Neumann nullspace is projected and incompatible RHS is rejected
+
+0.017891 s: constant Neumann nullspace is projected and incompatible RHS is rejected
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:117:
+TEST CASE:  controls zero residual nonzero initial guess and breakdown are truthful
+
+0.014487 s: controls zero residual nonzero initial guess and breakdown are truthful
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:145:
+TEST CASE:  AMG refresh agrees with fresh setup and V and K cycles are selectable
+
+0.059136 s: AMG refresh agrees with fresh setup and V and K cycles are selectable
+AMG_GRID backend=cpu n=32 iterations=10 rel=0.000000 converged=1 PCG, aggregation AMG V-cycle, 5 levels, op complexity 1.138
+AMG_GRID backend=cpu n=64 iterations=4 rel=0.000000 converged=1 PCG, aggregation AMG V-cycle, 6 levels, op complexity 1.140
+AMG_GRID backend=metal n=32 iterations=10 rel=0.000000 converged=1 PCG, aggregation AMG V-cycle, 5 levels, op complexity 1.138
+AMG_GRID backend=metal n=64 iterations=4 rel=0.000000 converged=1 PCG, aggregation AMG V-cycle, 6 levels, op complexity 1.140
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:177:
+TEST CASE:  AMG 3D Poisson grid growth at requested 1e-8 is measured honestly
+
+0.544063 s: AMG 3D Poisson grid growth at requested 1e-8 is measured honestly
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:214:
+TEST CASE:  float representability limits never produce false convergence
+
+0.018413 s: float representability limits never produce false convergence
+AMG_RANDOM backend=cpu n=32 iterations=11 relative_residual=0.000001
+AMG_RANDOM backend=cpu n=64 iterations=15 relative_residual=0.000001
+AMG_RANDOM backend=metal n=32 iterations=11 relative_residual=0.000001
+AMG_RANDOM backend=metal n=64 iterations=15 relative_residual=0.000001
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:231:
+TEST CASE:  AMG is grid robust for random forcing with low modes
+
+1.026561 s: AMG is grid robust for random forcing with low modes
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:255:
+TEST CASE:  a small reference term is preserved instead of projecting an invertible system
+
+0.013392 s: a small reference term is preserved instead of projecting an invertible system
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:274:
+TEST CASE:  empty CSR and solvers are valid no-ops
+
+0.008735 s: empty CSR and solvers are valid no-ops
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:288:
+TEST CASE:  strong upwind couplings coarsen in either direction and under permutation
+
+0.046307 s: strong upwind couplings coarsen in either direction and under permutation
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:308:
+TEST CASE:  isolated diagonal rows do not prevent connected cells from coarsening
+
+0.013192 s: isolated diagonal rows do not prevent connected cells from coarsening
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:324:
+TEST CASE:  default AMG avoids recursive host reductions and Krylov uses bounded storage
+
+0.028949 s: default AMG avoids recursive host reductions and Krylov uses bounded storage
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:343:
+TEST CASE:  Jacobi batches residual reductions and BiCGStab checks s only once
+
+0.000928 s: Jacobi batches residual reductions and BiCGStab checks s only once
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:359:
+TEST CASE:  assembled random Neumann pressure uses the caller nullspace contract
+
+0.059571 s: assembled random Neumann pressure uses the caller nullspace contract
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:400:
+TEST CASE:  AMG rejects negative diagonals and Krylov restores its best verified iterate on divergence
+
+0.015927 s: AMG rejects negative diagonals and Krylov restores its best verified iterate on divergence
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:437:
+TEST CASE:  actual hierarchy Galerkin values match independent double PtAP before and after refresh
+
+0.017798 s: actual hierarchy Galerkin values match independent double PtAP before and after refresh
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:507:
+TEST CASE:  CPU and Metal solves have identical iteration counts residuals and solutions
+
+0.107095 s: CPU and Metal solves have identical iteration counts residuals and solutions
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:535:
+TEST CASE:  Neumann PCG avoids duplicate fine projection and unused final preconditioning
+
+0.010658 s: Neumann PCG avoids duplicate fine projection and unused final preconditioning
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:553:
+TEST CASE:  batched BiCGStab freezes on zero omega and zero shadow product
+
+0.030833 s: batched BiCGStab freezes on zero omega and zero shadow product
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/linalg/test_solvers.cpp:581:
+TEST CASE:  Krylov host checks are batched including K-cycle and Neumann projection
+
+0.059400 s: Krylov host checks are batched including K-cycle and Neumann projection
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/mesh/test_mesh.cpp:30:
+TEST CASE:  hex and conforming six-tet boxes: volumes, centroids and linear moments
+
+0.000270 s: hex and conforming six-tet boxes: volumes, centroids and linear moments
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/mesh/test_mesh.cpp:50:
+TEST CASE:  shear, skew, scale and translation preserve affine volume moments
+
+0.000163 s: shear, skew, scale and translation preserve affine volume moments
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/mesh/test_mesh.cpp:68:
+TEST CASE:  prism, polygonal prism and warped face geometry
+
+0.000050 s: prism, polygonal prism and warped face geometry
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/mesh/test_mesh.cpp:119:
+TEST CASE:  validation rejects malformed topology and winding
+
+DEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):
+  non-finite
+
+0.000154 s: validation rejects malformed topology and winding
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/mesh/test_mesh.cpp:159:
+TEST CASE:  gather adjacency and RCM preserve topology, zones and geometry
+
+0.000283 s: gather adjacency and RCM preserve topology, zones and geometry
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/mesh/test_mesh.cpp:214:
+TEST CASE:  individual tet centroid is the vertex average; trapezoid face moments
+
+0.000033 s: individual tet centroid is the vertex average; trapezoid face moments
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/mesh/test_mesh.cpp:247:
+TEST CASE:  RCM reduces a scrambled chain bandwidth and handles disconnected cells
+
+0.000222 s: RCM reduces a scrambled chain bandwidth and handles disconnected cells
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/mesh/test_mesh.cpp:278:
+TEST CASE:  oversized box dimensions fail before arithmetic overflows
+
+0.000019 s: oversized box dimensions fail before arithmetic overflows
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/mesh/test_mesh.cpp:284:
+TEST CASE:  signed face moments handle a dart quad outside the vertex-average kernel
+
+0.000004 s: signed face moments handle a dart quad outside the vertex-average kernel
+runtime test backend: cpu (CPU reference (serial))
+runtime test backend: metal (Apple M4 Pro)
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:25:
+TEST CASE:  compiled GPU backends are exercised, not silently skipped
+
+0.008905 s: compiled GPU backends are exercised, not silently skipped
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:41:
+TEST CASE:  all generated BLAS kernels match the CPU oracle including tail grids
+
+0.059484 s: all generated BLAS kernels match the CPU oracle including tail grids
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:71:
+TEST CASE:  transfers fills copies and queued launches preserve call order and lifetime
+
+0.016643 s: transfers fills copies and queued launches preserve call order and lifetime
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:120:
+TEST CASE:  zero sized operations are no-ops and reductions validate bounds
+
+0.006429 s: zero sized operations are no-ops and reductions validate bounds
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:142:
+TEST CASE:  compensated reductions retain mixed magnitudes cancellation and product residuals
+
+0.014636 s: compensated reductions retain mixed magnitudes cancellation and product residuals
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:162:
+TEST CASE:  reductions keep low terms when high products and sums cancel
+
+0.013071 s: reductions keep low terms when high products and sums cancel
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:183:
+TEST CASE:  reductions reach one hundred million elements at double reference accuracy
+
+0.588612 s: reductions reach one hundred million elements at double reference accuracy
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:199:
+TEST CASE:  identical queued computations and reductions are bitwise deterministic
+
+0.040317 s: identical queued computations and reductions are bitwise deterministic
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:222:
+TEST CASE:  reductions propagate NaN and Inf instead of hiding them
+
+0.009261 s: reductions propagate NaN and Inf instead of hiding them
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_backends.cpp:235:
+TEST CASE:  math wrappers are accurate on every backend
+
+0.010166 s: math wrappers are accurate on every backend
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_device.cpp:9:
+TEST CASE:  blas kernels and reductions match the reference on every backend
+
+0.013709 s: blas kernels and reductions match the reference on every backend
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/runtime/test_device.cpp:36:
+TEST CASE:  device scalar reductions preserve low terms and ordered scratch reuse
+
+0.009984 s: device scalar reductions preserve low terms and ordered scratch reuse
+SST Fluent 22.2 mixing_elbow: cpu / CPU reference (serial)
+  mu_t inactive identity n=11066 median=0.000000 p95=0.000000 max=0.000000
+  omega gradient change vs saved wall SV_O n=17822 median=0.000000 p95=0.005943 max=0.006273
+  model wall omega: max mu_t change=0.000000 limiter changes=0 CDkw changes=2436
+  mu_t limited, inverse-square LSQ n=6756 median=0.045967 p95=0.142837 max=0.309757
+  mu_t inactive, inverse-square LSQ n=11066 median=0.000000 p95=0.039415 max=0.268265
+  limiter agreement=0.902985 discriminating n=2555 median S ratio=0.999075 median Omega ratio=0.240746 max production/cap=0.359467
+  wall-face reconstruction omega n=2436 median=0.004186 p95=0.004282 max=0.004319
+  wall-cell omega n=2436 median=0.000006 p95=0.000042 max=0.000293
+  wall y+ (u*) n=2436 median=0.000005 p95=0.000201 max=0.001758
+  wall y+ (u_tau) n=2436 median=0.000005 p95=0.000185 max=0.001982
+  wall shear force magnitude n=2436 median=0.000009 p95=0.000370 max=0.003961
+  wall shear force vector n=2436 median=0.000011 p95=0.000445 max=0.005434
+  wall shear vector kernel/double-oracle n=2436 median=0.000000 p95=0.000000 max=0.000000
+  saved shear directional scatter (1+cos) n=2436 median=0.000000 p95=0.000000 max=0.000011
+  wall k zero gradient n=2436 median=0.000005 p95=0.000597 max=0.004633
+SST Fluent 22.2 mixing_elbow: metal / Apple M4 Pro
+  mu_t inactive identity n=11066 median=0.000000 p95=0.000000 max=0.000000
+  omega gradient change vs saved wall SV_O n=17822 median=0.000000 p95=0.005943 max=0.006273
+  model wall omega: max mu_t change=0.000000 limiter changes=0 CDkw changes=2436
+  mu_t limited, inverse-square LSQ n=6756 median=0.045967 p95=0.142837 max=0.309757
+  mu_t inactive, inverse-square LSQ n=11066 median=0.000000 p95=0.039415 max=0.268265
+  limiter agreement=0.902985 discriminating n=2555 median S ratio=0.999075 median Omega ratio=0.240746 max production/cap=0.359467
+  wall-face reconstruction omega n=2436 median=0.004186 p95=0.004282 max=0.004319
+  wall-cell omega n=2436 median=0.000006 p95=0.000042 max=0.000293
+  wall y+ (u*) n=2436 median=0.000005 p95=0.000201 max=0.001758
+  wall y+ (u_tau) n=2436 median=0.000005 p95=0.000185 max=0.001982
+  wall shear force magnitude n=2436 median=0.000009 p95=0.000370 max=0.003961
+  wall shear force vector n=2436 median=0.000011 p95=0.000445 max=0.005434
+  wall shear vector kernel/double-oracle n=2436 median=0.000000 p95=0.000000 max=0.000000
+  saved shear directional scatter (1+cos) n=2436 median=0.000000 p95=0.000000 max=0.000011
+  wall k zero gradient n=2436 median=0.000005 p95=0.000597 max=0.004633
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_fluent_sst.cpp:189:
+TEST CASE:  SST reproduces Fluent mixing-elbow saved viscosity and wall fields
+
+0.219439 s: SST reproduces Fluent mixing-elbow saved viscosity and wall fields
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:18:
+TEST CASE:  SST constants, F1/F2 limits, signed cross diffusion and implicit sinks
+
+0.010593 s: SST constants, F1/F2 limits, signed cross diffusion and implicit sinks
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:56:
+TEST CASE:  SST production switches, viscosity limiter and gamma choices
+
+0.013840 s: SST production switches, viscosity limiter and gamma choices
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:95:
+TEST CASE:  SST optional low-Re coefficients and explicit floors
+
+0.009879 s: SST optional low-Re coefficients and explicit floors
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:116:
+TEST CASE:  SST wall sublayer, log layer, moving walls and zero relative velocity
+
+0.009798 s: SST wall sublayer, log layer, moving walls and zero relative velocity
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:161:
+TEST CASE:  SST wall law and omega correlation blend continuously
+
+0.012205 s: SST wall law and omega correlation blend continuously
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:183:
+TEST CASE:  SST F1 and F2 blend continuously across their transition
+
+0.013051 s: SST F1 and F2 blend continuously across their transition
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:198:
+TEST CASE:  SST interpolation, no-wall constraints and boundary masking
+
+0.009331 s: SST interpolation, no-wall constraints and boundary masking
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:216:
+TEST CASE:  SST every kernel matches CPU and repeats deterministically
+
+0.020100 s: SST every kernel matches CPU and repeats deterministically
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:252:
+TEST CASE:  SST unsupported and invalid options fail explicitly
+
+0.000118 s: SST unsupported and invalid options fail explicitly
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:267:
+TEST CASE:  SST floor cross-diffusion overflow probe remains finite
+
+0.061561 s: SST floor cross-diffusion overflow probe remains finite
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:327:
+TEST CASE:  SST signed cross-diffusion clip scales with omega destruction
+
+0.011271 s: SST signed cross-diffusion clip scales with omega destruction
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:347:
+TEST CASE:  SST F1 cross branch and transport match an independent double oracle
+
+0.010328 s: SST F1 cross branch and transport match an independent double oracle
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/turbulence/test_sst.cpp:381:
+TEST CASE:  SST implicit wall shear, reconstruction omega and structural zero k flux
+
+0.013480 s: SST implicit wall shear, reconstruction omega and structural zero k flux
+===============================================================================
+[doctest] test cases:     165 |     165 passed | 0 failed | 10 skipped
+[doctest] assertions: 1539822 | 1539822 passed | 0 failed |
+[doctest] Status: SUCCESS!
+real 12.32
+user 4.96
+sys 1.61

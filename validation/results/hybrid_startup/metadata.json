@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-30",
+  "checkout": "/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77",
+  "code_commit": "4be291c00029bbe8752436301cdcf966929e18af",
+  "baseline": "58aa804316a1024123165d5f270cb8eb4c38584c",
+  "platform": {
+    "device": "Apple M4 Pro",
+    "os": "macOS 26.6.2 (25G83)",
+    "arch": "arm64",
+    "compiler": "AppleClang 21",
+    "configuration": "Release C++20",
+    "storage": "float",
+    "reductions": "double/compensated"
+  },
+  "sha256": {
+    "build/kutta-tests": "211d5d79ddf3ad0479b5d4428f5faf6b6b7683ff1208fd1c3d2378b849ae41a5",
+    "build/kutta": "16dfbab4188419c37da663b69fb3f0cad792c7e7763cbb87ae8dc6ce239c8f15",
+    "build/bench_startup": "e05054c888e10d8d2637dc90113d04d536d94b5cbd0c7476526a7e2cd1d4a927",
+    "src/kutta/kernels/fv_flow.kern.h": "dcaddfb02719ca01f141a389723e5e60f519b86caf4eb0c06fd38d193074c638",
+    "src/kutta/kernels/fv_hybrid.kern.h": "bcc9185d1b072c0750748b69f72b83817646d1ca9889df9f3ba067bb1f54294f"
+  },
+  "unchanged_protocol_files": {
+    "validation/cases/tmr.hpp": "886ece45f58fd9e4170b3e9ba4c9b95e44ac5872be71c2b23f125e3096e014fc",
+    "tests/fv/test_navier_stokes.cpp": "a81f1ebc5231fda4ca9b3a5590720c032682f6dd6b2896f98487fe61fdb1c1b8",
+    ".github/workflows/ci.yml": "4f04acdf39f096ccf43d42aae4ff93bee1e581cfc984cf58d9f2e6840947711f"
+  },
+  "fluent_case_sha256": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+  "fluent_data_sha256": "863a813227cf4274a9ca24fdad43e6c1f9f132dd62fcabc39a3be8cf493cff42",
+  "checks": {
+    "native_quick": {
+      "cases": 165,
+      "assertions": 1539822,
+      "passed": true,
+      "seconds": 12.32
+    },
+    "ctest_non_slow": {
+      "entries": 2,
+      "passed": true,
+      "seconds": 12.22
+    },
+    "cuda_build": {
+      "image": "nvidia/cuda:13.0.2-devel-ubuntu24.04",
+      "architectures": "75-real;86-real;89-real;120",
+      "passed": true,
+      "cpu_cases": 164,
+      "cpu_assertions": 809561,
+      "cuda_gpu_execution": "unverified"
+    },
+    "V1_V4": {
+      "cases": 7,
+      "assertions": 879,
+      "retained_failures": 6,
+      "equal_numerical_lines": 308
+    },
+    "V5": {
+      "assertions": 83,
+      "failures": 16,
+      "plate_failures": 6,
+      "bump_failures": 10,
+      "finite_grids": 12,
+      "accepted_cases": 0
+    },
+    "V6": {
+      "retained_failures": 29,
+      "baseline_failures": 30,
+      "hybrid_steps": 550,
+      "proxy_steps": 600,
+      "seeded_steps": 350
+    }
+  }
+}

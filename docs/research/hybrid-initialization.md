@@ -35,6 +35,8 @@ Saved data continues to use `CellFields` in original source-cell order.
 
 The public guides do **not** specify a reproducible Fluent implementation.
 The following choices are Kutta's; this is not a claim of bitwise Fluent parity.
+The UI-to-rpvar mapping is inferred from the stored names, types and inspected
+case; the public guides do not publish that mapping.
 
 | Incomplete published detail | Kutta choice |
 | --- | --- |
@@ -46,6 +48,7 @@ The following choices are Kutta's; this is not a claim of bitwise Fluent parity.
 | Mapping potential to conservative face mass flux | Retain the auxiliary diffusion operator's face flux, including internal and outlet non-orthogonal terms, for the first transport assembly. Differentiating a cell potential alone is not discretely solenoidal. Subsequent iterations use the ordinary steady flux operator. |
 | Averaging measures and multiple inlet turbulence specifications | Area-average the inlet **recipes**, then evaluate them using local potential speed. Direct k/omega values remain constants; intensity/length gives k proportional to speed squared and omega proportional to speed; intensity/viscosity ratio gives both proportional to speed squared. With `hyb-init/turb-domain-averaged?`, volume-average the resulting k/omega fields; otherwise retain them locally. Floors are applied before averaging. |
 | No inlet turbulence data | Use stored `hyb-init/turb-intens` and `hyb-init/turb-vr` as the local intensity/viscosity-ratio recipe. Closed stationary domains have zero potential velocity and the configured turbulence floors. |
+| All-Neumann potential topology and compatibility | Support closed domains without velocity inlets using a constant potential. Velocity inlets require a pressure outlet; a domain containing only prescribed velocity boundaries receives an explicit error rather than an invented flux-balancing/gauge recipe. |
 | Constant speed's value and stagnation points | `hyb-init/constant-vel-vector?` selects the documented constant-magnitude option. Use the area-averaged inlet speed and the potential direction; leave a zero direction zero. Rescaling invalidates the potential's conservative flux, so use the ordinary flux reconstruction in that mode. |
 | Pressure averaging measure | Area-average all eligible pressure boundaries. `hyb-init/pressure-from-bc?` additionally admits stored inlet `p`; otherwise only pressure outlets contribute. With none, use the stored pressure scalar guess. |
 | Absolute versus relative reference frame | Equivalent in the adapter's supported stationary cell zones. Rotation/compressibility/species/multiphase recipes are outside that adapter's accepted physics. |
@@ -55,6 +58,11 @@ relaxation, `1e-6` scalar tolerances, averaged turbulence, and both scalar solve
 enabled. Its standard defaults are intentionally not read for a hybrid start.
 The old standard proxy remains available only as the explicit V6 diagnostic
 `KUTTA_V6_STANDARD_PROXY=1`.
+
+A finite auxiliary iteration count need not reach the requested tolerance on a
+skew mesh. For example, the skew-channel regression uses 40 passes; at ten passes
+its mass-defect L1 norm is about `1.52e-3`, while 40 passes meets `2e-5` on CPU and
+Metal. Kutta honors the stored count instead of silently increasing it.
 
 There is no separate "explicit averaging" switch in the inspected case or the
 cited hybrid UI documentation. The documented explicit controls are scalar

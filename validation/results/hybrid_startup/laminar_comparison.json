@@ -1,0 +1,7 @@
+{
+  "baseline": "58aa804",
+  "implementation": "f7e6ef3",
+  "equal_printed_result_lines": 308,
+  "numerical_results_equal": true,
+  "retained_failures": 6
+}
