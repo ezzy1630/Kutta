@@ -11,6 +11,8 @@
 #include "kutta/fv/zone_physics.hpp"
 #include "kutta/fv/interior_jump.hpp"
 #include "kutta/fv/turbulence/sst.hpp"
+#include "kutta/fv/turbulence/sa.hpp"
+#include "kutta/fv/turbulence/realizable_ke.hpp"
 #include "kutta/mesh/topology.hpp"
 
 namespace kutta::fv {
@@ -24,7 +26,11 @@ struct Wall {
 struct TurbulenceValues { double k=0,omega=0; };
 struct IntensityLength { double intensity=0,length=0; };
 struct IntensityViscosityRatio { double intensity=0,ratio=0; };
-using TurbulenceCondition=std::variant<TurbulenceValues,IntensityLength,IntensityViscosityRatio>;
+struct ModifiedViscosity { double value=0; };
+struct SaViscosityRatio { double ratio=0; };
+struct KeValues {double k=0,epsilon=0;};
+struct IntensityDiameter {double intensity=0,diameter=0;};
+using TurbulenceCondition=std::variant<TurbulenceValues,IntensityLength,IntensityViscosityRatio,ModifiedViscosity,SaViscosityRatio,KeValues,IntensityDiameter>;
 struct VelocityInlet {
   VelocityProfile velocity=Vec3d{};
   std::optional<TurbulenceCondition> turbulence;
@@ -71,6 +77,18 @@ struct SstSettings {
   double k_relaxation=.75,omega_relaxation=.75;
   SolveControl linear{1e-3,1e-12,100};
 };
+struct SaSettings {
+  SaOptions model;
+  ConvectionScheme convection=ConvectionScheme::SecondOrderUpwind;
+  double relaxation=.75;
+  SolveControl linear{1e-3,1e-12,100};
+};
+struct RealizableKeSettings {
+  RealizableKeOptions model;
+  ConvectionScheme k_convection=ConvectionScheme::SecondOrderUpwind,epsilon_convection=ConvectionScheme::SecondOrderUpwind;
+  double k_relaxation=.75,epsilon_relaxation=.75;
+  SolveControl linear{1e-3,1e-12,100};
+};
 
 struct SolverSettings {
   double density=1, viscosity=.01;
@@ -92,6 +110,10 @@ struct SolverSettings {
   std::vector<CellZonePhysics> cell_zone_physics;
   std::vector<InteriorCondition> interior_conditions;
   // END FSAE physics
+  // Experimental resolved-wall SA; mutually exclusive with SST. The Fluent
+  // case adapter remains closed until model and automatic-wall gates pass.
+  std::optional<SaSettings> sa;
+  std::optional<RealizableKeSettings> realizable_ke;
 };
 
 struct ResidualValue {
@@ -101,7 +123,7 @@ struct ResidualValue {
 struct IterationReport {
   int iteration=0;
   std::optional<int> residual_iteration;
-  ResidualValue u,v,w,continuity,k,omega;
+  ResidualValue u,v,w,continuity,k,omega,nu_tilde,epsilon;
   double corrected_mass_imbalance=0;
   double maximum_velocity=0, pseudo_time_step=0;
   SolveStats momentum[3],pressure,turbulence[2];
@@ -131,6 +153,10 @@ class SteadySolver {
   void initialize_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
       std::span<const double> k={},std::span<const double> omega={});
   void initialize_hybrid(const HybridInitialization& settings);
+  void initialize_sa_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
+                            std::span<const double> modified_viscosity);
+  void initialize_ke_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
+                           std::span<const double> k,std::span<const double> epsilon);
   // Force per unit volume, not acceleration. Called once at case setup.
   void set_source(const std::function<Vec3d(Vec3d)>& source);
   void iterate(int count);
@@ -146,6 +172,11 @@ class SteadySolver {
   const Buffer<float>& kinetic_energy() const;
   const Buffer<float>& specific_dissipation() const;
   const SstFields& turbulence() const;
+  const SaFields& sa_turbulence() const;
+  const SaWallFields& sa_wall() const;
+  const RealizableKeFields& realizable_turbulence() const;
+  const Buffer<float>& dissipation() const;
+  const Buffer<float>& modified_viscosity() const;
   const MeshPermutation& permutation() const;
   const Buffer<float>& boundary_pressure() const;
   const IterationReport& report() const;

@@ -1,4 +1,6 @@
 #include "kutta/fv/steady_solver.hpp"
+#include "kutta/fv/turbulence/sa_transport.hpp"
+#include "kutta/fv/turbulence/realizable_ke_transport.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -61,6 +63,8 @@ struct SteadySolver::Impl {
   DeviceVec3 strain_base[3],strain_gradient[3];
   MeshPermutation permutation;
   std::unique_ptr<SstModel> sst;
+  std::unique_ptr<SaTransport> sa;
+  std::unique_ptr<RealizableKeTransport> rke;
   std::unique_ptr<TransportEquation> k_equation,omega_equation;
   Buffer<float> kinetic,omega,rho_cell,mu_cell,boundary_k,boundary_omega,turbulence_a,turbulence_b;
   Buffer<Index> turbulence_spec,turbulence_kind,zero_mask,total_pressure;
@@ -93,6 +97,7 @@ struct SteadySolver::Impl {
 
   Impl(Device& device,PolyMesh input,std::vector<PatchCondition> conditions,SolverSettings options)
       :dev(device),host(std::move(input)),settings(options) {
+    KUTTA_REQUIRE(int(settings.sa.has_value())+int(settings.sst.has_value())+int(settings.realizable_ke.has_value())<=1,"FV: select exactly one turbulence model");
     KUTTA_REQUIRE(settings.density>0 && std::isfinite(settings.density) && settings.viscosity>0 &&
       std::isfinite(settings.viscosity) && settings.momentum_relaxation>0 && settings.momentum_relaxation<=1 &&
       settings.pressure_relaxation>0 && settings.pressure_relaxation<=1 &&
@@ -236,6 +241,7 @@ struct SteadySolver::Impl {
         if(const auto* in=std::get_if<MassFlowInlet>(&bc)) spec=&in->turbulence;
         if(!spec) continue;
         KUTTA_REQUIRE(spec->has_value(),"FV missing turbulence specification: "+patch.name);
+        KUTTA_REQUIRE(std::holds_alternative<TurbulenceValues>(**spec) || std::holds_alternative<IntensityLength>(**spec) || std::holds_alternative<IntensityViscosityRatio>(**spec),"FV: wrong boundary turbulence model supplied to SST: "+patch.name);
         for(Index f=patch.start;f<patch.start+patch.size;++f) {
           const auto bf=f-mesh.n_internal_faces;
           if(const auto* v=std::get_if<TurbulenceValues>(&**spec)) {a[bf]=float(v->k);b[bf]=float(v->omega);}
@@ -248,6 +254,14 @@ struct SteadySolver::Impl {
       k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
       omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
       sst=std::make_unique<SstModel>(dev,mesh,t.model);
+    }
+    if(settings.sa) {
+      sa=std::make_unique<SaTransport>(dev,mesh,stencil,host,geom,boundaries,settings,pressure_matrix);
+      transpose_stress=vector_field(dev,nf);
+    }
+    if(settings.realizable_ke) {
+      rke=std::make_unique<RealizableKeTransport>(dev,mesh,stencil,host,geom,boundaries,settings,pressure_matrix);
+      transpose_stress=vector_field(dev,nf);
     }
     CsrMatrixHost initial{stencil.pattern,std::vector<double>(stencil.pattern.nnz(),0)};
     const auto cf=build_cell_faces(host);
@@ -312,6 +326,16 @@ struct SteadySolver::Impl {
       kinetic,omega,k_equation->grad,omega_equation->grad,boundary_velocity});
   }
   void update_turbulence(bool velocity_changed=true) {
+    if(rke) {
+      reconstruct_velocity();
+      rke->update(velocity,boundary_velocity,{momentum[0]->grad,momentum[1]->grad,momentum[2]->grad},boundary_kind,mass,viscosity);
+      return;
+    }
+    if(sa) {
+      reconstruct_velocity();
+      sa->update(velocity,boundary_velocity,momentum[0]->grad,momentum[1]->grad,momentum[2]->grad,boundary_kind,mass,viscosity);
+      return;
+    }
     if(!sst) return;
     if(velocity_changed) {
       vector_gradient(dev,mesh,stencil,strain_lsq,velocity,boundary_velocity,
@@ -333,7 +357,8 @@ struct SteadySolver::Impl {
     // BEGIN FSAE physics: each side sees its own discontinuous face pressure.
     interior_jumps->momentum(mesh,source);
     // END FSAE physics
-    if(!sst) return;
+    // Callers reconstruct the velocity gradients once before this.
+    if(!sst && !sa && !rke) return;
     const auto& u=momentum[0]->grad;const auto& v=momentum[1]->grad;const auto& w=momentum[2]->grad;
     kern::fv_transpose_stress(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,mesh.weight,viscosity,
       mesh.area.x,mesh.area.y,mesh.area.z,u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,
@@ -343,10 +368,10 @@ struct SteadySolver::Impl {
   }
   TransportTerms wall_terms(int component) {
     kern::fv_boundary_momentum(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,boundary_kind,
-      mesh.area.x,mesh.area.y,mesh.area.z,sst?sst->fields().wall_shear_coefficient:prescribed_pressure,
+      mesh.area.x,mesh.area.y,mesh.area.z,sst?sst->fields().wall_shear_coefficient:(rke?rke->fields().wall_coefficient:prescribed_pressure),
       viscosity,stencil.diffusion,
       velocity.x,velocity.y,velocity.z,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
-      wall_diagonal,wall_rhs,mesh.n_internal_faces,component,sst?1:0);
+      wall_diagonal,wall_rhs,mesh.n_internal_faces,component,(sst || rke)?1:0);
     // BEGIN FSAE physics: same implicit terms in iteration and residual assembly.
     zone_physics->momentum(component,velocity,mesh.volume,wall_diagonal,wall_rhs);
     // END FSAE physics
@@ -365,6 +390,11 @@ struct SteadySolver::Impl {
       f.fixed_omega,eq.matrix.val,eq.rhs);
   }
   void solve_turbulence() {
+    if(rke) {
+      update_boundaries();update_turbulence();report.turbulence[0]=rke->solve(false,time_step);
+      update_turbulence();report.turbulence[1]=rke->solve(true,time_step);return;
+    }
+    if(sa) {update_boundaries();update_turbulence();report.turbulence[0]=sa->solve(time_step);return;}
     if(!sst) return;
     update_boundaries();update_turbulence();assemble_turbulence(false);
     report.turbulence[0]=k_equation->solve(kinetic,settings.sst->linear);
@@ -376,6 +406,8 @@ struct SteadySolver::Impl {
     kern::fv_floor(dev,mesh.n_cells,omega,settings.sst->model.omega_floor);
   }
   void monitor_turbulence() {
+    if(rke) {auto r=rke->monitor(time_step);report.k=r[0];report.epsilon=r[1];return;}
+    if(sa) {report.nu_tilde=sa->monitor(time_step);return;}
     if(!sst) return;
     const auto measure=[&](bool is_omega) {
       assemble_turbulence(is_omega);auto& eq=is_omega?*omega_equation:*k_equation;
@@ -606,6 +638,7 @@ void SteadySolver::initialize_fields(std::span<const Vec3d> velocity,std::span<c
   }
 }
 void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
+  KUTTA_REQUIRE(!impl_->sa && !impl_->rke,"SA/k-epsilon: hybrid turbulence initialization is not implemented");
   auto& s=*impl_;auto& dev=s.dev;
   KUTTA_REQUIRE(h.iterations>0,"FV hybrid initialization needs positive iteration count");
   const auto n=s.mesh.n_cells,nb=s.mesh.n_boundary_faces();
@@ -743,6 +776,17 @@ void SteadySolver::set_source(const std::function<Vec3d(Vec3d)>& source) {
   std::vector<Vec3d> values;for(auto p:impl_->geom.cell_centroid) values.push_back(source(p));
   upload_vectors(impl_->dev,impl_->body,values);
 }
+void SteadySolver::initialize_sa_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
+    std::span<const double> modified_viscosity) {
+  auto& s=*impl_;KUTTA_REQUIRE(s.sa,"FV: SA disabled");
+  s.sa->initialize(modified_viscosity,s.permutation);
+  initialize_fields(velocity,pressure);
+}
+void SteadySolver::initialize_ke_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
+    std::span<const double> k,std::span<const double> epsilon) {
+  auto& s=*impl_;KUTTA_REQUIRE(s.rke,"FV: realizable k-epsilon disabled");
+  s.rke->initialize(k,epsilon,s.permutation);initialize_fields(velocity,pressure);
+}
 void SteadySolver::iterate(int count) {KUTTA_REQUIRE(count>=0,"FV negative iteration count");while(count-->0) impl_->step();}
 IterationReport SteadySolver::monitor() {return impl_->monitor();}
 ForceReport SteadySolver::forces(std::span<const std::string> patches,double reference_pressure) {
@@ -767,10 +811,10 @@ ForceReport SteadySolver::forces(std::span<const std::string> patches,double ref
   const auto& m=s.mesh;const auto& gu=s.momentum[0]->grad;const auto& gv=s.momentum[1]->grad;const auto& gw=s.momentum[2]->grad;
   kern::fv_wall_pressure_force(s.dev,selected.size(),mask,m.area.x,m.area.y,m.area.z,s.face_pressure,
     pressure.x,pressure.y,pressure.z,m.n_internal_faces,float(reference_pressure));
-  if(s.sst) {
-    s.update_turbulence();const auto& t=s.sst->fields();
+  if(s.sst || s.rke) {
+    s.update_turbulence();const auto& shear=s.sst?s.sst->fields().wall_shear:s.rke->fields().wall_shear;
     kern::fv_sst_force(s.dev,selected.size(),mask,m.area.x,m.area.y,m.area.z,
-      t.wall_shear.x,t.wall_shear.y,t.wall_shear.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces);
+      shear.x,shear.y,shear.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces);
   } else kern::fv_wall_viscous_force(s.dev,selected.size(),m.owner,mask,m.area.x,m.area.y,m.area.z,
     m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,s.velocity.x,s.velocity.y,s.velocity.z,
     gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
@@ -785,9 +829,14 @@ const DeviceMesh& SteadySolver::device_mesh() const {return impl_->mesh;}
 const DeviceVec3& SteadySolver::velocity() const {return impl_->velocity;}
 const Buffer<float>& SteadySolver::pressure() const {return impl_->pressure;}
 const Buffer<float>& SteadySolver::mass_flux() const {return impl_->mass;}
-const Buffer<float>& SteadySolver::kinetic_energy() const {KUTTA_REQUIRE(impl_->sst,"FV SST disabled");return impl_->kinetic;}
+const Buffer<float>& SteadySolver::kinetic_energy() const {KUTTA_REQUIRE(impl_->sst || impl_->rke,"FV two-equation turbulence disabled");return impl_->rke?impl_->rke->kinetic():impl_->kinetic;}
 const Buffer<float>& SteadySolver::specific_dissipation() const {KUTTA_REQUIRE(impl_->sst,"FV SST disabled");return impl_->omega;}
 const SstFields& SteadySolver::turbulence() const {KUTTA_REQUIRE(impl_->sst,"FV SST disabled");return impl_->sst->fields();}
+const SaFields& SteadySolver::sa_turbulence() const {KUTTA_REQUIRE(impl_->sa,"FV SA disabled");return impl_->sa->fields();}
+const SaWallFields& SteadySolver::sa_wall() const {KUTTA_REQUIRE(impl_->sa,"FV SA disabled");return impl_->sa->wall_fields();}
+const RealizableKeFields& SteadySolver::realizable_turbulence() const {KUTTA_REQUIRE(impl_->rke,"FV realizable k-epsilon disabled");return impl_->rke->fields();}
+const Buffer<float>& SteadySolver::dissipation() const {KUTTA_REQUIRE(impl_->rke,"FV realizable k-epsilon disabled");return impl_->rke->epsilon();}
+const Buffer<float>& SteadySolver::modified_viscosity() const {KUTTA_REQUIRE(impl_->sa,"FV SA disabled");return impl_->sa->modified_viscosity();}
 const MeshPermutation& SteadySolver::permutation() const {return impl_->permutation;}
 const Buffer<float>& SteadySolver::boundary_pressure() const {return impl_->boundary_pressure;}
 const IterationReport& SteadySolver::report() const {return impl_->report;}

@@ -500,3 +500,17 @@ TEST_CASE("Reading a zone selector does not silently accept unknown behavior") {
     CHECK(issue_at(c, "zone/8/" + std::string(key)));
   }
 }
+
+TEST_CASE("SA case intent is parsed without opening the unverified model allowlist") {
+  const auto cfg="(case-config ((rp-3d? . #t) (rp-double? . #t) (rp-unsteady? . #f) (rp-seg? . #t) (rp-lam? . #f) (rp-ke? . #f) (rp-kw? . #f) (rp-sa? . #t))) ";
+  auto c=synthetic(std::string(cfg)+"(sa-alternate-prod? #t) (sa-damping? #t) (sa-enhanced-wall-treatment? #t) (sa-cb1 .1355) (sa-mystery 9) (nut/scheme 0)",
+    "(39 (4 velocity-inlet inlet 1) ((velocity-spec . 2) (vmag . 1) (sa-spec . 1) (turb-viscosity-ratio . 10) (nut . 3e-5)))");
+  CHECK(c.viscous.model==ViscousModel::spalart_allmaras);CHECK(name(*c.viscous.model)=="Spalart-Allmaras");
+  CHECK(c.viscous.sa_alternate_production==true);CHECK(c.viscous.sa_damping==true);CHECK(c.viscous.sa_enhanced_wall==true);
+  CHECK(c.viscous.coefficients.at("sa-cb1")==doctest::Approx(.1355));
+  CHECK(c.numerics.modified_viscosity==Scheme::first_upwind);CHECK_FALSE(c.numerics.k);CHECK_FALSE(c.numerics.omega);
+  CHECK(issue_at(c,"viscous-model"));CHECK(issue_at(c,"case-config/rp-sa?"));CHECK(issue_at(c,"rp/sa-mystery"));
+  CHECK(boundary(c,4).sa_spec==1);CHECK(boundary(c,4).turbulence.at("nut").constant==doctest::Approx(3e-5));
+  auto conflict=synthetic(std::string(cfg).replace(std::string(cfg).find("rp-kw? . #f"),11,"rp-kw? . #t"));
+  CHECK_FALSE(conflict.viscous.model);
+}

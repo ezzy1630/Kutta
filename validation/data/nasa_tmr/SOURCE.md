@@ -111,3 +111,19 @@ The 897x257 NACA grid goes one level past the "smallest 2-3" brief. I added it b
 | `2DZP_flatplate/sst/u+y+theory.dat` | 380438 | `e4439ae7f484cf63599e053dfa03e6746d4c4519b47d1345644db4010afc6e69` |
 | `model_docs/noteonrunning.html` | 35301 | `30979bfc7284dd3855a6299190ccf1b5f095ad7aa9ca776d30bb7f8f2b3a4fc1` |
 | `model_docs/sst.html` | 35218 | `ccc4bc8d999444104e4e41f2c610dc9de7e7cb213d3e8b7bdb1997c4b8d6ee9f` |
+
+## SA references (2026-10-30)
+
+Same pinned commit and CC0 license as above. Source paths: `FlatPlate/SA/` and `Bump/SA/`. These are standard SA (including ft2), not Fluent wall-treatment references.
+
+| file | bytes | sha256 |
+|---|---:|---|
+| `2DZP_flatplate/sa/cf_convergence.dat` | 653 | `966a9f9c8036c3c6d8a1f2c4f1744b6a79f395f5986c8a2b37941803faf67695` |
+| `2DZP_flatplate/sa/drag_convergence.dat` | 591 | `c665787fdcd2257da8552973fe373e2f037e055d39e0d148c21f473d5a46bc39` |
+| `2DZP_flatplate/sa/cf_plate.dat` | 43857 | `f2995d18cb4f5d603f63ecfe609044844ef45fb3af3a7373923048eb3d364577` |
+| `2DZP_flatplate/sa/cfl3d_typical.inp` | 4532 | `3c6b5e1ce3283dff4c7ee902290916289cd91b710f53aacd962a3a960dbb4171` |
+| `2DBC_bump/sa/cf_convergence_sa.dat` | 1928 | `b3d3fc28a7adf8eece328a94fddff22bd0a64266d9ea8566b16c626dad65559c` |
+| `2DBC_bump/sa/force_convergence.dat` | 1306 | `18efb5c53ec48ffdadfd3eff04a2a57ad18c74148b34997bfb8bfa2faf756f5a` |
+| `2DBC_bump/sa/cp_bump.dat` | 42553 | `482ec6ca03757293e2ddd8dc11a217f8a948fe6e292e5345c823381a034479ef` |
+| `2DBC_bump/sa/cf_bump.dat` | 42357 | `85dd51f5bdb13f80ca2815b8e618ef9f237f5fec9d17ea5698523781bbb41c54` |
+| `2DBC_bump/sa/cfl3d_typical.inp` | 4257 | `22a398dd8af3713f36d10cde5175b86fe1e12c3a41db206b9814d97f7aefcbd8` |

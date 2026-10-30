@@ -1,5 +1,11 @@
 # Finite volume
 
+Experimental resolved-wall SA and scalable-wall realizable k-epsilon are
+available to library verification callers. See [model contracts](turbulence/car_models.md)
+and the [V7/V8 protocol](../../../validation/results/car_turbulence/PROTOCOL.md).
+They are not accepted Fluent case models; automatic SA walls and full EWT are
+still unavailable. Existing SST and laminar paths retain their settings.
+
 `upload_mesh()` preserves the caller's cell/face numbering. Call
 `renumber_cells_rcm()` before computing geometry or fields when loading a case.
 The shared `device_mesh.hpp` contract is unchanged. All device geometry is

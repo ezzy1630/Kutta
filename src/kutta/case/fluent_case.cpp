@@ -328,16 +328,19 @@ bool vector_active(const RawSettings& raw,std::string_view key) {
 }
 void model_flag_support(FluentCase &c) {
   for (const auto &key : c.variables.unparsed_names()) {
-    if (!key.starts_with("kw-") && !key.starts_with("ke-") && !key.starts_with("sst-"))
+    if (!key.starts_with("kw-") && !key.starts_with("ke-") && !key.starts_with("sst-") && !key.starts_with("sa-"))
       continue;
     auto flag = boolean(c.variables.value(key));
-    if (!flag)
+    // Existing SST numeric controls are validated by setup/fluent. SA has no
+    // accepted adapter yet, so retain/reject every unknown SA-valued setting.
+    if(!flag && !key.starts_with("sa-")) continue;
+    if (flag == false)
       continue;
-    if (!*flag)
-      continue;
-    c.viscous.unsupported_options.emplace(key, *flag);
+    if (flag) c.viscous.unsupported_options.emplace(key, *flag);
     const bool inactive = c.viscous.model == ViscousModel::laminar ||
-        (key.starts_with("ke-") ? !epsilon_model(c) : epsilon_model(c));
+        (key.starts_with("sa-") ? c.viscous.model != ViscousModel::spalart_allmaras :
+         key.starts_with("ke-") ? !epsilon_model(c) :
+         epsilon_model(c) || c.viscous.model == ViscousModel::spalart_allmaras);
     c.issues.push_back({"rp/" + key, inactive
         ? "inactive model flag retained; does not apply to the selected viscous model"
         : "unsupported: active model flag is not in the model allowlist",
@@ -454,20 +457,23 @@ void model(FluentCase &c) {
   c.unsteady = cfg.flag("rp-unsteady?");
   c.pressure_based = cfg.flag("rp-seg?");
   auto lam = cfg.flag("rp-lam?"), ke = cfg.flag("rp-ke?"), kw = cfg.flag("rp-kw?");
+  const auto sa = cfg.flag("rp-sa?", false);
   c.energy = cfg.flag("rf-energy?");
   c.gravity = x.flag("gravity?");
   c.gravity_vector = {x.num("gravity/x", c.gravity == true),
                       x.num("gravity/y", c.gravity == true),
                       x.num("gravity/z", c.gravity == true)};
   auto &t = c.viscous;
-  if (lam && *lam && ke && !*ke && kw && !*kw)
+  if (sa==true && lam==false && ke==false && kw==false)
+    t.model = ViscousModel::spalart_allmaras;
+  else if (sa!=true && lam && *lam && ke && !*ke && kw && !*kw)
     t.model = ViscousModel::laminar;
-  else if (lam && !*lam && ke && *ke && kw && !*kw) {
+  else if (sa!=true && lam && !*lam && ke && *ke && kw && !*kw) {
     auto rng = x.flag("rng-ke-on?"), realizable = x.flag("realizable-epsilon?");
     if (rng && realizable && !(*rng && *realizable))
       t.model = *rng ? ViscousModel::ke_rng
                      : (*realizable ? ViscousModel::ke_realizable : ViscousModel::ke_standard);
-  } else if (lam && !*lam && kw && *kw && ke && !*ke) {
+  } else if (sa!=true && lam && !*lam && kw && *kw && ke && !*ke) {
     auto sst = x.flag("kw-sst-on?"), bsl = x.flag("kw-bsl-on?"), standard = x.flag("kw-std-on?");
     auto geko = x.flag("kw-geko-on?"), easm = x.flag("kw-easm-on?"),
          wj = x.flag("kw-wj-bsl-earsm-on?");
@@ -491,6 +497,18 @@ void model(FluentCase &c) {
                      "ke-nwt-ml?", "ke-udf-wall?", "ke-rough-wall-treatment-r14?"})
       if (auto v = x.flag(key, false))
         t.unsupported_options.emplace(key, *v);
+    for (auto key : {"ke-cmu", "ke-c1", "ke-c2", "ke-sig-k", "ke-sig-e"})
+      if (auto v=x.num(key,false)) t.coefficients.emplace(key,*v);
+  }
+  if (t.model == ViscousModel::spalart_allmaras) {
+    t.sa_alternate_production=x.flag("sa-alternate-prod?",false);
+    t.sa_damping=x.flag("sa-damping?",false);
+    t.sa_enhanced_wall=x.flag("sa-enhanced-wall-treatment?",false);
+    for (auto key : {"sa-cb1","sa-cb2","sa-sigma","sa-cv1","sa-cw2","sa-cw3","sa-kappa"})
+      if (auto v=x.num(key,false)) t.coefficients.emplace(key,*v);
+    // Parsing retains intent; constitutive verification is not wall acceptance.
+    model_flag_support(c);
+    return;
   }
   if (t.model == ViscousModel::laminar) {
     model_flag_support(c);
@@ -537,10 +555,12 @@ void numerics(FluentCase &c) {
   n.momentum = x.enumeration("mom/scheme", convection);
   const bool turbulent = c.viscous.model != ViscousModel::laminar;
   if (turbulent) {
-    n.k = x.enumeration("k/scheme", convection);
+    if(c.viscous.model == ViscousModel::spalart_allmaras)
+      n.modified_viscosity=x.enumeration("nut/scheme",convection);
+    else n.k = x.enumeration("k/scheme", convection);
     if (epsilon_model(c))
       n.epsilon = x.enumeration("epsilon/scheme", convection);
-    else
+    else if(c.viscous.model != ViscousModel::spalart_allmaras)
       n.omega = x.enumeration("omega/scheme", convection);
   }
   n.coupling = x.enumeration(
@@ -575,8 +595,8 @@ void numerics(FluentCase &c) {
   n.courant = x.num("pressure-coupled/courant-number");
   std::vector<std::string> equations = {"pressure", "mom", "density", "body-force"};
   if (turbulent) {
-    equations.push_back("k");
-    equations.push_back(epsilon_model(c) ? "epsilon" : "omega");
+    if(c.viscous.model == ViscousModel::spalart_allmaras) equations.push_back("nut");
+    else {equations.push_back("k");equations.push_back(epsilon_model(c) ? "epsilon" : "omega");}
     equations.push_back("turb-viscosity");
   }
   const bool pseudo = n.pseudo.formulation == true;
@@ -869,6 +889,12 @@ void thread(FluentCase &c, const SExpr &e) {
   }
   if (inlet || outlet) {
     z.gauge_pressure = x.scalar("p");
+    if(c.viscous.model == ViscousModel::spalart_allmaras) {
+      z.sa_spec=x.code("sa-spec",false);
+      for(auto key:{"nut","turb-viscosity-ratio","turb-intensity","turb-length-scale","turb-hydraulic-diam"})
+        if(auto value=x.scalar(key,false)) z.turbulence.emplace(key,*value);
+      c.issues.push_back({"zone/"+z.name+"/sa-spec","unsupported: SA boundary selector mapping requires a real Fluent fixture"});
+    } else {
     z.turbulence_spec = x.enumeration(
         "ke-spec", {TurbulenceSpec::k_dissipation, TurbulenceSpec::intensity_length,
                     TurbulenceSpec::intensity_viscosity_ratio, TurbulenceSpec::intensity_diameter});
@@ -890,6 +916,7 @@ void thread(FluentCase &c, const SExpr &e) {
              z.turbulence_spec == TurbulenceSpec::intensity_diameter)));
       if (auto v = x.scalar(key, required))
         z.turbulence.emplace(k == "o" ? "omega" : (k == "e" ? "epsilon" : key), *v);
+    }
     }
     if (outlet) {
       z.backflow_pressure_spec = x.code("p-backflow-spec");
@@ -1130,6 +1157,8 @@ std::string_view name(ViscousModel v) {
   switch (v) {
   case ViscousModel::laminar:
     return "laminar";
+  case ViscousModel::spalart_allmaras:
+    return "Spalart-Allmaras";
   case ViscousModel::ke_standard:
     return "k-epsilon standard";
   case ViscousModel::ke_rng:

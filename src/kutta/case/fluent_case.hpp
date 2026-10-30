@@ -23,6 +23,7 @@ struct RawSettings {
 };
 enum class ViscousModel {
   laminar,
+  spalart_allmaras,
   ke_standard,
   ke_rng,
   ke_realizable,
@@ -88,12 +89,13 @@ struct Turbulence {
       vorticity_production, compressibility, shear_modification;
   std::optional<double> production_factor, curvature_factor, omega_floor;
   std::optional<WallOmega> wall_omega;
+  std::optional<bool> sa_alternate_production,sa_damping,sa_enhanced_wall;
   std::map<std::string, double> coefficients;
   std::map<std::string, bool> unsupported_options;
   bool operator==(const Turbulence &) const = default;
 };
 struct Numerics {
-  std::optional<Scheme> pressure, momentum, k, omega, epsilon;
+  std::optional<Scheme> pressure, momentum, k, omega, epsilon,modified_viscosity;
   std::optional<Gradient> gradient;
   std::optional<Limiter> limiter;
   std::optional<bool> limiting, limit_to_face, limiter_filter, warped_face_correction,
@@ -135,6 +137,8 @@ struct BoundaryZone {
   std::optional<ScalarValue> jump_permeability,jump_thickness,jump_inertial;
   ScalarVector velocity, direction;
   std::optional<TurbulenceSpec> turbulence_spec;
+  // Raw SA selector; its version-dependent integer mapping is not accepted.
+  std::optional<int> sa_spec;
   std::map<std::string, ScalarValue> turbulence;
   std::optional<WallMotion> wall_motion;
   std::optional<bool> relative_motion, specified_shear, prevent_reverse_flow, wall_components;
