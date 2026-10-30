@@ -45,6 +45,38 @@ and extrapolates tangentially. Pressure outlets impose gauge static pressure.
 Wall force is pressure relative to the requested reference, minus the viscous
 traction on the fluid, integrated using Device double/compensated reductions.
 
+For extrapolated boundary values, `boundary_least_squares()` precomputes a
+separate observation matrix for each equation. Pressure excludes wall, inlet
+and symmetry rows; velocity excludes outlet and symmetry rows; k excludes all
+but inlet rows; omega additionally includes independent wall reconstruction
+values. Excluded rows have zero weighted deltas. A symmetric eigensolve adds
+zero-difference constraints only along deficient directions, preserving all
+resolved directions. No previous gradient can feed itself through a boundary
+value. Standalone operators with supplied independent face data retain the
+original full LSQ stencil.
+
+Set `SolverSettings::sst` and supply inlet/outlet `TurbulenceCondition` values
+to enable SST. Momentum uses interpolated `mu+mu_t`, explicit transpose stress,
+and zero wall-face viscosity. A gathered component diagonal applies
+`A*C*(I-n*n^T)` with its cross terms explicit. The rotationally invariant
+trace/3 of the three **physical** component diagonals drives Rhie-Chow and its
+face interpolation; the mean component SIMPLEC inverse drives correction.
+Neither physical diagonal includes relaxation or pseudo-time. Forces use
+`-A*wall_shear` on the body. k/omega transport adds volume-weighted implicit
+sinks, clips solved fields at configured floors, and imposes wall-cell omega
+rows at the original row scale (unscaled identity rows harm inexact-solve
+conditioning). Those rows are rebuilt each assembly and excluded from omega
+residual scaling. `monitor()` reports both turbulence residuals without changing
+the state.
+
+`initialize_fields()` takes original-input cell arrays and preserves their exact
+identity through the owned RCM permutation. It primes constitutive coefficients
+and mass flux without taking an outer step. `permutation()` exposes both maps
+for comparison with source data. `setup/fluent.hpp` supplies the strict case
+adapter and source-ID field mapping. It rejects unsupported spatial settings
+and initialization methods by name; see V6 for the current elbow blockers.
+Total-pressure outlets apply `p=p0-rho*|u_cell|^2/2` only on backflow faces.
+
 ```cpp
 auto dev = kutta::Device::create(kutta::Backend::Metal);
 auto mesh = kutta::make_box_hex(129, 129, 1, {0, 0, 0}, {1, 1, 1./129});

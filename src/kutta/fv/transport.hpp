@@ -17,6 +17,12 @@ struct TransportSettings {
   SolveControl linear{1e-4,1e-12,200};
 };
 
+struct TransportTerms {
+  const Buffer<float>* sink=nullptr;      // per volume, implicit sink*phi
+  const Buffer<float>* diagonal=nullptr;  // integrated per-cell contribution
+  const Buffer<float>* rhs=nullptr;       // integrated per-cell contribution
+};
+
 // Solver policy is kept here so the parallel linalg lane can change it once.
 inline constexpr SolverKind transport_solver_kind=SolverKind::BicgstabJacobi;
 inline constexpr SolverKind pressure_solver_kind=SolverKind::AmgPcg;
@@ -30,12 +36,12 @@ class TransportEquation {
   void assemble(const Buffer<float>& field, const Buffer<float>& face_values,
                 const Buffer<Index>& boundary_kind, const Buffer<float>& mass_flux,
                 const Buffer<float>& diffusivity, const Buffer<float>& source,
-                const TransportSettings& settings);
+                const TransportSettings& settings,TransportTerms terms={});
   // grad must already contain the LSQ reconstruction of field/face_values.
   void assemble_reconstructed(const Buffer<float>& field,const Buffer<float>& face_values,
                 const Buffer<Index>& boundary_kind,const Buffer<float>& mass_flux,
                 const Buffer<float>& diffusivity,const Buffer<float>& source,
-                const TransportSettings& settings);
+                const TransportSettings& settings,TransportTerms terms={});
   SolveStats solve(Buffer<float>& field, const SolveControl& control);
   CsrMatrix& matrix;
   Buffer<float> rhs, diagonal, consistent_inverse;
@@ -46,6 +52,7 @@ class TransportEquation {
   const DeviceMesh& mesh_;
   const Stencil& stencil_;
   std::unique_ptr<LinearSolver> solver_;
+  Buffer<float> zero_;
 };
 
 }  // namespace kutta::fv

@@ -20,24 +20,27 @@ TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stenc
   CsrMatrixHost initial{s.pattern,std::vector<double>(s.pattern.nnz(),0)};
   for(auto j:s.pattern.diag) initial.val[j]=1;
   solver_=make_solver(transport_solver_kind,dev,initial);
+  zero_=dev.alloc<float>(m.n_cells);dev.fill(zero_,0);
 }
 
 void TransportEquation::assemble(const Buffer<float>& field,const Buffer<float>& bc,
     const Buffer<Index>& kind,const Buffer<float>& flux,const Buffer<float>& mu,
-    const Buffer<float>& source,const TransportSettings& settings) {
+    const Buffer<float>& source,const TransportSettings& settings,TransportTerms terms) {
   gradient(dev_,mesh_,stencil_,field,bc,grad);
-  assemble_reconstructed(field,bc,kind,flux,mu,source,settings);
+  assemble_reconstructed(field,bc,kind,flux,mu,source,settings,terms);
 }
 
 void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const Buffer<float>& bc,
     const Buffer<Index>& kind,const Buffer<float>& flux,const Buffer<float>& mu,
-    const Buffer<float>& source,const TransportSettings& settings) {
+    const Buffer<float>& source,const TransportSettings& settings,TransportTerms terms) {
   const auto& m=mesh_; const auto& s=stencil_; auto& dev=dev_;
   KUTTA_REQUIRE(field.size()==std::size_t(m.n_cells) && source.size()==field.size() &&
     bc.size()==std::size_t(m.n_boundary_faces()) && kind.size()==bc.size() &&
     flux.size()==std::size_t(m.n_faces) && mu.size()==flux.size(),"FV transport field size mismatch");
   KUTTA_REQUIRE(settings.density>0 && settings.pseudo_time_step>=0 && settings.relaxation>0 &&
     settings.relaxation<=1,"FV invalid transport relaxation");
+  for(const auto* term:{terms.sink,terms.diagonal,terms.rhs})
+    KUTTA_REQUIRE(!term || term->size()==field.size(),"FV transport term size mismatch");
   if(settings.limit) limit_gradient(dev,m,s,field,bc,grad,limiter); else dev.fill(limiter,1);
   kern::fv_transport_faces(dev,m.n_faces,m.owner,m.neighbour,m.weight,
     m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
@@ -47,7 +50,8 @@ void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const 
     settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
   kern::fv_transport_assemble(dev,m.n_cells,m.cell_face_offsets,m.cell_faces,m.cell_face_sign,
     s.adjacent,s.matrix_entry,matrix.diag,s.diffusion,flux,mu,kind,bc,face_correction,
-    source,m.volume,field,matrix.val,rhs,diagonal,consistent_inverse,m.n_internal_faces,
+    source,m.volume,field,terms.sink?*terms.sink:zero_,terms.diagonal?*terms.diagonal:zero_,
+    terms.rhs?*terms.rhs:zero_,matrix.val,rhs,diagonal,consistent_inverse,m.n_internal_faces,
     settings.density,settings.pseudo_time_step,settings.relaxation);
 }
 

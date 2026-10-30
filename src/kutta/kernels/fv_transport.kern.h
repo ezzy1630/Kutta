@@ -28,9 +28,10 @@ KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,
     KIn(float) diffusion, KIn(float) flux, KIn(float) mu,
     KIn(int) kind, KIn(float) boundary, KIn(float) correction,
     KIn(float) source, KIn(float) volume, KIn(float) old,
+    KIn(float) sink,KIn(float) extra_diagonal,KIn(float) extra_rhs,
     KOut(float) values, KOut(float) rhs, KOut(float) diagonal,
     KOut(float) consistent_inverse, int internal, float rho, float dt, float relax) {
-  float ap=0.0f,offsum=0.0f,b=source[i]*volume[i];
+  float ap=sink[i]*volume[i]+extra_diagonal[i],offsum=0.0f,b=source[i]*volume[i]+extra_rhs[i];
   for(int j=offsets[i];j<offsets[i+1];++j) if(adjacent[j]>=0) values[entry[j]]=0.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int f=faces[j],n=adjacent[j];
@@ -57,4 +58,26 @@ KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,
   // SIMPLEC subtracts the neighbour sum from the relaxed diagonal. Pseudo
   // time/under-relaxation keep this positive for convection-dominated cells.
   consistent_inverse[i]=1.0f/kmax(relaxed+offsum,1.0e-20f);
+}
+
+// Each matrix is rebuilt on the next assembly; no persistent constraints.
+KUTTA_KERNEL void fv_fixed_rows(int i,KIn(int) rows,KIn(int) diag,KIn(int) mask,
+    KIn(float) fixed,KOut(float) values,KOut(float) rhs) {
+  if(mask[i]==0) return;
+  // Preserve the transport row's units. An unscaled identity row for omega
+  // can outweigh all interior residuals by orders of magnitude, causing an
+  // inexact Krylov solve to stop before resolving interior transport.
+  float scale=values[diag[i]];
+  for(int j=rows[i];j<rows[i+1];++j) values[j]=0.0f;
+  values[diag[i]]=scale;rhs[i]=scale*fixed[i];
+}
+
+KUTTA_KERNEL void fv_floor(int i,KOut(float) field,float floor) {
+  field[i]=kmax(field[i],floor);
+}
+
+KUTTA_KERNEL void fv_scalar_monitor(int i,KIn(float) field,KIn(float) diagonal,
+    KIn(float) residual,KIn(int) excluded,KOut(float) absolute,KOut(float) scale) {
+  absolute[i]=excluded[i]!=0?0.0f:kabs(residual[i]);
+  scale[i]=excluded[i]!=0?0.0f:kabs(diagonal[i]*field[i]);
 }
