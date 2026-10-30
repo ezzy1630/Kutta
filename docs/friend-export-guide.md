@@ -25,3 +25,37 @@ Thanks for helping. Nothing here changes how you run Fluent. We only need copies
 - **Same-mesh comparison:** we load your mesh and settings and solve them with Kutta. Then we compare downforce, drag, balance and surface pressure with your Fluent results on the identical mesh.
 - **Fair timing:** we time Kutta on your own machine against your Fluent run, and report both with the hardware named.
 - **Privacy:** nothing is uploaded or shared.
+
+## If Kutta rejects a setting
+
+Keep the original Fluent files. By default, `kutta solve` lists unsupported
+settings and exits without solving. It never silently disables warped-face
+gradient correction (WFGC, `recon/cell-lsf?`).
+
+For an explicitly approximate diagnostic, you can permit WFGC on to run with
+WFGC off:
+
+```sh
+kutta solve car.cas.h5 --data car.dat.h5 --approximate wfgc --out kutta-approximate
+```
+
+`--approximate` takes comma-separated names; **`wfgc` is the only allowed name**.
+All other unsupported settings still fail. Unknown, empty or duplicate names
+fail too. Missing/unparsed WFGC settings still fail. An opt-in on a case with
+WFGC already off records no approximation. The original case is never changed.
+
+The [V6 initialization comparison](../src/kutta/fv/VERIFICATION.md#v6-initialization-comparison)
+measures the WFGC-disabled mixing-elbow diagnostic against Fluent: CPU hybrid
+velocity L2 **3.601459%**, pressure L2 **2.961922%**, k L2 **15.478919%**, omega
+L2 **8.474918%**, and pressure-drop error **1.185077%**. These include other
+solver discrepancies; they do not isolate WFGC's effect or bound errors on a car.
+The original same-settings accuracy gate remains unmet.
+
+Approximate runs print **APPROXIMATE RESULT** at start and end. `summary.json`
+records `approximate=true` and each approximation's setting, Fluent value,
+Kutta action, measured effect and documentation path. `forces.csv` and
+`residuals.csv` each start with a `# APPROXIMATE RESULT` comment (skip `#` lines
+in CSV readers); `result.vtu` has the same warning in its XML header comment.
+Retain these markers with exported results so they remain labelled as approximate.
+Without an applied approximation, the CSV/VTU headers are unchanged and the
+summary records `approximate=false` with an empty `approximations` list.

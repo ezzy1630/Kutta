@@ -3,16 +3,21 @@
 #include "kutta/case/fluent_case.hpp"
 #include "kutta/case/fluent_data.hpp"
 #include "kutta/fv/steady_solver.hpp"
+#include "kutta/setup/approximations.hpp"
 
 namespace kutta::setup {
 struct FluentSetup {
   fv::SolverSettings settings;
   std::vector<fv::PatchCondition> boundaries;
   std::vector<std::string> convergence_notes;
+  std::vector<Approximation> approximations;
 };
-// Strict flow adapter. Throws with all offending setting paths and reasons
-// before returning a setup when the discrete equations cannot be represented. Coupled -> SIMPLEC is a reported path change.
-FluentSetup fluent_setup(const fluent::FluentCase& input,const PolyMesh& mesh);
+// Strict by default: collect every unrepresentable setting path and reason.
+// Named opt-ins permit only the setup allowlist; all other failures remain.
+// Coupled -> SIMPLEC is a reported convergence-path change.
+// Only explicitly allowed, applicable approximations are recorded in the result.
+FluentSetup fluent_setup(const fluent::FluentCase& input,const PolyMesh& mesh,
+                         std::span<const Approximation> allowed = {});
 fv::TurbulenceValues turbulence_values(const fv::TurbulenceCondition& spec,
     double speed,double density,double viscosity);
 struct CellFields {

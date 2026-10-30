@@ -87,8 +87,9 @@ TEST_CASE("Fluent setup converts SST inlet specifications and rejects unsupporte
   if(!std::filesystem::exists(path)) {MESSAGE("SKIP: external Fluent case absent");return;}
   auto c=fluent::read_case(path);const auto mesh=read_fluent_cff(path);
   CHECK_THROWS_WITH(setup::fluent_setup(c,mesh),doctest::Contains("recon/cell-lsf?"));
-  c.numerics.warped_face_correction=false;
-  const auto problem=setup::fluent_setup(c,mesh);
+  const auto allowed=setup::parse_approximations("wfgc");
+  const auto problem=setup::fluent_setup(c,mesh,allowed);
+  CHECK(problem.approximations==allowed);
   CHECK(problem.settings.density==1.225);CHECK(problem.settings.viscosity==1.7894e-5);
   CHECK(std::holds_alternative<HybridInitialization>(setup::initial_fields(c,mesh)));
 #endif
@@ -110,15 +111,17 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
     const auto row=h.rows.back();std::cout<<"V6_FLUENT_RESIDUAL "<<name<<" raw="<<row[0]<<" scale="<<row[1]<<" scaled="<<row[0]/row[1]<<'\n';
   }
   // Keep the strict original-case error visible AND failing. Diagnostic runs
-  // below change one discrete setting explicitly; they are
+  // below opt into one discrete approximation explicitly; they are
   // not a claim that the requested same-settings solve has been achieved.
   CHECK_NOTHROW(setup::fluent_setup(c,mesh));
   CHECK_NOTHROW(setup::initial_fields(c,mesh));
-  std::cout<<"V6_DIAGNOSTIC approximations: recon/cell-lsf? disabled; cold start uses stored hybrid initialization settings"<<std::endl;
-  auto diagnostic=c;diagnostic.numerics.warped_face_correction=false;
+  auto diagnostic=c;
   const bool standard_proxy=std::getenv("KUTTA_V6_STANDARD_PROXY")!=nullptr;
   if(standard_proxy) raw_flag(diagnostic.variables,"hyb-init?",false);
-  const auto setup=setup::fluent_setup(diagnostic,mesh);const auto cold=setup::initial_fields(diagnostic,mesh);
+  const auto allowed=setup::parse_approximations("wfgc");
+  const auto setup=setup::fluent_setup(diagnostic,mesh,allowed);const auto cold=setup::initial_fields(diagnostic,mesh);
+  std::cout<<"V6_DIAGNOSTIC "<<setup::approximation_notice(setup.approximations)
+    <<"; cold start uses "<<(standard_proxy?"stored standard proxy":"stored hybrid initialization settings")<<std::endl;
   int limit=4000;
   if(const auto* value=std::getenv("KUTTA_V6_ITERATIONS")) {const auto parsed=parse_double(value);REQUIRE(parsed);REQUIRE(*parsed>0);REQUIRE(*parsed<=100000);REQUIRE(std::floor(*parsed)==*parsed);limit=int(*parsed);}
   int solved=0;
@@ -209,7 +212,8 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
         solver.iterate(std::max(0,1200-solver.report().iteration));const auto r=solver.monitor();
         std::filesystem::create_directories(directory);
         auto path=std::filesystem::path(directory)/(std::string(backend_name(dev->backend()))+"-"+mode+".csv");
-        std::ofstream out(path);REQUIRE(out);out<<std::setprecision(17)<<"u,v,w,p,k,omega\n";
+        std::ofstream out(path);REQUIRE(out);out<<"# "<<setup::approximation_notice(setup.approximations)<<'\n';
+        out<<std::setprecision(17)<<"u,v,w,p,k,omega\n";
         const auto u=dev->download(solver.velocity().x),v=dev->download(solver.velocity().y),w=dev->download(solver.velocity().z);
         const auto p=dev->download(solver.pressure()),k=dev->download(solver.kinetic_energy()),omega=dev->download(solver.specific_dissipation());
         for(std::size_t c=0;c<p.size();++c) out<<u[c]<<','<<v[c]<<','<<w[c]<<','<<p[c]<<','<<k[c]<<','<<omega[c]<<'\n';
@@ -220,5 +224,6 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
     }
   }
   CHECK(solved>0);
+  std::cout<<"V6_DIAGNOSTIC "<<setup::approximation_notice(setup.approximations)<<std::endl;
 #endif
 }

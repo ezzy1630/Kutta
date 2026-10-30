@@ -1,6 +1,8 @@
 #include "kutta/core/path.hpp"
 #include <doctest/doctest.h>
 #include "kutta/core/sha256.hpp"
+#include "kutta/setup/fluent.hpp"
+#include "kutta/io/mesh_io.hpp"
 #include "../io/test_support.hpp"
 #include <cstdlib>
 #include <map>
@@ -18,7 +20,7 @@ void text(hid_t f,const std::string& path,const std::string& value) {
   h5::Handle d(H5Dcreate2(f,path.c_str(),type,space,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT),H5Dclose);
   h5::check(H5Dwrite(d,type,H5S_ALL,H5S_ALL,H5P_DEFAULT,value.c_str()),path);
 }
-std::string variables(bool unsupported,bool include_reports,bool hybrid) {
+std::string variables(bool unsupported,bool include_reports,bool hybrid,bool wfgc) {
   std::string rp=R"((37 (
   (case-config ((rp-3d? . #t) (rp-double? . #t) (rp-seg? . #t) (rp-unsteady? . #f)
     (rp-lam? . #f) (rp-ke? . #f) (rp-kw? . #t) (rf-energy? . #f) (rp-des? . #f)))
@@ -60,9 +62,12 @@ std::string variables(bool unsupported,bool include_reports,bool hybrid) {
       (hyb-init/turb-domain-averaged? #t) (hyb-init/patch-ads? #f) (hyb-init/constant-vel-vector? #f)
       (hyb-init/turb-intens .05) (hyb-init/turb-vr 10) (hyb-init/pressure-from-bc? #f))");
   }
+  if(wfgc || unsupported) {
+    const auto p=rp.find("(recon/cell-lsf? #f)");
+    rp.replace(p,std::string("(recon/cell-lsf? #f)").size(),"(recon/cell-lsf? #t)");
+  }
   if(unsupported) {
-    auto p=rp.find("(recon/cell-lsf? #f)");rp.replace(p,std::string("(recon/cell-lsf? #f)").size(),"(recon/cell-lsf? #t)");
-    p=rp.find("(curvature-correction? #f)");rp.replace(p,std::string("(curvature-correction? #f)").size(),"(curvature-correction? #t)");
+    auto p=rp.find("(curvature-correction? #f)");rp.replace(p,std::string("(curvature-correction? #f)").size(),"(curvature-correction? #t)");
     p=rp.find("(pseudo-time-step .01)");rp.replace(p,std::string("(pseudo-time-step .01)").size(),"(pseudo-time-step 0)");
     p=rp.find("(omega/default 10)");rp.replace(p,std::string("(omega/default 10)").size(),"(omega/default 0)");
     p=rp.find("(sst-pk-factor 10)");rp.replace(p,std::string("(sst-pk-factor 10)").size(),"(sst-pk-factor 0)");
@@ -76,11 +81,11 @@ std::string variables(bool unsupported,bool include_reports,bool hybrid) {
   }
   return rp;
 }
-void case_file(const std::filesystem::path& path,bool unsupported,bool include_reports=true,bool hybrid=false) {
+void case_file(const std::filesystem::path& path,bool unsupported,bool include_reports=true,bool hybrid=false,bool wfgc=false) {
   // Asymmetric dimensions and multiple cells exercise mesh/field ordering.
   synthetic(path,make_box_hex(2,2,1,{0,0,0},{2,1,1}),false);
   h5::Handle f(H5Fopen(kutta::utf8_path(path).c_str(),H5F_ACC_RDWR,H5P_DEFAULT),H5Fclose);
-  group(f,"/settings");text(f,"/settings/Rampant Variables",variables(unsupported,include_reports,hybrid));
+  group(f,"/settings");text(f,"/settings/Rampant Variables",variables(unsupported,include_reports,hybrid,wfgc));
   text(f,"/settings/Thread Variables",R"(
     (39 (2 interior interior 1) ())
     (39 (20 fluid water 1) ((material . water) (mrf-motion? . #f) (porous? . #f) (laminar? . #f)
@@ -119,7 +124,16 @@ TEST_CASE("Solve CLI runs generated CFF cases and data, rejects settings, and em
   case_file(t.path("tiny.cas.h5"),false);case_file(t.path("unsupported.cas.h5"),true);
   case_file(t.path("no-reports.cas.h5"),false,false);
   case_file(t.path("hybrid.cas.h5"),false,true,true);
+  case_file(t.path("wfgc.cas.h5"),false,true,false,true);
   data_file(t.path("tiny.dat.h5"));
+  // An opt-in never invents an absent setting or broadens the physics allowlist.
+  auto c=read_case(t.path("wfgc.cas.h5"));const auto mesh=read_mesh(t.path("wfgc.cas.h5"));
+  const auto allowed=setup::parse_approximations("wfgc");
+  const auto problem=setup::fluent_setup(c,mesh,allowed);
+  CHECK(problem.approximations==allowed);
+  CHECK(c.numerics.warped_face_correction==true); // the source case is not rewritten
+  c.numerics.warped_face_correction.reset();
+  CHECK_THROWS_WITH(setup::fluent_setup(c,mesh,allowed),doctest::Contains("requires an explicit boolean"));
   std::string command=quote(KUTTA_PYTHON_PATH)+" "+quote(std::filesystem::path(KUTTA_SOURCE_DIR)/"tests/app/check_solve.py")+" "+quote(KUTTA_CLI_PATH)+" "+quote(t.directory);
 #ifdef _WIN32
   command='"'+command+'"';

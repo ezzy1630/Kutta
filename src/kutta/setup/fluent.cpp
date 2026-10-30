@@ -63,7 +63,7 @@ TurbulenceCondition turbulence(const BoundaryZone& z) {
   }
   require(false,key+"ke-spec");return TurbulenceValues{};
 }
-FluentSetup build(const FluentCase& c,const PolyMesh& mesh);
+FluentSetup build(const FluentCase& c,const PolyMesh& mesh,std::span<const Approximation> allowed);
 };
 std::vector<std::uint64_t> cell_ids(const FluentCase& c,const PolyMesh& mesh) {
   std::vector<std::uint64_t> ids(mesh.n_cells,0);
@@ -93,7 +93,7 @@ TurbulenceValues turbulence_values(const TurbulenceCondition& spec,double speed,
   }
   require(std::isfinite(out.k) && out.k>=0 && std::isfinite(out.omega) && out.omega>=0,"k/omega");return out;
 }
-FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh) {
+FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std::span<const Approximation> allowed) {
   require(c.dimension==3,"dimension","requires a 3D case");require(c.pressure_based==true,"rp-seg?","requires the pressure-based solver");require(c.unsteady==false,"rp-unsteady?","only steady cases are supported");
   require(c.viscous.model==ViscousModel::kw_sst,"viscous-model (requires SST)");
   require(c.mesh.cells && *c.mesh.cells==std::uint64_t(mesh.n_cells),"mesh/cell-count");
@@ -120,7 +120,12 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh) {
   require(n.limiter==Limiter::standard,"recon/lim/type","only the standard limiter (0) is supported");
   s.limit=required(n.limiting,"recon/limit?");
   require(n.limit_to_face==true,"recon/lim/dx-to-face?","requires face-based limiting");require(n.limiter_filter==false,"recon/lim/filter/on?","limiter filtering is not implemented");
-  require(n.warped_face_correction==false,"recon/cell-lsf? (warped-face gradient correction)","warped-face gradient correction is not implemented");
+  const auto& wfgc=approximation_info(Approximation::wfgc);
+  if(n.warped_face_correction==true) {
+    if(std::find(allowed.begin(),allowed.end(),wfgc.id)!=allowed.end()) out.approximations.push_back(wfgc.id);
+    else require(false,std::string(wfgc.setting),"warped-face gradient correction is not implemented; opt in with --approximate "+
+      std::string(wfgc.name)+" to "+std::string(wfgc.kutta_action)+"; effect: "+std::string(wfgc.effect_documentation));
+  } else require(n.warped_face_correction==false,std::string(wfgc.setting),"requires an explicit boolean; approximation cannot replace absent or unparsed settings");
   require(n.flux_index==1,"pbs/flux-index","only flux index 1 is supported");required(n.flux_auto_select,"pbs/flux-auto-select?");
   require(n.wall_distance_method==2,"wall-distance/method","only wall-distance method 2 is supported");
   require(n.wall_distance_quad_correction==true,"wall-distance/quad-correction?","requires quadrilateral wall-distance correction");
@@ -229,8 +234,8 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh) {
   }
   finish();return out;
 }
-FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh) {
-  return SetupValidation{}.build(c,mesh);
+FluentSetup fluent_setup(const FluentCase& c,const PolyMesh& mesh,std::span<const Approximation> allowed) {
+  return SetupValidation{}.build(c,mesh,allowed);
 }
 CellFields fluent_fields(const FluentCase& c,const FluentData& d,const PolyMesh& mesh) {
   const auto ids=cell_ids(c,mesh);CellFields out;

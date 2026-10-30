@@ -9,6 +9,7 @@
 #include <functional>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "kutta/mesh/mesh.hpp"
@@ -58,8 +59,9 @@ struct CellField {
 };
 
 // VTK XML unstructured grid (polyhedra), readable by ParaView.
+// Optional provenance is preserved as an XML header comment (no double hyphens).
 void write_vtu(const std::filesystem::path& path, const PolyMesh& mesh,
-               std::span<const CellField> fields = {});
+               std::span<const CellField> fields = {}, std::string_view header_comment = {});
 
 // Structured hex box [lo, hi] with nx*ny*nz cells. Patches, in order:
 // xmin, xmax, ymin, ymax, zmin, zmax (all PatchKind::Wall; callers re-tag).

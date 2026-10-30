@@ -20,6 +20,9 @@ Options
   --iterations N               Positive iteration cap; default 1000.
   --out DIR                    Default kutta-result, relative to current folder.
   --data FILE.dat.h5           Seed fields from a matching Fluent data file.
+  --approximate SETTING[,SETTING...]
+                               Explicitly permit each named approximation.
+                               Currently only wfgc is allowed; no wildcard.
 
 Outputs
   result.vtu      Cell fields u (velocity vector), p (gauge pressure), k,
@@ -30,13 +33,40 @@ Outputs
   residuals.csv   Fluent-scaled residuals at solver monitor intervals, plus
                   average wall seconds per iteration for each interval.
   summary.json    SHA256 input hashes, version/commit, device, cell/iteration
-                  counts, setup/solve seconds, stopping/convergence status.
+                  counts, setup/solve seconds, stopping/convergence status,
+                  approximate flag and the approximations actually used.
 
 Limitations
-This is an early solver, not yet validated as a Fluent replacement. It accepts
-only the settings the strict Fluent adapter can reproduce; unsupported settings
+This is an early solver, not yet validated as a Fluent replacement. By default,
+it accepts only settings the strict adapter can reproduce; unsupported settings
 are listed and exit nonzero. Do not change your Fluent case merely to hide a
-rejection. The adapter does not yet expose convergence criteria: the CLI stops
+rejection.
+
+Optional approximation (changes the discrete equations)
+  .\kutta.exe solve "C:\cases\car.cas.h5" --backend cuda --approximate wfgc --out "C:\cases\kutta-approximate"
+
+wfgc permits recon/cell-lsf? = #t (warped-face gradient correction on) to run
+with WFGC off. Every other unsupported setting still fails, and an absent or
+unparsed WFGC setting still fails. Unknown, empty and duplicate names fail.
+The case file is never changed. Without --approximate, WFGC on still fails
+and the error names the opt-in. Permission has no effect when WFGC is off.
+
+Effect documented in src/kutta/fv/VERIFICATION.md, "V6 initialization comparison":
+the CPU hybrid mixing-elbow diagnostic with WFGC off differed from Fluent by
+3.601459% velocity L2, 2.961922% pressure L2, 15.478919% k L2, 8.474918% omega
+L2 and 1.185077% pressure drop. These are combined solver discrepancies, not
+isolated WFGC errors or bounds for your case. This is an approximate diagnostic,
+not a faithful reproduction or an accepted same-settings accuracy result.
+
+When used, APPROXIMATE RESULT is printed at start and end. summary.json records
+approximate=true and each setting, Fluent value, Kutta action, measured effect
+and documentation path. Both CSV files begin with a '# APPROXIMATE RESULT'
+comment; skip lines starting with # when reading CSV. result.vtu carries the
+same warning in an XML header comment. Keep these markers when sharing results.
+With no approximation used, CSV/VTU headers are unchanged and the summary has
+approximate=false and an empty approximations list.
+
+The adapter does not yet expose convergence criteria: the CLI stops
 at --iterations and records converged=false. Peak device memory is unavailable
 and recorded as null. A successful exit means the requested run and outputs
 completed; it does not establish convergence or Fluent force agreement.

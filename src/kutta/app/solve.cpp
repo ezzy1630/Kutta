@@ -22,9 +22,10 @@ struct Options {
   std::filesystem::path input,data,out="kutta-result";
   std::string backend="auto";
   int iterations=1000;
+  std::vector<setup::Approximation> approximations;
 };
 Options parse(int argc,char** argv) {
-  KUTTA_REQUIRE(argc>=3,"Usage: kutta solve <case.cas.h5> [--data init.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR]");
+  KUTTA_REQUIRE(argc>=3,"Usage: kutta solve <case.cas.h5> [--data init.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--approximate SETTING[,SETTING...]]");
   Options o;o.input=argv[2];std::set<std::string> seen;
   for(int i=3;i<argc;i+=2) {
     const std::string key=argv[i];
@@ -33,6 +34,7 @@ Options parse(int argc,char** argv) {
     if(key=="--data") o.data=v;
     else if(key=="--out") o.out=v;
     else if(key=="--backend") o.backend=v;
+    else if(key=="--approximate") o.approximations=setup::parse_approximations(v);
     else if(key=="--iterations") {
       const auto [end,ec]=std::from_chars(v.data(),v.data()+v.size(),o.iterations);
       KUTTA_REQUIRE(ec==std::errc{} && end==v.data()+v.size() && o.iterations>0,"--iterations must be a positive integer");
@@ -54,7 +56,7 @@ std::ofstream output(const std::filesystem::path& path) {
   std::ofstream f;f.exceptions(std::ios::failbit|std::ios::badbit);f.open(path);
   f.imbue(std::locale::classic());f<<std::setprecision(17);return f;
 }
-std::string json(const std::string& text) {
+std::string json(std::string_view text) {
   std::ostringstream s;s<<'"';
   for(unsigned char ch:text) {
     if(ch=='"' || ch=='\\') s<<'\\'<<ch;
@@ -99,7 +101,7 @@ std::vector<ForceDefinition> definitions(const fluent::FluentCase& c,const PolyM
   if(!errors.empty()) throw Error("Force reports rejected:"+errors);
   return out;
 }
-void write_fields(Device& dev,const fv::SteadySolver& solver,const std::filesystem::path& path) {
+void write_fields(Device& dev,const fv::SteadySolver& solver,const std::filesystem::path& path,std::string_view notice) {
   const auto download=[&](const Buffer<float>& b) {
     const auto v=dev.download(b);
     KUTTA_REQUIRE(std::all_of(v.begin(),v.end(),[](float q){return std::isfinite(q);}),"non-finite result field");
@@ -111,10 +113,11 @@ void write_fields(Device& dev,const fv::SteadySolver& solver,const std::filesyst
   const auto p=download(solver.pressure()),k=download(solver.kinetic_energy()),omega=download(solver.specific_dissipation()),mu=download(solver.turbulence().mu_t);
   const CellField fields[]={{"u",3,u},{"p",1,p},{"k",1,k},{"omega",1,omega},{"mu_t",1,mu}};
   // Fields and geometry both use the solver's owned RCM order.
-  write_vtu(path,solver.mesh(),fields);
+  write_vtu(path,solver.mesh(),fields,notice);
 }
 }
 int solve(int argc,char** argv) {
+  std::string notice;
   try {
     const auto o=parse(argc,argv);const auto start=Clock::now();
     const auto case_hash=sha256_file(o.input),data_hash=o.data.empty()?std::string{}:sha256_file(o.data);
@@ -122,10 +125,12 @@ int solve(int argc,char** argv) {
     std::optional<setup::FluentSetup> setup;std::optional<setup::Initialization> fields;
     std::vector<ForceDefinition> reports;std::string errors;
     const auto check=[&](auto fn) {try {fn();} catch(const std::exception& e) {errors+=std::string(e.what())+'\n';}};
-    check([&]{setup=setup::fluent_setup(c,mesh);});
+    check([&]{setup=setup::fluent_setup(c,mesh,o.approximations);});
     check([&]{fields=o.data.empty()?setup::initial_fields(c,mesh):setup::Initialization{setup::fluent_fields(c,fluent::read_data(o.data,c),mesh)};});
     check([&]{reports=definitions(c,mesh);});
     if(!errors.empty()) throw Error(errors);
+    notice=setup::approximation_notice(setup->approximations);
+    if(!notice.empty()) std::cout<<notice<<std::endl;
     for(const auto& note:setup->convergence_notes) std::cout<<"Setup: "<<note<<'\n';
     std::cout<<"Case convergence criteria are not exposed by the adapter; using iteration limit "<<o.iterations<<".\n";
     auto dev=device(o.backend);
@@ -139,6 +144,7 @@ int solve(int argc,char** argv) {
     // to partially replaced outputs. The summary is the completion marker.
     std::filesystem::remove(o.out/"summary.json");
     auto residuals=output(o.out/"residuals.csv");
+    if(!notice.empty()) residuals<<"# "<<notice<<'\n';
     residuals<<"iteration,continuity,x-velocity,y-velocity,z-velocity,k,omega,seconds_per_iteration\n";
     std::cout<<"Backend: "<<backend_name(dev->backend())<<"; device: "<<dev->name()<<"\n"
              <<"  iter    continuity    x-velocity    y-velocity    z-velocity             k         omega       sec/iter\n";
@@ -157,8 +163,9 @@ int solve(int argc,char** argv) {
       residuals<<','<<per_iteration<<'\n';std::cout<<std::setw(15)<<per_iteration<<std::endl;
     }
     const auto wall_time=seconds(run_start);residuals.close();
-    write_fields(*dev,solver,o.out/"result.vtu");
+    write_fields(*dev,solver,o.out/"result.vtu",notice);
     auto forces=output(o.out/"forces.csv");
+    if(!notice.empty()) forces<<"# "<<notice<<'\n';
     forces<<"kind,name,zone_id,pressure_x,pressure_y,pressure_z,viscous_x,viscous_y,viscous_z,total_x,total_y,total_z,direction_x,direction_y,direction_z,pressure_projection,viscous_projection,total_projection,coefficient\n";
     const auto row=[&](const std::string& kind,const ForceDefinition& d,std::optional<int> zone) {
       const auto f=solver.forces(d.patches,c.reference.pressure.value_or(0));const auto total=f.force();
@@ -177,7 +184,16 @@ int solve(int argc,char** argv) {
     for(const auto& r:reports) row("report",r,{});
     forces.close();
     auto summary=output(o.out/"summary.json");
-    summary<<"{\n  \"case_file\": "<<json(o.input.string())<<",\n  \"case_sha256\": "<<json(case_hash)
+    summary<<"{\n  \"approximate\": "<<(notice.empty()?"false":"true")<<",\n  \"approximation_notice\": "<<json(notice)
+      <<",\n  \"approximations\": [";
+    for(std::size_t i=0;i<setup->approximations.size();++i) {
+      const auto& info=setup::approximation_info(setup->approximations[i]);
+      if(i) summary<<',';
+      summary<<"\n    {\"name\": "<<json(info.name)<<", \"setting\": "<<json(info.setting)
+        <<", \"fluent_value\": "<<json(info.fluent_value)<<", \"kutta_action\": "<<json(info.kutta_action)
+        <<", \"effect_documentation\": "<<json(info.effect_documentation)<<", \"measured_effect\": "<<json(info.measured_effect)<<'}';
+    }
+    summary<<"],\n  \"case_file\": "<<json(o.input.string())<<",\n  \"case_sha256\": "<<json(case_hash)
       <<",\n  \"data_file\": "<<(o.data.empty()?"null":json(o.data.string()))<<",\n  \"data_sha256\": "<<(o.data.empty()?"null":json(data_hash))
       <<",\n  \"kutta_version\": "<<json(KUTTA_VERSION)<<",\n  \"kutta_commit\": "<<json(KUTTA_COMMIT)
       <<",\n  \"backend\": "<<json(backend_name(dev->backend()))<<",\n  \"device\": "<<json(dev->name())
@@ -185,6 +201,11 @@ int solve(int argc,char** argv) {
       <<",\n  \"wall_time_seconds\": "<<wall_time<<",\n  \"setup_time_seconds\": "<<setup_time
       <<",\n  \"peak_device_memory_bytes\": null,\n  \"converged\": false,\n  \"stop_reason\": \"iteration_limit\",\n  \"convergence_criteria_available\": false,\n  \"boundary_wall_shear_available\": false\n}\n";
     summary.close();std::cout<<"Wrote "<<o.out.string()<<" ("<<solver.report().iteration<<" iterations, "<<wall_time<<" s solve).\n";
+    if(!notice.empty()) std::cout<<notice<<std::endl;
     return 0;
-  } catch(const std::exception& e) {std::cerr<<"kutta solve: "<<e.what()<<'\n';return 1;}
+  } catch(const std::exception& e) {
+    std::cerr<<"kutta solve: "<<e.what()<<'\n';
+    if(!notice.empty()) std::cerr<<notice<<'\n';
+    return 1;
+  }
 }

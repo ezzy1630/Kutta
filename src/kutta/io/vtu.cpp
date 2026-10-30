@@ -84,7 +84,9 @@ void array(std::ostream& out, const char* type, const char* name,
 }
 }  // namespace
 void write_vtu(const std::filesystem::path& path, const PolyMesh& m,
-               std::span<const CellField> fields) {
+               std::span<const CellField> fields, std::string_view header_comment) {
+  KUTTA_REQUIRE(header_comment.find("--")==std::string_view::npos,"VTU header comment contains double hyphens");
+  const auto comment=xml(std::string(header_comment));
   validate(m);
   for (const auto& field : fields) {
     KUTTA_REQUIRE(field.components == 1 || field.components == 3,
@@ -130,7 +132,9 @@ void write_vtu(const std::filesystem::path& path, const PolyMesh& m,
   KUTTA_REQUIRE(out, "cannot open VTU output: " + path.string());
   out.imbue(std::locale::classic());
   out << std::setprecision(17);
-  out << "<?xml version=\"1.0\"?>\n<VTKFile type=\"UnstructuredGrid\" "
+  out << "<?xml version=\"1.0\"?>\n";
+  if(!comment.empty()) out << "<!-- " << comment << " -->\n";
+  out << "<VTKFile type=\"UnstructuredGrid\" "
          "version=\"1.0\" "
          "byte_order=\"LittleEndian\">\n<UnstructuredGrid><Piece "
          "NumberOfPoints=\""
