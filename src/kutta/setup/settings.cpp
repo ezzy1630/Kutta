@@ -131,16 +131,19 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
       {"momentum-scheme","Momentum","mom/scheme",&c.numerics.momentum},{"k-scheme","Turbulent kinetic energy","k/scheme",&c.numerics.k},{"omega-scheme","Specific dissipation rate","omega/scheme",&c.numerics.omega}}) {
     auto& s=b.add("methods/"+path,label,"Methods",*target?Json(**target==Scheme::first_upwind?"first-order-upwind":**target==Scheme::second_upwind?"second-order-upwind":std::string(name(**target))):Json(nullptr),"","enum");
     s.options={"first-order-upwind","second-order-upwind"};
-    if(*target)b.editable(s,[target](const Json& j){*target=std::get<std::string>(j.value)=="first-order-upwind"?Scheme::first_upwind:Scheme::second_upwind;});b.consume(c.variables,key);
+    if(*target)b.editable(s,[target](const Json& j){*target=std::get<std::string>(j.value)=="first-order-upwind"?Scheme::first_upwind:Scheme::second_upwind;});
+    b.consume(c.variables,key);
   }
   auto& limit=b.add("methods/gradient-limiting","Gradient limiting","Methods",c.numerics.limiting?Json(*c.numerics.limiting):Json(nullptr),"","bool");
-  if(c.numerics.limiting)b.editable(limit,[target=&c.numerics.limiting](const Json& j){*target=std::get<bool>(j.value);});b.consume(c.variables,"recon/limit?");
+  if(c.numerics.limiting)b.editable(limit,[target=&c.numerics.limiting](const Json& j){*target=std::get<bool>(j.value);});
+  b.consume(c.variables,"recon/limit?");
   b.number("controls/pseudo-time-scale-factor","Pseudo-time scale factor","Controls",c.numerics.pseudo.scale_factor,"1",true,positive,1e15);b.consume(c.variables,"pseudo-auto-time-step-scale-factor");
   const bool coupled=c.numerics.coupling==Coupling::coupled;
   for(auto eq:{"mom","pressure","k","omega"}) {
     const std::string key=coupled && (std::string_view(eq)=="mom" || std::string_view(eq)=="pressure")?"pressure-coupled/"+std::string(eq)+"/pseudo-explicit-relax":std::string(eq)+"/pseudo-relax";
     const auto it=c.numerics.pseudo_relaxation.find(key);auto& s=b.add("controls/"+std::string(eq)+"-relaxation",std::string(eq)+" relaxation","Controls",it!=c.numerics.pseudo_relaxation.end()?Json(it->second):Json(nullptr),"1","number");
-    if(it!=c.numerics.pseudo_relaxation.end())b.editable(s,[target=&it->second](const Json& j){*target=std::get<double>(j.value);},positive,1);b.consume(c.variables,key);
+    if(it!=c.numerics.pseudo_relaxation.end())b.editable(s,[target=&it->second](const Json& j){*target=std::get<double>(j.value);},positive,1);
+    b.consume(c.variables,key);
   }
   for(auto [key,label,target,max]:std::vector<std::tuple<std::string,std::string,int*,double>>{{"iterations","Number of iterations",&run.iterations,1e9},{"monitor-interval","Monitor interval",&run.monitor_interval,100000}}) {
     auto& s=b.add("run/"+key,label,"Run Calculation",*target,"","integer");b.editable(s,[target](const Json& j){*target=int(std::get<double>(j.value));},1,max);

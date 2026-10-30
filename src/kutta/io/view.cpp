@@ -63,7 +63,8 @@ void add_deltas(std::vector<Field>& fields) {
     auto base=std::find_if(fields.begin(),fields.begin()+std::ptrdiff_t(count),[&](const auto& b){return b.name==name;});
     if(base==fields.begin()+std::ptrdiff_t(count))continue;
     Field d{name+"@delta",f.unit,f.components,{}};d.values.reserve(f.values.size());
-    for(std::size_t j=0;j<f.values.size();++j)d.values.push_back(base->values[j]-f.values[j]);fields.push_back(std::move(d));
+    for(std::size_t j=0;j<f.values.size();++j)d.values.push_back(base->values[j]-f.values[j]);
+    fields.push_back(std::move(d));
   }
 }
 bool visible(std::string_view name,bool wall) {
@@ -187,7 +188,8 @@ void payload(const std::filesystem::path& path,const Geometry& g,std::ostream& m
   for(const auto& f:g.fields) {
     KUTTA_REQUIRE(f.values.size()==g.positions.size()/3*f.components,"view vertex field shape mismatch");
     w.array<float>(f.values);auto r=range(f);
-    if(!first)manifest<<',';first=false;
+    if(!first)manifest<<',';
+    first=false;
     manifest<<"{\"name\":"<<json_string(f.name)<<",\"unit\":"<<json_string(f.unit)<<",\"components\":"<<f.components<<",\"location\":\"vertex\",\"offset_bytes\":"<<offset;range_json(manifest,r);manifest<<'}';
     offset+=f.values.size()*4;
     auto& entry=catalog[f.name];entry.first.name=f.name;entry.first.unit=f.unit;entry.first.components=f.components;entry.second.add(r.lo);entry.second.add(r.hi);
@@ -207,7 +209,8 @@ void export_view(const std::filesystem::path& directory,const Snapshot& s,std::s
     manifest<<",\"zones\":[";bool first=true;
     for(std::size_t i=0;i<s.mesh.patches.size();++i) {
       const auto& p=s.mesh.patches[i];auto g=surface(s,p,local);
-      if(!first)manifest<<',';first=false;manifest<<"{\"id\":"<<p.source_zone_id<<",\"name\":"<<json_string(p.name)<<",\"type\":"<<json_string(p.source_type)<<",\"faces\":"<<p.size;
+      if(!first)manifest<<',';
+      first=false;manifest<<"{\"id\":"<<p.source_zone_id<<",\"name\":"<<json_string(p.name)<<",\"type\":"<<json_string(p.source_type)<<",\"faces\":"<<p.size;
       payload(stage/("zone-"+std::to_string(i)+".surface.bin"),g,manifest,catalog);
     }
     manifest<<"],\"slices\":[";
@@ -223,7 +226,8 @@ void export_view(const std::filesystem::path& directory,const Snapshot& s,std::s
       }
     }
     manifest<<"],\"fields\":[";first=true;
-    for(const auto& [name,entry]:catalog){if(!first)manifest<<',';first=false;manifest<<"{\"name\":"<<json_string(name)<<",\"unit\":"<<json_string(entry.first.unit)<<",\"components\":"<<entry.first.components<<",\"location\":\"vertex\"";range_json(manifest,entry.second);manifest<<'}';}
+    for(const auto& [name,entry]:catalog){if(!first)manifest<<',';
+    first=false;manifest<<"{\"name\":"<<json_string(name)<<",\"unit\":"<<json_string(entry.first.unit)<<",\"components\":"<<entry.first.components<<",\"location\":\"vertex\"";range_json(manifest,entry.second);manifest<<'}';}
     manifest<<"]}\n";manifest.close();
     if(std::filesystem::exists(target))std::filesystem::rename(target,old);
     try {std::filesystem::rename(stage,target);}catch(...){if(std::filesystem::exists(old))std::filesystem::rename(old,target);throw;}

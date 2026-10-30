@@ -29,7 +29,8 @@ class Parser {
     ++at;return out;
   }
   Json read(int depth){
-    if(depth>64)fail("nesting limit exceeded");space();
+    if(depth>64)fail("nesting limit exceeded");
+    space();
     if(peek()=='"')return string();
     if(peek()=='{' || peek()=='['){const bool object=peek()=='{';++at;space();Json::Object obj;Json::Array arr;if(peek()!=(object?'}':']'))for(;;){std::string key;if(object){if(peek()!='"')fail("object key must be a string");key=string();space();expect(':');}auto v=read(depth+1);if(object){if(!obj.emplace(key,std::move(v)).second)fail("duplicate object key: "+key);}else arr.push_back(std::move(v));space();if(peek()!=',')break;++at;space();}expect(object?'}':']');return object?Json(std::move(obj)):Json(std::move(arr));}
     for(auto [token,value]:{std::pair<std::string_view,Json>{"true",true},{"false",false},{"null",nullptr}})if(text.substr(at,token.size())==token){at+=token.size();return value;}
