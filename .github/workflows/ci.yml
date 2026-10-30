@@ -45,13 +45,65 @@ jobs:
           method: network
           sub-packages: '["nvcc", "cudart", "crt", "nvvm", "visual_studio_integration"]'
           use-github-cache: true
+      # Pin both port recipes and dependency source hashes; no runner-global vcpkg.
+      - name: Checkout pinned vcpkg
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/vcpkg
+          ref: 84bab45d415d22042bd0b9081aea57f362da3f35 # 2025.12.12
+          path: .vcpkg
+      - name: Bootstrap vcpkg
+        shell: pwsh
+        run: .\.vcpkg\bootstrap-vcpkg.bat -disableMetrics
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DKUTTA_ENABLE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="75-real;86-real;89-real;120"
+        run: >-
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DKUTTA_ENABLE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="75-real;86-real;89-real;120"
+          -DKUTTA_REQUIRE_HDF5=ON
+          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/.vcpkg/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_MANIFEST_DIR="${{ github.workspace }}/cmake/windows"
+          -DVCPKG_TARGET_TRIPLET=x64-windows
       - name: Build
         run: cmake --build build
       - name: Test (CPU oracle)
         shell: bash
         run: ./build/kutta-tests.exe --test-suite-exclude=slow --test-case-exclude="$GPU_PRESENCE_TEST"
+
+      - name: Package Windows CLI
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $package = "build/kutta-windows-rtx"
+          $deps = "build/vcpkg_installed/x64-windows"
+          New-Item -ItemType Directory -Force "$package/licenses" | Out-Null
+          Copy-Item build/kutta.exe $package
+          # This manifest builds only HDF5+zlib. Copy release DLLs, including
+          # transitive dependencies, without relying on the runner's PATH.
+          Copy-Item "$deps/bin/*.dll" $package
+          foreach ($port in @("hdf5", "zlib")) {
+            Copy-Item "$deps/share/$port/copyright" "$package/licenses/LICENSE-$port.txt"
+          }
+          # The minimal CUDA installer may omit documentation. Bundle the
+          # versioned NVIDIA notice, with a pinned content hash, for static cudart.
+          $cudaLicense = "$package/licenses/LICENSE-CUDA-13.0.2.pdf"
+          Invoke-WebRequest https://docs.nvidia.com/cuda/archive/13.0.2/pdf/EULA.pdf -OutFile $cudaLicense
+          if ((Get-FileHash $cudaLicense -Algorithm SHA256).Hash -ne "c365e3bfe9ed70d7fb7dbacc4fdd4b4a15fb951be5440f0f6bd95e3c935e93ef") {
+            throw "CUDA license content changed"
+          }
+          Copy-Item docs/README-windows.txt $package
+          "Kutta source: ${{ github.sha }}" | Set-Content "$package/build-info.txt"
+          # Load the packaged executable with dependency directories removed.
+          $env:PATH = "$env:SystemRoot/system32;$env:SystemRoot"
+          $usage = & "$package/kutta.exe" 2>&1 | Out-String
+          if ($LASTEXITCODE -ne 2 -or $usage -notmatch "Usage: kutta") {
+            throw "Packaged CLI failed to load: $usage"
+          }
+          Compress-Archive -Path "$package/*" -DestinationPath build/kutta-windows-rtx.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kutta-windows-rtx
+          path: build/kutta-windows-rtx.zip
+          if-no-files-found: error
 
   macos-metal:
     runs-on: macos-15
