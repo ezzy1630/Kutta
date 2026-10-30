@@ -29,7 +29,7 @@ Vec3d source(Vec3d p) {
     q.x*vx+q.y*vy-mu*lapv-pi*std::cos(pi*p.x)*std::sin(pi*p.y),0};
 }
 struct Errors { double velocity,pressure,wall_pressure,wall_viscous,wall_total; };
-Errors manufactured(Device& dev,int n,bool tet) {
+Errors manufactured(Device& dev,int n,bool tet,int max_iterations=2000) {
   using namespace kutta::detail;
   auto mesh=tet?make_box_tet(n,n,n,{0,0,0},{1,1,1}):make_box_hex(n,n,1,{0,0,0},{1,1,1./n});
   // Select x=0, 0<=y<=1/2 as real wall patches, keeping every face in its
@@ -59,7 +59,7 @@ Errors manufactured(Device& dev,int n,bool tet) {
   double total_area=0;
   for(auto area:solver.geometry().face_area) total_area+=kutta::detail::norm(area);
   int it=0;
-  for(;it<2000;it+=20) {
+  for(;it<max_iterations;it+=20) {
     solver.iterate(20);const auto r=solver.report();
     if(it%200==0) std::cout<<"FV_V2_PROGRESS backend="<<backend_name(dev.backend())<<" tet="<<tet<<" n="<<n
       <<" iter="<<r.iteration<<" ru="<<r.u.scaled<<" rv="<<r.v.scaled<<" rc="<<r.continuity.scaled<<" rc_raw="<<r.continuity.raw<<std::endl;
@@ -67,7 +67,7 @@ Errors manufactured(Device& dev,int n,bool tet) {
     if(std::max({r.u.scaled,r.v.scaled,r.w.scaled})<1e-7 &&
        (r.continuity.scaled<1e-5 || r.continuity.raw<mass_roundoff)) break;
   }
-  CHECK(it<2000);
+  CHECK(it<max_iterations);
   auto u=dev.download(solver.velocity().x),v=dev.download(solver.velocity().y),w=dev.download(solver.velocity().z),p=dev.download(solver.pressure());
   const auto& g=solver.geometry();
   double eu=0,ep=0,vol=0,mean=0;
@@ -147,4 +147,14 @@ TEST_CASE("FV V2 manufactured Navier Stokes hex refinement" * doctest::test_suit
 }
 TEST_CASE("FV V2 manufactured Navier Stokes tet refinement" * doctest::test_suite("slow")) {
   KUTTA_FOR_EACH_BACKEND(dev) check_refinement(*dev,true);
+}
+
+TEST_CASE("FV laminar tet manufactured solution converges without SST") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    // The 384-cell V2 case converges in 160 steps with the verified laminar
+    // operator. Omitting extrapolated pressure observations stalls this solve.
+    const auto error=manufactured(*dev,4,true,200);
+    CHECK(error.velocity<.18);
+    CHECK(error.pressure<.28);
+  }
 }

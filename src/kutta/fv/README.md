@@ -45,7 +45,7 @@ and extrapolates tangentially. Pressure outlets impose gauge static pressure.
 Wall force is pressure relative to the requested reference, minus the viscous
 traction on the fluid, integrated using Device double/compensated reductions.
 
-For extrapolated boundary values, `boundary_least_squares()` precomputes a
+For SST extrapolated boundary values, `boundary_least_squares()` precomputes a
 separate observation matrix for each equation. Pressure excludes wall, inlet
 and symmetry rows; velocity excludes outlet and symmetry rows; k excludes all
 but inlet rows; omega additionally includes independent wall reconstruction
@@ -53,7 +53,8 @@ values. Excluded rows have zero weighted deltas. A symmetric eigensolve adds
 zero-difference constraints only along deficient directions, preserving all
 resolved directions. No previous gradient can feed itself through a boundary
 value. Standalone operators with supplied independent face data retain the
-original full LSQ stencil.
+original full LSQ stencil, as does the verified laminar flow path. Selecting SST
+is what enables the boundary-aware flow reconstruction.
 
 Set `SolverSettings::sst` and supply inlet/outlet `TurbulenceCondition` values
 to enable SST. Momentum uses interpolated `mu+mu_t`, explicit transpose stress,
