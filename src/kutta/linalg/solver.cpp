@@ -110,6 +110,7 @@ class Krylov final : public LinearSolver {
     residual(dev, a, x, b, r_);
     stats.initial_residual = norm(dev, r_);
     stats.final_residual = stats.initial_residual;
+    verified_current_ = true;
     const double target = std::max(c.abs_tol, c.rel_tol * stats.initial_residual);
     if (!std::isfinite(stats.initial_residual)) return stats;
     if (stats.final_residual <= target) { stats.converged = true; return stats; }
@@ -134,6 +135,7 @@ class Krylov final : public LinearSolver {
       for (int i = 0; i < c.max_iter; ++i) {
         apply(dev, a, r_, z_);
         kern::axpy(dev, n_, x, z_, 2.0f / 3.0f);
+        verified_current_ = false;
         ++stats.iterations;
         if (stats.iterations % c.residual_check_interval == 0 || stats.iterations == c.max_iter) {
           if (verified(dev, a, x, b, target, stats) || diverged(stats)) break;
@@ -145,7 +147,9 @@ class Krylov final : public LinearSolver {
       bicgstab(dev, a, x, b, c, target, stats);
     }
     // All exits, including breakdown/max_iter, report the actual residual.
-    verified(dev, a, x, b, target, stats);
+    // Candidate exits have just checked this exact x. Constant projection can
+    // round x again, so retain its historical final verification sequence.
+    if (!verified_current_ || nullspace_) verified(dev, a, x, b, target, stats);
     if (!std::isfinite(stats.final_residual) || stats.final_residual > best_residual_) {
       dev.copy(x, best_);
       verified(dev, a, x, b, target, stats);
@@ -179,6 +183,7 @@ class Krylov final : public LinearSolver {
     if (nullspace_) project(dev, x, projection_);
     residual(dev, a, x, b, r_);
     stats.final_residual = norm(dev, r_);
+    verified_current_ = true;
     stats.converged = std::isfinite(stats.final_residual) && stats.final_residual <= target;
     if (stats.final_residual < best_residual_) {
       best_residual_ = stats.final_residual;
@@ -218,6 +223,7 @@ class Krylov final : public LinearSolver {
     int check_interval = batch_interval(c);
     while (stats.iterations < c.max_iter) {
       const int batch = std::min(check_interval, c.max_iter - stats.iterations);
+      verified_current_ = false;
       for (int j = 0; j < batch; ++j) {
         kern::csr_spmv_guarded(dev, n_, a.row_ptr, a.col, a.val, p_, q_, status_);
         dev.dot_into(p_, q_, n_, scalars_, 2);
@@ -259,6 +265,7 @@ class Krylov final : public LinearSolver {
     int check_interval = batch_interval(c);
     while (stats.iterations < c.max_iter) {
       const int batch = std::min(check_interval, c.max_iter - stats.iterations);
+      verified_current_ = false;
       for (int j = 0; j < batch; ++j) {
         dev.dot_into(shadow_, r_, n_, scalars_, 0);
         kern::solver_bicg_beta(dev, 1, scalars_, status_);
@@ -311,6 +318,7 @@ class Krylov final : public LinearSolver {
   Buffer<float> projection_;
   double best_residual_ = 0;
   int previous_iterations_ = 0;
+  bool verified_current_ = false;
 };
 }  // namespace
 

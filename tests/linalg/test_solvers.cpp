@@ -390,6 +390,22 @@ TEST_CASE("reused transport solves allocate nothing and avoid frozen reduction b
   }
 }
 
+TEST_CASE("Krylov exits do not reread an already verified current residual") {
+  for(auto backend:Device::available()) for(auto kind:{SolverKind::PcgJacobi,SolverKind::BicgstabJacobi}) {
+    InstrumentedDevice dev(backend);
+    CsrMatrixHost a{{1,{0,1},{0},{0}},{2}};
+    auto matrix=upload(dev,a);auto solver=make_solver(kind,dev,a);
+    auto x=dev.alloc<float>(1),b=dev.alloc<float>(1);dev.fill(x,0);dev.fill(b,1);
+    dev.reductions=0;
+    const auto stats=solver->solve(dev,matrix,x,b,{1e-6,1e-12,20});
+    REQUIRE(stats.converged);CHECK(stats.iterations==1);
+    CHECK(stats.final_residual==0);CHECK(dev.download(x)==std::vector<float>{.5f});
+    // Input b/x, initial defect, and one true b-A*x verification. A second
+    // final read adds a GPU wait without observing a new solution.
+    CHECK(dev.reductions==4);
+  }
+}
+
 TEST_CASE("assembled random Neumann pressure uses the caller nullspace contract") {
   for (bool float_diagonal : {false, true}) {
     auto a = poisson(12, 10, 4, 1, true, true);
