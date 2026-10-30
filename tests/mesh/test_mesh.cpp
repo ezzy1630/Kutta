@@ -155,6 +155,26 @@ TEST_CASE("validation rejects malformed topology and winding") {
     m.points[0].x = std::numeric_limits<double>::infinity();
     CHECK_THROWS_AS(validate(m), Error);
   }
+  SUBCASE("repeated node names the first repeat") {
+    auto m = good;
+    const auto n = m.face_nodes.begin() + m.face_offsets[0];
+    const auto b = n[1];
+    n[2] = b;
+    n[3] = n[0];
+    const auto expected = "repeated node " + std::to_string(b);
+    CHECK_THROWS_WITH_AS(validate(m), doctest::Contains(expected.c_str()), Error);
+  }
+  SUBCASE("hanging node with closed area") {
+    // A collinear node on one side of an edge keeps every area closure exact,
+    // so only the edge pairing can reject it.
+    auto m = good;
+    const auto f = m.n_internal_faces();
+    const auto a = m.face_nodes[m.face_offsets[f]], b = m.face_nodes[m.face_offsets[f] + 1];
+    m.points.push_back((m.points[a] + m.points[b]) * 0.5);
+    m.face_nodes.insert(m.face_nodes.begin() + m.face_offsets[f] + 1, m.n_points() - 1);
+    for (auto i = std::size_t(f) + 1; i < m.face_offsets.size(); ++i) ++m.face_offsets[i];
+    CHECK_THROWS_WITH_AS(validate(m), doctest::Contains("closed oriented manifold"), Error);
+  }
 }
 TEST_CASE("gather adjacency and RCM preserve topology, zones and geometry") {
   auto m = make_box_tet(4, 2, 1, {0, 0, 0}, {4, 2, 1});

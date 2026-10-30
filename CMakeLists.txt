@@ -46,6 +46,8 @@ add_library(kutta
   ${KUTTA_GEN_DIR}/kernels_host.cpp
   ${KUTTA_GEN_DIR}/kernels_cpu.cpp)
 target_include_directories(kutta PUBLIC ${CMAKE_SOURCE_DIR}/src ${KUTTA_GEN_DIR})
+find_package(Threads REQUIRED)
+target_link_libraries(kutta PUBLIC Threads::Threads)
 if(MSVC)
   target_compile_options(kutta PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4;/permissive->)
 else()

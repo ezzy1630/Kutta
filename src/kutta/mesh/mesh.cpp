@@ -1,7 +1,9 @@
 #include "kutta/mesh/mesh.hpp"
 
-#include <map>
+#include <algorithm>
 #include <set>
+#include <tuple>
+#include <vector>
 
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
@@ -24,26 +26,28 @@ void structure(const PolyMesh& m) {
   for (Index p = 0; p < m.n_points(); ++p)
     KUTTA_REQUIRE(finite(m.points[p]), "non-finite point " + std::to_string(p));
   for (Index f = 0; f < m.n_faces(); ++f) {
-    const auto label = "face " + std::to_string(f) + ": ";
+    // Built only on failure: millions of faces make eager labels a startup cost.
+    const auto label = [f] { return "face " + std::to_string(f) + ": "; };
     KUTTA_REQUIRE(m.face_offsets[f] >= 0 &&
                       m.face_offsets[f + 1] >= m.face_offsets[f] &&
                       m.face_offsets[f + 1] <= index(m.face_nodes.size()),
-                  label + "invalid CSR offsets");
+                  label() + "invalid CSR offsets");
     KUTTA_REQUIRE(m.face_offsets[f + 1] - m.face_offsets[f] >= 3,
-                  label + "requires at least three nodes");
-    std::set<Index> unique;
-    for (auto p : nodes(m, f)) {
+                  label() + "requires at least three nodes");
+    const auto ns = nodes(m, f);
+    for (std::size_t j = 0; j < ns.size(); ++j) {
+      const auto p = ns[j];
       KUTTA_REQUIRE(p >= 0 && p < m.n_points(),
-                    label + "node index outside points");
-      KUTTA_REQUIRE(unique.insert(p).second,
-                    label + "repeated node " + std::to_string(p));
+                    label() + "node index outside points");
+      KUTTA_REQUIRE(std::find(ns.begin(), ns.begin() + j, p) == ns.begin() + j,
+                    label() + "repeated node " + std::to_string(p));
     }
     KUTTA_REQUIRE(m.owner[f] >= 0 && m.owner[f] < m.n_cells,
-                  label + "owner outside cell range");
+                  label() + "owner outside cell range");
     if (f < m.n_internal_faces())
       KUTTA_REQUIRE(
           m.neighbour[f] > m.owner[f] && m.neighbour[f] < m.n_cells,
-          label + "internal face requires 0 <= owner < neighbour < n_cells");
+          label() + "internal face requires 0 <= owner < neighbour < n_cells");
   }
   Index next = m.n_internal_faces();
   std::set<std::string> patch_names;
@@ -169,29 +173,38 @@ void validate(const PolyMesh& m) {
     }
   }
   auto adjacency = build_cell_faces(m);
+  // One cell's directed edges, reused across cells. Area closure alone can
+  // hide holes: every undirected edge must appear exactly twice, once in
+  // each direction.
+  std::vector<std::tuple<Index, Index, int>> edges;
   for (Index c = 0; c < m.n_cells; ++c) {
     KUTTA_REQUIRE(norm(closure[c]) <= 1e-10 * areas[c],
                   "cell " + std::to_string(c) +
                       " is not closed: outward face areas do not sum to zero");
-    // Keep the edge map local to one cell rather than retaining millions of
-    // tree nodes for the entire mesh. Area closure alone can hide holes.
-    std::map<std::pair<Index, Index>, std::pair<int, int>> edges;
+    edges.clear();
     for (auto i = adjacency.offsets[c]; i < adjacency.offsets[c + 1]; ++i) {
       auto ns = nodes(m, adjacency.faces[i]);
       for (std::size_t j = 0; j < ns.size(); ++j) {
         auto a = ns[j], b = ns[(j + 1) % ns.size()];
         if (adjacency.signs[i] < 0) std::swap(a, b);
-        auto& edge = edges[std::minmax(a, b)];
-        ++edge.first;
-        edge.second += (a < b ? 1 : -1);
+        const auto [lo, hi] = std::minmax(a, b);
+        edges.emplace_back(lo, hi, a < b ? 1 : -1);
       }
     }
-    for (const auto& [edge, n] : edges) {
-      (void)edge;
+    std::sort(edges.begin(), edges.end());
+    for (std::size_t j = 0; j < edges.size();) {
+      std::size_t k = j;
+      int count = 0, orientation = 0;
+      for (; k < edges.size() && std::get<0>(edges[k]) == std::get<0>(edges[j]) &&
+             std::get<1>(edges[k]) == std::get<1>(edges[j]); ++k) {
+        ++count;
+        orientation += std::get<2>(edges[k]);
+      }
       KUTTA_REQUIRE(
-          n.first == 2 && n.second == 0,
+          count == 2 && orientation == 0,
           "cell " + std::to_string(c) +
               " is not a closed oriented manifold: unmatched/repeated edge");
+      j = k;
     }
   }
 }

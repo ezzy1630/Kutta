@@ -5,6 +5,8 @@
 #include <cmath>
 #include <limits>
 #include <numeric>
+#include <thread>
+#include <vector>
 
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
@@ -147,12 +149,23 @@ DeviceMesh upload_mesh(Device& dev, const PolyMesh& mesh, const MeshGeometry& g)
   m.cell_face_offsets = dev.upload<Index>(cf.offsets); m.cell_faces = dev.upload<Index>(cf.faces);
   std::vector<float> sign(cf.signs.begin(), cf.signs.end());
   m.cell_face_sign = dev.upload<float>(sign);
-  const WallBvh walls(mesh);
   for (Index c = 0; c < m.n_cells; ++c) {
     KUTTA_REQUIRE(std::isfinite(g.cell_volume[c]) && g.cell_volume[c] > 0,
                   "FV requires finite positive cell volumes");
     volumes.push_back(float(g.cell_volume[c]));
-    distance.push_back(float(walls.distance(g.cell_centroid[c])));
+  }
+  // Wall distance dominates large-mesh startup. Each cell's search is
+  // independent, so splitting cells across threads gives the serial result.
+  const WallBvh walls(mesh);
+  distance.resize(m.n_cells);
+  const auto cells = std::size_t(m.n_cells);
+  const auto workers = std::clamp<std::size_t>(std::thread::hardware_concurrency(), 1, cells / 4096 + 1);
+  {
+    std::vector<std::jthread> threads;
+    for (std::size_t t = 0; t < workers; ++t)
+      threads.emplace_back([&, begin = cells * t / workers, end = cells * (t + 1) / workers] {
+        for (auto c = begin; c < end; ++c) distance[c] = float(walls.distance(g.cell_centroid[c]));
+      });
   }
   for (const auto& p : mesh.patches) {
     m.patches.push_back({p.name, p.kind, p.start, p.size});
