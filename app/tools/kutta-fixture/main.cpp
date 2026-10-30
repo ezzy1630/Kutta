@@ -16,6 +16,7 @@
 //   KUTTA_FIXTURE_DEVICES     "macos" | "windows" device inventory
 //   KUTTA_FIXTURE_CAR_DETAIL  car tessellation multiplier (1 ~ 0.4M triangles)
 
+#include "Aero.h"
 #include "SyntheticCar.h"
 
 #include "core/CliClient.h"
@@ -68,7 +69,7 @@ void eprint(const QString& s)
 {
     const QString msg = "Usage: kutta-fixture devices --json | inspect CASE [--data DAT] --json | solve CASE ... --out DIR "
                         "--progress jsonl [--live-view DIR [--live-every N]] | export-view DIR [--post FILE] [--slice ox,oy,oz,nx,ny,nz]... "
-                        "| export-geometry CASE --out DIR [--json]";
+                        "| export-geometry CASE --out DIR [--json] | aero DIR [--aero SPEC] [--json]";
     if (jsonl) emitJson({{"v", 1}, {"event", "error"}, {"message", msg}, {"issues", QJsonArray{}}});
     eprint(msg);
     std::exit(2);
@@ -113,12 +114,15 @@ QByteArray readFixture(const QString& rel)
     return {};
 }
 
-// Run controls (iterations, monitor interval) never make a result MODIFIED.
-bool caseModified(const QJsonObject& overrides)
+// Run controls (iterations, monitor interval, convergence) never make a result MODIFIED.
+QJsonObject caseOverrides(const QJsonObject& overrides)
 {
-    const QStringList keys = overrides.keys();
-    return std::any_of(keys.begin(), keys.end(), [](const QString& k) { return !kapp::SettingsModel::isRunControl(k); });
+    QJsonObject o;
+    for (auto it = overrides.begin(); it != overrides.end(); ++it)
+        if (!kapp::SettingsModel::isRunControl(it.key())) o.insert(it.key(), it.value());
+    return o;
 }
+bool caseModified(const QJsonObject& overrides) { return !caseOverrides(overrides).isEmpty(); }
 
 QJsonObject readJson(const QString& path)
 {
@@ -258,12 +262,12 @@ QString provenance(const RunSpec& r)
 {
     QStringList parts;
     if (QString a = approximationNotice(r); !a.isEmpty()) parts << a;
-    if (!r.overrides.isEmpty()) {
-        QStringList keys = r.overrides.keys();
+    if (caseModified(r.overrides)) {
+        QStringList keys = caseOverrides(r.overrides).keys();
         parts << "MODIFIED RESULT: case settings overridden (" + keys.join(", ") + ")";
     }
     if (r.kind == CaseKind::Car) parts << "SYNTHETIC FIXTURE: invented geometry and fields for app development; not a CFD result";
-    else if (!r.overrides.isEmpty()) parts << "FIXTURE REPLAY: recorded mixing-elbow fields; overrides did not change these numbers";
+    else if (caseModified(r.overrides)) parts << "FIXTURE REPLAY: recorded mixing-elbow fields; overrides did not change these numbers";
     return parts.join(" | ");
 }
 
@@ -278,6 +282,7 @@ void applyCarOverrides(RunSpec& r)
     num("reference/density", r.car.refDensity);
     num("reference/velocity", r.car.refVelocity);
     num("reference/pressure", r.car.refPressure);
+    num("reference/length", r.car.refLength);
 }
 
 QJsonObject runDescriptor(const RunSpec& r)
@@ -289,7 +294,8 @@ QJsonObject runDescriptor(const RunSpec& r)
             {"synthetic", r.kind == CaseKind::Car},
             {"params", QJsonObject{{"speed", r.car.speed}, {"density", r.car.density}, {"viscosity", r.car.viscosity},
                                    {"ref_area", r.car.refArea}, {"ref_density", r.car.refDensity},
-                                   {"ref_velocity", r.car.refVelocity}, {"ref_pressure", r.car.refPressure}}}};
+                                   {"ref_velocity", r.car.refVelocity}, {"ref_pressure", r.car.refPressure},
+                                   {"ref_length", r.car.refLength}}}};
 }
 
 CarParams paramsFrom(const QJsonObject& d)
@@ -303,6 +309,7 @@ CarParams paramsFrom(const QJsonObject& d)
     c.refDensity = p.value("ref_density").toDouble(c.refDensity);
     c.refVelocity = p.value("ref_velocity").toDouble(c.refVelocity);
     c.refPressure = p.value("ref_pressure").toDouble(c.refPressure);
+    c.refLength = p.value("ref_length").toDouble(c.refLength);
     c.detail = std::max(1, qEnvironmentVariableIntValue("KUTTA_FIXTURE_CAR_DETAIL"));
     return c;
 }
@@ -459,6 +466,9 @@ int solve(const Args& a)
     if (r.device.isEmpty()) fail(QStringLiteral("backend %1 is not available on this machine").arg(backend));
 
     if (r.kind == CaseKind::Car) applyCarOverrides(r);
+    const QJsonObject inspected = inspectJson(r.casePath, r.dataPath, r.car);
+    const ConvergenceConfig conv = convergenceFrom(inspected.value("settings").toArray(), r.overrides);
+    ConvergenceCheck convergence(conv);
     watchStdin();
     QDir().mkpath(r.outDir);
     const double speed = std::max(0.1, qEnvironmentVariable("KUTTA_FIXTURE_SPEED", "6").toDouble());
@@ -471,7 +481,8 @@ int solve(const Args& a)
     QJsonObject setup{{"v", 1}, {"event", "setup"}, {"cells", double(r.kind == CaseKind::Elbow ? 17822 : 18412903)},
                       {"backend", r.device.value("backend")}, {"device", r.device.value("name")},
                       {"approximations", QJsonArray::fromStringList(r.approximations)},
-                      {"init", r.dataPath.isEmpty() ? "hybrid" : "fluent-data"}, {"overrides", r.overrides}, {"modified", caseModified(r.overrides)}};
+                      {"init", r.dataPath.isEmpty() ? "hybrid" : "fluent-data"}, {"overrides", r.overrides}, {"modified", caseModified(r.overrides)},
+                      {"convergence", conv.toJson()}};
     if (r.liveView > 0)
         setup["live_view"] = QJsonObject{{"directory", liveRoot}, {"run_id", liveRunId}, {"every", r.liveView},
                                          {"unit", "iterations"}, {"budget_fraction", 0.05}};
@@ -483,14 +494,17 @@ int solve(const Args& a)
         emitJson({{"v", 1}, {"event", "warning"}, {"message", "FIXTURE REPLAY: progress and fields were recorded from a real Kutta run of this case on Apple M4 Pro (Metal); no solver is running now."}});
     if (r.kind == CaseKind::Elbow && !r.overrides.isEmpty())
         emitJson({{"v", 1}, {"event", "warning"}, {"message", "FIXTURE REPLAY: overrides were validated, but the recorded numbers do not change."}});
-    emitJson({{"v", 1}, {"event", "warning"}, {"message", "Case convergence criteria are not exposed by the adapter; stopping at the requested iteration limit."}});
+    if (!conv.enabled)
+        emitJson({{"v", 1}, {"event", "warning"}, {"message", "Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit."}});
+    else if (conv.residuals.isEmpty() && conv.reports.empty())
+        emitJson({{"v", 1}, {"event", "warning"}, {"message", "Convergence checking is on but no residual is checked and no report condition is active; stopping at the requested iteration limit."}});
 
     QElapsedTimer clock;
     clock.start();
     QStringList residualRows;
     QStringList residualNames;
     int lastIter = 0;
-    bool stopped = false;
+    bool stopped = false, converged = false;
     int liveSequence = 0;
     // Publish like the CLI: complete the snapshot directory, then swap the pointer.
     auto snapshot = [&](int iter, double convergence) {
@@ -522,6 +536,14 @@ int solve(const Args& a)
     };
     auto onIteration = [&](QJsonObject ev) {
         lastIter = ev.value("iter").toInt();
+        if (conv.enabled) {
+            QMap<QString, double> res, reps;
+            const QJsonObject ro = ev.value("residuals").toObject(), po = ev.value("reports").toObject();
+            for (auto it = ro.begin(); it != ro.end(); ++it) res[it.key()] = it.value().toDouble();
+            for (auto it = po.begin(); it != po.end(); ++it) reps[it.key()] = it.value().toObject().value("force").toDouble();
+            ev["convergence"] = convergence.sample(lastIter, res, reps);
+            converged = convergence.met();
+        }
         if (residualNames.isEmpty()) residualNames = kapp::residualOrder(ev.value("residuals").toObject().keys());
         QStringList row{QString::number(lastIter)};
         for (const QString& n : residualNames) row << QString::number(ev.value("residuals").toObject().value(n).toDouble(), 'g', 17);
@@ -555,6 +577,7 @@ int solve(const Args& a)
             lastElapsed = el;
             onIteration(ev);
             while (r.liveView > 0 && nextSnap < 3 && iter >= snaps[nextSnap]) snapshot(snaps[nextSnap++], 1);
+            if (converged) break;
             if (g_stop) { stopped = true; break; }
         }
         const QString run = "cases/mixing_elbow/run-" + variant;
@@ -597,6 +620,7 @@ int solve(const Args& a)
             onIteration({{"v", 1}, {"event", "iteration"}, {"iter", it}, {"residuals", resid}, {"reports", reports},
                          {"sec_per_iter", el / it}, {"elapsed", el}});
             if (r.liveView > 0 && it % r.liveView == 0) snapshot(it, 1 - std::exp(-t / 150));
+            if (converged) break;
             if (g_stop) { stopped = true; break; }
         }
         // forces.csv in the CLI's layout.
@@ -618,6 +642,24 @@ int solve(const Args& a)
                        .arg(f.x()).arg(f.y()).arg(f.z()).arg(dir.x()).arg(dir.y()).arg(dir.z()).arg(proj).arg(proj / qa);
         }
         writeFile(QDir(r.outDir).filePath("forces.csv"), csv.toUtf8());
+        // loads.json: the same wall forces with their moments about the origin.
+        QJsonArray zl;
+        auto arr = [](const QVector3D& v) { return QJsonArray{double(v.x()), double(v.y()), double(v.z())}; };
+        for (const ZoneForce& f : forces) {
+            int id = -1;
+            for (const auto& cz : carZones()) if (cz.name == f.zone) id = cz.id;
+            const float k = float(settle);
+            zl.append(QJsonObject{{"name", f.zone}, {"zone_id", id}, {"area", f.area}, {"pressure", arr(f.pressure * k)}, {"viscous", arr(f.viscous * k)},
+                                  {"pressure_moment", arr(f.pressureMoment * k)}, {"viscous_moment", arr(f.viscousMoment * k)}});
+        }
+        writeJson(QDir(r.outDir).filePath("loads.json"),
+                  {{"v", 1}, {"synthetic", true}, {"origin", QJsonArray{0, 0, 0}},
+                   {"units", QJsonObject{{"force", "N"}, {"moment", "N m"}, {"area", "m^2"}}},
+                   {"reference", QJsonObject{{"area", r.car.refArea}, {"density", r.car.refDensity}, {"velocity", r.car.refVelocity},
+                                             {"length", r.car.refLength}, {"pressure", r.car.refPressure}}},
+                   {"report_zones", QJsonArray{"monocoque", "sidepods", "front-wing", "rear-wing", "tyre-front", "tyre-rear"}},
+                   {"zones", zl}, {"provenance", prov}, {"approximate", !r.approximations.isEmpty()},
+                   {"modified", caseModified(r.overrides)}, {"iterations", lastIter}});
         writeFile(QDir(r.outDir).filePath("fluxes.csv"),
                   (csvNotice(r) + "name,zone_id,mass_flow_outward\n\"inlet\",2," + QString::number(-r.car.density * r.car.speed * 32, 'g', 10) +
                    "\n\"outlet\",3," + QString::number(r.car.density * r.car.speed * 32, 'g', 10) + "\n").toUtf8());
@@ -627,7 +669,10 @@ int solve(const Args& a)
     writeJson(QDir(r.outDir).filePath("fixture-run.json"), runDescriptor(r));
 
     const double elapsed = clock.nsecsElapsed() / 1e9;
-    const QString stopReason = stopped ? "stopped" : "iteration_limit";
+    const QString stopReason = converged ? "converged" : stopped ? "stopped" : "iteration_limit";
+    QJsonObject convergenceOut = conv.toJson();
+    convergenceOut["met_by"] = QJsonArray::fromStringList(converged ? convergence.metBy() : QStringList{});
+    convergenceOut["iteration"] = converged ? QJsonValue(lastIter) : QJsonValue();
     QJsonObject sum;
     if (r.kind == CaseKind::Elbow)
         sum = QJsonDocument::fromJson(readFixture(QStringLiteral("cases/mixing_elbow/run-%1/summary.json").arg(r.dataPath.isEmpty() ? "cold" : "seeded"))).object();
@@ -650,7 +695,9 @@ int solve(const Args& a)
     sum["device"] = r.device.value("name");
     sum["iterations"] = lastIter;
     sum["stop_reason"] = stopReason;
-    sum["converged"] = false;
+    sum["converged"] = converged;
+    sum["convergence"] = convergenceOut;
+    sum["convergence_criteria_available"] = true;
     sum["replay_seconds"] = elapsed;
     if (r.kind == CaseKind::Car) {
         sum["cells"] = 18412903;
@@ -658,8 +705,8 @@ int solve(const Args& a)
         sum["kutta_version"] = "fixture";
     }
     writeJson(QDir(r.outDir).filePath("summary.json"), sum);
-    emitJson({{"v", 1}, {"event", "done"}, {"converged", false}, {"iterations", lastIter}, {"elapsed", elapsed},
-              {"out", r.outDir}, {"stop_reason", stopReason}});
+    emitJson({{"v", 1}, {"event", "done"}, {"converged", converged}, {"iterations", lastIter}, {"elapsed", elapsed},
+              {"out", r.outDir}, {"stop_reason", stopReason}, {"convergence", convergenceOut}});
     return 0;
 }
 
@@ -976,6 +1023,46 @@ int exportView(const Args& a)
     return 0;
 }
 
+// aero: coefficients, breakdown and balance from a run's loads.json.
+int aero(const Args& a)
+{
+    const bool jsonl = a.has("json");
+    if (a.positional.size() != 1) usage(jsonl);
+    const QString dir = a.positional[0];
+    QJsonObject spec;
+    if (a.has("aero")) {
+        QFile f(a.value("aero"));
+        QJsonParseError pe;
+        if (!f.open(QIODevice::ReadOnly) || f.size() > (1 << 20)) {
+            if (jsonl) emitJson({{"v", 1}, {"event", "error"}, {"message", "cannot read aero spec (at most 1 MiB)"}, {"issues", QJsonArray{}}});
+            badRequest("cannot read aero spec (at most 1 MiB)");
+        }
+        const QJsonDocument doc = QJsonDocument::fromJson(f.readAll(), &pe);
+        if (!doc.isObject()) {
+            if (jsonl) emitJson({{"v", 1}, {"event", "error"}, {"message", "aero spec: " + pe.errorString()}, {"issues", QJsonArray{}}});
+            badRequest("aero spec: " + pe.errorString());
+        }
+        spec = doc.object();
+    }
+    const QJsonObject loads = readJson(QDir(dir).filePath("loads.json"));
+    if (loads.isEmpty())
+        fail(QStringLiteral("%1 has no loads.json: the run was solved before aero loads were written, or did not finish; solve it again.").arg(dir), {}, jsonl);
+    QString error;
+    QJsonObject out = aeroFromLoads(loads, spec, &error);
+    if (!error.isEmpty()) {
+        if (jsonl) emitJson({{"v", 1}, {"event", "error"}, {"message", error}, {"issues", QJsonArray{}}});
+        badRequest(error);
+    }
+    writeJson(QDir(dir).filePath("aero.json.tmp"), out);
+    QFile::remove(QDir(dir).filePath("aero.json"));
+    QFile::rename(QDir(dir).filePath("aero.json.tmp"), QDir(dir).filePath("aero.json"));
+    if (jsonl) {
+        out["event"] = "aero";
+        emitJson(out);
+    } else eprint("Wrote " + QDir(dir).filePath("aero.json"));
+    return 0;
+}
+
 // export-geometry: the case's boundary zones before any run. The elbow reuses
 // its recorded view's zones; the car is generated. Fields in zone files are
 // ignored by readers of a geometry-only manifest.
@@ -1029,5 +1116,6 @@ int main(int argc, char** argv)
     if (cmd == "solve") return solve(a);
     if (cmd == "export-view") return exportView(a);
     if (cmd == "export-geometry") return exportGeometry(a);
+    if (cmd == "aero") return aero(a);
     usage(false);
 }

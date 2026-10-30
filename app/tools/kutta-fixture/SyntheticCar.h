@@ -19,7 +19,7 @@ struct CarParams {
     double speed = 16.0;          // inlet velocity magnitude, m/s
     double density = 1.225;       // kg/m^3
     double viscosity = 1.7894e-5; // Pa s
-    double refArea = 1.0, refDensity = 1.225, refVelocity = 16.0, refPressure = 0.0;
+    double refArea = 1.0, refDensity = 1.225, refVelocity = 16.0, refPressure = 0.0, refLength = 1.53;
     double convergence = 1.0;     // 0..1: live snapshots blend from the initial field
     int detail = 1;               // tessellation multiplier (~d^2 triangles)
 };
@@ -39,7 +39,8 @@ struct ProbeResult { std::vector<double> distance; std::vector<QVector3D> points
 ProbeResult carLineProbe(const QVector3D& from, const QVector3D& to, int samples, const QStringList& fields,
                          const CarParams& p);
 
-struct ZoneForce { QString zone; QVector3D pressure, viscous; };
+// Force and moment about the origin (SYNTHETIC: invented fields, not CFD).
+struct ZoneForce { QString zone; QVector3D pressure, viscous, pressureMoment, viscousMoment; double area = 0; };
 std::vector<ZoneForce> carForces(const CarParams& p);
 
 // Synthetic case summary in the inspect --json shape.

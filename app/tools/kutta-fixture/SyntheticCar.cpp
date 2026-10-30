@@ -654,7 +654,9 @@ MeshData carZoneMesh(const QString& zone, const CarParams& prm, bool reference)
             cpF.push_back(float(fluentCp));
             if (wall) {
                 const double edge = prm.speed * std::sqrt(std::clamp(1 - fluentCp, 0.05, 6.0));
-                const double cf = zone == "ground" ? 0.0015 : 0.0042;
+                // Skin friction falls slowly with Reynolds number (cf ~ Re^-0.2), so
+                // a speed sweep moves the drag coefficient a little.
+                const double cf = (zone == "ground" ? 0.0015 : 0.0042) * std::pow(prm.speed / 16.0, -0.2);
                 const double tauF0 = 0.5 * prm.density * edge * edge * cf;
                 const double tauK0 = tauF0 * (1 + 0.04 * smoothNoise(p, 31));
                 // Shear along the free-stream direction projected on the surface.
@@ -959,7 +961,7 @@ std::vector<ZoneForce> carForces(const CarParams& prm)
         const MeshData m = carZoneMesh(z.name, coarse, false);
         const auto* p = m.field("pressure");
         const auto* tau = m.field("wall_shear");
-        ZoneForce f{z.name, {}, {}};
+        ZoneForce f{z.name, {}, {}, {}, {}, 0};
         for (std::size_t t = 0; t + 2 < m.indices.size(); t += 3) {
             const std::uint32_t a = m.indices[t], b = m.indices[t + 1], c = m.indices[t + 2];
             const QVector3D pa(m.positions[3 * a], m.positions[3 * a + 1], m.positions[3 * a + 2]);
@@ -967,11 +969,17 @@ std::vector<ZoneForce> carForces(const CarParams& prm)
             const QVector3D pc(m.positions[3 * c], m.positions[3 * c + 1], m.positions[3 * c + 2]);
             const QVector3D areaVec = QVector3D::crossProduct(pb - pa, pc - pa) * 0.5f;  // outward (into fluid)
             const float pm = (p->values[a] + p->values[b] + p->values[c]) / 3.0f;
-            f.pressure -= areaVec * pm;
+            const QVector3D centre = (pa + pb + pc) / 3.0f;
+            const QVector3D dp = -areaVec * pm;
+            f.pressure += dp;
+            f.pressureMoment += QVector3D::crossProduct(centre, dp);
             QVector3D tm;
             for (int k = 0; k < 3; ++k)
                 tm[k] = (tau->values[3 * a + std::size_t(k)] + tau->values[3 * b + std::size_t(k)] + tau->values[3 * c + std::size_t(k)]) / 3.0f;
-            f.viscous += tm * areaVec.length();
+            const QVector3D dv = tm * areaVec.length();
+            f.viscous += dv;
+            f.viscousMoment += QVector3D::crossProduct(centre, dv);
+            f.area += areaVec.length();
         }
         out.push_back(f);
     }
@@ -1039,7 +1047,7 @@ QJsonObject carInspect(const CarParams& prm, bool withData, const QJsonArray& ra
     s.append(setting("reference/density", "Reference density", "Reference Values", prm.refDensity, "kg/m^3", "number", fmin, 1e30, true));
     s.append(setting("reference/velocity", "Reference velocity", "Reference Values", prm.refVelocity, "m/s", "number", fmin, 1e30, true));
     s.append(setting("reference/pressure", "Reference pressure", "Reference Values", prm.refPressure, "Pa", "number", -1e30, 1e30, true));
-    s.append(setting("reference/length", "Reference length", "Reference Values", 1.53, "m", "number", QJsonValue(), QJsonValue(), false));
+    s.append(setting("reference/length", "Reference length", "Reference Values", prm.refLength, "m", "number", fmin, 1e30, true));
     s.append(setting("reference/compute-from", "Compute from", "Reference Values", "inlet", "", "string", QJsonValue(), QJsonValue(), false));
     const QJsonArray schemes{"first-order-upwind", "second-order-upwind"};
     s.append(setting("methods/scheme", "Pressure-velocity coupling", "Methods", "coupled", "", "string", QJsonValue(), QJsonValue(), false));
@@ -1056,7 +1064,24 @@ QJsonObject carInspect(const CarParams& prm, bool withData, const QJsonArray& ra
     for (const Relax& r : {Relax{"mom", "Momentum relaxation", 0.5}, Relax{"pressure", "Pressure relaxation", 0.5},
                            Relax{"k", "Turbulent kinetic energy relaxation", 0.75}, Relax{"omega", "Specific dissipation rate relaxation", 0.75}})
         s.append(setting(QString("controls/%1-relaxation").arg(r.key), r.label, "Controls", r.value, "1", "number", fmin, 1, true));
-    s.append(setting("monitors/residual-criteria", "Absolute criteria", "Monitors", 1e-3, "1", "number", QJsonValue(), QJsonValue(), false));
+    // Convergence criteria, as the real CLI lists them. Residual values stand
+    // for the case's saved Check Convergence and Absolute Criteria.
+    s.append(setting("monitors/check-convergence", "Stop when converged", "Monitors", false, "", "bool", QJsonValue(), QJsonValue(), true));
+    QJsonObject condition = setting("monitors/condition", "Convergence condition", "Monitors", "all", "", "enum", QJsonValue(), QJsonValue(), true,
+                                    QJsonArray{"all", "any"});
+    condition["option_labels"] = QJsonArray{"All conditions are met", "Any condition is met"};
+    condition["value_label"] = "All conditions are met";
+    s.append(condition);
+    for (const char* eq : {"continuity", "x-velocity", "y-velocity", "z-velocity", "k", "omega"}) {
+        s.append(setting(QStringLiteral("monitors/residual/%1/check").arg(eq), "Check convergence", "Monitors", true, "", "bool", QJsonValue(), QJsonValue(), true));
+        s.append(setting(QStringLiteral("monitors/residual/%1/absolute-criterion").arg(eq), "Absolute criteria", "Monitors", 1e-3, "1", "number", 0, 1e30, true));
+    }
+    for (const char* r : {"downforce", "drag", "front-wing-downforce", "rear-wing-downforce"}) {
+        s.append(setting(QStringLiteral("monitors/report/%1/active").arg(r), "Active", "Monitors", false, "", "bool", QJsonValue(), QJsonValue(), true));
+        s.append(setting(QStringLiteral("monitors/report/%1/stop-criterion").arg(r), "Stop criterion", "Monitors", 1e-3, "1", "number", fmin, 1e30, true));
+        s.append(setting(QStringLiteral("monitors/report/%1/previous-values").arg(r), "Use previous values", "Monitors", 5, "", "integer", 1, 100000, true));
+        s.append(setting(QStringLiteral("monitors/report/%1/ignore-before").arg(r), "Ignore iterations before", "Monitors", 100, "", "integer", 0, 1e9, true));
+    }
     s.append(setting("initialization/method", "Initialization method", "Initialization", "hybrid", "", "string", QJsonValue(), QJsonValue(), false));
     s.append(setting("initialization/velocity-x", "X velocity", "Initialization", prm.speed, "m/s", "number", -1e15, 1e15, !withData));
     s.append(setting("run/iterations", "Number of iterations", "Run Calculation", 1000, "", "integer", 1, 1000000000, true));
