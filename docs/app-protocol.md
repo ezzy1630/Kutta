@@ -13,6 +13,7 @@ the app only presents it. Every message carries `"v": 1`.
 | `kutta inspect <case> [--data <dat>] --json` | one JSON object: case summary (below) |
 | `kutta solve <case> [--data <dat>] [--approximate a,b] [--backend b] [--iterations n] [--live-view DIR] [--live-every N] --out DIR --progress jsonl` | JSON lines on stdout while running; files in DIR |
 | `kutta export-view DIR [--slice origin,normal]... [--post spec.json]` | writes `DIR/view/` (below) from a finished run |
+| `kutta export-geometry CASE --out DIR [--json]` | writes `DIR/geometry/` (case surfaces without a run); with `--json` one `geometry` event line |
 
 Human-readable output without `--json` / `--progress` is unchanged.
 
@@ -72,6 +73,32 @@ Small, GPU-friendly files so the viewer never loads the volume mesh:
 
 The binary layout is specified next to its writer in `src/kutta/io/` and is
 versioned by the manifest.
+
+Each exported zone also has `view/zone-N.edges.bin`, the zone's polygon edges
+(no triangulation diagonals) as KUTL polylines over the zone's own vertex
+array, described by the zone's `edges` object (`file`, `primitive:"polylines"`,
+`vertices`, `indices`, `line_count`, `fields:[]`). Live snapshots omit it.
+
+## Case geometry (`export-geometry`, v1 additive)
+
+```sh
+kutta export-geometry case.cas.h5 --out DIR --json
+```
+
+```json
+{"v":1,"event":"geometry","manifest":"/absolute/DIR/geometry/manifest.json","zones":6,"triangles":16978,"seconds":0.15}
+```
+
+Reads only the case mesh (no data, no volume snapshot, no solver) and publishes
+`DIR/geometry/` by staging and renaming, like `view/`. Its manifest is a normal
+view manifest with `geometry_only:true`, `reference:false`, empty `provenance`,
+`bounds`, every boundary zone (interior zones excluded) with its surface and
+edge files and empty `fields`, `slices:[]`, `fields:[]` and
+`case:{"sha256":"…"}`. `manifest` in the event is an absolute UTF-8 path.
+Errors print one `error` event (with `--json`) and exit 1; usage errors exit 2
+and leave any previous `geometry/` untouched. On the mixing elbow (M4 Pro) it
+takes 0.15 s and 62 MB peak memory; the case hash runs concurrently with the
+mesh read.
 
 ## Version 1 details
 
@@ -241,7 +268,8 @@ reports into the same atomic `view/` publication as ordinary surfaces/slices.
 Only one specification may be passed. The CLI reads the volume snapshot; the app
 reads the manifest, compact geometry, probe CSVs and reports. No volume mesh is
 sent to the app. Invalid request syntax is exit 2; unavailable fields, mismatched
-frames or run-data failures are exit 1. A failed export preserves the old view.
+frames or run-data failures are exit 1; an operation's failure message starts
+with `post operation "<name>":`. A failed export preserves the old view.
 
 ```json
 {"v":1,
@@ -277,6 +305,15 @@ Fluent/delta field, with unit, components and `volume` or `boundary` location.
 Boundary-only fields cannot be used on volume iso-surfaces or volume line probes.
 Missing source/reference data is reported rather than invented. Raw saved fields
 are also selectable by their exact exported name.
+
+Top-level `"fields_policy"` is `"strict"` (default: an unavailable name fails
+the export) or `"available"`: unavailable names in the global `fields` list and
+in every operation's `fields` list are skipped, as are boundary-only names on
+traces, iso-surfaces and line probes. An iso-surface's own `field` stays strict.
+The manifest's `unavailable_fields` lists each skipped name with its operation
+name, null for the global list, in batch order:
+`[{"name":"skin_friction","operation":null},{"name":"x","operation":"wake"}]`.
+It is present, possibly empty, whenever a post request is given.
 
 ### Reconstruction and tracing
 
@@ -438,6 +475,32 @@ probes use KUTL polylines in the same little-endian float32/uint32 family; its
 layout is documented [next to the writer](../src/kutta/io/VIEW_FORMAT.md).
 Probe descriptors link a CSV, and `reports_file` links `view/reports.json`, whose
 root is `{"v":1,"reports":[...]}`. All outputs carry the run/view provenance.
+
+### Incremental post-processing
+
+`export-view --post` reuses unchanged work from `DIR/post-cache/`. Units are the
+base zone surfaces (with the global derived fields), each slice and each
+operation. A unit's key is a SHA-256 of a cache format version, the CLI version
+and commit, the run's snapshot identity (absolute run path, `view-input.bin` size and mtime plus
+the `summary.json` bytes; the snapshot itself is not hashed), the post
+`reference` overrides, `fields_policy` and the unit itself: the operation's
+canonical parsed JSON with its effective name (a pathline also includes each
+frame run's identity), a slice's exact plane, or the global `fields` list. A hit
+is hard-linked (copied if linking fails) into the new view under the ordinal
+filename this batch assigns, so inserting or reordering operations still reuses
+them. When every unit hits, the snapshot is not even read. Otherwise the
+snapshot is read and one volume reconstruction serves every miss; derived
+surface/slice fields are computed only when the base or a slice missed. A warm
+publication is identical to a cold export of the same batch except
+`post_cache`. After a successful publication, entries it did not use are
+pruned; a failed export keeps the old view and the cache.
+
+The manifest adds `"post_cache":{"reused":R,"computed":C,"seconds":S}`: units
+reused and computed (base, slices and operations) and the export's wall time
+up to publication. Mixing elbow (17,822 cells, M4 Pro), 30 surface-seeded trace
+operations, a pressure iso-surface, line and section probes and an all-zone
+report: cold 2.8–2.9 s (35 computed); adding a Q-criterion iso-surface 0.23 s
+warm (1 computed, 35 reused) versus 3.0 s cold; the unchanged batch 0.02 s.
 
 
 ## Live surfaces during solve (v1 additive)

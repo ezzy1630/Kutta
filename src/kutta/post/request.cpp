@@ -1,3 +1,4 @@
+#include "kutta/core/json.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "post.hpp"
 #include <algorithm>
@@ -55,6 +56,13 @@ int integer(const Object &o, std::string_view key, int fallback,
   KUTTA_REQUIRE(n >= 1 && n <= max && std::floor(n) == n,
                 "invalid positive integer: " + std::string(key));
   return int(n);
+}
+// The cache identity: the operation exactly as parsed, plus its effective
+// (possibly defaulted, ordinal-dependent) name. Json objects are ordered maps,
+// so the dump is canonical.
+std::string identity(Object o, const std::string &name) {
+  o.insert_or_assign("name", name);
+  return dump_json(o);
 }
 const Json::Array &array(const Json &j) {
   const auto *p = std::get_if<Json::Array>(&j.value);
@@ -133,6 +141,7 @@ Trace trace_spec(const Json &j, const std::filesystem::path &base,
            "relative_tolerance", "absolute_tolerance", "frames"});
   Trace t;
   t.name = string(o, "name", "streamlines-" + std::to_string(i));
+  t.identity = identity(o, t.name);
   t.seeds = seed_spec(required(o, "seeds"));
   t.fields = strings(o, "fields", t.fields);
   const auto mode = string(o, "mode", "streamline");
@@ -195,9 +204,13 @@ Request read_request(const std::filesystem::path &path, bool streamlines_only) {
     out.traces.push_back(trace_spec(entry, path.parent_path(), 0));
     return out;
   }
-  keys(root, {"v", "fields", "reference", "streamlines", "isosurfaces",
-              "probes", "integrals"});
+  keys(root, {"v", "fields", "fields_policy", "reference", "streamlines",
+              "isosurfaces", "probes", "integrals"});
   out.fields = strings(root, "fields");
+  const auto policy = string(root, "fields_policy", "strict");
+  KUTTA_REQUIRE(policy == "strict" || policy == "available",
+                "fields_policy must be strict or available");
+  out.available_fields = policy == "available";
   if (const auto *ref = get(root, "reference"))
     for (const auto &[key, value] : object(*ref, "reference")) {
       KUTTA_REQUIRE(key == "density" || key == "viscosity" ||
@@ -220,6 +233,7 @@ Request read_request(const std::filesystem::path &path, bool streamlines_only) {
       Iso iso;
       iso.name =
           string(o, "name", "iso-" + std::to_string(out.isosurfaces.size()));
+      iso.identity = identity(o, iso.name);
       iso.field = string(required(o, "field"));
       iso.value = number(required(o, "value"));
       iso.fields = strings(o, "fields", iso.fields);
@@ -240,7 +254,8 @@ Request read_request(const std::filesystem::path &path, bool streamlines_only) {
           strings(o, "fields", {"pressure", "velocity_magnitude"});
       if (type == "line") {
         keys(o, {"type", "name", "start", "end", "count", "fields"});
-        out.probes.emplace_back(LineProbe{name, line(o), fields});
+        out.probes.emplace_back(
+            LineProbe{name, line(o), fields, identity(o, name)});
       } else {
         KUTTA_REQUIRE(type == "section", "probe type must be line or section");
         keys(o, {"type", "name", "zones", "origin", "normal", "fields"});
@@ -248,7 +263,7 @@ Request read_request(const std::filesystem::path &path, bool streamlines_only) {
             name,
             strings(o, "zones"),
             {vector(required(o, "origin")), vector(required(o, "normal"))},
-            fields};
+            fields, identity(o, name)};
         KUTTA_REQUIRE(!p.zones.empty() && detail::norm(p.plane.normal) > 0,
                       "section requires zones and nonzero plane normal");
         p.plane.normal =
@@ -264,6 +279,7 @@ Request read_request(const std::filesystem::path &path, bool streamlines_only) {
       Integral r;
       r.name = string(o, "name",
                       "integrals-" + std::to_string(out.integrals.size()));
+      r.identity = identity(o, r.name);
       r.zones = strings(o, "zones");
       r.fields = strings(o, "fields", r.fields);
       r.origin = vector(o, "origin", {});

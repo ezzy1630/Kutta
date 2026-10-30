@@ -110,3 +110,87 @@ p, _, _, fields = decode(manifest["streamlines"][0])
 assert math.isclose(p[-1][0], .205, abs_tol=1e-6), p[-1]
 assert math.isclose(fields["time"][-1], .1, abs_tol=1e-6)
 print("Post CLI: KUTV/KUTL layout, fields/ranges, pathline frame interpolation, probes/CSV, reports and atomic failures passed")
+
+
+# fields_policy "available": unavailable names in the global and per-operation
+# lists are skipped and listed; strict (the default) still fails the export.
+lenient = {"v": 1, "fields_policy": "available", "fields": ["pressure_coefficient", "nope"],
+           "streamlines": [dict(trace, fields=["pressure", "nope"])],
+           "isosurfaces": [{"name": "iso", "field": "phi", "value": .43, "fields": ["pressure", "skin_friction", "nope"]}],
+           "probes": [{"name": "line", "type": "line", "start": [0, .5, .5], "end": [1, .5, .5], "count": 5, "fields": ["phi", "nope"]},
+                      {"name": "section", "type": "section", "zones": ["xmax"], "origin": [0, .5, 0], "normal": [0, 1, 0], "fields": ["skin_friction", "nope"]}],
+           "integrals": [{"name": "sum", "zones": ["xmax"], "fields": ["pressure", "nope"]}]}
+manifest = run(lenient)
+assert manifest["unavailable_fields"] == [
+    {"name": "nope", "operation": None}, {"name": "nope", "operation": "rake"},
+    {"name": "skin_friction", "operation": "iso"}, {"name": "nope", "operation": "iso"},
+    {"name": "nope", "operation": "line"}, {"name": "nope", "operation": "section"}, {"name": "nope", "operation": "sum"}], manifest["unavailable_fields"]
+assert [f["name"] for f in manifest["isosurfaces"][0]["fields"]] == ["pressure", "phi"]
+assert [f["name"] for f in manifest["probes"][1]["fields"]][0] == "skin_friction"
+assert "pressure_coefficient" in {f["name"] for f in manifest["fields"]}
+assert run(spec)["unavailable_fields"] == []
+previous = (root / "view/manifest.json").read_bytes()
+for bad in [dict(lenient, fields_policy="strict"), dict(lenient, isosurfaces=[{"field": "nope", "value": 0}])]:
+    run(bad, code=1)
+    assert (root / "view/manifest.json").read_bytes() == previous
+run(dict(lenient, fields_policy="lenient"), code=2)
+
+# Incremental export: unchanged work is reused byte for byte, and a warm export
+# equals a cold export of the same batch apart from post_cache.
+import shutil
+
+
+def export(batch, *slices):
+    path = root / "batch.json"
+    path.write_text(json.dumps(batch))
+    args = [cli, "export-view", str(root), "--post", str(path)]
+    for s in slices:
+        args += ["--slice", s]
+    result = subprocess.run(args, capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stdout + result.stderr
+    manifest = json.loads((root / "view/manifest.json").read_text())
+    files = {p.name: p.read_bytes() for p in (root / "view").iterdir() if p.name != "manifest.json"}
+    return manifest, files
+
+
+def without_cache(manifest):
+    return {k: v for k, v in manifest.items() if k != "post_cache"}
+
+
+batch = copy.deepcopy(spec)
+batch["isosurfaces"].append({"name": "iso-b", "field": "phi", "value": .6})
+slices = ("0.5,0.5,0.5,0,0,1",)
+shutil.rmtree(root / "post-cache", ignore_errors=True)
+cold, cold_files = export(batch, *slices)
+operations = 2 + len(batch["streamlines"]) + len(batch["isosurfaces"]) + len(batch["probes"]) + len(batch["integrals"])
+assert cold["post_cache"]["computed"] == operations and cold["post_cache"]["reused"] == 0, cold["post_cache"]
+again, again_files = export(batch, *slices)
+assert again["post_cache"]["computed"] == 0 and again["post_cache"]["reused"] == operations
+assert without_cache(again) == without_cache(cold) and again_files == cold_files
+# Insert an operation first: existing iso-surfaces shift ordinals but are reused.
+grown = copy.deepcopy(batch)
+grown["isosurfaces"].insert(0, {"name": "added", "field": "phi", "value": .3})
+warm, warm_files = export(grown, *slices)
+assert warm["post_cache"] == {"reused": operations, "computed": 1, "seconds": warm["post_cache"]["seconds"]}, warm["post_cache"]
+assert warm_files["iso-1.bin"] == cold_files["iso-0.bin"] and warm_files["iso-2.bin"] == cold_files["iso-1.bin"]
+for name in ["streamlines-0.bin", "probe-0.bin", "probe-0.csv", "probe-1.bin", "probe-1.csv", "reports.json", "slice-0.bin"]:
+    assert warm_files[name] == cold_files[name], name
+assert all(warm_files[n] == cold_files[n] for n in cold_files if n.startswith("zone-"))
+entries = sorted(p.name for p in (root / "post-cache").iterdir())
+assert len(entries) == operations + 1 and not [e for e in entries if e.startswith(".")]
+shutil.rmtree(root / "post-cache")
+fresh, fresh_files = export(grown, *slices)
+assert fresh["post_cache"]["computed"] == operations + 1
+assert without_cache(fresh) == without_cache(warm) and fresh_files == warm_files
+# A failed export keeps the old view and every cache entry; success prunes.
+before = sorted(p.name for p in (root / "post-cache").iterdir())
+broken = copy.deepcopy(grown)
+broken["integrals"].append({"name": "bad", "zones": ["not-a-zone"]})
+path = root / "batch.json"
+path.write_text(json.dumps(broken))
+result = subprocess.run([cli, "export-view", str(root), "--post", str(path), "--slice", slices[0]], capture_output=True, text=True, timeout=20)
+assert result.returncode == 1 and json.loads((root / "view/manifest.json").read_text()) == fresh
+assert set(before) <= {p.name for p in (root / "post-cache").iterdir()}
+export(batch, *slices)
+assert len(list((root / "post-cache").iterdir())) == operations
+print("Post cache: fields_policy, reuse across reordering, cold/warm equality, failure retention and pruning passed")

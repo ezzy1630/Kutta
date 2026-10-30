@@ -1,12 +1,12 @@
 #include "view.hpp"
 #include "view_geometry.hpp"
-#include "kutta/post/post.hpp"
 #include "binary.hpp"
 #include "kutta/core/json.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
 #include <algorithm>
 #include <chrono>
+#include <fstream>
 #include <cmath>
 #include <iomanip>
 #include <limits>
@@ -121,79 +121,125 @@ Geometry slice(const Snapshot& s,const Plane& plane,const kutta::CellFaces& cf,d
   append_deltas(g.fields);return g;
 }
 struct Range {double lo=std::numeric_limits<double>::infinity(),hi=-lo;void add(double n){if(std::isfinite(n)){lo=std::min(lo,n);hi=std::max(hi,n);}}};
-void range_json(std::ostream& out,Range r) {out<<",\"min\":";json_number(out,r.lo);out<<",\"max\":";json_number(out,r.hi);}
-void bounds_json(std::ostream& out,std::span<const Vec3d> points) {
+// Each mesh edge once, chained greedily into edge-disjoint polylines over the
+// zone's own vertices (identical order), so drawing it shows polygon edges
+// without triangulation diagonals in about one index per edge.
+Geometry edges(const PolyMesh& m,const Patch& patch,std::vector<Index>& local) {
+  Geometry g;std::vector<Index> vertices;std::vector<std::uint64_t> keys;
+  for(Index f=patch.start;f<patch.start+patch.size;++f) {
+    const auto ns=nodes(m,f);
+    for(auto n:ns)if(local[n]<0){local[n]=index(vertices.size());vertices.push_back(n);}
+    for(std::size_t i=0;i<ns.size();++i) {
+      const auto a=std::uint64_t(local[ns[i]]),b=std::uint64_t(local[ns[(i+1)%ns.size()]]);
+      if(a!=b)keys.push_back(std::min(a,b)<<32|std::max(a,b));
+    }
+  }
+  for(auto n:vertices){const auto p=m.points[n];g.positions.insert(g.positions.end(),{float(p.x),float(p.y),float(p.z)});local[n]=-1;}
+  std::sort(keys.begin(),keys.end());keys.erase(std::unique(keys.begin(),keys.end()),keys.end());
+  const auto nv=vertices.size();std::vector<std::uint32_t> offsets(nv+1),adjacent(keys.size()*2),cursor;
+  for(auto k:keys){++offsets[(k>>32)+1];++offsets[(k&0xffffffffu)+1];}
+  for(std::size_t v=0;v<nv;++v)offsets[v+1]+=offsets[v];
+  cursor.assign(offsets.begin(),offsets.end()-1);
+  for(std::uint32_t e=0;e<keys.size();++e){adjacent[cursor[keys[e]>>32]++]=e;adjacent[cursor[keys[e]&0xffffffffu]++]=e;}
+  cursor.assign(offsets.begin(),offsets.end()-1);
+  std::vector<bool> used(keys.size());g.line_offsets.push_back(0);
+  const auto walk=[&](std::uint32_t v) {
+    for(bool first=true;;first=false) {
+      while(cursor[v]<offsets[v+1] && used[adjacent[cursor[v]]])++cursor[v];
+      if(cursor[v]==offsets[v+1])break;
+      const auto e=adjacent[cursor[v]++];used[e]=true;
+      if(first)g.indices.push_back(v);
+      v=std::uint32_t(keys[e]>>32)==v?std::uint32_t(keys[e]&0xffffffffu):std::uint32_t(keys[e]>>32);g.indices.push_back(v);
+    }
+    if(g.indices.size()!=g.line_offsets.back())g.line_offsets.push_back(std::uint32_t(g.indices.size()));
+  };
+  // Start at odd-degree vertices first: open chains end there, so fewer lines.
+  for(std::uint32_t v=0;v<nv;++v)if((offsets[v+1]-offsets[v])%2)walk(v);
+  for(std::uint32_t v=0;v<nv;++v)while(cursor[v]<offsets[v+1]){const auto before=g.indices.size();walk(v);if(g.indices.size()==before)break;}
+  return g;
+}
+Json bounds(std::span<const Vec3d> points) {
   Vec3d lo=points.front(),hi=lo;for(auto p:points){lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
-  out<<"[["<<lo.x<<','<<lo.y<<','<<lo.z<<"],["<<hi.x<<','<<hi.y<<','<<hi.z<<"]]";
-}
-void payload(const std::filesystem::path& path,const Geometry& g,std::ostream& manifest,std::map<std::string,std::pair<Field,Range>>& catalog) {
-  const auto artifact=write_geometry(path,g);
-  for(const auto& r:artifact.fields){auto& entry=catalog[r.name];entry.first={r.name,r.unit,r.components,{}};if(r.min)entry.second.add(*r.min);if(r.max)entry.second.add(*r.max);}
-  const auto text=dump_json(artifact.descriptor);manifest<<','<<text.substr(1);
+  return Json::Array{Json::Array{lo.x,lo.y,lo.z},Json::Array{hi.x,hi.y,hi.z}};
 }
 }
-void write_surface_view(const std::filesystem::path& directory,const PolyMesh& mesh,const Fields& fields) {
-  KUTTA_REQUIRE(!mesh.points.empty(),"live view mesh has no points");
+Json::Object manifest_header(bool reference,const std::string& provenance,std::span<const Vec3d> points) {
+  KUTTA_REQUIRE(!points.empty(),"view mesh has no points");
+  return {{"v",1},{"format",Json::Object{{"name","kutta-view"},{"version",1},{"endian","little"},{"header_bytes",32}}},{"reference",reference},{"provenance",provenance},{"bounds",bounds(points)}};
+}
+Json::Object write_zone(const std::filesystem::path& dir,std::size_t ordinal,const PolyMesh& mesh,const Fields& fields,std::vector<Index>& local,bool with_edges) {
+  const auto& patch=mesh.patches[ordinal];const auto name="zone-"+std::to_string(ordinal);
+  auto zone=write_geometry(dir/(name+".surface.bin"),surface(mesh,fields,patch,local)).descriptor;
+  zone.emplace("id",patch.source_zone_id);zone.emplace("name",patch.name);zone.emplace("type",patch.source_type);zone.emplace("faces",double(patch.size));
+  if(with_edges)zone.emplace("edges",write_geometry(dir/(name+".edges.bin"),edges(mesh,patch,local)).descriptor);
+  return zone;
+}
+double slice_tolerance(const PolyMesh& mesh) {
+  Vec3d lo=mesh.points.front(),hi=lo;
+  for(auto p:mesh.points){lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
+  // Include absolute-coordinate roundoff without discarding small meshes.
+  return std::max(norm(hi-lo)*1e-10,std::max(norm(lo),norm(hi))*8*std::numeric_limits<double>::epsilon());
+}
+Json::Object write_slice(const std::filesystem::path& file,const Snapshot& s,const Plane& p,const kutta::CellFaces& cf,double eps) {
+  auto descriptor=write_geometry(file,slice(s,p,cf,eps)).descriptor;
+  descriptor.emplace("origin",Json::Array{p.origin.x,p.origin.y,p.origin.z});descriptor.emplace("normal",Json::Array{p.normal.x,p.normal.y,p.normal.z});
+  return descriptor;
+}
+void write_manifest(const std::filesystem::path& path,Json::Object manifest) {
+  // Ranges combine every geometry descriptor's own field ranges, so cached
+  // and freshly computed parts yield the same catalog.
+  std::map<std::string,std::pair<Json::Object,Range>> catalog;
+  for(auto key:{"zones","slices","streamlines","isosurfaces","probes"}) {
+    const auto it=manifest.find(key);if(it==manifest.end())continue;
+    for(const auto& entry:std::get<Json::Array>(it->second.value))for(const auto& f:std::get<Json::Array>(std::get<Json::Object>(entry.value).at("fields").value)) {
+      const auto& o=std::get<Json::Object>(f.value);auto& c=catalog[std::get<std::string>(o.at("name").value)];
+      c.first={{"name",o.at("name")},{"unit",o.at("unit")},{"components",o.at("components")},{"location","vertex"}};
+      for(auto bound:{"min","max"})if(const auto* n=std::get_if<double>(&o.at(bound).value))c.second.add(*n);
+    }
+  }
+  Json::Array fields;
+  for(auto& [name,c]:catalog){(void)name;c.first.emplace("min",std::isfinite(c.second.lo)?Json(c.second.lo):Json(nullptr));c.first.emplace("max",std::isfinite(c.second.hi)?Json(c.second.hi):Json(nullptr));fields.emplace_back(std::move(c.first));}
+  manifest.insert_or_assign("fields",std::move(fields));
+  std::ofstream out(path,std::ios::binary);out.exceptions(std::ios::failbit|std::ios::badbit);out<<dump_json(manifest)<<'\n';out.close();
+}
+Json::Object write_surface_view(const std::filesystem::path& directory,const PolyMesh& mesh,const Fields& fields,bool with_edges,Json::Object extra) {
+  KUTTA_REQUIRE(!mesh.points.empty(),"surface view mesh has no points");
   for(const auto& field:fields.boundary)KUTTA_REQUIRE((field.components==1 || field.components==3) && field.values.size()==std::size_t(mesh.n_faces()-mesh.n_internal_faces())*field.components,"invalid surface field shape: "+field.name);
   KUTTA_REQUIRE(std::filesystem::create_directory(directory),"surface staging directory already exists");
-  std::ofstream manifest(directory/"manifest.json");manifest.exceptions(std::ios::failbit|std::ios::badbit);manifest.imbue(std::locale::classic());manifest<<std::setprecision(17);
-  manifest<<"{\"v\":1,\"format\":{\"name\":\"kutta-view\",\"version\":1,\"endian\":\"little\",\"header_bytes\":32},\"reference\":"<<(fields.reference?"true":"false")<<",\"provenance\":"<<json_string(fields.provenance)<<",\"bounds\":";bounds_json(manifest,mesh.points);
-  std::map<std::string,std::pair<Field,Range>> catalog;std::vector<Index> local(mesh.points.size(),-1);
-  manifest<<",\"zones\":[";
-  for(std::size_t i=0;i<mesh.patches.size();++i) {
-    const auto& patch=mesh.patches[i];auto geometry=surface(mesh,fields,patch,local);if(i)manifest<<',';
-    manifest<<"{\"id\":"<<patch.source_zone_id<<",\"name\":"<<json_string(patch.name)<<",\"type\":"<<json_string(patch.source_type)<<",\"faces\":"<<patch.size;
-    payload(directory/("zone-"+std::to_string(i)+".surface.bin"),geometry,manifest,catalog);
-  }
-  manifest<<"],\"slices\":[],\"fields\":[";bool first=true;
-  for(const auto& [name,entry]:catalog) {
-    if(!first)manifest<<',';
-    first=false;
-    manifest<<"{\"name\":"<<json_string(name)<<",\"unit\":"<<json_string(entry.first.unit)<<",\"components\":"<<entry.first.components<<",\"location\":\"vertex\"";range_json(manifest,entry.second);manifest<<'}';
-  }
-  manifest<<"]}\n";manifest.close();
+  auto manifest=manifest_header(fields.reference,fields.provenance,mesh.points);
+  std::vector<Index> local(mesh.points.size(),-1);Json::Array zones;
+  for(std::size_t i=0;i<mesh.patches.size();++i)zones.emplace_back(write_zone(directory,i,mesh,fields,local,with_edges));
+  manifest.emplace("zones",std::move(zones));manifest.emplace("slices",Json::Array{});
+  for(auto& [key,value]:extra)manifest.insert_or_assign(key,std::move(value));
+  write_manifest(directory/"manifest.json",manifest);
+  return manifest;
 }
-void export_view(const std::filesystem::path& directory,const Snapshot& s,std::span<const Plane> planes,const post::Request* request) {
+std::filesystem::path staging(const std::filesystem::path& directory) {
+  for(;;) {
+    const auto stage=directory/(".view-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    if(std::filesystem::create_directory(stage))return stage;
+  }
+}
+void publish(const std::filesystem::path& stage,const std::filesystem::path& directory) {
+  const auto target=directory/"view",old=directory/(".view-old-"+stage.filename().string().substr(6));
+  if(std::filesystem::exists(target))std::filesystem::rename(target,old);
+  try {std::filesystem::rename(stage,target);}catch(...){if(std::filesystem::exists(old))std::filesystem::rename(old,target);throw;}
+  std::filesystem::remove_all(old);
+}
+void export_view(const std::filesystem::path& directory,const Snapshot& s,std::span<const Plane> planes) {
   KUTTA_REQUIRE(!s.mesh.points.empty(),"view snapshot has no points");
-  const auto token=std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
-  const auto stage=directory/(".view-"+token),target=directory/"view",old=directory/(".view-old-"+token);
-  std::filesystem::create_directories(stage);
+  std::filesystem::create_directories(directory);const auto stage=staging(directory);
   try {
-    std::ofstream manifest(stage/"manifest.json");manifest.exceptions(std::ios::failbit|std::ios::badbit);manifest.imbue(std::locale::classic());manifest<<std::setprecision(17);
-    manifest<<"{\"v\":1,\"format\":{\"name\":\"kutta-view\",\"version\":1,\"endian\":\"little\",\"header_bytes\":32},\"reference\":"<<(s.reference?"true":"false")<<",\"provenance\":"<<json_string(s.provenance)<<",\"bounds\":";bounds_json(manifest,s.mesh.points);
-    std::map<std::string,std::pair<Field,Range>> catalog;std::vector<Index> local(s.mesh.points.size(),-1);
-    manifest<<",\"zones\":[";bool first=true;
-    for(std::size_t i=0;i<s.mesh.patches.size();++i) {
-      const auto& p=s.mesh.patches[i];auto g=surface(s.mesh,s,p,local);
-      if(!first)manifest<<',';
-      first=false;manifest<<"{\"id\":"<<p.source_zone_id<<",\"name\":"<<json_string(p.name)<<",\"type\":"<<json_string(p.source_type)<<",\"faces\":"<<p.size;
-      payload(stage/("zone-"+std::to_string(i)+".surface.bin"),g,manifest,catalog);
-    }
-    manifest<<"],\"slices\":[";
+    auto manifest=manifest_header(s.reference,s.provenance,s.mesh.points);
+    std::vector<Index> local(s.mesh.points.size(),-1);Json::Array zones,slices;
+    for(std::size_t i=0;i<s.mesh.patches.size();++i)zones.emplace_back(write_zone(stage,i,s.mesh,s,local,true));
     if(!planes.empty()) {
-      const auto cf=build_cell_faces(s.mesh);Vec3d lo=s.mesh.points.front(),hi=lo;
-      for(auto p:s.mesh.points){lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
-      // Include absolute-coordinate roundoff without discarding small meshes.
-      const double eps=std::max(norm(hi-lo)*1e-10,std::max(norm(lo),norm(hi))*8*std::numeric_limits<double>::epsilon());
-      for(std::size_t i=0;i<planes.size();++i) {
-        auto g=slice(s,planes[i],cf,eps);const auto& p=planes[i];if(i)manifest<<',';
-        manifest<<"{\"origin\":["<<p.origin.x<<','<<p.origin.y<<','<<p.origin.z<<"],\"normal\":["<<p.normal.x<<','<<p.normal.y<<','<<p.normal.z<<']';
-        payload(stage/("slice-"+std::to_string(i)+".bin"),g,manifest,catalog);
-      }
+      const auto cf=build_cell_faces(s.mesh);const auto eps=slice_tolerance(s.mesh);
+      for(std::size_t i=0;i<planes.size();++i)slices.emplace_back(write_slice(stage/("slice-"+std::to_string(i)+".bin"),s,planes[i],cf,eps));
     }
-    manifest<<']';
-    if(request) {
-      const auto extra=post::write_outputs(stage,s,*request);
-      for(const auto& [key,value]:extra.manifest)manifest<<','<<json_string(key)<<':'<<dump_json(value);
-      for(const auto& r:extra.fields){auto& entry=catalog[r.name];entry.first={r.name,r.unit,r.components,{}};if(r.min)entry.second.add(*r.min);if(r.max)entry.second.add(*r.max);}
-    }
-    manifest<<",\"fields\":[";first=true;
-    for(const auto& [name,entry]:catalog){if(!first)manifest<<',';
-    first=false;manifest<<"{\"name\":"<<json_string(name)<<",\"unit\":"<<json_string(entry.first.unit)<<",\"components\":"<<entry.first.components<<",\"location\":\"vertex\"";range_json(manifest,entry.second);manifest<<'}';}
-    manifest<<"]}\n";manifest.close();
-    if(std::filesystem::exists(target))std::filesystem::rename(target,old);
-    try {std::filesystem::rename(stage,target);}catch(...){if(std::filesystem::exists(old))std::filesystem::rename(old,target);throw;}
-    std::filesystem::remove_all(old);
+    manifest.emplace("zones",std::move(zones));manifest.emplace("slices",std::move(slices));
+    write_manifest(stage/"manifest.json",std::move(manifest));
+    publish(stage,directory);
   }catch(...){std::error_code ec;std::filesystem::remove_all(stage,ec);throw;}
 }
 } // namespace kutta::view

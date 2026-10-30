@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <fstream>
 #include <limits>
+#include <map>
+#include <set>
 
 namespace {
 using namespace kutta;
@@ -80,4 +82,33 @@ TEST_CASE("View export triangulates a concave polygon and its nonconvex volume s
   const auto p=r.array<float>(nv*3);const auto triangles=r.array<std::uint32_t>(ni);double area=0;
   for(std::size_t i=0;i<triangles.size();i+=3){Vec3d v[3];for(int j=0;j<3;++j){const auto n=triangles[i+j]*3;v[j]={p[n],p[n+1],p[n+2]};CHECK(v[j].z==doctest::Approx(.5));}area+=norm(cross(v[1]-v[0],v[2]-v[0]))*.5;}
   CHECK(area==doctest::Approx(3));
+}
+TEST_CASE("Zone edge polylines contain each polygon edge exactly once and no triangulation diagonal") {
+  using namespace kutta::detail;
+  const std::vector<Vec3d> base{{0,0,0},{2,0,0},{2,1,0},{1,1,0},{1,2,0},{0,2,0}};
+  std::vector<Vec3d> points=base;for(auto p:base)points.push_back({p.x,p.y,1});
+  std::vector<kutta::detail::CellFaces> cells(1);cells[0].push_back({5,4,3,2,1,0});cells[0].push_back({6,7,8,9,10,11});
+  for(Index i=0;i<6;++i){const auto next=(i+1)%6;cells[0].push_back({i,next,next+6,i+6});}
+  view::Snapshot prism;prism.mesh=from_cells(points,cells,{{"shell",PatchKind::Wall,"wall",1}},[](const auto&){return 0;});
+  view::Snapshot box;box.mesh=make_box_hex(3,2,2,{0,0,0},{3,2,2});
+  for(auto* s:{&prism,&box}) {
+    MeshTemp t;view::export_view(t.directory,*s);
+    for(std::size_t z=0;z<s->mesh.patches.size();++z) {
+      const auto& patch=s->mesh.patches[z];CAPTURE(z);
+      binary::Reader surface(t.path("view/zone-"+std::to_string(z)+".surface.bin")),edges(t.path("view/zone-"+std::to_string(z)+".edges.bin"));
+      std::uint32_t sh[8],eh[8];for(auto& n:sh)n=surface.scalar<std::uint32_t>();for(auto& n:eh)n=edges.scalar<std::uint32_t>();
+      CHECK(eh[0]==0x4c54554b);CHECK(eh[3]==sh[3]);CHECK(eh[5]==0);
+      const auto positions=surface.array<float>(sh[3]*3);CHECK(edges.array<float>(eh[3]*3)==positions);
+      const auto indices=edges.array<std::uint32_t>(eh[4]);const auto offsets=edges.array<std::uint32_t>(eh[6]+1);
+      // Polygon edges by position; zone vertex order is the surface's.
+      const auto key=[&](std::uint32_t a,std::uint32_t b){std::array<float,6> x{positions[a*3],positions[a*3+1],positions[a*3+2],positions[b*3],positions[b*3+1],positions[b*3+2]};
+        std::array<float,3> l{x[0],x[1],x[2]},r{x[3],x[4],x[5]};return l<r?std::pair(l,r):std::pair(r,l);};
+      std::map<std::array<float,3>,std::uint32_t> id;for(std::uint32_t v=0;v<sh[3];++v)id[{positions[v*3],positions[v*3+1],positions[v*3+2]}]=v;
+      std::set<std::pair<std::array<float,3>,std::array<float,3>>> polygon,chained;std::size_t chained_count=0;
+      for(Index f=patch.start;f<patch.start+patch.size;++f){const auto ns=nodes(s->mesh,f);for(std::size_t i=0;i<ns.size();++i){const auto a=s->mesh.points[ns[i]],b=s->mesh.points[ns[(i+1)%ns.size()]];
+        polygon.insert(key(id.at({float(a.x),float(a.y),float(a.z)}),id.at({float(b.x),float(b.y),float(b.z)})));}}
+      for(std::uint32_t l=0;l<eh[6];++l)for(auto i=offsets[l];i+1<offsets[l+1];++i){chained.insert(key(indices[i],indices[i+1]));++chained_count;}
+      CHECK(chained==polygon);CHECK(chained_count==polygon.size());CHECK(indices.size()==polygon.size()+eh[6]);
+    }
+  }
 }

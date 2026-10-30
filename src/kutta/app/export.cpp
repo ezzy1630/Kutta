@@ -1,9 +1,14 @@
 #include "export.hpp"
+#include "protocol.hpp"
 #include "kutta/post/post.hpp"
+#include "kutta/core/json.hpp"
+#include "kutta/core/path.hpp"
+#include "kutta/core/sha256.hpp"
 #include "kutta/mesh/detail.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <future>
 #include <iostream>
 #include <limits>
 
@@ -136,10 +141,50 @@ int export_view(int argc,char** argv) {
   try {
     const auto start=std::chrono::steady_clock::now();const std::filesystem::path directory=argv[2];
     KUTTA_REQUIRE(std::filesystem::exists(directory/"summary.json"),"run has no completion marker summary.json");
-    auto snapshot=view::read_snapshot(directory/"view-input.bin");
-    if(request)post::enrich(snapshot,*request);
-    view::export_view(directory,snapshot,planes,request?&*request:nullptr);
-    std::cout<<"Wrote "<<(directory/"view").string()<<" in "<<std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count()<<" s\n";return 0;
+    std::string cache;
+    if(request) {
+      // The build identity is part of every cache key, so a rebuilt CLI never
+      // reuses work computed by different code.
+      const auto stats=post::export_view(directory,planes,*request,std::string(KUTTA_VERSION)+"+"+KUTTA_COMMIT);
+      cache=" (post cache: reused "+std::to_string(stats.reused)+", computed "+std::to_string(stats.computed)+")";
+    } else view::export_view(directory,view::read_snapshot(directory/"view-input.bin"),planes);
+    std::cout<<"Wrote "<<(directory/"view").string()<<" in "<<std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count()<<" s"<<cache<<"\n";return 0;
   }catch(const std::exception& e){std::cerr<<"kutta export-view: "<<e.what()<<'\n';return 1;}
+}
+int export_geometry(int argc,char** argv) {
+  bool json=false;std::filesystem::path input,out;
+  for(int i=2;i<argc;++i) {
+    const std::string_view arg=argv[i];
+    if(arg=="--json" && !json)json=true;
+    else if(arg=="--out" && out.empty() && i+1<argc)out=argv[++i];
+    else if(!arg.starts_with("--") && input.empty())input=argv[i];
+    else input.clear(),out.clear(),i=argc;
+  }
+  if(input.empty() || out.empty()) {
+    const auto message="Usage: kutta export-geometry CASE --out DIR [--json]";
+    if(json)error_event(message);
+    std::cerr<<message<<'\n';return 2;
+  }
+  try {
+    const auto start=std::chrono::steady_clock::now();
+    // Hash concurrently with the mesh read; both are bounded by file I/O.
+    auto hash=std::async(std::launch::async,[&]{return sha256_file(input);});
+    const auto mesh=read_mesh(input);
+    std::filesystem::create_directories(out);
+    const auto stage=out/(".geometry-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::uint64_t triangles=0;const auto target=out/"geometry",old=out/(".geometry-old-"+stage.filename().string().substr(10));
+    try {
+      const auto written=view::write_surface_view(stage,mesh,view::Fields{},true,{{"geometry_only",true},{"case",Json::Object{{"sha256",hash.get()}}}});
+      for(const auto& z:std::get<Json::Array>(written.at("zones").value))triangles+=std::uint64_t(std::get<double>(std::get<Json::Object>(z.value).at("indices").value))/3;
+      if(std::filesystem::exists(target))std::filesystem::rename(target,old);
+      try {std::filesystem::rename(stage,target);}catch(...){if(std::filesystem::exists(old))std::filesystem::rename(old,target);throw;}
+      std::filesystem::remove_all(old);
+    }catch(...){std::error_code ec;std::filesystem::remove_all(stage,ec);throw;}
+    const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
+    const auto manifest=utf8_path(std::filesystem::absolute(target/"manifest.json"));
+    if(json)std::cout<<dump_json(Json::Object{{"v",1},{"event","geometry"},{"manifest",manifest},{"zones",double(mesh.patches.size())},{"triangles",double(triangles)},{"seconds",seconds}})<<std::endl;
+    else std::cout<<"Wrote "<<manifest<<" ("<<mesh.patches.size()<<" zones, "<<triangles<<" triangles) in "<<seconds<<" s\n";
+    return 0;
+  }catch(const std::exception& e){if(json)error_event(e.what());std::cerr<<"kutta export-geometry: "<<e.what()<<'\n';return 1;}
 }
 } // namespace kutta::app

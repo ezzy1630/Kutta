@@ -166,6 +166,35 @@ command("export-view", out, "--slice", "0,0,0,0,0,0", code=2)
 command("export-view", out, "--slice", "0,0,0,1,0", code=2)
 print("App protocol: devices, inspect, JSONL event order/reports, EOF and SIGINT passed")
 
+# Case geometry without a run: one event line, an atomic geometry/ view with
+# every boundary zone and its face edges, no fields and the case identity.
+geometry_root = root / "geometry-out"
+for attempt in range(2):  # the second publication replaces the first
+    [line] = command("export-geometry", root / "inlet.cas.h5", "--out", geometry_root, "--json").stdout.splitlines()
+    event = json.loads(line)
+assert event["v"] == 1 and event["event"] == "geometry" and event["seconds"] >= 0
+manifest_path = pathlib.Path(event["manifest"])
+assert manifest_path.is_absolute() and manifest_path.resolve() == (geometry_root / "geometry/manifest.json").resolve()
+geometry = json.loads(manifest_path.read_text())
+assert geometry["geometry_only"] is True and geometry["reference"] is False and geometry["provenance"] == ""
+assert geometry["slices"] == [] and geometry["fields"] == []
+assert geometry["case"]["sha256"] == hashlib.sha256((root / "inlet.cas.h5").read_bytes()).hexdigest()
+zone_types = {z["name"]: z["type"] for z in geometry["zones"]}
+assert zone_types["inlet"] == "velocity-inlet" and zone_types["outlet"] == "pressure-outlet"
+assert "interior" not in zone_types.values() and event["zones"] == len(geometry["zones"]) == 6
+assert event["triangles"] == sum(z["indices"] // 3 for z in geometry["zones"]) > 0
+for zone in geometry["zones"]:
+    assert zone["fields"] == [] and zone["faces"] > 0
+    assert (manifest_path.parent / zone["file"]).read_bytes()[:4] == b"KUTV"
+    assert (manifest_path.parent / zone["edges"]["file"]).read_bytes()[:4] == b"KUTL"
+assert not [p for p in geometry_root.iterdir() if p.name != "geometry"], "staging directory leaked"
+failure = command("export-geometry", root / "missing.cas.h5", "--out", geometry_root, "--json", code=1)
+assert [json.loads(l)["event"] for l in failure.stdout.splitlines()] == ["error"]
+assert json.loads(manifest_path.read_text()) == geometry
+for arguments in [(), (root / "inlet.cas.h5",), ("--out", geometry_root), (root / "inlet.cas.h5", "--out", geometry_root, "--bogus")]:
+    command("export-geometry", *arguments, code=2)
+print("Case geometry: event, atomic publication, zones, edges, case identity and errors passed")
+
 # Overrides are applied before setup and cannot claim editability without a
 # bound setter. Exercise the real mass-flux result, not just the echoed JSON.
 import csv
@@ -266,6 +295,14 @@ assert math.isclose(summary["live_view"]["snapshot_time_seconds"], sum(s["snapsh
 # A finished live surface uses exactly the same fields and geometry as export.
 command("export-view", root / "live-result")
 final_manifest = json.loads((root / "live-result/view/manifest.json").read_text())
+# Exports add face-edge files; live snapshots omit them and are otherwise equal.
+for zone in final_manifest["zones"]:
+    edges = zone.pop("edges")
+    assert edges["primitive"] == "polylines" and edges["vertices"] == zone["vertices"] and edges["fields"] == []
+    edge_data = (root / "live-result/view" / edges["file"]).read_bytes()
+    surface_data = (root / "live-result/view" / zone["file"]).read_bytes()
+    assert edge_data[:4] == b"KUTL" and edge_data[32:32 + 12 * zone["vertices"]] == surface_data[32:32 + 12 * zone["vertices"]]
+assert all("edges" not in zone for zone in view["zones"])
 assert view == final_manifest and view["reference"]
 for zone in view["zones"]:
     assert (manifest_file.parent / zone["file"]).read_bytes() == (root / "live-result/view" / zone["file"]).read_bytes()

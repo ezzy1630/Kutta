@@ -39,23 +39,29 @@ struct Trace {
   double max_length = 1000, max_time = 1e6, start_time = 0;
   double step_length = 0, relative_tolerance = 1e-5, absolute_tolerance = 0;
   std::vector<Frame> frames;
+  // Canonical JSON of the parsed operation with its effective name: the
+  // post-cache identity. Set by read_request.
+  std::string identity;
 };
 struct Iso {
   std::string name, field;
   double value = 0;
   int component = -1;
   std::vector<std::string> fields{"velocity_magnitude", "pressure"};
+  std::string identity; // canonical JSON; see Trace::identity
 };
 struct LineProbe {
   std::string name;
   Rake line;
   std::vector<std::string> fields;
+  std::string identity; // canonical JSON; see Trace::identity
 };
 struct SectionProbe {
   std::string name;
   std::vector<std::string> zones;
   view::Plane plane;
   std::vector<std::string> fields;
+  std::string identity; // canonical JSON; see Trace::identity
 };
 using Probe = std::variant<LineProbe, SectionProbe>;
 struct Integral {
@@ -63,6 +69,7 @@ struct Integral {
   std::vector<std::string> zones, fields{"pressure"};
   Vec3d origin{}, drag{1, 0, 0}, lift{0, 1, 0}, side{0, 0, 1};
   std::optional<view::Plane> pressure_plane;
+  std::string identity; // canonical JSON; see Trace::identity
 };
 struct Request {
   std::vector<Trace> traces;
@@ -71,6 +78,9 @@ struct Request {
   std::vector<Integral> integrals;
   std::vector<std::string> fields; // extra fields on ordinary surfaces/slices
   std::map<std::string, double> reference;
+  // fields_policy "available": skip unavailable names in the global and
+  // per-operation field lists (an iso-surface's own field stays strict).
+  bool available_fields = false;
 };
 Request read_request(const std::filesystem::path &,
                      bool streamlines_only = false);
@@ -131,11 +141,30 @@ Curves trace(const Volume &, const Trace &,
 view::Geometry isosurface(const Volume &, const Iso &);
 Curves probe(const Volume &, const Probe &);
 Json integrate(const Volume &, const Integral &);
-void enrich(view::Snapshot &, const Request &);
-struct Outputs {
-  Json::Object manifest;
-  std::vector<view::FieldRange> fields;
+// Apply post reference overrides to properties and provenance.
+void apply_reference(view::Snapshot &, const Request &);
+// Fields added to ordinary surfaces/slices. With the available policy,
+// unavailable names are skipped and reported in `skipped`.
+std::vector<std::string> surface_fields(const Volume &, const Request &,
+                                        Json::Array *skipped = nullptr);
+// Derived cell/boundary fields sampled from the volume, not yet attached.
+struct Derived {
+  std::vector<view::Field> cells, boundary;
 };
-Outputs write_outputs(const std::filesystem::path &stage,
-                      const view::Snapshot &, const Request &);
+Derived derive(const Volume &, std::span<const std::string> names, bool cells,
+               bool boundary);
+void attach(view::Snapshot &, Derived);
+// apply_reference, then derive and attach every surface field.
+void enrich(view::Snapshot &, const Request &);
+struct CacheStats {
+  std::size_t reused = 0, computed = 0;
+  double seconds = 0;
+};
+// Publish RUN/view from RUN/view-input.bin with the request's operations,
+// reusing RUN/post-cache entries for unchanged work (base surfaces, slices,
+// each operation). `version` identifies the producing build. Entries unused
+// by a successful publication are pruned; a failure keeps the old view.
+CacheStats export_view(const std::filesystem::path &run,
+                       std::span<const view::Plane> planes, const Request &,
+                       std::string_view version);
 } // namespace kutta::post

@@ -119,6 +119,24 @@ Polyline index counts need not be multiples of three. Never feed KUTL to a
 triangle renderer. Missing probe/reference values are quiet NaNs and must be
 masked; every stored geometry coordinate is finite.
 
+## Face edges
+
+Zone files triangulate polygon faces, so their triangle edges include
+diagonals that are not mesh edges. Exports (`export-view`, `export-geometry`;
+not live snapshots) also write `zone-N.edges.bin` per zone, a KUTL v1 file with
+no fields. Its positions are byte-identical to, and in the same order as, the
+zone file's, so a viewer may index the zone's vertex buffer with it. Its
+indices hold every polygon edge of the zone exactly once (no diagonals, no
+duplicates), chained greedily into edge-disjoint polylines, starting at
+odd-degree vertices: I = E + L for E edges and L lines. Shared edges between
+zones appear in each zone. The zone descriptor gains `edges`, the descriptor of
+that file: `file`, `primitive:"polylines"`, `vertices`, `indices`,
+`line_count` and `fields:[]`.
+
+Manifest key order is not significant. A case-geometry manifest
+(`export-geometry`) adds `geometry_only:true` and `case:{"sha256"}`, with
+`reference:false`, empty `provenance`, no slices and no fields.
+
 ## Private snapshot v2
 
 New solves write KUTR version 2. The v1 layout remains unchanged through the two
