@@ -67,6 +67,10 @@ run(case, "--data", root / "tiny.dat.h5", "--backend", "cpu", "--iterations", 1,
 seeded = check_outputs(root / "seeded", data=True, iterations=1)
 assert max(map(abs, cold["u"])) > 1e-6 and max(map(abs, seeded["u"])) < 1e-10
 assert max(seeded["k"]) > 5 * max(cold["k"]), "--data did not seed turbulence fields"
+run(root / "no-reports.cas.h5", "--backend", "cpu", "--iterations", 1, "--out", root / "no-reports")
+with (root / "no-reports" / "forces.csv").open(newline="") as f:
+    rows = list(csv.DictReader(f))
+assert len(rows) == 1 and rows[0]["kind"] == "wall"
 error = run(root / "unsupported.cas.h5", "--backend", "cpu", "--out", root / "rejected", success=False)
 assert "recon/cell-lsf?" in error and "curvature-correction?" in error, error
 assert not (root / "rejected").exists()

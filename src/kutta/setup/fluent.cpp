@@ -170,8 +170,13 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh) {
   out.convergence_notes.push_back("kw-dissipation-newton?: Newton implicit destruction with matching RHS correction");
   const std::set<std::string> handled{"rp/turbulence/wall-omega-treatment","rp/kw-dissipation-newton?",
     "rp/kw-wall-omega-treatment-r13?","rp/sst-des-iddes-simplify_omit_fe?","rp/sst-linearize-neg-cross-diff?"};
-  for(const auto& issue:c.issues) if(issue.classification==IssueClass::unsupported)
-    if(!handled.contains(issue.path)) errors.push_back(issue.path+": "+issue.reason);
+  for(const auto& issue:c.issues) if(issue.classification==IssueClass::unsupported) {
+    // Report definitions are optional. An absent list creates no reports;
+    // a present but unparsed list must still be rejected.
+    const bool absent_reports=issue.path=="rp/monitor/report-definitions" &&
+      !c.variables.entry("monitor/report-definitions");
+    if(!handled.contains(issue.path) && !absent_reports) errors.push_back(issue.path+": "+issue.reason);
+  }
   require(!flag(c.config,"rp-des?"),"rp-des?");
   s.reference_point={number(c.variables,"pressure-reference/x"),number(c.variables,"pressure-reference/y"),number(c.variables,"pressure-reference/z")};
   for(const auto& patch:mesh.patches) {

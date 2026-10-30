@@ -6,6 +6,7 @@
 #if KUTTA_HAS_HDF5
 #include "../io/cff_fixture.hpp"
 #include "kutta/case/hdf5.hpp"
+#include "kutta/case/sexpr.hpp"
 namespace {
 using namespace kutta;
 using namespace kutta::fluent;
@@ -16,7 +17,7 @@ void text(hid_t f,const std::string& path,const std::string& value) {
   h5::Handle d(H5Dcreate2(f,path.c_str(),type,space,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT),H5Dclose);
   h5::check(H5Dwrite(d,type,H5S_ALL,H5S_ALL,H5P_DEFAULT,value.c_str()),path);
 }
-std::string variables(bool unsupported) {
+std::string variables(bool unsupported,bool include_reports) {
   std::string rp=R"((37 (
   (case-config ((rp-3d? . #t) (rp-double? . #t) (rp-seg? . #t) (rp-unsteady? . #f)
     (rp-lam? . #f) (rp-ke? . #f) (rp-kw? . #t) (rf-energy? . #f) (rp-des? . #f)))
@@ -54,13 +55,20 @@ std::string variables(bool unsupported) {
     auto p=rp.find("(recon/cell-lsf? #f)");rp.replace(p,std::string("(recon/cell-lsf? #f)").size(),"(recon/cell-lsf? #t)");
     p=rp.find("(curvature-correction? #f)");rp.replace(p,std::string("(curvature-correction? #f)").size(),"(curvature-correction? #t)");
   }
+  if(!include_reports) {
+    auto section=parse_sexpr(rp);
+    std::erase_if(section.elements.at(1).elements,[](const auto& entry) {
+      return !entry.elements.empty() && entry.elements.front().atom_text()=="monitor/report-definitions";
+    });
+    return to_string(section);
+  }
   return rp;
 }
-void case_file(const std::filesystem::path& path,bool unsupported) {
+void case_file(const std::filesystem::path& path,bool unsupported,bool include_reports=true) {
   // Asymmetric dimensions and multiple cells exercise mesh/field ordering.
   synthetic(path,make_box_hex(2,2,1,{0,0,0},{2,1,1}),false);
   h5::Handle f(H5Fopen(path.string().c_str(),H5F_ACC_RDWR,H5P_DEFAULT),H5Fclose);
-  group(f,"/settings");text(f,"/settings/Rampant Variables",variables(unsupported));
+  group(f,"/settings");text(f,"/settings/Rampant Variables",variables(unsupported,include_reports));
   text(f,"/settings/Thread Variables",R"(
     (39 (2 interior interior 1) ())
     (39 (20 fluid water 1) ((material . water) (mrf-motion? . #f) (porous? . #f) (laminar? . #f)
@@ -97,6 +105,7 @@ std::string quote(const std::filesystem::path& path) {
 TEST_CASE("Solve CLI runs generated CFF cases and data, rejects settings, and emits parseable outputs") {
   MeshTemp t;
   case_file(t.path("tiny.cas.h5"),false);case_file(t.path("unsupported.cas.h5"),true);
+  case_file(t.path("no-reports.cas.h5"),false,false);
   data_file(t.path("tiny.dat.h5"));
   std::string command=quote(KUTTA_PYTHON_PATH)+" "+quote(std::filesystem::path(KUTTA_SOURCE_DIR)/"tests/app/check_solve.py")+" "+quote(KUTTA_CLI_PATH)+" "+quote(t.directory);
 #ifdef _WIN32
