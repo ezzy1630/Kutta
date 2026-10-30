@@ -175,7 +175,12 @@ int solve(int argc,char** argv) {
         solver.iterate(1);++batch_count;stopped=stop.requested();
       }
       const auto iter=solver.report().iteration;
-      if(live && cadence.due(iter,seconds(run_start)-cadence.total_seconds())) {
+      const bool report_due=iter%setup->settings.monitor_interval==0 || iter==o.iterations || stopped;
+      // Between monitors the boundary-pressure buffer is pressure-correction
+      // scratch. Reuse the solver's scheduled refresh; never export that scratch
+      // or add extra monitor work that could change the solve for live view.
+      if(report_due && solver.report().residual_iteration!=iter)solver.monitor();
+      if(live && solver.report().residual_iteration==iter && cadence.due(iter,seconds(run_start)-cadence.total_seconds())) {
         const auto snapshot_start=Clock::now();
         const auto snapshot_fields=app::collect_view_fields(*dev,solver,c,reference?&*reference:nullptr,*setup,notice,false);
         auto event=live->publish(solver.mesh(),snapshot_fields,iter,seconds(run_start));

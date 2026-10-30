@@ -223,8 +223,7 @@ solve_setup({"run/iterations": True}, "bool-is-not-integer", reject=True)
 solve_setup({"boundary/inlet/direction": [1, 0]}, "bad-vector", reject=True)
 print(f"Setup overrides: actual inlet mass flux {base_flux['inlet']} -> {changed_flux['inlet']} kg/s; rejections and provenance passed")
 
-# Live publication is independent of the residual monitor interval. Read the
-# linked files at the event boundary, while the child is still running.
+# Read linked files at the event boundary, while the child is still running.
 live_root = root / "live-view"
 p = subprocess.Popen([cli, "solve", str(root / "tiny.cas.h5"), "--backend", "cpu", "--iterations", "1", "--data", str(root / "tiny.dat.h5"),
                       "--out", str(root / "live-result"), "--progress", "jsonl", "--live-view", str(live_root), "--live-every", "1"],
@@ -280,4 +279,20 @@ for arguments in [("--live-every", "1"), ("--live-view", str(live_root), "--live
                   ("--live-view", str(live_root), "--live-every", "99999999999999")]:
     failure = command("solve", root / "tiny.cas.h5", "--progress", "jsonl", *arguments, code=2)
     assert json.loads(failure.stdout)["event"] == "error"
-print("Live CLI: surface publication, event paths, run identity, sequence, timing and option validation passed")
+
+# A requested cadence between monitor refreshes must never export the solver's
+# pressure-correction scratch buffer. N=7 first becomes eligible at monitor 20.
+refreshed = subprocess.Popen([cli, "solve", str(root / "tiny.cas.h5"), "--backend", "cpu", "--iterations", "21",
+                              "--out", str(root / "live-refreshed"), "--progress", "jsonl", "--live-view", str(live_root), "--live-every", "7"],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+refreshed_events = finish(refreshed)
+refreshed.stdin.close()
+assert [e["iter"] for e in refreshed_events if e["event"] == "snapshot"] == [20]
+
+terminal = subprocess.Popen([cli, "solve", str(root / "tiny.cas.h5"), "--backend", "cpu", "--iterations", "7",
+                             "--out", str(root / "live-terminal"), "--progress", "jsonl", "--live-view", str(live_root), "--live-every", "7"],
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+terminal_events = finish(terminal)
+terminal.stdin.close()
+assert [e["iter"] for e in terminal_events if e["event"] == "snapshot"] == [7]
+print("Live CLI: publication, paths, run identity, sequence, timing, refreshed pressure states, stop handling and option validation passed")

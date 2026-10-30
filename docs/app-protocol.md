@@ -412,9 +412,15 @@ kutta solve case.cas.h5 --out RUN --progress jsonl --live-view RUN --live-every 
 `--live-view DIR` enables surface updates under `DIR/live/`. It works in human
 mode too; JSONL mode additionally emits `snapshot` events. `--live-every N` is a
 positive integer **minimum iteration gap**, default **20**, and requires
-`--live-view`. It is independent of the residual monitor interval. The first
-snapshot follows N completed outer iterations; a shorter/stopped run may produce
-no live snapshots. There is no forced final live write. Normal final run outputs
+`--live-view`. Publication uses the solver's existing refreshed monitor states
+(the first five iterations, scheduled monitor iterations, and the terminal
+iteration). Between those states, boundary pressure is a pressure-correction
+scratch buffer, so exporting it would show incorrect contours. No extra monitor
+work is introduced for live view. The first snapshot follows at least N completed
+outer iterations, at the next refreshed state; the 20-iteration default matches
+the ordinary monitor interval. A shorter/stopped run may produce no live snapshots.
+For more frequent refreshed states, use the supported `run/monitor-interval`
+setup control. There is no forced final live write. Normal final run outputs
 and the `done` completion contract stay the same.
 
 Snapshots contain the ordinary export-view boundary surfaces: pressure, Cp when
@@ -457,7 +463,8 @@ means visibility to concurrent readers on the same filesystem, not a guarantee
 against storage failure or power loss.
 
 Snapshot work has a **5% solve-time budget**. The first write calibrates its cost.
-Later writes wait until both the iteration gap and the budget permit publication:
+Later writes wait until a refreshed state, the iteration gap and the budget
+permit publication:
 `total_snapshot_seconds + 1.25 * previous_snapshot_seconds <= 0.05 * solve_seconds`,
 where solve seconds are loop wall time minus snapshot time. This reserves a 25%
 cost margin; unexpectedly slow storage or the first calibration can exceed the
