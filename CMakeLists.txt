@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(kutta LANGUAGES C CXX)
+project(kutta VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -53,6 +53,7 @@ endif()
 
 # ---- Optional Fluent CFF reader (HDF5 C API) ---------------------------------
 option(KUTTA_ENABLE_HDF5 "Enable Fluent CFF mesh import when HDF5 is available" ON)
+option(KUTTA_REQUIRE_HDF5 "Fail configuration unless the Fluent HDF5 reader is enabled" OFF)
 set(KUTTA_HAS_HDF5 OFF)
 if(KUTTA_ENABLE_HDF5)
   # FindHDF5's C component runs C probes, even though Kutta is C++.
@@ -63,6 +64,9 @@ if(KUTTA_ENABLE_HDF5)
     find_package(ZLIB 1.2.9 REQUIRED)
     target_link_libraries(kutta PUBLIC HDF5::HDF5 ZLIB::ZLIB)
   endif()
+endif()
+if(KUTTA_REQUIRE_HDF5 AND NOT KUTTA_HAS_HDF5)
+  message(FATAL_ERROR "KUTTA_REQUIRE_HDF5 requires HDF5 >= 1.10.2 and zlib")
 endif()
 target_compile_definitions(kutta PUBLIC KUTTA_HAS_HDF5=$<BOOL:${KUTTA_HAS_HDF5}>)
 message(STATUS "Kutta HDF5 mesh reader: ${KUTTA_HAS_HDF5}")
@@ -102,6 +106,25 @@ if(KUTTA_APP_SOURCES)
   add_executable(kutta-cli ${KUTTA_APP_SOURCES})
   set_target_properties(kutta-cli PROPERTIES OUTPUT_NAME kutta)
   target_link_libraries(kutta-cli PRIVATE kutta)
+  execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE KUTTA_COMMIT OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(NOT KUTTA_COMMIT)
+    set(KUTTA_COMMIT "unknown")
+  else()
+    # Reconfigure after commits, including branches in linked worktrees, so an
+    # incremental build cannot claim an older source commit in summary.json.
+    execute_process(COMMAND git rev-parse --path-format=absolute --git-path HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_VARIABLE KUTTA_GIT_HEAD OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND git symbolic-ref -q HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_VARIABLE KUTTA_GIT_REF OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${KUTTA_GIT_HEAD}")
+    if(KUTTA_GIT_REF)
+      execute_process(COMMAND git rev-parse --path-format=absolute --git-path ${KUTTA_GIT_REF} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE KUTTA_GIT_REF_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
+      set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${KUTTA_GIT_REF_PATH}")
+    endif()
+  endif()
+  target_compile_definitions(kutta-cli PRIVATE KUTTA_VERSION="${PROJECT_VERSION}" KUTTA_COMMIT="${KUTTA_COMMIT}")
 endif()
 
 file(GLOB KUTTA_BENCH_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/bench/*.cpp)
@@ -125,6 +148,7 @@ if(KUTTA_BUILD_TESTS)
   add_executable(kutta-tests ${KUTTA_TEST_SOURCES})
   target_link_libraries(kutta-tests PRIVATE kutta doctest::doctest)
   add_dependencies(kutta-tests kutta-cli)
+  target_compile_definitions(kutta-tests PRIVATE KUTTA_PYTHON_PATH="${Python3_EXECUTABLE}")
   target_compile_definitions(kutta-tests PRIVATE KUTTA_CLI_PATH="$<TARGET_FILE:kutta-cli>")
   target_compile_definitions(kutta-tests PRIVATE KUTTA_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
   # Long numerical verification (doctest suite "slow"): `ctest -LE slow` skips it.

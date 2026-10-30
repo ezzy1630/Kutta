@@ -45,6 +45,28 @@ that **replaces** the wall-face viscous flux, plus a separately documented
 wall-face omega value for gradient/reconstruction. See the
 [SST model contract and measured errors](src/kutta/fv/turbulence/README.md).
 
+## Run a Fluent case
+
+```sh
+./build/kutta solve car.cas.h5 --data car.dat.h5 --backend cuda --iterations 2000 --out results
+```
+
+Omit `--data` for the case's standard initialization. `--backend auto` (the
+default) tries CUDA, Metal, then CPU. Unsupported settings are listed together
+and cause a nonzero exit before solving. No case settings are silently replaced;
+convergence-path changes already allowed by the adapter are printed.
+
+The CLI prints Fluent-scaled residuals and average seconds per iteration at the
+solver's monitor interval. It writes `result.vtu` (`u`, `p`, `k`, `omega`, `mu_t`),
+`forces.csv` (wall zones and resolved force/drag/lift reports), `residuals.csv`,
+and `summary.json` (SHA256 inputs, build/device identity and timing). The current
+adapter exposes no convergence criteria, so runs stop at `--iterations` (default
+1000) and record `converged=false`. Peak device memory is recorded as `null`;
+the current VTU writer has no boundary-face wall shear output.
+
+Windows CI produces `kutta-windows-rtx.zip` with HDF5/zlib DLLs, license notices
+and [Windows requirements and examples](docs/README-windows.txt).
+
 ## Docs
 
 - [Architecture and acceptance gates](docs/ARCHITECTURE.md)

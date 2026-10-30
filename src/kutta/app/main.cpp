@@ -1,5 +1,6 @@
 #include "kutta/case/fluent_case.hpp"
 #include "kutta/case/fluent_data.hpp"
+#include "solve.hpp"
 #include <algorithm>
 #include <iostream>
 
@@ -391,9 +392,10 @@ void data_summary(const FluentCase &c, const FluentData &d) {
 }
 } // namespace
 int main(int argc, char **argv) {
+  if(argc>=2 && std::string_view(argv[1])=="solve") return solve(argc,argv);
   if ((argc != 3 && argc != 5) || std::string_view(argv[1]) != "inspect" ||
       (argc == 5 && std::string_view(argv[3]) != "--data")) {
-    std::cerr << "Usage: kutta inspect <file.cas.h5|file.cas> [--data file.dat.h5]\n";
+    std::cerr << "Usage: kutta solve <file.cas.h5> [--data file.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR]\n       kutta inspect <file.cas.h5|file.cas> [--data file.dat.h5]\n";
     return 2;
   }
   try {
