@@ -84,9 +84,16 @@ QString displayValue(const Setting& s, const QJsonValue& v)
     if (v.isNull() || v.isUndefined()) return QStringLiteral("—");
     switch (s.kind) {
     case SettingKind::Number: text = QLocale().toString(v.toDouble() * du.factor, 'g', 6); break;
-    case SettingKind::Integer: text = QLocale().toString(qint64(v.toDouble())); break;
+    case SettingKind::Integer:
+        if (QString l = s.labelFor(v); !l.isEmpty()) return l;
+        text = QLocale().toString(qint64(v.toDouble()));
+        break;
     case SettingKind::Bool: return v.toBool() ? QObject::tr("On") : QObject::tr("Off");
-    case SettingKind::Enum: return v.isString() ? enumText(v.toString()) : SettingsModel::formatValue(s, v, false);
+    case SettingKind::Enum: {
+        // Fluent's words when the CLI gives them; never a bare code.
+        if (QString l = s.labelFor(v); !l.isEmpty()) return l;
+        return v.isString() ? enumText(v.toString()) : SettingsModel::formatValue(s, v, false);
+    }
     case SettingKind::Vec3: {
         const QJsonArray a = v.toArray();
         bool any = false;
@@ -141,10 +148,21 @@ SettingEditor::SettingEditor(SettingsModel* model, const Setting& s, QWidget* pa
     } else if (s.kind == SettingKind::Enum && !s.options.isEmpty()) {
         auto* c = new QComboBox(this);
         c->setAccessibleName(name);
-        for (const QString& o : s.options) c->addItem(enumText(o), o);
+        for (qsizetype i = 0; i < s.options.size(); ++i) {
+            const QJsonValue o = s.options[i];
+            const QString l = s.labelFor(o);
+            c->addItem(!l.isEmpty() ? l : o.isString() ? enumText(o.toString()) : o.toVariant().toString());
+        }
         row->addWidget(c, 1);
-        connect(c, &QComboBox::activated, this, [this, c](int i) { commit(c->itemData(i).toString()); });
-        m_set = [c](const QJsonValue& v) { const QSignalBlocker b(c); c->setCurrentIndex(c->findData(v.toString())); };
+        const QJsonArray options = s.options;
+        connect(c, &QComboBox::activated, this, [this, options](int i) { commit(options.at(i)); });
+        m_set = [c, options](const QJsonValue& v) {
+            const QSignalBlocker b(c);
+            int at = -1;
+            for (qsizetype i = 0; i < options.size(); ++i)
+                if (SettingsModel::sameValue(options[i], v)) at = int(i);
+            c->setCurrentIndex(at);
+        };
         m_focus = c;
     } else if (s.kind == SettingKind::Vec3) {
         std::array<QLineEdit*, 3> edits{};
@@ -315,7 +333,9 @@ bool SettingsForm::addSetting(const QString& path, const QString& labelOverride)
     unit->setProperty("role", "unit");
     unit->setMinimumWidth(QFontMetrics(font()).horizontalAdvance("kg/m³") + 2);
     m_grid->addWidget(unit, m_row, 3);
+    r.unit = unit;
     auto* status = new QWidget(this);
+    r.status = status;
     auto* sl = new QHBoxLayout(status);
     sl->setContentsMargins(0, 0, 0, 0);
     sl->setSpacing(0);
@@ -357,6 +377,16 @@ void SettingsForm::refreshRow(const QString& path)
         r.reset->setToolTip(tr("Reset to the case value (%1)").arg(s ? displayValue(*s, s->value) : QString()));
     }
     r.label->setToolTip(mod && s ? tr("%1\nModified. Case value: %2").arg(path, displayValue(*s, s->value)) : path);
+    const bool active = m_model->isActive(path);
+    for (QWidget* w : {r.marker, static_cast<QWidget*>(r.label), static_cast<QWidget*>(r.editor), static_cast<QWidget*>(r.unit), r.status})
+        w->setVisible(active);
+}
+
+int SettingsForm::activeRows() const
+{
+    int n = 0;
+    for (auto it = m_rows.begin(); it != m_rows.end(); ++it) n += m_model->isActive(it.key());
+    return n;
 }
 
 void SettingsForm::finish()

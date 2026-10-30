@@ -109,6 +109,13 @@ QByteArray readFixture(const QString& rel)
     return {};
 }
 
+// Run controls (iterations, monitor interval) never make a result MODIFIED.
+bool caseModified(const QJsonObject& overrides)
+{
+    const QStringList keys = overrides.keys();
+    return std::any_of(keys.begin(), keys.end(), [](const QString& k) { return !kapp::SettingsModel::isRunControl(k); });
+}
+
 QJsonObject readJson(const QString& path)
 {
     QFile f(path);
@@ -459,7 +466,7 @@ int solve(const Args& a)
     QJsonObject setup{{"v", 1}, {"event", "setup"}, {"cells", double(r.kind == CaseKind::Elbow ? 17822 : 18412903)},
                       {"backend", r.device.value("backend")}, {"device", r.device.value("name")},
                       {"approximations", QJsonArray::fromStringList(r.approximations)},
-                      {"init", r.dataPath.isEmpty() ? "hybrid" : "fluent-data"}, {"overrides", r.overrides}, {"modified", !r.overrides.isEmpty()}};
+                      {"init", r.dataPath.isEmpty() ? "hybrid" : "fluent-data"}, {"overrides", r.overrides}, {"modified", caseModified(r.overrides)}};
     if (r.liveView > 0)
         setup["live_view"] = QJsonObject{{"directory", liveRoot}, {"run_id", liveRunId}, {"every", r.liveView},
                                          {"unit", "iterations"}, {"budget_fraction", 0.05}};
@@ -616,7 +623,7 @@ int solve(const Args& a)
     sum["v"] = 1;
     sum["fixture"] = true;
     sum["synthetic"] = r.kind == CaseKind::Car;
-    sum["modified"] = !r.overrides.isEmpty();
+    sum["modified"] = caseModified(r.overrides);
     sum["overrides"] = r.overrides;
     sum["approximate"] = !r.approximations.isEmpty();
     if (r.kind == CaseKind::Car && !r.approximations.isEmpty()) {

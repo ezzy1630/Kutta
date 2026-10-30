@@ -164,7 +164,7 @@ QString Session::run()
     req.outDir = rec.dir;
     req.liveViewInterval = m_liveView;
     req.iterations = rec.iterationsRequested;
-    if (!rec.overrides.isEmpty()) {
+    if (m_settings.needsSetupFile()) {
         req.setupFile = QDir(rec.dir).filePath("setup.json");
         QFile f(req.setupFile);
         if (f.open(QIODevice::WriteOnly)) f.write(QJsonDocument(m_settings.setupJson()).toJson(QJsonDocument::Indented));

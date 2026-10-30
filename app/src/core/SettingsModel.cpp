@@ -3,6 +3,7 @@
 #include <QJsonArray>
 #include <QLocale>
 
+#include <algorithm>
 #include <cmath>
 
 namespace kapp {
@@ -38,7 +39,12 @@ void SettingsModel::reset(const std::vector<Setting>& inventory)
 {
     m_settings = inventory;
     m_index.clear();
-    for (int i = 0; i < int(m_settings.size()); ++i) m_index.insert(m_settings[std::size_t(i)].path, i);
+    m_dependents.clear();
+    for (int i = 0; i < int(m_settings.size()); ++i) {
+        const Setting& s = m_settings[std::size_t(i)];
+        m_index.insert(s.path, i);
+        if (!s.dependsOn.isEmpty()) m_dependents[s.dependsOn] << s.path;
+    }
     m_overrides.clear();
     m_undo.clear();
     emit overridesChanged();
@@ -55,6 +61,15 @@ QJsonValue SettingsModel::value(const QString& path) const
     if (auto it = m_overrides.find(path); it != m_overrides.end()) return *it;
     const Setting* s = find(path);
     return s ? s->value : QJsonValue();
+}
+
+bool SettingsModel::isActive(const QString& path) const
+{
+    const Setting* s = find(path);
+    if (!s) return false;
+    if (s->dependsOn.isEmpty() || !find(s->dependsOn)) return s->active;
+    const QJsonValue v = value(s->dependsOn);
+    return std::any_of(s->activeWhen.begin(), s->activeWhen.end(), [&](const QJsonValue& w) { return sameValue(w, v); });
 }
 
 bool SettingsModel::sameValue(const QJsonValue& a, const QJsonValue& b)
@@ -86,11 +101,15 @@ QString SettingsModel::validate(const QString& path, const QJsonValue& v) const
     }
     case SettingKind::Bool:
         return v.isBool() ? QString() : QStringLiteral("Choose on or off.");
-    case SettingKind::Enum:
-        if (!v.isString()) return QStringLiteral("Choose one of the listed options.");
-        if (!s->options.isEmpty() && !s->options.contains(v.toString()))
-            return QStringLiteral("Choose one of: %1.").arg(s->options.join(", "));
-        return {};
+    case SettingKind::Enum: {
+        if (!v.isString() && !v.isDouble()) return QStringLiteral("Choose one of the listed options.");
+        if (s->options.isEmpty() || std::any_of(s->options.begin(), s->options.end(), [&](const QJsonValue& o) { return sameValue(o, v); }))
+            return {};
+        QStringList names;
+        for (qsizetype i = 0; i < s->options.size(); ++i)
+            names << (i < s->optionLabels.size() ? s->optionLabels[i] : s->options[i].toVariant().toString());
+        return QStringLiteral("Choose one of: %1.").arg(names.join(", "));
+    }
     case SettingKind::Vec3: {
         const QJsonArray a = v.toArray();
         if (a.size() != 3) return QStringLiteral("Enter three components.");
@@ -106,8 +125,8 @@ QString SettingsModel::validate(const QString& path, const QJsonValue& v) const
     }
     case SettingKind::String:
         if (!v.isString()) return QStringLiteral("Enter text.");
-        if (!s->options.isEmpty() && !s->options.contains(v.toString()))
-            return QStringLiteral("Choose one of: %1.").arg(s->options.join(", "));
+        if (!s->options.isEmpty() && !s->options.contains(v))
+            return QStringLiteral("Choose one of the listed options.");
         return {};
     }
     return {};
@@ -162,6 +181,8 @@ void SettingsModel::setOverrideRaw(const QString& path, const std::optional<QJso
     if (v) m_overrides.insert(path, *v);
     else m_overrides.remove(path);
     emit valueChanged(path);
+    // A method choice shows or hides its fields.
+    for (const QString& d : m_dependents.value(path)) emit valueChanged(d);
     emit overridesChanged();
 }
 
@@ -176,11 +197,16 @@ QJsonObject SettingsModel::caseOverrides() const
 {
     QJsonObject o = overrides();
     for (const QString& k : o.keys())
-        if (isRunControl(k)) o.remove(k);
+        if (isRunControl(k) || !isActive(k)) o.remove(k);
     return o;
 }
 
-QJsonObject SettingsModel::setupJson() const { return QJsonObject{{"v", 1}, {"overrides", caseOverrides()}}; }
+QJsonObject SettingsModel::setupJson() const
+{
+    QJsonObject o = caseOverrides();
+    if (auto it = m_overrides.find("run/monitor-interval"); it != m_overrides.end()) o.insert(it.key(), *it);
+    return QJsonObject{{"v", 1}, {"overrides", o}};
+}
 
 QString SettingsModel::formatValue(const Setting& s, const QJsonValue& v, bool withUnit)
 {

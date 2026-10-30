@@ -79,10 +79,17 @@ Result<Setting> parseSetting(const QJsonObject& o)
     if (!kind) return Result<Setting>::failure(QStringLiteral("%1: unknown kind '%2'").arg(s.path, o.value("kind").toString()));
     s.kind = *kind;
     s.value = o.value("value");
-    s.options = strings(o.value("options"));
+    s.options = o.value("options").toArray();
+    s.optionLabels = strings(o.value("option_labels"));
+    if (s.optionLabels.size() != s.options.size()) s.optionLabels.clear();
+    s.valueLabel = o.value("value_label").toString();
     s.min = num(o.value("min"));
     s.max = num(o.value("max"));
     s.editable = o.value("editable").toBool();
+    // Older CLIs have no activity metadata: everything is in use.
+    s.active = o.value("active").toBool(true);
+    s.dependsOn = o.value("depends_on").toString();
+    s.activeWhen = o.value("active_when").toArray();
     const QStringList seg = s.path.split('/');
     s.section = seg.value(0);
     int leafStart = 1;
@@ -101,6 +108,14 @@ Result<Setting> parseSetting(const QJsonObject& o)
 }
 
 } // namespace
+
+QString Setting::labelFor(const QJsonValue& v) const
+{
+    const auto same = [](const QJsonValue& a, const QJsonValue& b) { return a.isDouble() && b.isDouble() ? a.toDouble() == b.toDouble() : a == b; };
+    for (qsizetype i = 0; i < options.size() && i < optionLabels.size(); ++i)
+        if (same(options[i], v) && !optionLabels[i].isEmpty()) return optionLabels[i];
+    return same(v, value) ? valueLabel : QString();
+}
 
 QString decodePathSegment(const QString& segment)
 {

@@ -6,6 +6,7 @@
 #include "core/Result.h"
 #include "core/ViewFormat.h"
 
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QMap>
@@ -59,9 +60,19 @@ struct Setting {
     QString path, label, group, unit, reason;
     SettingKind kind = SettingKind::String;
     QJsonValue value;     // null when unavailable
-    QStringList options;  // enum choices; empty when unrestricted
+    QJsonArray options;   // enum choices (names or integer codes); empty when unrestricted
+    QStringList optionLabels;  // Fluent's words for each option, parallel to options
+    QString valueLabel;   // Fluent's words for the case value, when it is a code
     std::optional<double> min, max;
     bool editable = false;
+    // Whether the case uses the setting. With dependsOn, it is used while that
+    // enum's current value is one of activeWhen (Fluent shows only those fields).
+    bool active = true;
+    QString dependsOn;
+    QJsonArray activeWhen;
+
+    // Fluent's words for one value of this setting; empty when it has none.
+    QString labelFor(const QJsonValue& v) const;
 
     // Derived from the path: "boundary/<zone>/velocity-magnitude" -> owner "<zone>".
     QString section;  // first segment: boundary, materials, controls, case, ...

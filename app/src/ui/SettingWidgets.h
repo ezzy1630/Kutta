@@ -54,10 +54,12 @@ public:
     void addWidget(QWidget* w);
     void finish();
     int rows() const { return m_rowCount; }
+    // Rows the selected methods use; fields of other methods are hidden, as in Fluent.
+    int activeRows() const;
 
 private:
     void refreshRow(const QString& path);
-    struct Row { QWidget* marker; QLabel* label; SettingEditor* editor; QToolButton* reset; QLabel* lock; };
+    struct Row { QWidget* marker; QLabel* label; SettingEditor* editor; QLabel* unit; QWidget* status; QToolButton* reset; QLabel* lock; };
     SettingsModel* m_model;
     QGridLayout* m_grid;
     int m_row = 0, m_rowCount = 0;

@@ -1439,6 +1439,8 @@ constexpr int kRetainedRole = Qt::UserRole + 2;  // the raw-settings folder
 // Settings grouped as Fluent's outline: group, then zone or material, then
 // Kutta's controls before the retained raw Fluent settings, which sit in their
 // own collapsed folder so 7,000 rp entries never bury the 26 that matter.
+QString unusedReason(const SettingsModel& m, const Setting& s);
+
 class SettingsTree : public QStandardItemModel {
 public:
     SettingsTree(SettingsModel* m, QObject* parent) : QStandardItemModel(parent), m_model(m)
@@ -1530,9 +1532,12 @@ private:
         const DisplayUnit du = displayUnit(st);
         if (!du.unit.isEmpty() && v.endsWith(" " + du.unit)) v.chop(du.unit.size() + 1);
         r[1]->setText(v.left(160));
-        const QColor fg = mod ? (t.dark ? t.amber : t.amberText) : st.editable ? t.text : t.muted;
+        // Fields the selected method does not use are listed, dimmed, as Fluent keeps them too.
+        const bool active = m_model->isActive(st.path);
+        const QColor fg = !active ? t.faint : mod ? (t.dark ? t.amber : t.amberText) : st.editable ? t.text : t.muted;
         for (auto* it : r) it->setForeground(fg);
-        const QString tip = QStringLiteral("%1\n%2").arg(st.path, mod ? QObject::tr("Modified") : st.editable ? QObject::tr("Editable") : st.reason);
+        QString tip = QStringLiteral("%1\n%2").arg(st.path, mod ? QObject::tr("Modified") : st.editable ? QObject::tr("Editable") : st.reason);
+        if (!active) tip += "\n" + unusedReason(*m_model, st);
         for (auto* it : r) it->setToolTip(tip);
     }
     void refresh(const QString& path)
@@ -1575,6 +1580,14 @@ protected:
         return true;
     }
 };
+
+// Why a listed setting has no effect, in the words of its controlling choice.
+QString unusedReason(const SettingsModel& m, const Setting& s)
+{
+    if (const Setting* c = s.dependsOn.isEmpty() ? nullptr : m.find(s.dependsOn))
+        return QObject::tr("Not used: %1 is %2.").arg(settingLabel(*c), displayValue(*c, m.value(c->path)));
+    return QObject::tr("Not used by this zone or model.");
+}
 
 // The inspector page that holds an editable setting.
 QString pageFor(const Setting& s)
@@ -1672,9 +1685,11 @@ QWidget* allSettings(const InspectorContext& c, const QString& filter)
         dTitle->setText(settingLabel(*s));
         dPath->setText(s->path);
         dValue->setText(QObject::tr("Value: %1").arg(displayValue(*s, sm->value(s->path))));
-        dWhy->setText(sm->isModified(s->path) ? QObject::tr("Changed from the case value %1.").arg(displayValue(*s, s->value))
+        QString why = sm->isModified(s->path) ? QObject::tr("Changed from the case value %1.").arg(displayValue(*s, s->value))
                       : s->editable           ? QObject::tr("Editable in Kutta.")
-                                              : QObject::tr("Read-only: %1").arg(s->reason));
+                                              : QObject::tr("Read-only: %1").arg(s->reason);
+        if (!sm->isActive(s->path)) why = unusedReason(*sm, *s) + " " + why;
+        dWhy->setText(why);
         dGo->setVisible(s->editable);
         dGo->setProperty("target", pageFor(*s));
     };

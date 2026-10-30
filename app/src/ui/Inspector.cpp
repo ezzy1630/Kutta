@@ -500,6 +500,7 @@ QWidget* boundary(const InspectorContext& c, const QString& zoneName)
     placed << prefix + "type";
     if (type.contains("inlet") || type.contains("outlet") || type.contains("far-field")) {
         f->addSection(QObject::tr("Momentum"));
+        add("velocity-specification");
         add("velocity-magnitude");
         add("velocity");
         add("direction");
@@ -524,10 +525,10 @@ QWidget* boundary(const InspectorContext& c, const QString& zoneName)
             const QJsonArray a = vel.toArray();
             f->addRow(QObject::tr("Wall velocity"), label(QStringLiteral("(%1, %2, %3)").arg(formatNumber(a[0].toDouble(), 4), formatNumber(a[1].toDouble(), 4), formatNumber(a[2].toDouble(), 4))), "m/s");
         }
-        for (const QString& l : {"velocity-magnitude", "velocity", "direction", "gauge-pressure", "turbulence-specification"}) placed << prefix + l;
+        for (const QString& l : {"velocity-specification", "velocity-magnitude", "velocity", "direction", "gauge-pressure", "turbulence-specification"}) placed << prefix + l;
     } else if (type == "symmetry") {
         f->addNote(QObject::tr("Symmetry boundaries have no inputs: zero normal velocity and zero normal gradients."));
-        for (const QString& l : {"velocity-magnitude", "velocity", "direction", "gauge-pressure", "turbulence-specification"}) placed << prefix + l;
+        for (const QString& l : {"velocity-specification", "velocity-magnitude", "velocity", "direction", "gauge-pressure", "turbulence-specification"}) placed << prefix + l;
     }
     bool otherHeader = false;
     for (const Setting* s : settingsUnder(c, prefix)) {

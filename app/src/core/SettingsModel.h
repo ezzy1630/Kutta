@@ -41,13 +41,27 @@ public:
     // Replace overrides wholesale (restoring a run's settings); undoable.
     QString applyOverrides(const QJsonObject& overrides, const QString& description);
 
+    // Whether the case uses the setting with the current values: a field the
+    // selected method does not use (k under Intensity and Hydraulic Diameter)
+    // is inactive, as in Fluent's panels.
+    bool isActive(const QString& path) const;
+    // Settings whose activity follows this one (the fields of a method choice).
+    QStringList dependents(const QString& path) const { return m_dependents.value(path); }
+
     QJsonObject overrides() const;
-    // Overrides that change the case being solved. The iteration count is a
-    // run control passed as --iterations; it does not make results MODIFIED.
+    // Overrides that change the case being solved. Run controls (iteration
+    // count, monitor interval) do not make results MODIFIED, and values of
+    // fields the selected method does not use change nothing.
     QJsonObject caseOverrides() const;
     int caseModifiedCount() const { return int(caseOverrides().size()); }
-    static bool isRunControl(const QString& path) { return path == QLatin1String("run/iterations"); }
-    QJsonObject setupJson() const;  // {"v":1,"overrides":{case overrides}}
+    static bool isRunControl(const QString& path)
+    {
+        return path == QLatin1String("run/iterations") || path == QLatin1String("run/monitor-interval");
+    }
+    // {"v":1,"overrides":{case overrides + run controls without a CLI flag}}.
+    // The iteration count travels as --iterations instead.
+    QJsonObject setupJson() const;
+    bool needsSetupFile() const { return !setupJson().value("overrides").toObject().isEmpty(); }
 
     QUndoStack* undoStack() { return &m_undo; }
 
@@ -65,6 +79,7 @@ private:
 
     std::vector<Setting> m_settings;
     QHash<QString, int> m_index;
+    QHash<QString, QStringList> m_dependents;
     QHash<QString, QJsonValue> m_overrides;
     QUndoStack m_undo;
 };
