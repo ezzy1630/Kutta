@@ -16,6 +16,14 @@ DeviceVec3 vectors(Device& dev, const std::vector<Vec3d>& values) {
   for (auto v : values) { x.push_back(float(v.x)); y.push_back(float(v.y)); z.push_back(float(v.z)); }
   return {dev.upload<float>(x),dev.upload<float>(y),dev.upload<float>(z)};
 }
+// The rows of boundary faces, in boundary-face order, from per-entry rows.
+// A boundary face has exactly one cell-face entry (its owner's).
+std::vector<Vec3d> boundary_rows(const PolyMesh& m,const kutta::CellFaces& cf,const std::vector<Vec3d>& rows) {
+  std::vector<Vec3d> result(m.n_faces()-m.n_internal_faces());
+  for(Index j=0;j<Index(cf.faces.size());++j)
+    if(cf.faces[j]>=m.n_internal_faces()) result[cf.faces[j]-m.n_internal_faces()]=rows[j];
+  return result;
+}
 }
 
 DeviceVec3 vector_field(Device& dev, std::size_t n, float value) {
@@ -68,13 +76,14 @@ Stencil make_stencil(Device& dev, const PolyMesh& m, const MeshGeometry& g) {
   }
   s.adjacent=dev.upload<Index>(adjacent); s.matrix_entry=dev.upload<Index>(entry);
   s.lsq_delta=vectors(dev,delta); s.face_delta=vectors(dev,rf);
+  s.boundary_lsq_delta=vectors(dev,boundary_rows(m,cf,delta));
   s.lsq_inverse=dev.upload<float>(inverse); s.diffusion=dev.upload<float>(diffusion);
   s.nonorthogonal=vectors(dev,nonorthogonal);
   return s;
 }
 
 BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
-    const MeshGeometry& g,std::span<const BoundaryObservation> observations) {
+    const MeshGeometry& g,std::span<const BoundaryObservation> observations,const Stencil* stencil) {
   KUTTA_REQUIRE(observations.size()==std::size_t(m.n_faces()-m.n_internal_faces()),
                 "FV LSQ boundary mask size mismatch");
   const auto cf=build_cell_faces(m);
@@ -124,10 +133,19 @@ BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
     const double v[]{inv[0][0],inv[0][1],inv[0][2],inv[1][1],inv[1][2],inv[2][2]};
     for(int k=0;k<6;++k) inverse[c+k*m.n_cells]=float(v[k]);
   }
-  return {vectors(dev,delta),dev.upload<float>(inverse)};
+  BoundaryLeastSquares fit;
+  fit.boundary_delta=vectors(dev,boundary_rows(m,cf,delta));
+  fit.inverse=dev.upload<float>(inverse);
+  if(stencil) {
+    // Internal rows here and in make_stencil are the same double expression
+    // (d/|d|^2 between centroids), so the stencil's floats are these rows.
+    KUTTA_REQUIRE(stencil->lsq_delta.x.size()==delta.size(),"FV LSQ stencil does not match the mesh");
+    fit.stencil_rows=&stencil->lsq_delta;
+  } else fit.delta=vectors(dev,delta);
+  return fit;
 }
 
-BoundaryLeastSquares face_jump_least_squares(Device& dev,const PolyMesh& m,const MeshGeometry& g) {
+FaceJumpFit face_jump_least_squares(Device& dev,const PolyMesh& m,const MeshGeometry& g) {
   const auto cf=build_cell_faces(m);std::vector<Vec3d> delta;
   std::vector<float> inverse(6*m.n_cells);
   for(Index c=0;c<m.n_cells;++c) {
@@ -148,7 +166,7 @@ BoundaryLeastSquares face_jump_least_squares(Device& dev,const PolyMesh& m,const
   return {vectors(dev,delta),dev.upload<float>(inverse)};
 }
 void jump_corrected_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
-    const BoundaryLeastSquares& fit,const Buffer<float>& cell,const Buffer<float>& bc,
+    const FaceJumpFit& fit,const Buffer<float>& cell,const Buffer<float>& bc,
     const DeviceVec3& base,DeviceVec3& out) {
   kern::fv_jump_gradient(dev,m.n_cells,m.cell_face_offsets,m.cell_faces,s.adjacent,m.cell_face_sign,
     fit.delta.x,fit.delta.y,fit.delta.z,fit.inverse,s.face_delta.x,s.face_delta.y,s.face_delta.z,
@@ -160,15 +178,17 @@ void jump_corrected_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
 void gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
     const BoundaryLeastSquares& lsq,const Buffer<float>& cell,
     const Buffer<float>& bc,DeviceVec3& out) {
-  kern::fv_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,
-    lsq.delta.x,lsq.delta.y,lsq.delta.z,lsq.inverse,cell,bc,out.x,out.y,out.z,m.n_cells);
+  const auto& rows=lsq.rows();
+  kern::fv_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,rows.x,rows.y,rows.z,
+    lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse,cell,bc,out.x,out.y,out.z,m.n_cells);
 }
 void vector_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
     const BoundaryLeastSquares& lsq,const DeviceVec3& cell,const DeviceVec3& bc,
     DeviceVec3& u,DeviceVec3& v,DeviceVec3& w) {
-  kern::fv_vector_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,
-    lsq.delta.x,lsq.delta.y,lsq.delta.z,lsq.inverse,cell.x,cell.y,cell.z,bc.x,bc.y,bc.z,
-    u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,m.n_cells);
+  const auto& rows=lsq.rows();
+  kern::fv_vector_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,rows.x,rows.y,rows.z,
+    lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse,
+    cell.x,cell.y,cell.z,bc.x,bc.y,bc.z,u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,m.n_cells);
 }
 
 void gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
@@ -176,6 +196,7 @@ void gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
   KUTTA_REQUIRE(cell.size()==std::size_t(m.n_cells) && boundary.size()==std::size_t(m.n_boundary_faces()) &&
     out.x.size()==cell.size() && out.y.size()==cell.size() && out.z.size()==cell.size(),"FV gradient field size mismatch");
   kern::fv_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.lsq_delta.x,s.lsq_delta.y,s.lsq_delta.z,
+    s.boundary_lsq_delta.x,s.boundary_lsq_delta.y,s.boundary_lsq_delta.z,
     s.lsq_inverse,cell,boundary,out.x,out.y,out.z,m.n_cells);
 }
 void limit_gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
@@ -195,7 +216,8 @@ void vector_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
   for(const auto* field:{&bc.x,&bc.y,&bc.z}) sizes=sizes && field->size()==std::size_t(m.n_boundary_faces());
   KUTTA_REQUIRE(sizes,"FV vector gradient size mismatch");
   kern::fv_vector_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,
-    s.lsq_delta.x,s.lsq_delta.y,s.lsq_delta.z,s.lsq_inverse,
+    s.lsq_delta.x,s.lsq_delta.y,s.lsq_delta.z,
+    s.boundary_lsq_delta.x,s.boundary_lsq_delta.y,s.boundary_lsq_delta.z,s.lsq_inverse,
     cell.x,cell.y,cell.z,bc.x,bc.y,bc.z,u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,m.n_cells);
 }
 }  // namespace kutta::fv

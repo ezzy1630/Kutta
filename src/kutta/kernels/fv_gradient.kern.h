@@ -1,14 +1,21 @@
 #include "kutta/kernels/prelude.h"
 
+// Row weights: dx/dy/dz per cell-face entry for internal faces, and
+// fx/fy/fz per boundary face, so fits that differ only in boundary rows share
+// the internal ones.
 KUTTA_KERNEL void fv_gradient(int i, KIn(int) offsets, KIn(int) adjacent,
-    KIn(float) dx, KIn(float) dy, KIn(float) dz, KIn(float) inverse,
+    KIn(float) dx, KIn(float) dy, KIn(float) dz,
+    KIn(float) fx, KIn(float) fy, KIn(float) fz, KIn(float) inverse,
     KIn(float) cell, KIn(float) boundary,
     KOut(float) gx, KOut(float) gy, KOut(float) gz, int n) {
   float bx=0.0f,by=0.0f,bz=0.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int other=adjacent[j];
     float d=(other<0 ? boundary[-other-1] : cell[other])-cell[i];
-    bx+=dx[j]*d; by+=dy[j]*d; bz+=dz[j]*d;
+    float wx=other<0 ? fx[-other-1] : dx[j];
+    float wy=other<0 ? fy[-other-1] : dy[j];
+    float wz=other<0 ? fz[-other-1] : dz[j];
+    bx+=wx*d; by+=wy*d; bz+=wz*d;
   }
   gx[i]=inverse[i]*bx+inverse[i+n]*by+inverse[i+2*n]*bz;
   gy[i]=inverse[i+n]*bx+inverse[i+3*n]*by+inverse[i+4*n]*bz;
@@ -35,7 +42,7 @@ KUTTA_KERNEL void fv_limiter(int i, KIn(int) offsets, KIn(int) adjacent,
 }
 
 KUTTA_KERNEL void fv_vector_gradient(int i,KIn(int) offsets,KIn(int) adjacent,
-    KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) inverse,
+    KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) fx,KIn(float) fy,KIn(float) fz,KIn(float) inverse,
     KIn(float) u,KIn(float) v,KIn(float) w,KIn(float) bu,KIn(float) bv,KIn(float) bw,
     KOut(float) ux,KOut(float) uy,KOut(float) uz,KOut(float) vx,KOut(float) vy,KOut(float) vz,
     KOut(float) wx,KOut(float) wy,KOut(float) wz,int n) {
@@ -45,9 +52,10 @@ KUTTA_KERNEL void fv_vector_gradient(int i,KIn(int) offsets,KIn(int) adjacent,
     float a=(other<0?bu[-other-1]:u[other])-u[i];
     float b=(other<0?bv[-other-1]:v[other])-v[i];
     float c=(other<0?bw[-other-1]:w[other])-w[i];
-    ax+=dx[j]*a;ay+=dy[j]*a;az+=dz[j]*a;
-    bx+=dx[j]*b;by+=dy[j]*b;bz+=dz[j]*b;
-    cx+=dx[j]*c;cy+=dy[j]*c;cz+=dz[j]*c;
+    float rx=other<0?fx[-other-1]:dx[j],ry=other<0?fy[-other-1]:dy[j],rz=other<0?fz[-other-1]:dz[j];
+    ax+=rx*a;ay+=ry*a;az+=rz*a;
+    bx+=rx*b;by+=ry*b;bz+=rz*b;
+    cx+=rx*c;cy+=ry*c;cz+=rz*c;
   }
   float xx=inverse[i],xy=inverse[i+n],xz=inverse[i+2*n],yy=inverse[i+3*n],yz=inverse[i+4*n],zz=inverse[i+5*n];
   ux[i]=xx*ax+xy*ay+xz*az;uy[i]=xy*ax+yy*ay+yz*az;uz[i]=xz*ax+yz*ay+zz*az;

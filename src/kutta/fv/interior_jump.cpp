@@ -78,7 +78,7 @@ void InteriorJumps::update(const Buffer<float>& mass) {
 }
 void InteriorJumps::gradient(const DeviceMesh&,const BoundaryLeastSquares& lsq,DeviceVec3& g) const {
   if(active_) kern::fv_jump_pressure_gradient(dev_,active_cells_,cells_,offsets_,incidence_,entries_,
-    lsq.delta.x,lsq.delta.y,lsq.delta.z,lsq.inverse,jumps_,g.x,g.y,g.z,n_);
+    lsq.rows().x,lsq.rows().y,lsq.rows().z,lsq.inverse,jumps_,g.x,g.y,g.z,n_);
 }
 void InteriorJumps::momentum(const DeviceMesh& m,DeviceVec3& source) const {
   if(active_) kern::fv_jump_momentum(dev_,active_cells_,cells_,offsets_,entries_,faces_,m.area.x,m.area.y,m.area.z,m.volume,

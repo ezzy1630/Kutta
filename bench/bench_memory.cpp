@@ -94,7 +94,7 @@ class SizedDevice final : public kutta::Device {
       auto& [arrays, bytes] = owner->live[data.size()];
       ++arrays; bytes += this->bytes();
       if (owner->attribute) {
-        site = caller();
+        site = caller() + " [" + std::to_string(data.size()) + "]";
         auto& [n, b2] = owner->sites[site];
         ++n; b2 += this->bytes();
       }

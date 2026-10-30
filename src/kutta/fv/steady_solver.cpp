@@ -87,7 +87,7 @@ struct SteadySolver::Impl {
   SolverSettings settings;
   DeviceMesh mesh;
   Stencil stencil;
-  BoundaryLeastSquares velocity_lsq,pressure_lsq,k_lsq,omega_lsq,strain_lsq,jump_fit;
+  BoundaryLeastSquares velocity_lsq,pressure_lsq,k_lsq,omega_lsq,strain_lsq;FaceJumpFit jump_fit;
   DeviceVec3 strain_base[3],strain_gradient[3];
   MeshPermutation permutation;
   std::unique_ptr<SstModel> sst;
@@ -267,18 +267,18 @@ struct SteadySolver::Impl {
       for(auto& g:projected_gradient) g=vector_field(dev,nf);
     }
     for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,diffusion_reconstruction,krylov_workspace);
-    velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity);
-    pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure);
+    velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity,&stencil);
+    pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure,&stencil);
     if(settings.sst) {
       std::vector<BoundaryObservation> strain_rows(nb);
       for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;
-      strain_lsq=boundary_least_squares(dev,host,geom,strain_rows);
+      strain_lsq=boundary_least_squares(dev,host,geom,strain_rows,&stencil);
       jump_fit=face_jump_least_squares(dev,host,geom);
       for(int k=0;k<3;++k) {strain_base[k]=vector_field(dev,n);strain_gradient[k]=vector_field(dev,n);}
       const auto& t=*settings.sst;
       KUTTA_REQUIRE(t.k_relaxation>0 && t.k_relaxation<=1 && t.omega_relaxation>0 && t.omega_relaxation<=1,"FV invalid SST relaxation");
-      k_lsq=boundary_least_squares(dev,host,geom,independent_k);
-      omega_lsq=boundary_least_squares(dev,host,geom,independent_omega);
+      k_lsq=boundary_least_squares(dev,host,geom,independent_k,&stencil);
+      omega_lsq=boundary_least_squares(dev,host,geom,independent_omega,&stencil);
       kinetic=dev.alloc<float>(n);omega=dev.alloc<float>(n);
       dev.fill(kinetic,t.model.k_floor);dev.fill(omega,t.model.omega_floor);
       rho_cell=dev.alloc<float>(n);mu_cell=dev.alloc<float>(n);
