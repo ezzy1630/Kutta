@@ -172,7 +172,7 @@ chunks fail; inputs are never rewritten.
 The optional `real Fluent external mesh acceptance` test reads these exact
 [Ansys example-data](https://github.com/ansys/example-data/tree/master/pyfluent)
 files (MIT license), in place under
-`/Users/ezzy/.Others/Kutta/validation/fluent_examples/`. It skips cleanly when
+`<checkout>/validation/fluent_examples/`. It skips cleanly when
 that external directory is absent. No external fixture is copied into the repo.
 Counts below are for the returned 3D mesh; cylinder and cavity are extruded one
 unit thick from their source 2D grids. Other files are native 3D.
@@ -227,7 +227,7 @@ Run `cmake -S . -B build -G Ninja && cmake --build build && ./build/kutta-tests`
 Repeat with `-DKUTTA_ENABLE_HDF5=OFF` in another build directory to check the
 stub. Optional NASA tests read all seven available uncompressed flat-plate,
 bump and NACA0012 grids directly from
-`/Users/ezzy/.Others/Kutta/validation/data/nasa_tmr/*/grids/`; they report a skip
+`<checkout>/validation/data/nasa_tmr/*/grids/`; they report a skip
 when that external directory is absent. They check every NMF patch name/type/size,
 stitched point/internal-face counts, absence of coincident boundary faces, and
 global boundary area closure. No large validation files are copied.

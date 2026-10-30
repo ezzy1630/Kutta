@@ -1,14 +1,14 @@
 [doctest] doctest version is "2.4.12"
 [doctest] run with "--help" for options
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/fv/test_pressure_matrix.cpp:163:
+<checkout>/tests/fv/test_pressure_matrix.cpp:163:
 TEST CASE:  FV pressure diagonal bounds final entries with repeated neighbour faces
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/fv/test_pressure_matrix.cpp:36: ERROR: CHECK( diagonal>=off ) is NOT correct!
+<checkout>/tests/fv/test_pressure_matrix.cpp:36: ERROR: CHECK( diagonal>=off ) is NOT correct!
   values: CHECK( 1 >= 1 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/fv/test_pressure_matrix.cpp:36: ERROR: CHECK( diagonal>=off ) is NOT correct!
+<checkout>/tests/fv/test_pressure_matrix.cpp:36: ERROR: CHECK( diagonal>=off ) is NOT correct!
   values: CHECK( 1 >= 1 )
   logged: backend: metal
 

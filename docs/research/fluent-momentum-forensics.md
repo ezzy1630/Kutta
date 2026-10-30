@@ -495,7 +495,7 @@ S from LSQ2:
 
 ## 7. Kernel changes Kutta needs
 
-Anchors are function names in the worktree `/Users/ezzy/.t3/worktrees/Kutta/t3-265ec8e3`. It was read, not modified; another agent is editing it.
+Anchors are function names in the worktree `<checkout>`. It was read, not modified; another agent is editing it.
 
 These sit on top of round 1's §4, which still stands. That includes the flux interpolant, limited reconstructions in `fv_momentum_faces`, the RC jump with (Σ p_f A)/V, outlet flux from cell velocity, and the SST strain gradient.
 

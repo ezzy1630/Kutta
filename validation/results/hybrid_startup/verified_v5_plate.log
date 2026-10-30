@@ -31,11 +31,11 @@ TMR progress cpu plate 0 it=2800 defect=0.00176605769897 change=2.63671427812e-0
 TMR progress cpu plate 0 it=2900 defect=0.000523530318733 change=3.24088878025e-08 cf=0.00264909990139 drag=0.00280631259955
 TMR progress cpu plate 0 it=3000 defect=0.000448355588488 change=5.43755074733e-07 cf=0.00264909846093 drag=0.00280631199701
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:35:
+<checkout>/tests/fv/test_tmr.cpp:35:
 TEST SUITE: slow
 TEST CASE:  V5 TMR flat plate SST accuracy and three-grid trend
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 0
@@ -71,7 +71,7 @@ TMR progress cpu plate 1 it=2700 defect=0.00678028911271 change=3.59256811256e-0
 TMR progress cpu plate 1 it=2800 defect=0.00475499355137 change=5.07472176802e-08 cf=0.00269533108021 drag=0.00285632838057
 TMR progress cpu plate 1 it=2900 defect=0.0043577622702 change=2.13535483156e-07 cf=0.00269533050466 drag=0.0028563281063
 TMR progress cpu plate 1 it=3000 defect=0.00783923936236 change=4.56134129478e-08 cf=0.00269533062761 drag=0.00285632816031
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 1
@@ -107,7 +107,7 @@ TMR progress cpu plate 2 it=2700 defect=0.0320183726889 change=3.00580230395e-06
 TMR progress cpu plate 2 it=2800 defect=0.0276734767729 change=2.15642699329e-06 cf=0.00271377466114 drag=0.00287686466791
 TMR progress cpu plate 2 it=2900 defect=0.0292316289751 change=1.29667350758e-06 cf=0.00271377267031 drag=0.00287686093756
 TMR progress cpu plate 2 it=3000 defect=0.0281157710607 change=1.08451419937e-06 cf=0.00271377013271 drag=0.00287685781757
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 2
@@ -143,7 +143,7 @@ TMR progress metal plate 0 it=2700 defect=0.00140927394945 change=1.38750543878e
 TMR progress metal plate 0 it=2800 defect=0.000558022814713 change=3.93970677611e-07 cf=0.00264909897006 drag=0.00280631163605
 TMR progress metal plate 0 it=2900 defect=0.000843532244875 change=3.27127216557e-07 cf=0.0026490985044 drag=0.00280631255407
 TMR progress metal plate 0 it=3000 defect=0.00129235950555 change=5.19476186478e-07 cf=0.00264909988055 drag=0.00280631263081
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 0
@@ -179,7 +179,7 @@ TMR progress metal plate 1 it=2700 defect=0.00407277331986 change=5.47273976605e
 TMR progress metal plate 1 it=2800 defect=0.00596443297925 change=5.04572796197e-08 cf=0.00269533047855 drag=0.00285632815462
 TMR progress metal plate 1 it=2900 defect=0.0139763425989 change=1.41684090647e-07 cf=0.00269533086044 drag=0.00285632808215
 TMR progress metal plate 1 it=3000 defect=0.0112411027603 change=9.12268264985e-08 cf=0.00269533061455 drag=0.00285632817025
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 1
@@ -215,7 +215,7 @@ TMR progress metal plate 2 it=2700 defect=0.0286998945799 change=2.92405101411e-
 TMR progress metal plate 2 it=2800 defect=0.0248860630104 change=2.18087902386e-06 cf=0.00271377327984 drag=0.00287686400213
 TMR progress metal plate 2 it=2900 defect=0.0251294661213 change=1.23640927429e-06 cf=0.00271377093585 drag=0.00287686044516
 TMR progress metal plate 2 it=3000 defect=0.0247127839618 change=1.00646681256e-06 cf=0.00271376978738 drag=0.00287685754969
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:42: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 2

@@ -49,7 +49,7 @@ FV_V2 backend=metal tet=0 n=32 iterations=240 u_L2=0.00418189 p_L2=0.00300956 ru
 FV_V2_FORCE backend=metal tet=0 n=32 pressure_x=-0.321558 viscous_y=-0.331913 viscous_x=0.00512886 pressure_error=0.00324827 viscous_error=0.00532194 total_error=0.00235679
 FV_V2_ORDER backend=metal tet=0 n=32 u=1.91523 p=1.81931 momentum_operator=1.48554 wall_pressure=1.91482 wall_viscous=1.95904 wall_total=2.01181
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:164:
+<checkout>/tests/fv/test_navier_stokes.cpp:164:
 TEST SUITE: slow
 TEST CASE:  FV V2 manufactured Navier Stokes hex refinement
 
@@ -70,23 +70,23 @@ FV_V2 backend=cpu tet=1 n=16 iterations=380 u_L2=0.010642 p_L2=0.054039 ru=0.000
 FV_V2_FORCE backend=cpu tet=1 n=16 pressure_x=-0.354941 viscous_y=-0.341162 viscous_x=0.067594 pressure_error=0.036631 viscous_error=0.068400 total_error=0.032686
 FV_V2_ORDER backend=cpu tet=1 n=16 u=1.965425 p=0.844306 momentum_operator=1.014063 wall_pressure=1.037325 wall_viscous=0.846819 wall_total=0.717191
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:167:
+<checkout>/tests/fv/test_navier_stokes.cpp:167:
 TEST SUITE: slow
 TEST CASE:  FV V2 manufactured Navier Stokes tet refinement
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:155: ERROR: CHECK( op>=operator_order-.1 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:155: ERROR: CHECK( op>=operator_order-.1 ) is NOT correct!
   values: CHECK( 0.844306 >= 0.914063 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
   values: CHECK( 1.03732 >= 1.8 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
   values: CHECK( 0.846819 >= 1.8 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
   values: CHECK( 0.717191 >= 1.8 )
   logged: backend: cpu
 
@@ -105,19 +105,19 @@ FV_V2_BOUNDARY backend=metal tet=1 n=16 interior_p_L2=0.054853 excluding_walls_p
 FV_V2 backend=metal tet=1 n=16 iterations=380 u_L2=0.010642 p_L2=0.054039 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000002 corrected_mass=0.000001
 FV_V2_FORCE backend=metal tet=1 n=16 pressure_x=-0.354941 viscous_y=-0.341162 viscous_x=0.067594 pressure_error=0.036631 viscous_error=0.068400 total_error=0.032686
 FV_V2_ORDER backend=metal tet=1 n=16 u=1.965425 p=0.844306 momentum_operator=1.014063 wall_pressure=1.037325 wall_viscous=0.846819 wall_total=0.717191
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:155: ERROR: CHECK( op>=operator_order-.1 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:155: ERROR: CHECK( op>=operator_order-.1 ) is NOT correct!
   values: CHECK( 0.844306 >= 0.914063 )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
   values: CHECK( 1.03732 >= 1.8 )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
   values: CHECK( 0.846819 >= 1.8 )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
   values: CHECK( 0.717191 >= 1.8 )
   logged: backend: metal
 

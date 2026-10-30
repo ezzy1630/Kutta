@@ -91,7 +91,7 @@ provides the optional low-Re coefficients.
 Run `cmake -S . -B build -G Ninja && cmake --build build`, then
 `./build/kutta-tests --test-case='*SST*,compiled GPU*'`.
 The saved-field test uses the exact external `.cas.h5`/`.dat.h5` paths requested
-under `/Users/ezzy/.Others/Kutta/validation/fluent_examples/mixing_elbow/` and
+under `<checkout>/validation/fluent_examples/mixing_elbow/` and
 skips with a message if either file or HDF5 support is absent. Its private HDF5
 C reader checks section ids, overlap, field shapes, coverage and boundary-owner
 mapping. It does not depend on another lane's solution reader or `upload_mesh()`.

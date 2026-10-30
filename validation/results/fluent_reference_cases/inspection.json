@@ -32,7 +32,7 @@
       "zone/8/is-not-a-rans-les-interface: unsupported: expected neutral value #t"
     ],
     "error": [
-      "cannot open HDF5 file: /Users/ezzy/.t3/worktrees/Kutta/t3-e6179ac7/validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.dat"
+      "cannot open HDF5 file: <checkout>/validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.dat"
     ],
     "log": "validation/results/fluent_reference_cases/inspect.txt"
   },
@@ -855,7 +855,7 @@
       "mesh/zone/8/type: unsupported: topology and thread types disagree or are unverified"
     ],
     "error": [
-      "cannot open HDF5 file: /Users/ezzy/.t3/worktrees/Kutta/t3-e6179ac7/validation/fluent_examples/borealis_fracture/26 Mpa-solution-final.dat"
+      "cannot open HDF5 file: <checkout>/validation/fluent_examples/borealis_fracture/26 Mpa-solution-final.dat"
     ],
     "log": "validation/results/fluent_reference_cases/inspect.txt"
   },
@@ -892,7 +892,7 @@
       "mesh/zone/8/type: unsupported: topology and thread types disagree or are unverified"
     ],
     "error": [
-      "cannot open HDF5 file: /Users/ezzy/.t3/worktrees/Kutta/t3-e6179ac7/validation/fluent_examples/borealis_fracture/final solution-before-26 MPa.dat"
+      "cannot open HDF5 file: <checkout>/validation/fluent_examples/borealis_fracture/final solution-before-26 MPa.dat"
     ],
     "log": "validation/results/fluent_reference_cases/inspect.txt"
   },
@@ -928,7 +928,7 @@
       "mesh/zone/6/type: unsupported: topology and thread types disagree or are unverified"
     ],
     "error": [
-      "cannot open HDF5 file: /Users/ezzy/.t3/worktrees/Kutta/t3-e6179ac7/validation/fluent_examples/borealis_fracture/final solution-before-94 MPa.dat"
+      "cannot open HDF5 file: <checkout>/validation/fluent_examples/borealis_fracture/final solution-before-94 MPa.dat"
     ],
     "log": "validation/results/fluent_reference_cases/inspect.txt"
   },
@@ -3990,7 +3990,7 @@
       "mesh/zone/24: required: topology zone has no Thread Variables record"
     ],
     "error": [
-      "cannot open HDF5 file: /Users/ezzy/.t3/worktrees/Kutta/t3-e6179ac7/validation/fluent_examples/vki_turbine/vki_turbine.dat"
+      "cannot open HDF5 file: <checkout>/validation/fluent_examples/vki_turbine/vki_turbine.dat"
     ],
     "log": "validation/results/fluent_reference_cases/inspect.txt"
   },

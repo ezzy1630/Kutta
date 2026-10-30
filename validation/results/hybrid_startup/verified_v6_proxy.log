@@ -9,17 +9,17 @@ V6_FLUENT_RESIDUAL x-velocity raw=2.356566155e-06 scale=1.686371385 scaled=1.397
 V6_FLUENT_RESIDUAL y-velocity raw=6.556134085e-06 scale=1.68649825 scaled=3.887424185e-06
 V6_FLUENT_RESIDUAL z-velocity raw=1.701407993e-06 scale=1.698761099 scaled=1.001558132e-06
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:97:
+<checkout>/tests/fv/test_fluent_elbow.cpp:97:
 TEST SUITE: slow
 TEST CASE:  FV V6 Fluent mixing elbow fixed point and cold start
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:115: ERROR: CHECK_NOTHROW( setup::fluent_setup(c,mesh) ) THREW exception: "Fluent setup rejected:
+<checkout>/tests/fv/test_fluent_elbow.cpp:115: ERROR: CHECK_NOTHROW( setup::fluent_setup(c,mesh) ) THREW exception: "Fluent setup rejected:
   recon/cell-lsf? (warped-face gradient correction): warped-face gradient correction is not implemented"
 
 V6_DIAGNOSTIC approximations: recon/cell-lsf? disabled; cold start uses stored hybrid initialization settings
 V6_FIELD initial_wall_distance relative_L2=2.093238401e-05 max_absolute=1.164756306e-05 relative_max=0.0002387150477
 V6_FIELD initial_mu_t relative_L2=0.01032625292 max_absolute=3.890476553e-05 relative_max=0.1048400386
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
   values: CHECK( 0.00225861 <  0.0008 )
   logged: backend: cpu
 
@@ -42,35 +42,35 @@ V6_FIELD velocity relative_L2=0.03601602884 max_absolute=0.3416301695 relative_m
 V6_FIELD pressure relative_L2=0.02962121899 max_absolute=0.112205966 relative_max=0.09790064547
 V6_FIELD k relative_L2=0.1548203966 max_absolute=0.0154873777 relative_max=0.5490419879
 V6_FIELD omega relative_L2=0.08474920574 max_absolute=10979.16081 relative_max=0.121819059
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
   values: CHECK( 0.036016 <  0.005 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
   values: CHECK( 0.15482 <  0.001 )
   logged: backend: cpu
 
 V6_ZONE_PRESSURE wall-elbow ours=0.2403600647 Fluent=0.2443336319
 V6_FORCE wall-elbow pressure ours=0.006418986996,-0.005943251651,0.01525435616 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01555553442
 V6_FORCE wall-elbow shear ours=0.0003329841496,0.0006876456955,-5.868210932e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.0225888856
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0225889 <  0.005 )
   logged: backend: cpu
 
 V6_FORCE wall-elbow total ours=0.006751971145,-0.005255605956,0.01519567405 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.01504877685
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0150488 <  0.005 )
   logged: backend: cpu
 
 V6_ZONE_PRESSURE wall-inlet ours=0.7719740665 Fluent=0.7882671307
 V6_FORCE wall-inlet pressure ours=7.329388043e-05,-4.916856394e-06,0.001579499193 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02072554518
 V6_FORCE wall-inlet shear ours=1.266203113e-06,7.126293439e-05,3.891641316e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.006096740527
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.00609674 <  0.005 )
   logged: backend: cpu
 
 V6_FORCE wall-inlet total ours=7.456008355e-05,6.634607799e-05,0.001579888357 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.0206915937
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0206916 <  0.005 )
   logged: backend: cpu
 
@@ -79,7 +79,7 @@ V6_ZONE_PRESSURE cold-inlet ours=0.507528154 Fluent=0.5016180027
 V6_ZONE_PRESSURE hot-inlet ours=1.100897408 Fluent=1.087188619
 V6_ZONE_PRESSURE symmetry-xyplane ours=0.255805891 Fluent=0.2603867108
 V6_PRESSURE_DROP ours=0.541470034 Fluent=0.5351137855 relative=0.01187831209
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
   values: CHECK( 0.0118783 <  0.005 )
   logged: backend: cpu
 
@@ -103,31 +103,31 @@ V6_FIELD velocity relative_L2=0.03601374799 max_absolute=0.3416034936 relative_m
 V6_FIELD pressure relative_L2=0.02961934492 max_absolute=0.1121816473 relative_max=0.0978794272
 V6_FIELD k relative_L2=0.1547848366 max_absolute=0.0154879514 relative_max=0.5490623259
 V6_FIELD omega relative_L2=0.08474925417 max_absolute=10979.15105 relative_max=0.1218189507
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
   values: CHECK( 0.0360137 <  0.005 )
   logged: backend: cpu
 
 V6_ZONE_PRESSURE wall-elbow ours=0.2403515594 Fluent=0.2443336319
 V6_FORCE wall-elbow pressure ours=0.006418891805,-0.005943207364,0.01525380798 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01558451032
 V6_FORCE wall-elbow shear ours=0.0003329845151,0.0006876391591,-5.868107052e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.02258933273
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0225893 <  0.005 )
   logged: backend: cpu
 
 V6_FORCE wall-elbow total ours=0.006751876321,-0.005255568205,0.01519512691 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.01507847927
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0150785 <  0.005 )
   logged: backend: cpu
 
 V6_ZONE_PRESSURE wall-inlet ours=0.771959539 Fluent=0.7882671307
 V6_FORCE wall-inlet pressure ours=7.32893918e-05,-4.916817948e-06,0.001579469766 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02074396429
 V6_FORCE wall-inlet shear ours=1.266219755e-06,7.126302848e-05,3.891662254e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.006097946549
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.00609795 <  0.005 )
   logged: backend: cpu
 
 V6_FORCE wall-inlet total ours=7.455561156e-05,6.634621053e-05,0.001579858932 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.02070999561
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.02071 <  0.005 )
   logged: backend: cpu
 
@@ -136,14 +136,14 @@ V6_ZONE_PRESSURE cold-inlet ours=0.5075121033 Fluent=0.5016180027
 V6_ZONE_PRESSURE hot-inlet ours=1.100884311 Fluent=1.087188619
 V6_ZONE_PRESSURE symmetry-xyplane ours=0.2557958428 Fluent=0.2603867108
 V6_PRESSURE_DROP ours=0.5414541523 Fluent=0.5351137855 relative=0.01184863294
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
   values: CHECK( 0.0118486 <  0.005 )
   logged: backend: cpu
 
 V6_PLATEAU backend=cpu mode=cold-standard-proxy iteration=1200 u=1.057218219e-07 v=1.745358747e-07 w=1.617626306e-07 k=4.935940828e-08 omega=5.161143872e-08 continuity=4.034776464e-07
 V6_FIELD initial_wall_distance relative_L2=2.093238401e-05 max_absolute=1.164756306e-05 relative_max=0.0002387150477
 V6_FIELD initial_mu_t relative_L2=0.01032625273 max_absolute=3.890473643e-05 relative_max=0.1048399602
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:147: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
   values: CHECK( 0.00225861 <  0.0008 )
   logged: backend: metal
 
@@ -166,35 +166,35 @@ V6_FIELD velocity relative_L2=0.03601601952 max_absolute=0.3416305115 relative_m
 V6_FIELD pressure relative_L2=0.02962224873 max_absolute=0.1122032018 relative_max=0.09789823371
 V6_FIELD k relative_L2=0.1548203749 max_absolute=0.0154873479 relative_max=0.5490409314
 V6_FIELD omega relative_L2=0.08474865954 max_absolute=10979.04167 relative_max=0.1218177371
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
   values: CHECK( 0.036016 <  0.005 )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:184: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
   values: CHECK( 0.15482 <  0.001 )
   logged: backend: metal
 
 V6_ZONE_PRESSURE wall-elbow ours=0.2403596738 Fluent=0.2443336319
 V6_FORCE wall-elbow pressure ours=0.006418988187,-0.005943258914,0.01525433037 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01555697865
 V6_FORCE wall-elbow shear ours=0.0003329840478,0.0006876456081,-5.868199698e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.02258907435
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0225891 <  0.005 )
   logged: backend: metal
 
 V6_FORCE wall-elbow total ours=0.006751972234,-0.005255613306,0.01519564837 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.01505023685
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0150502 <  0.005 )
   logged: backend: metal
 
 V6_ZONE_PRESSURE wall-inlet ours=0.7719706246 Fluent=0.7882671307
 V6_FORCE wall-inlet pressure ours=7.329313049e-05,-4.916846959e-06,0.001579492326 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02072980694
 V6_FORCE wall-inlet shear ours=1.266217033e-06,7.126289567e-05,3.891764766e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.006096401471
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0060964 <  0.005 )
   logged: backend: metal
 
 V6_FORCE wall-inlet total ours=7.455934753e-05,6.634604871e-05,0.001579881503 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.02069584435
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0206958 <  0.005 )
   logged: backend: metal
 
@@ -203,7 +203,7 @@ V6_ZONE_PRESSURE cold-inlet ours=0.5075275595 Fluent=0.5016180027
 V6_ZONE_PRESSURE hot-inlet ours=1.100894987 Fluent=1.087188619
 V6_ZONE_PRESSURE symmetry-xyplane ours=0.2558031749 Fluent=0.2603867108
 V6_PRESSURE_DROP ours=0.541469335 Fluent=0.5351137855 relative=0.01187700582
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
   values: CHECK( 0.011877 <  0.005 )
   logged: backend: metal
 
@@ -227,31 +227,31 @@ V6_FIELD velocity relative_L2=0.03601376102 max_absolute=0.3416035525 relative_m
 V6_FIELD pressure relative_L2=0.02961857048 max_absolute=0.1121833907 relative_max=0.09788094836
 V6_FIELD k relative_L2=0.1547848722 max_absolute=0.01548795699 relative_max=0.549062524
 V6_FIELD omega relative_L2=0.08474922826 max_absolute=10979.14812 relative_max=0.1218189182
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:183: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
   values: CHECK( 0.0360138 <  0.005 )
   logged: backend: metal
 
 V6_ZONE_PRESSURE wall-elbow ours=0.2403521459 Fluent=0.2443336319
 V6_FORCE wall-elbow pressure ours=0.006418894619,-0.005943209608,0.01525384714 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01558239301
 V6_FORCE wall-elbow shear ours=0.0003329844019,0.0006876392677,-5.868108318e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.02258944841
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0225894 <  0.005 )
   logged: backend: metal
 
 V6_FORCE wall-elbow total ours=0.006751879021,-0.005255570341,0.01519516605 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.01507631698
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0150763 <  0.005 )
   logged: backend: metal
 
 V6_ZONE_PRESSURE wall-inlet ours=0.771960961 Fluent=0.7882671307
 V6_FORCE wall-inlet pressure ours=7.328970399e-05,-4.916821927e-06,0.001579472656 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02074217079
 V6_FORCE wall-inlet shear ours=1.266226058e-06,7.12630201e-05,3.891686984e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.006097900532
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0060979 <  0.005 )
   logged: backend: metal
 
 V6_FORCE wall-inlet total ours=7.455593005e-05,6.634619817e-05,0.001579861825 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.02070820064
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:199: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
   values: CHECK( 0.0207082 <  0.005 )
   logged: backend: metal
 
@@ -260,7 +260,7 @@ V6_ZONE_PRESSURE cold-inlet ours=0.5075125825 Fluent=0.5016180027
 V6_ZONE_PRESSURE hot-inlet ours=1.100885463 Fluent=1.087188619
 V6_ZONE_PRESSURE symmetry-xyplane ours=0.2557966123 Fluent=0.2603867108
 V6_PRESSURE_DROP ours=0.54145467 Fluent=0.5351137855 relative=0.01184960036
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+<checkout>/tests/fv/test_fluent_elbow.cpp:205: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
   values: CHECK( 0.0118496 <  0.005 )
   logged: backend: metal
 

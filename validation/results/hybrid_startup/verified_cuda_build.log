@@ -582,13 +582,13 @@ Processing triggers for libc-bin (2.39-0ubuntu8.6) ...
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
 -- Found Threads: TRUE
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-6a23cb77
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-6a23cb77
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-6a23cb77
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-6a23cb77
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-6a23cb77
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-6a23cb77
-fatal: not a git repository: /Users/ezzy/.Others/Kutta/.git/worktrees/t3-6a23cb77
+fatal: not a git repository: <checkout>/.git/worktrees/t3-6a23cb77
+fatal: not a git repository: <checkout>/.git/worktrees/t3-6a23cb77
+fatal: not a git repository: <checkout>/.git/worktrees/t3-6a23cb77
+fatal: not a git repository: <checkout>/.git/worktrees/t3-6a23cb77
+fatal: not a git repository: <checkout>/.git/worktrees/t3-6a23cb77
+fatal: not a git repository: <checkout>/.git/worktrees/t3-6a23cb77
+fatal: not a git repository: <checkout>/.git/worktrees/t3-6a23cb77
 -- Configuring done (12.3s)
 -- Generating done (0.0s)
 -- Build files have been written to: /workspace/build

@@ -71,7 +71,7 @@ FV_CAVITY_PRIMARY_REFERENCE BotellaPeyret1998_N160,Chebyshev N=160,spectral,0.11
 FV_CAVITY_PRIMARY_REFERENCE BarragyCarey1997,257x257 p=8,8,0.118930,,,
 FV_CAVITY_PRIMARY_REFERENCE Ghia1982,129x129,2,0.117929,2.04968,0.5313,0.5625
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_cavity.cpp:38:
+<checkout>/tests/fv/test_cavity.cpp:38:
 TEST SUITE: slow
 TEST CASE:  FV V3 Re1000 cavity refinement against Erturk
 
@@ -113,7 +113,7 @@ FV_CAVITY_PROGRESS backend=metal Re=400 cells=16641 iterations=400 ru=0.000000 r
 FV_CAVITY_PROGRESS backend=metal Re=400 cells=16641 iterations=500 ru=0.000000 rv=0.000000 rc=0.000024 mass=0.000001 update=0.000007
 FV_CAVITY_RESULT backend=metal case=129x129 Re=400 iterations=500 converged=1 Ghia_u_max=0.002640 Ghia_v_max=0.004048
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_cavity.cpp:79:
+<checkout>/tests/fv/test_cavity.cpp:79:
 TEST SUITE: slow
 TEST CASE:  FV V3 Re100 and Re400 cavity reported deviations
 
@@ -181,7 +181,7 @@ FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=400 ru=0.000000 r
 FV_CAVITY_PROGRESS backend=metal Re=1000 cells=3550 iterations=500 ru=0.000000 rv=0.000000 rc=0.000012 mass=0.000001 update=0.000006
 FV_CAVITY_RESULT backend=metal case=Fluent Re=1000 iterations=500 converged=1 Ghia_u_max=0.008934 Ghia_v_max=0.004055 Erturk_u_max=0.011848 Erturk_v_max=0.021203
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_cavity.cpp:87:
+<checkout>/tests/fv/test_cavity.cpp:87:
 TEST SUITE: slow
 TEST CASE:  FV V4 Fluent cavity matches its actual grid
 
@@ -235,7 +235,7 @@ FV_V2 backend=metal tet=0 n=32 iterations=240 u_L2=0.004182 p_L2=0.003010 ru=0.0
 FV_V2_FORCE backend=metal tet=0 n=32 pressure_x=-0.321558 viscous_y=-0.331913 viscous_x=0.005128 pressure_error=0.003248 viscous_error=0.005322 total_error=0.002357
 FV_V2_ORDER backend=metal tet=0 n=32 u=1.915134 p=1.818924 momentum_operator=1.485543 wall_pressure=1.914970 wall_viscous=1.959164 wall_total=2.011907
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:164:
+<checkout>/tests/fv/test_navier_stokes.cpp:164:
 TEST SUITE: slow
 TEST CASE:  FV V2 manufactured Navier Stokes hex refinement
 
@@ -256,19 +256,19 @@ FV_V2 backend=cpu tet=1 n=16 iterations=400 u_L2=0.013127 p_L2=0.076424 ru=0.000
 FV_V2_FORCE backend=cpu tet=1 n=16 pressure_x=-0.355602 viscous_y=-0.350562 viscous_x=0.071533 pressure_error=0.037293 viscous_error=0.075476 total_error=0.041858
 FV_V2_ORDER backend=cpu tet=1 n=16 u=1.977800 p=0.920065 momentum_operator=1.014063 wall_pressure=1.007284 wall_viscous=0.861350 wall_total=0.871823
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:167:
+<checkout>/tests/fv/test_navier_stokes.cpp:167:
 TEST SUITE: slow
 TEST CASE:  FV V2 manufactured Navier Stokes tet refinement
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
   values: CHECK( 1.00728 >= 1.8 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
   values: CHECK( 0.86135 >= 1.8 )
   logged: backend: cpu
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
   values: CHECK( 0.871823 >= 1.8 )
   logged: backend: cpu
 
@@ -287,15 +287,15 @@ FV_V2_BOUNDARY backend=metal tet=1 n=16 interior_p_L2=0.070079 excluding_walls_p
 FV_V2 backend=metal tet=1 n=16 iterations=400 u_L2=0.013127 p_L2=0.076424 ru=0.000000 rv=0.000000 rw=0.000000 rc_raw=0.000004 corrected_mass=0.000001
 FV_V2_FORCE backend=metal tet=1 n=16 pressure_x=-0.355602 viscous_y=-0.350562 viscous_x=0.071533 pressure_error=0.037293 viscous_error=0.075476 total_error=0.041858
 FV_V2_ORDER backend=metal tet=1 n=16 u=1.977800 p=0.920065 momentum_operator=1.014063 wall_pressure=1.007284 wall_viscous=0.861350 wall_total=0.871823
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofp>=1.8 ) is NOT correct!
   values: CHECK( 1.00728 >= 1.8 )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( ofv>=1.8 ) is NOT correct!
   values: CHECK( 0.86135 >= 1.8 )
   logged: backend: metal
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
+<checkout>/tests/fv/test_navier_stokes.cpp:157: ERROR: CHECK( oft>=1.8 ) is NOT correct!
   values: CHECK( 0.871823 >= 1.8 )
   logged: backend: metal
 
@@ -361,7 +361,7 @@ FV_V1_ORDER backend=metal tet=1 mode=2 n=16 slope=1.861946
 FV_V1 backend=metal tet=1 n=32 speed=4.000000 scheme=2 iterations=15 L2=0.000293
 FV_V1_ORDER backend=metal tet=1 mode=2 n=32 slope=1.922585
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_scalar.cpp:53:
+<checkout>/tests/fv/test_scalar.cpp:53:
 TEST SUITE: slow
 TEST CASE:  FV V1 manufactured scalar diffusion and upwind refinement
 
@@ -369,7 +369,7 @@ TEST CASE:  FV V1 manufactured scalar diffusion and upwind refinement
 FV_COUETTE backend=cpu max_error=0.000000 residual=0.000000
 FV_COUETTE backend=metal max_error=0.000000 residual=0.000000
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-6a23cb77/tests/fv/test_steady.cpp:51:
+<checkout>/tests/fv/test_steady.cpp:51:
 TEST SUITE: slow
 TEST CASE:  FV SIMPLEC develops planar Couette flow with moving and slip walls
 

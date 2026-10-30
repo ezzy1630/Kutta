@@ -1,2 +1,2 @@
 RESULT configured_commit=152ac72eac4c78098b99d6e940834f4f1b3cdc75 device=CPU reference (serial) mode=default cells=3520 iterations=18 setup_s=0.052817541 solve_s=0.17489975 budget=0 converged=0 defect=1 change=nan continuity_raw=15.4923177935 continuity_scale=15.4923177935 corrected_mass=0.0211674146464 ru=0.0364214559911 rv=0.25998589197 rk=0.766385104349 rw=0.251364942176 drag=nan ymaxplus=0 cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan
-FAILURE completed_iterations=18 reason=/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals
+FAILURE completed_iterations=18 reason=<checkout>/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals

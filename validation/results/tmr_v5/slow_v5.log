@@ -31,11 +31,11 @@ TMR progress cpu plate 0 it=2800 defect=0.00355508274452 change=6.47375869222e-0
 TMR progress cpu plate 0 it=2900 defect=0.00490065231586 change=7.21568658594e-08 cf=0.00264911073843 drag=0.00280632450256
 TMR progress cpu plate 0 it=3000 defect=0.00157635837787 change=2.13695243222e-07 cf=0.00264911088611 drag=0.00280632390286
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:24:
+<checkout>/tests/fv/test_tmr.cpp:24:
 TEST SUITE: slow
 TEST CASE:  V5 TMR flat plate SST accuracy and three-grid trend
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 0
@@ -71,7 +71,7 @@ TMR progress cpu plate 1 it=2700 defect=0.0103365173348 change=1.94157448969e-07
 TMR progress cpu plate 1 it=2800 defect=0.00920848649926 change=1.36838409592e-07 cf=0.00269536665869 drag=0.00285637048307
 TMR progress cpu plate 1 it=2900 defect=0.00614991802616 change=1.74130046029e-08 cf=0.00269536661953 drag=0.00285637043334
 TMR progress cpu plate 1 it=3000 defect=0.00629942148068 change=4.84379901583e-09 cf=0.00269536663258 drag=0.00285637042907
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 1
@@ -107,7 +107,7 @@ TMR progress cpu plate 2 it=2700 defect=0.0300283783855 change=3.13652986526e-06
 TMR progress cpu plate 2 it=2800 defect=0.0450308148891 change=1.88661392472e-06 cf=0.00271391201553 drag=0.00287702528183
 TMR progress cpu plate 2 it=2900 defect=0.0458181464281 change=1.50628035853e-06 cf=0.0027139107232 drag=0.00287702094823
 TMR progress cpu plate 2 it=3000 defect=0.043738175733 change=9.45655508595e-07 cf=0.00271390906986 drag=0.00287701822757
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 2
@@ -143,7 +143,7 @@ TMR progress metal plate 0 it=2700 defect=0.000606324965858 change=5.67352380902
 TMR progress metal plate 0 it=2800 defect=0.00167535998173 change=8.23156754785e-07 cf=0.00264910876979 drag=0.00280632263809
 TMR progress metal plate 0 it=2900 defect=0.00279493875781 change=8.05154777921e-07 cf=0.00264911018761 drag=0.00280632489762
 TMR progress metal plate 0 it=3000 defect=0.00233712132368 change=5.75255568477e-07 cf=0.00264910898178 drag=0.00280632328327
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 0
@@ -179,7 +179,7 @@ TMR progress metal plate 1 it=2700 defect=0.00545654100866 change=6.86569869128e
 TMR progress metal plate 1 it=2800 defect=0.023555390004 change=1.22306998751e-07 cf=0.00269536696224 drag=0.00285637060244
 TMR progress metal plate 1 it=2900 defect=0.00807174237032 change=1.77607362114e-07 cf=0.00269536744096 drag=0.00285637052855
 TMR progress metal plate 1 it=3000 defect=0.00272371540138 change=3.81452469279e-07 cf=0.00269536641281 drag=0.00285637044612
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 1
@@ -215,31 +215,31 @@ TMR progress metal plate 2 it=2700 defect=0.0346874091872 change=2.96883678267e-
 TMR progress metal plate 2 it=2800 defect=0.0409333504357 change=1.83203324186e-06 cf=0.00271391413454 drag=0.00287702531452
 TMR progress metal plate 2 it=2900 defect=0.0411534022829 change=1.51393647542e-06 cf=0.00271391244982 drag=0.00287702095889
 TMR progress metal plate 2 it=3000 defect=0.0298804571695 change=1.04370346209e-06 cf=0.00271391042762 drag=0.00287701795614
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 2
 
 V5 plate backend=metal cells=13056 iterations=3000 seconds=118.032871 setup_s=0.127823041 converged=0 budget=0 change=1.04370346209e-06 error=0.00856861111008 cf=0.00271391042762 drag=0.00287701795614 continuity=0.0298804571695 continuity_raw=1.31572088003e-07 corrected_mass=5.02736630494e-08 ru=9.33438942348e-08 rv=3.26355339981e-08 rk=6.95171897896e-08 rw=3.9806219994e-08
 571.196713 s: V5 TMR flat plate SST accuracy and three-grid trend
-V5 bump measurement backend=cpu cells=3520 iterations=18 seconds=0.179906 setup_s=0.035906 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=1.000000 failure=/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals
+V5 bump measurement backend=cpu cells=3520 iterations=18 seconds=0.179906 setup_s=0.035906 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=1.000000 failure=<checkout>/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:40:
+<checkout>/tests/fv/test_tmr.cpp:40:
 TEST SUITE: slow
 TEST CASE:  V5 TMR bump SST station accuracy and three-grid trend
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 0
-          /Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals
+          <checkout>/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 0
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 0
@@ -248,19 +248,19 @@ TMR progress cpu bump 1 it=100 defect=0.035853424297 change=inf cf=0.00878964261
 TMR progress cpu bump 1 it=200 defect=0.026649265855 change=1.646098031835 cf=0.006582891736 drag=-0.012782956406
 TMR progress cpu bump 1 it=300 defect=0.626346257771 change=0.999700869772 cf=0.006547103621 drag=-42.733750114102
 TMR progress cpu bump 1 it=400 defect=229.240117158731 change=1.223190320436 cf=0.027414288366 drag=-145229.256718405552
-V5 bump measurement backend=cpu cells=14080 iterations=474 seconds=19.306193750000 setup_s=0.148792208000 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=229.240117158731 failure=/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
+V5 bump measurement backend=cpu cells=14080 iterations=474 seconds=19.306193750000 setup_s=0.148792208000 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=229.240117158731 failure=<checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 1
-          /Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+          <checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 1
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 1
@@ -289,41 +289,41 @@ TMR progress cpu bump 2 it=2100 defect=0.000251288350 change=0.021743796175 cf=0
 TMR progress cpu bump 2 it=2200 defect=0.000329564922 change=0.020393375645 cf=0.005561432930 drag=0.004049311110
 TMR progress cpu bump 2 it=2300 defect=0.000582493685 change=0.019163217040 cf=0.005523673765 drag=0.004014466493
 V5 bump measurement backend=cpu cells=56320 iterations=2300 seconds=623.372864875000 setup_s=0.619166541000 converged=0 budget=1 change=0.019163217040 drag=0.004014466493 cf=0.005523673765 cf=0.006756304653 cf=0.003257642550 cp=-0.250382571753 cp=-0.654249697924 cp=-0.252684390847 continuity=0.000582493685 failure=
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
           level: 2
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:59: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:59: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
   values: CHECK( 0.138713 <= 0.1 )
   logged: backend: cpu
           level: 2
           station: 0.75
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:59: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:59: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
   values: CHECK( 0.251757 <= 0.1 )
   logged: backend: cpu
           level: 2
           station: 0.867803
 
 V5 bump backend=cpu cells=56320 iterations=2300 seconds=623.372864875000 setup_s=0.619166541000 converged=0 budget=1 change=0.019163217040 error=0.520676735878
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:63: ERROR: CHECK( (std::all_of(error.begin(),error.end(),[](double value){return std::isfinite(value);}) && error[2]<error[0]) ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:63: ERROR: CHECK( (std::all_of(error.begin(),error.end(),[](double value){return std::isfinite(value);}) && error[2]<error[0]) ) is NOT correct!
   values: CHECK( false )
   logged: backend: cpu
 
-V5 bump measurement backend=metal cells=3520 iterations=17 seconds=0.282522250000 setup_s=0.047364417000 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=1.000000000000 failure=/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
+V5 bump measurement backend=metal cells=3520 iterations=17 seconds=0.282522250000 setup_s=0.047364417000 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=1.000000000000 failure=<checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 0
-          /Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+          <checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 0
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 0
@@ -332,19 +332,19 @@ TMR progress metal bump 1 it=100 defect=0.036143053814 change=inf cf=0.008786615
 TMR progress metal bump 1 it=200 defect=0.026647615846 change=1.648540174792 cf=0.006582169464 drag=-0.012760568284
 TMR progress metal bump 1 it=300 defect=0.625259746732 change=0.999700947215 cf=0.006547106180 drag=-42.669953065284
 TMR progress metal bump 1 it=400 defect=228.889623106640 change=1.190483162274 cf=0.027442642089 drag=-145026.955739137600
-V5 bump measurement backend=metal cells=14080 iterations=474 seconds=8.905923209000 setup_s=0.132784292000 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=228.889623106640 failure=/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
+V5 bump measurement backend=metal cells=14080 iterations=474 seconds=8.905923209000 setup_s=0.132784292000 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=228.889623106640 failure=<checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 1
-          /Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+          <checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 1
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 1
@@ -380,19 +380,19 @@ TMR progress metal bump 2 it=2800 defect=0.000239573989 change=0.013963759467 cf
 TMR progress metal bump 2 it=2900 defect=0.000392114828 change=0.013037269454 cf=0.005362573354 drag=0.003865004064
 TMR progress metal bump 2 it=3000 defect=0.000241508711 change=0.012167560455 cf=0.005344138972 drag=0.003848987757
 V5 bump measurement backend=metal cells=56320 iterations=3000 seconds=149.715152917000 setup_s=0.484601833000 converged=0 budget=0 change=0.012167560455 drag=0.003848987757 cf=0.005344138972 cf=0.006504827082 cf=0.002934992016 cp=-0.249222755170 cp=-0.650849848986 cp=-0.250261625955 continuity=0.000241508711 failure=
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
           level: 2
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:59: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:59: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
   values: CHECK( 0.127778 <= 0.1 )
   logged: backend: metal
           level: 2
           station: 0.867803
 
 V5 bump backend=metal cells=56320 iterations=3000 seconds=149.715152917000 setup_s=0.484601833000 converged=0 budget=0 change=0.012167560455 error=0.634005033811
-/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:63: ERROR: CHECK( (std::all_of(error.begin(),error.end(),[](double value){return std::isfinite(value);}) && error[2]<error[0]) ) is NOT correct!
+<checkout>/tests/fv/test_tmr.cpp:63: ERROR: CHECK( (std::all_of(error.begin(),error.end(),[](double value){return std::isfinite(value);}) && error[2]<error[0]) ) is NOT correct!
   values: CHECK( false )
   logged: backend: metal
 

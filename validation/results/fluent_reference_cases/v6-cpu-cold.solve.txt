@@ -66,5 +66,5 @@ Backend: cpu; device: CPU reference (serial)
   1160  1.717770e-05  6.322709e-08  9.788967e-08  1.041778e-07  4.762882e-08  5.552890e-08   1.814759e-01
   1180  1.811929e-05  2.451659e-08  3.125731e-08  1.803228e-08  4.170755e-08  4.333739e-08   1.759709e-01
   1200  3.120064e-05  5.390698e-08  8.069221e-08  7.957181e-08  4.616877e-08  5.134343e-08   1.730086e-01
-Wrote /Users/ezzy/.t3/worktrees/Kutta/t3-e6179ac7/build/reference-solves/cpu/cold (1200 iterations, 1.832555e+02 s solve).
+Wrote <checkout>/build/reference-solves/cpu/cold (1200 iterations, 1.832555e+02 s solve).
 APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison

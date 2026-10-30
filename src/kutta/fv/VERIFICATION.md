@@ -254,7 +254,7 @@ Fresh Re=100/400 results on both backends:
 ## V4 real Fluent cavity mesh
 
 The historical driver read the exact file
-`/Users/ezzy/.Others/Kutta/validation/fluent_examples/lid_driven_cavity/lid_driven_cavity.msh`.
+`<checkout>/validation/fluent_examples/lid_driven_cavity/lid_driven_cavity.msh`.
 It has 3,550 cells (71×50); `top_moving_wall` selects the moving wall. The driver
 also solves a uniform box at the same cell count and a generated box mapped to
 the exact Fluent x/y grid lines. This distinguishes spacing effects from import
@@ -667,7 +667,7 @@ fix was made by relaxing an accuracy gate.
 ### Reproduction and repository checks
 
 ```sh
-export KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples
+export KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples
 cmake -S . -B build -G Ninja
 cmake --build build
 ./build/kutta inspect "$KUTTA_FLUENT_EXAMPLES/mixing_elbow/mixing_elbow.cas.h5" \
@@ -770,7 +770,7 @@ The rebuilt Release binary at code commit `bf4f2f5` has SHA-256
 `09d26f3ce46777a0a08b136416b3b1a02e7134a5fc0cb7f421e29da6088b54f3`.
 Runs use this worktree on macOS 26.6.2 / arm64, CPU and Metal, with HDF5 enabled.
 Both tiers use
-`KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples`;
+`KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples`;
 V6 and the independent saved-field SST quick check actually run.
 
 | Check | Result | Wall time |
@@ -1098,7 +1098,7 @@ The independently reconstructed side mean is rejected. The retained solver uses
 one point-corrected momentum interpolant for every flow model and mesh. No
 acceptance threshold, iteration cap, mesh, source, or stopping condition changed.
 The work starts at `cafce49b8eead9689495869ab68f0ea3b1ce7abe` in
-`/Users/ezzy/.t3/worktrees/Kutta/t3-1f0539e7`, using its Release `./build` on
+`<checkout>`, using its Release `./build` on
 Apple M4 Pro, CPU and Metal, float fields and double reductions. All measurements
 below are new runs unless explicitly identified as the preceding report.
 
@@ -1707,7 +1707,7 @@ ctest --test-dir build -LE slow --output-on-failure
   > build/v5/slow-v5-final.log 2>&1
 ./build/kutta-tests --test-suite=slow --test-case-exclude='V5*' --duration
 # V6 and saved-field checks need the external fixture location explicitly:
-KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples \
+KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples \
   ./build/kutta-tests --test-suite=slow --test-case='*V6*' --duration
 ```
 
@@ -1862,7 +1862,7 @@ summation); case/gate infrastructure is `a8abab5`, runtime/failure reporting
 `1f12a3c`, and individual switch modes `4f5e1b3`. The final native test
 executable SHA-256 is
 `c318750b118ee3e9ae009395654b7b633a5dce162b2db0523fee04448a633ef2`.
-This is the exact worktree `/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03`,
+This is the exact worktree `<checkout>`,
 Apple M4 Pro / 24 GiB, macOS 26.6.2, AppleClang 21, C++20 Release, CMake 4.4.5,
 HDF5 enabled. CUDA is compile/CPU-oracle checked, not GPU-runtime verified.
 
@@ -1898,7 +1898,7 @@ expected-failure, and no test threshold was loosened after measurement.
 **The stored-pressure definiteness defect is repaired. Aerodynamic verification
 remains separate.** Numerics are commit `be8b993`; reproducible pressure
 capture/replay tooling is `35042d5`. All results below use this checkout,
-`/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f`, Apple M4 Pro, macOS 26.6.2,
+`<checkout>`, Apple M4 Pro, macOS 26.6.2,
 AppleClang 21, C++20 Release, HDF5 enabled. The native test executable SHA-256 is
 `e77c1a44c9945e294a68fdaf17669e484441203da8106f3e0f6a89bc7da232cc`.
 Raw logs, assembly inputs, matrices, hashes and machine-readable results are in
@@ -2121,7 +2121,7 @@ continuity floor remain open before a FSAE aero accuracy claim is justified.
 ### Repair reproduction and evidence identity
 
 All native quick and slow runs explicitly set
-`KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples`.
+`KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples`.
 The original matrix and original V5 results are retained unchanged. The new
 `bump_iteration18.assembly.gz` contains actual captured inputs, not an edited
 operator. `identity.json`, `cuda_identity.json`, `source_sha256.json` and
@@ -2133,7 +2133,7 @@ change the compiled numerical sources or test executable.
 cmake -S . -B build -G Ninja
 cmake --build build
 python3 tools/prepare_tmr.py
-export KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples
+export KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples
 ./build/kutta-tests --test-suite-exclude=slow
 ctest --test-dir build -LE slow --output-on-failure
 # These scoped slow runs retain their real nonzero exit statuses:

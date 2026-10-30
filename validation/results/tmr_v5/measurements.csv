@@ -5,9 +5,9 @@ plate,cpu,2,13056,3000,0.142426084,213.656747167,0,0,,0.043738175733,9.456555085
 plate,metal,0,816,3000,0.024107167,93.755519459,0,0,,0.00233712132368,5.75255568477e-07,0.00280632328327,0.00264910898178,,,,,,
 plate,metal,1,3264,3000,0.03844875,97.549467459,0,0,,0.00272371540138,3.81452469279e-07,0.00285637044612,0.00269536641281,,,,,,
 plate,metal,2,13056,3000,0.127823041,118.032871,0,0,,0.0298804571695,1.04370346209e-06,0.00287701795614,0.00271391042762,,,,,,
-bump,cpu,0,3520,18,0.035906,0.179906,0,0,,1.000000,nan,nan,nan,nan,nan,nan,nan,nan,/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals
-bump,cpu,1,14080,474,0.148792208000,19.306193750000,0,0,,229.240117158731,nan,nan,nan,nan,nan,nan,nan,nan,/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+bump,cpu,0,3520,18,0.035906,0.179906,0,0,,1.000000,nan,nan,nan,nan,nan,nan,nan,nan,<checkout>/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals
+bump,cpu,1,14080,474,0.148792208000,19.306193750000,0,0,,229.240117158731,nan,nan,nan,nan,nan,nan,nan,nan,<checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
 bump,cpu,2,56320,2300,0.619166541000,623.372864875000,0,1,,0.000582493685,0.019163217040,0.004014466493,0.005523673765,0.006756304653,0.003257642550,-0.250382571753,-0.654249697924,-0.252684390847,
-bump,metal,0,3520,17,0.047364417000,0.282522250000,0,0,,1.000000000000,nan,nan,nan,nan,nan,nan,nan,nan,/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
-bump,metal,1,14080,474,0.132784292000,8.905923209000,0,0,,228.889623106640,nan,nan,nan,nan,nan,nan,nan,nan,/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+bump,metal,0,3520,17,0.047364417000,0.282522250000,0,0,,1.000000000000,nan,nan,nan,nan,nan,nan,nan,nan,<checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+bump,metal,1,14080,474,0.132784292000,8.905923209000,0,0,,228.889623106640,nan,nan,nan,nan,nan,nan,nan,nan,<checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
 bump,metal,2,56320,3000,0.484601833000,149.715152917000,0,0,,0.000241508711,0.012167560455,0.003848987757,0.005344138972,0.006504827082,0.002934992016,-0.249222755170,-0.650849848986,-0.250261625955,

@@ -66,5 +66,5 @@ Backend: metal; device: Apple M4 Pro
   1160  9.729863e-06  4.094423e-08  6.051920e-08  5.648676e-08  4.303380e-08  4.456173e-08   4.540129e-02
   1180  3.845177e-05  2.866980e-08  3.735072e-08  2.389999e-08  4.579608e-08  4.775577e-08   4.474570e-02
   1200  2.392593e-05  4.206059e-08  6.109584e-08  5.354402e-08  4.344797e-08  4.551022e-08   4.574337e-02
-Wrote /Users/ezzy/.t3/worktrees/Kutta/t3-e6179ac7/build/reference-solves/metal/cold (1200 iterations, 4.458059e+01 s solve).
+Wrote <checkout>/build/reference-solves/metal/cold (1200 iterations, 4.458059e+01 s solve).
 APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison

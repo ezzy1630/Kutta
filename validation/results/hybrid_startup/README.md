@@ -50,7 +50,7 @@ The external Fluent fixtures are supplied separately.
 python3 tools/prepare_tmr.py
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-export KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples
+export KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples
 ./build/kutta-tests --test-suite-exclude=slow --duration
 ctest --test-dir build -LE slow --output-on-failure
 

@@ -6,10 +6,10 @@ FV_LSQ backend=metal cells=60 max_error=3.8147e-07
 FV_LSQ backend=cpu cells=144 max_error=8.58307e-07
 FV_LSQ backend=metal cells=144 max_error=8.58307e-07
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/fv/test_gradient.cpp:75:
+<checkout>/tests/fv/test_gradient.cpp:75:
 TEST CASE:  FV least squares is linear exact on real Fluent polyhedra
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/fv/test_gradient.cpp:79: MESSAGE: SKIP: external Fluent poly box absent
+<checkout>/tests/fv/test_gradient.cpp:79: MESSAGE: SKIP: external Fluent poly box absent
 
 FV_V2_PROGRESS backend=cpu tet=1 n=4 iter=20 ru=0.00131163 rv=0.00128623 rc=0.027333 rc_raw=0.0263686
 FV_V2_BOUNDARY backend=cpu tet=1 n=4 interior_p_L2=0.207215 excluding_walls_p_L2=0.207574 p_Linf=0.671653 at=0.9375,0.875,0.0625 boundary=1 wall=1
@@ -32,186 +32,186 @@ FV_PRESSURE_OPERATOR backend=metal tet=1 n=4 exact_face_L2=0.236907 momentum_L2=
 FV_PRESSURE_OPERATOR backend=metal tet=1 n=8 exact_face_L2=0.118648 momentum_L2=0.179739 LSQ_L2=0.168973 exact_face_order=0.997635 momentum_order=1.02537 LSQ_order=0.983245
 FV_PRESSURE_OPERATOR backend=metal tet=1 n=16 exact_face_L2=0.0593483 momentum_L2=0.0889978 LSQ_L2=0.0848384 exact_face_order=0.999409 momentum_order=1.01406 LSQ_order=0.994008
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:96:
+<checkout>/tests/io/test_fluent_real.cpp:96:
 TEST CASE:  real Fluent external mesh acceptance
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): aero/wing.msh.h5
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): aero/wing.msh.h5
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): box/poly.msh.h5
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): box/poly.msh.h5
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/elbow1.cas.h5
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/elbow1.cas.h5
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/elbow1.dat.h5
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): file_session/elbow1.dat.h5
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): flow_over_cylinder/flow_over_cylinder.msh
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): flow_over_cylinder/flow_over_cylinder.msh
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/mixing_elbow.cas.h5
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/mixing_elbow.cas.h5
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/mixing_elbow.dat.h5
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): mixing_elbow/mixing_elbow.dat.h5
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.cas.h5
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters.cas.h5
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_binary.cas
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_binary.cas
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_text.cas
+<checkout>/tests/io/test_fluent_real.cpp:119: MESSAGE: SKIP: fixture absent (see SOURCE.md): static_mixer/Static_Mixer_Parameters_legacy_text.cas
 
 REAL lid_driven_cavity/lid_driven_cavity.msh cells=3550 faces=14321 points=7344 patches=5 volume=1.00000000000001 min-normal-cos=1 boundary-closure=4.26381657866693e-16
 REAL simple_duct/simple-duct.msh.h5 cells=10 faces=51 points=44 patches=3 volume=9.99999904 min-normal-cos=1 boundary-closure=2.9906525756859e-17
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_io.cpp:222:
+<checkout>/tests/io/test_io.cpp:222:
 TEST CASE:  NASA TMR real formatted grids (optional external fixtures)
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_io.cpp:247: MESSAGE: NASA TMR real grids checked: 2
+<checkout>/tests/io/test_io.cpp:247: MESSAGE: NASA TMR real grids checked: 2
 
 ===============================================================================
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:36:
+<checkout>/tests/io/test_plot3d_nmf.cpp:36:
 TEST CASE:  NASA NMF ranges supply exact BC patches and stitch the NACA wake
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: front = 816
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: front = 816
   logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back = 816
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back = 816
   logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: subsonic_inflow_pt_block1_f5_1-25_1-2 = 24
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: subsonic_inflow_pt_block1_f5_1-25_1-2 = 24
   logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back_pressure_block1_f6_1-25_1-2 = 24
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: back_pressure_block1_f6_1-25_1-2 = 24
   logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-7 = 6
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-7 = 6
   logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: viscous_solid_block1_f1_1-2_7-35 = 28
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: viscous_solid_block1_f1_1-2_7-35 = 28
   logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: farfield_riem_block1_f2_1-2_1-35 = 34
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt: farfield_riem_block1_f2_1-2_1-35 = 34
   logged: 2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: front = 3264
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: front = 3264
   logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back = 3264
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back = 3264
   logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: subsonic_inflow_pt_block1_f5_1-49_1-2 = 48
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: subsonic_inflow_pt_block1_f5_1-49_1-2 = 48
   logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back_pressure_block1_f6_1-49_1-2 = 48
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: back_pressure_block1_f6_1-49_1-2 = 48
   logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-13 = 12
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-13 = 12
   logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: viscous_solid_block1_f1_1-2_13-69 = 56
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: viscous_solid_block1_f1_1-2_13-69 = 56
   logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: farfield_riem_block1_f2_1-2_1-69 = 68
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt: farfield_riem_block1_f2_1-2_1-69 = 68
   logged: 2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: front = 13056
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: front = 13056
   logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back = 13056
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back = 13056
   logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: subsonic_inflow_pt_block1_f5_1-97_1-2 = 96
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: subsonic_inflow_pt_block1_f5_1-97_1-2 = 96
   logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back_pressure_block1_f6_1-97_1-2 = 96
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: back_pressure_block1_f6_1-97_1-2 = 96
   logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
   logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: viscous_solid_block1_f1_1-2_25-137 = 112
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: viscous_solid_block1_f1_1-2_25-137 = 112
   logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: farfield_riem_block1_f2_1-2_1-137 = 136
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt: farfield_riem_block1_f2_1-2_1-137 = 136
   logged: 2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: front = 3520
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: front = 3520
   logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back = 3520
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back = 3520
   logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: subsonic_inflow_pt_block1_f5_1-41_1-2 = 40
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: subsonic_inflow_pt_block1_f5_1-41_1-2 = 40
   logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back_pressure_block1_f6_1-41_1-2 = 40
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: back_pressure_block1_f6_1-41_1-2 = 40
   logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-25 = 24
   logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: viscous_solid_block1_f1_1-2_25-65 = 40
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: viscous_solid_block1_f1_1-2_25-65 = 40
   logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_65-89 = 24
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f1_1-2_65-89 = 24
   logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-89 = 88
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-89 = 88
   logged: 2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: front = 14080
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: front = 14080
   logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back = 14080
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back = 14080
   logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: subsonic_inflow_pt_block1_f5_1-81_1-2 = 80
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: subsonic_inflow_pt_block1_f5_1-81_1-2 = 80
   logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back_pressure_block1_f6_1-81_1-2 = 80
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: back_pressure_block1_f6_1-81_1-2 = 80
   logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-49 = 48
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_1-49 = 48
   logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: viscous_solid_block1_f1_1-2_49-129 = 80
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: viscous_solid_block1_f1_1-2_49-129 = 80
   logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_129-177 = 48
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f1_1-2_129-177 = 48
   logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-177 = 176
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt: symmetry_z_strong_block1_f2_1-2_1-177 = 176
   logged: 2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: front = 3584
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: front = 3584
   logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: back = 3584
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: back = 3584
   logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f5_1-33_1-2 = 32
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f5_1-33_1-2 = 32
   logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f6_1-33_1-2 = 32
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f6_1-33_1-2 = 32
   logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: viscous_solid_block1_f1_1-2_25-89 = 64
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: viscous_solid_block1_f1_1-2_25-89 = 64
   logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f2_1-2_1-113 = 112
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_113-33.p2dfmt: farfield_riem_block1_f2_1-2_1-113 = 112
   logged: 2DN00_naca0012/grids/n0012_113-33.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: front = 14336
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: front = 14336
   logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: back = 14336
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: back = 14336
   logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f5_1-65_1-2 = 64
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f5_1-65_1-2 = 64
   logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f6_1-65_1-2 = 64
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f6_1-65_1-2 = 64
   logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: viscous_solid_block1_f1_1-2_49-177 = 128
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: viscous_solid_block1_f1_1-2_49-177 = 128
   logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
 
-/Users/ezzy/.t3/worktrees/Kutta/t3-1c97361f/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f2_1-2_1-225 = 224
+<checkout>/tests/io/test_plot3d_nmf.cpp:126: MESSAGE: 2DN00_naca0012/grids/n0012_225-65.p2dfmt: farfield_riem_block1_f2_1-2_1-225 = 224
   logged: 2DN00_naca0012/grids/n0012_225-65.p2dfmt
 
 AMG_GRID backend=cpu n=32 iterations=10 rel=8.93192236537661e-09 converged=1 PCG, aggregation AMG V-cycle, 5 levels, op complexity 1.138
