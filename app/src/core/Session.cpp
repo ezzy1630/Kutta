@@ -9,6 +9,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QLocale>
+#include <QSaveFile>
 #include <QSettings>
 
 #include <cmath>
@@ -62,23 +63,35 @@ QString Session::caseName() const
     return n;
 }
 
+void Session::failOpen(const QString& casePath, const QString& message)
+{
+    m_openError = {casePath, message};
+    emit caseFailed(message);
+}
+
 QStringList Session::recentCases() const { return QSettings().value("recentCases").toStringList(); }
 
 void Session::openCase(const QString& casePath, const QString& dataPath)
 {
     if (running()) {
-        emit caseFailed("Stop the running calculation before opening another case.");
+        failOpen(casePath, tr("Stop the running calculation before opening another case."));
         return;
     }
+    for (const QString& p : {casePath, dataPath})
+        if (!p.isEmpty() && !QFileInfo(p).isFile()) {
+            failOpen(casePath, tr("%1 does not exist (moved, renamed or on a drive that is not connected).").arg(QDir::toNativeSeparators(p)));
+            return;
+        }
     emit caseOpening(casePath);
     emit consoleLine(ConsoleLevel::Info, QStringLiteral("Reading %1%2").arg(QDir::toNativeSeparators(casePath),
                      dataPath.isEmpty() ? QString() : " with data " + QDir::toNativeSeparators(dataPath)));
     m_cli->inspect(casePath, dataPath, [this, casePath, dataPath](Result<CaseSummary> r) {
         if (!r) {
             emit consoleLine(ConsoleLevel::Error, r.error());
-            emit caseFailed(r.error());
+            failOpen(casePath, r.error());
             return;
         }
+        m_openError = {};
         m_case = std::move(r).value();
         m_casePath = casePath;
         m_dataPath = dataPath;
@@ -155,7 +168,19 @@ QString Session::run()
     rec.synthetic = m_case->synthetic;
     rec.cli = cliInfo().program;
     rec.backend = m_backend;
-    m_history.save(rec);
+    // A run whose record or setup cannot be written would solve the case
+    // without the user's changes, or leave no trace: refuse it instead.
+    auto refuse = [this, &rec](const QString& what) {
+        m_history.remove(rec.id);
+        const QString why = tr("Could not start the run: Kutta cannot write %1 in %2. Check free disk space and that the folder is writable.")
+                                .arg(what, QDir::toNativeSeparators(QFileInfo(rec.dir).absolutePath()));
+        emit consoleLine(ConsoleLevel::Error, why);
+        emit runRefused(why);
+        return QString();
+    };
+    rec.status = RunStatus::Interrupted;  // until the process starts; never left "Running" on disk
+    if (!QFileInfo(rec.dir).isDir() || !m_history.save(rec)) return refuse(tr("the run record"));
+    rec.status = RunStatus::Running;
 
     SolveRequest req;
     req.casePath = m_casePath;
@@ -167,9 +192,11 @@ QString Session::run()
     req.iterations = rec.iterationsRequested;
     if (m_settings.needsSetupFile()) {
         req.setupFile = QDir(rec.dir).filePath("setup.json");
-        QFile f(req.setupFile);
-        if (f.open(QIODevice::WriteOnly)) f.write(QJsonDocument(m_settings.setupJson()).toJson(QJsonDocument::Indented));
+        QSaveFile f(req.setupFile);
+        if (!f.open(QIODevice::WriteOnly) || f.write(QJsonDocument(m_settings.setupJson()).toJson(QJsonDocument::Indented)) < 0 || !f.commit())
+            return refuse(tr("the changed settings (setup.json)"));
     }
+    m_history.save(rec);
     m_current = rec;
     m_live = LiveRun{};
     m_live.runId = rec.id;

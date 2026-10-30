@@ -11,10 +11,13 @@
 #include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGridLayout>
 #include <QHeaderView>
+#include <QKeySequence>
 #include <QJsonArray>
 #include <QLocale>
 #include <QScrollBar>
+#include <QSettings>
 #include <QTableWidget>
 #include <QTimer>
 
@@ -30,7 +33,10 @@ Inspector::Inspector(Session* session, GraphicsArea* graphics, ChartsPanel* char
     setAccessibleName(tr("Inspector"));
     m_ctx = {session, graphics, charts, [this](const QString& id) { emit navigate(id); },
              [this](const QString& f) { showSettingsFiltered(f); }};
+    m_ctx.refresh = [this] { refresh(); };
+    m_ctx.current = [this] { return m_id; };
     connect(session, &Session::caseOpened, this, &Inspector::refresh);
+    connect(session, &Session::caseFailed, this, &Inspector::refresh);
     connect(&Theme::instance(), &Theme::changed, this, &Inspector::refresh);
     connect(graphics, &GraphicsArea::activeChanged, this, [this] {
         if (m_id.startsWith("results/") && m_id != "results/residuals" && m_id != "results/report-plots") refresh();
@@ -40,7 +46,7 @@ Inspector::Inspector(Session* session, GraphicsArea* graphics, ChartsPanel* char
     });
     connect(session, &Session::historyChanged, this, [this] {
         // Pages listing runs follow the history; editing pages keep their state.
-        if (m_id.startsWith("runs/") || m_id == "results/forces") refresh();
+        if (m_id.startsWith("runs/") || m_id == "results/forces" || m_id == "setup/general") refresh();
     });
     show("setup/general");
 }
@@ -203,6 +209,175 @@ QWidget* header(const QString& title, const QString& crumb, QWidget* parent)
     return w;
 }
 
+
+namespace {
+
+// The failed open, in place of the page's usual content: no modal dialog.
+QWidget* openErrorCallout(const InspectorContext& c)
+{
+    const Session::OpenError& e = c.session->openError();
+    if (e.message.isEmpty()) return nullptr;
+    auto* f = callout("red");
+    auto* top = new QHBoxLayout;
+    auto* t = label(QObject::tr("Could not open %1").arg(QFileInfo(e.casePath).fileName()), "title");
+    top->addWidget(t, 1);
+    auto* dismiss = button(QObject::tr("Dismiss"), "x");
+    dismiss->setProperty("flat", true);
+    QObject::connect(dismiss, &QPushButton::clicked, dismiss, [c] {
+        c.session->clearOpenError();
+        QTimer::singleShot(0, c.session, [c] { if (c.refresh) c.refresh(); });
+    });
+    top->addWidget(dismiss, 0, Qt::AlignTop);
+    static_cast<QVBoxLayout*>(f->layout())->addLayout(top);
+    f->layout()->addWidget(label(e.message));
+    f->layout()->addWidget(label(c.session->hasCase()
+                                     ? QObject::tr("%1 is still open.").arg(c.session->caseName())
+                                     : QObject::tr("Kutta reads Fluent cases saved as .cas.h5. Check the file is one, and that it is readable."),
+                                 "muted"));
+    return f;
+}
+
+// Open, approve, run, read: the first-time path, one compact card. Each step
+// says what is true now and offers the one action that moves it on; a power
+// user can hide it (View ▸ Show Getting Started brings it back).
+QWidget* gettingStarted(const InspectorContext& c, bool hideable)
+{
+    if (hideable && QSettings().value("ui/hideGettingStarted").toBool()) return nullptr;
+    Session* s = c.session;
+    auto* w = new QFrame;
+    w->setProperty("callout", "neutral");
+    w->setAccessibleName(QObject::tr("Getting started"));
+    auto* v = new QVBoxLayout(w);
+    v->setContentsMargins(10, 8, 10, 10);
+    v->setSpacing(6);
+    auto* head = new QHBoxLayout;
+    head->addWidget(section(QObject::tr("Getting started")), 1);
+    if (hideable) {
+        auto* hide = button(QObject::tr("Hide"));
+        hide->setProperty("flat", true);
+        hide->setToolTip(QObject::tr("View ▸ Show Getting Started brings it back."));
+        QObject::connect(hide, &QPushButton::clicked, hide, [c] {
+            QSettings().setValue("ui/hideGettingStarted", true);
+            QTimer::singleShot(0, c.session, [c] { if (c.refresh) c.refresh(); });
+        });
+        head->addWidget(hide);
+    }
+    v->addLayout(head);
+    auto* grid = new QGridLayout;
+    grid->setHorizontalSpacing(8);
+    grid->setVerticalSpacing(6);
+    grid->setColumnStretch(1, 1);
+    v->addLayout(grid);
+
+    enum class Mark { Done, Current, Blocked, Later };
+    int row = 0;
+    auto step = [&](Mark m, const QString& title, const QString& detail, QWidget* action) {
+        const auto& t = tokens();
+        auto* glyph = new QLabel;
+        const QString icon = m == Mark::Done ? "circle-check" : m == Mark::Blocked ? "circle-alert" : "circle";
+        const QColor col = m == Mark::Done ? t.accent : m == Mark::Blocked ? t.red : m == Mark::Current ? t.text : t.faint;
+        glyph->setPixmap(Theme::instance().icon(icon, col).pixmap(16, 16));
+        glyph->setFixedWidth(18);
+        grid->addWidget(glyph, row, 0, Qt::AlignTop);
+        auto* text = new QWidget;
+        auto* tv = new QVBoxLayout(text);
+        tv->setContentsMargins(0, 0, 0, 0);
+        tv->setSpacing(0);
+        auto* tl = label(QStringLiteral("%1. %2").arg(row + 1).arg(title), m == Mark::Later ? "faint" : QString());
+        if (m == Mark::Current || m == Mark::Blocked) {
+            QFont f = tl->font();
+            f.setWeight(QFont::DemiBold);
+            tl->setFont(f);
+        }
+        tv->addWidget(tl);
+        if (!detail.isEmpty()) tv->addWidget(label(detail, m == Mark::Blocked ? "error" : "muted"));
+        grid->addWidget(text, row, 1);
+        if (action) grid->addWidget(action, row, 2, Qt::AlignTop | Qt::AlignRight);
+        ++row;
+    };
+    auto link = [&](const QString& text, const QString& icon, std::function<void()> fn, bool primary = false) {
+        auto* b = button(text, icon, primary ? "primary" : nullptr);
+        if (!primary) b->setProperty("flat", true);
+        QObject::connect(b, &QPushButton::clicked, b, std::move(fn));
+        return b;
+    };
+
+    // 1. Open
+    if (!s->hasCase()) {
+        step(Mark::Current, QObject::tr("Open your Fluent case"), QObject::tr("The .cas.h5; add its .dat.h5 to compare with Fluent."),
+             link(QObject::tr("Open Case…"), "folder-open", [c] { if (c.openDialog) c.openDialog(); }, true));
+        step(Mark::Later, QObject::tr("Review what Kutta needs from you"), {}, nullptr);
+        step(Mark::Later, QObject::tr("Run the calculation"), {}, nullptr);
+        step(Mark::Later, QObject::tr("Read the results"), {}, nullptr);
+        return w;
+    }
+    step(Mark::Done, QObject::tr("Open your Fluent case"),
+         s->dataPath().isEmpty() ? QObject::tr("%1, without Fluent data (no comparison)").arg(s->caseName())
+                                 : QObject::tr("%1 with Fluent's data, for comparison").arg(s->caseName()), nullptr);
+
+    // 2. Approvals
+    const CaseSummary& cs = s->caseSummary();
+    const QStringList approved = s->approvedApproximations();
+    const auto blocking = cs.blocking(approved);
+    const bool unsupported = std::any_of(blocking.begin(), blocking.end(), [](const SupportIssue* i) { return i->cls == IssueClass::Unsupported; });
+    const bool onGeneral = c.current && c.current() == "setup/general";
+    QWidget* review = onGeneral ? nullptr : link(QObject::tr("Review"), {}, [c] { c.navigate("setup/general"); });
+    if (unsupported) {
+        step(Mark::Blocked, QObject::tr("Review what Kutta needs from you"),
+             QObject::tr("Kutta cannot solve this case as it stands; the reasons are listed %1.").arg(onGeneral ? QObject::tr("below") : QObject::tr("on General")),
+             review);
+    } else if (!blocking.empty()) {
+        step(Mark::Current, QObject::tr("Review what Kutta needs from you"),
+             blocking.size() == 1 ? QObject::tr("1 approximation needs your decision%1.").arg(onGeneral ? QObject::tr(" below") : QString())
+                                  : QObject::tr("%1 approximations need your decision%2.").arg(blocking.size()).arg(onGeneral ? QObject::tr(" below") : QString()),
+             review);
+    } else {
+        step(Mark::Done, QObject::tr("Review what Kutta needs from you"),
+             approved.isEmpty() ? QObject::tr("Nothing to approve: Kutta solves this case as Fluent defines it.")
+                                : QObject::tr("Approved; results will be marked APPROXIMATE."), nullptr);
+    }
+
+    // 3. Run
+    const auto& runs = s->history().runs();
+    const bool finished = std::any_of(runs.begin(), runs.end(), [](const RunRecord& r) {
+        return r.status == RunStatus::Completed || r.status == RunStatus::Stopped;
+    });
+    const QString keys = QKeySequence("Ctrl+R").toString(QKeySequence::NativeText);
+    QString device = QObject::tr("the device kutta picks");
+    for (const auto& d : s->devices())
+        if (d.backend == s->backend()) device = d.label();
+    if (s->running()) {
+        step(Mark::Current, QObject::tr("Run the calculation"), QObject::tr("Running; residuals are in Charts below."), nullptr);
+    } else if (!blocking.empty()) {
+        step(Mark::Later, QObject::tr("Run the calculation"), {}, nullptr);
+    } else {
+        step(finished ? Mark::Done : Mark::Current, QObject::tr("Run the calculation"),
+             finished ? QObject::tr("%1 finished. Run again after changing settings (%2).").arg(runs.size() == 1 ? QObject::tr("1 run") : QObject::tr("%1 runs").arg(runs.size()), keys)
+                      : QObject::tr("%1 iterations on %2 (%3).").arg(s->requestedIterations()).arg(device, keys),
+             finished ? nullptr : link(QObject::tr("Run"), "play", [s] { s->run(); }, true));
+    }
+
+    // 4. Results
+    if (!finished) {
+        step(Mark::Later, QObject::tr("Read the results"), QObject::tr("Contours, forces and the comparison with Fluent."), nullptr);
+    } else {
+        auto* links = new QWidget;
+        auto* lh = new QHBoxLayout(links);
+        lh->setContentsMargins(0, 0, 0, 0);
+        lh->setSpacing(2);
+        lh->addWidget(link(QObject::tr("Contours"), {}, [c] { c.navigate("results/contours"); }));
+        lh->addWidget(link(QObject::tr("Forces"), {}, [c] { c.navigate("results/forces"); }));
+        lh->addWidget(link(QObject::tr("Run History"), {}, [c] { c.navigate("runs/history"); }));
+        step(Mark::Current, QObject::tr("Read the results"),
+             s->dataPath().isEmpty() ? QObject::tr("The viewports show the latest run; Forces lists the report definitions.")
+                                     : QObject::tr("The viewports show the latest run; pick a Fluent or Δ field to compare."),
+             links);
+    }
+    return w;
+}
+
+} // namespace
+
 QWidget* noCase(const InspectorContext& c, const QString& title)
 {
     QVBoxLayout* v;
@@ -213,10 +388,9 @@ QWidget* noCase(const InspectorContext& c, const QString& title)
     }
     // Welcome: what Kutta does, and the ways to start.
     QWidget* page = makePage(QObject::tr("Open a Fluent case"), {}, &v);
+    if (QWidget* e = openErrorCallout(c)) v->addWidget(e);
     v->addWidget(label(QObject::tr("Kutta reads a Fluent case (.cas.h5), solves it on this computer's GPU and shows the results next to Fluent's. Open a case, or drop one on the window."), "muted"));
-    auto* open = button(QObject::tr("Open Case…"), "folder-open", "primary");
-    QObject::connect(open, &QPushButton::clicked, open, [c] { if (c.openDialog) c.openDialog(); });
-    v->addWidget(open, 0, Qt::AlignLeft);
+    v->addWidget(gettingStarted(c, false));
     if (!c.samples.isEmpty()) {
         v->addSpacing(6);
         v->addWidget(section(QObject::tr("Samples")));
@@ -277,6 +451,8 @@ QWidget* general(const InspectorContext& c)
     statusRow->addStretch(1);
     v->addLayout(statusRow);
     v->addWidget(label(statusText, "muted"));
+    if (QWidget* e = openErrorCallout(c)) v->addWidget(e);
+    if (QWidget* g = gettingStarted(c, true)) v->addWidget(g);
 
     std::vector<const SupportIssue*> approx, blockers, notes;
     for (const auto& i : cs.issues) {
@@ -718,8 +894,18 @@ QWidget* run(const InspectorContext& c)
     f->addWidget(status);
     auto* why = label({}, "error");
     f->addWidget(why);
+    // A run that did not complete says why and what to do, until the next one.
+    auto* outcome = callout("red");
+    auto* outcomeTitle = label({}, "title");
+    auto* outcomeError = label({});
+    outcomeError->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    auto* outcomeAdvice = label({}, "muted");
+    outcome->layout()->addWidget(outcomeTitle);
+    outcome->layout()->addWidget(outcomeError);
+    outcome->layout()->addWidget(outcomeAdvice);
+    f->addWidget(outcome);
 
-    auto refresh = [s, runBtn, stopBtn, status, why] {
+    auto refresh = [s, runBtn, stopBtn, status, why, outcome, outcomeTitle, outcomeError, outcomeAdvice] {
         QString reason;
         const bool can = s->canRun(&reason);
         runBtn->setEnabled(can);
@@ -746,11 +932,25 @@ QWidget* run(const InspectorContext& c)
         } else {
             status->setText(QObject::tr("No runs yet for this case."));
         }
+        const RunRecord* last = s->running() || s->history().runs().empty() ? nullptr : &s->history().runs().back();
+        const QString advice = last ? runOutcomeAdvice(*last) : QString();
+        outcome->setVisible(!advice.isEmpty());
+        if (!advice.isEmpty()) {
+            const bool failed = last->status == RunStatus::Failed || last->status == RunStatus::Interrupted;
+            outcome->setProperty("callout", failed ? "red" : "neutral");
+            repolish(outcome);
+            outcomeTitle->setText(failed ? QObject::tr("%1 %2 at iteration %3").arg(last->title(), runStatusLabel(last->status).toLower()).arg(last->iterationsDone)
+                                         : QObject::tr("%1 stopped").arg(last->title()));
+            outcomeError->setText(last->error);
+            outcomeError->setVisible(failed && !last->error.isEmpty());
+            outcomeAdvice->setText(advice);
+        }
     };
     refresh();
     QObject::connect(runBtn, &QPushButton::clicked, page, [s] { s->run(); });
     QObject::connect(stopBtn, &QPushButton::clicked, page, [s] { s->stop(); });
     QObject::connect(s, &Session::runStateChanged, page, refresh);
+    QObject::connect(s, &Session::historyChanged, page, refresh);
     QObject::connect(s, &Session::iteration, page, refresh);
     QObject::connect(s, &Session::approvalsChanged, page, refresh);
     QObject::connect(s->settings(), &SettingsModel::overridesChanged, page, refresh);

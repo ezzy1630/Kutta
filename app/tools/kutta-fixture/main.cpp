@@ -10,6 +10,9 @@
 //   KUTTA_FIXTURE_DIR         fixture data directory
 //   KUTTA_FIXTURE_SPEED       replay speed multiplier (default 6)
 //   KUTTA_FIXTURE_HOLD_AT     pause after this iteration until stdin closes
+//   KUTTA_FIXTURE_FAIL_AT     fail after this iteration: an error event with
+//                             KUTTA_FIXTURE_FAIL_MESSAGE and exit 1, or, with
+//                             no message, abort as a crash would
 //   KUTTA_FIXTURE_DEVICES     "macos" | "windows" device inventory
 //   KUTTA_FIXTURE_CAR_DETAIL  car tessellation multiplier (1 ~ 0.4M triangles)
 
@@ -460,6 +463,7 @@ int solve(const Args& a)
     QDir().mkpath(r.outDir);
     const double speed = std::max(0.1, qEnvironmentVariable("KUTTA_FIXTURE_SPEED", "6").toDouble());
     const int holdAt = qEnvironmentVariableIntValue("KUTTA_FIXTURE_HOLD_AT");
+    const int failAt = qEnvironmentVariableIntValue("KUTTA_FIXTURE_FAIL_AT");
     const QString prov = provenance(r);
 
     const QString liveRunId = QStringLiteral("run-%1-0").arg(QDateTime::currentMSecsSinceEpoch());
@@ -526,6 +530,12 @@ int solve(const Args& a)
         emitJson(ev);
         if (holdAt > 0 && lastIter >= holdAt)
             while (!g_stop) sleepMs(20);
+        if (failAt > 0 && lastIter >= failAt) {
+            const QString msg = qEnvironmentVariable("KUTTA_FIXTURE_FAIL_MESSAGE");
+            if (msg.isEmpty()) std::abort();
+            emitJson({{"v", 1}, {"event", "error"}, {"message", msg}, {"issues", QJsonArray{}}});
+            std::exit(1);
+        }
     };
 
     std::vector<std::pair<QString, QVector3D>> finalForce;  // car reports

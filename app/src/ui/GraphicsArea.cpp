@@ -227,7 +227,10 @@ void ViewportPanel::setDataset(const QString& key)
         if (!self || self->m_pendingKey != key) return;
         if (!r) {
             OverlayState o = self->m_view->overlayState();
-            o.emptyText = tr("Could not load %1\n%2").arg(self->datasetLabel(), r.error());
+            // An older CLI without export-geometry is not a failure of the case.
+            o.emptyText = key.startsWith("mesh:") && r.error().contains("export-geometry")
+                              ? tr("No mesh preview: this kutta CLI cannot draw a case before a run.\nRun the calculation to see the case and its results.")
+                              : tr("Could not load %1\n%2").arg(self->datasetLabel(), r.error());
             o.badges.clear();
             o.legend = false;
             self->m_view->setOverlay(o);

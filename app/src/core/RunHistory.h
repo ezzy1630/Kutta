@@ -46,6 +46,10 @@ struct RunRecord {
     static std::optional<RunRecord> fromJson(const QJsonObject& o, const QString& dir);
 };
 
+// What happened to a run that did not complete and what to do next, in
+// plain words (disk full, out of memory, crash, stopped); empty when it completed.
+QString runOutcomeAdvice(const RunRecord& r);
+
 // Final values of each report in a run's progress log.
 struct ReportSeries { QString name; std::vector<int> iter; std::vector<double> force, coefficient; };
 struct RunProgress {
@@ -77,7 +81,7 @@ public:
     const RunRecord* latestFinished() const;
 
     RunRecord create();                   // allocates the next number and directory
-    void save(const RunRecord& r);        // writes app-run.json and updates the list
+    bool save(const RunRecord& r);        // writes app-run.json and updates the list; false if the file could not be written
     bool remove(const QString& id);       // deletes the run directory
     void setNote(const QString& id, const QString& note);
 

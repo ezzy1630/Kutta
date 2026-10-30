@@ -93,10 +93,11 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
         m_charts->showRuns({});
         navigate("setup/general");
     });
+    // Shown in place on the welcome or General page (no modal dialog); the
+    // case that was open stays open.
     connect(session, &Session::caseFailed, this, [this](const QString& m) {
-        QMessageBox box(QMessageBox::Warning, tr("Could not open case"), tr("Kutta could not read this case."), QMessageBox::Ok, this);
-        box.setInformativeText(m);
-        box.exec();
+        statusBar()->showMessage(tr("Could not open the case: %1").arg(m.section('\n', 0, 0)), 10000);
+        navigate("setup/general");
     });
     connect(session, &Session::runStateChanged, this, &MainWindow::refreshToolbar);
     connect(session, &Session::iteration, this, &MainWindow::refreshToolbar);
@@ -193,7 +194,7 @@ QWidget* MainWindow::buildToolbar()
     m_stateLabel->setProperty("role", "muted");
     m_stateLabel->setMinimumWidth(240);
     m_stateLabel->setTextFormat(Qt::RichText);
-    connect(m_stateLabel, &QLabel::linkActivated, this, [this] { navigate("setup/general"); });
+    connect(m_stateLabel, &QLabel::linkActivated, this, [this](const QString& href) { navigate(href); });
     QFont sf = m_stateLabel->font();
     sf.setFeature(QFont::Tag("tnum"), 1);
     m_stateLabel->setFont(sf);
@@ -348,6 +349,11 @@ void MainWindow::buildMenus()
     view->addSeparator();
     add(view, tr("Fit View"), "scan", QKeySequence(), [this] { if (auto* p = m_graphics->active()) p->view()->fitView(); });
     view->addSeparator();
+    add(view, tr("Show Getting Started"), "info", QKeySequence(), [this] {
+        QSettings().remove("ui/hideGettingStarted");
+        navigate("setup/general");
+        m_inspector->refresh();
+    });
     add(view, tr("Dark Theme"), "moon", QKeySequence(), [this] { setTheme(true); });
     add(view, tr("Light Theme"), "sun", QKeySequence(), [this] { setTheme(false); });
 
@@ -446,15 +452,27 @@ void MainWindow::refreshToolbar()
     // A run that only needs approval is a decision, not an error: amber, with a way to it.
     const bool blocked = s->state() == RunState::Idle && s->hasCase() && !can && !s->running();
     const bool approval = blocked && why.startsWith(tr("Needs your approval"));
-    m_stateLabel->setToolTip(state);
+    // The newest run failing stays visible until the next run: a status-bar
+    // message that fades is easy to miss on a long solve.
+    const auto& runs = s->history().runs();
+    const RunRecord* failed = s->state() == RunState::Idle && s->hasCase() && !blocked && !runs.empty()
+                                      && (runs.back().status == RunStatus::Failed || runs.back().status == RunStatus::Interrupted)
+                                  ? &runs.back() : nullptr;
+    auto withLink = [](const QString& text, const QString& href, const QString& link) {
+        return QStringLiteral("%1 &nbsp;<a href=\"%2\" style=\"color:%3\">%4</a>").arg(text.toHtmlEscaped(), href, tokens().text.name(), link);
+    };
     if (blocked) {
         const QString text = approval ? tr("Approval needed: %1").arg(why.section(':', 1).trimmed().chopped(1)) : state;
-        m_stateLabel->setText(QStringLiteral("%1 &nbsp;<a href=\"general\" style=\"color:%2\">Review</a>")
-                                  .arg(text.toHtmlEscaped(), tokens().text.name()));
+        m_stateLabel->setText(withLink(text, "setup/general", tr("Review")));
+        m_stateLabel->setToolTip(state);
+    } else if (failed) {
+        m_stateLabel->setText(withLink(tr("%1 %2 · Ready to run again").arg(failed->title(), runStatusLabel(failed->status).toLower()), "solution/run", tr("Details")));
+        m_stateLabel->setToolTip(failed->error);
     } else {
         m_stateLabel->setText(state.toHtmlEscaped());
+        m_stateLabel->setToolTip(state);
     }
-    m_stateLabel->setProperty("role", blocked ? (approval ? "warning" : "error") : "muted");
+    m_stateLabel->setProperty("role", blocked ? (approval ? "warning" : "error") : failed ? "error" : "muted");
     repolish(m_stateLabel);
 
     const int idx = m_graphics->viewLayout() == GraphicsArea::Layout::Single ? 0 : m_graphics->viewLayout() == GraphicsArea::Layout::Quad ? 2 : 1;

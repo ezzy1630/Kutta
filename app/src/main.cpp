@@ -156,9 +156,9 @@ int main(int argc, char** argv)
     // (pass the case path; --open-data defaults to the .dat.h5 beside it).
     // Post-processing ones need the real CLI: the fixture has no volume fields.
     // car-* and bench use the fixture CLI's synthetic FSAE car.
-    const QStringList scenarios = {"start", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
+    const QStringList scenarios = {"start", "open-failed", "elbow-open", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
                                    "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare",
-                                   "car-results", "car-xy", "car-compare", "bench"};
+                                   "car-results", "car-xy", "car-compare", "car-failed", "bench"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
         return 0;
@@ -297,6 +297,21 @@ int main(int argc, char** argv)
         };
     };
     if (scenario == "start") {
+        sc->add(go("setup/general"));
+    } else if (scenario == "open-failed") {
+        // A file that is not a readable case: the reason shows in place.
+        sc->add([session, sc, dataRoot](auto next) {
+            session->openCase(QDir(dataRoot).filePath("front_wing.cas.h5"));
+            sc->waitFor([session] { return !session->openError().message.isEmpty(); }, next, "open to fail");
+        });
+        sc->add(go("setup/general"));
+    } else if (scenario == "elbow-open") {
+        // What a first-time user sees right after opening: the case's mesh
+        // and the getting-started steps.
+        sc->add(open(elbowCase, elbowData));
+        sc->add([&w, sc](auto next) {
+            sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, next, "mesh to show");
+        });
         sc->add(go("setup/general"));
     } else if (scenario == "elbow-setup") {
         sc->add(open(elbowCase));
@@ -473,6 +488,17 @@ int main(int argc, char** argv)
                           {"fields", QJsonArray{"velocity_magnitude", "total_pressure_coefficient"}}},
                          [&w](const PostOutput& out) { w.charts()->plotProbe(out, "Along y = 0, z = 0.1 m · Run 1", -1); }));
         }
+    } else if (scenario == "car-failed") {
+        // A run that fails part-way, as when the disk fills.
+        sc->add(open(caseArg.isEmpty() ? car : caseArg));
+        sc->add(approveAll);
+        sc->add([session, sc](auto next) {
+            qputenv("KUTTA_FIXTURE_FAIL_AT", "60");
+            qputenv("KUTTA_FIXTURE_FAIL_MESSAGE", "cannot write fields.bin in the run folder: No space left on device");
+            if (session->run().isEmpty()) return sc->fail("run refused");
+            sc->waitFor([session] { return !session->running(); }, next, "run to fail", 300000);
+        });
+        sc->add(go("solution/run"));
     } else if (scenario == "car-compare") {
         sc->add(open(caseArg.isEmpty() ? car : caseArg));
         sc->add(approveAll);

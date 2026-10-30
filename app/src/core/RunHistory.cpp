@@ -6,6 +6,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QRegularExpression>
+#include <QSaveFile>
 
 #include <algorithm>
 
@@ -21,6 +22,34 @@ QString runStatusLabel(RunStatus s)
     case RunStatus::Interrupted: return QStringLiteral("Interrupted");
     }
     return {};
+}
+
+QString runOutcomeAdvice(const RunRecord& r)
+{
+    const QString e = r.error.toLower();
+    auto has = [&e](std::initializer_list<const char*> words) {
+        return std::any_of(words.begin(), words.end(), [&e](const char* w) { return e.contains(QLatin1String(w)); });
+    };
+    switch (r.status) {
+    case RunStatus::Running:
+    case RunStatus::Completed: return {};
+    case RunStatus::Stopped:
+        return QStringLiteral("Stopped by you at iteration %1. The results so far are kept and can be post-processed; run again to continue from the case.")
+            .arg(r.iterationsDone);
+    case RunStatus::Interrupted:
+        return QStringLiteral("Kutta closed while this run was going. Its folder keeps what kutta wrote until then; run again for complete results.");
+    case RunStatus::Failed: break;
+    }
+    // Messages differ by OS and runtime: POSIX strerror, Windows, CUDA.
+    if (has({"no space left", "not enough space on the disk", "disk full", "enospc", "disk quota"}))
+        return QStringLiteral("The disk is full. Free space on the drive that holds the run folder, then run again; finished runs are kept.");
+    if (has({"out of memory", "bad_alloc", "cudaerrormemoryallocation", "outofdevicememory", "insufficient memory"}))
+        return QStringLiteral("The device ran out of memory. Close other programs using the GPU, or choose another device, then run again.");
+    if (has({"permission denied", "access is denied", "read-only file system"}))
+        return QStringLiteral("Kutta may not write to the run folder. Check its permissions, then run again.");
+    if (has({"stopped unexpectedly"}))
+        return QStringLiteral("kutta stopped before finishing, so this run has no final results. The console shows its last messages; if it happens again, keep the run folder for a bug report.");
+    return QStringLiteral("kutta reported the error above; the console has its full messages. Fix the cause, then run again.");
 }
 
 namespace {
@@ -242,13 +271,14 @@ RunRecord RunHistory::create()
     return r;
 }
 
-void RunHistory::save(const RunRecord& r)
+bool RunHistory::save(const RunRecord& r)
 {
-    QFile f(QDir(r.dir).filePath("app-run.json"));
-    if (f.open(QIODevice::WriteOnly)) f.write(QJsonDocument(r.toJson()).toJson(QJsonDocument::Indented));
+    QSaveFile f(QDir(r.dir).filePath("app-run.json"));
+    const bool written = f.open(QIODevice::WriteOnly) && f.write(QJsonDocument(r.toJson()).toJson(QJsonDocument::Indented)) >= 0 && f.commit();
     auto it = std::find_if(m_runs.begin(), m_runs.end(), [&](const RunRecord& x) { return x.id == r.id; });
     if (it == m_runs.end()) m_runs.push_back(r);
     else *it = r;
+    return written;
 }
 
 bool RunHistory::remove(const QString& id)

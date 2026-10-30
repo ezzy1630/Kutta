@@ -25,6 +25,8 @@ struct InspectorContext {
     std::function<void()> openDialog;                          // File ▸ Open Case…
     std::function<void(const QString& casePath)> openPath;
     QStringList samples;                                       // sample cases the CLI can serve
+    std::function<void()> refresh;                             // rebuild the current page
+    std::function<QString()> current;                          // the current page's id
 };
 
 class Inspector : public QScrollArea {

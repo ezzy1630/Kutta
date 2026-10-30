@@ -3,6 +3,7 @@
 
 #include "core/Session.h"
 
+#include <QDir>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -71,6 +72,31 @@ private slots:
         QVERIFY(!shown.contains("zone:symmetry-xyplane"));
         // Reopening reuses the export instead of reading the mesh again.
         QVERIFY(QFileInfo::exists(m_dir.filePath("data/geometry/" + key.mid(5) + "/geometry/manifest.json")));
+    }
+
+    // A case that cannot be read leaves the open case open and says why,
+    // for the page to show in place (no modal dialog).
+    void failedOpenKeepsTheCaseAndTheReason()
+    {
+        auto s = open();
+        QVERIFY(s);
+        QSignalSpy failed(s.get(), &Session::caseFailed);
+        s->openCase(m_dir.filePath("moved.cas.h5"));  // refused before kutta runs
+        QCOMPARE(failed.count(), 1);
+        QVERIFY(s->openError().message.contains("does not exist"));
+        QFile junk(m_dir.filePath("not-a-case.txt"));
+        QVERIFY(junk.open(QIODevice::WriteOnly) && junk.write("hello") > 0);
+        junk.close();
+        s->openCase(junk.fileName());
+        QVERIFY(failed.wait(20000));
+        QVERIFY(s->hasCase());
+        QCOMPARE(s->caseName(), QString("mixing_elbow"));
+        QCOMPARE(QFileInfo(s->openError().casePath).fileName(), QString("not-a-case.txt"));
+        QVERIFY(!s->openError().message.isEmpty());
+        QSignalSpy opened(s.get(), &Session::caseOpened);
+        s->openCase(m_elbow);
+        QVERIFY(opened.wait(20000));
+        QVERIFY(s->openError().message.isEmpty());
     }
 
     void refusesApproximateRunWithoutApproval()
@@ -199,6 +225,53 @@ private slots:
         QCOMPARE(r->status, RunStatus::Stopped);
         QCOMPARE(r->stopReason, QString("stopped"));
         QVERIFY(r->iterationsDone >= 60 && r->iterationsDone < 600);
+        QVERIFY(runOutcomeAdvice(*r).contains("Stopped by you"));
+    }
+
+    // A run that fails says why and what to do: disk full and a crash.
+    void failedRunSaysWhatToDo()
+    {
+        auto s = open();
+        QVERIFY(s);
+        s->setApproximationApproved("wfgc", true);
+        qputenv("KUTTA_FIXTURE_FAIL_AT", "40");
+        qputenv("KUTTA_FIXTURE_FAIL_MESSAGE", "cannot write fields.bin: No space left on device");
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString full = s->run();
+        QVERIFY(finished.wait(30000));
+        qunsetenv("KUTTA_FIXTURE_FAIL_MESSAGE");
+        const QString crash = s->run();
+        QVERIFY(finished.wait(30000));
+        qunsetenv("KUTTA_FIXTURE_FAIL_AT");
+
+        const RunRecord* r = s->history().find(full);
+        QCOMPARE(r->status, RunStatus::Failed);
+        QVERIFY(r->error.contains("No space left on device"));
+        QVERIFY(runOutcomeAdvice(*r).contains("disk is full"));
+        r = s->history().find(crash);
+        QCOMPARE(r->status, RunStatus::Failed);
+        QVERIFY(runOutcomeAdvice(*r).contains("stopped before finishing"));
+    }
+
+    // A run Kutta cannot record would leave no trace (or run without the
+    // user's changes): it is refused before kutta starts.
+    void unwritableRunFolderRefusesTheRun()
+    {
+        auto s = open();
+        QVERIFY(s);
+        s->setApproximationApproved("wfgc", true);
+        QCOMPARE(s->settings()->setValue("boundary/cold-inlet/velocity-magnitude", 1.2), QString());
+        const QString caseDir = s->history().caseDir();
+        QVERIFY(QDir().mkpath(caseDir));
+        const auto perms = QFile::permissions(caseDir);
+        QVERIFY(QFile::setPermissions(caseDir, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+        QSignalSpy refused(s.get(), &Session::runRefused);
+        const QString id = s->run();
+        QFile::setPermissions(caseDir, perms);
+        QVERIFY(id.isEmpty());
+        QCOMPARE(refused.count(), 1);
+        QVERIFY(refused.first().first().toString().contains("Could not start the run"));
+        QVERIFY(!s->running());
     }
 };
 

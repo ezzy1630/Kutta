@@ -70,6 +70,10 @@ public:
     QString caseName() const;
     SettingsModel* settings() { return &m_settings; }
     QStringList recentCases() const;
+    // The last case that failed to open and why; cleared when a case opens.
+    struct OpenError { QString casePath, message; };
+    const OpenError& openError() const { return m_openError; }
+    void clearOpenError() { m_openError = {}; }
 
     // Approximation opt-in: explicit per approximation, reset for each case.
     QStringList approvedApproximations() const { return m_approved; }
@@ -128,6 +132,7 @@ signals:
     void consoleLine(kapp::ConsoleLevel level, const QString& text);
 
 private:
+    void failOpen(const QString& casePath, const QString& message);
     void onProgress(const ProgressEvent& e);
     void finishRun(int exitCode, bool crashed);
     void printResidualRow(const IterationEvent& e);
@@ -139,6 +144,7 @@ private:
 
     CliClient* m_cli;
     QString m_dataRoot;
+    OpenError m_openError;
     std::vector<Device> m_devices;
     QString m_backend = "auto";
     std::optional<CaseSummary> m_case;
