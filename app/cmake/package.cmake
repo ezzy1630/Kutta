@@ -67,6 +67,7 @@ if(APPLE)
                   COMMAND_ERROR_IS_FATAL ANY)
 elseif(WIN32)
   set(root "${OUT}/Kutta")
+  file(MAKE_DIRECTORY "${root}")  # COPY_FILE does not create the destination
   file(COPY_FILE "${APP}" "${root}/Kutta.exe")
   file(COPY "${ADS}" DESTINATION "${root}")
   copy_solver("${root}/solver")

@@ -207,6 +207,19 @@ jobs:
         run: ctest --test-dir build-app -R app-screenshot-smoke --output-on-failure
       - name: Package
         run: cmake --build build-app --target package-app
+      # Run the unzipped package without Qt or the toolchain on PATH, so a DLL
+      # windeployqt or the solver bundle missed fails here, not on a user's PC.
+      - name: Packaged smoke (clean PATH)
+        shell: pwsh
+        run: |
+          $cmake = (Get-Command cmake).Source
+          $pkg = "$env:RUNNER_TEMP/pkg"
+          Expand-Archive (Get-Item build-app/package/Kutta-*-windows.zip).FullName -DestinationPath $pkg
+          $env:PATH = "$env:SystemRoot\system32;$env:SystemRoot"
+          & "$pkg/Kutta/solver/kutta.exe" devices
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & $cmake -DAPP="$pkg/Kutta/Kutta.exe" -DOUT="$env:RUNNER_TEMP/pkg-smoke" -P app/cmake/screenshot_smoke.cmake
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         if: always()
         with:
