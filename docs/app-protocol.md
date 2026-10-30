@@ -1,7 +1,7 @@
 # Desktop app ↔ solver protocol (v1)
 
-The desktop app (`app/`, Tauri + TypeScript) never links the solver. It runs the
-`kutta` CLI as a sidecar process and talks to it through files and line-delimited
+The native desktop app (`app/`, Qt 6 + C++) never links the solver. It runs the
+`kutta` CLI as a child process and talks to it through files and line-delimited
 JSON on stdout. The CLI stays the single source of truth for what a case means;
 the app only presents it. Every message carries `"v": 1`.
 
