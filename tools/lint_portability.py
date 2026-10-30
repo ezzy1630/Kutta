@@ -38,6 +38,15 @@ def float_declared(text: str, name: str, before: int) -> bool:
     return bool(decls) and decls[-1].group(1) in {"double", "float"}
 
 
+def tracked_files() -> list[str]:
+    tracked = subprocess.run(["git", "-C", str(ROOT), "ls-files", "-z"], capture_output=True)
+    if tracked.returncode == 0:
+        return tracked.stdout.decode().split("\0")
+    # CI containers without git check out a plain tree, which holds only tracked files.
+    return [str(p.relative_to(ROOT)) for p in ROOT.rglob("*")
+            if not any(part == ".git" or part.startswith("build") for part in p.relative_to(ROOT).parts)]
+
+
 def main() -> int:
     bad = []
     for d in SOURCE_DIRS:
@@ -59,8 +68,7 @@ def main() -> int:
                     line = text.count("\n", 0, m.start()) + 1
                     bad.append(f"{path.relative_to(ROOT)}:{line}: floating-point std::from_chars "
                                f"into '{m.group(1)}'; use kutta::parse_double")
-    tracked = subprocess.run(["git", "-C", str(ROOT), "ls-files", "-z"], capture_output=True, check=True)
-    for name in tracked.stdout.decode().split("\0"):
+    for name in tracked_files():
         path = ROOT / name
         if not name or not path.is_file():
             continue
