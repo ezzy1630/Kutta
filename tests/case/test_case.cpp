@@ -514,3 +514,15 @@ TEST_CASE("SA case intent is parsed without opening the unverified model allowli
   auto conflict=synthetic(std::string(cfg).replace(std::string(cfg).find("rp-kw? . #f"),11,"rp-kw? . #t"));
   CHECK_FALSE(conflict.viscous.model);
 }
+
+TEST_CASE("Inactive SA writer flags preserve provenance without changing SST settings") {
+  const auto rp=config(false,true)+"(kw-sst-on? #t) (kw-bsl-on? #f) (kw-std-on? #f)";
+  const auto plain=synthetic(rp),with_sa=synthetic(rp+"(sa-des-maxedge? #t)");
+  CHECK(plain.viscous==with_sa.viscous);
+  CHECK_FALSE(with_sa.viscous.unsupported_options.contains("sa-des-maxedge?"));
+  REQUIRE(with_sa.variables.value("sa-des-maxedge?"));
+  CHECK(with_sa.variables.value("sa-des-maxedge?")->boolean);
+  CHECK(std::any_of(with_sa.issues.begin(),with_sa.issues.end(),[](const auto& issue) {
+    return issue.path=="rp/sa-des-maxedge?" && issue.classification==IssueClass::informational;
+  }));
+}

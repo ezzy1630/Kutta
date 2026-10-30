@@ -330,22 +330,19 @@ void model_flag_support(FluentCase &c) {
   for (const auto &key : c.variables.unparsed_names()) {
     if (!key.starts_with("kw-") && !key.starts_with("ke-") && !key.starts_with("sst-") && !key.starts_with("sa-"))
       continue;
-    // Inactive SA settings are ignored: Fluent's CFF writer omits some that the
-    // legacy writers keep (sa-des-maxedge?), so retaining them would make the
-    // parsed case depend on the file format.
-    if (key.starts_with("sa-") && c.viscous.model != ViscousModel::spalart_allmaras)
-      continue;
     auto flag = boolean(c.variables.value(key));
     // Existing SST numeric controls are validated by setup/fluent. SA has no
     // accepted adapter yet, so retain/reject every unknown SA-valued setting.
     if(!flag && !key.starts_with("sa-")) continue;
     if (flag == false)
       continue;
-    if (flag) c.viscous.unsupported_options.emplace(key, *flag);
     const bool inactive = c.viscous.model == ViscousModel::laminar ||
         (key.starts_with("sa-") ? c.viscous.model != ViscousModel::spalart_allmaras :
          key.starts_with("ke-") ? !epsilon_model(c) :
          epsilon_model(c) || c.viscous.model == ViscousModel::spalart_allmaras);
+    // Inactive writer options remain in raw settings and informational issues.
+    // They do not belong to the selected model's typed physical settings.
+    if (flag && !inactive) c.viscous.unsupported_options.emplace(key, *flag);
     c.issues.push_back({"rp/" + key, inactive
         ? "inactive model flag retained; does not apply to the selected viscous model"
         : "unsupported: active model flag is not in the model allowlist",
