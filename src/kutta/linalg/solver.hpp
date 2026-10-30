@@ -40,11 +40,35 @@ enum class SolverKind : std::uint8_t {
 enum class NullSpace : std::uint8_t { None, Constant };
 enum class OperatorStructure : std::uint8_t { General, SymmetricMMatrix };
 
+// Krylov work vectors (residual, directions, best iterate...) are rebuilt by
+// every solve. Solvers of one size whose calls never run concurrently may share
+// one workspace instead of each holding about nine vectors. Preconditioner
+// state (Jacobi diagonal, AMG hierarchy) is never shared.
+class KrylovWorkspace {
+ public:
+  enum Slot { R, Z, P, Q, Shadow, S, T, Zs, Best, Scratch, Count };
+  explicit KrylovWorkspace(Index rows) : rows_(rows) {}
+  Index rows() const { return rows_; }
+  // Allocated on first use; every user must pass the same Device.
+  Buffer<float>& vector(Device& dev, Slot slot) {
+    KUTTA_REQUIRE(!device_ || device_ == &dev, "Krylov workspace shared across devices");
+    device_ = &dev;
+    auto& v = vectors_[slot];
+    if (!v.handle()) v = dev.alloc<float>(rows_);  // a handle even when empty
+    return v;
+  }
+ private:
+  Index rows_;
+  Device* device_ = nullptr;
+  Buffer<float> vectors_[Count];
+};
+
 struct SolverOptions {
   NullSpace nullspace = NullSpace::None;  // the equation, not rounded row sums, decides
   // Caller guarantees symmetry, nonpositive off-diagonals and stored row
   // diagonal dominance, including on refresh. AMG preserves this construction.
   OperatorStructure structure = OperatorStructure::General;
+  std::shared_ptr<KrylovWorkspace> workspace;  // private when empty
 };
 
 class LinearSolver {

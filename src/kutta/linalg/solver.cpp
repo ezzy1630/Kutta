@@ -55,9 +55,9 @@ std::vector<float> diagonal_values(const CsrMatrixHost& a, bool l1, bool nullspa
 namespace {
 class Jacobi final : public Preconditioner {
  public:
-  Jacobi(Device& dev, const CsrMatrixHost& a)
+  Jacobi(Device& dev, const CsrMatrixHost& a, KrylovWorkspace& workspace)
       : inverse_(dev.upload<float>(diagonal_values(a, false, false))),
-        invalid_(dev.alloc<float>(a.pattern.n_rows)) {}
+        invalid_(workspace.vector(dev, KrylovWorkspace::Scratch)) {}
   void refresh(Device& dev, const CsrMatrix& a) override {
     kern::krylov_diagonal(dev, a.n_rows, a.row_ptr, a.diag, a.val, inverse_, invalid_, 0);
     KUTTA_REQUIRE(dev.max_abs(invalid_, a.n_rows) == 0, "Jacobi: invalid values or zero diagonal");
@@ -68,21 +68,24 @@ class Jacobi final : public Preconditioner {
   }
   std::string describe() const override { return "Jacobi"; }
  private:
-  Buffer<float> inverse_, invalid_;
+  Buffer<float> inverse_;
+  Buffer<float>& invalid_;  // refresh-only scratch
 };
 
 class Krylov final : public LinearSolver {
  public:
   Krylov(SolverKind kind, Device& dev, const CsrMatrixHost& a,
-         std::unique_ptr<Preconditioner> p, NullSpace nullspace)
+         std::unique_ptr<Preconditioner> p, NullSpace nullspace,
+         std::shared_ptr<KrylovWorkspace> workspace)
       : kind_(kind), device_(&dev), n_(a.pattern.n_rows), nnz_(a.pattern.nnz()),
-        nullspace_(nullspace == NullSpace::Constant), preconditioner_(std::move(p)),
-        r_(dev.alloc<float>(n_)), z_(dev.alloc<float>(n_)),
-        p_(dev.alloc<float>(kind == SolverKind::Jacobi ? 0 : n_)),
-        q_(dev.alloc<float>(kind == SolverKind::Jacobi ? 0 : n_)),
-        shadow_(dev.alloc<float>(bicg(kind) ? n_ : 0)), s_(dev.alloc<float>(bicg(kind) ? n_ : 0)),
-        t_(dev.alloc<float>(bicg(kind) ? n_ : 0)), zs_(dev.alloc<float>(bicg(kind) ? n_ : 0)),
-        best_(dev.alloc<float>(n_)), scalars_(dev.alloc<float>(24)),
+        nullspace_(nullspace == NullSpace::Constant), workspace_(std::move(workspace)),
+        preconditioner_(std::move(p)), unused_(dev.alloc<float>(0)),
+        r_(vector(KrylovWorkspace::R, true)), z_(vector(KrylovWorkspace::Z, true)),
+        p_(vector(KrylovWorkspace::P, kind != SolverKind::Jacobi)),
+        q_(vector(KrylovWorkspace::Q, kind != SolverKind::Jacobi)),
+        shadow_(vector(KrylovWorkspace::Shadow, bicg(kind))), s_(vector(KrylovWorkspace::S, bicg(kind))),
+        t_(vector(KrylovWorkspace::T, bicg(kind))), zs_(vector(KrylovWorkspace::Zs, bicg(kind))),
+        best_(vector(KrylovWorkspace::Best, true)), scalars_(dev.alloc<float>(24)),
         status_(dev.alloc<Index>(3)), projection_(dev.alloc<float>(nullspace_ ? 2 : 0)),
         speculate_(kind != SolverKind::Jacobi && n_ <= kSpeculativeRows) {}
 
@@ -181,6 +184,9 @@ class Krylov final : public LinearSolver {
   }
 
  private:
+  Buffer<float>& vector(KrylovWorkspace::Slot slot, bool used) {
+    return used ? workspace_->vector(*device_, slot) : unused_;
+  }
   static bool bicg(SolverKind kind) {
     return kind == SolverKind::BicgstabJacobi || kind == SolverKind::AmgBicgstab;
   }
@@ -360,8 +366,12 @@ class Krylov final : public LinearSolver {
   Device* device_;
   Index n_, nnz_;
   bool nullspace_;
+  // Every solve rebuilds these before reading them, so they may be shared.
+  // Declared first: a Jacobi preconditioner refers to its scratch slot.
+  std::shared_ptr<KrylovWorkspace> workspace_;
   std::unique_ptr<Preconditioner> preconditioner_;
-  Buffer<float> r_, z_, p_, q_, shadow_, s_, t_, zs_, best_;
+  Buffer<float> unused_;
+  Buffer<float> &r_, &z_, &p_, &q_, &shadow_, &s_, &t_, &zs_, &best_;
   Buffer<float> scalars_;
   Buffer<Index> status_;
   Buffer<float> projection_;
@@ -377,9 +387,12 @@ class Krylov final : public LinearSolver {
 }  // namespace
 
 std::unique_ptr<LinearSolver> krylov_solver(SolverKind kind, Device& dev,
-    const CsrMatrixHost& a, std::unique_ptr<Preconditioner> p, NullSpace nullspace) {
-  if (!p) p = std::make_unique<Jacobi>(dev, a);
-  auto solver = std::make_unique<Krylov>(kind, dev, a, std::move(p), nullspace);
+    const CsrMatrixHost& a, std::unique_ptr<Preconditioner> p, NullSpace nullspace,
+    std::shared_ptr<KrylovWorkspace> workspace) {
+  if (!workspace) workspace = std::make_shared<KrylovWorkspace>(a.pattern.n_rows);
+  KUTTA_REQUIRE(workspace->rows() == a.pattern.n_rows, "Krylov workspace size mismatch");
+  if (!p) p = std::make_unique<Jacobi>(dev, a, *workspace);
+  auto solver = std::make_unique<Krylov>(kind, dev, a, std::move(p), nullspace, std::move(workspace));
   return solver;
 }
 }  // namespace kutta::linalg_detail

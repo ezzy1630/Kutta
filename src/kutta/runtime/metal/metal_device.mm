@@ -539,9 +539,10 @@ class MetalDevice final : public Device {
     @autoreleasepool {
       if (steps_.size() == 1) {
         // A lone step gains nothing from replay; encode its own dispatch.
-        const SequenceStep step = steps_.front();
+        // resources_ still holds the only references to buffers whose owners
+        // are gone, so clear it only once the encoder has retained them.
+        encode_native(steps_.front());
         clear_sequence();
-        encode_native(step);
         return;
       }
       auto encoder = compute();

@@ -36,5 +36,5 @@ class Preconditioner {
 
 std::unique_ptr<LinearSolver> krylov_solver(SolverKind kind, Device& dev,
     const CsrMatrixHost& a, std::unique_ptr<Preconditioner> preconditioner,
-    NullSpace nullspace);
+    NullSpace nullspace, std::shared_ptr<KrylovWorkspace> workspace = {});
 }  // namespace kutta::linalg_detail

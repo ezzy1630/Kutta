@@ -376,7 +376,7 @@ std::unique_ptr<LinearSolver> make_amg_solver(SolverKind kind, Device& dev,
     }
   }
   return linalg_detail::krylov_solver(kind, dev, a,
-      std::make_unique<Aggregation>(kind, dev, a, options), options.nullspace);
+      std::make_unique<Aggregation>(kind, dev, a, options), options.nullspace, options.workspace);
 }
 
 std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const CsrMatrixHost& a) {
@@ -389,6 +389,7 @@ std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const Cs
     case SolverKind::AmgPcg:
     case SolverKind::AmgBicgstab: {
       AmgOptions amg; amg.nullspace = options.nullspace;amg.structure=options.structure;
+      amg.workspace = options.workspace;
       return make_amg_solver(kind, dev, a, amg);
     }
     case SolverKind::Jacobi:
@@ -396,7 +397,7 @@ std::unique_ptr<LinearSolver> make_solver(SolverKind kind, Device& dev, const Cs
     case SolverKind::BicgstabJacobi: {
       linalg_detail::validate_host(a);
       linalg_detail::check_nullspace(a, options.nullspace);
-      return linalg_detail::krylov_solver(kind, dev, a, nullptr, options.nullspace);
+      return linalg_detail::krylov_solver(kind, dev, a, nullptr, options.nullspace, options.workspace);
     }
   }
   throw Error("unknown SolverKind");

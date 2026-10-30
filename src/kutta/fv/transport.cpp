@@ -9,7 +9,8 @@ namespace kutta::fv {
 TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stencil& s,
                                      const PolyMesh&,const MeshGeometry&,
                                      std::shared_ptr<CsrMatrix> shared_matrix,
-                                     std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction)
+                                     std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction,
+                                     std::shared_ptr<KrylovWorkspace> workspace)
     :matrix_storage_(shared_matrix?std::move(shared_matrix):std::make_shared<CsrMatrix>(upload(dev,s.pattern))),
      matrix(*matrix_storage_),rhs(dev.alloc<float>(m.n_cells)),
      diagonal(dev.alloc<float>(m.n_cells)),consistent_inverse(dev.alloc<float>(m.n_cells)),
@@ -20,7 +21,8 @@ TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stenc
   // refreshed from the assembled device matrix before every solve.
   CsrMatrixHost initial{s.pattern,std::vector<double>(s.pattern.nnz(),0)};
   for(auto j:s.pattern.diag) initial.val[j]=1;
-  solver_=make_solver(transport_solver_kind,dev,initial);
+  SolverOptions options;options.workspace=std::move(workspace);
+  solver_=make_solver(transport_solver_kind,dev,initial,options);
   zero_=dev.alloc<float>(m.n_cells);dev.fill(zero_,0);
   diffusion_reconstruction_=std::move(diffusion_reconstruction);
   if(diffusion_reconstruction_) diffusion_correction_=dev.alloc<float>(m.n_faces);

@@ -110,6 +110,9 @@ struct SteadySolver::Impl {
   std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction;
   DeviceVec3 projected_gradient[3];
   std::shared_ptr<CsrMatrix> pressure_matrix;
+  // Momentum, turbulence and pressure solves never interleave, so their
+  // Krylov vectors are one set instead of one per equation.
+  std::shared_ptr<KrylovWorkspace> krylov_workspace;
   std::unique_ptr<LinearSolver> pressure_solver;
   std::unique_ptr<CoupledSolver> coupled;
   Buffer<float> pressure_rhs,correction,correction_boundary,coefficient,face_pressure,pressure_jump;
@@ -254,6 +257,7 @@ struct SteadySolver::Impl {
     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
     upload_vectors(dev,prescribed_velocity,velocities);
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
+    krylov_workspace=std::make_shared<KrylovWorkspace>(n);
     if(!settings.sst && !settings.sa && !settings.realizable_ke) {
       const auto nonsmooth=discontinuous_wall_cells(host,boundaries,frames);
       diffusion_reconstruction=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,independent_velocity,nonsmooth);
@@ -262,7 +266,7 @@ struct SteadySolver::Impl {
     if(diffusion_reconstruction) {
       for(auto& g:projected_gradient) g=vector_field(dev,nf);
     }
-    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,diffusion_reconstruction);
+    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,diffusion_reconstruction,krylov_workspace);
     velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity);
     pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure);
     if(settings.sst) {
@@ -302,8 +306,8 @@ struct SteadySolver::Impl {
         }
       }
       turbulence_spec=dev.upload<Index>(specs);turbulence_a=dev.upload<float>(a);turbulence_b=dev.upload<float>(b);
-      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
-      omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
+      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,nullptr,krylov_workspace);
+      omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,nullptr,krylov_workspace);
       sst=std::make_unique<SstModel>(dev,mesh,t.model);
     }
     if(settings.sa) {
@@ -339,10 +343,10 @@ struct SteadySolver::Impl {
     }
     if(settings.sst) {
       AmgOptions options;options.pre_sweeps=options.post_sweeps=2;
-      options.structure=OperatorStructure::SymmetricMMatrix;
+      options.structure=OperatorStructure::SymmetricMMatrix;options.workspace=krylov_workspace;
       pressure_solver=make_amg_solver(pressure_solver_kind,dev,initial,options);
     } else pressure_solver=make_solver(pressure_solver_kind,dev,initial,
-      {.structure=OperatorStructure::SymmetricMMatrix});
+      {.structure=OperatorStructure::SymmetricMMatrix,.workspace=krylov_workspace});
     const double volume=std::accumulate(geom.cell_volume.begin(),geom.cell_volume.end(),0.);
     Vec3d lo=host.points.front(),hi=lo;
     for(auto p:host.points) {lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}

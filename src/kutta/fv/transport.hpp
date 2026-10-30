@@ -34,7 +34,8 @@ class TransportEquation {
   TransportEquation(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
                     const PolyMesh& host, const MeshGeometry& geometry,
                     std::shared_ptr<CsrMatrix> shared_matrix={},
-                    std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction={});
+                    std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction={},
+                    std::shared_ptr<KrylovWorkspace> workspace={});
   void assemble(const Buffer<float>& field, const Buffer<float>& face_values,
                 const Buffer<Index>& boundary_kind, const Buffer<float>& mass_flux,
                 const Buffer<float>& diffusivity, const Buffer<float>& source,
