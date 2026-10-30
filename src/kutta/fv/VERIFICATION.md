@@ -1550,3 +1550,342 @@ Sources: [TMR SST definitions](https://tmbwg.github.io/turbmodels/sst.html),
 [2DZP SST-Vm and incompressible comparisons](https://tmbwg.github.io/turbmodels/flatplate_sst.html),
 [2DBC setup](https://tmbwg.github.io/turbmodels/bump.html), and
 [2DBC SST-2003m](https://tmbwg.github.io/turbmodels/bump_sst2003.html).
+
+### Model equivalence and measured differences
+
+**V5 is not passed.** Matching flat-plate forces does not establish a verified
+SST transport implementation when continuity still fails. Bump breakdowns and
+unfinished load convergence prevent attribution of its force discrepancy to
+SST physics. NACA 0012 was not attempted while these mandatory cases remain red.
+
+The principal model comparison is to **SST-2003m**. Flat-plate SST-Vm is a
+secondary reference because it is the supplied plate dataset; TMR reports that
+its standard SST/SST-V variants nearly coincide on this simple shear flow.
+All statements below distinguish constitutive formulas from their discretization.
+
+| Difference | Size or isolated effect |
+| --- | --- |
+| Production form | Our `mu_t*S^2` is exactly SST-2003m/SSTm's incompressible production. SST-Vm uses `mu_t*Omega^2`. Switching only production to vorticity on the 816-cell plate changes Cf +0.00111% and CD +0.00162%. This is a coarse-grid, steady-load diagnostic; continuity remains red. |
+| Viscosity limiter and production cap | Strain limiter, cap 10, and limited production in both equations agree with SST-2003m. SSTm/Vm instead use rotation in the viscosity limiter, cap 20, and uncapped omega production. The grouped `1994` diagnostic changes plate Cf -0.000814% / CD -0.001084%. This is not an isolation of each individual switch and says nothing about their pressure-gradient effect. |
+| Blended gamma | Default computed gamma is .553166667 / .440262557; SST-2003m uses 5/9 / .44. Switching just gamma to 2003 changes coarse-plate Cf -0.47594% / CD -0.46357%. The difference is therefore measurable rather than silently classified as identical. |
+| Diffusion constants | Fluent reciprocal sigmas give sigma_k1=.850340136 versus TMR .85 (+0.0400%); sigma_omega2=.856164384 versus .856 (+0.0192%). This is the coefficient-level estimate, not a measured force-error bound. It also shifts computed outer gamma by -0.0209% relative to unrounded 1994 constants. |
+| Signed cross-diffusion clip | Fluent's inferred cap is absent from TMR. Disabling it on the coarse plate gives bitwise-identical exported u/v/k/omega/mu_t and identical loads: zero effect in that run. Bump impact is not established by its failed solves. |
+| Wall production | Fluent replaces wall-cell volumetric production by a harmonic wall-law blend. TMR uses volumetric production. Disabling the override changes coarse-plate Cf -0.00000958% / CD +0.00000051%. This does not settle its effect on the bump. |
+| k wall condition | Fluent zero normal flux versus TMR k_wall=0. This is a genuine model/BC difference. At the fine plate's first-cell sample near x=.95, k=6.53e-8 and mu_t/mu=5.80e-8; a hypothetical molecular Dirichlet flux is about 1.30e-8 per unit area, about 20% of that cell's integrated k destruction. Local eddy viscosity is negligible, but an integrated force effect cannot be bounded from that fact alone. |
+| Omega wall condition | TMR prescribes `60*nu/(.075*Delta_d1^2)` **at the wall** and solves adjacent cells. Fluent fixes the **cell** at a power blend asymptoting to `2*nu/(.072*d_cell^2)`, with a separate reconstruction-only face value. The Fluent cell coefficient is 0.34722 of the continuum near-wall asymptote `6*nu/(.075*d_cell^2)`; an equivalent asymptotic displacement is +0.6971*d_cell. This is a large local difference, not a 65% Cf-error estimate. For Delta_d1=2*d_cell on these cell-centred grids, Fluent's viscous reconstruction face value is 0.41667 of TMR's prescribed wall value. Applying TMR's wall value directly to our fixed cell would be a different boundary problem. No propagated Cf/CD effect was isolated; a matched resolved-wall transport treatment is still needed for strict equation verification. |
+| Wall shear correlation | Fluent blends viscous and log branches, using wall kappa=.4187 versus model kappa=.41. At the fine plate max wall y+ is .362, so the stress is close to the viscous branch. At large y+, the implemented log-branch stress scales linearly with kappa at fixed U/k/d: +2.12%. The coupled flow effect is not isolated, and that limit is not an error estimate for this low-y+ run. |
+| Floors and viscosity ceiling | Plate min k=1.32e-10, min omega=5.13, peak mu_t/mu=407.7, so the configured k/omega floors and 1e5 viscosity ceiling are inactive at the exported fine-grid state. TMR's sample input also uses a 1e5 viscosity ceiling. |
+| Freestream turbulence | Values are matched explicitly, not specified through an approximate intensity/length conversion: k=2.25e-7, omega=125/75, mu_t/mu=.009. Both models permit freestream decay; no sustaining sources, low-Re correction, curvature or turbulent compressibility correction is enabled. |
+| Spatial numerics | TMR CFL3D uses UMUSCL and a structured stencil; Kutta uses its existing limited SOU/LSQ and jump-corrected strain. Both use FOU turbulence for this study. These are finite-grid differences, not evidence of identical discrete equations. |
+
+The switch measurements above use 3,000 steps and identical grids/start fields.
+Their load changes over the last 100 steps are below 0.00012%, but their failed
+continuity convergence still limits what can be inferred. Raw outputs and
+reproduction modes are retained; they are not substitute acceptance solutions.
+
+The external bump references themselves quantify model sensitivity. Finest
+CFL3D Cf at front / peak / aft is:
+
+| TMR variant | x=.6321975 | x=.75 | x=.8678025 |
+| --- | ---: | ---: | ---: |
+| SST-2003m, primary | .00502471253 | .00593328336 | .00260245614 |
+| SSTm | .00506227138 | .00584823033 | .00248941756 |
+| SST-Vm | .00503194705 | .00600116979 | .00267947139 |
+
+Relative to 2003m, SSTm changes these by +0.747%, -1.433%, -4.344%; SST-Vm
+changes them by +0.144%, +1.144%, +2.959%. Aft-wall Cf is more sensitive than
+plate Cf. The primary reference is not selected after observing Kutta's errors.
+
+### Compressibility and boundary estimates
+
+The supplied incompressible plate data gives finest Cf=.002717360621 (FUN3D),
+.0027211939 (SC/Tetra), and .0027108542 (GHOST), compared with compressible
+CFL3D .00269085355. The difference is **+0.743% to +1.128%**, including
+inter-code numerical scatter; paired FUN3D incompressible/compressible values
+isolate about +0.997%. Thus the fine Kutta plate's roughly +0.86% raw offset
+from compressible CFL3D is consistent in size and direction with incompressibility.
+Its deviation from incompressible FUN3D is about -0.13%. This does not supply
+an independently measured CD correction: the plate drag gate stays against raw
+CFL3D CD=.00285332397, with its predeclared 7% allowance.
+
+For pressure, linearized Prandtl–Glauert theory gives
+`Cp_incomp ~= sqrt(1-M^2)*Cp_comp`, a **2.0204% reduction in magnitude** at
+M=.2. This is a small-disturbance estimate, not an exact correction for a viscous
+channel. Applied to the bump reference, it predicts Cp changes of +.00506,
++.01353, +.00498 at the three stations. Raw CFL3D Cp is -.2505676114,
+-.6698700000, -.2466382173; the estimates are -.2455051176,
+-.6563358776, -.2416551134. They are inside the fixed .03 allowance.
+The source is [TU Delft's pressure-coefficient correction](https://ocw.tudelft.nl/wp-content/uploads/AE1101-Aero-6.pdf).
+There is no matched incompressible bump dataset here; its Cf compressibility
+allowance is estimated at the percent scale from the plate and O(M^2)
+low-speed scaling, not measured separately from pressure-gradient effects.
+
+TMR total-inlet pressure/temperature ratios are 1.02828/1.008 at M=.2, with
+static back pressure ratio 1. The incompressible inlet fixes the corresponding
+freestream static speed rather than solving an energy/characteristic inlet.
+Compressible density and viscosity changes are consequently not represented.
+The frozen raw-reference gates include that approximation; no exact
+compressible mass-flow equivalence is claimed.
+
+The top-boundary experiment replaces only the plate's open pressure top by
+Symmetry. On 816 cells it increases Cf +0.2551% and CD +0.2575%, while wall Cp
+at the reference station changes from .0002021 to .0030666. This is small for
+plate friction but nonzero. The open condition is retained because it permits
+entrainment. No new farfield condition was necessary for these two mapped
+geometries; NACA farfield behavior has not been tested.
+
+### Numerical failures and retained gates
+
+Two fixes have independent before/after CPU and Metal regressions:
+
+- A non-solenoidal provisional flux can make `aP_relaxed+sum(aN)` nonpositive.
+  The previous `max(denominator,1e-20)` produced an inverse of 1e20 (the cheap
+  reproduction expects .7). The fallback now uses the positive SIMPLE momentum
+  diagonal in that state. Positive SIMPLEC denominators retain their formula.
+- Kahan accumulation of Galerkin contributions `[1e8,1,-1e8]` returned zero.
+  Neumaier accumulation returns one on CPU and Metal, in both gather variants;
+  host hierarchy construction uses the same summation. The independent double
+  PtAP hierarchy test still passes. Deterministic gathers and no-atomics are
+  preserved. This fix alone does not cure the bump.
+
+Before the SIMPLEC fix, the coarse bump pressure solve returned its zero initial
+correction (linear residual ratio 1) and all Cp values stayed zero. After both
+fixes the coarse CPU bump fails at 18 completed steps because AMG finds a
+nonpositive diagonal. The captured fine pressure matrix is exactly symmetric,
+yet has smallest eigenvalue **-1.10101827e-11** and fails double-precision
+Cholesky. Its diagonal range is 1.24645e-14 to .00592642, a ratio 4.75e11.
+Negative row-sum roundoff in the stored float operator destroys positive
+definiteness before AMG. No diagonal regularization or weakened solver gate
+was added to hide this. The captured matrix, checksum, configuration and
+independent analyzer are in
+[`validation/results/tmr_v5`](../../../validation/results/tmr_v5/README.md).
+This proves the coarse-grid cause; it does not establish that every finer-grid
+transient failure has precisely the same cause.
+
+Flat-plate field/load convergence is much better than its normalized continuity.
+For example, the 816-cell CPU state at 3,000 steps has u/v/k/omega scaled defects
+1.04e-7 / 2.47e-8 / 1.52e-7 / 3.66e-8 and load change 2.14e-7. Its provisional
+continuity L1 is 2.90e-7, divided by initial normalization 1.84e-4, giving .00158;
+corrected imbalance is 9.78e-9, about 9.8e-7 of inlet mass flow .01. These are
+small absolute defects but **do not meet the frozen normalized <=1e-5 gate**.
+Calling this a precision/convergence plateau does not waive that gate.
+
+The run budget is 3,000 outer steps or 600 solve seconds per grid, checked every
+100 steps. The time budget was added after measuring the serial CPU cost;
+it terminates with a failed convergence gate and does not change any accuracy
+or convergence threshold. `bench_tmr` accepts a larger time budget explicitly.
+The bump uses fixed dt=.01, momentum relaxation .5 and pressure relaxation .3:
+its huge outer domain made the automatic global pseudo-time unsuitable for a
+uniform no-slip-wall start. These are convergence controls, not altered steady
+physics. A budget-limited solution remains unverified.
+
+The individual flat-plate `rotation-limiter`, `cap20`, `uncapped-omega` and
+`cd-floor1994` modes separate the grouped 1994 experiment. Cf/CD changes are,
+respectively: -0.000763%/-0.001052%, -0.00000557%/+0.00002623%,
+-0.00003273%/+0.00000020%, and exactly zero. Thus the cap and CD-floor changes
+are negligible for this plate state; that result is not extrapolated to the bump.
+
+### Reproduction
+
+All long solves are in doctest's `slow` suite. Reference parsing and the two
+numerical regression cases remain in the quick suite. The grid preparation
+script only expands bundled gzip data after verifying SOURCE.md checksums;
+it downloads nothing and refuses to overwrite a different existing grid.
+Derived grids are ignored by git. `read_plot3d` applies the sibling NMF ranges
+and extrudes exactly one .01-wide cell layer with symmetry caps.
+
+```sh
+cmake -S . -B build -G Ninja
+cmake --build build
+python3 tools/prepare_tmr.py
+mkdir -p build/v5
+ctest --test-dir build -LE slow --output-on-failure
+./build/kutta-tests --test-suite=slow --test-case='V5*' --duration \
+  > build/v5/slow-v5-final.log 2>&1
+./build/kutta-tests --test-suite=slow --test-case-exclude='V5*' --duration
+# V6 and saved-field checks need the external fixture location explicitly:
+KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples \
+  ./build/kutta-tests --test-suite=slow --test-case='*V6*' --duration
+```
+
+Create `build/v5` before redirecting if starting from a clean build. The slow
+commands intentionally return nonzero while the documented gates are unmet.
+For an individual run, the level is 0/1/2 (coarse to fine), backend is
+cpu/metal/cuda, and the final time-budget argument is optional:
+
+```sh
+./build/bench_tmr validation/data/nasa_tmr plate cpu 2 3000 build/v5/plate-cpu-2 default 600
+./build/bench_tmr validation/data/nasa_tmr bump metal 2 3000 build/v5/bump-metal-2 default 600
+# Same grid/start/order; change only the named model switch or boundary:
+./build/bench_tmr validation/data/nasa_tmr plate cpu 0 3000 build/v5/sensitivity-2003 2003
+# Modes: default, 2003, 1994, rotation-limiter, cap20, uncapped-omega,
+# cd-floor1994, vorticity, no-wall-production, no-cross-clip, symmetry-top.
+python3 tools/report_tmr.py --test-log build/v5/slow-v5-final.log
+# For optional profile export, run the fine plate bench command above first.
+# Optional scientific plots (matplotlib required):
+python3 tools/plot_tmr.py
+# Independent pressure-matrix check (NumPy required):
+python3 tools/analyze_tmr_pressure.py
+```
+
+`history.csv` records all three station Cf/Cp, drag, defects, normalized and raw
+continuity, corrected mass imbalance and pressure-solve reduction. `cells.csv`
+retains original input cell IDs, coordinates, velocity, k, omega and mu_t/mu.
+No reference solution is used to initialize a solve or alter its coefficients.
+The reporting script preserves failed states as NaN; the trend gate requires
+three finite measurements and cannot treat a missing coarse solution as an
+infinite error that makes any fine solution pass.
+
+CUDA compile reproduction uses the **CI configure flags** in
+`nvidia/cuda:13.0.2-devel-ubuntu24.04` (linux/amd64 under Docker on this Mac):
+
+```sh
+cmake -S . -B build -G Ninja -DKUTTA_ENABLE_CUDA=ON \
+  -DCMAKE_CUDA_ARCHITECTURES='75-real;86-real;89-real;120'
+cmake --build build
+./build/kutta-tests --test-suite-exclude=slow \
+  --test-case-exclude='compiled GPU backends*'
+python3 tools/lint_portability.py
+```
+
+No app/setup source, CMake packaging or CI files were changed. Local commits
+only; no push, deploy or remote resource mutation.
+
+### Flat-plate profile diagnostic
+
+The 137x97 CPU export is interpolated along each original cell row to the Cf
+station, then in y. It is compared with the supplied finest CFL3D profiles,
+without a Mach correction. The eddy-viscosity reference column is at
+x=.970126629, 4.26e-5 from our station. These are diagnostic comparisons,
+not additional post-hoc acceptance thresholds.
+
+| y | Kutta u/U | TMR u/U | Kutta mu_t/mu | TMR mu_t/mu |
+| ---: | ---: | ---: | ---: | ---: |
+| .0001 | .399685 | .397045 | 3.77206 | 3.70759 |
+| .001 | .660011 | .657169 | 65.5952 | 64.9761 |
+| .003 | .772500 | .769307 | 171.652 | 170.212 |
+| .01 | .941879 | .939262 | 138.469 | 131.590 |
+| .02 | 1.001858 | .998550 | .145482 | .00715649 |
+
+Velocity differences are .0026–.0033 U at these samples. Eddy viscosity differs
+by about 1–5% within the layer, and by a factor of about 20 in the small outer
+tail at y=.02 (absolute difference .1383 times molecular viscosity). Force
+agreement does not demonstrate profile agreement. Grid interpolation, wall
+closure, compressibility and the retained continuity defect have not been
+separately resolved in these differences.
+
+### Three-level flat-plate results
+
+Every row completed 3,000 outer steps. Setup time is excluded from solve time;
+it was .009/.033/.142 s on CPU and .024/.038/.128 s on Metal. Timings are
+observed wall times on this shared Apple M4 Pro, not isolated performance claims.
+The finest completed plate grid is 137x97. The available 273x193 grid was not
+run: the three-level study already exposed the continuity plateau and unresolved
+wall-equation mismatch, and its CPU cost was projected beyond the per-grid
+budget. This is not a finest-available-grid or asymptotic-order claim.
+
+| Grid (cells) | Backend | Solve s | Cf(.97) | CD | Normalized continuity |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 35x25 (816) | CPU | 8.70 | .00264911089 | .00280632390 | .001576 |
+| 69x49 (3,264) | CPU | 39.09 | .00269536663 | .00285637043 | .006299 |
+| 137x97 (13,056) | CPU | 213.66 | .00271390907 | .00287701823 | .043738 |
+| 35x25 (816) | Metal | 93.76 | .00264910898 | .00280632328 | .002337 |
+| 69x49 (3,264) | Metal | 97.55 | .00269536641 | .00285637045 | .002724 |
+| 137x97 (13,056) | Metal | 118.03 | .00271391043 | .00287701796 | .029880 |
+
+The external CFL3D trend on those same grids is Cf=.00255183387,
+.00262624887, .00266477116 and CD=.00270623102, .00278506994,
+.00282596960. Its finest supplied results (208,896 cells) are Cf=.00269085355
+and CD=.00285332397. FUN3D shows the same increasing trend with refinement;
+its numerical values are retained in the supplied convergence files and plot.
+
+Kutta's finest raw errors are **+0.857% Cf and +0.830% CD** on CPU, with Metal
+agreeing within 1.4e-9 in Cf and 2.8e-10 in CD. Both raw force limits pass.
+The declared reference-error norm falls from 1.647% on the coarsest grid to
+.857% on the finest, passing the literal endpoint trend gate. It is not
+monotone against the compressible reference: the middle grid's norm is .168%.
+Against incompressible FUN3D's finest Cf, the absolute error decreases at all
+three levels, from 2.511% through .809% to .127%. Compressibility accounts for
+why the middle grid happens to be closer to the compressible reference.
+Every iterative-convergence gate still fails, so this is **not an accepted V5
+plate solution**.
+
+![Flat-plate comparison; all Kutta continuity gates remain failed](../../../validation/results/tmr_v5/flatplate_convergence.svg)
+
+### Three-level bump results
+
+All grids are the supplied NMF-mapped family. Coarse and middle rows terminate
+with an actual solver error; their forces are undefined, not zero. The CPU
+fine run stops at the time budget after 2,300 steps; Metal completes 3,000.
+Setup times are .036/.149/.619 s on CPU and .047/.133/.485 s on Metal.
+The latter solve took 149.72 s in the final slow run (an earlier standalone
+benchmark took 137.66 s); neither is an equal-iteration CPU/Metal speedup study.
+
+| Grid (cells) | Backend | Completed steps | Solve s | Outcome |
+| --- | --- | ---: | ---: | --- |
+| 89x41 (3,520) | CPU | 18 | .18 | Nonpositive AMG diagonal |
+| 177x81 (14,080) | CPU | 474 | 19.31 | Nonfinite linear-solve input after divergent transient |
+| 353x161 (56,320) | CPU | 2,300 | 623.37 | Time budget; loads changing 1.916% per 100 steps |
+| 89x41 (3,520) | Metal | 17 | .28 | Nonfinite linear-solve input |
+| 177x81 (14,080) | Metal | 474 | 8.91 | Nonfinite linear-solve input after divergent transient |
+| 353x161 (56,320) | Metal | 3,000 | 149.72 | Iteration limit; loads changing 1.217% per 100 steps |
+
+Fine-grid values below are **unconverged**:
+
+| Station x | CFL3D 2003m Cf | CPU Cf (error) | Metal Cf (error) | CFL3D Cp | CPU Cp | Metal Cp |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| .6321975 | .005024713 | .005523674 (+9.930%) | .005344139 (+6.357%) | -.2505676 | -.2503826 | -.2492228 |
+| .75 | .005933283 | .006756305 (+13.871%) | .006504827 (+9.633%) | -.6698700 | -.6542497 | -.6508498 |
+| .8678025 | .002602456 | .003257643 (+25.176%) | .002934992 (+12.778%) | -.2466382 | -.2526844 | -.2502616 |
+
+Raw Cp limits pass at all three stations on both backends. The CPU peak/aft
+and Metal aft Cf limits fail. Every convergence gate fails; neither backend
+has three finite outcomes, so both grid-trend gates fail. TMR's 2003m
+coarse/middle/fine Cf is .004895232/.004925039/.004977043 at the front,
+.005239672/.005696174/.005849025 at the peak, and
+.002580855/.002586450/.002596808 aft, increasing toward the finest reference
+values listed above. Kutta has not established an equivalent trend.
+
+For completeness, fine CD is .00401446649 (CPU) / .00384898776 (Metal), versus
+finest CFL3D .003582138512 (+12.07% / +7.45%). No new drag gate is added after
+measurement. The observed Cf/CD excess cannot be assigned to the wall model
+while the loads still drift. Fixing conservative pressure precision and then
+repeating the grid study precedes any claim of an isolated SST discrepancy.
+
+### Final verification and evidence identity
+
+Numerical changes are `5ff0bf9` (startup inverse) and `a1d6d7e` (Galerkin
+summation); case/gate infrastructure is `a8abab5`, runtime/failure reporting
+`1f12a3c`, and individual switch modes `4f5e1b3`. The final native test
+executable SHA-256 is
+`c318750b118ee3e9ae009395654b7b633a5dce162b2db0523fee04448a633ef2`.
+This is the exact worktree `/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03`,
+Apple M4 Pro / 24 GiB, macOS 26.6.2, AppleClang 21, C++20 Release, CMake 4.4.5,
+HDF5 enabled. CUDA is compile/CPU-oracle checked, not GPU-runtime verified.
+
+| Check | Result |
+| --- | --- |
+| Native quick tier with external Fluent fixtures | 153/153 cases; 1,451,422 assertions pass |
+| `ctest -LE slow`, including portability lint | PASS, 8.91 s (7.30 s without external fixtures) |
+| V1–V4 plus Couette slow regressions | All prior accepted gates pass; exactly the six existing V2 tet force-order failures remain; 854.55 summed case seconds |
+| V6, exact external pair selected explicitly | Same 30 retained settings/accuracy failures; 142.37 s |
+| New V5 slow tier | Both cases fail, 25 failed / 83 assertions; plate 571.20 s, bump 803.26 s |
+| All ten distinct slow cases, executed in scoped runs | 61 failed assertions: six V2 + thirty V6 + twenty-five V5; no gate relaxed |
+| CPU/Metal cheap numerical regressions | Negative SIMPLEC denominator and cancellation-prone Galerkin sum: fail before, pass after |
+| Independent double PtAP hierarchy check | PASS after Galerkin change |
+| CUDA 13.0.2 Docker CI configure/build | PASS, exact architecture list `75-real;86-real;89-real;120` |
+| CUDA-container CPU quick tier and portability lint | PASS: 152 cases, 764,991 assertions; GPU-presence case excluded because no NVIDIA device is available |
+| Captured pressure matrix, independent NumPy analysis | Negative eigenvalue and failed Cholesky reproduced |
+
+The external V6 pair's freshly checked hashes match the values recorded in V6
+above. Its first default-path slow invocation skipped the absent worktree copy;
+the explicit external-path run supplies the actual V6 result reported here.
+The final CUDA container mounts this exact source tree read-only and also mounts
+its Git common directory read-only; its logged source head is the full
+`4f5e1b325a836ed5543d9e9c542bca7f8c497a4a`.
+
+Machine-readable measurements, raw V5 doctest output, profile samples, figure
+and pressure-matrix evidence are retained in
+[`validation/results/tmr_v5`](../../../validation/results/tmr_v5/README.md).
+No result is relabelled converged, no failing assertion is skipped or marked
+expected-failure, and no test threshold was loosened after measurement.

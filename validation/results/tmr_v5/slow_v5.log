@@ -1,0 +1,403 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+TMR progress cpu plate 0 it=100 defect=0.0111343829099 change=inf cf=0.00262389109405 drag=0.00279338407267
+TMR progress cpu plate 0 it=200 defect=0.00155309652727 change=0.00951148488283 cf=0.00264908785312 drag=0.00280626206859
+TMR progress cpu plate 0 it=300 defect=0.00240608853371 change=2.19397179618e-05 cf=0.00264911095042 drag=0.00280632363854
+TMR progress cpu plate 0 it=400 defect=0.00215416219202 change=5.59486070783e-07 cf=0.00264910946828 drag=0.00280632343959
+TMR progress cpu plate 0 it=500 defect=0.00240826188289 change=6.31642572267e-07 cf=0.00264911114157 drag=0.00280632412739
+TMR progress cpu plate 0 it=600 defect=0.00378838471883 change=8.78900924678e-08 cf=0.00264911137441 drag=0.00280632417287
+TMR progress cpu plate 0 it=700 defect=0.00277171726921 change=4.63729168908e-07 cf=0.00264911014594 drag=0.00280632355611
+TMR progress cpu plate 0 it=800 defect=0.00189469208853 change=3.59427029407e-07 cf=0.0026491110981 drag=0.00280632402792
+TMR progress cpu plate 0 it=900 defect=0.00424633492329 change=2.82563759978e-07 cf=0.0026491109921 drag=0.00280632482088
+TMR progress cpu plate 0 it=1000 defect=0.000572189790971 change=4.22326658327e-07 cf=0.00264910989227 drag=0.0028063236357
+TMR progress cpu plate 0 it=1100 defect=0.0021314381026 change=3.80802789116e-07 cf=0.00264911071759 drag=0.00280632470435
+TMR progress cpu plate 0 it=1200 defect=0.00140742386193 change=1.55967124123e-07 cf=0.00264911071759 drag=0.00280632426666
+TMR progress cpu plate 0 it=1300 defect=0.00424541549398 change=1.52928780136e-07 cf=0.00264911052644 drag=0.00280632469583
+TMR progress cpu plate 0 it=1400 defect=0.00117391856965 change=4.86131245258e-08 cf=0.00264911039961 drag=0.0028063245594
+TMR progress cpu plate 0 it=1500 defect=0.00322051246653 change=2.3152519575e-07 cf=0.00264911101294 drag=0.00280632438034
+TMR progress cpu plate 0 it=1600 defect=0.000411943304496 change=1.92192043535e-07 cf=0.00264911152208 drag=0.00280632486636
+TMR progress cpu plate 0 it=1700 defect=0.00243400020241 change=6.15230991487e-07 cf=0.00264910989227 drag=0.00280632427803
+TMR progress cpu plate 0 it=1800 defect=0.000752541209946 change=1.52928826291e-07 cf=0.0026491100191 drag=0.00280632384886
+TMR progress cpu plate 0 it=1900 defect=0.00180683043824 change=1.4887770939e-07 cf=0.0026491096386 drag=0.00280632426666
+TMR progress cpu plate 0 it=2000 defect=0.00111648938434 change=6.36116389051e-08 cf=0.00264910980711 drag=0.0028063243434
+TMR progress cpu plate 0 it=2100 defect=0.00283914028026 change=2.55803741262e-07 cf=0.00264911048476 drag=0.00280632410181
+TMR progress cpu plate 0 it=2200 defect=0.00345156383901 change=4.39450416965e-07 cf=0.00264911164892 drag=0.00280632493457
+TMR progress cpu plate 0 it=2300 defect=0.00163461616116 change=7.27399685001e-07 cf=0.00264910972195 drag=0.00280632393128
+TMR progress cpu plate 0 it=2400 defect=0.00138100209686 change=2.23658631928e-07 cf=0.00264911031445 drag=0.0028063235078
+TMR progress cpu plate 0 it=2500 defect=0.00190385451286 change=4.0916045067e-07 cf=0.00264911086527 drag=0.00280632465604
+TMR progress cpu plate 0 it=2600 defect=0.000596510083936 change=3.3927920168e-07 cf=0.00264911071759 drag=0.00280632370391
+TMR progress cpu plate 0 it=2700 defect=0.00315319964333 change=5.67352752491e-07 cf=0.00264910921461 drag=0.00280632447698
+TMR progress cpu plate 0 it=2800 defect=0.00355508274452 change=6.47375869222e-07 cf=0.00264911092958 drag=0.00280632467025
+TMR progress cpu plate 0 it=2900 defect=0.00490065231586 change=7.21568658594e-08 cf=0.00264911073843 drag=0.00280632450256
+TMR progress cpu plate 0 it=3000 defect=0.00157635837787 change=2.13695243222e-07 cf=0.00264911088611 drag=0.00280632390286
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:24:
+TEST SUITE: slow
+TEST CASE:  V5 TMR flat plate SST accuracy and three-grid trend
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 0
+
+V5 plate backend=cpu cells=816 iterations=3000 seconds=8.6964855 setup_s=0.008740541 converged=0 budget=0 change=2.13695243222e-07 error=0.016472040201 cf=0.00264911088611 drag=0.00280632390286 continuity=0.00157635837787 continuity_raw=2.89620382628e-07 corrected_mass=9.77774419764e-09 ru=1.04399012559e-07 rv=2.46673487465e-08 rk=1.52158627745e-07 rw=3.66038558606e-08
+TMR progress cpu plate 1 it=100 defect=0.0833592109397 change=inf cf=0.00309741674398 drag=0.00321242705468
+TMR progress cpu plate 1 it=200 defect=0.0142908616299 change=0.119183602021 cf=0.00276756801868 drag=0.00293006725229
+TMR progress cpu plate 1 it=300 defect=0.0130821345551 change=0.0225225573223 cf=0.00270660827857 drag=0.00287096388689
+TMR progress cpu plate 1 it=400 defect=0.00604377581991 change=0.00418091087898 cf=0.00269689981157 drag=0.00285901061829
+TMR progress cpu plate 1 it=500 defect=0.00526288508634 change=0.000767656519155 cf=0.00269556604551 drag=0.00285681756367
+TMR progress cpu plate 1 it=600 defect=0.0121348884116 change=0.000130173703356 cf=0.00269539654262 drag=0.00285644572955
+TMR progress cpu plate 1 it=700 defect=0.00477607849823 change=2.09935031876e-05 cf=0.00269537678574 drag=0.00285638576401
+TMR progress cpu plate 1 it=800 defect=0.010238087782 change=3.57214710356e-06 cf=0.00269537166347 drag=0.00285637556061
+TMR progress cpu plate 1 it=900 defect=0.0147766023455 change=1.39865828661e-06 cf=0.00269536789357 drag=0.00285637283639
+TMR progress cpu plate 1 it=1000 defect=0.00610115277205 change=4.42290140437e-07 cf=0.00269536729191 drag=0.00285637157305
+TMR progress cpu plate 1 it=1100 defect=0.00347937700086 change=1.80597694009e-07 cf=0.00269536708519 drag=0.00285637105719
+TMR progress cpu plate 1 it=1200 defect=0.00298111396031 change=2.59145314117e-07 cf=0.00269536778368 drag=0.00285637100177
+TMR progress cpu plate 1 it=1300 defect=0.00327090923279 change=5.13447094753e-07 cf=0.00269536639975 drag=0.00285637082982
+TMR progress cpu plate 1 it=1400 defect=0.00508676997356 change=1.5920461676e-07 cf=0.00269536639975 drag=0.00285637037507
+TMR progress cpu plate 1 it=1500 defect=0.00366532358885 change=2.44613988714e-07 cf=0.00269536705908 drag=0.00285637057971
+TMR progress cpu plate 1 it=1600 defect=0.00359804508756 change=6.01441878746e-08 cf=0.00269536722119 drag=0.00285637065502
+TMR progress cpu plate 1 it=1700 defect=0.0157476535613 change=2.99914453706e-07 cf=0.00269536641281 drag=0.00285637044186
+TMR progress cpu plate 1 it=1800 defect=0.00866268237942 change=3.71764732249e-07 cf=0.00269536741485 drag=0.00285637048165
+TMR progress cpu plate 1 it=1900 defect=0.00328594687578 change=1.22306993172e-07 cf=0.00269536708519 drag=0.00285637036228
+TMR progress cpu plate 1 it=2000 defect=0.00354939733052 change=3.63185520419e-08 cf=0.00269536708519 drag=0.00285637046602
+TMR progress cpu plate 1 it=2100 defect=0.00406324149395 change=5.57216109867e-08 cf=0.00269536722119 drag=0.00285637062518
+TMR progress cpu plate 1 it=2200 defect=0.020034707744 change=9.55227708161e-08 cf=0.00269536730496 drag=0.00285637035233
+TMR progress cpu plate 1 it=2300 defect=0.00487294939585 change=4.31909120117e-07 cf=0.00269536614081 drag=0.00285637058113
+TMR progress cpu plate 1 it=2400 defect=0.0105466326897 change=5.2313447037e-07 cf=0.00269536755085 drag=0.00285637055697
+TMR progress cpu plate 1 it=2500 defect=0.0106557383899 change=3.04758217319e-07 cf=0.00269536672941 drag=0.00285637034949
+TMR progress cpu plate 1 it=2600 defect=0.00429839554499 change=1.10945705989e-07 cf=0.00269536681319 drag=0.00285637066639
+TMR progress cpu plate 1 it=2700 defect=0.0103365173348 change=1.94157448969e-07 cf=0.00269536628986 drag=0.00285637047881
+TMR progress cpu plate 1 it=2800 defect=0.00920848649926 change=1.36838409592e-07 cf=0.00269536665869 drag=0.00285637048307
+TMR progress cpu plate 1 it=2900 defect=0.00614991802616 change=1.74130046029e-08 cf=0.00269536661953 drag=0.00285637043334
+TMR progress cpu plate 1 it=3000 defect=0.00629942148068 change=4.84379901583e-09 cf=0.00269536663258 drag=0.00285637042907
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 1
+
+V5 plate backend=cpu cells=3264 iterations=3000 seconds=39.093233917 setup_s=0.033237375 converged=0 budget=0 change=4.84379901583e-09 error=0.00167719368523 cf=0.00269536663258 drag=0.00285637042907 continuity=0.00629942148068 continuity_raw=1.73490684804e-07 corrected_mass=2.453955595e-08 ru=8.26891992397e-08 rv=1.88086414431e-08 rk=8.63171739443e-08 rw=3.4515919975e-08
+TMR progress cpu plate 2 it=100 defect=0.141777288882 change=inf cf=0.00508038811612 drag=0.00510237064475
+TMR progress cpu plate 2 it=200 defect=0.138096680121 change=0.540300668562 cf=0.00329830936246 drag=0.00338139463167
+TMR progress cpu plate 2 it=300 defect=0.0662705728737 change=0.0756329551977 cf=0.00356602651238 drag=0.00365806488958
+TMR progress cpu plate 2 it=400 defect=0.0477865812579 change=0.0941599718333 cf=0.00325914546701 drag=0.00337456544557
+TMR progress cpu plate 2 it=500 defect=0.0362926226032 change=0.0716330067969 cf=0.00304128880534 drag=0.00317794597606
+TMR progress cpu plate 2 it=600 defect=0.0595707700102 change=0.040854441037 cf=0.00292191557766 drag=0.00307038126905
+TMR progress cpu plate 2 it=700 defect=0.061893573687 change=0.0256857579827 cf=0.00284874344303 drag=0.00300420412316
+TMR progress cpu plate 2 it=800 defect=0.0543855452808 change=0.0171204698516 cf=0.00280079255847 drag=0.00296068100667
+TMR progress cpu plate 2 it=900 defect=0.0641703661521 change=0.0113169361367 cf=0.00276945085996 drag=0.00293192489025
+TMR progress cpu plate 2 it=1000 defect=0.0569241271033 change=0.00736961416615 cf=0.00274919038753 drag=0.00291299646307
+TMR progress cpu plate 2 it=1100 defect=0.0329999994426 change=0.00476755185387 cf=0.00273614567116 drag=0.00290054685337
+TMR progress cpu plate 2 it=1200 defect=0.0442910631527 change=0.00306123525726 cf=0.00272779524817 drag=0.00289235787818
+TMR progress cpu plate 2 it=1300 defect=0.0338180827734 change=0.0019427432802 cf=0.00272250611771 drag=0.00288697657567
+TMR progress cpu plate 2 it=1400 defect=0.0264247129784 change=0.00122093851104 cf=0.00271919047639 drag=0.00288345605313
+TMR progress cpu plate 2 it=1500 defect=0.0345227722768 change=0.000796866745525 cf=0.00271712385968 drag=0.00288116015241
+TMR progress cpu plate 2 it=1600 defect=0.0307225000321 change=0.000517477997247 cf=0.00271584866615 drag=0.00287966998656
+TMR progress cpu plate 2 it=1700 defect=0.0268256470589 change=0.00033446815014 cf=0.00271506916415 drag=0.0028787071507
+TMR progress cpu plate 2 it=1800 defect=0.0719394129418 change=0.000215154063195 cf=0.00271459879873 drag=0.00287808791839
+TMR progress cpu plate 2 it=1900 defect=0.0419406225017 change=0.000137799086487 cf=0.00271431427676 drag=0.00287769137515
+TMR progress cpu plate 2 it=2000 defect=0.0342544157168 change=8.73132584496e-05 cf=0.00271414745999 drag=0.00287744013647
+TMR progress cpu plate 2 it=2100 defect=0.0323740401021 change=5.52033037705e-05 cf=0.00271404548262 drag=0.00287728130104
+TMR progress cpu plate 2 it=2200 defect=0.0452498266617 change=3.48721923383e-05 cf=0.00271398844427 drag=0.00287718096743
+TMR progress cpu plate 2 it=2300 defect=0.0440890712793 change=2.16732531329e-05 cf=0.00271395847186 drag=0.00287711861091
+TMR progress cpu plate 2 it=2400 defect=0.0422580399233 change=1.37422152742e-05 cf=0.00271393960204 drag=0.00287707907347
+TMR progress cpu plate 2 it=2500 defect=0.0474103659299 change=8.56068014341e-06 cf=0.00271392825878 drag=0.00287705444393
+TMR progress cpu plate 2 it=2600 defect=0.0465009205099 change=5.11302158494e-06 cf=0.00271392156159 drag=0.00287703973356
+TMR progress cpu plate 2 it=2700 defect=0.0300283783855 change=3.13652986526e-06 cf=0.00271391552368 drag=0.00287703070967
+TMR progress cpu plate 2 it=2800 defect=0.0450308148891 change=1.88661392472e-06 cf=0.00271391201553 drag=0.00287702528183
+TMR progress cpu plate 2 it=2900 defect=0.0458181464281 change=1.50628035853e-06 cf=0.0027139107232 drag=0.00287702094823
+TMR progress cpu plate 2 it=3000 defect=0.043738175733 change=9.45655508595e-07 cf=0.00271390906986 drag=0.00287701822757
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 2
+
+V5 plate backend=cpu cells=13056 iterations=3000 seconds=213.656747167 setup_s=0.142426084 converged=0 budget=0 change=9.45655508595e-07 error=0.00856810652345 cf=0.00271390906986 drag=0.00287701822757 continuity=0.043738175733 continuity_raw=1.92591532449e-07 corrected_mass=4.95732429048e-08 ru=7.87796613738e-08 rv=2.04786508735e-08 rk=7.00369604762e-08 rw=4.00017660922e-08
+TMR progress metal plate 0 it=100 defect=0.00982718739629 change=inf cf=0.00262390038823 drag=0.00279339163001
+TMR progress metal plate 0 it=200 defect=0.00139885721489 change=0.00950798422787 cf=0.00264908787396 drag=0.00280626273081
+TMR progress metal plate 0 it=300 defect=0.00110702080703 change=2.19741463276e-05 cf=0.00264911092958 drag=0.0028063243974
+TMR progress metal plate 0 it=400 defect=0.00160433201372 change=1.64069277827e-07 cf=0.00264911056992 drag=0.00280632485783
+TMR progress metal plate 0 it=500 defect=0.000823706206876 change=2.12682442417e-07 cf=0.00264911069675 drag=0.00280632426097
+TMR progress metal plate 0 it=600 defect=0.00153638925519 change=1.99516346651e-07 cf=0.00264911069675 drag=0.00280632482088
+TMR progress metal plate 0 it=700 defect=0.00464263713872 change=2.56231718968e-07 cf=0.00264911008162 drag=0.00280632410181
+TMR progress metal plate 0 it=800 defect=0.00215025780242 change=5.26662463812e-07 cf=0.00264910868643 drag=0.00280632317811
+TMR progress metal plate 0 it=900 defect=0.00160230425587 change=9.7465767819e-07 cf=0.00264911126841 drag=0.002806325395
+TMR progress metal plate 0 it=1000 defect=0.00229119018367 change=5.29680625492e-07 cf=0.00264911014594 drag=0.00280632390854
+TMR progress metal plate 0 it=1100 defect=0.00214522061618 change=1.67913612723e-07 cf=0.00264911059076 drag=0.0028063243775
+TMR progress metal plate 0 it=1200 defect=0.00454401357362 change=3.83705743852e-07 cf=0.00264910957428 drag=0.00280632356748
+TMR progress metal plate 0 it=1300 defect=0.00450465146454 change=5.91630833458e-07 cf=0.00264911114157 drag=0.00280632400234
+TMR progress metal plate 0 it=1400 defect=0.000647454801379 change=3.75839035683e-07 cf=0.00264911014594 drag=0.00280632462761
+TMR progress metal plate 0 it=1500 defect=0.00080959932795 change=5.32718526191e-07 cf=0.00264911131009 drag=0.0028063261226
+TMR progress metal plate 0 it=1600 defect=0.00280699737818 change=3.2611296839e-07 cf=0.0026491120729 drag=0.00280632520742
+TMR progress metal plate 0 it=1700 defect=0.00285681792836 change=6.87387787233e-07 cf=0.00264911025193 drag=0.00280632469583
+TMR progress metal plate 0 it=1800 defect=0.00373485279908 change=1.14443404855e-07 cf=0.00264911008162 drag=0.00280632437466
+TMR progress metal plate 0 it=1900 defect=0.00350736134369 change=3.60105663195e-07 cf=0.00264911103558 drag=0.00280632420697
+TMR progress metal plate 0 it=2000 defect=0.00159184130024 change=3.99438937687e-07 cf=0.00264910997742 drag=0.00280632423539
+TMR progress metal plate 0 it=2100 defect=0.00153712718669 change=3.59427052271e-07 cf=0.00264911092958 drag=0.00280632412455
+TMR progress metal plate 0 it=2200 defect=0.00337532333586 change=2.00058749913e-07 cf=0.00264911039961 drag=0.00280632413023
+TMR progress metal plate 0 it=2300 defect=0.00284463531179 change=3.5156062283e-07 cf=0.00264910946828 drag=0.00280632395118
+TMR progress metal plate 0 it=2400 defect=0.00344700216093 change=7.10987367865e-07 cf=0.00264911135177 drag=0.00280632452814
+TMR progress metal plate 0 it=2500 defect=0.0019543783799 change=2.86614965358e-07 cf=0.0026491106116 drag=0.0028063237238
+TMR progress metal plate 0 it=2600 defect=0.00160299277981 change=4.39450781995e-07 cf=0.00264910944744 drag=0.00280632342253
+TMR progress metal plate 0 it=2700 defect=0.000606324965858 change=5.67352380902e-07 cf=0.00264911095042 drag=0.0028063242496
+TMR progress metal plate 0 it=2800 defect=0.00167535998173 change=8.23156754785e-07 cf=0.00264910876979 drag=0.00280632263809
+TMR progress metal plate 0 it=2900 defect=0.00279493875781 change=8.05154777921e-07 cf=0.00264911018761 drag=0.00280632489762
+TMR progress metal plate 0 it=3000 defect=0.00233712132368 change=5.75255568477e-07 cf=0.00264910898178 drag=0.00280632328327
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 0
+
+V5 plate backend=metal cells=816 iterations=3000 seconds=93.755519459 setup_s=0.024107167 converged=0 budget=0 change=5.75255568477e-07 error=0.0164722573489 cf=0.00264910898178 drag=0.00280632328327 continuity=0.00233712132368 continuity_raw=4.29382511314e-07 corrected_mass=1.14186474963e-08 ru=9.91594926982e-08 rv=3.49792540705e-08 rk=2.23135006218e-07 rw=4.3832773095e-08
+TMR progress metal plate 1 it=100 defect=0.0809593221525 change=inf cf=0.00309741952489 drag=0.00321242548438
+TMR progress metal plate 1 it=200 defect=0.0126380128005 change=0.11918193663 cf=0.00276757462171 drag=0.0029300712157
+TMR progress metal plate 1 it=300 defect=0.00872624468718 change=0.0225243495455 cf=0.00270660999216 drag=0.00287096559077
+TMR progress metal plate 1 it=400 defect=0.00773900162132 change=0.00418171049438 cf=0.00269689897708 drag=0.00285901003849
+TMR progress metal plate 1 it=500 defect=0.010919282395 change=0.000767381879212 cf=0.00269556648506 drag=0.0028568177683
+TMR progress metal plate 1 it=600 defect=0.00290293235223 change=0.000130369237518 cf=0.00269539667862 drag=0.0028564453757
+TMR progress metal plate 1 it=700 defect=0.00318127324419 change=2.08760905504e-05 cf=0.00269537640385 drag=0.00285638574553
+TMR progress metal plate 1 it=800 defect=0.00626957466363 change=3.44030558833e-06 cf=0.00269537121086 drag=0.00285637591873
+TMR progress metal plate 1 it=900 defect=0.00845217727416 change=1.21691940845e-06 cf=0.00269536833312 drag=0.00285637244275
+TMR progress metal plate 1 it=1000 defect=0.0108907434445 change=5.94985038112e-07 cf=0.00269536672941 drag=0.00285637164126
+TMR progress metal plate 1 it=1100 defect=0.00333865386988 change=2.70150287291e-07 cf=0.00269536733107 drag=0.00285637086961
+TMR progress metal plate 1 it=1200 defect=0.0026833764498 change=4.92539222084e-08 cf=0.00269536733107 drag=0.00285637072892
+TMR progress metal plate 1 it=1300 defect=0.0036270580846 change=3.86296286471e-07 cf=0.00269536628986 drag=0.00285637035375
+TMR progress metal plate 1 it=1400 defect=0.00536638490481 change=2.49457795925e-07 cf=0.00269536696224 drag=0.00285637055981
+TMR progress metal plate 1 it=1500 defect=0.01446941007 change=2.13532640629e-07 cf=0.0026953663867 drag=0.00285637056834
+TMR progress metal plate 1 it=1600 defect=0.00528016806832 change=1.31994606521e-07 cf=0.00269536674247 drag=0.00285637055271
+TMR progress metal plate 1 it=1700 defect=0.00328088593005 change=7.66942010616e-08 cf=0.00269536694919 drag=0.0028563703637
+TMR progress metal plate 1 it=1800 defect=0.00482123671217 change=1.41682173379e-07 cf=0.00269536733107 drag=0.00285637055555
+TMR progress metal plate 1 it=1900 defect=0.00683538232281 change=2.99914441478e-07 cf=0.00269536652269 drag=0.00285637030117
+TMR progress metal plate 1 it=2000 defect=0.00361499257464 change=1.17463205685e-07 cf=0.0026953668393 drag=0.00285637052713
+TMR progress metal plate 1 it=2100 defect=0.00786391184945 change=9.12255919601e-08 cf=0.00269536708519 drag=0.00285637039354
+TMR progress metal plate 1 it=2200 defect=0.0118240071602 change=2.49457846775e-07 cf=0.00269536641281 drag=0.0028563703097
+TMR progress metal plate 1 it=2300 defect=0.00565031958598 change=2.03844997864e-07 cf=0.00269536696224 drag=0.00285637048023
+TMR progress metal plate 1 it=2400 defect=0.0147100660728 change=1.2230701371e-07 cf=0.00269536663258 drag=0.0028563701548
+TMR progress metal plate 1 it=2500 defect=0.00520979963994 change=1.22306998751e-07 cf=0.00269536696224 drag=0.00285637029123
+TMR progress metal plate 1 it=2600 defect=0.00278226398101 change=1.63076024982e-07 cf=0.00269536652269 drag=0.00285637034807
+TMR progress metal plate 1 it=2700 defect=0.00545654100866 change=6.86569869128e-08 cf=0.00269536663258 drag=0.00285637054418
+TMR progress metal plate 1 it=2800 defect=0.023555390004 change=1.22306998751e-07 cf=0.00269536696224 drag=0.00285637060244
+TMR progress metal plate 1 it=2900 defect=0.00807174237032 change=1.77607362114e-07 cf=0.00269536744096 drag=0.00285637052855
+TMR progress metal plate 1 it=3000 defect=0.00272371540138 change=3.81452469279e-07 cf=0.00269536641281 drag=0.00285637044612
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 1
+
+V5 plate backend=metal cells=3264 iterations=3000 seconds=97.549467459 setup_s=0.03844875 converged=0 budget=0 change=3.81452469279e-07 error=0.00167711201047 cf=0.00269536641281 drag=0.00285637044612 continuity=0.00272371540138 continuity_raw=7.50131186828e-08 corrected_mass=2.45860507545e-08 ru=8.15661047941e-08 rv=1.84049881488e-08 rk=8.82105066742e-08 rw=3.4070953391e-08
+TMR progress metal plate 2 it=100 defect=0.144119580888 change=inf cf=0.00508055223819 drag=0.00510253249928
+TMR progress metal plate 2 it=200 defect=0.121945187324 change=0.54057943794 cf=0.0032978190628 drag=0.00338091017724
+TMR progress metal plate 2 it=300 defect=0.0756624240186 change=0.0757131825455 cf=0.0035658322086 drag=0.00365785826801
+TMR progress metal plate 2 it=400 defect=0.0526890082835 change=0.0941181591594 cf=0.00325909242868 drag=0.00337450639947
+TMR progress metal plate 2 it=500 defect=0.0441360492698 change=0.0716288413075 cf=0.00304125113384 drag=0.00317790530957
+TMR progress metal plate 2 it=600 defect=0.0384985295317 change=0.0408493445881 cf=0.00292189369158 drag=0.0030703571575
+TMR progress metal plate 2 it=700 defect=0.0331490488144 change=0.0256836890652 cf=0.00284872785122 drag=0.00300418806205
+TMR progress metal plate 2 it=800 defect=0.0461696313193 change=0.0171187486774 cf=0.0028007819686 drag=0.0029606699627
+TMR progress metal plate 2 it=900 defect=0.0549861963655 change=0.0113158798435 cf=0.0027694432812 drag=0.00293191687248
+TMR progress metal plate 2 it=1000 defect=0.0346937535737 change=0.0073692079074 cf=0.00274918397292 drag=0.0029129891324
+TMR progress metal plate 2 it=1100 defect=0.0378858441515 change=0.0047664371279 cf=0.00273614232257 drag=0.00290054270238
+TMR progress metal plate 2 it=1200 defect=0.0337753972622 change=0.00306069260377 cf=0.00272779338553 drag=0.00289235533657
+TMR progress metal plate 2 it=1300 defect=0.0389268072925 change=0.00194222760176 cf=0.00272250565989 drag=0.00288697549635
+TMR progress metal plate 2 it=1400 defect=0.0237058423743 change=0.00122076576961 cf=0.00271918955291 drag=0.00288345547261
+TMR progress metal plate 2 it=1500 defect=0.0332309855461 change=0.000797079165697 cf=0.00271712350651 drag=0.00288115896083
+TMR progress metal plate 2 it=1600 defect=0.037234819427 change=0.000517152093188 cf=0.00271584892251 drag=0.0028796697336
+TMR progress metal plate 2 it=1700 defect=0.0415980280691 change=0.000334527190929 cf=0.00271506846566 drag=0.00287870672793
+TMR progress metal plate 2 it=1800 defect=0.0453196292811 change=0.000215157057999 cf=0.00271459789878 drag=0.00287808748709
+TMR progress metal plate 2 it=1900 defect=0.029608220199 change=0.000137767497769 cf=0.00271431359395 drag=0.0028776910348
+TMR progress metal plate 2 it=2000 defect=0.0447123537425 change=8.73475958437e-05 cf=0.00271414792565 drag=0.00287743969736
+TMR progress metal plate 2 it=2100 defect=0.0375564639173 change=5.51872595996e-05 cf=0.00271404628577 drag=0.00287728090811
+TMR progress metal plate 2 it=2200 defect=0.0332714907035 change=3.46422712458e-05 cf=0.00271398878959 drag=0.00287718123602
+TMR progress metal plate 2 it=2300 defect=0.0291487363231 change=2.19155274037e-05 cf=0.00271395778905 drag=0.00287711818245
+TMR progress metal plate 2 it=2400 defect=0.033429703167 change=1.36839323724e-05 cf=0.00271393902389 drag=0.0028770788127
+TMR progress metal plate 2 it=2500 defect=0.0286234562774 change=8.63057370441e-06 cf=0.00271392816981 drag=0.00287705398208
+TMR progress metal plate 2 it=2600 defect=0.0302260834586 change=5.16340457047e-06 cf=0.00271392145694 drag=0.00287703912676
+TMR progress metal plate 2 it=2700 defect=0.0346874091872 change=2.96883678267e-06 cf=0.00271391599718 drag=0.00287703058532
+TMR progress metal plate 2 it=2800 defect=0.0409333504357 change=1.83203324186e-06 cf=0.00271391413454 drag=0.00287702531452
+TMR progress metal plate 2 it=2900 defect=0.0411534022829 change=1.51393647542e-06 cf=0.00271391244982 drag=0.00287702095889
+TMR progress metal plate 2 it=3000 defect=0.0298804571695 change=1.04370346209e-06 cf=0.00271391042762 drag=0.00287701795614
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:31: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 2
+
+V5 plate backend=metal cells=13056 iterations=3000 seconds=118.032871 setup_s=0.127823041 converged=0 budget=0 change=1.04370346209e-06 error=0.00856861111008 cf=0.00271391042762 drag=0.00287701795614 continuity=0.0298804571695 continuity_raw=1.31572088003e-07 corrected_mass=5.02736630494e-08 ru=9.33438942348e-08 rv=3.26355339981e-08 rk=6.95171897896e-08 rw=3.9806219994e-08
+571.196713 s: V5 TMR flat plate SST accuracy and three-grid trend
+V5 bump measurement backend=cpu cells=3520 iterations=18 seconds=0.179906 setup_s=0.035906 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=1.000000 failure=/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals
+===============================================================================
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:40:
+TEST SUITE: slow
+TEST CASE:  V5 TMR bump SST station accuracy and three-grid trend
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 0
+          /Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/amg.cpp:208: AMG: requires positive diagonals
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 0
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 0
+
+TMR progress cpu bump 1 it=100 defect=0.035853424297 change=inf cf=0.008789642619 drag=0.008259042975
+TMR progress cpu bump 1 it=200 defect=0.026649265855 change=1.646098031835 cf=0.006582891736 drag=-0.012782956406
+TMR progress cpu bump 1 it=300 defect=0.626346257771 change=0.999700869772 cf=0.006547103621 drag=-42.733750114102
+TMR progress cpu bump 1 it=400 defect=229.240117158731 change=1.223190320436 cf=0.027414288366 drag=-145229.256718405552
+V5 bump measurement backend=cpu cells=14080 iterations=474 seconds=19.306193750000 setup_s=0.148792208000 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=229.240117158731 failure=/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 1
+          /Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 1
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 1
+
+TMR progress cpu bump 2 it=100 defect=0.060442454060 change=inf cf=0.023728851260 drag=0.023404556349
+TMR progress cpu bump 2 it=200 defect=0.005939766898 change=0.663571076953 cf=0.014666693459 drag=0.014252112801
+TMR progress cpu bump 2 it=300 defect=0.004677538924 change=0.437252695322 cf=0.010697244760 drag=0.010191580461
+TMR progress cpu bump 2 it=400 defect=0.003140209397 change=0.332866666091 cf=0.008415191393 drag=0.007889948631
+TMR progress cpu bump 2 it=500 defect=0.002063613630 change=0.213116560117 cf=0.006936836632 drag=0.006510074056
+TMR progress cpu bump 2 it=600 defect=0.001307376275 change=0.140347472543 cf=0.006208698922 drag=0.005708851217
+TMR progress cpu bump 2 it=700 defect=0.000689577845 change=0.068810757620 cf=0.006217451901 drag=0.005341311524
+TMR progress cpu bump 2 it=800 defect=0.000396772162 change=0.033800607638 cf=0.006412718377 drag=0.005189994736
+TMR progress cpu bump 2 it=900 defect=0.000557818542 change=0.037460676700 cf=0.006528554887 drag=0.005091963982
+TMR progress cpu bump 2 it=1000 defect=0.000294601450 change=0.041428953834 cf=0.006536274106 drag=0.004989429497
+TMR progress cpu bump 2 it=1100 defect=0.000270821080 change=0.042703106553 cf=0.006468382817 drag=0.004876133942
+TMR progress cpu bump 2 it=1200 defect=0.000255814977 change=0.041465853483 cf=0.006359751715 drag=0.004760131174
+TMR progress cpu bump 2 it=1300 defect=0.000247068895 change=0.038874941344 cf=0.006236813911 drag=0.004648195415
+TMR progress cpu bump 2 it=1400 defect=0.000717714580 change=0.035937241013 cf=0.006116885736 drag=0.004544906049
+TMR progress cpu bump 2 it=1500 defect=0.000237867549 change=0.033130952449 cf=0.006008789162 drag=0.004452256450
+TMR progress cpu bump 2 it=1600 defect=0.000376106496 change=0.030668183406 cf=0.005914770178 drag=0.004370626858
+TMR progress cpu bump 2 it=1700 defect=0.000227423991 change=0.028519097966 cf=0.005834070790 drag=0.004298935036
+TMR progress cpu bump 2 it=1800 defect=0.000220178643 change=0.026601867602 cf=0.005764627842 drag=0.004236159676
+TMR progress cpu bump 2 it=1900 defect=0.000462481620 change=0.024864713536 cf=0.005704240435 drag=0.004180882070
+TMR progress cpu bump 2 it=2000 defect=0.000202942219 change=0.023256836472 cf=0.005651008794 drag=0.004131546303
+TMR progress cpu bump 2 it=2100 defect=0.000251288350 change=0.021743796175 cf=0.005603842339 drag=0.004087940724
+TMR progress cpu bump 2 it=2200 defect=0.000329564922 change=0.020393375645 cf=0.005561432930 drag=0.004049311110
+TMR progress cpu bump 2 it=2300 defect=0.000582493685 change=0.019163217040 cf=0.005523673765 drag=0.004014466493
+V5 bump measurement backend=cpu cells=56320 iterations=2300 seconds=623.372864875000 setup_s=0.619166541000 converged=0 budget=1 change=0.019163217040 drag=0.004014466493 cf=0.005523673765 cf=0.006756304653 cf=0.003257642550 cp=-0.250382571753 cp=-0.654249697924 cp=-0.252684390847 continuity=0.000582493685 failure=
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+          level: 2
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:59: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
+  values: CHECK( 0.138713 <= 0.1 )
+  logged: backend: cpu
+          level: 2
+          station: 0.75
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:59: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
+  values: CHECK( 0.251757 <= 0.1 )
+  logged: backend: cpu
+          level: 2
+          station: 0.867803
+
+V5 bump backend=cpu cells=56320 iterations=2300 seconds=623.372864875000 setup_s=0.619166541000 converged=0 budget=1 change=0.019163217040 error=0.520676735878
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:63: ERROR: CHECK( (std::all_of(error.begin(),error.end(),[](double value){return std::isfinite(value);}) && error[2]<error[0]) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: cpu
+
+V5 bump measurement backend=metal cells=3520 iterations=17 seconds=0.282522250000 setup_s=0.047364417000 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=1.000000000000 failure=/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 0
+          /Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 0
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 0
+
+TMR progress metal bump 1 it=100 defect=0.036143053814 change=inf cf=0.008786615159 drag=0.008275741185
+TMR progress metal bump 1 it=200 defect=0.026647615846 change=1.648540174792 cf=0.006582169464 drag=-0.012760568284
+TMR progress metal bump 1 it=300 defect=0.625259746732 change=0.999700947215 cf=0.006547106180 drag=-42.669953065284
+TMR progress metal bump 1 it=400 defect=228.889623106640 change=1.190483162274 cf=0.027442642089 drag=-145026.955739137600
+V5 bump measurement backend=metal cells=14080 iterations=474 seconds=8.905923209000 setup_s=0.132784292000 converged=0 budget=0 change=nan drag=nan cf=nan cf=nan cf=nan cp=nan cp=nan cp=nan continuity=228.889623106640 failure=/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.failure.empty() ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 1
+          /Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 1
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( std::isfinite(r.values.drag) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 1
+
+TMR progress metal bump 2 it=100 defect=0.058971424182 change=inf cf=0.023722121487 drag=0.023405027310
+TMR progress metal bump 2 it=200 defect=0.006042096368 change=0.663623133312 cf=0.014665239654 drag=0.014253260101
+TMR progress metal bump 2 it=300 defect=0.004649028560 change=0.437329330519 cf=0.010696414062 drag=0.010191801271
+TMR progress metal bump 2 it=400 defect=0.003130201312 change=0.333558564373 cf=0.008414697431 drag=0.007890972495
+TMR progress metal bump 2 it=500 defect=0.002054239227 change=0.212793973214 cf=0.006938274445 drag=0.006511145039
+TMR progress metal bump 2 it=600 defect=0.001301499566 change=0.140099099995 cf=0.006220777493 drag=0.005711034276
+TMR progress metal bump 2 it=700 defect=0.000687357705 change=0.068757083098 cf=0.006231103892 drag=0.005343622388
+TMR progress metal bump 2 it=800 defect=0.000396068438 change=0.033511244631 cf=0.006421425775 drag=0.005191475602
+TMR progress metal bump 2 it=900 defect=0.000388715648 change=0.037191760425 cf=0.006533736458 drag=0.005092108820
+TMR progress metal bump 2 it=1000 defect=0.000334588223 change=0.041202690375 cf=0.006539643724 drag=0.004989553009
+TMR progress metal bump 2 it=1100 defect=0.000271239053 change=0.042517209512 cf=0.006470831197 drag=0.004875618016
+TMR progress metal bump 2 it=1200 defect=0.000256164214 change=0.041331311806 cf=0.006361380650 drag=0.004759021808
+TMR progress metal bump 2 it=1300 defect=0.000682855908 change=0.038775616133 cf=0.006237929507 drag=0.004647789424
+TMR progress metal bump 2 it=1400 defect=0.000260688985 change=0.035845316687 cf=0.006117842107 drag=0.004544044115
+TMR progress metal bump 2 it=1500 defect=0.000238045589 change=0.033055540695 cf=0.006009603085 drag=0.004451710851
+TMR progress metal bump 2 it=1600 defect=0.000631873322 change=0.030590055896 cf=0.005915536392 drag=0.004370047871
+TMR progress metal bump 2 it=1700 defect=0.000227484066 change=0.028455099777 cf=0.005834783214 drag=0.004298765838
+TMR progress metal bump 2 it=1800 defect=0.000372831142 change=0.026545611412 cf=0.005765117514 drag=0.004235393447
+TMR progress metal bump 2 it=1900 defect=0.000211900887 change=0.024816754142 cf=0.005704721915 drag=0.004179875989
+TMR progress metal bump 2 it=2000 defect=0.000755258942 change=0.023212264729 cf=0.005651540378 drag=0.004130767867
+TMR progress metal bump 2 it=2100 defect=0.000277420840 change=0.021713117125 cf=0.005604212457 drag=0.004087710256
+TMR progress metal bump 2 it=2200 defect=0.000327573905 change=0.020357148509 cf=0.005561922192 drag=0.004048736806
+TMR progress metal bump 2 it=2300 defect=0.000175411536 change=0.019133914169 cf=0.005523916067 drag=0.004013827590
+TMR progress metal bump 2 it=2400 defect=0.000166489305 change=0.018016046564 cf=0.005489557297 drag=0.003982498237
+TMR progress metal bump 2 it=2500 defect=0.000157830159 change=0.016965845433 cf=0.005458609041 drag=0.003954252769
+TMR progress metal bump 2 it=2600 defect=0.000149532342 change=0.015939182244 cf=0.005430755583 drag=0.003928527262
+TMR progress metal bump 2 it=2700 defect=0.000609001650 change=0.014916124006 cf=0.005405772611 drag=0.003906238930
+TMR progress metal bump 2 it=2800 defect=0.000239573989 change=0.013963759467 cf=0.005382900729 drag=0.003884638856
+TMR progress metal bump 2 it=2900 defect=0.000392114828 change=0.013037269454 cf=0.005362573354 drag=0.003865004064
+TMR progress metal bump 2 it=3000 defect=0.000241508711 change=0.012167560455 cf=0.005344138972 drag=0.003848987757
+V5 bump measurement backend=metal cells=56320 iterations=3000 seconds=149.715152917000 setup_s=0.484601833000 converged=0 budget=0 change=0.012167560455 drag=0.003848987757 cf=0.005344138972 cf=0.006504827082 cf=0.002934992016 cp=-0.249222755170 cp=-0.650849848986 cp=-0.250261625955 continuity=0.000241508711 failure=
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:53: ERROR: CHECK( r.converged ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+          level: 2
+
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:59: ERROR: CHECK( cf_error<=.1 ) is NOT correct!
+  values: CHECK( 0.127778 <= 0.1 )
+  logged: backend: metal
+          level: 2
+          station: 0.867803
+
+V5 bump backend=metal cells=56320 iterations=3000 seconds=149.715152917000 setup_s=0.484601833000 converged=0 budget=0 change=0.012167560455 error=0.634005033811
+/Users/ezzy/.t3/worktrees/Kutta/t3-3bdc1e03/tests/fv/test_tmr.cpp:63: ERROR: CHECK( (std::all_of(error.begin(),error.end(),[](double value){return std::isfinite(value);}) && error[2]<error[0]) ) is NOT correct!
+  values: CHECK( false )
+  logged: backend: metal
+
+803.258279 s: V5 TMR bump SST station accuracy and three-grid trend
+===============================================================================
+[doctest] test cases:  2 |  0 passed |  2 failed | 161 skipped
+[doctest] assertions: 83 | 58 passed | 25 failed |
+[doctest] Status: FAILURE!
