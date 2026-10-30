@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compare doctest XML with --success, preserving each assertion's identity.
 
-Usage: compare_slow_assertions.py baseline.xml final.xml > comparison.json
+Usage: compare_slow_assertions.py baseline.xml[.gz] final.xml[.gz] > comparison.json
 A repeated assertion is identified by its occurrence within the same case,
 source location, original expression and INFO context. Changed expanded values
 are recorded even when the assertion outcome is unchanged; timings are not compared.
@@ -11,6 +11,7 @@ Missing assertions and newly failed assertions return a nonzero exit status.
 """
 import argparse
 import collections
+import gzip
 import json
 import re
 import xml.etree.ElementTree as ET
@@ -18,7 +19,10 @@ import xml.etree.ElementTree as ET
 
 def read_assertions(path):
     result = {}
-    for case in ET.parse(path).getroot().iter("TestCase"):
+    opener = gzip.open if str(path).endswith(".gz") else open
+    with opener(path, "rb") as f:
+        tree = ET.parse(f)
+    for case in tree.getroot().iter("TestCase"):
         if case.get("skipped") == "true":
             continue
         if case.get("name") in result:

@@ -272,7 +272,7 @@ All 24 slow cases and 10,884 assertions were compared by case, normalized source
 | FSAE V9.3 rotation and translation preserve Taylor Couette pressure | 0 | 0 |
 | Fluent research downloads retain published byte identities | 0 | 0 |
 
-[Complete assertion comparison](comparison_final_source.json), [final XML](final-slow.xml), [final output](final-slow.log), and [original full baseline](baseline_all_slow.xml) preserve the evidence. Earlier full/run-attempt outputs are separate; they are not substituted for failures in this final run.
+[Complete assertion comparison](comparison_final_source.json), [final XML](final-slow.xml.gz), [final output](final-slow.log), and [original full baseline](baseline_all_slow.xml.gz) preserve the evidence. Earlier full/run-attempt outputs are separate; they are not substituted for failures in this final run.
 
 The final full tier is **not green**: Metal's unchanged k-epsilon channel stopped at 5300 steps / 182.5 seconds. Its new failed assertion is the time-limited convergence check. Original-channel trajectories agree, but Metal wall time varied enough to stop before the required 5,700 steps. A current-machine original-binary replay converged at 5,700 / 183.7 seconds; candidate attempts stopped at 4,300, 5,400 and 4,200 steps at the 180-second check. The legacy transport shader/signature has been restored verbatim, with projected diffusion on a separate entry point. This timing instability remains unresolved; no budget or convergence gate was changed. V1–V6 have no new failed assertions.
 
@@ -303,7 +303,7 @@ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j 6
 ctest --test-dir build -LE slow -V
 build/kutta-tests --test-suite=slow --success --reporters=xml --out=slow.xml
-python3 tools/forensics/compare_slow_assertions.py baseline_all_slow.xml slow.xml
+python3 tools/forensics/compare_slow_assertions.py baseline_all_slow.xml.gz slow.xml
 build/bench_taylor_couette_operators --baseline > operators-baseline.log
 build/bench_taylor_couette_operators > operators-after.log
 build/bench_quadratic_viscous --baseline > quadratic-baseline.log

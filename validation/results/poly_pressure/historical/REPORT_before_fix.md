@@ -331,7 +331,7 @@ cmake --build build-pressure -j 6
 ctest --test-dir build-pressure -LE slow --output-on-failure
 ./build-pressure/kutta-tests --test-suite=slow \
   --test-case-exclude='FSAE*,V7*,V8*,Fluent research*' --success --reporters=xml --out=slow.xml
-python3 tools/forensics/compare_slow_assertions.py baseline_slow.xml final_slow.xml
+python3 tools/forensics/compare_slow_assertions.py baseline_slow.xml.gz final_slow.xml.gz
 python3 tools/forensics/plot_poly_pressure.py validation/results/poly_pressure
 ```
 
