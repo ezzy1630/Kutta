@@ -164,3 +164,10 @@ if(KUTTA_BUILD_TESTS)
   set_tests_properties(kutta-tests-slow PROPERTIES LABELS slow)
   add_test(NAME lint-portability COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/lint_portability.py)
 endif()
+
+# The Qt 6 desktop app (app/). Off by default: it needs Qt and never links the
+# solver; it runs the kutta CLI as a child process (docs/app-protocol.md).
+option(KUTTA_BUILD_APP "Build the Qt desktop app" OFF)
+if(KUTTA_BUILD_APP)
+  add_subdirectory(app)
+endif()
