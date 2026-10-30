@@ -393,8 +393,18 @@ void ViewportPanel::updateOverlay()
     const QString unit = prettyUnit(s->unitOf(d.field.quantity));
     o.unit = unit;
     const bool fieldShown = d.contours && !d.field.quantity.isEmpty();
-    o.title = fieldShown ? tr("Contours of %1").arg(displayLabel(d.field)) : tr("Surfaces");
+    // Fluent names the display by what is drawn: pathlines alone are
+    // "Pathlines Coloured by", surfaces are "Contours of".
+    bool surfaces = false, pathlines = false;
+    for (const auto& it : s->items)
+        if (d.visible.contains(it.id)) {
+            if (it.kind == ItemKind::Streamlines) pathlines = true;
+            else if (it.kind != ItemKind::Probe) surfaces = true;
+        }
+    const QString drawn = pathlines && !surfaces ? tr("Pathlines Coloured by %1") : tr("Contours of %1");
+    o.title = fieldShown ? drawn.arg(displayLabel(d.field)) : tr("Surfaces");
     if (fieldShown && !unit.isEmpty()) o.title += QStringLiteral(" [%1]").arg(unit);
+    if (fieldShown && pathlines && surfaces) o.title += tr(" · pathlines");
     if (d.vectors) o.title += fieldShown ? tr(" · velocity vectors") : tr(" with velocity vectors");
     o.subtitle = datasetLabel() + (m_session->hasCase() ? " · " + m_session->caseName() : QString());
     o.badges = badgesFor(*s, m_key, m_session);
