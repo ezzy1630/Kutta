@@ -108,3 +108,25 @@ KUTTA_KERNEL void fv_moment_momentum(int i,KIn(int) owner,KIn(int) neighbour,KIn
     face[i]+=theta*(kmin(high,kmax(low,value))-face[i]);
   } else face[i]=value;
 }
+
+// Resolved walls: the momentum wall flux per unit viscosity is
+// diffusion*(u_b-u_P)+C. The legacy force's normal derivative equals that
+// flux with C=g_P.t; on projected faces shift it by (C-g_P.t)/|S|.
+KUTTA_KERNEL void fv_wall_projected_shift(int i,KIn(int) owner,KIn(int) mask,KIn(float) sx,KIn(float) sy,KIn(float) sz,
+    KIn(float) tx,KIn(float) ty,KIn(float) tz,KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) correction,
+    KOut(float) shift,int internal) {
+  int f=i+internal;
+  if(mask[f]==0) {shift[i]=0.0f;return;}
+  int p=owner[f];float area=ksqrt(sx[f]*sx[f]+sy[f]*sy[f]+sz[f]*sz[f]);
+  shift[i]=(correction[f]-(gx[p]*tx[f]+gy[p]*ty[f]+gz[p]*tz[f]))/area;
+}
+// Adds the Newtonian traction of normal-derivative shifts (du,dv,dw).
+KUTTA_KERNEL void fv_wall_normal_force_shift(int i,KIn(float) selected,KIn(float) sx,KIn(float) sy,KIn(float) sz,
+    KIn(float) du,KIn(float) dv,KIn(float) dw,KOut(float) x,KOut(float) y,KOut(float) z,int internal,float viscosity) {
+  int f=i+internal;float area=ksqrt(sx[f]*sx[f]+sy[f]*sy[f]+sz[f]*sz[f]);
+  float nx=sx[f]/area,ny=sy[f]/area,nz=sz[f]/area,scale=-viscosity*selected[i];
+  float a=du[i]*nx,b=du[i]*ny,d=du[i]*nz,e=dv[i]*nx,g=dv[i]*ny,h=dv[i]*nz,j=dw[i]*nx,k=dw[i]*ny,l=dw[i]*nz;
+  x[i]+=scale*(2.0f*a*sx[f]+(b+e)*sy[f]+(d+j)*sz[f]);
+  y[i]+=scale*((e+b)*sx[f]+2.0f*g*sy[f]+(h+k)*sz[f]);
+  z[i]+=scale*((j+d)*sx[f]+(k+h)*sy[f]+2.0f*l*sz[f]);
+}

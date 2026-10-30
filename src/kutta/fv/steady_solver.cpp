@@ -724,11 +724,28 @@ struct SteadySolver::Impl {
       const auto& u=projected_gradient[0];const auto& v=projected_gradient[1];const auto& w=projected_gradient[2];
       kern::fv_wall_projected_viscous_force(dev,n,mask,diffusion_reconstruction->mask(),m.area.x,m.area.y,m.area.z,
         u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces,float(settings.viscosity));
-    } else kern::fv_wall_viscous_force(dev,n,m.owner,mask,m.area.x,m.area.y,m.area.z,
-      m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,velocity.x,velocity.y,velocity.z,
-      gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
-      boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,viscous.x,viscous.y,viscous.z,
-      m.n_internal_faces,float(settings.viscosity));
+    } else {
+      kern::fv_wall_viscous_force(dev,n,m.owner,mask,m.area.x,m.area.y,m.area.z,
+        m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,velocity.x,velocity.y,velocity.z,
+        gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+        boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,viscous.x,viscous.y,viscous.z,
+        m.n_internal_faces,float(settings.viscosity));
+      // Resolved SA walls carry the projected momentum flux; keep the
+      // traction's normal derivative equal to it.
+      if(sa && turbulent_faces) {
+        auto correction=dev.alloc<float>(m.n_faces);auto shift=vector_field(dev,n);
+        const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+        const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+        const DeviceVec3* g[]{&gu,&gv,&gw};Buffer<float>* out[]{&shift.x,&shift.y,&shift.z};
+        for(int k=0;k<3;++k) {
+          turbulent_faces->diffusion_correction(*q[k],*bc[k],correction);
+          kern::fv_wall_projected_shift(dev,n,m.owner,turbulent_faces->mask(),m.area.x,m.area.y,m.area.z,
+            stencil.nonorthogonal.x,stencil.nonorthogonal.y,stencil.nonorthogonal.z,g[k]->x,g[k]->y,g[k]->z,correction,*out[k],m.n_internal_faces);
+        }
+        kern::fv_wall_normal_force_shift(dev,n,mask,m.area.x,m.area.y,m.area.z,shift.x,shift.y,shift.z,
+          viscous.x,viscous.y,viscous.z,m.n_internal_faces,float(settings.viscosity));
+      }
+    }
   }
   IterationReport monitor() {
     refresh_time_step();
