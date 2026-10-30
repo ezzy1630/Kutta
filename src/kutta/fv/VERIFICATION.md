@@ -1490,3 +1490,63 @@ candidate logs, `v6-side.log`, `v6-point.log`, `slow-final.log`, `quick-final.lo
 `v6-tables.json`. Rejected source snapshots are confined to that ignored
 evidence directory. Runtime code contains no candidate switches or host loops
 over solve fields. Nothing was pushed.
+
+## V5 NASA TMR SST verification
+
+### Protocol frozen before Kutta measurements (2026-10-29)
+
+These are external-code verification comparisons, not experimental validation.
+The fixtures and their pinned provenance are in
+[`validation/data/nasa_tmr/SOURCE.md`](../../../validation/data/nasa_tmr/SOURCE.md).
+The closest reference to Fluent-default Kutta is **SST-2003m**, because both use
+strain-limited eddy viscosity, strain-squared production, a factor-10 cap in
+both transport equations, and omit isotropic turbulent stress. Flat-plate data
+is SST-Vm; bump SSTm and SST-Vm are secondary model-spread diagnostics.
+
+The following gates are fixed before running Kutta on these grids; they will
+not be relaxed to accommodate measured errors:
+
+| Quantity, finest completed level | Gate against finest CFL3D reference |
+| --- | --- |
+| Flat plate Cf at x=0.970084071 | relative error <= 5% |
+| Flat plate CD, reference area 2 times span | relative error <= 7% |
+| Bump Cf at x=0.6321975, 0.75, 0.8678025 | each relative error <= 10% |
+| Bump Cp at the same three stations | each absolute error <= 0.03 |
+| Grid trend, each case, >=3 levels | finest reference-error norm < coarsest reference-error norm |
+| Iterative convergence, every level | steady u/v/k/omega scaled defects and normalized provisional continuity <=1e-5; station/drag change <=0.1% over last 100 iterations |
+
+The trend norm is the maximum relative error over flat-plate Cf/CD, and the
+maximum of bump station Cf relative errors and Cp absolute errors divided by
+0.03. It does not demand a prescribed order from coarse boundary-layer grids.
+Accuracy assertions remain meaningful even if iterative convergence fails;
+unconverged numbers are diagnostics and cannot pass V5.
+
+The 5/7% plate allowance budgets about 1% compressibility, sub-percent
+coefficient/production differences in simple shear, and remaining coarse-grid
+and wall-closure error. The 10%/0.03 bump allowances budget increased
+pressure-gradient/model sensitivity and O(M^2) pressure changes. These are
+engineering acceptance limits, not proven uncertainty bounds on the Fluent
+wall closure. A larger wall discrepancy must be diagnosed, not excused.
+
+Use U=1, rho=1, nu=1/(5e6) for 2DZP and 1/(3e6) for 2DBC.
+TMR's k=9e-9*a_inf^2 and omega=1e-6*a_inf^2/nu become k=2.25e-7
+and omega=125 (plate) / 75 (bump), retaining mu_t/mu=0.009.
+Initialize uniformly with those values; do not seed from reference profiles.
+Use SOU momentum and FOU turbulence, matching TMR's turbulence advection order.
+Run the Fluent-default constitutive model first, then isolate model switches.
+
+Boundary mapping: NMF subsonic total-condition inflow becomes a uniform
+VelocityInlet at its equivalent freestream static speed; back_pressure becomes
+PressureOutlet at zero static gauge pressure with freestream backflow data.
+viscous_solid becomes stationary Wall. All NMF symmetry ranges, including the
+one-cell extrusion caps, become Symmetry. The flat-plate farfield_riem top is
+an open PressureOutlet with freestream backflow, allowing boundary-layer
+entrainment; compare a Symmetry top as a domain/BC sensitivity. The bump top
+is a physical slip/symmetry boundary, not an open farfield. Neither case needs
+a characteristic compressible farfield in the incompressible solver.
+
+Sources: [TMR SST definitions](https://tmbwg.github.io/turbmodels/sst.html),
+[2DZP setup](https://tmbwg.github.io/turbmodels/flatplate.html),
+[2DZP SST-Vm and incompressible comparisons](https://tmbwg.github.io/turbmodels/flatplate_sst.html),
+[2DBC setup](https://tmbwg.github.io/turbmodels/bump.html), and
+[2DBC SST-2003m](https://tmbwg.github.io/turbmodels/bump_sst2003.html).
