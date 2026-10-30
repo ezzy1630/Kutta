@@ -23,6 +23,7 @@ QJsonObject ViewDisplay::toJson() const
             {"min", fixedMin},
             {"max", fixedMax},
             {"edges", edges},
+            {"zone_colors", zoneColors},
             {"lighting", lighting},
             {"visible", vis},
             {"vectors", vectors},
@@ -30,6 +31,8 @@ QJsonObject ViewDisplay::toJson() const
             {"vector_length", vectorLength},
             {"vector_stride", vectorStride},
             {"ribbon_width", ribbonWidth},
+            {"line_arrows", lineArrows},
+            {"line_solid", lineSolid},
             {"camera", camera.toJson()}};
 }
 
@@ -45,6 +48,7 @@ ViewDisplay ViewDisplay::fromJson(const QJsonObject& o)
     d.fixedMin = o.value("min").toDouble(0);
     d.fixedMax = o.value("max").toDouble(1);
     d.edges = o.value("edges").toBool(false);
+    d.zoneColors = o.value("zone_colors").toBool(false);
     d.lighting = o.value("lighting").toBool(true);
     for (const QJsonValue& v : o.value("visible").toArray()) d.visible << v.toString();
     d.visibleInitialized = o.contains("visible");
@@ -52,7 +56,9 @@ ViewDisplay ViewDisplay::fromJson(const QJsonObject& o)
     d.vectorItem = o.value("vector_item").toString();
     d.vectorLength = float(o.value("vector_length").toDouble(0));
     d.vectorStride = o.value("vector_stride").toInt(4);
-    d.ribbonWidth = float(o.value("ribbon_width").toDouble(2.5));
+    d.ribbonWidth = float(o.value("ribbon_width").toDouble(3.0));
+    d.lineArrows = o.value("line_arrows").toBool(false);
+    d.lineSolid = o.value("line_solid").toBool(false);
     if (o.contains("camera")) {
         d.camera = Camera::fromJson(o.value("camera").toObject());
         d.cameraInitialized = true;

@@ -28,6 +28,8 @@ struct OverlayState {
     QPointF probePixel;   // logical pixels
     QString probeText;
     QString emptyText;    // shown when there is nothing to draw
+    // Mesh displays: one swatch per shown zone (invalid colour: no swatch).
+    std::vector<std::pair<QString, QColor>> zoneKey;
     QMatrix4x4 view;      // for the axis triad
     bool triad = true;
     bool dark = true;
@@ -47,7 +49,7 @@ public:
     const OverlayState& overlayState() const { return m_overlayState; }
     void setTheme(bool dark, QColor clear, QColor accent);
 
-    void fitView();  // frames the visible items
+    void fitView();  // frames the visible items; the view then follows resizes until the user moves it
     Bounds visibleBounds() const;
     QPointF projectToLogical(const QVector3D& world) const;
     void applyPreset(Camera::Preset p);
@@ -83,6 +85,8 @@ protected:
 
 private:
     QPointF toNdc(QPointF logical) const;
+    std::vector<QVector3D> visiblePoints() const;
+    void fitCamera();
     float aspect() const;
     void cameraEdited();
     void ensureCamera();
@@ -95,6 +99,7 @@ private:
     Qt::MouseButton m_dragButton = Qt::NoButton;
     bool m_dragged = false;
     bool m_dark = true;
+    bool m_autoFit = false;  // framed automatically and not moved since
     int m_framesRendered = 0;
     // Benchmark state (continuous rendering only while measuring).
     int m_benchRemaining = 0;

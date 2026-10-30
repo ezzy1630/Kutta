@@ -258,6 +258,16 @@ void CliClient::exportView(const QString& runDir, const std::vector<Plane>& slic
     });
 }
 
+void CliClient::exportGeometry(const QString& casePath, const QString& outDir, std::function<void(Result<ViewManifest>)> done)
+{
+    run({"export-geometry", casePath, "--out", outDir, "--json"}, [done, outDir](int code, const QByteArray& out, const QByteArray& err) {
+        // Exit 2 is a usage error: a CLI from before export-geometry.
+        if (code == 2) return done(Result<ViewManifest>::failure("this kutta CLI cannot show a case's mesh before a run (no export-geometry)"));
+        if (code != 0) return done(Result<ViewManifest>::failure(failureText(code, out, err)));
+        done(loadViewManifest(QDir(outDir).filePath("geometry/manifest.json")));
+    });
+}
+
 SolveProcess* CliClient::solve(const SolveRequest& req, QObject* parent)
 {
     auto* s = new SolveProcess(m_info, req, parent);

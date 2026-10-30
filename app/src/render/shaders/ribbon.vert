@@ -1,9 +1,12 @@
 #version 440
-// Streamlines as screen-space ribbons of constant pixel width. Each segment is
-// a quad; `other` is the segment's opposite end, `side` picks the edge.
+// Pathlines as screen-space ribbons of constant pixel width, plus arrowheads.
+// Each vertex sits on a line point; `other` is the neighbouring point that
+// gives the direction, and `offset` moves it across (x) and along (y) that
+// direction in half-widths. Ribbon quads use offset (±1, 0); arrowheads use
+// a tip ahead of the point and two corners behind it.
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 other;
-layout(location = 2) in float side;
+layout(location = 2) in vec2 offset;
 layout(location = 3) in float value;
 
 layout(location = 0) out vec3 vNormal;
@@ -28,7 +31,7 @@ void main()
     vec2 d = sb - sa;
     d = length(d) > 1e-4 ? normalize(d) : vec2(1.0, 0.0);
     vec2 n = vec2(-d.y, d.x);
-    a.xy += n * side * (0.5 * viewport.z) / half_px * a.w;
+    a.xy += (n * offset.x + d * offset.y) * (0.5 * viewport.z) / half_px * a.w;
     vNormal = vec3(0.0, 0.0, 1.0);
     vValue = value;
     gl_Position = a;

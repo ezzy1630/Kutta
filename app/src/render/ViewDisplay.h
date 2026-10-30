@@ -20,6 +20,7 @@ struct ViewDisplay {
     RangeMode rangeMode = RangeMode::Auto;
     double fixedMin = 0, fixedMax = 1;
     bool edges = false;
+    bool zoneColors = false;       // surfaces without a field take their zone's colour
     bool lighting = true;
     QStringList visible;           // item ids; empty means the dataset's defaults
     bool visibleInitialized = false;
@@ -30,7 +31,11 @@ struct ViewDisplay {
     float vectorLength = 0;        // world units; 0 = automatic
     int vectorStride = 4;
 
-    float ribbonWidth = 2.5f;      // streamline width in pixels
+    // Pathlines and streamlines: width in logical pixels, arrowheads along
+    // them, and a solid colour instead of the viewport's field.
+    float ribbonWidth = 3.0f;
+    bool lineArrows = false;
+    bool lineSolid = false;
 
     Camera camera;
     bool cameraInitialized = false;

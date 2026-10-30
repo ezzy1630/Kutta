@@ -3,6 +3,7 @@
 
 #include "core/Session.h"
 
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QSignalSpy>
@@ -39,6 +40,37 @@ private slots:
         m_elbow = m_dir.filePath("mixing_elbow.cas.h5");
         QFile f(m_elbow);
         QVERIFY(f.open(QIODevice::WriteOnly));
+    }
+
+    // The case's mesh is a dataset as soon as the case is read, with no run.
+    void meshIsShownWithoutARun()
+    {
+        auto s = open();
+        QVERIFY(s);
+        const QString key = s->meshSceneKey();
+        QVERIFY(key.startsWith("mesh:"));
+        bool done = false;
+        std::shared_ptr<SceneData> scene;
+        s->loadScene(key, [&](const QString&, Result<std::shared_ptr<SceneData>> r) {
+            QVERIFY2(r.ok(), qPrintable(r ? QString() : r.error()));
+            scene = r.value();
+            done = true;
+        });
+        QTRY_VERIFY_WITH_TIMEOUT(done, 20000);
+        QVERIFY(scene && scene->geometryOnly);
+        QStringList zones;
+        for (const auto& it : scene->items) {
+            QCOMPARE(it.kind, ItemKind::Zone);
+            QVERIFY(it.color.isValid());
+            zones << it.label;
+        }
+        QVERIFY(zones.contains("wall-elbow") && zones.contains("cold-inlet"));
+        // The mesh view leaves out the symmetry plane, which would hide the pipe.
+        const QStringList shown = defaultMeshItems(*scene);
+        QVERIFY(shown.contains("zone:wall-elbow"));
+        QVERIFY(!shown.contains("zone:symmetry-xyplane"));
+        // Reopening reuses the export instead of reading the mesh again.
+        QVERIFY(QFileInfo::exists(m_dir.filePath("data/geometry/" + key.mid(5) + "/geometry/manifest.json")));
     }
 
     void refusesApproximateRunWithoutApproval()

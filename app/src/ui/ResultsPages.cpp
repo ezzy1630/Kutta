@@ -524,8 +524,51 @@ QWidget* pathlines(const InspectorContext& c)
         if (auto b = vec(seeds.value("end"))) rakeTo.set(*b);
     }
     pf.body->addLayout(f);
+
+    // How the lines look in the active viewport (Fluent's pathline display
+    // options): the colouring field, width and direction arrows.
+    pf.body->addWidget(section(QObject::tr("Display")));
+    auto* df = formLayout();
+    auto* colour = new QComboBox;
+    colour->setAccessibleName(QObject::tr("Colour pathlines by"));
+    const QStringList lineFields = sampleable(c, {"velocity_magnitude", "pressure", "pressure_coefficient", "total_pressure_coefficient"}, true);
+    for (const QString& q : lineFields) colour->addItem(fluentLabel(q), q);
+    colour->addItem(QObject::tr("Solid colour"), QString());
+    auto* width = new QSpinBox;
+    width->setRange(1, 10);
+    width->setSuffix(QObject::tr(" px"));
+    width->setAccessibleName(QObject::tr("Line width"));
+    auto* arrows = new QCheckBox(QObject::tr("Arrows along the flow"));
+    if (auto* vp = c.graphics->active()) {
+        const ViewDisplay& d = vp->display();
+        width->setValue(int(std::lround(d.ribbonWidth)));
+        arrows->setChecked(d.lineArrows);
+        colour->setCurrentIndex(d.lineSolid ? colour->count() - 1 : std::max(0, colour->findData(d.field.quantity)));
+    }
+    df->addRow(QObject::tr("Colour by"), colour);
+    df->addRow(QObject::tr("Line width"), width);
+    df->addRow({}, arrows);
+    pf.body->addLayout(df);
+    // Also runs when a computation finishes, possibly after the page is gone.
+    auto applyStyle = [c, colour = QPointer<QComboBox>(colour), width = QPointer<QSpinBox>(width), arrows = QPointer<QCheckBox>(arrows)] {
+        if (!colour || !width || !arrows) return;
+        editDisplay(c, [&](ViewDisplay& d) {
+            const QString q = colour->currentData().toString();
+            d.lineSolid = q.isEmpty();
+            if (!q.isEmpty()) {
+                d.field = {q, FieldRole::Kutta, -1};
+                d.contours = true;
+            }
+            d.ribbonWidth = float(width->value());
+            d.lineArrows = arrows->isChecked();
+        });
+    };
+    QObject::connect(colour, &QComboBox::activated, colour, applyStyle);
+    QObject::connect(width, &QSpinBox::valueChanged, width, applyStyle);
+    QObject::connect(arrows, &QCheckBox::toggled, arrows, applyStyle);
+
     finishPostPage(pf);
-    QObject::connect(pf.go, &QPushButton::clicked, pf.page, [c, pf, release, rakeFrom, rakeTo, count] {
+    QObject::connect(pf.go, &QPushButton::clicked, pf.page, [c, pf, release, rakeFrom, rakeTo, count, applyStyle] {
         const QString zone = release->currentData().toString();
         QJsonObject seeds;
         if (zone.isEmpty()) {
@@ -538,9 +581,7 @@ QWidget* pathlines(const InspectorContext& c)
         const QStringList fields = sampleable(c, {"velocity_magnitude", "pressure", "pressure_coefficient", "total_pressure_coefficient"}, true);
         const QJsonObject op{{"name", QObject::tr("Pathlines")}, {"mode", "streamline"}, {"seeds", seeds}, {"direction", "forward"},
                              {"fields", QJsonArray::fromStringList(fields)}};
-        runPost(c, pf, PostKind::Streamlines, op, [c](const PostOutput&) {
-            editDisplay(c, [](ViewDisplay& d) { d.field = {"velocity_magnitude", FieldRole::Kutta, -1}; d.contours = true; });
-        });
+        runPost(c, pf, PostKind::Streamlines, op, [applyStyle](const PostOutput&) { applyStyle(); });
     });
     return pf.page;
 }
@@ -657,20 +698,39 @@ QWidget* mesh(const InspectorContext& c)
     QWidget* page = makePage(QObject::tr("Mesh"), QObject::tr("Results ▸ Graphics"), &v);
     v->addWidget(targetLine(c));
     auto* p = c.graphics->active();
+    if (c.session->hasCase() && (!p || !p->scene() || !p->scene()->geometryOnly)) {
+        // The case's mesh is always one click away, run or not.
+        auto* show = button(QObject::tr("Show the case mesh"), "box");
+        QObject::connect(show, &QPushButton::clicked, show, [c] { c.graphics->show(c.session->meshSceneKey()); });
+        v->addWidget(show, 0, Qt::AlignLeft);
+    }
     if (!p || !p->scene()) return page;
     const ViewDisplay d = p->display();
-    auto* edges = new QCheckBox(QObject::tr("Show mesh edges"));
+    const bool meshOnly = p->scene()->geometryOnly;
+    auto* edges = new QCheckBox(QObject::tr("Edges"));
     edges->setChecked(d.edges);
     QObject::connect(edges, &QCheckBox::toggled, edges, [c](bool on) { editDisplay(c, [&](ViewDisplay& d) { d.edges = on; }); });
-    auto* solid = new QCheckBox(QObject::tr("Colour by field"));
-    solid->setChecked(d.contours);
-    QObject::connect(solid, &QCheckBox::toggled, solid, [c](bool on) { editDisplay(c, [&](ViewDisplay& d) { d.contours = on; }); });
     v->addWidget(edges);
-    v->addWidget(solid);
+    if (!meshOnly) {
+        auto* field = new QCheckBox(QObject::tr("Colour by field"));
+        field->setChecked(d.contours);
+        QObject::connect(field, &QCheckBox::toggled, field, [c](bool on) { editDisplay(c, [&](ViewDisplay& d) { d.contours = on; }); });
+        v->addWidget(field);
+    }
+    auto* zones = new QCheckBox(meshOnly ? QObject::tr("Colour by zone") : QObject::tr("Colour by zone when not colouring by field"));
+    zones->setChecked(d.zoneColors);
+    QObject::connect(zones, &QCheckBox::toggled, zones, [c](bool on) { editDisplay(c, [&](ViewDisplay& d) { d.zoneColors = on; }); });
+    v->addWidget(zones);
     std::size_t tris = 0;
+    bool faceEdges = true;
     for (const auto& it : p->scene()->items)
-        if (it.mesh) tris += it.mesh->triangleCount();
-    v->addWidget(label(QObject::tr("%1 surface triangles in this dataset (boundary faces split into triangles).").arg(QLocale().toString(qulonglong(tris))), "faint"));
+        if (it.mesh && it.kind == ItemKind::Zone) {
+            tris += it.mesh->triangleCount();
+            faceEdges = faceEdges && it.mesh->hasFaceEdges();
+        }
+    v->addWidget(label(faceEdges ? QObject::tr("%1 surface triangles. Edges are the mesh's own face edges.").arg(QLocale().toString(qulonglong(tris)))
+                                 : QObject::tr("%1 surface triangles. Edges include the diagonals that split polygon faces into triangles (this view predates face edges).")
+                                       .arg(QLocale().toString(qulonglong(tris))), "faint"));
     v->addWidget(section(QObject::tr("Surfaces")));
     v->addWidget(surfaceList(c));
     return page;

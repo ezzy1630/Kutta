@@ -90,6 +90,46 @@ void Camera::fit(const Bounds& b, float aspect, QMarginsF reserve)
     target -= right * (cx * distance * tanFull * std::max(aspect, 0.2f)) + upv * (cy * distance * tanFull);
 }
 
+void Camera::fit(const std::vector<QVector3D>& points, float aspect, QMarginsF reserve, float fill)
+{
+    if (points.empty()) return;
+    const QVector3D f = forward();
+    QVector3D right = QVector3D::crossProduct(f, up);
+    if (right.lengthSquared() < 1e-8f) right = QVector3D::crossProduct(f, QVector3D(0, 1, 0));
+    right.normalize();
+    const QVector3D upv = QVector3D::crossProduct(right, f).normalized();
+    // Extent in the view plane; the target moves to its middle.
+    QVector3D c;
+    for (const QVector3D& p : points) c += p;
+    c /= float(points.size());
+    float x0 = INFINITY, x1 = -INFINITY, y0 = INFINITY, y1 = -INFINITY, z0 = INFINITY, z1 = -INFINITY;
+    for (const QVector3D& p : points) {
+        const QVector3D d = p - c;
+        const float x = QVector3D::dotProduct(d, right), y = QVector3D::dotProduct(d, upv), z = QVector3D::dotProduct(d, f);
+        x0 = std::min(x0, x), x1 = std::max(x1, x), y0 = std::min(y0, y), y1 = std::max(y1, y), z0 = std::min(z0, z), z1 = std::max(z1, z);
+    }
+    const float mx = (x0 + x1) * 0.5f, my = (y0 + y1) * 0.5f;
+    target = c + right * mx + upv * my;
+    const float fx = float(std::clamp(1.0 - reserve.left() - reserve.right(), 0.3, 1.0));
+    const float fy = float(std::clamp(1.0 - reserve.top() - reserve.bottom(), 0.3, 1.0));
+    const float tanFull = std::tan(qDegreesToRadians((fovY > 0 ? fovY : 30.0f) * 0.5f));
+    const float tanY = tanFull * fill * fy;
+    const float tanX = tanFull * fill * fx * std::max(aspect, 0.05f);
+    // Perspective: a point nearer the eye than the target needs more room.
+    // Orthographic views scale with distance alone.
+    float need = 1e-6f;
+    for (const QVector3D& p : points) {
+        const QVector3D d = p - target;
+        const float x = std::abs(QVector3D::dotProduct(d, right)), y = std::abs(QVector3D::dotProduct(d, upv));
+        const float depth = fovY > 0 ? QVector3D::dotProduct(d, f) : 0.0f;
+        need = std::max({need, x / tanX - depth, y / tanY - depth});
+    }
+    const float size = std::max({x1 - x0, y1 - y0, z1 - z0});
+    distance = std::max(need, size * 0.02f);
+    const float cx = float(reserve.left() - reserve.right()), cy = float(reserve.bottom() - reserve.top());
+    target -= right * (cx * distance * tanFull * std::max(aspect, 0.05f)) + upv * (cy * distance * tanFull);
+}
+
 void Camera::ray(QPointF ndc, float aspect, QVector3D* origin, QVector3D* dir) const
 {
     const QMatrix4x4 inv = (projection(aspect, distance * 0.01f, distance * 100.f) * view()).inverted();

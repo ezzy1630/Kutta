@@ -86,8 +86,10 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
         refreshTitle();
         refreshToolbar();
         statusBar()->showMessage(tr("Opened %1").arg(m_session->caseName()), 5000);
-        // Show the newest finished run's results, as Fluent shows the last data.
-        if (const QString key = m_session->latestSceneKey(); !key.isEmpty()) m_graphics->show(key, 0);
+        // Show the newest finished run's results, as Fluent shows the last data;
+        // without one, the mesh, as Fluent does when it reads a case.
+        const QString key = m_session->latestSceneKey();
+        m_graphics->show(key.isEmpty() ? m_session->meshSceneKey() : key, 0);
         m_charts->showRuns({});
         navigate("setup/general");
     });

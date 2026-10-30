@@ -110,6 +110,7 @@ void SceneRenderer::releaseResources()
     m_surfaceBiasPipe.reset();
     m_edgePipe.reset();
     m_ribbonPipe.reset();
+    m_ribbonHaloPipe.reset();
     m_glyphPipe.reset();
     m_srb.reset();
     m_ubuf.reset();
@@ -154,11 +155,11 @@ QRhiGraphicsPipeline* SceneRenderer::makePipeline(const char* vsName, const char
         il.setAttributes({{0, 0, QRhiVertexInputAttribute::Float3, 0}});
         break;
     case RibbonInput:
-        il.setBindings({{8 * sizeof(float)}});
+        il.setBindings({{9 * sizeof(float)}});
         il.setAttributes({{0, 0, QRhiVertexInputAttribute::Float3, 0},
                           {0, 1, QRhiVertexInputAttribute::Float3, 3 * sizeof(float)},
-                          {0, 2, QRhiVertexInputAttribute::Float, 6 * sizeof(float)},
-                          {0, 3, QRhiVertexInputAttribute::Float, 7 * sizeof(float)}});
+                          {0, 2, QRhiVertexInputAttribute::Float2, 6 * sizeof(float)},
+                          {0, 3, QRhiVertexInputAttribute::Float, 8 * sizeof(float)}});
         break;
     case GlyphInput:
         il.setBindings({{6 * sizeof(float)}, {7 * sizeof(float), QRhiVertexInputBinding::PerInstance}});
@@ -220,6 +221,9 @@ void SceneRenderer::initialize(QRhi* rhi, QRhiRenderPassDescriptor* rp, int samp
                                   false, LineInput));
     m_ribbonPipe.reset(makePipeline("ribbon.vert", "surface.frag", rp, sampleCount, QRhiGraphicsPipeline::Triangles,
                                     true, false, RibbonInput));
+    // Outlines test depth but never write it, so they cannot hide line colour.
+    m_ribbonHaloPipe.reset(makePipeline("ribbon.vert", "surface.frag", rp, sampleCount, QRhiGraphicsPipeline::Triangles,
+                                        false, false, RibbonInput));
     m_glyphPipe.reset(makePipeline("glyph.vert", "surface.frag", rp, sampleCount, QRhiGraphicsPipeline::Triangles,
                                    true, false, GlyphInput));
 }
@@ -354,7 +358,8 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
         std::memcpy(du.view, view.constData(), sizeof du.view);
         du.viewport[0] = float(px.width());
         du.viewport[1] = float(px.height());
-        du.viewport[2] = m_display.ribbonWidth * (px.width() > 0 ? 1.0f : 1.0f);
+        // Line width is in logical pixels, like every other size in the UI.
+        du.viewport[2] = m_display.ribbonWidth * m_dpr;
         du.params[2] = m_missingGrey;
     };
     auto fieldUniforms = [&](DrawUniforms& du, bool hasField) {
@@ -376,8 +381,9 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
             // Lines without the shown field are drawn neutral, never coloured by
             // another field against this legend.
             const FieldRef f = m_display.field;
-            const bool hasField = m_fieldShown && mesh->hasField(f);
-            const QString key = hasField ? f.key() : QStringLiteral("-");
+            const bool hasField = m_fieldShown && !m_display.lineSolid && mesh->hasField(f);
+            const bool arrows = m_display.lineArrows;
+            const QString key = (hasField ? f.key() : QStringLiteral("-")) + (arrows ? "/arrows" : "");
             auto rit = g->ribbons.find(key);
             if (rit == g->ribbons.end()) {
                 auto rib = std::make_shared<GpuMesh::Ribbon>();
@@ -386,17 +392,38 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
                 auto s = hasField ? mesh->scalar(f) : nullptr;
                 std::vector<float> v;
                 std::vector<quint32> idx;
+                auto vertex = [&](const float* p, const float* o, float across, float along, float value) {
+                    v.insert(v.end(), {p[0], p[1], p[2], o[0], o[1], o[2], across, along, value});
+                };
+                // Arrowheads at even arc-length spacing show the flow direction,
+                // like Fluent's pathline arrows; the spacing follows the scene size.
+                const float spacing = sceneR * 0.16f;
                 for (std::size_t l = 0; l + 1 < off.size(); ++l) {
+                    float untilNext = spacing * 0.5f;  // arc length to the next arrowhead
                     for (std::uint32_t k = off[l]; k + 1 < off[l + 1]; ++k) {
                         const float* a = &P[3 * k];
                         const float* b = &P[3 * (k + 1)];
                         const float va = s ? (*s)[k] : 0.f, vb = s ? (*s)[k + 1] : 0.f;
-                        const quint32 start = quint32(v.size() / 8);
-                        v.insert(v.end(), {a[0], a[1], a[2], b[0], b[1], b[2], 1.f, va});
-                        v.insert(v.end(), {a[0], a[1], a[2], b[0], b[1], b[2], -1.f, va});
-                        v.insert(v.end(), {b[0], b[1], b[2], a[0], a[1], a[2], -1.f, vb});
-                        v.insert(v.end(), {b[0], b[1], b[2], a[0], a[1], a[2], 1.f, vb});
+                        const quint32 start = quint32(v.size() / 9);
+                        vertex(a, b, 1.f, 0.f, va);
+                        vertex(a, b, -1.f, 0.f, va);
+                        vertex(b, a, -1.f, 0.f, vb);
+                        vertex(b, a, 1.f, 0.f, vb);
                         idx.insert(idx.end(), {start, start + 1, start + 2, start + 1, start + 3, start + 2});
+                        if (!arrows) continue;
+                        const float len = std::sqrt((b[0] - a[0]) * (b[0] - a[0]) + (b[1] - a[1]) * (b[1] - a[1]) + (b[2] - a[2]) * (b[2] - a[2]));
+                        float at = untilNext;
+                        for (; at < len; at += spacing) {
+                            const float t = len > 0 ? at / len : 0.f;
+                            const float p[3] = {a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t};
+                            const float val = va + (vb - va) * t;
+                            const quint32 h = quint32(v.size() / 9);
+                            vertex(p, b, 0.f, 4.0f, val);
+                            vertex(p, b, 2.8f, -1.6f, val);
+                            vertex(p, b, -2.8f, -1.6f, val);
+                            idx.insert(idx.end(), {h, h + 1, h + 2});
+                        }
+                        untilNext = at - len;
                     }
                 }
                 if (!v.empty()) {
@@ -411,6 +438,21 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
                 rit = g->ribbons.insert(key, rib);
             }
             if (!(*rit)->count) continue;
+            // A thin dark outline first keeps lines readable over any surface
+            // colour; the coloured ribbon then draws over it at equal depth.
+            DrawCmd halo{DrawCmd::Ribbon};
+            halo.pipe = m_ribbonHaloPipe.get();
+            halo.vb = (*rit)->vb.get();
+            halo.ib = (*rit)->ib.get();
+            halo.count = (*rit)->count;
+            base(halo.u);
+            fieldUniforms(halo.u, false);
+            const bool darkBg = m_clear.lightnessF() < 0.5;
+            halo.u.solid[0] = halo.u.solid[1] = halo.u.solid[2] = darkBg ? 0.02f : 0.18f;
+            halo.u.solid[3] = darkBg ? 0.85f : 0.55f;
+            halo.u.params[0] = 0;
+            halo.u.viewport[2] = (m_display.ribbonWidth + 1.5f) * m_dpr;
+            draws.push_back(halo);
             DrawCmd d{DrawCmd::Ribbon};
             d.pipe = m_ribbonPipe.get();
             d.vb = (*rit)->vb.get();
@@ -419,7 +461,11 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
             base(d.u);
             fieldUniforms(d.u, hasField);
             d.u.range[2] = 0;  // smooth colour along lines
-            d.u.solid[0] = d.u.solid[1] = d.u.solid[2] = 0.62f;
+            if (m_display.lineSolid) {
+                d.u.solid[0] = float(m_lineColor.redF()), d.u.solid[1] = float(m_lineColor.greenF()), d.u.solid[2] = float(m_lineColor.blueF());
+            } else {
+                d.u.solid[0] = d.u.solid[1] = d.u.solid[2] = darkBg ? 0.78f : 0.38f;
+            }
             d.u.params[0] = 0;
             draws.push_back(d);
             continue;
@@ -437,6 +483,10 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
         d.count = g->indexCount;
         base(d.u);
         fieldUniforms(d.u, values != nullptr);
+        const bool zoneColored = !values && m_display.zoneColors && item.color.isValid();
+        if (zoneColored) {
+            d.u.solid[0] = float(item.color.redF()), d.u.solid[1] = float(item.color.greenF()), d.u.solid[2] = float(item.color.blueF());
+        }
         d.u.params[0] = (item.kind == ItemKind::Slice || !m_display.lighting) ? 0.0f : 1.0f;
         if (forPick) {
             d.u.params[3] = float(m_pickIds.size());
@@ -462,9 +512,9 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
                 ed.count = g->edgeCount;
                 base(ed.u);
                 const bool darkBg = m_clear.lightnessF() < 0.5;
-                const float ec = (hasField || !darkBg) ? 0.08f : 0.95f;
+                const float ec = (hasField || zoneColored || !darkBg) ? 0.08f : 0.95f;
                 ed.u.solid[0] = ed.u.solid[1] = ed.u.solid[2] = ec;
-                ed.u.solid[3] = hasField ? 0.32f : 0.5f;
+                ed.u.solid[3] = hasField ? 0.32f : zoneColored ? 0.42f : 0.5f;
                 draws.push_back(ed);
             }
         }

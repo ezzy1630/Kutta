@@ -1,6 +1,7 @@
 #include "core/SceneData.h"
 
 #include <QDir>
+#include <QFile>
 #include <QJsonArray>
 #include <QLocale>
 
@@ -101,6 +102,14 @@ std::optional<std::pair<double, double>> PreparedMesh::scalarRange(const FieldRe
     }
     if (lo > hi) return std::nullopt;
     return std::pair{lo, hi};
+}
+
+void PreparedMesh::setFaceEdges(std::vector<std::uint32_t> lines)
+{
+    std::lock_guard lock(m_mutex);
+    m_edges = std::move(lines);
+    m_edgesBuilt = true;
+    m_faceEdges = true;
 }
 
 const std::vector<std::uint32_t>& PreparedMesh::edges() const
@@ -238,7 +247,9 @@ Result<std::shared_ptr<SceneData>> loadScene(const ViewManifest& m, const QStrin
     scene->provenance = m.provenance;
     scene->synthetic = m.synthetic;
     scene->reference = m.reference;
+    scene->geometryOnly = m.geometryOnly;
     const QDir dir(m.dir);
+    int zoneIndex = 0;
     for (const auto& z : m.zones) {
         auto mesh = readMeshFile(dir.filePath(z.file), z);
         if (!mesh) return R::failure(mesh.error());
@@ -247,9 +258,18 @@ Result<std::shared_ptr<SceneData>> loadScene(const ViewManifest& m, const QStrin
         it.label = z.name;
         it.kind = ItemKind::Zone;
         it.zoneType = z.type;
+        it.color = zoneColor(zoneIndex++);
         // Walls first: inlets, outlets and symmetry planes usually hide the body.
         it.defaultVisible = z.type == "wall";
-        it.mesh = std::make_shared<PreparedMesh>(std::move(mesh).value());
+        auto prepared = std::make_shared<PreparedMesh>(std::move(mesh).value());
+        // Polygon edges are optional: without them (or if unreadable) the
+        // viewer falls back to triangle edges rather than failing the view.
+        if (z.edges) {
+            QFile f(dir.filePath(z.edges->file));
+            if (f.open(QIODevice::ReadOnly))
+                if (auto lines = readEdgeLines(f.readAll(), *z.edges, z.vertices)) prepared->setFaceEdges(std::move(lines).value());
+        }
+        it.mesh = std::move(prepared);
         scene->bounds.expand(it.mesh->bounds());
         scene->items.push_back(std::move(it));
     }
@@ -282,6 +302,38 @@ Result<std::shared_ptr<SceneData>> loadScene(const ViewManifest& m, const QStrin
         if (!err.isEmpty()) return R::failure(err);
     if (!scene->bounds.valid) scene->bounds = m.bounds;
     return scene;
+}
+
+QColor zoneColor(int index)
+{
+    // Okabe–Ito hues, softened for shaded 3D surfaces, then lighter variants.
+    static const QColor base[] = {{86, 158, 214}, {230, 159, 0}, {0, 158, 115}, {204, 121, 167},
+                                  {213, 94, 0}, {240, 228, 66}, {120, 190, 233}, {170, 140, 210}};
+    constexpr int n = int(std::size(base));
+    const QColor c = base[index % n];
+    return index / n % 2 ? c.lighter(135) : c;
+}
+
+QStringList defaultMeshItems(const SceneData& s)
+{
+    const Bounds dom = s.bounds;
+    QStringList body, all;
+    for (const auto& it : s.items) {
+        if (it.kind != ItemKind::Zone || !it.mesh) continue;
+        all << it.id;
+        if (it.zoneType == "symmetry" || it.zoneType == "interior") continue;
+        const Bounds b = it.mesh->bounds();
+        const QVector3D e = dom.max - dom.min, z = b.max - b.min;
+        // A face of the enclosing box: flat in one axis, spanning the domain in the other two.
+        int span = 0, flat = 0;
+        for (int a = 0; a < 3; ++a) {
+            span += e[a] > 0 && z[a] >= 0.98f * e[a];
+            flat += z[a] <= 1e-6f * std::max(1.0f, e.length());
+        }
+        if (span >= 2 && flat >= 1) continue;
+        body << it.id;
+    }
+    return body.isEmpty() ? all : body;
 }
 
 std::shared_ptr<SceneData> runDifference(const SceneData& a, const SceneData& b, QStringList* skipped)

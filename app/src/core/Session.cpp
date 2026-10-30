@@ -2,6 +2,7 @@
 
 #include "core/ChartScale.h"
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -15,7 +16,7 @@
 namespace kapp {
 
 Session::Session(const CliInfo& cli, const QString& dataRoot, QObject* parent)
-    : QObject(parent), m_cli(new CliClient(cli, this))
+    : QObject(parent), m_cli(new CliClient(cli, this)), m_dataRoot(dataRoot)
 {
     m_history.setRoot(QDir(dataRoot).filePath("runs"));
     connect(m_cli, &CliClient::commandStarted, this, [this](const QString& cmd) { emit consoleLine(ConsoleLevel::Command, cmd); });
@@ -349,6 +350,16 @@ void Session::restoreRunSettings(const QString& id)
     emit approvalsChanged();
 }
 
+QString Session::meshSceneKey() const
+{
+    // Keyed by content: a geometry export finishing after another case opened
+    // can never be shown as the new case's mesh.
+    if (!m_case) return {};
+    const QString id = !m_case->sha256.isEmpty() ? m_case->sha256
+                                                 : QString::fromLatin1(QCryptographicHash::hash(m_casePath.toUtf8(), QCryptographicHash::Sha256).toHex());
+    return "mesh:" + id.left(16);
+}
+
 QString Session::latestSceneKey() const
 {
     if (const RunRecord* r = m_history.latestFinished()) return "run:" + r->id;
@@ -539,6 +550,31 @@ void Session::loadSceneNow(const QString& key, SceneCallback done)
             }
         }
         return exportAndLoad(id, slices(id), done);
+    }
+    if (key.startsWith("mesh:")) {
+        if (!m_case || key != meshSceneKey()) return done(key, Result<std::shared_ptr<SceneData>>::failure("that case is no longer open"));
+        // One export per case content, reused whenever the case is reopened.
+        const QString dir = QDir(m_dataRoot).filePath("geometry/" + key.mid(5));
+        const QString title = caseName();
+        auto finish = [this, key, title, done](Result<ViewManifest> m) {
+            if (!m) return done(key, Result<std::shared_ptr<SceneData>>::failure(m.error()));
+            auto scene = kapp::loadScene(m.value(), tr("Mesh"));
+            if (scene) {
+                scene.value()->geometryOnly = true;
+                m_scenes.insert(key, scene.value());
+            }
+            done(key, scene);
+        };
+        const QString manifest = QDir(dir).filePath("geometry/manifest.json");
+        if (QFileInfo::exists(manifest))
+            if (auto m = loadViewManifest(manifest); m && m.value().geometryOnly) return finish(m);
+        QDir().mkpath(dir);
+        emit consoleLine(ConsoleLevel::Info, tr("Reading the mesh of %1 for display…").arg(title));
+        m_cli->exportGeometry(m_casePath, dir, [this, finish](Result<ViewManifest> m) {
+            if (!m) emit consoleLine(ConsoleLevel::Warning, tr("Mesh display unavailable: %1").arg(m.error()));
+            finish(m);
+        });
+        return;
     }
     if (key.startsWith("diff:")) {
         const QStringList parts = key.split(':');

@@ -35,6 +35,8 @@ public:
     const ViewDisplay& display() const { return m_display; }
     void setClearColor(QColor c) { m_clear = c; }
     void setMissingGrey(float g) { m_missingGrey = g; }
+    void setDevicePixelRatio(float dpr) { m_dpr = dpr > 0 ? dpr : 1.0f; }
+    void setLineColor(QColor c) { m_lineColor = c; }
 
     // (Re)create pipelines for a render target; call when rhi or format changes.
     void initialize(QRhi* rhi, QRhiRenderPassDescriptor* rp, int sampleCount);
@@ -76,6 +78,8 @@ private:
     ViewDisplay m_display;
     QColor m_clear{24, 26, 29};
     float m_missingGrey = 0.55f;
+    float m_dpr = 1.0f;
+    QColor m_lineColor{56, 204, 110};
     ColorRange m_range;
     bool m_fieldShown = false;
     std::size_t m_trianglesDrawn = 0;
@@ -87,7 +91,7 @@ private:
     std::unique_ptr<QRhiTexture> m_cmapTex;
     std::unique_ptr<QRhiSampler> m_sampler;
     int m_cmapUploaded = -1;
-    std::unique_ptr<QRhiGraphicsPipeline> m_surfacePipe, m_surfaceBiasPipe, m_edgePipe, m_ribbonPipe, m_glyphPipe;
+    std::unique_ptr<QRhiGraphicsPipeline> m_surfacePipe, m_surfaceBiasPipe, m_edgePipe, m_ribbonPipe, m_ribbonHaloPipe, m_glyphPipe;
     std::unique_ptr<QRhiBuffer> m_arrowVb, m_arrowIb;
     quint32 m_arrowIndexCount = 0;
     bool m_arrowUploaded = false;

@@ -346,7 +346,7 @@ int main(int argc, char** argv)
                      [&w](const PostOutput& out) { w.charts()->plotProbe(out, "Static Pressure on the elbow wall, z = 0.025 m · Run 1", -1); }));
         sc->add(layout(GraphicsArea::Layout::Quad));
         for (int i = 1; i < 4; ++i) sc->add(showScene(i, "run:run-0001"));
-        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); d.visible = {"post:Pathlines", "zone:cold-inlet", "zone:hot-inlet", "zone:outlet"}; d.visibleInitialized = true; }));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); d.lineArrows = true; d.visible = {"post:Pathlines", "zone:cold-inlet", "zone:hot-inlet", "zone:outlet"}; d.visibleInitialized = true; }));
         sc->add(display(1, [&](ViewDisplay& d) { d.field = field("pressure"); d.visible = {"post:Velocity Magnitude = 0.9"}; d.visibleInitialized = true; }));
         sc->add(display(2, [&](ViewDisplay& d) { d.field = field("pressure", FieldRole::Delta); d.visible = {"zone:symmetry-xyplane", "post:Section"}; d.visibleInitialized = true; }));
         sc->add(display(3, [&](ViewDisplay& d) { d.field = field("total_pressure_coefficient"); d.visible = {"zone:symmetry-xyplane"}; d.visibleInitialized = true; }));

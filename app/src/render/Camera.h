@@ -11,6 +11,8 @@
 #include <QString>
 #include <QVector3D>
 
+#include <vector>
+
 namespace kapp {
 
 // Turntable camera about a target. Z is up (Fluent cases for cars use Z up;
@@ -29,6 +31,10 @@ struct Camera {
     QMatrix4x4 projection(float aspect, float nearZ, float farZ) const;
     // Frame bounds in a viewport of the given aspect.
     void fit(const Bounds& b, float aspect, QMarginsF reserve = {});
+    // Frame the points themselves: their projected extent, not their box's
+    // corners, fills the free area (a box seen obliquely is much larger than
+    // the shape inside it). `reserve` are viewport fractions kept clear.
+    void fit(const std::vector<QVector3D>& points, float aspect, QMarginsF reserve = {}, float fill = 0.94f);
     // Ray through a point in normalized device coordinates (-1..1, y up).
     void ray(QPointF ndc, float aspect, QVector3D* origin, QVector3D* dir) const;
 

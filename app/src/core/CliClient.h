@@ -80,6 +80,10 @@ public:
     void exportView(const QString& runDir, const std::vector<Plane>& slices, const QString& postFile,
                     std::function<void(Result<ViewManifest>)> done);
 
+    // The case's boundary zones without a run (export-geometry), published
+    // atomically under outDir/geometry/.
+    void exportGeometry(const QString& casePath, const QString& outDir, std::function<void(Result<ViewManifest>)> done);
+
     SolveProcess* solve(const SolveRequest& req, QObject* parent);
 
 signals:

@@ -92,7 +92,9 @@ public:
     void deleteRun(const QString& id);
     void restoreRunSettings(const QString& id);
 
-    // Datasets for viewports: "run:<id>", "live", "diff:<a>:<b>".
+    // Datasets for viewports: "run:<id>", "live", "diff:<a>:<b>", and the open
+    // case's boundary mesh, available as soon as the case is read.
+    QString meshSceneKey() const;
     using SceneCallback = std::function<void(const QString& key, Result<std::shared_ptr<SceneData>>)>;
     std::shared_ptr<SceneData> sceneIfLoaded(const QString& key) const { return m_scenes.value(key); }
     void loadScene(const QString& key, SceneCallback done);
@@ -136,6 +138,7 @@ private:
     void writePostBatch(const QString& runId, const QJsonObject& batch) const;
 
     CliClient* m_cli;
+    QString m_dataRoot;
     std::vector<Device> m_devices;
     QString m_backend = "auto";
     std::optional<CaseSummary> m_case;

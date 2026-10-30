@@ -64,7 +64,8 @@ void eprint(const QString& s)
 [[noreturn]] void usage(bool jsonl)
 {
     const QString msg = "Usage: kutta-fixture devices --json | inspect CASE [--data DAT] --json | solve CASE ... --out DIR "
-                        "--progress jsonl [--live-view DIR [--live-every N]] | export-view DIR [--post FILE] [--slice ox,oy,oz,nx,ny,nz]...";
+                        "--progress jsonl [--live-view DIR [--live-every N]] | export-view DIR [--post FILE] [--slice ox,oy,oz,nx,ny,nz]... "
+                        "| export-geometry CASE --out DIR [--json]";
     if (jsonl) emitJson({{"v", 1}, {"event", "error"}, {"message", msg}, {"issues", QJsonArray{}}});
     eprint(msg);
     std::exit(2);
@@ -965,6 +966,36 @@ int exportView(const Args& a)
     return 0;
 }
 
+// export-geometry: the case's boundary zones before any run. The elbow reuses
+// its recorded view's zones; the car is generated. Fields in zone files are
+// ignored by readers of a geometry-only manifest.
+int exportGeometry(const Args& a)
+{
+    if (a.positional.size() != 1 || !a.has("out")) usage(false);
+    const QString casePath = a.positional[0];
+    const bool jsonl = a.has("json");
+    const bool car = caseKind(casePath, jsonl) == CaseKind::Car;
+    const QString root = QDir(a.value("out")).filePath("geometry"), staging = QDir(a.value("out")).filePath("geometry.staging");
+    QDir(staging).removeRecursively();
+    if (car) writeCarView(staging, paramsFrom({}), false, {}, {}, false);
+    else copyFixtureDir("cases/mixing_elbow/run-cold/view", staging);
+    for (const QString& s : QDir(staging).entryList({"slice-*"})) QFile::remove(QDir(staging).filePath(s));
+    QJsonObject m = readJson(QDir(staging).filePath("manifest.json"));
+    m["geometry_only"] = true;
+    m["reference"] = false;
+    m["provenance"] = QString();
+    m["slices"] = QJsonArray{};
+    m["fields"] = QJsonArray{};
+    writeJson(QDir(staging).filePath("manifest.json"), m);
+    QDir(root).removeRecursively();
+    if (!QDir().rename(staging, root)) fail("cannot publish " + root, {}, jsonl);
+    if (jsonl)
+        emitJson({{"v", 1}, {"event", "geometry"}, {"manifest", QFileInfo(QDir(root).filePath("manifest.json")).absoluteFilePath()},
+                  {"zones", int(m.value("zones").toArray().size())}});
+    else eprint("Wrote " + root);
+    return 0;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -987,5 +1018,6 @@ int main(int argc, char** argv)
     }
     if (cmd == "solve") return solve(a);
     if (cmd == "export-view") return exportView(a);
+    if (cmd == "export-geometry") return exportGeometry(a);
     usage(false);
 }

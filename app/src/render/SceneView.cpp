@@ -71,8 +71,7 @@ void SceneView::setDisplay(const ViewDisplay& d)
 void SceneView::ensureCamera()
 {
     if (m_display.cameraInitialized || !scene() || !scene()->bounds.valid) return;
-    m_display.camera.fit(scene()->bounds, aspect());
-    m_display.cameraInitialized = true;
+    fitCamera();
     m_renderer.setDisplay(m_display);
 }
 
@@ -89,6 +88,7 @@ void SceneView::setTheme(bool dark, QColor clear, QColor accent)
     m_renderer.setClearColor(clear);
     m_renderer.setMissingGrey(dark ? 0.42f : 0.62f);
     m_overlay->accent = accent;
+    m_renderer.setLineColor(accent);
     m_overlayState.dark = dark;
     update();
     m_overlay->update();
@@ -130,14 +130,53 @@ Bounds SceneView::visibleBounds() const
     return b.valid ? b : scene()->bounds;
 }
 
+std::vector<QVector3D> SceneView::visiblePoints() const
+{
+    std::vector<QVector3D> pts;
+    if (!scene()) return pts;
+    std::size_t total = 0;
+    std::vector<const PreparedMesh*> meshes;
+    for (const SceneItem& it : scene()->items) {
+        const bool shown = m_display.visibleInitialized ? m_display.visible.contains(it.id) : it.defaultVisible;
+        if (shown && it.mesh) {
+            meshes.push_back(it.mesh.get());
+            total += it.mesh->data().vertexCount();
+        }
+    }
+    // A strided sample keeps fitting a 10M-vertex car instant; the extent of
+    // a dense surface mesh does not depend on every vertex.
+    constexpr std::size_t kBudget = 400'000;
+    const std::size_t stride = std::max<std::size_t>(1, total / kBudget);
+    pts.reserve(std::min(total, kBudget) + 8);
+    for (const PreparedMesh* m : meshes) {
+        const auto& P = m->data().positions;
+        for (std::size_t i = 0; i < m->data().vertexCount(); i += stride) pts.emplace_back(P[3 * i], P[3 * i + 1], P[3 * i + 2]);
+        // Keep each part's extremes even when striding skips them.
+        const Bounds b = m->bounds();
+        if (stride > 1 && b.valid) for (int c = 0; c < 8; ++c) pts.emplace_back((c & 1) ? b.max.x() : b.min.x(), (c & 2) ? b.max.y() : b.min.y(), (c & 4) ? b.max.z() : b.min.z());
+    }
+    return pts;
+}
+
+void SceneView::fitCamera()
+{
+    // Keep the title (top), legend (left) and triad (bottom-left) clear of the
+    // geometry. Reserves are pixels, so small viewports keep their labels too.
+    const double w = std::max(1, width()), h = std::max(1, height());
+    const bool legend = m_overlayState.legend || (m_display.contours && m_renderer.fieldShown());
+    const double keyW = m_overlayState.zoneKey.empty() ? 0 : 150;
+    const QMarginsF reserve((legend ? 104 : keyW > 0 ? keyW : 12) / w, 50 / h, 12 / w, 12 / h);
+    const auto pts = visiblePoints();
+    if (!pts.empty()) m_display.camera.fit(pts, aspect(), reserve);
+    else if (scene() && scene()->bounds.valid) m_display.camera.fit(scene()->bounds, aspect(), reserve);
+    m_display.cameraInitialized = true;
+    m_autoFit = true;
+}
+
 void SceneView::fitView()
 {
     if (!scene()) return;
-    // Keep the title (top), legend (left) and triad (bottom) clear of the geometry.
-    const double w = std::max(1, width()), h = std::max(1, height());
-    const QMarginsF reserve(m_display.contours ? 118 / w : 16 / w, 58 / h, 16 / w, 30 / h);
-    m_display.camera.fit(visibleBounds(), aspect(), reserve);
-    m_display.cameraInitialized = true;
+    fitCamera();
     cameraEdited();
 }
 
@@ -151,6 +190,7 @@ void SceneView::setCamera(const Camera& c)
 {
     m_display.camera = c;
     m_display.cameraInitialized = true;
+    m_autoFit = false;
     cameraEdited();
 }
 
@@ -172,6 +212,7 @@ void SceneView::render(QRhiCommandBuffer* cb)
         m_renderer.setDisplay(m_display);
         m_overlayState.view = m_display.camera.view();
     }
+    m_renderer.setDevicePixelRatio(float(devicePixelRatio()));
     m_renderer.render(cb, renderTarget(), renderTarget()->pixelSize());
     ++m_framesRendered;
     // Readbacks complete on a later frame; keep frames coming only while one is
@@ -223,6 +264,12 @@ void SceneView::resizeEvent(QResizeEvent* e)
 {
     QRhiWidget::resizeEvent(e);
     m_overlay->setGeometry(rect());
+    // Until the user moves the camera, the view stays framed to its new shape
+    // (a viewport laid out after its data arrived, a split, a docked panel).
+    if (m_autoFit && scene()) {
+        fitCamera();
+        cameraEdited();
+    }
 }
 
 void SceneView::focusInEvent(QFocusEvent* e)
@@ -249,6 +296,7 @@ void SceneView::mouseMoveEvent(QMouseEvent* e)
     if ((pos - m_pressPos).manhattanLength() > 3) m_dragged = true;
     if (!m_dragged) return;
     const bool pan = m_dragButton == Qt::MiddleButton || (m_dragButton == Qt::LeftButton && (e->modifiers() & Qt::ShiftModifier));
+    m_autoFit = false;
     if (pan) {
         m_display.camera.pan(QPointF(2.0 * d.x() / width(), -2.0 * d.y() / height()), aspect());
     } else if (m_dragButton == Qt::RightButton) {
@@ -276,6 +324,7 @@ void SceneView::wheelEvent(QWheelEvent* e)
     const double steps = e->angleDelta().y() / 120.0 + e->pixelDelta().y() / 240.0;
     if (steps == 0) return;
     m_display.camera.zoomAt(toNdc(e->position()), aspect(), float(std::pow(0.88, steps)));
+    m_autoFit = false;
     cameraEdited();
 }
 
@@ -291,13 +340,13 @@ void SceneView::keyPressEvent(QKeyEvent* e)
     case Qt::Key_6: applyPreset(Camera::Preset::Bottom); return;
     case Qt::Key_7:
     case Qt::Key_0: applyPreset(Camera::Preset::Isometric); return;
-    case Qt::Key_Left: m_display.camera.orbit(10, 0); cameraEdited(); return;
-    case Qt::Key_Right: m_display.camera.orbit(-10, 0); cameraEdited(); return;
-    case Qt::Key_Up: m_display.camera.orbit(0, 10); cameraEdited(); return;
-    case Qt::Key_Down: m_display.camera.orbit(0, -10); cameraEdited(); return;
+    case Qt::Key_Left: m_autoFit = false; m_display.camera.orbit(10, 0); cameraEdited(); return;
+    case Qt::Key_Right: m_autoFit = false; m_display.camera.orbit(-10, 0); cameraEdited(); return;
+    case Qt::Key_Up: m_autoFit = false; m_display.camera.orbit(0, 10); cameraEdited(); return;
+    case Qt::Key_Down: m_autoFit = false; m_display.camera.orbit(0, -10); cameraEdited(); return;
     case Qt::Key_Plus:
-    case Qt::Key_Equal: m_display.camera.zoomAt({0, 0}, aspect(), 0.85f); cameraEdited(); return;
-    case Qt::Key_Minus: m_display.camera.zoomAt({0, 0}, aspect(), 1.0f / 0.85f); cameraEdited(); return;
+    case Qt::Key_Equal: m_autoFit = false; m_display.camera.zoomAt({0, 0}, aspect(), 0.85f); cameraEdited(); return;
+    case Qt::Key_Minus: m_autoFit = false; m_display.camera.zoomAt({0, 0}, aspect(), 1.0f / 0.85f); cameraEdited(); return;
     default: QRhiWidget::keyPressEvent(e);
     }
 }
@@ -428,6 +477,28 @@ void paintOverlay(QPainter& p, const QRect& r, const OverlayState& s, QColor acc
             p.setFont(small);
             p.setPen(muted);
             p.drawText(QRect(bar.left(), bar.bottom() + 6, 160, 16), Qt::AlignLeft | Qt::AlignVCenter, s.unit);
+        }
+    }
+
+    // Zone key for mesh displays, where the colour legend would be.
+    if (!s.zoneKey.empty()) {
+        p.setFont(small);
+        const QFontMetrics fm = p.fontMetrics();
+        const int rowH = 17, top = r.top() + 54;
+        const int rows = std::max(1, (r.height() - 54 - 60) / rowH);
+        const int shown = int(std::min<std::size_t>(s.zoneKey.size(), std::size_t(rows)));
+        for (int i = 0; i < shown; ++i) {
+            const bool last = i == shown - 1 && shown < int(s.zoneKey.size());
+            const int y = top + i * rowH;
+            QString text = last ? QObject::tr("+%1 more").arg(int(s.zoneKey.size()) - i) : s.zoneKey[std::size_t(i)].first;
+            text = fm.elidedText(text, Qt::ElideMiddle, 170);
+            const QColor c = s.zoneKey[std::size_t(i)].second;
+            if (!last && c.isValid()) {
+                p.setPen(QPen(s.dark ? QColor(0, 0, 0, 160) : QColor(0, 0, 0, 90), 1));
+                p.setBrush(c);
+                p.drawRoundedRect(QRectF(r.left() + pad, y + 3.5, 11, 11), 2, 2);
+            }
+            haloText(p, QRect(r.left() + pad + (c.isValid() || last ? 17 : 0), y, 190, rowH), Qt::AlignLeft | Qt::AlignVCenter, text, last ? muted : fg, s.dark);
         }
     }
 

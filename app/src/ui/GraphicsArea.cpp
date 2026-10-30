@@ -8,6 +8,7 @@
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLocale>
 #include <QMenu>
 #include <QStandardItemModel>
 #include <QTimer>
@@ -57,6 +58,22 @@ QToolButton* toolButton(const QString& icon, const QString& name, QWidget* paren
     b->setAccessibleName(name);
     b->setAutoRaise(true);
     return b;
+}
+
+// First view of a dataset: along a clearly thin axis (a planar or symmetric
+// internal flow such as the elbow shows its shape), else isometric (a car).
+Camera::Preset initialView(const Bounds& b)
+{
+    if (!b.valid) return Camera::Preset::Isometric;
+    const QVector3D e = b.max - b.min;
+    int thin = 0;
+    for (int a = 1; a < 3; ++a)
+        if (e[a] < e[thin]) thin = a;
+    float other = 0;
+    for (int a = 0; a < 3; ++a)
+        if (a != thin) other = std::max(other, e[a]);
+    if (e[thin] > 0.15f * other) return Camera::Preset::Isometric;
+    return thin == 2 ? Camera::Preset::Top : thin == 1 ? Camera::Preset::Left : Camera::Preset::Front;
 }
 
 QStringList badgesFor(const SceneData& s, const QString& key, const Session* session)
@@ -225,11 +242,25 @@ void ViewportPanel::sceneArrived(std::shared_ptr<const SceneData> scene)
 {
     const bool first = !m_view->scene() || m_view->scene()->label.section(" · ", 0, 0) != (scene ? scene->label.section(" · ", 0, 0) : QString());
     ViewDisplay d = m_view->display();
+    // The mesh and a solution are displayed differently (zones coloured and
+    // edged versus a field), so moving between them starts from each one's defaults.
+    const bool wasMesh = m_view->scene() && m_view->scene()->geometryOnly;
+    const bool isMesh = scene && scene->geometryOnly;
+    if (scene && (wasMesh != isMesh || (isMesh && first))) {
+        d.visibleInitialized = false;
+        d.zoneColors = isMesh;
+        d.contours = !isMesh;
+        std::size_t tris = 0;
+        for (const auto& it : scene->items) tris += it.mesh ? it.mesh->triangleCount() : 0;
+        // Edges on a multi-million-face body are a solid black blur; Fluent
+        // users switch them on when they want them (Results ▸ Graphics ▸ Mesh).
+        d.edges = isMesh && tris < 2'000'000;
+    }
     if (scene) {
         QStringList ids;
         for (const auto& it : scene->items) ids << it.id;
         if (!d.visibleInitialized || !std::all_of(d.visible.begin(), d.visible.end(), [&](const QString& v) { return ids.contains(v); })) {
-            d.visible = defaultVisibleItems(*scene);
+            d.visible = isMesh ? defaultMeshItems(*scene) : defaultVisibleItems(*scene);
             d.visibleInitialized = true;
         } else {
             // New post-processing parts become visible as they arrive.
@@ -240,16 +271,18 @@ void ViewportPanel::sceneArrived(std::shared_ptr<const SceneData> scene)
         const auto fields = scene->availableFields();
         // A viewport's first dataset gets the field that suits the case; later
         // datasets keep what the user chose when they have it.
-        if (!m_fieldChosen || std::find(fields.begin(), fields.end(), d.field) == fields.end()) d.field = defaultField(*scene);
+        if (!isMesh && (!m_fieldChosen || std::find(fields.begin(), fields.end(), d.field) == fields.end())) d.field = defaultField(*scene);
         if (scene->runDelta && d.field.role != FieldRole::Run) {
             FieldRef f = d.field;
             f.role = FieldRole::Run;
             if (std::find(fields.begin(), fields.end(), f) != fields.end()) d.field = f;
         }
     }
+    if (scene && !d.cameraInitialized) d.camera.preset(initialView(scene->bounds));
     m_view->setScene(scene);
     m_view->setDisplay(d);
-    if (first && scene && !d.cameraInitialized) m_view->fitView();
+    if (scene && (!d.cameraInitialized || wasMesh != isMesh)) m_view->fitView();
+    else if (first && scene && !d.cameraInitialized) m_view->fitView();
     rebuildFieldCombo();
     updateOverlay();
     emit displayChanged(this);
@@ -331,6 +364,25 @@ void ViewportPanel::updateOverlay()
     if (!s) {
         o.triad = false;
         o.emptyText = m_key.isEmpty() ? tr("No results yet.\nRun the calculation, or open a run from Run History.") : m_view->overlayState().emptyText;
+        m_view->setOverlay(o);
+        return;
+    }
+    if (s->geometryOnly) {
+        // Fluent's mesh display: zones by colour, with a key, before any run.
+        m_field->setVisible(false);
+        o.title = tr("Mesh");
+        std::size_t faces = 0;
+        for (const auto& z : m_session->hasCase() ? m_session->caseSummary().zones : std::vector<Zone>{})
+            if (z.type != "interior") faces += std::size_t(z.faces);
+        o.subtitle = m_session->hasCase() ? tr("%1 · %2 boundary faces").arg(m_session->caseName(), QLocale().toString(qulonglong(faces))) : QString();
+        for (const auto& it : s->items)
+            if (it.kind == ItemKind::Zone && d.visible.contains(it.id)) o.zoneKey.push_back({it.label, d.zoneColors ? it.color : QColor()});
+        if (m_probe && m_probe->hit) {
+            o.probe = m_probe;
+            o.probePixel = m_view->projectToLogical(m_probe->world);
+            o.probeText = probeText(*m_probe);
+        }
+        if (o.zoneKey.empty()) o.emptyText = tr("No zones are shown. Choose them in Results ▸ Graphics ▸ Mesh.");
         m_view->setOverlay(o);
         return;
     }
@@ -492,6 +544,7 @@ void GraphicsArea::refreshDatasets()
     for (auto it = runs.rbegin(); it != runs.rend(); ++it)
         if (it->status == RunStatus::Completed || it->status == RunStatus::Stopped) list.append({"run:" + it->id, it->title()});
     list.append(m_extra);
+    if (m_session->hasCase()) list.append({m_session->meshSceneKey(), tr("Mesh")});
     for (auto* p : m_panels) p->refreshDatasets(list);
 }
 

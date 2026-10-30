@@ -7,6 +7,7 @@
 #include "core/Fields.h"
 #include "core/ViewFormat.h"
 
+#include <QColor>
 #include <QJsonObject>
 #include <QString>
 
@@ -35,8 +36,11 @@ public:
     std::optional<std::pair<double, double>> scalarRange(const FieldRef& f) const;
     bool hasField(const FieldRef& f) const;
     QStringList fieldNames() const;
-    // Unique triangle edges as a line list (lazily built).
+    // Mesh edges as a line list: the zone's polygon edges when the view
+    // carries them, else unique triangle edges (lazily built).
     const std::vector<std::uint32_t>& edges() const;
+    void setFaceEdges(std::vector<std::uint32_t> lines);
+    bool hasFaceEdges() const { return m_faceEdges; }
     // Interpolated value at a position on a triangle near `p` (CPU fallback/readout).
     std::optional<double> sampleNear(const QVector3D& p, const FieldRef& f) const;
 
@@ -48,6 +52,7 @@ private:
     mutable std::unordered_map<std::string, std::shared_ptr<const std::vector<float>>> m_scalars;
     mutable std::vector<std::uint32_t> m_edges;
     mutable bool m_edgesBuilt = false;
+    bool m_faceEdges = false;
 };
 
 struct SceneItem {
@@ -57,6 +62,7 @@ struct SceneItem {
     QString zoneType;   // wall, velocity-inlet, ... for zones
     std::shared_ptr<const PreparedMesh> mesh;
     bool defaultVisible = true;
+    QColor color;       // zones: a distinct colour for "colour by zone" displays
 };
 
 // One dataset: a run's exported view (+ post-processing), or a derived comparison.
@@ -66,6 +72,7 @@ struct SceneData {
     bool synthetic = false; // fixture data invented for demonstration
     bool reference = false; // Fluent fields present
     bool runDelta = false;  // fields are Run A − Run B
+    bool geometryOnly = false;  // a case's boundary mesh, before any run
     Bounds bounds;
     std::vector<SceneItem> items;
 
@@ -82,5 +89,11 @@ Result<std::shared_ptr<SceneData>> loadScene(const ViewManifest& m, const QStrin
 std::shared_ptr<SceneData> runDifference(const SceneData& a, const SceneData& b, QStringList* skipped);
 
 QString itemLabelForSlice(const ViewPart& s);
+// Distinct, colour-vision-friendly zone colours, stable by zone order.
+QColor zoneColor(int index);
+// Zones a mesh view shows first: bodies and walls, not the planar faces of an
+// enclosing box (ground, tunnel sides, far-field inlet/outlet) nor symmetry
+// planes that would hide the inside of the domain.
+QStringList defaultMeshItems(const SceneData& s);
 
 } // namespace kapp
