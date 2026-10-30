@@ -185,10 +185,10 @@
   "evidence_logs": {
     "build.log": "d5d693547d4d770497b1986a8e9cdcc025d0b8ea5a86febd7e1aeaf96aa0d6c8",
     "mrf_translation_after.log": "b1bdcc9a5e8f01924ab896bda83816ffe3122e013c64dab0be298c2b70a05d30",
-    "mrf_translation_before.log": "b15324a001f7192e61353d80c2e2c0bfd2395ba39fe7da66c8de6e77f03fc885",
-    "quick_final.log": "69b102f229b0b83833039f7cc1f5b78f9b8c2955b2ced124610cd4e15a6837a1",
-    "rotation_pressure.log": "be75c78d1cfcf4723865b657c3c7cd4b280096e7a381d9332f562fbc7173a989",
-    "slow_acceptance.log": "60bd9f2699e6e63d477a356d9c38db4929ce0aa19e84167870ca82476100fabc"
+    "mrf_translation_before.log": "580fbb1ae64fd8f61dddd8c8e131069cedf68ddf3df3aad613a20ea11ebc9a83",
+    "quick_final.log": "5bc507312d0ec6f2aa74d7ffa2d6ff202f93702dec99898c9cf8b142b33f7a65",
+    "rotation_pressure.log": "940013cc374d346ff70b47e3fcdaf03c93eb37ae6f912995541334963cc7f167",
+    "slow_acceptance.log": "3f3a59fdabe10a905846f6bd31d87ef24f0779f3f76b0bfff3817a5cae77aa60"
   },
   "logs_normalization": "Trailing whitespace stripped; test output and numeric results retained"
 }
