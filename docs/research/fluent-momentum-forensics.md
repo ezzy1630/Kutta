@@ -2,6 +2,16 @@
 
 Date: 2026-10-29. Round 2 after `fluent-flux-gradient-forensics.md` ("round 1"). Companions: `fluent-sst-forensics.md` ("SST report") and `fluent-numerics-and-files.md` (its corrections box is authoritative).
 
+**Implementation qualification, 2026-10-29:** the saved-state rankings do not
+establish a consistent general boundary/flux scheme. V2 rejects the independently
+reconstructed face mean, stored zero-difference pressure observations at skewed
+face centroids, and an unrestricted cancellation of the symmetry normal
+coefficient. Projected symmetry values must be associated with their normal
+foot, and symmetry must still constrain normal velocity. See the later
+interpolation-order investigation in
+[`VERIFICATION.md`](../../src/kutta/fv/VERIFICATION.md) for the retained
+formulation and the unresolved conflict with this saved-state fit.
+
 **Data.** The same case as before: `validation/fluent_examples/mixing_elbow/mixing_elbow.{cas,dat}.h5`. It is Fluent 22.2, double precision, pressure-based Coupled, pseudo-transient, k-ω SST, LSQ 1/d² gradients, WFGC on, Second Order pressure, SOU for momentum/energy/k/ω, standard (Barth-Jespersen) limiter.
 
 **Question.** Under which discrete momentum (then k, ω) equations is Fluent's saved state a fixed point? The method evaluates each candidate's steady residual per cell at the saved fields, with the saved `SV_FLUX` as the convecting flux. A candidate is scored by Fluent's own scaling (Σ|R| / Σ a_P|U|) against Fluent's final scaled residuals.

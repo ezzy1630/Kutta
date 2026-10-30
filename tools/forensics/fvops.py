@@ -61,7 +61,7 @@ def rows_to_operator(ctx, cell, coef, V):
     return (Cm @ (V - E)).tocsr()
 
 
-def lsq_rows(ctx, wall_rows=True):
+def lsq_rows(ctx, wall_rows=True, normal_types=(), omit_types=()):
     """Face-neighbour LSQ rows (Fluent TG 23.3.3: centroid-to-centroid differences).
 
     Boundary faces act as data points at the face centroid with the boundary value.
@@ -69,16 +69,20 @@ def lsq_rows(ctx, wall_rows=True):
     """
     c0, c1, I, B = ctx.c0, ctx.c1, ctx.I, ctx.B
     keep_b = np.ones(ctx.nbf, bool) if wall_rows else ~ctx.is_wall_face
+    keep_b &= ~np.isin(ctx.zone_type[B], omit_types)
     Bk = B[keep_b]
     cell = np.concatenate([c0[I], c1[I], c0[Bk]])
     dx = np.concatenate([ctx.d, -ctx.d, ctx.fc[Bk] - ctx.cen[c0[Bk]]])
+    normal = np.isin(ctx.zone_type[Bk], normal_types)
+    rb = dx[2 * I.size:]
+    rb[normal] = np.einsum("ij,ij->i", rb[normal], ctx.nhat[Bk[normal]])[:, None] * ctx.nhat[Bk[normal]]
     V = sp.vstack([ctx.unit_rows(c1[I]), ctx.unit_rows(c0[I]), ctx.unit_rows(ctx.n + Bk)]).tocsr()
     return cell, dx, V
 
 
-def lsq(ctx, power=2.0, wall_rows=True):
+def lsq(ctx, power=2.0, wall_rows=True, normal_types=(), omit_types=()):
     """LSQ cell gradient with weights 1/|dx|^power (Fluent lscb-wf: 0, 1, 2 = 1/d^0, 1/d, 1/d^2)."""
-    cell, dx, V = lsq_rows(ctx, wall_rows)
+    cell, dx, V = lsq_rows(ctx, wall_rows, normal_types, omit_types)
     return rows_to_operator(ctx, cell, lsq_coef(ctx, cell, dx, np.linalg.norm(dx, axis=1) ** -float(power)), V)
 
 

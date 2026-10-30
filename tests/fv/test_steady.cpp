@@ -6,6 +6,19 @@
 using namespace kutta;
 using namespace kutta::fv;
 
+TEST_CASE("FV symmetry constrains normal velocity in a closed box") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto mesh=make_box_hex(1,1,1,{0,0,0},{1,1,1});
+    std::vector<PatchCondition> bc;
+    for(const auto& patch:mesh.patches) bc.push_back({patch.name,Symmetry{}});
+    SolverSettings settings;settings.viscosity=.1;
+    SteadySolver solver(*dev,std::move(mesh),bc,settings);
+    solver.initialize([](Vec3d) {return Vec3d{1,.4,-.2};},[](Vec3d) {return 0.;});
+    solver.iterate(100);
+    CHECK(solver.report().maximum_velocity<1e-5);
+  }
+}
+
 TEST_CASE("FV SIMPLEC preserves rest and uniform inlet outlet flow") {
   for(int through:{0,1,-1}) {
     auto mesh=make_box_hex(8,4,1,{0,0,0},{1,1,.1});

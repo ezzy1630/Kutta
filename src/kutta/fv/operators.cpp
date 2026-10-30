@@ -74,8 +74,8 @@ Stencil make_stencil(Device& dev, const PolyMesh& m, const MeshGeometry& g) {
 }
 
 BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
-    const MeshGeometry& g,std::span<const Index> independent) {
-  KUTTA_REQUIRE(independent.size()==std::size_t(m.n_faces()-m.n_internal_faces()),
+    const MeshGeometry& g,std::span<const BoundaryObservation> observations) {
+  KUTTA_REQUIRE(observations.size()==std::size_t(m.n_faces()-m.n_internal_faces()),
                 "FV LSQ boundary mask size mismatch");
   const auto cf=build_cell_faces(m);
   std::vector<Vec3d> delta;
@@ -85,9 +85,12 @@ BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
     for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
       const auto f=cf.faces[j];
       const bool internal=f<m.n_internal_faces();
-      if(!internal && !independent[f-m.n_internal_faces()]) {delta.push_back({});continue;}
+      if(!internal && observations[f-m.n_internal_faces()]==BoundaryObservation::Omitted) {delta.push_back({});continue;}
       const auto n=internal?(m.owner[f]==c?m.neighbour[f]:m.owner[f]):-1;
-      const auto d=(internal?g.cell_centroid[n]:g.face_centroid[f])-g.cell_centroid[c];
+      auto d=(internal?g.cell_centroid[n]:g.face_centroid[f])-g.cell_centroid[c];
+      if(!internal && observations[f-m.n_internal_faces()]==BoundaryObservation::NormalFootValue) {
+        const auto area=g.face_area[f];d=area*(dot(d,area)/dot(area,area));
+      }
       const double weight=1/dot(d,d),x[]{d.x,d.y,d.z};
       delta.push_back(d*weight);
       for(int r=0;r<3;++r) for(int k=0;k<3;++k) a[r][k]+=weight*x[r]*x[k];

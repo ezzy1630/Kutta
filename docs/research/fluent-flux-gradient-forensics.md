@@ -2,6 +2,15 @@
 
 Date: 2026-10-29. Companion to `fluent-sst-forensics.md` (the "SST report") and `fluent-numerics-and-files.md` (the "main report"). Same data: Fluent's mixing-elbow example, `validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5` + `.dat.h5`, written by Fluent 22.2 in double precision (`rp-double? #t`).
 
+**Implementation qualification, 2026-10-29:** the side-mean inference below is
+incomplete. It fits this saved flux substantially better, but its implementation
+loses hex wall-load order and adds tet solution-order failures. Affine exactness
+does not resolve the wall-layer curvature defect. The solver retains the
+second-order point formulation; see the later interpolation-order section of
+[`VERIFICATION.md`](../../src/kutta/fv/VERIFICATION.md). Sections 3 and 5 of
+`face_flux.py` now compare the rejected corrections and retained boundary policy.
+"Kutta today" in the original tables means the historical pre-round-1 solver.
+
 **Question.** Kutta's SST solver converges about 3.9 % (velocity), 3.1 % (pressure) and 15.6 % (k) away from Fluent on this mesh. At Fluent's saved fields its scaled residuals are about 1000× Fluent's, continuity included. Which discrete formulas differ?
 
 **Tags** (as in the SST report)

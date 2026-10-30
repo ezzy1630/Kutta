@@ -8,8 +8,9 @@ should miss SV_FLUX by ~1e-5 of |F| per face. The tests:
   2. regressions of F - (mean of unlimited LSQ side reconstructions) on candidate terms,
      on interior faces >= 3 hops from boundaries whose two cells the limiter leaves alone
      (plus one on all deep faces for the limiter itself);
-  3. the assembled formula against Kutta's current kernel formula on every face (error, divergence);
+  3. the assembled formula against historical and corrected candidates (error, divergence);
   4. the pressure-outlet formula.
+  5. the affine boundary policies and retained point formula.
 a_P is a proxy built from the saved fluxes (upwind outflow + mu_eff diffusion), not Fluent's.
 Usage: python -I face_flux.py [case_dir] [stem] [cache_dir]   (see cff.py)
 """
@@ -167,12 +168,42 @@ def main():
     d_kutta = rr * 0.5 * (ctx.vol[c0[I]] / a0 + ctx.vol[c1[I]] / a1) * geo
     g_nowall = fvops.barth_jespersen(ctx, U, Ub, ctx.apply(fvops.lsq(ctx, 2, wall_rows=False), U, Ub))
     n0, n1 = side_fluxes(g_nowall)
+    def point_flux(gu):
+        uf = w[:, None] * U[c0[I]] + (1 - w)[:, None] * U[c1[I]]
+        uf += 0.5 * np.einsum("ni,nij->nj", rx, gu[c0[I]] + gu[c1[I]])
+        return rr * np.einsum("ij,ij->i", uf, S[I])
+
+    side = w * s0 + (1 - w) * s1
+    point = point_flux(gl)
+    curvature = side - point
+    # Twice the face diffusion competes with advective transport. No fitted
+    # constant: this is the same |F|/(|F|+2D) face Peclet ratio as the solver.
+    D = 0.5 * ((mu + mut)[c0[I]] + (mu + mut)[c1[I]]) * geo
+    viscous_fraction = 2 * D / (np.abs(Fi) + 2 * D)
+    cell_advective = (out[c0[I]] + out[c1[I]]) / (a0 + a1)
+    product_advective = (out[c0[I]] / a0) * (out[c1[I]] / a1)
+    cell_face_flux = rr * np.abs(np.einsum("ij,ij->i", 0.5 * (U[c0[I]] + U[c1[I]]), S[I]))
+    face_advective = cell_face_flux / (cell_face_flux + 2 * D)
+    rc = d_kutta * jump_rec(gp_mom)
+    # Momentum-weighted V/a must be paired with the corresponding V-weighted
+    # gradient. On skew faces the volume-weighted displacement replaces r0/r1.
+    vp, vn = ctx.vol[c0[I]], ctx.vol[c1[I]]
+    gv = (vp[:, None] * gp_mom[c0[I]] + vn[:, None] * gp_mom[c1[I]]) / (vp + vn)[:, None]
+    volume_rc = d_f * (p[c0[I]] - p[c1[I]] + np.einsum("ij,ij->i", gv, ctx.d))
     formulas = {
         "Fluent candidate: a_P-wtd limited recon + RC(momentum grad)": w * s0 + (1 - w) * s1 + d_f * jump_rec(gp_mom),
         "  same, wall faces dropped from wall-cell LSQ": w * n0 + (1 - w) * n1 + d_f * jump_rec(gp_mom),
         "  same, unlimited velocity gradient": w * v0 + (1 - w) * v1 + d_f * jump_rec(gp_mom),
         "  same, RC jump with LSQ pressure gradient": w * s0 + (1 - w) * s1 + d_f * jump_rec(gp_lsq),
-        "Kutta kernels today (fv_momentum_faces + fv_rhie_chow)": rr * np.einsum("ij,ij->i", uk, S[I]) + d_kutta * jump_rec(gp_lsq),
+        "Historical pre-round-1 point/unlimited + RC(LSQ)": rr * np.einsum("ij,ij->i", uk, S[I]) + d_kutta * jump_rec(gp_lsq),
+        "Round-1 side/limited + mean(V/a) RC(momentum)": side + rc,
+        "Point/limited + round-1 pressure operators": point + rc,
+        "Point/unlimited + limited side increments": point_flux(g2) + side - (w * v0 + (1 - w) * v1) + rc,
+        "Side/limited + volume-weighted consistent RC": side + volume_rc,
+        "Face-Peclet curvature correction + branch RC": side - viscous_fraction * curvature + rc,
+        "Momentum-Peclet curvature correction + branch RC": point + cell_advective * curvature + rc,
+        "Product-Peclet curvature correction + branch RC": point + product_advective * curvature + rc,
+        "Cell-velocity face-Peclet correction + branch RC": point + face_advective * curvature + rc,
     }
     for name, Fint in formulas.items():
         Fa = flux.copy()
@@ -180,7 +211,7 @@ def main():
         dv = divergence(ctx, Fa)
         e = np.abs(Fint - Fi) / np.abs(Fi)
         by = " ".join(f"L{L}:{dv[layer == L].sum():.1e}" for L in (1, 2, 3, 99))
-        print(f"  {name:62s} |err|/|F| median {np.median(e):.2e} p90 {np.quantile(e, .9):.2e} | sum|div| {dv.sum():.3e} kg/s ({by})")
+        print(f"  {name:62s} |err|/|F| median {np.median(e):.6e} p90 {np.quantile(e, .9):.6e} quiet {np.median(e[quiet]):.6e} | sum|div| {dv.sum():.6e} kg/s ({by})")
 
     print("\n4. Pressure outlet: F = rho S.u_b + d_b [(p_c + G r_b) - p_b], d_b = rho V/a_P |A|^2/(A.r_b)")
     z = next(z for z in m["zones"] if z["type"] == 5)
@@ -195,6 +226,54 @@ def main():
             c = np.dot(db * Jb, base_) / np.dot(db * Jb, db * Jb)
             print(f"  u_b = {vname:31s} J with {jname:14s}: |err|/|F| median no RC {np.median(np.abs(base_) / np.abs(flux[s])):.2e}, "
                   f"RC x1 {np.median(np.abs(base_ - db * Jb) / np.abs(flux[s])):.2e}, fitted RC coef {c:.3f}")
+
+    print("\n5. Affine boundary observations and curvature correction (same physical a_P proxy; saved boundary fluxes):")
+    # A symmetry observation is a projected cell value at the normal foot,
+    # not a prescribed value at the tangentially displaced face centroid.
+    gu = ctx.apply(fvops.lsq(ctx, 2, normal_types=(7,), omit_types=(5,)), U, Ub)
+    gu = fvops.barth_jespersen(ctx, U, Ub, gu)
+    q0, q1 = side_fluxes(gu)
+    side_bc = w * q0 + (1 - w) * q1
+    point_bc = point_flux(gu)
+    for label, gp in (("stored zero-difference pressure rows", gp_lsq),
+                      ("extrapolated pressure fixed point", ctx.apply(fvops.lsq(ctx, 2, omit_types=(3, 7, 10)), p, pb))):
+        pf = pface.copy()
+        pf[I] = 0.5 * (p[c0[I]] + p[c1[I]] + np.einsum("ij,ij->i", gp[c0[I]], ctx.r0)
+                       + np.einsum("ij,ij->i", gp[c1[I]], ctx.r1))
+        rb_all = ctx.fc[B] - ctx.cen[c0[B]]
+        extrapolated = ctx.zone_type[B] != 5
+        pf[B[extrapolated]] = (p[c0[B]] + np.einsum("ij,ij->i", gp[c0[B]], rb_all))[extrapolated]
+        gm = np.zeros((n, 3))
+        np.add.at(gm, c0, pf[:, None] * S)
+        np.add.at(gm, c1[I], -pf[I, None] * S[I])
+        gm /= ctx.vol[:, None]
+        if label == "stored zero-difference pressure rows":
+            gu_original = ctx.apply(fvops.lsq(ctx, 2, omit_types=(5,)), U, Ub)
+            gu_original = fvops.barth_jespersen(ctx, U, Ub, gu_original)
+            original_s0, original_s1 = side_fluxes(gu_original)
+            for name, vel in (("side", w * original_s0 + (1 - w) * original_s1),
+                              ("point-only", point_flux(gu_original))):
+                pred = vel + d_kutta * jump_rec(gm)
+                fa = flux.copy();fa[I] = pred
+                e = np.abs(pred - Fi) / np.abs(Fi)
+                print(f"  Original branch boundary rows; momentum GG RC; {name}: median {np.median(e):.6e} "
+                      f"quiet {np.median(e[quiet]):.6e} p90 {np.quantile(e,.9):.6e} "
+                      f"sum|div| {divergence(ctx,fa).sum():.6e}")
+        gv = (vp[:, None] * gp[c0[I]] + vn[:, None] * gp[c1[I]]) / (vp + vn)[:, None]
+        jvolume = p[c0[I]] - p[c1[I]] + np.einsum("ij,ij->i", gv, ctx.d)
+        corrections = (("LSQ RC", d_kutta * jump_rec(gp)), ("momentum GG RC", d_kutta * jump_rec(gm)),
+                       ("volume-consistent LSQ RC", d_f * jvolume))
+        for jlabel, correction in corrections:
+            variants = (("point", point_bc),
+                        ("momentum-Peclet", point_bc + cell_advective * (side_bc - point_bc)),
+                        ("product-Peclet", point_bc + product_advective * (side_bc - point_bc)),
+                        ("face-Peclet", point_bc + face_advective * (side_bc - point_bc)))
+            for name, vel in variants:
+                pred = vel + correction
+                fa = flux.copy();fa[I] = pred
+                e = np.abs(pred - Fi) / np.abs(Fi)
+                print(f"  {label}; {jlabel}; {name}: median {np.median(e):.6e} quiet {np.median(e[quiet]):.6e} "
+                      f"p90 {np.quantile(e,.9):.6e} sum|div| {divergence(ctx,fa).sum():.6e}")
 
 
 def cff_settings(case_dir, stem):

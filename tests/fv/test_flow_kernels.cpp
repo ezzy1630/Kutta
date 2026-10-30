@@ -31,8 +31,8 @@ TEST_CASE("FV momentum face interpolation is affine exact with unequal diagonals
     for(Index f=0;f<m.n_faces;++f) CHECK(got[f]==doctest::Approx(value(g.face_centroid[f])).epsilon(1e-6));
     CHECK(dev->download(face.y)==got);CHECK(dev->download(face.z)==got);
     if(baseline.empty()) baseline=got;else CHECK(got==baseline);
-    // Non-affine side gradients distinguish independent reconstructions from
-    // the old weighted-point/mean-gradient formula. Outlets use the cell value.
+    // Unequal side gradients distinguish a shared point correction from
+    // independent side reconstructions. Outlets use the cell value.
     std::vector<float> gx(mesh.n_cells),gy(mesh.n_cells),gz(mesh.n_cells);
     for(Index c=0;c<mesh.n_cells;++c) {gx[c]=float(c%5)*.2f;gy[c]=float(c%3)*.3f;gz[c]=float(c%7)*.1f;}
     dev->upload<float>(gradient.x,gx);dev->upload<float>(gradient.y,gy);dev->upload<float>(gradient.z,gz);
@@ -48,8 +48,9 @@ TEST_CASE("FV momentum face interpolation is affine exact with unequal diagonals
       if(f<m.n_internal_faces) {
         const auto n=mesh.neighbour[f];const double weight=diagonal[c]/(diagonal[c]+diagonal[n]);
         const auto rc=g.face_centroid[f]-g.cell_centroid[c],rn=g.face_centroid[f]-g.cell_centroid[n];
-        expected=weight*(cell[c]+dot(Vec3d{gx[c],gy[c],gz[c]},rc))
-          +(1-weight)*(cell[n]+dot(Vec3d{gx[n],gy[n],gz[n]},rn));
+        const Vec3d gc{gx[c],gy[c],gz[c]},gn{gx[n],gy[n],gz[n]};
+        const double point=weight*cell[c]+(1-weight)*cell[n]+dot((gc+gn)*.5,rc*weight+rn*(1-weight));
+        expected=point;
       }
       CHECK(got[f]==doctest::Approx(expected).epsilon(1e-6));
     }

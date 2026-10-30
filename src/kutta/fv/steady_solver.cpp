@@ -64,9 +64,9 @@ struct SteadySolver::Impl {
   Buffer<float> wall_diagonal,wall_rhs,physical_diagonal,consistent_inverse;
   DeviceVec3 transpose_stress;
   DeviceVec3 velocity,body,boundary_velocity,prescribed_velocity,source,face_velocity;
-  Buffer<float> pressure,mass,viscosity,boundary_pressure,pressure_observation,prescribed_pressure;
+  Buffer<float> pressure,mass,viscosity,boundary_pressure,prescribed_pressure;
   Buffer<Index> boundary_kind,scalar_kind;
-  DeviceVec3 grad_p,momentum_grad_p,limited_gradient[3];
+  DeviceVec3 grad_p,limited_gradient[3];
   std::unique_ptr<TransportEquation> momentum[3];
   std::shared_ptr<CsrMatrix> pressure_matrix;
   std::unique_ptr<LinearSolver> pressure_solver;
@@ -113,14 +113,12 @@ struct SteadySolver::Impl {
     const auto n=mesh.n_cells,nf=mesh.n_faces,nb=mesh.n_boundary_faces();
     velocity=vector_field(dev,n);face_velocity=vector_field(dev,nf);body=vector_field(dev,n);source=vector_field(dev,n);
     boundary_velocity=vector_field(dev,nb);prescribed_velocity=vector_field(dev,nb);
-    momentum_grad_p=vector_field(dev,n);
     for(auto& g:limited_gradient) g=vector_field(dev,n);
     grad_p=vector_field(dev,n);grad_correction=vector_field(dev,n);absolute_residual=vector_field(dev,n);
     fluent_scale=vector_field(dev,n);
     pressure=dev.alloc<float>(n);dev.fill(pressure,0);
     mass=dev.alloc<float>(nf);dev.fill(mass,0);viscosity=dev.alloc<float>(nf);dev.fill(viscosity,float(settings.viscosity));
     boundary_pressure=dev.alloc<float>(nb);dev.fill(boundary_pressure,0);
-    pressure_observation=dev.alloc<float>(nb);
     prescribed_pressure=dev.alloc<float>(nb);boundary_kind=dev.alloc<Index>(nb);scalar_kind=dev.alloc<Index>(nb);
     pressure_rhs=dev.alloc<float>(n);correction=dev.alloc<float>(n);dev.fill(correction,0);
     correction_boundary=dev.alloc<float>(nb);dev.fill(correction_boundary,0);
@@ -151,11 +149,12 @@ struct SteadySolver::Impl {
     }
     pressure_speed=outlet?.1*std::sqrt((pmax-pmin)/settings.density):0;
     dev.upload<Index>(total_pressure,totals);
-    std::vector<Index> independent_velocity(nb),independent_pressure(nb),independent_k(nb),independent_omega(nb);
+    using enum BoundaryObservation;
+    std::vector<BoundaryObservation> independent_velocity(nb),independent_pressure(nb),independent_k(nb),independent_omega(nb);
     for(Index b=0;b<nb;++b) {
-      independent_velocity[b]=kinds[b]==0 || kinds[b]==1 || kinds[b]==3;
-      independent_pressure[b]=1;
-      independent_k[b]=kinds[b]==1;independent_omega[b]=kinds[b]==0 || kinds[b]==1;
+      independent_velocity[b]=kinds[b]==3?NormalFootValue:((kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted);
+      independent_pressure[b]=(kinds[b]==2 || kinds[b]==4)?FaceValue:Omitted;
+      independent_k[b]=kinds[b]==1?FaceValue:Omitted;independent_omega[b]=(kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted;
     }
     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
     upload_vectors(dev,prescribed_velocity,velocities);
@@ -164,8 +163,8 @@ struct SteadySolver::Impl {
     velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity);
     pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure);
     if(settings.sst) {
-      std::vector<Index> strain_rows(nb);
-      for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0;
+      std::vector<BoundaryObservation> strain_rows(nb);
+      for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;
       strain_lsq=boundary_least_squares(dev,host,geom,strain_rows);
       jump_fit=face_jump_least_squares(dev,host,geom);
       for(int k=0;k<3;++k) {strain_base[k]=vector_field(dev,n);strain_gradient[k]=vector_field(dev,n);}
@@ -335,9 +334,7 @@ struct SteadySolver::Impl {
       momentum[0]->grad,momentum[1]->grad,momentum[2]->grad);
   }
   void reconstruct_pressure(const Buffer<float>& field,const Buffer<float>& boundary,DeviceVec3& grad) {
-    kern::fv_pressure_lsq_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
-      field,boundary,pressure_observation,mesh.n_internal_faces);
-    gradient(dev,mesh,stencil,pressure_lsq,field,pressure_observation,grad);
+    gradient(dev,mesh,stencil,pressure_lsq,field,boundary,grad);
   }
   void update_pressure() {
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
@@ -353,13 +350,6 @@ struct SteadySolver::Impl {
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,face_pressure,pressure_jump,mesh.n_internal_faces);
-    kern::fv_green_gauss(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
-      mesh.area.x,mesh.area.y,mesh.area.z,face_pressure,mesh.volume,
-      momentum_grad_p.x,momentum_grad_p.y,momentum_grad_p.z);
-    kern::fv_pressure_jump(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
-      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
-      mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
-      pressure,momentum_grad_p.x,momentum_grad_p.y,momentum_grad_p.z,boundary_pressure,pressure_jump,mesh.n_internal_faces);
   }
   void update_flux() {
     reconstruct_velocity();

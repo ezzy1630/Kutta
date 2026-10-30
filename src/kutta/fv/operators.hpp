@@ -25,10 +25,12 @@ struct BoundaryLeastSquares {
   DeviceVec3 delta;
   Buffer<float> inverse;
 };
-// Zero entries omit extrapolated (self-referential) boundary observations.
+enum class BoundaryObservation { Omitted, FaceValue, NormalFootValue };
+// A projected cell value at symmetry is located at the normal foot, rather
+// than at the tangentially displaced face centroid. Extrapolated data is omitted.
 // Missing directions receive zero-difference rows in the null space only.
 BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& mesh,
-    const MeshGeometry& geometry,std::span<const Index> independent_boundary);
+    const MeshGeometry& geometry,std::span<const BoundaryObservation> observations);
 void gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
     const BoundaryLeastSquares& lsq,const Buffer<float>& cell,
     const Buffer<float>& boundary,DeviceVec3& result);

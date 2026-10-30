@@ -58,10 +58,10 @@ KUTTA_KERNEL void fv_boundary_momentum(int i,KIn(int) offsets,KIn(int) faces,KIn
     float uc=component==0?u[i]:(component==1?v[i]:w[i]);
     float wc=component==0?bu[bf]:(component==1?bv[bf]:bw[bf]);
     if(kind[bf]==3) {
-      // Retain the normal coefficient in a_P for conditioning and Fluent's
-      // residual scale, with an equal explicit term: net symmetry force zero.
+      // Symmetry prescribes zero normal velocity and zero tangential traction.
+      // Cancelling this normal term with d*u leaves the normal velocity free.
       float d=mu[f]*diffusion[f]*nc*nc;
-      ap+=d;b+=d*uc;continue;
+      ap+=d;b-=mu[f]*diffusion[f]*nc*(nx*u[i]+ny*v[i]+nz*w[i]-nc*uc);continue;
     }
     float c=area*coefficient[bf];
     ap+=c*(1.0f-nc*nc);

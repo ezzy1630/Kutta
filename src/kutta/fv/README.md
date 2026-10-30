@@ -119,11 +119,16 @@ The pressure update is capped at `0.7*aP_physical*consistent_inverse` when
 pseudo time makes the correction coefficient smaller than the Rhie–Chow
 coefficient. This damps pressure overshoot without changing the steady equations.
 Pressure face values use the second-order reconstruction in the design spec.
-Momentum-weighted face velocities average the two limited side reconstructions
-with physical a_P weights. Outlet flux predictors use cell velocity. The
-Rhie–Chow pressure jump uses momentum's own gradient, Green–Gauss of those same
-second-order face pressures. The exact Fluent high-order Rhie–Chow correction
-and complete warped-face gradient correction remain open.
+Momentum-weighted face velocities use a shared limited gradient to correct the
+weighted cell point to the face centroid. The independently reconstructed side
+mean was rejected by the V2 wall-load refinement gates. Outlet flux predictors
+use cell velocity. Rhie–Chow uses the LSQ-reconstructed pressure jump; the
+momentum Green–Gauss alternative adds tet pressure-order failures. Pressure
+LSQ omits extrapolated observations, and projected symmetry velocity values
+are located at the normal foot of the cell centroid. Symmetry retains its
+zero-normal-velocity constraint and zero tangential traction. All flow models
+use this policy. See the dated interpolation investigation in VERIFICATION.md;
+Fluent's high-order flux and complete warped-face correction remain open.
 
 Closed domains pin the cell containing `reference_point` (Fluent's reference
 pressure location, default the origin; nearest centroid if no cell contains

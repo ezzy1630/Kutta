@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <numbers>
@@ -73,6 +74,22 @@ Errors manufactured(Device& dev,int n,bool tet,int max_iterations=2000) {
   double eu=0,ep=0,vol=0,mean=0;
   for(Index c=0;c<solver.mesh().n_cells;++c) {mean+=g.cell_volume[c]*(p[c]-exact_pressure(g.cell_centroid[c]));vol+=g.cell_volume[c];}
   mean/=vol;
+  // Resolve the wall layers separately: a thin O(h) pressure error can be
+  // obscured by a domain L2 norm while dominating the integrated load.
+  if(!tet) for(int layer=0;layer<3;++layer) {
+    double square_u=0,square_p=0,layer_volume=0;
+    for(Index c=0;c<solver.mesh().n_cells;++c) {
+      const auto x=g.cell_centroid[c];
+      const int distance=int(n*std::min({x.x,1-x.x,x.y,1-x.y}));
+      if(std::min(distance,2)!=layer) continue;
+      const auto q=exact_velocity(x);const double dv=g.cell_volume[c];
+      square_u+=dv*(std::pow(u[c]-q.x,2)+std::pow(v[c]-q.y,2)+std::pow(w[c]-q.z,2));
+      square_p+=dv*std::pow(p[c]-exact_pressure(x)-mean,2);layer_volume+=dv;
+    }
+    std::cout<<"FV_V2_LAYER backend="<<backend_name(dev.backend())<<" n="<<n<<" layer="<<layer+1
+      <<" volume_fraction="<<layer_volume/vol<<" u_L2="<<std::sqrt(square_u/layer_volume)
+      <<" p_L2="<<std::sqrt(square_p/layer_volume)<<" p_square_integral="<<square_p<<std::endl;
+  }
   for(Index c=0;c<solver.mesh().n_cells;++c) {
     auto exact=exact_velocity(g.cell_centroid[c]);
     eu+=g.cell_volume[c]*(std::pow(u[c]-exact.x,2)+std::pow(v[c]-exact.y,2)+std::pow(w[c]-exact.z,2));
@@ -112,12 +129,14 @@ Errors manufactured(Device& dev,int n,bool tet,int max_iterations=2000) {
   const double eft=kutta::detail::norm(force.force()-exact_p-exact_v)/span;
   std::cout<<"FV_V2_FORCE backend="<<backend_name(dev.backend())<<" tet="<<tet<<" n="<<n
     <<" pressure_x="<<force.pressure.x/span<<" viscous_y="<<force.viscous.y/span
+    <<" viscous_x="<<force.viscous.x/span
     <<" pressure_error="<<efp<<" viscous_error="<<efv<<" total_error="<<eft<<std::endl;
   return {eu,ep,efp,efv,eft};
 }
 }
 
 void check_refinement(Device& dev,bool tet) {
+  if(const auto* selected=std::getenv("KUTTA_V2_BACKEND");selected && std::string_view(backend_name(dev.backend()))!=selected) return;
   Errors old{};double old_operator=0;
   for(int n:tet?std::vector<int>{4,8,16}:std::vector<int>{8,16,32}) {
     const auto e=manufactured(dev,n,tet);

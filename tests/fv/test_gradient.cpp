@@ -126,12 +126,39 @@ TEST_CASE("FV extrapolated boundaries cannot preserve seeded null-space gradient
       dev->upload<float>(bc,boundary);fv::gradient(*dev,m,s,cell,bc,grad);
     }
     CHECK(dev->max_abs(grad.x,m.n_cells)>.01);
-    const std::vector<Index> independent(m.n_boundary_faces(),0);
+    const std::vector<fv::BoundaryObservation> independent(m.n_boundary_faces(),fv::BoundaryObservation::Omitted);
     auto lsq=fv::boundary_least_squares(*dev,host,geom,independent);
     fv::gradient(*dev,m,s,lsq,cell,bc,grad);
     CHECK(dev->max_abs(grad.x,m.n_cells)==0);
     CHECK(dev->max_abs(grad.y,m.n_cells)==0);
     CHECK(dev->max_abs(grad.z,m.n_cells)==0);
+  }
+}
+
+TEST_CASE("FV projected symmetry observations preserve tangential affine gradients") {
+  using namespace kutta::detail;
+  auto mesh=make_box_tet(3,3,3,{0,0,0},{1,1,1});const auto geom=compute_geometry(mesh);
+  const auto value=[](Vec3d p) {return float(1+.3*p.x-.2*p.y);};
+  std::vector<float> cell,boundary;
+  for(auto x:geom.cell_centroid) cell.push_back(value(x));
+  std::vector<fv::BoundaryObservation> observations;
+  for(Index f=mesh.n_internal_faces();f<mesh.n_faces();++f) {
+    const bool symmetry=std::abs(geom.face_area[f].z)>0;
+    observations.push_back(symmetry?fv::BoundaryObservation::NormalFootValue:fv::BoundaryObservation::FaceValue);
+    boundary.push_back(symmetry?cell[mesh.owner[f]]:value(geom.face_centroid[f]));
+  }
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=upload_mesh(*dev,mesh,geom);auto stencil=fv::make_stencil(*dev,mesh,geom);
+    auto lsq=fv::boundary_least_squares(*dev,mesh,geom,observations);
+    auto q=dev->upload<float>(cell),bc=dev->upload<float>(boundary);
+    auto grad=fv::vector_field(*dev,m.n_cells);
+    fv::gradient(*dev,m,stencil,lsq,q,bc,grad);
+    const auto x=dev->download(grad.x),y=dev->download(grad.y),z=dev->download(grad.z);
+    for(Index c=0;c<m.n_cells;++c) {
+      CHECK(x[c]==doctest::Approx(.3).epsilon(1e-5));
+      CHECK(y[c]==doctest::Approx(-.2).epsilon(1e-5));
+      CHECK(std::abs(z[c])<1e-5);
+    }
   }
 }
 
