@@ -6,7 +6,7 @@
 namespace kutta::fv {
 SaTransport::SaTransport(Device& d,const DeviceMesh& m,const Stencil& s,const PolyMesh& h,
     const MeshGeometry& g,const std::map<std::string,BoundaryCondition>& bc,const SolverSettings& o,
-    std::shared_ptr<CsrMatrix> matrix)
+    std::shared_ptr<CsrMatrix> matrix,std::shared_ptr<const WalkFaceReconstruction> shared_faces)
     :dev_(d),mesh_(m),stencil_(s),settings_(*o.sa),rho_(float(o.density)),mu_(float(o.viscosity)),limit_(o.limit),
     model_(d,m,settings_.model),equation_(d,m,s,h,g,std::move(matrix)) {
   KUTTA_REQUIRE(std::isfinite(settings_.relaxation) && settings_.relaxation>0 && settings_.relaxation<=1,"SA: invalid relaxation");
@@ -38,6 +38,7 @@ SaTransport::SaTransport(Device& d,const DeviceMesh& m,const Stencil& s,const Po
     }
   }
   spec_=d.upload<Index>(spec);values_=d.upload<float>(values);length_=d.upload<float>(lengths);lsq_=boundary_least_squares(d,h,g,observations);
+  equation_.set_reconstruction(walk_reconstruction(std::move(shared_faces),d,h,g,m,s,observations));
   wall_mask_=d.upload<float>(wall);wall_fields_.shear=vector_field(d,nb);wall_fields_.y_plus=d.alloc<float>(nb);
 }
 void SaTransport::initialize(std::span<const double> values,const MeshPermutation& permutation) {

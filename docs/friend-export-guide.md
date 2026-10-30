@@ -46,8 +46,8 @@ WFGC already off records no approximation. The original case is never changed.
 
 The [V6 initialization comparison](../src/kutta/fv/VERIFICATION.md#v6-initialization-comparison)
 measures the WFGC-disabled mixing-elbow diagnostic against Fluent: CPU hybrid
-velocity L2 **3.601459%**, pressure L2 **2.961922%**, k L2 **15.478919%**, omega
-L2 **8.474918%**, and pressure-drop error **1.185077%**. These include other
+velocity L2 **3.363203%**, pressure L2 **2.686921%**, k L2 **14.705141%**, omega
+L2 **2.820859%**, and pressure-drop error **1.986545%**. These include other
 solver discrepancies; they do not isolate WFGC's effect or bound errors on a car.
 The original same-settings accuracy gate remains unmet.
 

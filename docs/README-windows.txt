@@ -53,8 +53,8 @@ and the error names the opt-in. Permission has no effect when WFGC is off.
 
 Effect documented in src/kutta/fv/VERIFICATION.md, "V6 initialization comparison":
 the CPU hybrid mixing-elbow diagnostic with WFGC off differed from Fluent by
-3.601459% velocity L2, 2.961922% pressure L2, 15.478919% k L2, 8.474918% omega
-L2 and 1.185077% pressure drop. These are combined solver discrepancies, not
+3.363203% velocity L2, 2.686921% pressure L2, 14.705141% k L2, 2.820859% omega
+L2 and 1.986545% pressure drop. These are combined solver discrepancies, not
 isolated WFGC errors or bounds for your case. This is an approximate diagnostic,
 not a faithful reproduction or an accepted same-settings accuracy result.
 

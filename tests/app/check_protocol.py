@@ -44,7 +44,7 @@ for name, status in [("tiny", "supported"), ("wfgc", "approximate"), ("unsupport
         assert issue["setting"] and issue["label"] and len(issue["explanation"]) > 80
     if name == "wfgc":
         [issue] = [i for i in summary["support"]["issues"] if i["class"] == "approximable"]
-        assert issue["approximation"] == "wfgc" and "3.601459%" in issue["explanation"]
+        assert issue["approximation"] == "wfgc" and "3.363203%" in issue["explanation"]
         assert "not isolated WFGC error" in issue["explanation"] and issue["evidence"]
     if name == "unsupported":
         assert {"curvature-correction?", "pseudo-time-step", "omega/default", "sst-pk-factor"} <= {i["setting"] for i in summary["support"]["issues"]}

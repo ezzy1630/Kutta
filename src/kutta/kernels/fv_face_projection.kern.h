@@ -88,7 +88,9 @@ KUTTA_KERNEL void fv_projected_transport_faces(int i, KIn(int) owner, KIn(int) n
     if(kind[i-internal]!=0) x=y=z=0.0f;
     if(flux[i]>0.0f && kind[i-internal]!=2) conv=limiter[p]*(gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])*flux[i];
   }
-  float diffusion=reconstructed_mask[i]!=0?reconstructed_correction[i]:x*tx[i]+y*ty[i]+z*tz[i];
+  // Like the legacy kernel, only Dirichlet boundary faces carry diffusion.
+  int dirichlet=i<internal || kind[i-internal]==0;
+  float diffusion=reconstructed_mask[i]!=0 && dirichlet!=0?reconstructed_correction[i]:x*tx[i]+y*ty[i]+z*tz[i];
   correction[i]=mu[i]*diffusion-(second_order!=0?conv:0.0f);
 }
 

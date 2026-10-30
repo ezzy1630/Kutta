@@ -252,8 +252,8 @@ QString approximationNotice(const RunSpec& r)
 {
     if (r.approximations.isEmpty()) return {};
     QString n = "APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without "
-                "warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, "
-                "pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver "
+                "warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.363203%, "
+                "pressure L2 2.686921%, k L2 14.705141%, omega L2 2.820859%, pressure-drop error 1.986545%; combined solver "
                 "discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison";
     return n;
 }

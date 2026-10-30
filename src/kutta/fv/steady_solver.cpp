@@ -108,6 +108,8 @@ struct SteadySolver::Impl {
   DeviceVec3 grad_p,limited_gradient[3];
   std::unique_ptr<TransportEquation> momentum[3];
   std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction;
+  std::shared_ptr<const WalkFaceReconstruction> turbulent_faces;
+  std::shared_ptr<const FaceReconstruction> velocity_faces;
   DeviceVec3 projected_gradient[3];
   std::shared_ptr<CsrMatrix> pressure_matrix;
   // Momentum, turbulence and pressure solves never interleave, so their
@@ -271,11 +273,23 @@ struct SteadySolver::Impl {
       const auto nonsmooth=discontinuous_wall_cells(host,boundaries,frames);
       diffusion_reconstruction=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,independent_velocity,nonsmooth);
       if(diffusion_reconstruction->corrected_faces()==0) diffusion_reconstruction.reset();
+      velocity_faces=diffusion_reconstruction;
+    } else if(!green_gauss) {
+      // Turbulent models use the compact walk-weighted fit. A wall function
+      // owns the wall-to-cell profile, so SST and k-epsilon wall values stay
+      // out of the fit, as they do from SST's strain LSQ. Resolved SA walls
+      // are Dirichlet data, like laminar walls.
+      auto observed=independent_velocity;
+      if(!settings.sa) for(Index b=0;b<nb;++b) if(kinds[b]==0) observed[b]=Omitted;
+      const auto nonsmooth=settings.sa?discontinuous_wall_cells(host,boundaries,frames):std::vector<Index>{};
+      turbulent_faces=std::make_shared<WalkFaceReconstruction>(dev,host,geom,mesh,stencil,observed,nonsmooth);
+      if(turbulent_faces->corrected_faces()==0) turbulent_faces.reset();
+      velocity_faces=turbulent_faces;
     }
     if(diffusion_reconstruction) {
       for(auto& g:projected_gradient) g=vector_field(dev,nf);
     }
-    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,diffusion_reconstruction,krylov_workspace);
+    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,velocity_faces,krylov_workspace);
     velocity_lsq=fit(independent_velocity);
     pressure_lsq=fit(independent_pressure);
     if(settings.sst) {
@@ -315,16 +329,21 @@ struct SteadySolver::Impl {
         }
       }
       turbulence_spec=dev.upload<Index>(specs);turbulence_a=dev.upload<float>(a);turbulence_b=dev.upload<float>(b);
-      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,nullptr,krylov_workspace);
-      omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,nullptr,krylov_workspace);
+      // Wall omega is the wall treatment's value, not a smooth trace.
+      auto omega_observed=independent_omega;
+      for(Index b=0;b<nb;++b) if(kinds[b]==0) omega_observed[b]=Omitted;
+      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
+        walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,independent_k),krylov_workspace);
+      omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
+        walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,omega_observed),krylov_workspace);
       sst=std::make_unique<SstModel>(dev,mesh,t.model);
     }
     if(settings.sa) {
-      sa=std::make_unique<SaTransport>(dev,mesh,stencil,host,geom,boundaries,settings,pressure_matrix);
+      sa=std::make_unique<SaTransport>(dev,mesh,stencil,host,geom,boundaries,settings,pressure_matrix,turbulent_faces);
       transpose_stress=vector_field(dev,nf);
     }
     if(settings.realizable_ke) {
-      rke=std::make_unique<RealizableKeTransport>(dev,mesh,stencil,host,geom,boundaries,settings,pressure_matrix);
+      rke=std::make_unique<RealizableKeTransport>(dev,mesh,stencil,host,geom,boundaries,settings,pressure_matrix,turbulent_faces);
       transpose_stress=vector_field(dev,nf);
     }
     CsrMatrixHost initial{stencil.pattern,std::vector<double>(stencil.pattern.nnz(),0)};
@@ -580,10 +599,10 @@ struct SteadySolver::Impl {
       velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
       face_velocity_weights(),boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
       face_velocity.x,face_velocity.y,face_velocity.z,mesh.n_internal_faces);
-    if(diffusion_reconstruction) {
-      diffusion_reconstruction->momentum_values(velocity.x,boundary_velocity.x,face_velocity_weights(),face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
-      diffusion_reconstruction->momentum_values(velocity.y,boundary_velocity.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
-      diffusion_reconstruction->momentum_values(velocity.z,boundary_velocity.z,face_velocity_weights(),face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
+    if(velocity_faces) {
+      velocity_faces->momentum_values(velocity.x,boundary_velocity.x,face_velocity_weights(),face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
+      velocity_faces->momentum_values(velocity.y,boundary_velocity.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
+      velocity_faces->momentum_values(velocity.z,boundary_velocity.z,face_velocity_weights(),face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
     }
     kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,

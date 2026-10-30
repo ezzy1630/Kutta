@@ -7,7 +7,8 @@ namespace kutta::fv {
 class SaTransport {
  public:
   SaTransport(Device&,const DeviceMesh&,const Stencil&,const PolyMesh&,const MeshGeometry&,
-    const std::map<std::string,BoundaryCondition>&,const SolverSettings&,std::shared_ptr<CsrMatrix>);
+    const std::map<std::string,BoundaryCondition>&,const SolverSettings&,std::shared_ptr<CsrMatrix>,
+    std::shared_ptr<const WalkFaceReconstruction> shared_faces={});
   void initialize(std::span<const double>,const MeshPermutation&);
   void update(const DeviceVec3&,const DeviceVec3&,const DeviceVec3&,const DeviceVec3&,const DeviceVec3&,const Buffer<Index>&,
     const Buffer<float>& mass,Buffer<float>& face_viscosity);

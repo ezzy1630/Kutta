@@ -34,7 +34,7 @@ class TransportEquation {
   TransportEquation(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
                     const PolyMesh& host, const MeshGeometry& geometry,
                     std::shared_ptr<CsrMatrix> shared_matrix={},
-                    std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction={},
+                    std::shared_ptr<const FaceReconstruction> diffusion_reconstruction={},
                     std::shared_ptr<KrylovWorkspace> workspace={});
   void assemble(const Buffer<float>& field, const Buffer<float>& face_values,
                 const Buffer<Index>& boundary_kind, const Buffer<float>& mass_flux,
@@ -45,6 +45,8 @@ class TransportEquation {
                 const Buffer<Index>& boundary_kind,const Buffer<float>& mass_flux,
                 const Buffer<float>& diffusivity,const Buffer<float>& source,
                 const TransportSettings& settings,TransportTerms terms={});
+  // Null restores the compact secondary-gradient diffusion.
+  void set_reconstruction(std::shared_ptr<const FaceReconstruction> reconstruction);
   SolveStats solve(Buffer<float>& field, const SolveControl& control);
   CsrMatrix& matrix;
   Buffer<float> rhs, diagonal, consistent_inverse;
@@ -56,7 +58,7 @@ class TransportEquation {
   const Stencil& stencil_;
   std::unique_ptr<LinearSolver> solver_;
   Buffer<float> zero_;
-  std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction_;
+  std::shared_ptr<const FaceReconstruction> diffusion_reconstruction_;
   Buffer<float> diffusion_correction_;
 };
 

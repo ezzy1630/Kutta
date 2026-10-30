@@ -4,7 +4,8 @@
 #include "kernels.hpp"
 namespace kutta::fv {
 RealizableKeTransport::RealizableKeTransport(Device& d,const DeviceMesh& m,const Stencil& s,const PolyMesh& h,
-    const MeshGeometry& g,const std::map<std::string,BoundaryCondition>& bc,const SolverSettings& o,std::shared_ptr<CsrMatrix> matrix)
+    const MeshGeometry& g,const std::map<std::string,BoundaryCondition>& bc,const SolverSettings& o,std::shared_ptr<CsrMatrix> matrix,
+    std::shared_ptr<const WalkFaceReconstruction> shared_faces)
     :d_(d),mesh_(m),stencil_(s),settings_(*o.realizable_ke),rho_(float(o.density)),mu_(float(o.viscosity)),limit_(o.limit),
     model_(d,m,settings_.model),k_equation_(d,m,s,h,g,matrix),e_equation_(d,m,s,h,g,std::move(matrix)) {
   for(double relaxation:{settings_.k_relaxation,settings_.epsilon_relaxation})
@@ -43,6 +44,11 @@ RealizableKeTransport::RealizableKeTransport(Device& d,const DeviceMesh& m,const
   // Green-Gauss observes every boundary face value (operators.hpp).
   if(o.gradient==GradientScheme::GreenGaussCell) {k_lsq_=green_gauss_cell(d,h,g);e_lsq_=green_gauss_cell(d,h,g);}
   else {k_lsq_=boundary_least_squares(d,h,g,k_observations);e_lsq_=boundary_least_squares(d,h,g,observations);}
+  // A Green-Gauss case keeps Fluent's documented face split (steady_solver.cpp).
+  if(o.gradient!=GradientScheme::GreenGaussCell) {
+    const auto faces=walk_reconstruction(std::move(shared_faces),d,h,g,m,s,observations);
+    k_equation_.set_reconstruction(faces);e_equation_.set_reconstruction(faces);
+  }
 }
 void RealizableKeTransport::initialize(std::span<const double> kinetic,std::span<const double> dissipation,const MeshPermutation& p) {
   KUTTA_REQUIRE(kinetic.size()==std::size_t(mesh_.n_cells) && dissipation.size()==kinetic.size(),"realizable k-epsilon: initialization size mismatch");
