@@ -5,9 +5,8 @@ KUTTA_KERNEL void fv_transport_faces(int i, KIn(int) owner, KIn(int) neighbour,
     KIn(float) nx, KIn(float) ny, KIn(float) nz,
     KIn(float) tx, KIn(float) ty, KIn(float) tz,
     KIn(float) gx, KIn(float) gy, KIn(float) gz, KIn(float) limiter,
-    KIn(float) flux, KIn(float) mu, KIn(int) kind,KIn(int) reconstructed_mask,
-    KIn(float) reconstructed_correction,KOut(float) correction,
-    int internal, int second_order,int reconstructed_diffusion) {
+    KIn(float) flux, KIn(float) mu, KIn(int) kind, KOut(float) correction,
+    int internal, int second_order) {
   int p=owner[i];
   float x=gx[p],y=gy[p],z=gz[p];
   float conv=0.0f;
@@ -21,8 +20,7 @@ KUTTA_KERNEL void fv_transport_faces(int i, KIn(int) owner, KIn(int) neighbour,
     if(kind[i-internal]!=0) x=y=z=0.0f;
     if(flux[i]>0.0f && kind[i-internal]!=2) conv=limiter[p]*(gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])*flux[i];
   }
-  float diffusion=reconstructed_diffusion!=0 && reconstructed_mask[i]!=0?reconstructed_correction[i]:x*tx[i]+y*ty[i]+z*tz[i];
-  correction[i]=mu[i]*diffusion-(second_order!=0?conv:0.0f);
+  correction[i]=mu[i]*(x*tx[i]+y*ty[i]+z*tz[i])-(second_order!=0?conv:0.0f);
 }
 
 KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,

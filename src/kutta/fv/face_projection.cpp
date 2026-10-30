@@ -59,7 +59,8 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
     const auto rn=face<internal?g.cell_centroid[mesh.neighbour[face]]-g.face_centroid[face]:Vec3d{};
     const double dp=dot(rp,unit_normal),dn=dot(rn,unit_normal);
     // The original stencil already is the normal projection at roundoff.
-    const double roundoff=256*std::numeric_limits<double>::epsilon()*std::max({1.,norm(g.face_centroid[face]),norm(g.cell_centroid[owner])});
+    // Include both cells in the coordinate scale so ownership cannot alter it.
+    const double roundoff=256*std::numeric_limits<double>::epsilon()*std::max({1.,norm(g.face_centroid[face]),norm(g.cell_centroid[owner]),face<internal?norm(g.cell_centroid[mesh.neighbour[face]]):0.});
     if(norm(rp-unit_normal*dp)<=roundoff && norm(rn-unit_normal*dn)<=roundoff) {offsets.push_back(Index(points.size()));continue;}
 
 

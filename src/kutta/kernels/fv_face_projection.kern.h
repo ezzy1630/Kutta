@@ -66,3 +66,29 @@ KUTTA_KERNEL void fv_flux_consistent_gradient(int i,KIn(int) offsets,KIn(int) po
   float correction=(flux-x[i]*sx[i]-y[i]*sy[i]-z[i]*sz[i])/(sx[i]*sx[i]+sy[i]*sy[i]+sz[i]*sz[i]);
   x[i]+=correction*sx[i];y[i]+=correction*sy[i];z[i]+=correction*sz[i];
 }
+
+KUTTA_KERNEL void fv_projected_transport_faces(int i, KIn(int) owner, KIn(int) neighbour,
+    KIn(float) weight, KIn(float) px, KIn(float) py, KIn(float) pz,
+    KIn(float) nx, KIn(float) ny, KIn(float) nz,
+    KIn(float) tx, KIn(float) ty, KIn(float) tz,
+    KIn(float) gx, KIn(float) gy, KIn(float) gz, KIn(float) limiter,
+    KIn(float) flux, KIn(float) mu, KIn(int) kind,KIn(int) reconstructed_mask,
+    KIn(float) reconstructed_correction,KOut(float) correction,
+    int internal, int second_order) {
+  int p=owner[i];
+  float x=gx[p],y=gy[p],z=gz[p];
+  float conv=0.0f;
+  if(i<internal) {
+    int n=neighbour[i]; float w=weight[i];
+    x=w*x+(1.0f-w)*gx[n]; y=w*y+(1.0f-w)*gy[n]; z=w*z+(1.0f-w)*gz[n];
+    int up=flux[i]>=0.0f?p:n;
+    float rx=flux[i]>=0.0f?px[i]:nx[i],ry=flux[i]>=0.0f?py[i]:ny[i],rz=flux[i]>=0.0f?pz[i]:nz[i];
+    conv=limiter[up]*(gx[up]*rx+gy[up]*ry+gz[up]*rz)*flux[i];
+  } else {
+    if(kind[i-internal]!=0) x=y=z=0.0f;
+    if(flux[i]>0.0f && kind[i-internal]!=2) conv=limiter[p]*(gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])*flux[i];
+  }
+  float diffusion=reconstructed_mask[i]!=0?reconstructed_correction[i]:x*tx[i]+y*ty[i]+z*tz[i];
+  correction[i]=mu[i]*diffusion-(second_order!=0?conv:0.0f);
+}
+

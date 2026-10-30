@@ -8,10 +8,10 @@ import math
 from pathlib import Path
 
 
-def summarize(path):
+def summarize(path, prefix="TC_OPERATOR "):
     groups = {}
     for line in path.read_text().splitlines():
-        if not line.startswith("TC_OPERATOR "):
+        if not line.startswith(prefix):
             continue
         fields = dict(item.split("=", 1) for item in line.split()[1:])
         level = int(fields.pop("nr"))
@@ -43,8 +43,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--prefix", default="TC_OPERATOR ")
     args = parser.parse_args()
-    args.output.write_text(json.dumps(summarize(args.input), indent=2, allow_nan=False) + "\n")
+    args.output.write_text(json.dumps(summarize(args.input, args.prefix), indent=2, allow_nan=False) + "\n")
 
 
 if __name__ == "__main__":
