@@ -51,7 +51,9 @@ curvature correction or SA-neg. There is no trip source.
 
 Fluent's documented production/destruction has **no ft2**. The explicit
 `TmrStandard` variant includes ft2=1.2*exp(-.5*chi^2), its matching destruction
-correction, NASA's nonnegative modified-rate safeguard and r<=10. V7 selects
+correction, the TMR Note 1(b) safeguard S-tilde>=.3*Omega (applied here to
+both production and r), and r<=10. The reference codes' particular safeguarding
+choice has not been independently established. V7 selects
 this variant rather than presenting a no-ft2 solve as exact standard SA.
 Both variants use finite-surface BVH nearest-wall distance, not grid-line distance.
 
@@ -94,6 +96,10 @@ by that clipped y-star enters wall production and epsilon, too. k has zero wall
 flux, and wall epsilon rows are constrained at their original row scale. For
 multiple wall faces, the nearest normal distance wins, with face-id tie-break,
 matching SST's deterministic policy; Fluent's corresponding policy is unverified.
+Applying the clipped distance to epsilon/production is an interpretation of the
+TG instruction to replace y-star in wall formulas; no saved Fluent fields have
+established that interpretation. Fixed epsilon targets honor the configured
+epsilon floor, so the row constraint and post-solve field limit agree.
 Wall shear replaces wall-face momentum diffusion, using the existing implicit
 tangential tensor hook and force integrator. k/epsilon use unlimited LSQ scalar
 gradients with independent inlet observations. Velocity rates currently use the

@@ -1,0 +1,38 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+SST Fluent 22.2 mixing_elbow: cpu / CPU reference (serial)
+  mu_t inactive identity n=11066 median=3.72593e-08 p95=1.058e-07 max=1.84469e-07
+  omega gradient change vs saved wall SV_O n=17822 median=0 p95=0.00594253 max=0.00627285
+  model wall omega: max mu_t change=0 limiter changes=0 CDkw changes=2436
+  mu_t limited, inverse-square LSQ n=6756 median=0.0459672 p95=0.142837 max=0.309757
+  mu_t inactive, inverse-square LSQ n=11066 median=4.09554e-08 p95=0.039415 max=0.268265
+  limiter agreement=0.902985 discriminating n=2555 median S ratio=0.999075 median Omega ratio=0.240746 max production/cap=0.359467
+  wall-face reconstruction omega n=2436 median=0.00418607 p95=0.00428162 max=0.00431868
+  wall-cell omega n=2436 median=5.80682e-06 p95=4.24771e-05 max=0.000293143
+  wall y+ (u*) n=2436 median=5.02706e-06 p95=0.000201379 max=0.00175833
+  wall y+ (u_tau) n=2436 median=4.71773e-06 p95=0.000185435 max=0.00198188
+  wall shear force magnitude n=2436 median=9.43589e-06 p95=0.000370035 max=0.00396057
+  wall shear force vector n=2436 median=1.14324e-05 p95=0.000445172 max=0.00543407
+  wall shear vector kernel/double-oracle n=2436 median=6.49455e-08 p95=1.61632e-07 max=2.97192e-07
+  saved shear directional scatter (1+cos) n=2436 median=2.41535e-12 p95=3.44189e-09 max=1.11231e-05
+  wall k zero gradient n=2436 median=4.99288e-06 p95=0.000596879 max=0.00463328
+SST Fluent 22.2 mixing_elbow: metal / Apple M4 Pro
+  mu_t inactive identity n=11066 median=3.72593e-08 p95=1.058e-07 max=1.84469e-07
+  omega gradient change vs saved wall SV_O n=17822 median=0 p95=0.00594253 max=0.00627285
+  model wall omega: max mu_t change=0 limiter changes=0 CDkw changes=2436
+  mu_t limited, inverse-square LSQ n=6756 median=0.0459672 p95=0.142837 max=0.309757
+  mu_t inactive, inverse-square LSQ n=11066 median=4.09554e-08 p95=0.039415 max=0.268265
+  limiter agreement=0.902985 discriminating n=2555 median S ratio=0.999075 median Omega ratio=0.240746 max production/cap=0.359467
+  wall-face reconstruction omega n=2436 median=0.00418606 p95=0.00428166 max=0.00431874
+  wall-cell omega n=2436 median=5.80858e-06 p95=4.24771e-05 max=0.000293143
+  wall y+ (u*) n=2436 median=5.02706e-06 p95=0.000201379 max=0.00175833
+  wall y+ (u_tau) n=2436 median=4.75209e-06 p95=0.000185435 max=0.00198188
+  wall shear force magnitude n=2436 median=9.43589e-06 p95=0.00037001 max=0.00396057
+  wall shear force vector n=2436 median=1.14324e-05 p95=0.000445172 max=0.00543407
+  wall shear vector kernel/double-oracle n=2436 median=6.88986e-08 p95=1.75528e-07 max=2.97192e-07
+  saved shear directional scatter (1+cos) n=2436 median=2.41535e-12 p95=3.44189e-09 max=1.11231e-05
+  wall k zero gradient n=2436 median=4.99288e-06 p95=0.000596879 max=0.00463328
+===============================================================================
+[doctest] test cases:     1 |     1 passed | 0 failed | 186 skipped
+[doctest] assertions: 34204 | 34204 passed | 0 failed |
+[doctest] Status: SUCCESS!

@@ -1,0 +1,38 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+/tmp/kutta-turbulence-floor-before/tests/turbulence/test_realizable_ke.cpp:43:
+TEST CASE:  Realizable KE scalable walls clamp every y-star formula and retain moving-wall tangency
+
+/tmp/kutta-turbulence-floor-before/tests/turbulence/test_realizable_ke.cpp:66: ERROR: CHECK( dev->download(f.fixed_epsilon)[0]==1e-20f ) is NOT correct!
+  values: CHECK( 1.91493e-27 == 1e-20 )
+  logged: backend: cpu
+
+/tmp/kutta-turbulence-floor-before/tests/turbulence/test_realizable_ke.cpp:67: ERROR: CHECK( value==1e-20f ) is NOT correct!
+  values: CHECK( 1.91493e-27 == 1e-20 )
+  logged: backend: cpu
+
+/tmp/kutta-turbulence-floor-before/tests/turbulence/test_realizable_ke.cpp:67: ERROR: CHECK( value==1e-20f ) is NOT correct!
+  values: CHECK( 1.91493e-27 == 1e-20 )
+  logged: backend: cpu
+
+/tmp/kutta-turbulence-floor-before/tests/turbulence/test_realizable_ke.cpp:67: ERROR: CHECK( value==1e-20f ) is NOT correct!
+  values: CHECK( 1.91493e-27 == 1e-20 )
+  logged: backend: cpu
+
+/tmp/kutta-turbulence-floor-before/tests/turbulence/test_realizable_ke.cpp:67: ERROR: CHECK( value==1e-20f ) is NOT correct!
+  values: CHECK( 1.91493e-27 == 1e-20 )
+  logged: backend: cpu
+
+/tmp/kutta-turbulence-floor-before/tests/turbulence/test_realizable_ke.cpp:67: ERROR: CHECK( value==1e-20f ) is NOT correct!
+  values: CHECK( 1.91493e-27 == 1e-20 )
+  logged: backend: cpu
+
+/tmp/kutta-turbulence-floor-before/tests/turbulence/test_realizable_ke.cpp:67: ERROR: CHECK( value==1e-20f ) is NOT correct!
+  values: CHECK( 1.91493e-27 == 1e-20 )
+  logged: backend: cpu
+
+===============================================================================
+[doctest] test cases:  1 |  0 passed | 1 failed | 186 skipped
+[doctest] assertions: 34 | 27 passed | 7 failed |
+[doctest] Status: FAILURE!

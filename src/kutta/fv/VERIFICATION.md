@@ -2617,3 +2617,44 @@ The tested native executable SHA-256 is
 external inputs, build artifacts and check counts. Reproduction includes the
 same nonzero exits for retained slow gates. These are local commits; nothing
 was pushed or released.
+
+
+## V7 SA and V8 realizable k-epsilon (2026-10-30)
+
+**Fluent model acceptance is incomplete; the case allowlist remains closed.**
+Experimental resolved-wall SA and scalable-wall realizable k-epsilon have
+Device-native constitutive/transport paths and small steady-solver hooks.
+SA automatic walls and full k-epsilon EWT are unavailable and throw. The
+implemented EWT algebra/Kader helpers do not constitute a complete wall model.
+Standard/RNG are deferred until the prerequisite acceptance is met.
+
+The [complete gate report](../../../validation/results/car_turbulence/README.md)
+pins source, machine, executable, grids, reference data and raw logs. Measurements
+use Apple M4 Pro / 24 GiB, CPU and Metal. Numerical commits are `7a24c46` (SA
+study, unchanged in the later fix) and `b0e5aab` (consistent wall epsilon floor,
+full repeated k-epsilon study). CUDA 13.0.2 compiles all CI architectures; its
+CPU oracle suite passes 174 cases / 810,115 assertions. CUDA hardware was not run.
+The quick tier passes; model/parity/GPU-presence checks pass 1,427 assertions,
+and the real external Fluent SST saved-field regression passes 34,204.
+
+V7 retains **17 failed / 70 assertions**: all twelve grid/backend convergence
+checks fail, and five finest-bump accuracy assertions fail. Finest plate Cf/CD
+errors are about +.784%/+.721% on both backends, within their 5%/7% limits.
+All four three-grid trend checks pass. Finest bump Cf errors at front/peak/aft
+are +8.211%/+13.030%/+21.742% on CPU and +5.805%/+10.507%/+13.909% on Metal
+(limit 10% each). Bump Cd errors are +12.397%/+8.863% (limit 10%); all finest
+Cp absolute errors pass .03. The CPU finest run reaches its frozen 600-second
+budget at 2,500 steps. These are unconverged diagnostics, not accepted solutions.
+
+V8 passes **18/18 assertions**, with all six channel runs converged. Against
+MKM nominal Re_tau=590 (actual 587.19), finest maximum velocity errors are
+5.6351% CPU / 5.6352% Metal (limit 10% for y+>=30). Wall shear errors are
+.2174%/.2173% (limit 2%). This is validation of a fully developed 1D transport
+reduction; quick tests separately exercise the coupled steady solver and wall
+forces. It is not a Fluent code-to-code or 3D car acceptance result.
+
+The [model contract](turbulence/car_models.md) distinguishes documented
+formulas from wall-treatment interpretations, missing algorithms and case
+selector provenance. No external realizable-code execution, Fluent same-mesh
+comparison, separately converged default-no-ft2 SA study, or new model release
+is claimed. Existing V1-V6 slow gates were not rerun or reclassified in this lane.

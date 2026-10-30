@@ -1,0 +1,8 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+runtime test backend: cpu (CPU reference (serial))
+runtime test backend: metal (Apple M4 Pro)
+===============================================================================
+[doctest] test cases:   11 |   11 passed | 0 failed | 176 skipped
+[doctest] assertions: 1427 | 1427 passed | 0 failed |
+[doctest] Status: SUCCESS!

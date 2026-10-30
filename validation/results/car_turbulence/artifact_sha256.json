@@ -1,0 +1,16 @@
+{
+  "PROTOCOL.md": "1609958720ef5f44d9f218b133ef07e3a450dcefa4475cc90484d3ea94b60165",
+  "README.md": "9cb22c6f478f1413da1dee7359eeae581f4892c7ce301c9e05dd09cc9b3617ea",
+  "accuracy.png": "9778a4746fc3f69e7232eaa6908ed92e02e3160f85e9a3f2693a7fef09639652",
+  "accuracy.svg": "292cb259feb3c59aa1eeb82eba04979454636f8d8cd980351fa15924c2de1a26",
+  "cuda.log": "af5d8be80ea7777e969d2280659627bdcace66cdd447014f251d68196acee868",
+  "epsilon_floor_regression.log": "ecc007ffa0c1c83340a1d7bbbae6e6c5e404ad19fee52b04d528bc20be1488f7",
+  "identity.json": "55f58a2a8c16ebb5656f14d0351f1c5aaa46db60a16d9db7c840fe60fe044e94",
+  "ke_slow.log": "ad2365ca071d7f59b04de68eb8b588f511a2e0cceda7b11935df2b78f94bb501",
+  "measurements.csv": "22fc162e6fbc92647e50653e9e1591ec3fc8e881a1224732c26a37e5947c8938",
+  "measurements.json": "71b0d7eebcaca790a8b445f65f201e0c31675e69991e0cfb1d3e8332163b2a3b",
+  "models.log": "2e3d8c41d2e651db24dc71a9eec120c6af6622ee7ace5483a592d5cade5628e7",
+  "quick.log": "603f8ef74713ebf8b72f8b6b3d78ab20b7e662c2dae378220d2093559232e4aa",
+  "slow.log": "b073489c2c4811ac97ce98d290e9449b6cc0b252969b2a1951b2a0a5c6c3bd0f",
+  "sst_regression.log": "c0669dc67c659e2ea32f6650d9da5884aa5d2b8b223dc6d2024fa630554bd162"
+}
