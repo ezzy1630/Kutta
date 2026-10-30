@@ -92,11 +92,14 @@ jobs:
           }
           Copy-Item docs/README-windows.txt $package
           "Kutta source: ${{ github.sha }}" | Set-Content "$package/build-info.txt"
+          # Every DLL kutta.exe imports must be bundled or ship with Windows.
+          dumpbin /nologo /dependents "$package/kutta.exe"
+          Get-ChildItem $package -Filter *.dll | ForEach-Object { $_.Name }
           # Load the packaged executable with dependency directories removed.
           $env:PATH = "$env:SystemRoot/system32;$env:SystemRoot"
           $usage = & "$package/kutta.exe" 2>&1 | Out-String
           if ($LASTEXITCODE -ne 2 -or $usage -notmatch "Usage: kutta") {
-            throw "Packaged CLI failed to load: $usage"
+            throw "Packaged CLI failed to load (exit $LASTEXITCODE): $usage"
           }
           Compress-Archive -Path "$package/*" -DestinationPath build/kutta-windows-rtx.zip
       - uses: actions/upload-artifact@v4
