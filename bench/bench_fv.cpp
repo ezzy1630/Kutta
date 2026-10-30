@@ -161,8 +161,9 @@ void performance(kutta::Backend backend,int size,int repeats) {
   }
 }
 
-void sst_performance(kutta::Backend backend,int nx,int ny,int nz,int repeats,int warmup,
+bool sst_performance(kutta::Backend backend,int nx,int ny,int nz,int repeats,int warmup,
     bool profile,int converge,const std::string& output) {
+  bool success=true;
   MeasuredDevice dev(backend);
   auto mesh=kutta::bench::sst_channel(nx,ny,nz);
   auto bc=kutta::bench::channel_boundaries(mesh);
@@ -193,6 +194,7 @@ void sst_performance(kutta::Backend backend,int nx,int ny,int nz,int repeats,int
     std::cout<<"FV_CONVERGED backend="<<kutta::backend_name(backend)<<" converged="<<converged
       <<" iterations="<<solver.report().iteration<<" wall_s="<<std::chrono::duration<double>(Clock::now()-start).count()
       <<" wall_force_x="<<force.force().x<<std::endl;
+    success=converged;
   } else {
     solver.iterate(warmup);dev.synchronize();
     // Timed throughput and intrusive kernel profiling start from the same
@@ -232,7 +234,9 @@ void sst_performance(kutta::Backend backend,int nx,int ny,int nz,int repeats,int
       const auto field=dev.download(*q);
       file.write(reinterpret_cast<const char*>(field.data()),std::streamsize(field.size()*sizeof(float)));
     }
+    KUTTA_REQUIRE(file.good(),"Cannot finish writing SST benchmark fields");
   }
+  return success;
 }
 
 void save_profiles(const kutta::validation::CavityResult& result,const std::string& stem) {
@@ -286,7 +290,7 @@ int main(int argc,char** argv) {
       ran=true;
       if(sst) {
         KUTTA_REQUIRE(nx>1 && ny>1 && nz>0 && warmup>=0 && converge>=0,"Invalid SST benchmark dimensions");
-        sst_performance(backend,nx,ny,nz,repeats,warmup,profile,converge,output);continue;
+        success=sst_performance(backend,nx,ny,nz,repeats,warmup,profile,converge,output) && success;continue;
       }
       if(!run_cavity) {performance(backend,size,repeats);continue;}
       auto dev=kutta::Device::create(backend);
