@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <limits>
+#include <optional>
 
 namespace kutta::linalg_detail {
 void check_nullspace(const CsrMatrixHost& a, NullSpace choice) {
@@ -82,7 +83,8 @@ class Krylov final : public LinearSolver {
         shadow_(dev.alloc<float>(bicg(kind) ? n_ : 0)), s_(dev.alloc<float>(bicg(kind) ? n_ : 0)),
         t_(dev.alloc<float>(bicg(kind) ? n_ : 0)), zs_(dev.alloc<float>(bicg(kind) ? n_ : 0)),
         best_(dev.alloc<float>(n_)), scalars_(dev.alloc<float>(24)),
-        status_(dev.alloc<Index>(3)), projection_(dev.alloc<float>(nullspace_ ? 2 : 0)) {}
+        status_(dev.alloc<Index>(3)), projection_(dev.alloc<float>(nullspace_ ? 2 : 0)),
+        speculate_(kind != SolverKind::Jacobi && n_ <= kSpeculativeRows) {}
 
   void refresh(Device& dev, const CsrMatrix& a) override {
     check_matrix(dev, a);
@@ -97,18 +99,29 @@ class Krylov final : public LinearSolver {
     KUTTA_REQUIRE(c.max_iter >= 0 && std::isfinite(c.rel_tol) && c.rel_tol >= 0 &&
                       std::isfinite(c.abs_tol) && c.abs_tol >= 0 && c.residual_check_interval > 0,
                   "solve: invalid control");
-    const double bnorm = norm(dev, b);
-    KUTTA_REQUIRE(std::isfinite(bnorm) && std::isfinite(norm(dev, x)),
+    using Request = Device::HostReduction;
+    speculated_.reset();
+    // Entry checks share one host wait. Without a nullspace x is not changed
+    // before the residual, so r_ (scratch until here) joins the same batch.
+    if (!nullspace_) residual(dev, a, x, b, r_);
+    const auto entry = nullspace_ ?
+        dev.reduce_many({Request::dot(b, b, b.size()), Request::dot(x, x, x.size()),
+                         Request::sum(b, n_)}) :
+        dev.reduce_many({Request::dot(b, b, b.size()), Request::dot(x, x, x.size()),
+                         Request::dot(r_, r_, r_.size())});
+    const double bnorm = std::sqrt(entry[0]);
+    KUTTA_REQUIRE(std::isfinite(bnorm) && std::isfinite(std::sqrt(entry[1])),
                   "solve: nonfinite input vector");
-    if (nullspace_ && n_ != 0) {
-      KUTTA_REQUIRE(std::abs(dev.sum(b, n_)) <=
-                        1e-6 * std::sqrt(double(n_)) * bnorm,
-                    "solve: incompatible RHS for constant Neumann nullspace");
-      project(dev, x, projection_);
-    }
     SolveStats stats;
-    residual(dev, a, x, b, r_);
-    stats.initial_residual = norm(dev, r_);
+    if (nullspace_) {
+      if (n_ != 0) {
+        KUTTA_REQUIRE(std::abs(entry[2]) <= 1e-6 * std::sqrt(double(n_)) * bnorm,
+                      "solve: incompatible RHS for constant Neumann nullspace");
+        project(dev, x, projection_);
+      }
+      residual(dev, a, x, b, r_);
+      stats.initial_residual = norm(dev, r_);
+    } else stats.initial_residual = std::sqrt(entry[2]);
     stats.final_residual = stats.initial_residual;
     verified_current_ = true;
     const double target = std::max(c.abs_tol, c.rel_tol * stats.initial_residual);
@@ -128,7 +141,8 @@ class Krylov final : public LinearSolver {
       };
       pair(20, target * target);
       pair(22, 1e6 * stats.initial_residual * stats.initial_residual);
-      dev.upload<float>(scalars_, scalars);
+      kern::solver_limits(dev, scalars.size(), scalars_, scalars[20], scalars[21],
+                          scalars[22], scalars[23]);
     }
     reset(dev, 0);
     if (kind_ == SolverKind::Jacobi) {
@@ -180,9 +194,17 @@ class Krylov final : public LinearSolver {
   }
   bool verified(Device& dev, const CsrMatrix& a, Buffer<float>& x, const Buffer<float>& b,
                 double target, SolveStats& stats) {
-    if (nullspace_) project(dev, x, projection_);
-    residual(dev, a, x, b, r_);
-    stats.final_residual = norm(dev, r_);
+    if (speculated_) {
+      // The same kernels already ran on copies of this exact x; adopt them.
+      if (nullspace_) dev.copy(x, speculative_x());
+      dev.copy(r_, speculative_r());
+      stats.final_residual = *speculated_;
+      speculated_.reset();
+    } else {
+      if (nullspace_) project(dev, x, projection_);
+      residual(dev, a, x, b, r_);
+      stats.final_residual = norm(dev, r_);
+    }
     verified_current_ = true;
     stats.converged = std::isfinite(stats.final_residual) && stats.final_residual <= target;
     if (stats.final_residual < best_residual_) {
@@ -196,6 +218,31 @@ class Krylov final : public LinearSolver {
     return !std::isfinite(stats.final_residual) ||
            stats.final_residual > 1e3 * stats.initial_residual;
   }
+  // Reads the batch status. On small systems the reliable residual of the
+  // current x is computed alongside, so a candidate exit costs one host wait
+  // instead of two. Copies keep x and r_ untouched until verified() adopts it.
+  std::vector<Index> poll(Device& dev, const CsrMatrix& a, const Buffer<float>& x,
+                          const Buffer<float>& b) {
+    if (speculate_) {
+      const Buffer<float>* source = &x;
+      if (nullspace_) {
+        dev.copy(speculative_x(), x);
+        project(dev, speculative_x(), projection_);
+        source = &speculative_x();
+      }
+      auto& r = speculative_r();
+      residual(dev, a, *source, b, r);
+      speculated_ = std::sqrt(dev.reduce_many({Device::HostReduction::dot(r, r, r.size())})[0]);
+    }
+    return dev.download(status_);
+  }
+  // Work vectors that no later step reads before rewriting once a batch has
+  // been queued: BiCGStab recomputes s and t (and PCG q and z) from the
+  // carried r, p, v and x. Batch reductions may still read them, but only
+  // guarded kernels consume those scalars. Holding the speculative residual
+  // there keeps Krylov storage unchanged.
+  Buffer<float>& speculative_r() { return bicg(kind_) ? t_ : q_; }
+  Buffer<float>& speculative_x() { return bicg(kind_) ? s_ : z_; }
   void reset(Device& dev, int iterations) {
     kern::solver_reset(dev, 1, scalars_, status_, iterations);
   }
@@ -224,6 +271,7 @@ class Krylov final : public LinearSolver {
     while (stats.iterations < c.max_iter) {
       const int batch = std::min(check_interval, c.max_iter - stats.iterations);
       verified_current_ = false;
+      speculated_.reset();
       for (int j = 0; j < batch; ++j) {
         kern::csr_spmv_guarded(dev, n_, a.row_ptr, a.col, a.val, p_, q_, status_);
         dev.dot_into(p_, q_, n_, scalars_, 2);
@@ -238,7 +286,7 @@ class Krylov final : public LinearSolver {
         kern::solver_pcg_beta(dev, 1, scalars_, status_, preconditioner_->variable() ? 1 : 0);
         kern::solver_direction(dev, n_, z_, p_, scalars_, status_);
       }
-      const auto state = dev.download(status_);
+      const auto state = poll(dev, a, x, b);
       stats.iterations = state[1];
       if (state[0] == 2) break;
       if (state[0] == 1) {
@@ -266,6 +314,7 @@ class Krylov final : public LinearSolver {
     while (stats.iterations < c.max_iter) {
       const int batch = std::min(check_interval, c.max_iter - stats.iterations);
       verified_current_ = false;
+      speculated_.reset();
       for (int j = 0; j < batch; ++j) {
         dev.dot_into(shadow_, r_, n_, scalars_, 0);
         kern::solver_bicg_beta(dev, 1, scalars_, status_);
@@ -285,7 +334,7 @@ class Krylov final : public LinearSolver {
         dev.dot_into(r_, r_, n_, scalars_, 18);
         kern::solver_check(dev, 1, scalars_, status_, 0);
       }
-      const auto state = dev.download(status_);
+      const auto state = poll(dev, a, x, b);
       stats.iterations = state[1];
       if (state[0] == 2) break;
       if (state[0] == 1) {
@@ -316,6 +365,11 @@ class Krylov final : public LinearSolver {
   Buffer<float> scalars_;
   Buffer<Index> status_;
   Buffer<float> projection_;
+  // Polling with a speculative residual costs one extra residual and dot per
+  // batch; worthwhile only where a host wait costs more than that work.
+  static constexpr Index kSpeculativeRows = 1 << 17;
+  bool speculate_;
+  std::optional<double> speculated_;  // norm of speculative_r() for the current x
   double best_residual_ = 0;
   int previous_iterations_ = 0;
   bool verified_current_ = false;

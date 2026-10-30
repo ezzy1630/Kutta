@@ -227,16 +227,17 @@ class Aggregation final : public linalg_detail::Preconditioner {
 
   void refresh(Device& dev, const CsrMatrix& a) override {
     const CsrMatrix* matrix = &a;
+    // r is scratch between applications; use it for refresh validation too.
+    // All levels are checked, in order, after a single host wait.
+    std::vector<Device::HostReduction> checks;
+    std::vector<double> allowed;
     for (std::size_t i = 0; i < levels_.size(); ++i) {
       auto& l = levels_[i];
       kern::krylov_diagonal(dev, matrix->n_rows, matrix->row_ptr, matrix->diag, matrix->val,
                            l.l1, l.r, 1);
-      // r is scratch between applications; use it for refresh validation too.
       // The final scalar zero Neumann operator has a zero projected RHS.
-      const double allowed = nullspace_ && matrix->n_rows == 1 ? 1 : 0;
-      const double invalid = dev.max_abs(l.r, matrix->n_rows);
-      KUTTA_REQUIRE(invalid != 3, "AMG: requires positive diagonals");
-      KUTTA_REQUIRE(invalid <= allowed, "AMG: invalid values or zero diagonal");
+      allowed.push_back(nullspace_ && matrix->n_rows == 1 ? 1 : 0);
+      checks.push_back(Device::HostReduction::max_abs(l.r, matrix->n_rows));
       if (i + 1 < levels_.size()) {
         auto& coarse = levels_[i + 1].matrix;
         auto& t = l.transfer;
@@ -246,6 +247,11 @@ class Aggregation final : public linalg_detail::Preconditioner {
             matrix->row_ptr,matrix->diag,matrix->val,coarse.row_ptr,coarse.diag,coarse.val);
         matrix = &coarse;
       }
+    }
+    const auto invalid = dev.reduce_many(checks);
+    for (std::size_t i = 0; i < invalid.size(); ++i) {
+      KUTTA_REQUIRE(invalid[i] != 3, "AMG: requires positive diagonals");
+      KUTTA_REQUIRE(invalid[i] <= allowed[i], "AMG: invalid values or zero diagonal");
     }
   }
 

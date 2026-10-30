@@ -9,6 +9,7 @@
 // the call returns. Nothing else is guaranteed, so backends may batch freely.
 
 #include <cstring>
+#include <initializer_list>
 #include <memory>
 #include <span>
 #include <string>
@@ -153,6 +154,31 @@ class Device {
   virtual double dot(const Buffer<float>& x, const Buffer<float>& y, std::size_t n) = 0;
   virtual double max_abs(const Buffer<float>& x, std::size_t n) = 0;
 
+  // One request for reduce_many. Buffers must outlive the call.
+  struct HostReduction {
+    enum class Kind : std::uint8_t { Sum, Dot, MaxAbs };
+    Kind kind = Kind::Sum;
+    const Buffer<float>* x = nullptr;
+    const Buffer<float>* y = nullptr;
+    std::size_t n = 0;
+    static HostReduction sum(const Buffer<float>& x, std::size_t n) { return {Kind::Sum, &x, &x, n}; }
+    static HostReduction dot(const Buffer<float>& x, const Buffer<float>& y, std::size_t n) {
+      return {Kind::Dot, &x, &y, n};
+    }
+    static HostReduction max_abs(const Buffer<float>& x, std::size_t n) { return {Kind::MaxAbs, &x, &x, n}; }
+  };
+  // Several host reductions behind a single wait. Each result is bitwise
+  // identical to the matching sum/dot/max_abs call at the same queue point;
+  // only the number of host round trips changes.
+  std::vector<double> reduce_many(std::span<const HostReduction> requests) {
+    std::vector<double> out(requests.size());
+    host_reductions(requests, out);
+    return out;
+  }
+  std::vector<double> reduce_many(std::initializer_list<HostReduction> requests) {
+    return reduce_many(std::span<const HostReduction>(requests.begin(), requests.size()));
+  }
+
   // Asynchronous reductions: write normalized (hi, lo) float pairs to dst.
   // dot2_into fuses two dot products, writing pairs at offset and offset+2.
   // Accumulation is FP64 on CPU/CUDA and compensated pairs on Metal. Ordered
@@ -192,6 +218,14 @@ class Device {
                       dst.handle() != x.handle() && dst.handle() != y.handle() &&
                       dst.handle() != u.handle() && dst.handle() != v.handle(),
                   "device reduction: output size or alias mismatch");
+  }
+  // Backends with a host wait per reduction override this to wait once.
+  virtual void host_reductions(std::span<const HostReduction> requests, std::span<double> out) {
+    for (std::size_t i = 0; i < requests.size(); ++i) {
+      const auto& r = requests[i];
+      out[i] = r.kind == HostReduction::Kind::Sum ? sum(*r.x, r.n) :
+          (r.kind == HostReduction::Kind::Dot ? dot(*r.x, *r.y, r.n) : max_abs(*r.x, r.n));
+    }
   }
   virtual std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) = 0;
   virtual void upload_bytes(BufferHandle& dst, const void* src, std::size_t bytes) = 0;

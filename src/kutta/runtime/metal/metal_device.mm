@@ -33,6 +33,15 @@ float2 pair_add(float2 a, float2 b) {
   return float2(h, e - (h - s));
 }
 float nan_max(float a, float b) { return (b > a || isnan(b)) ? b : a; }
+// runtime_reduce_into applied to a single partial: lane 0 adds the partial to
+// zero, then adds zero once per level of its two shuffle trees. Replaying those
+// exact additions keeps the fused one-dispatch result bitwise identical.
+float2 finish_single(float2 p, uint width) {
+  float2 a = pair_add(float2(0.0f), p);
+  for (uint d = width / 2; d > 0; d /= 2) a = pair_add(a, float2(0.0f));
+  for (uint d = width / 2; d > 0; d /= 2) a = pair_add(a, float2(0.0f));
+  return a;
+}
 kernel void runtime_reduce(const device float* x [[buffer(0)]],
                            const device float* y [[buffer(1)]],
                            device float2* partial [[buffer(2)]],
@@ -40,6 +49,9 @@ kernel void runtime_reduce(const device float* x [[buffer(0)]],
                            constant uint& mode [[buffer(4)]],
                            const device float* u [[buffer(5)]],
                            const device float* v [[buffer(6)]],
+                           device float* out [[buffer(7)]],
+                           constant uint& offset [[buffer(8)]],
+                           constant uint& fused [[buffer(9)]],
                            uint gid [[thread_position_in_grid]],
                            uint tid [[thread_index_in_threadgroup]],
                            uint group [[threadgroup_position_in_grid]],
@@ -80,7 +92,15 @@ kernel void runtime_reduce(const device float* x [[buffer(0)]],
       if (mode == 3 && lane + d < width) c = pair_add(c, e);
       if (lane + d < width) a = mode == 2 ? float2(nan_max(a.x, b.x), 0) : pair_add(a, b);
     }
-    if (lane == 0) {
+    if (lane == 0 && fused) {
+      // Single threadgroup: finish here instead of in runtime_reduce_into.
+      a = finish_single(a, width);
+      out[offset] = a.x; out[offset + 1] = a.y;
+      if (mode == 3) {
+        c = finish_single(c, width);
+        out[offset + 2] = c.x; out[offset + 3] = c.y;
+      }
+    } else if (lane == 0) {
       partial[group] = a;
       if (mode == 3) partial[1024 + group] = c;
     }
@@ -241,18 +261,43 @@ class MetalDevice final : public Device {
       const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
       Buffer<float>& dst, std::size_t offset, Reduction mode) override {
     check_reduction(x, y, u, v, n, dst, offset, mode);
-    const auto groups = enqueue_reduce(x, y, u, v, n,
-        mode == Reduction::Sum ? 0 : (mode == Reduction::Dot ? 1 : 3));
+    const std::uint32_t code = mode == Reduction::Sum ? 0 : (mode == Reduction::Dot ? 1 : 3);
+    // Small vectors fit one threadgroup, which finishes the pair itself. This
+    // halves the dispatches of the device-scalar Krylov loop on small meshes.
+    if (group_count(n) == 1) {
+      enqueue_reduce(x, y, u, v, n, code, *partial(), 0, &dst, offset);
+      return;
+    }
+    const auto groups = enqueue_reduce(x, y, u, v, n, code, *partial(), 0);
     auto encoder = compute();
     const auto index = static_cast<std::uint32_t>(offset);
     const std::uint32_t dual = mode == Reduction::Dot2 ? 1 : 0;
     [encoder setComputePipelineState:reduce_into_];
-    [encoder setBuffer:partial_->buffer offset:0 atIndex:0];
+    [encoder setBuffer:partial()->buffer offset:0 atIndex:0];
     [encoder setBuffer:metal(*dst.handle()) offset:0 atIndex:1];
     [encoder setBytes:&groups length:sizeof groups atIndex:2];
     [encoder setBytes:&index length:sizeof index atIndex:3];
     [encoder setBytes:&dual length:sizeof dual atIndex:4];
     dispatch(reduce_into_, threads(reduce_into_));
+  }
+  void host_reductions(std::span<const HostReduction> requests, std::span<double> out) override {
+    // Each request owns a slot of host-finished group partials, so one wait
+    // serves the whole batch and every value matches its single-call result.
+    constexpr std::size_t slot = kMaxGroups * 2 * sizeof(float);
+    // Every batch ends in a wait, so no queued work still references batch_.
+    if (!batch_ || batch_->bytes() < requests.size() * slot)
+      batch_ = std::make_unique<MetalBuffer>(device_, std::max<std::size_t>(requests.size(), 8) * slot);
+    std::vector<std::uint32_t> groups(requests.size()), modes(requests.size());
+    for (std::size_t i = 0; i < requests.size(); ++i) {
+      const auto& r = requests[i];
+      KUTTA_REQUIRE(r.n <= r.x->size() && r.n <= r.y->size(), "reduce_many: n out of range");
+      modes[i] = r.kind == HostReduction::Kind::Sum ? 0 : (r.kind == HostReduction::Kind::Dot ? 1 : 2);
+      groups[i] = enqueue_reduce(*r.x, *r.y, *r.x, *r.y, r.n, modes[i], *batch_, i * slot);
+    }
+    synchronize();
+    const auto* base = static_cast<const unsigned char*>(batch_->buffer.contents);
+    for (std::size_t i = 0; i < requests.size(); ++i)
+      out[i] = finish(reinterpret_cast<const float*>(base + i * slot), groups[i], modes[i]);
   }
   std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) override {
     return std::make_unique<MetalBuffer>(device_, bytes);
@@ -351,33 +396,44 @@ class MetalDevice final : public Device {
        threadsPerThreadgroup:MTLSizeMake(threads(pipeline), 1, 1)];
     count_dispatch();
   }
-  std::uint32_t enqueue_reduce(const Buffer<float>& x, const Buffer<float>& y,
-      const Buffer<float>& u, const Buffer<float>& v, std::size_t n, std::uint32_t mode) {
-    check_size(n);
-
-    const auto count = static_cast<std::uint32_t>(n);
-    const auto group_count = std::min<std::size_t>((n + threads(reduce_) - 1) / threads(reduce_), kMaxGroups);
-    // Ordered dispatches consume scratch before its next use, including across command buffers.
+  std::size_t group_count(std::size_t n) {
+    return std::min<std::size_t>((n + threads(reduce_) - 1) / threads(reduce_), kMaxGroups);
+  }
+  // Ordered dispatches consume scratch before its next use, including across command buffers.
+  MetalBuffer* partial() {
     if (!partial_) partial_ = std::make_unique<MetalBuffer>(device_, kMaxGroups * 4 * sizeof(float));
-    MetalBuffer& partial = *partial_;
+    return partial_.get();
+  }
+  // Writes per-group pairs to `partial` at byte `partial_offset`, or with
+  // `out` set (one group only) the finished pair(s) to out[offset].
+  std::uint32_t enqueue_reduce(const Buffer<float>& x, const Buffer<float>& y,
+      const Buffer<float>& u, const Buffer<float>& v, std::size_t n, std::uint32_t mode,
+      MetalBuffer& partial, std::size_t partial_offset,
+      const Buffer<float>* out = nullptr, std::size_t offset = 0) {
+    check_size(n);
+    const auto count = static_cast<std::uint32_t>(n);
+    const auto groups = group_count(n);
+    KUTTA_REQUIRE(!out || groups == 1, "Metal fused reduction needs one threadgroup");
+    const auto out_offset = static_cast<std::uint32_t>(offset);
+    const std::uint32_t fused = out ? 1 : 0;
     auto encoder = compute();
     [encoder setComputePipelineState:reduce_];
     [encoder setBuffer:metal(*x.handle()) offset:0 atIndex:0];
     [encoder setBuffer:metal(*y.handle()) offset:0 atIndex:1];
-    [encoder setBuffer:partial.buffer offset:0 atIndex:2];
+    [encoder setBuffer:partial.buffer offset:partial_offset atIndex:2];
     [encoder setBytes:&count length:sizeof count atIndex:3];
     [encoder setBytes:&mode length:sizeof mode atIndex:4];
     [encoder setBuffer:metal(*u.handle()) offset:0 atIndex:5];
     [encoder setBuffer:metal(*v.handle()) offset:0 atIndex:6];
-    if (group_count) [encoder dispatchThreadgroups:MTLSizeMake(group_count, 1, 1)
+    [encoder setBuffer:out ? metal(*out->handle()) : partial.buffer offset:0 atIndex:7];
+    [encoder setBytes:&out_offset length:sizeof out_offset atIndex:8];
+    [encoder setBytes:&fused length:sizeof fused atIndex:9];
+    if (groups) [encoder dispatchThreadgroups:MTLSizeMake(groups, 1, 1)
              threadsPerThreadgroup:MTLSizeMake(threads(reduce_), 1, 1)];
     count_dispatch();
-    return static_cast<std::uint32_t>(group_count);
+    return static_cast<std::uint32_t>(groups);
   }
-  double reduce(const Buffer<float>& x, const Buffer<float>& y, std::size_t n, std::uint32_t mode) {
-    const auto group_count = enqueue_reduce(x, y, x, y, n, mode);
-    synchronize();
-    const float* p = static_cast<const float*>(partial_->buffer.contents);
+  static double finish(const float* p, std::size_t group_count, std::uint32_t mode) {
     double result = 0, correction = 0;
     for (std::size_t i = 0; i < group_count * 2; ++i) {
       if (mode == 2) result = (p[i] > result || std::isnan(p[i])) ? double(p[i]) : result;
@@ -391,6 +447,11 @@ class MetalDevice final : public Device {
     }
     return result;
   }
+  double reduce(const Buffer<float>& x, const Buffer<float>& y, std::size_t n, std::uint32_t mode) {
+    const auto groups = enqueue_reduce(x, y, x, y, n, mode, *partial(), 0);
+    synchronize();
+    return finish(static_cast<const float*>(partial_->buffer.contents), groups, mode);
+  }
   id<MTLDevice> device_;
   id<MTLCommandQueue> queue_;
   id<MTLCommandBuffer> command_;
@@ -400,7 +461,7 @@ class MetalDevice final : public Device {
   id<MTLComputePipelineState> reduce_, reduce_into_, fill_;
   unsigned dispatches_ = 0;
   static constexpr std::size_t kMaxGroups = 1024;
-  std::unique_ptr<MetalBuffer> partial_;
+  std::unique_ptr<MetalBuffer> partial_, batch_;
 };
 }  // namespace
 

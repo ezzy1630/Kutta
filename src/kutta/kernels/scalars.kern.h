@@ -46,6 +46,13 @@ KUTTA_FN bool kp_coefficient(kpair a) {
 // tolerance^2=20, divergence-limit^2=22.
 // Status: phase (0 running, 1 reliable residual requested, 2 breakdown),
 // attempted updates, and the BiCGStab s-only exit. Only scalar kernels write it.
+// Writes exactly what uploading 24 floats with only the two threshold pairs
+// set would, without the host wait an upload needs on Metal.
+KUTTA_KERNEL void solver_limits(int i, KOut(float) scalars, float tolerance_hi, float tolerance_lo,
+                                float divergence_hi, float divergence_lo) {
+  scalars[i] = i == 20 ? tolerance_hi : (i == 21 ? tolerance_lo :
+      (i == 22 ? divergence_hi : (i == 23 ? divergence_lo : 0.0f)));
+}
 KUTTA_KERNEL void solver_reset(int i, KOut(float) scalars, KOut(int) status, int iterations) {
   if (i != 0) return;
   status[0] = 0; status[1] = iterations; status[2] = 0;

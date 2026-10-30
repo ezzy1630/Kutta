@@ -28,19 +28,24 @@ class InstrumentedDevice final : public Device {
   Backend backend() const override { return inner_->backend(); }
   std::string name() const override { return inner_->name(); }
   std::size_t live_bytes = 0, peak_bytes = 0, reductions = 0, downloads = 0, device_reductions = 0, uploads = 0,
-      allocations = 0;
+      allocations = 0, launches = 0, syncs = 0, reduction_batches = 0, batched_reductions = 0;
+  // Waits for queued GPU work, as an asynchronous backend sees them: a host
+  // reduction always waits; a download, upload or synchronize only waits when
+  // device work was queued since the previous wait.
+  std::size_t host_waits = 0;
   std::function<void(KernelId, std::size_t, std::span<const KernelArg>)> after_launch;
   double sum(const Buffer<float>& x, std::size_t n) override {
-    ++reductions; return inner_->sum(allocation(*x.handle()).data, n);
+    ++reductions; waited(true); return inner_->sum(allocation(*x.handle()).data, n);
   }
   double dot(const Buffer<float>& x, const Buffer<float>& y, std::size_t n) override {
-    ++reductions;
+    ++reductions; waited(true);
     return inner_->dot(allocation(*x.handle()).data, allocation(*y.handle()).data, n);
   }
   double max_abs(const Buffer<float>& x, std::size_t n) override {
-    ++reductions; return inner_->max_abs(allocation(*x.handle()).data, n);
+    ++reductions; waited(true); return inner_->max_abs(allocation(*x.handle()).data, n);
   }
   void launch(KernelId id, std::size_t n, std::span<const KernelArg> args) override {
+    ++launches; queued_ = true;
     std::vector<KernelArg> forwarded(args.begin(), args.end());
     for (auto& arg : forwarded)
       if (arg.kind == KernelArg::Kind::Buffer) arg.buffer = allocation(*arg.buffer).data.handle();
@@ -53,13 +58,13 @@ class InstrumentedDevice final : public Device {
     if (!words.empty()) std::memcpy(result.data(), words.data(), words.size() * sizeof(float));
     return result;
   }
-  void synchronize() override { inner_->synchronize(); }
+  void synchronize() override { ++syncs; waited(queued_); inner_->synchronize(); }
  protected:
   void reduce_into(const Buffer<float>& x, const Buffer<float>& y,
       const Buffer<float>& u, const Buffer<float>& v, std::size_t n,
       Buffer<float>& dst, std::size_t offset, Reduction mode) override {
     check_reduction(x, y, u, v, n, dst, offset, mode);
-    ++device_reductions;
+    ++device_reductions; queued_ = true;
     auto& out = allocation(*dst.handle()).data;
     const auto& a = allocation(*x.handle()).data;
     const auto& b = allocation(*y.handle()).data;
@@ -67,6 +72,19 @@ class InstrumentedDevice final : public Device {
     else if (mode == Reduction::Dot) inner_->dot_into(a, b, n, out, offset);
     else inner_->dot2_into(a, b, allocation(*u.handle()).data,
                            allocation(*v.handle()).data, n, out, offset);
+  }
+  // Counts each value as a host reduction and each batch as one host wait.
+  void host_reductions(std::span<const HostReduction> requests, std::span<double> out) override {
+    ++reduction_batches; waited(true);
+    reductions += requests.size();
+    batched_reductions += requests.size();
+    std::vector<HostReduction> forwarded(requests.begin(), requests.end());
+    for (auto& r : forwarded) {
+      r.x = &allocation(*r.x->handle()).data;
+      r.y = &allocation(*r.y->handle()).data;
+    }
+    const auto values = inner_->reduce_many(forwarded);
+    std::copy(values.begin(), values.end(), out.begin());
   }
   std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) override {
     ++allocations;
@@ -76,25 +94,29 @@ class InstrumentedDevice final : public Device {
     return result;
   }
   void upload_bytes(BufferHandle& dst, const void* src, std::size_t bytes) override {
-    if (bytes) ++uploads;
+    if (bytes) { ++uploads; waited(queued_); }
     std::vector<float> words(bytes / sizeof(float));
     if (bytes) std::memcpy(words.data(), src, bytes);
     inner_->upload<float>(allocation(dst).data, words);
   }
   void download_bytes(const BufferHandle& src, void* dst, std::size_t bytes) override {
-    ++downloads;
+    ++downloads; waited(queued_);
     auto words = inner_->download(allocation(src).data);
     if (bytes) std::memcpy(dst, words.data(), bytes);
   }
   void copy_bytes(BufferHandle& dst, const BufferHandle& src, std::size_t) override {
+    queued_ = true;
     inner_->copy(allocation(dst).data, allocation(src).data);
   }
   void fill_bytes(BufferHandle& dst, const void* value, std::size_t size, std::size_t) override {
     KUTTA_REQUIRE(size == sizeof(float), "instrumentation requires 32-bit fills");
+    queued_ = true;
     float word; std::memcpy(&word, value, size);
     inner_->fill(allocation(dst).data, word);
   }
  private:
+  void waited(bool counts) { host_waits += counts; queued_ = false; }
+  bool queued_ = false;
   std::unique_ptr<Device> inner_;
 };
 }  // namespace kutta::test_linalg

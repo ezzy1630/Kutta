@@ -159,6 +159,25 @@ class CudaDevice final : public Device {
         static_cast<float*>(cuda_ptr(dst.handle())), offset, mode == Reduction::Dot2);
     check(cudaGetLastError());
   }
+  void host_reductions(std::span<const HostReduction> requests, std::span<double> out) override {
+    // Each finished value gets its own result slot; one copy and one stream
+    // wait serve up to kMaxBatch values, each identical to its single call.
+    for (std::size_t first = 0; first < requests.size(); first += kMaxBatch) {
+      const auto count = std::min(kMaxBatch, requests.size() - first);
+      for (std::size_t i = 0; i < count; ++i) {
+        const auto& r = requests[first + i];
+        KUTTA_REQUIRE(r.n <= r.x->size() && r.n <= r.y->size(), "reduce_many: n out of range");
+        const int mode = r.kind == HostReduction::Kind::Sum ? 0 : (r.kind == HostReduction::Kind::Dot ? 1 : 2);
+        const auto blocks = enqueue_reduce(*r.x, *r.y, *r.x, *r.y, r.n, mode);
+        auto* p = static_cast<double*>(partial_->data);
+        reduce_last<<<1, kCudaBlock, 0, stream_>>>(p, blocks, p + 2 * kMaxBlocks + i, mode);
+        check(cudaGetLastError());
+      }
+      check(cudaMemcpyAsync(out.data() + first, static_cast<double*>(partial_->data) + 2 * kMaxBlocks,
+                            count * sizeof(double), cudaMemcpyDeviceToHost, stream_));
+      synchronize();
+    }
+  }
   std::unique_ptr<BufferHandle> alloc_bytes(std::size_t bytes) override {
     activate();
     return std::make_unique<CudaBuffer>(bytes);
@@ -198,7 +217,7 @@ class CudaDevice final : public Device {
 
     const auto blocks = static_cast<unsigned int>(std::min<std::size_t>((n + kCudaBlock - 1) / kCudaBlock, kMaxBlocks));
     // Scratch reuse is ordered on stream_, including the final pair write.
-    if (!partial_) partial_ = std::make_unique<CudaBuffer>((2 * kMaxBlocks + 1) * sizeof(double));
+    if (!partial_) partial_ = std::make_unique<CudaBuffer>((2 * kMaxBlocks + kMaxBatch) * sizeof(double));
     auto* p = static_cast<double*>(partial_->data);
     if (blocks) reduce_first<<<blocks, kCudaBlock, 0, stream_>>>(
         static_cast<const float*>(cuda_ptr(x.handle())),
@@ -217,7 +236,7 @@ class CudaDevice final : public Device {
     synchronize();
     return result;
   }
-  static constexpr std::size_t kMaxBlocks = 1024;
+  static constexpr std::size_t kMaxBlocks = 1024, kMaxBatch = 16;
   std::unique_ptr<CudaBuffer> partial_;
   int ordinal_ = 0;
   cudaStream_t stream_ = nullptr;
