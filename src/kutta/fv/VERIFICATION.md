@@ -719,3 +719,129 @@ Local evidence: `build/v6-evidence.log`, `build/v6-results.json`,
 `build/cuda-evidence/{build,tests,lint}.log`. The complete V1–V4 slow ladder was not rerun: prior
 retained failures above remain unresolved, and no claim is made that these
 laminar long runs have been revalidated after the boundary-gradient change.
+
+## Laminar regression repair after SST coupling
+
+Code commit `bf4f2f5` restores the verified laminar reconstruction when SST is
+disabled. `bbc176c` had enabled `boundary_least_squares()` for every flow solve,
+omitting extrapolated wall/outlet/symmetry observations as appropriate to each
+field. That changes the pressure-face reconstruction, Gauss momentum source,
+Rhie–Chow pressure jumps, velocity reconstruction and pressure-correction
+gradient. It is a discretization change, not just an SST initialization change.
+The wall-momentum and effective-viscosity hooks already return without changing
+laminar flow. This repair keeps the boundary-aware reconstruction for SST and
+the full original stencil for laminar flow, including wall-force reconstruction.
+It also copies the common laminar momentum diagonal/inverse directly instead of
+rounding it through the SST trace/3 average. No Fluent-matching correction is
+being introduced, and no existing threshold is changed.
+
+The original `fbb5111` test binary reproduced n=4/8 nonconvergence after 2,000
+steps (`u_L2=0.564466/1.30634`) and the n=16 AMG invalid-diagonal exception.
+Controlled 384-cell tet experiments on CPU and Metal isolated the change:
+
+| Reconstruction restored to main | Steps | Velocity L2 | Outcome |
+| --- | ---: | ---: | --- |
+| Pressure correction only | 200 (limit) | 0.566300 | Still fails convergence |
+| Pressure field only | 140 | 0.226447 | Converges to a degraded solution |
+| Full laminar gradient path | 160 | 0.177223 | Reference accuracy restored |
+
+`FV laminar tet manufactured solution converges without SST` reuses the V2
+analytical solution on 4³ bricks / 384 tetrahedra. It retains the existing V2
+residual criterion, requires convergence within 200 steps, and checks velocity
+L2 < .18 and gauge-adjusted pressure L2 < .28 on every available backend. The
+pre-fix run fails both convergence and velocity accuracy on CPU and Metal in
+2.88 s. The slow V2 studies retain their 2,000-step limit and all existing gates.
+
+A fresh isolated archive/build of main `4e98429` supplies a direct V2 reference;
+only the new test harness is copied into that archive. A separate field
+comparison after 160 steps checks all 2,400 floats in u/v/w/p/face mass flux for
+the 384-cell tet: fixed versus main is **bitwise equal on CPU and Metal**.
+The reference's full V2 runs converge at hex n=8/16/32 in 140/320/840 steps and
+tet n=4/8/16 in 160/220/420 steps, with only the six known tet wall-force-order
+failures. The historical accuracy/iteration tables above predate some changes;
+the direct main comparison is authoritative for this regression.
+
+### Complete post-repair verification
+
+The rebuilt Release binary at code commit `bf4f2f5` has SHA-256
+`09d26f3ce46777a0a08b136416b3b1a02e7134a5fc0cb7f421e29da6088b54f3`.
+Runs use this worktree on macOS 26.6.2 / arm64, CPU and Metal, with HDF5 enabled.
+Both tiers use
+`KUTTA_FLUENT_EXAMPLES=/Users/ezzy/.Others/Kutta/validation/fluent_examples`;
+V6 and the independent saved-field SST quick check actually run.
+
+| Check | Result | Wall time |
+| --- | --- | ---: |
+| `cmake --build build` | PASS, current source rebuilt | — |
+| `python3 tools/lint_portability.py` | PASS | — |
+| `./build/kutta-tests --test-suite-exclude=slow -d` | **147/147 cases; 1,449,526/1,449,526 assertions pass** | **8.62 s** |
+| New 384-cell tet quick regression, both backends | PASS, 6 assertions | 3.09 s (included above) |
+| `./build/kutta-tests -ts=slow -d` | **6/8 cases pass; 34 retained failures in 3,476 assertions** | **1,020.69 s** |
+
+Every slow case ran; none skipped. The nonzero slow exit is exactly 28 V6
+assertions and six tet force-order assertions. There are no convergence,
+velocity/pressure-order, AMG or other new failures.
+
+| Slow case | Main/reference outcome | Fixed outcome, CPU and Metal | Case time |
+| --- | --- | --- | ---: |
+| V1 scalar refinements | PASS; diffusion/FOU/SOU gates 1.9/.8/1.8 | PASS; finest-pair orders below | 68.08 s |
+| V2 hex | PASS; fresh main 140/320/840 steps | PASS; same steps and printed solution/load values | 28.37 s |
+| V2 tet | FAIL, six wall-force-order gates; fresh main 160/220/420 steps | Same six failures only; same steps and printed solution/load values | 71.23 s |
+| Couette | PASS; documented max error 1.19209e-7, residual 4.04177e-8 | PASS; 400 steps, max error 1.78814e-7, residual 3.1049e-8, both backends | 4.60 s |
+| V3 Re=1000 refinement | PASS; updated CPU counts 700/600/1000 | PASS; CPU 700/600/1000, Metal 700/600/900; finest errors/orders below | 581.09 s |
+| V3 Re=100/400 | PASS; updated counts 1000/500 | PASS; same counts; max u/v deviations .005038/.008966 and .002639/.004047 | 78.22 s |
+| V4 imported/matched Fluent cavity | PASS; updated Re=100/400/1000 counts 600/300/500 | PASS; same counts, every matched-grid sample within the existing 2e-6 gate | 73.26 s |
+| V6 elbow (not present on main) | Prior SST branch: FAIL, 28 settings/accuracy gates | Same 28 failures; all recorded numerical diagnostics unchanged to printed precision | 115.76 s |
+
+Except for the fresh V2 comparison, the reference numbers here are the
+historical measurements retained above, not a second complete main slow run.
+Small differences from those tables are reported explicitly rather than
+claimed as bitwise agreement. The Couette max-error difference is 5.96e-8.
+
+V1 finest-pair orders (diffusion / FOU / SOU):
+
+| Mesh / backend | Documented reference | Fixed |
+| --- | --- | --- |
+| Hex CPU | 2.00206 / .854671 / 1.91201 | 2.002060 / .854671 / 1.912087 |
+| Hex Metal | 2.00192 / .854671 / 1.91201 | 2.002005 / .854671 / 1.912087 |
+| Tet CPU | 1.93250 / .993216 / 1.94919 | 1.931832 / .993209 / 1.949123 |
+| Tet Metal | 1.93243 / .993216 / 1.94917 | 1.931099 / .993197 / 1.949137 |
+
+V2 comparison checks all 12 solutions and 204 printed numeric values, including
+velocity/pressure errors, forces and orders, against fresh main within the
+displayed rounding. Fresh-main finest hex velocity/pressure errors are
+.00418355/.00301253; the fixed slow log rounds them to .004184/.003013. Both
+tet backends report .012256/.068933. Tet finest velocity/pressure orders are
+1.982589/.942388; retained pressure/viscous/total wall-force orders are
+.996553/.874871/.933505, all identical to fresh main at the printed precision.
+
+V3 finest Re=1000 comparisons against Erturk:
+
+| Backend | Documented u / v error | Fixed u / v error | Fixed finest u / v order |
+| --- | --- | --- | --- |
+| CPU | .000607678559 / .001067561871 | .000613706079 / .001062930888 | 2.839101 / 2.755230 |
+| Metal | .000610226658 / .001065764046 | .000614044335 / .001062692470 | 2.838302 / 2.755555 |
+
+All errors decrease on refinement and both orders exceed the unchanged 1.6
+gate. V4 imported-mesh Ghia max u/v deviations at Re=100/400/1000 are
+.005306/.009046, .003285/.003434 and .008948/.004081 on both backends, versus
+the historical .00530634/.00904564, .00328528/.00343363 and .00894912/.00409038.
+
+V6 comparison covers all four seeded/cold CPU/Metal iteration counts, all 16
+field relative-L2 errors, all 24 wall-force vectors and relative errors, and all
+four pressure drops. Every comparison matches the preceding V6 report within
+its printed precision. Seeded/cold counts stay 300/600 on both backends;
+velocity L2 remains 3.925066–3.926664%, and pressure-drop error remains
+1.787319–1.794009%. Only measured wall times changed. No V6 discretization,
+initializer, stopping criterion or accuracy threshold was edited.
+
+Local evidence: `build/laminar-evidence-identity.txt`,
+`build/laminar-tet-before.log`, `build/laminar-tet-quick-before.log`,
+`build/laminar-tet-correction-only.log`, `build/laminar-tet-pressure-only.log`,
+`build/laminar-tet-quick-after.log`, `build/laminar-field-compare.log`,
+`build/laminar-main-v2.log`, `build/laminar-v2-compare.log`,
+`build/laminar-v6-compare.log`, `build/laminar-couette-detail.log`,
+`build/laminar-slow-final.log`, `build/laminar-quick-final.log`,
+`build/laminar-build-final.log` and `build/laminar-portability-final.log`.
+Temporary reference sources/builds and the field-comparison harness were
+removed after retaining the results and field hashes. Commits are local only.
