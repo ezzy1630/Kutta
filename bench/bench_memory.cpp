@@ -44,6 +44,16 @@ double footprint_gb() {
 #endif
   return 0;
 }
+// Highest footprint so far, including transient setup buffers.
+double peak_footprint_gb() {
+#if defined(__APPLE__)
+  task_vm_info_data_t info{};
+  mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+  if (task_info(mach_task_self(), TASK_VM_INFO, reinterpret_cast<task_info_t>(&info), &count) == KERN_SUCCESS)
+    return double(info.ledger_phys_footprint_peak) / 1e9;
+#endif
+  return 0;
+}
 // Host heap in use. Metal buffers are not malloc allocations.
 double heap_gb() {
 #if defined(__APPLE__)
@@ -160,14 +170,13 @@ class SizedDevice final : public kutta::Device {
     KUTTA_REQUIRE(bytes % 4 == 0, "memory bench requires 32-bit buffers");
     return std::make_unique<Sized>(inner_.alloc<float>(bytes / 4), this);
   }
+  // Forwarded in place: a staging copy here would inflate the footprint
+  // being measured. Every buffer holds 32-bit words, and both sides copy bytes.
   void upload_bytes(kutta::BufferHandle& dst, const void* src, std::size_t bytes) override {
-    std::vector<float> words(bytes / 4);
-    if (bytes) std::memcpy(words.data(), src, bytes);
-    inner_.upload<float>(static_cast<Sized&>(dst).data, words);
+    inner_.upload<float>(static_cast<Sized&>(dst).data, {static_cast<const float*>(src), bytes / 4});
   }
   void download_bytes(const kutta::BufferHandle& src, void* dst, std::size_t bytes) override {
-    auto words = inner_.download(static_cast<const Sized&>(src).data);
-    if (bytes) std::memcpy(dst, words.data(), bytes);
+    inner_.download<float>(static_cast<const Sized&>(src).data, {static_cast<float*>(dst), bytes / 4});
   }
   void copy_bytes(kutta::BufferHandle& dst, const kutta::BufferHandle& src, std::size_t) override {
     inner_.copy(static_cast<Sized&>(dst).data, static_cast<const Sized&>(src).data);
@@ -275,7 +284,7 @@ int main(int argc, char** argv) {
               << " device_bytes_per_cell=" << double(total) / cells
               << " device_peak_bytes_per_cell=" << double(dev.inner_.peak_bytes) / cells
               << " device_GB=" << double(total) / 1e9 << " footprint_GB=" << footprint_gb()
-              << " heap_GB=" << heap_gb()
+              << " peak_footprint_GB=" << peak_footprint_gb() << " heap_GB=" << heap_gb()
               << " peak_rss_GB=" << peak_rss_gb() << " seconds_per_iteration=" << per_iteration
               << " pressure_iterations=" << r.pressure.iterations
               << " finite=" << std::isfinite(r.pressure.final_residual) << std::endl;
