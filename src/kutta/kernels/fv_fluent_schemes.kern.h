@@ -41,8 +41,9 @@ KUTTA_KERNEL void fv_standard_pressure_faces(int i,KIn(int) owner,KIn(int) neigh
 // Unprescribed boundary values seen by the pressure gradient: the cell
 // pressure Fluent stores there. With the standard scheme's normal-foot LSQ
 // rows this is the zero normal derivative above; second-order pressure
-// observes it at the face centroid, while its momentum boundary pressure stays
-// extrapolated. Prescribed faces keep fv_pressure_boundary's values.
+// observes it at the face centroid where its fit keeps such a row, while its
+// momentum boundary pressure stays extrapolated. Prescribed faces keep
+// fv_pressure_boundary's values.
 KUTTA_KERNEL void fv_cell_pressure_boundary(int i,KIn(int) owner,KIn(int) kind,KIn(float) p,
     KOut(float) boundary,int internal) {
   if(kind[i]!=2 && kind[i]!=4) boundary[i]=p[owner[i+internal]];

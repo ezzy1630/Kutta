@@ -63,15 +63,16 @@ Wall force is pressure relative to the requested reference, minus the viscous
 traction on the fluid, integrated using Device double/compensated reductions.
 
 `boundary_least_squares()` precomputes each field's observation matrix for
-laminar and SST flow alike. Pressure includes prescribed outlet pressure and,
-at every other boundary face, a row holding the cell pressure (the value Fluent
-stores there): at the normal foot for the standard scheme, at the face centroid
-for second-order pressure. Without those rows a tet wall cell extrapolates its
-own wall pressure from interior neighbours alone, which diverged on the
-k-epsilon elbow ([tet robustness](../../../validation/results/tet_robustness/REPORT.md)).
-Second-order pressure keeps a velocity-inlet row only where the fit without it
-has extrapolation gain above 1 at that face (`boundary_extrapolation_gain()`):
-an inlet can carry a real normal pressure gradient, which the row would bias.
+laminar and SST flow alike. Pressure includes prescribed outlet pressure. The
+standard scheme adds, at every other boundary face, a row holding the cell
+pressure (the value Fluent stores there) at the normal foot. Second-order
+pressure omits those faces, except where the fit's extrapolation to the face
+can amplify neighbour differences (`boundary_extrapolation_gain()` above 1);
+there the face holds the cell pressure at its centroid. Without those rows a
+tet wall cell whose neighbours lie in one plane extrapolates its own wall
+pressure, which diverged on the k-epsilon elbow; with them everywhere, faces
+carrying a real pressure gradient (a Darcy inlet, a rotating wall) were biased
+([tet robustness](../../../validation/results/tet_robustness/REPORT.md)).
 The extrapolated value never feeds the fit. Momentum separately uses
 `p_c+G·r_b` on those boundaries for second-order pressure, including at symmetry. Velocity includes wall, inlet and projected
 symmetry data, and omits outlet rows. k includes inlet rows; omega additionally

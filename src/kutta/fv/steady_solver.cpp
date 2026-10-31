@@ -250,17 +250,13 @@ struct SteadySolver::Impl {
     std::vector<BoundaryObservation> independent_velocity(nb),independent_pressure(nb),independent_k(nb),independent_omega(nb);
     for(Index b=0;b<nb;++b) {
       independent_velocity[b]=kinds[b]==3?NormalFootValue:((kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted);
-      // Unprescribed boundary rows hold the cell pressure, the value Fluent
-      // stores there. The standard scheme's zero normal derivative sits at
-      // the normal foot. Second-order pressure still extrapolates momentum's
-      // boundary pressure, but its fit keeps Fluent's face-centroid rows at
-      // walls and symmetry (the best fit to Fluent's converged V6 momentum
-      // residual): without them wall cells extrapolate from interior
-      // neighbours alone and the mixing-elbow tet wall layer diverges
-      // (validation/results/tet_robustness/REPORT.md). Velocity inlets are
-      // decided below.
+      // The standard scheme's unprescribed boundary rows hold the cell
+      // pressure, the value Fluent stores there, at the normal foot: its zero
+      // normal derivative. Second-order pressure extrapolates them, so they
+      // carry no information and are omitted, except where that
+      // extrapolation amplifies (below).
       const bool zero_normal=settings.pressure_interpolation==PressureInterpolation::Standard;
-      independent_pressure[b]=(kinds[b]==2 || kinds[b]==4)?FaceValue:(zero_normal?NormalFootValue:(kinds[b]==1?Omitted:FaceValue));
+      independent_pressure[b]=(kinds[b]==2 || kinds[b]==4)?FaceValue:(zero_normal?NormalFootValue:Omitted);
       independent_k[b]=kinds[b]==1?FaceValue:Omitted;independent_omega[b]=(kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted;
       // BEGIN FSAE physics: pressure inlets prescribe transported inflow data.
       if(open_kinds[b]==1) {independent_velocity[b]=FaceValue;independent_k[b]=FaceValue;independent_omega[b]=FaceValue;}
@@ -312,14 +308,17 @@ struct SteadySolver::Impl {
     memory::phase("transport");
     velocity_lsq=fit(independent_velocity);
     if(settings.pressure_interpolation!=PressureInterpolation::Standard && !green_gauss) {
-      // An inlet's normal pressure derivative is not zero (a porous zone's
-      // Darcy gradient reaches the inlet; FSAE V8), so a p_c row there biases
-      // the gradient, and Fluent's saved V6 state favours one only weakly.
-      // Second-order pressure keeps that row only where the fit without it
-      // would amplify neighbour differences at the inlet face (gain > 1), as
-      // at the mixing-elbow tet inlets, which diverge without these rows.
+      // Where the fit's extrapolation to an unprescribed face can amplify
+      // neighbour differences (gain > 1), as at tet wall cells whose
+      // neighbours lie in one plane, it feeds back through momentum's
+      // boundary pressure and diverges (the mixing-elbow tets). There the
+      // face holds the cell pressure, Fluent's stored value, at its centroid.
+      // Elsewhere a zero normal derivative would bias the gradient wherever
+      // the face carries a pressure gradient: an inlet under a Darcy
+      // gradient (FSAE V8), a rotating wall (FSAE V7.2)
+      // (validation/results/tet_robustness/REPORT.md).
       const auto gain=boundary_extrapolation_gain(host,geom,independent_pressure);
-      for(Index b=0;b<nb;++b) if(kinds[b]==1 && gain[b]>1) independent_pressure[b]=FaceValue;
+      for(Index b=0;b<nb;++b) if(independent_pressure[b]==Omitted && gain[b]>1) independent_pressure[b]=FaceValue;
     }
     pressure_lsq=fit(independent_pressure);
     memory::phase("lsq");
