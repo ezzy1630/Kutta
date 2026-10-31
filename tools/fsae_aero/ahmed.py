@@ -13,7 +13,7 @@ of 2L before the nose and a stationary wall after it.
 Mesh: gmsh surface triangles on the body, prism layers marched outward from
 them (first height `FIRST`), gmsh tetrahedra outside the
 layer shell, then every cell split into hexahedra (subdivide.py), because the
-current solver diverges on tetrahedra (REPORT.md).
+solver diverged on tetrahedra when this was written (fsae_aero/REPORT.md).
 
 Zones: body (wall), ground (wall), ground_slip, side, top (symmetry),
 inlet (velocity), outlet (pressure).
@@ -32,8 +32,9 @@ import subdivide  # noqa: E402
 
 L, W, H, CLEAR, R, SLANT = 1.044, 0.389, 0.288, 0.050, 0.100, 0.222
 # 50 um is y+ of a few at 40 m/s. The CFX-5 reference resolves y+ ~ 1
-# (15 um), but the current solver diverges at the sharp base edges with 15
-# and 25 um layers (REPORT.md, "Solver defects"); --first reproduces that.
+# (--first 1.5e-5). Thin layers diverged at the sharp rear edges until the
+# poor-cell pressure treatment (external_3d_robustness/REPORT.md); the default
+# stays 50 um so the existing meshes and tests keep their names and values.
 FIRST, GROWTH = 5e-5, 1.35
 
 

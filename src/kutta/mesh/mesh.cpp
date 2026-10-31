@@ -169,6 +169,22 @@ MeshGeometry compute_geometry(const PolyMesh& m) {
   structure(m);
   return geometry(m);
 }
+std::vector<double> orthogonal_quality(const PolyMesh& m, const MeshGeometry& g) {
+  std::vector<double> quality(m.n_cells, 1);
+  const auto cosine = [](Vec3d a, Vec3d b) { return dot(a, b) / (norm(a) * norm(b)); };
+  for (Index f = 0; f < m.n_faces(); ++f) {
+    const auto o = m.owner[f];
+    quality[o] = std::min(quality[o], cosine(g.face_area[f], g.face_centroid[f] - g.cell_centroid[o]));
+    if (f >= m.n_internal_faces()) continue;
+    const auto n = m.neighbour[f];
+    const auto link = g.cell_centroid[n] - g.cell_centroid[o];
+    quality[o] = std::min({quality[o], cosine(g.face_area[f], link)});
+    quality[n] = std::min({quality[n], cosine(g.face_area[f], g.cell_centroid[n] - g.face_centroid[f]),
+                           cosine(g.face_area[f], link)});
+  }
+  for (auto& q : quality) q = std::max(q, 0.);
+  return quality;
+}
 void validate(const PolyMesh& m) {
   structure(m);
   // Same checks as on compute_geometry's arrays, with face geometry

@@ -79,6 +79,35 @@ TEST_CASE("FV pressure symmetry boundary uses the full centroid displacement") {
   }
 }
 
+TEST_CASE("Poor-cell pressure faces take the flagged side's cell pressure") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    // One internal face (cells 0|1) and two boundary faces of cell 0: a wall
+    // (kind 0) and a pressure outlet (kind 2), which keeps its prescribed value.
+    const auto owner=dev->upload<Index>(std::vector<Index>{0,0,0}),neighbour=dev->upload<Index>(std::vector<Index>{1});
+    const auto kind=dev->upload<Index>(std::vector<Index>{0,2});
+    auto p=dev->upload<float>(std::vector<float>{2,5});
+    auto gx=dev->upload<float>(std::vector<float>{1,3}),gy=dev->upload<float>(std::vector<float>{4,-2});
+    auto zero=dev->alloc<float>(3);dev->fill(zero,0);
+    auto rx=dev->upload<float>(std::vector<float>{.5f,-.5f,0}),ry=dev->upload<float>(std::vector<float>{.25f,0,.5f});
+    auto nx=dev->upload<float>(std::vector<float>{-.5f}),ny=dev->upload<float>(std::vector<float>{.25f});
+    auto face=dev->alloc<float>(3),jump=dev->alloc<float>(3),boundary=dev->upload<float>(std::vector<float>{1.5f,7});
+    kern::fv_pressure_faces(*dev,3,owner,neighbour,rx,ry,zero,nx,ny,zero,p,gx,gy,zero,boundary,face,jump,1);
+    const auto full=dev->download(face),full_jump=dev->download(jump);
+    // No flagged cell: every face is unchanged, bit for bit.
+    auto poor=dev->upload<Index>(std::vector<Index>{0,0});
+    kern::fv_poor_cell_pressure_faces(*dev,3,owner,neighbour,kind,poor,rx,ry,zero,nx,ny,zero,p,gx,gy,zero,face,boundary,1);
+    CHECK(dev->download(face)==full);
+    // Cell 0 flagged: its side is p_0 = 2; cell 1 keeps 5 + 3*(-.5) - 2*.25.
+    poor=dev->upload<Index>(std::vector<Index>{1,0});
+    kern::fv_poor_cell_pressure_faces(*dev,3,owner,neighbour,kind,poor,rx,ry,zero,nx,ny,zero,p,gx,gy,zero,face,boundary,1);
+    const auto got=dev->download(face),bc=dev->download(boundary);
+    CHECK(got[0]==doctest::Approx(.5*(2+3)));
+    CHECK(got[1]==2);CHECK(bc[0]==2);
+    CHECK(got[2]==full[2]);CHECK(bc[1]==7);
+    CHECK(dev->download(jump)==full_jump);
+  }
+}
+
 TEST_CASE("Rhie-Chow bounds remote face extrapolation and preserves local reconstruction") {
   KUTTA_FOR_EACH_BACKEND(dev) {
     const auto owner=dev->upload<Index>(std::vector<Index>{0}),neighbour=dev->upload<Index>(std::vector<Index>{1});

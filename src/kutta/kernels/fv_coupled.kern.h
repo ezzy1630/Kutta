@@ -156,6 +156,22 @@ KUTTA_KERNEL void coupled_copy_diagonal(int i, KIn(int) rows, KIn(int) diag, KIn
   cell[offset + i] = values[diag[i]] + (floored - physical[i]) + inverse_courant * floored;
 }
 
+// The residual's Rhie-Chow coefficient V/a_P and momentum-weighted face
+// velocity use the same floored a_P as the Jacobian (coupled_copy_diagonal).
+// A Coupled iterate satisfies continuity only approximately, so cells that
+// the current flux only feeds keep a_P near zero; their V/a_P reached ~10^3
+// times its value elsewhere, and the face flux changed with every small change
+// of a_P between iterations, which the Jacobian cannot see (the Ahmed body
+// diverged by iteration 9). SIMPLE and SIMPLEC correct continuity each
+// iteration and keep the raw a_P. At a fixed point the floor adds at most the
+// cell's continuity residual.
+KUTTA_KERNEL void coupled_floor_physical(int i, KIn(int) rows, KIn(int) diag, KIn(float) values,
+                                         KOut(float) physical) {
+  float off = 0.0f;
+  for (int j = rows[i]; j < rows[i + 1]; ++j) if (j != diag[i]) off += kabs(values[j]);
+  physical[i] = kmax(physical[i], off);
+}
+
 // Absolute row sums of the pressure-force block per component, R_k,c,
 // written to r as 3n [x | y | z]. Smoother setup only (see the header).
 KUTTA_KERNEL void coupled_fine_gsum(int i, KIn(int) offsets, KIn(int) adjacent, KIn(int) faces,

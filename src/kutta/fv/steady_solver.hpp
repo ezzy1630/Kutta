@@ -148,6 +148,12 @@ struct SolverSettings {
   bool pseudo_transient=true;
   FaceVelocityWeights face_velocity=FaceVelocityWeights::Momentum;
   PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
+  // Fluent's poor-mesh-numerics quality threshold (solve/set/poor-mesh-numerics/
+  // set-quality-threshold; the cell-quality-based value 0.05). Second-order
+  // pressure faces of cells whose orthogonal quality is at or below it use
+  // the cell pressure instead of the gradient extrapolation. Negative
+  // disables it. See validation/results/external_3d_robustness/REPORT.md.
+  double poor_cell_quality=.05;
   GradientScheme gradient=GradientScheme::LeastSquares;
   double pseudo_time_scale=1;
   // Zero selects the conservative global automatic time step, refreshed every
@@ -245,6 +251,8 @@ class SteadySolver {
   const MeshPermutation& permutation() const;
   const Buffer<float>& boundary_pressure() const;
   const IterationReport& report() const;
+  // Cells whose second-order pressure faces are low order (poor_cell_quality).
+  Index poor_cells() const;
   // Device bytes the Coupled block solver owns beyond SIMPLEC; zero for SIMPLEC.
   std::size_t coupled_solver_bytes() const;
  private:

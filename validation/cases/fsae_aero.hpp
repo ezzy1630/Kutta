@@ -60,7 +60,7 @@ struct Sample {
   IterationReport report;
 };
 struct Result {
-  Index cells = 0;
+  Index cells = 0, poor_cells = 0;
   int iterations = 0;
   double setup_seconds = 0, solve_seconds = 0, lift = 0, drag = 0, drag_pressure = 0;
   double settle_lift = 0, settle_drag = 0, max_residual = 0;
@@ -183,6 +183,7 @@ inline Result run(Device& dev, const Options& o) {
   dev.synchronize();
   Result r;
   r.cells = n;
+  r.poor_cells = solver.poor_cells();
   r.setup_seconds = std::chrono::duration<double>(Clock::now() - start).count();
   start = Clock::now();
   std::ofstream history;
@@ -269,7 +270,7 @@ inline Result run(Device& dev, const Options& o) {
 inline void print(std::ostream& out, const Result& r) {
   // JSON has no infinity; unsettled histories print null.
   const auto num = [&](double v) -> std::ostream& { return std::isfinite(v) ? out << v : out << "null"; };
-  out << std::setprecision(10) << "{\"cells\":" << r.cells << ",\"iterations\":" << r.iterations << ",\"setup_s\":" << r.setup_seconds
+  out << std::setprecision(10) << "{\"cells\":" << r.cells << ",\"poor_cells\":" << r.poor_cells << ",\"iterations\":" << r.iterations << ",\"setup_s\":" << r.setup_seconds
       << ",\"solve_s\":" << r.solve_seconds << ",\"lift\":";
   num(r.lift) << ",\"drag\":";
   num(r.drag) << ",\"drag_pressure\":";

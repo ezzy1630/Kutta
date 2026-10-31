@@ -85,6 +85,13 @@ struct MeshGeometry {
 
 MeshGeometry compute_geometry(const PolyMesh& mesh);
 
+// Fluent's orthogonal quality of each cell (User's Guide 6.2.2, eqs. 6-1 and
+// 6-2): the minimum over its faces of A.f/(|A||f|) and, on internal faces,
+// A.c/(|A||c|), with A the outward area, f the centroid-to-face-centroid and
+// c the centroid-to-neighbour-centroid vector. 1 is orthogonal and 0 the
+// worst; negative values are clamped to 0.
+std::vector<double> orthogonal_quality(const PolyMesh& mesh, const MeshGeometry& geometry);
+
 // One face's centroid and area vector, the same doubles compute_geometry
 // stores, without geometry for the rest of the mesh.
 struct FaceGeometry {

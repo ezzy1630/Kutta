@@ -129,7 +129,7 @@ struct CoupledSolver::Impl {
 
   Impl(Device& device, const DeviceMesh& m, const Stencil& st, const PolyMesh& host,
        const MeshGeometry& geom, const Buffer<Index>& kind, const BoundaryLeastSquares& pressure_lsq,
-       Index ref, CoupledOptions opt)
+       Index ref, std::span<const Index> low_order, CoupledOptions opt)
       : dev(device), mesh(m), stencil(st), boundary_kind(kind), lsq(pressure_lsq), options(opt),
         n(m.n_cells), reference(ref) {
     KUTTA_REQUIRE(options.pre_sweeps >= 1 && options.post_sweeps >= 0 && options.coarsest_sweeps >= 1 &&
@@ -142,7 +142,7 @@ struct CoupledSolver::Impl {
     // Pressure-force sensitivities (fv_coupled.kern.h), unscaled: G takes
     // half of each internal face and the whole face where the boundary
     // pressure is extrapolated from the cell. Q uses the residual's own
-    // extrapolation vectors. Incidences follow the device
+    // extrapolation vectors, none in low-order cells. Incidences follow the device
     // cell_face_offsets/cell_faces order of the LSQ deltas. The flux block H
     // follows the momentum face weights and is refreshed every solve.
     const auto offsets = dev.download(m.cell_face_offsets), faces = dev.download(m.cell_faces);
@@ -166,7 +166,8 @@ struct CoupledSolver::Impl {
         const auto f = faces[j];
         const auto area = geom.face_area[f] * double(signs[j]);
         const auto& side = f < ni && host.owner[f] != c ? neighbour_r : owner_r;
-        const Vec3d r{side[0][f], side[1][f], side[2][f]};
+        const bool extrapolated = low_order.empty() || low_order[c] == 0;
+        const Vec3d r = extrapolated ? Vec3d{side[0][f], side[1][f], side[2][f]} : Vec3d{};
         const bool prescribed = f >= ni && (kinds[f - ni] == 2 || kinds[f - ni] == 4);
         // An unprescribed boundary row observes the cell's own pressure, so
         // its difference, and its share of d g_c / d p_c, is zero.
@@ -431,9 +432,9 @@ struct CoupledSolver::Impl {
 CoupledSolver::CoupledSolver(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
                              const PolyMesh& host, const MeshGeometry& geometry,
                              const Buffer<Index>& boundary_kind, const BoundaryLeastSquares& pressure_lsq,
-                             Index reference, CoupledOptions options)
+                             Index reference, std::span<const Index> low_order_pressure, CoupledOptions options)
     : impl_(std::make_unique<Impl>(dev, mesh, stencil, host, geometry, boundary_kind, pressure_lsq,
-                                   reference, options)) {}
+                                   reference, low_order_pressure, options)) {}
 CoupledSolver::~CoupledSolver() = default;
 
 void CoupledSolver::capture_diagonal(int component, const CsrMatrix& momentum, const Buffer<float>& physical) {

@@ -57,3 +57,29 @@ KUTTA_KERNEL void fv_force_to_shear(int i,KIn(float) mask,KIn(float) ax,KIn(floa
   float scale=mask[i]>0.0f?-1.0f/a:0.0f;
   sx[i]=scale*fx[i];sy[i]=scale*fy[i];sz[i]=scale*fz[i];
 }
+
+// Fluent's poor mesh numerics (User's Guide 36.22.5) give cells of low
+// orthogonal quality a locally low-order discretization. Here a flagged
+// cell's side of each second-order face pressure (TG 23-43) is its cell
+// pressure instead of p + grad(p).r. A first wall-layer cell sheared across
+// a sharp convex edge has its centroid tens of cell heights from its face
+// centroids, and the extrapolated difference across its two large faces fed
+// back through its own pressure force until it diverged
+// (validation/results/external_3d_robustness/REPORT.md). Prescribed-pressure
+// faces keep their value; the Rhie-Chow jump keeps the full reconstruction.
+KUTTA_KERNEL void fv_poor_cell_pressure_faces(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) kind,
+    KIn(int) poor,KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) p,KIn(float) gx,KIn(float) gy,KIn(float) gz,KOut(float) face,KOut(float) boundary,int internal) {
+  int c=owner[i];
+  if(i>=internal) {
+    int b=i-internal;
+    if(poor[c]==0 || kind[b]==2 || kind[b]==4) return;
+    face[i]=p[c];boundary[b]=p[c];
+    return;
+  }
+  int n=neighbour[i];
+  if(poor[c]==0 && poor[n]==0) return;
+  float pp=poor[c]!=0?p[c]:p[c]+gx[c]*px[i]+gy[c]*py[i]+gz[c]*pz[i];
+  float pn=poor[n]!=0?p[n]:p[n]+gx[n]*nx[i]+gy[n]*ny[i]+gz[n]*nz[i];
+  face[i]=0.5f*(pp+pn);
+}

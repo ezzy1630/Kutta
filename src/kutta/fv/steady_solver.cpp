@@ -108,6 +108,9 @@ struct SteadySolver::Impl {
   DeviceVec3 velocity,body,boundary_velocity,prescribed_velocity,source,face_velocity;
   Buffer<float> pressure,mass,viscosity,boundary_pressure,prescribed_pressure;
   Buffer<Index> boundary_kind,scalar_kind;
+  // Cells with low-order second-order pressure faces (poor_cell_quality);
+  // allocated only when there are any.
+  Buffer<Index> poor;Index poor_count=0;
   DeviceVec3 grad_p,limited_gradient[3];
   std::unique_ptr<TransportEquation> momentum[3];
   std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction;
@@ -321,6 +324,14 @@ struct SteadySolver::Impl {
       for(Index b=0;b<nb;++b) if(independent_pressure[b]==Omitted && gain[b]>1) independent_pressure[b]=FaceValue;
     }
     pressure_lsq=fit(independent_pressure);
+    // Empty unless some cell has low-order pressure faces.
+    std::vector<Index> low_order;
+    if(settings.pressure_interpolation!=PressureInterpolation::Standard) {
+      const auto quality=orthogonal_quality(host,geom);
+      std::vector<Index> flags(n,0);
+      for(Index c=0;c<n;++c) if(quality[c]<=settings.poor_cell_quality) {flags[c]=1;++poor_count;}
+      if(poor_count) {poor=dev.upload<Index>(flags);low_order=std::move(flags);}
+    }
     memory::phase("lsq");
     if(settings.sst) {
       std::vector<BoundaryObservation> strain_rows(nb);
@@ -424,7 +435,7 @@ struct SteadySolver::Impl {
     // Fluent's conservative length scale: min(domain volume^(1/3), largest extent).
     length=std::min(std::cbrt(volume),std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z}));
     if(settings.coupling==PressureVelocityCoupling::Coupled)
-      coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference);
+      coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference,low_order);
     memory::phase("coupled-solver");
     update_time(bc_speed,bc_speed);
     dev.fill(momentum[0]->diagonal,1);dev.fill(momentum[0]->consistent_inverse,0);
@@ -444,6 +455,9 @@ struct SteadySolver::Impl {
     kern::fv_momentum_diagonal(dev,mesh.n_cells,momentum[0]->diagonal,momentum[1]->diagonal,momentum[2]->diagonal,
       momentum[0]->consistent_inverse,momentum[1]->consistent_inverse,momentum[2]->consistent_inverse,
       physical_diagonal,consistent_inverse);
+    // The momentum rows share one CSR value buffer and their off-diagonals.
+    if(coupled) kern::coupled_floor_physical(dev,mesh.n_cells,momentum[0]->matrix.row_ptr,momentum[0]->matrix.diag,
+      momentum[0]->matrix.val,physical_diagonal);
   }
   void turbulence_boundaries() {
     kern::fv_turbulence_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,turbulence_spec,
@@ -623,6 +637,10 @@ struct SteadySolver::Impl {
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,face_pressure,pressure_jump,mesh.n_internal_faces);
+    if(poor_count) kern::fv_poor_cell_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,poor,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+      mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+      pressure,grad_p.x,grad_p.y,grad_p.z,face_pressure,boundary_pressure,mesh.n_internal_faces);
     if(settings.pressure_interpolation==PressureInterpolation::Standard)
       kern::fv_standard_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
         pressure,physical_diagonal,face_pressure,boundary_pressure,mesh.n_internal_faces);
@@ -1133,6 +1151,7 @@ const Buffer<float>& SteadySolver::modified_viscosity() const {KUTTA_REQUIRE(imp
 const MeshPermutation& SteadySolver::permutation() const {return impl_->permutation;}
 const Buffer<float>& SteadySolver::boundary_pressure() const {return impl_->boundary_pressure;}
 const IterationReport& SteadySolver::report() const {return impl_->report;}
+Index SteadySolver::poor_cells() const {return impl_->poor_count;}
 std::size_t SteadySolver::coupled_solver_bytes() const {return impl_->coupled?impl_->coupled->bytes():0;}
 Vec3d ForceReport::force() const {return pressure+viscous;}
 double ForceReport::coefficient(Vec3d direction,const ReferenceValues& ref) const {

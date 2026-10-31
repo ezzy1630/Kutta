@@ -14,6 +14,7 @@
 // structured block CSR (8 floats per entry, 3 per row).
 
 #include <memory>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -54,11 +55,14 @@ class CoupledSolver {
   // boundary_kind follows fv_flow.kern.h (2 and 4 are pressure-specified).
   // reference >= 0 anchors a closed domain's pressure level in that cell.
   // pressure_lsq is the residual's pressure reconstruction; its own-cell
-  // sensitivity enters the Jacobian. All references must outlive the solver.
+  // sensitivity enters the Jacobian, except in cells flagged in
+  // low_order_pressure (empty: none), whose face pressures the residual takes
+  // from the cell value (SolverSettings::poor_cell_quality). All references
+  // must outlive the solver.
   CoupledSolver(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
                 const PolyMesh& host, const MeshGeometry& geometry,
                 const Buffer<Index>& boundary_kind, const BoundaryLeastSquares& pressure_lsq,
-                Index reference, CoupledOptions options = {});
+                Index reference, std::span<const Index> low_order_pressure = {}, CoupledOptions options = {});
   ~CoupledSolver();
   CoupledSolver(const CoupledSolver&) = delete;
   CoupledSolver& operator=(const CoupledSolver&) = delete;

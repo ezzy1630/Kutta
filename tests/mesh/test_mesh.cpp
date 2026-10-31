@@ -65,6 +65,18 @@ TEST_CASE("shear, skew, scale and translation preserve affine volume moments") {
     CHECK(moment.z / 24 == doctest::Approx(2));
   }
 }
+TEST_CASE("orthogonal quality is Fluent's minimum face and link cosine") {
+  // Shearing x by t*z tilts the x faces and the z links alike: every cosine
+  // that is not 1 equals 1/sqrt(1+t^2), on boundary and internal faces.
+  for (double t : {0., 1., 20.}) {
+    auto m = make_box_hex(1, 1, 2, {0, 0, 0}, {1, 1, 1});
+    for (auto& p : m.points) p.x += t * p.z;
+    const auto quality = orthogonal_quality(m, compute_geometry(m));
+    REQUIRE(quality.size() == 2);
+    for (auto q : quality) CHECK(q == doctest::Approx(1 / std::sqrt(1 + t * t)).epsilon(1e-12));
+  }
+}
+
 TEST_CASE("prism, polygonal prism and warped face geometry") {
   for (int sides : {3, 5}) {
     PlanarMesh p;

@@ -25,10 +25,13 @@ MESHES = ROOT / "runs/fsae_aero/mesh"
 AHMED_LENGTH, AHMED_RE, AHMED_AREA = 1.044, 2.78e6, 0.389 * 0.288
 
 
-def mesh_for(case, point, level, far=1.0):
+def mesh_for(case, point, level, far=1.0, first=None):
     if case == "ahmed":
-        path = MESHES / f"ahmed{point}_L{level}.msh"  # point = slant angle
+        # point = slant angle; a non-default first prism height is in the name
+        suffix = f"_first{first * 1e6:g}um" if first else ""
+        path = MESHES / f"ahmed{point}_L{level}{suffix}.msh"
         cmd = [PY, str(ROOT / "tools/fsae_aero/ahmed.py"), "--slant", point, "--level", str(level), "--out", str(path)]
+        cmd += ["--first", str(first)] if first else []
     else:
         tag = f"h{point}" if case == "zerihan" else f"a{point}"
         path = MESHES / f"{case}_{tag}_L{level}{f'_far{far:g}' if far != 1 else ''}.msh"
@@ -42,8 +45,9 @@ def mesh_for(case, point, level, far=1.0):
 
 
 def solve(case, point, args):
-    mesh = mesh_for(case, point, args.level, args.far)
-    tag = f"{case}{'_re' + args.re if case == 's1223' else ''}_{point}_L{args.level}_{args.backend}{args.tag}"
+    mesh = mesh_for(case, point, args.level, args.far, args.first)
+    first = f"_first{args.first * 1e6:g}um" if case == "ahmed" and args.first else ""
+    tag = f"{case}{'_re' + args.re if case == 's1223' else ''}_{point}_L{args.level}{first}_{args.backend}{args.tag}"
     out = pathlib.Path(args.out) / tag
     out.mkdir(parents=True, exist_ok=True)
     cmd = [str(ROOT / "build/bench_fsae_aero"), "--mesh", str(mesh), "--backend", args.backend, "--out", str(out),
@@ -97,6 +101,7 @@ def main():
     ap.add_argument("--ratio", type=float, default=1.0)
     ap.add_argument("--extra", default="", help="extra bench_fsae_aero options")
     ap.add_argument("--far", type=float, default=1.0, help="2D far-field distance scale (wing2d.py --far)")
+    ap.add_argument("--first", type=float, default=None, help="Ahmed first prism height, m (ahmed.py --first)")
     ap.add_argument("--tag", default="", help="suffix for the run directory")
     ap.add_argument("--out", default=str(ROOT / "runs/fsae_aero/results"))
     a = ap.parse_args()
