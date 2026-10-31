@@ -43,6 +43,15 @@ QMatrix4x4 Camera::view() const
     return m;
 }
 
+void Camera::screenAxes(QVector3D* right, QVector3D* upv) const
+{
+    // The rendered axes, so fitting agrees with view() where it replaces a
+    // vertical `up` (plan views).
+    const QMatrix4x4 v = view();
+    *right = QVector3D(v(0, 0), v(0, 1), v(0, 2)).normalized();
+    *upv = QVector3D(v(1, 0), v(1, 1), v(1, 2)).normalized();
+}
+
 QMatrix4x4 Camera::projection(float aspect, float nearZ, float farZ) const
 {
     QMatrix4x4 p;
@@ -62,10 +71,8 @@ void Camera::fit(const Bounds& b, float aspect, QMarginsF reserve)
     // Fit the box's projected corners, not its bounding sphere: long, flat
     // shapes (a car, a slice) then fill the view instead of floating in it.
     const QVector3D f = forward();
-    QVector3D right = QVector3D::crossProduct(f, up);
-    if (right.lengthSquared() < 1e-8f) right = QVector3D::crossProduct(f, QVector3D(0, 1, 0));
-    right.normalize();
-    const QVector3D upv = QVector3D::crossProduct(right, f).normalized();
+    QVector3D right, upv;
+    screenAxes(&right, &upv);
     const float margin = 0.9f;
     // reserve: fractions of the viewport kept clear for overlays (title, legend).
     const float fx = float(std::clamp(1.0 - reserve.left() - reserve.right(), 0.3, 1.0));
@@ -94,10 +101,8 @@ void Camera::fit(const std::vector<QVector3D>& points, float aspect, QMarginsF r
 {
     if (points.empty()) return;
     const QVector3D f = forward();
-    QVector3D right = QVector3D::crossProduct(f, up);
-    if (right.lengthSquared() < 1e-8f) right = QVector3D::crossProduct(f, QVector3D(0, 1, 0));
-    right.normalize();
-    const QVector3D upv = QVector3D::crossProduct(right, f).normalized();
+    QVector3D right, upv;
+    screenAxes(&right, &upv);
     // Extent in the view plane; the target moves to its middle.
     QVector3D c;
     for (const QVector3D& p : points) c += p;

@@ -41,6 +41,7 @@ def check_outputs(directory, data=False, iterations=21, case_name="tiny.cas.h5",
         assert "WFGC off, #f" in info["kutta_action"]
         assert info["effect_documentation"] == "src/kutta/fv/VERIFICATION.md#v6-initialization-comparison"
         assert "3.366748%" in info["measured_effect"] and "not isolated WFGC error" in info["measured_effect"]
+        assert info["short"] == "WFGC off"
         notice = summary["approximation_notice"]
         assert notice.startswith("APPROXIMATE RESULT")
         for key in ("setting", "fluent_value", "kutta_action", "effect_documentation", "measured_effect"):
@@ -64,7 +65,8 @@ def check_outputs(directory, data=False, iterations=21, case_name="tiny.cas.h5",
         assert len(values) == (12 if key == "u" else 4)
         assert all(math.isfinite(v) for v in values)
     rows = csv_rows(directory / "residuals.csv")
-    assert [int(r["iteration"]) for r in rows] == ([20, 21] if iterations == 21 else [iterations])
+    # Iterations 1-5 (already monitored for Fluent's continuity scale) and the samples.
+    assert [int(r["iteration"]) for r in rows] == ([1, 2, 3, 4, 5, 20, 21] if iterations == 21 else [iterations])
     for row in rows:
         assert all(math.isfinite(float(v)) and float(v) >= 0 for v in row.values())
         assert float(row["seconds_per_iteration"]) > 0

@@ -81,7 +81,7 @@ QString defaultRun(const InspectorContext& c)
 
 void addBadges(QHBoxLayout* row, const RunRecord& r)
 {
-    if (r.approximate()) row->addWidget(badge("APPROXIMATE", "approximate"));
+    if (r.approximate()) row->addWidget(badge(r.approximateBadge(), "approximate"));
     if (r.modified()) row->addWidget(badge("MODIFIED", "modified"));
     if (r.synthetic) row->addWidget(badge("SYNTHETIC", "modified"));
     else if (r.fixture) row->addWidget(badge("FIXTURE REPLAY", "modified"));
@@ -209,8 +209,11 @@ QWidget* aero(const InspectorContext& c)
     std::vector<const RunRecord*> runs;
     for (auto it = s->history().runs().rbegin(); it != s->history().runs().rend(); ++it)
         if (finished(*it)) runs.push_back(&*it);
+    // A 2D case is a section: no vehicle, no balance, forces for the reference depth.
+    const bool planar = s->caseSummary().planar();
     if (runs.empty()) {
-        v->addWidget(label(QObject::tr("Downforce, drag, balance and centre of pressure appear here when a run finishes. Set the wheelbase below now if you like; it is kept with the case."), "muted"));
+        v->addWidget(label(planar ? QObject::tr("Downforce, drag and their coefficients appear here when a run finishes.")
+                                  : QObject::tr("Downforce, drag, balance and centre of pressure appear here when a run finishes. Set the wheelbase below now if you like; it is kept with the case."), "muted"));
     }
 
     // ---- result
@@ -265,7 +268,7 @@ QWidget* aero(const InspectorContext& c)
 
     // ---- vehicle and axes (kept with the case, applied to every run)
     const AeroSpec spec = s->aeroSpec();
-    v->addWidget(section(QObject::tr("Vehicle")));
+    v->addWidget(section(planar ? QObject::tr("Axes") : QObject::tr("Vehicle")));
     auto* vg = new QGridLayout;
     vg->setHorizontalSpacing(10);
     vg->setVerticalSpacing(4);
@@ -273,33 +276,46 @@ QWidget* aero(const InspectorContext& c)
     auto* wheelbase = new QLineEdit(spec.wheelbase ? QLocale().toString(*spec.wheelbase, 'g', 6) : QString());
     wheelbase->setAccessibleName(QObject::tr("Wheelbase"));
     wheelbase->setPlaceholderText(QObject::tr("e.g. 1.53"));
-    vg->addWidget(label(QObject::tr("Front axle (tyre contact)")), 0, 0);
-    vg->addWidget(axle.widget, 0, 1);
-    vg->addWidget(label("m", "faint"), 0, 2);
-    vg->addWidget(label(QObject::tr("Wheelbase")), 1, 0);
-    vg->addWidget(wheelbase, 1, 1);
-    vg->addWidget(label("m", "faint"), 1, 2);
+    int row = 0;
+    if (!planar) {
+        vg->addWidget(label(QObject::tr("Front axle (tyre contact)")), row, 0);
+        vg->addWidget(axle.widget, row, 1);
+        vg->addWidget(label("m", "faint"), row++, 2);
+        vg->addWidget(label(QObject::tr("Wheelbase")), row, 0);
+        vg->addWidget(wheelbase, row, 1);
+        vg->addWidget(label("m", "faint"), row++, 2);
+    } else {
+        axle.widget->setParent(page);
+        axle.widget->hide();
+        wheelbase->setParent(page);
+        wheelbase->hide();
+    }
     auto* flow = axisCombo(spec.drag, QObject::tr("Free-stream direction"));
     auto* up = axisCombo(spec.lift, QObject::tr("Up direction"));
-    vg->addWidget(label(QObject::tr("Free stream (drag)")), 2, 0);
-    vg->addWidget(flow, 2, 1);
-    vg->addWidget(label(QObject::tr("Up (lift)")), 3, 0);
-    vg->addWidget(up, 3, 1);
+    vg->addWidget(label(QObject::tr("Free stream (drag)")), row, 0);
+    vg->addWidget(flow, row++, 1);
+    vg->addWidget(label(QObject::tr("Up (lift)")), row, 0);
+    vg->addWidget(up, row++, 1);
     PointEdit centre = pointEdit(spec.momentCentre, QObject::tr("Moment centre"));
     auto* centreToAxle = button(QObject::tr("Front axle"), {});
     centreToAxle->setProperty("flat", true);
     centreToAxle->setToolTip(QObject::tr("Take moments about the front tyre contact point"));
     centreToAxle->setText(QObject::tr("Use the front axle"));
-    vg->addWidget(label(QObject::tr("Moment centre")), 4, 0);
-    vg->addWidget(centre.widget, 4, 1);
-    vg->addWidget(label("m", "faint"), 4, 2);
-    vg->addWidget(centreToAxle, 5, 1, Qt::AlignLeft);
+    vg->addWidget(label(QObject::tr("Moment centre")), row, 0);
+    vg->addWidget(centre.widget, row, 1);
+    vg->addWidget(label("m", "faint"), row++, 2);
+    if (!planar) vg->addWidget(centreToAxle, row++, 1, Qt::AlignLeft);
+    else {
+        centreToAxle->setParent(page);
+        centreToAxle->hide();
+    }
     vg->setColumnStretch(1, 1);
     v->addLayout(vg);
     auto* specError = label({}, "error");
     specError->hide();
     v->addWidget(specError);
-    v->addWidget(label(QObject::tr("Balance splits the downforce between the axles using the pitching moment about the front contact point, so drag acting above the ground counts. CoP is where the total downforce alone would give that split. Kept with the case; changing it recomputes every run without solving again."), "faint"));
+    v->addWidget(label(planar ? QObject::tr("A 2D case is a section: forces are for the case's reference depth, so CL and CD are section coefficients. Kept with the case; changing it recomputes every run without solving again.")
+                              : QObject::tr("Balance splits the downforce between the axles using the pitching moment about the front contact point, so drag acting above the ground counts. CoP is where the total downforce alone would give that split. Kept with the case; changing it recomputes every run without solving again."), "faint"));
 
     // ---- groups
     v->addWidget(section(QObject::tr("Groups")));
@@ -332,7 +348,8 @@ QWidget* aero(const InspectorContext& c)
     auto* suggest = button(QObject::tr("Suggest from zone names"), "wand-sparkles");
     suggest->setProperty("flat", true);
     v->addWidget(suggest, 0, Qt::AlignLeft);
-    v->addWidget(label(QObject::tr("Car zones are the walls of the case's force reports, so the total matches them; the ground is not part of the car."), "faint"));
+    v->addWidget(label(planar ? QObject::tr("Zones are the walls of the case's force reports, so the total matches them; the ground is not included.")
+                              : QObject::tr("Car zones are the walls of the case's force reports, so the total matches them; the ground is not part of the car."), "faint"));
 
     // Build the spec from the inputs; invalid input says why and keeps the saved spec.
     auto commit = [s, axle, wheelbase, flow, up, centre, groupBoxes, car, groupNames, specError] {
@@ -396,7 +413,8 @@ QWidget* aero(const InspectorContext& c)
             {"CL", k ? fixed(k->cl, 3) : QStringLiteral("—")},
             {"CD", k ? fixed(k->cd, 3) : QStringLiteral("—")},
             {QObject::tr("L/D"), fixed(a.liftToDrag, 2)},
-            {QObject::tr("Balance"), b.frontPercent ? QObject::tr("%1 % F").arg(fixed(b.frontPercent, 1)) : QStringLiteral("—")}};
+            planar ? std::pair{QObject::tr("Downforce"), fixed(t->downforce, 1) + " N"}
+                   : std::pair{QObject::tr("Balance"), b.frontPercent ? QObject::tr("%1 % F").arg(fixed(b.frontPercent, 1)) : QStringLiteral("—")}};
         for (int i = 0; i < int(tiles.size()); ++i) {
             headline->addWidget(label(tiles[std::size_t(i)].first, "faint"), 0, i);
             auto* big = label(tiles[std::size_t(i)].second);
@@ -422,7 +440,7 @@ QWidget* aero(const InspectorContext& c)
         line(QObject::tr("Downforce"), fixed(t->downforce, 1) + " N" + (t->cla ? sep + "ClA " + fixed(*t->cla, 3) + " m²" : QString()));
         line(QObject::tr("Drag"), fixed(t->total.drag, 1) + " N" + (t->cda ? sep + "CdA " + fixed(*t->cda, 3) + " m²" : QString()) +
                                       sep + QObject::tr("%1 % viscous").arg(fixed(t->total.drag != 0 ? 100 * t->viscous.drag / t->total.drag : 0, 0)));
-        line(QObject::tr("Side force"), fixed(t->total.side, 1) + " N" + (k ? sep + "CS " + fixed(k->cs, 3) : QString()));
+        if (!planar) line(QObject::tr("Side force"), fixed(t->total.side, 1) + " N" + (k ? sep + "CS " + fixed(k->cs, 3) : QString()));
         line(QObject::tr("Pitching moment"), fixed(t->pitch, 1) + " N m" + (k && k->cmPitch ? sep + "CM " + fixed(*k->cmPitch, 3) : QString()) + sep +
                                                  QObject::tr("about (%1, %2, %3) m").arg(a.momentCentre.x()).arg(a.momentCentre.y()).arg(a.momentCentre.z()));
         if (b.status == "defined") {
@@ -434,7 +452,7 @@ QWidget* aero(const InspectorContext& c)
             line(QObject::tr("Balance"), QObject::tr("no net downforce") + sep + QObject::tr("front %1 N, rear %2 N").arg(fixed(b.frontLoad, 1), fixed(b.rearLoad, 1)));
         }
         summary->setColumnStretch(1, 1);
-        balanceNote->setVisible(b.status == "needs_vehicle");
+        balanceNote->setVisible(!planar && b.status == "needs_vehicle");
 
         const int comp = component->currentIndex();
         breakdown->setRowCount(0);

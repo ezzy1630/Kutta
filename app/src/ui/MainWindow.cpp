@@ -119,7 +119,9 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
     connect(session, &Session::runFinished, this, [this](const QString& id) {
         const RunRecord* r = m_session->history().find(id);
         if (!r) return;
-        statusBar()->showMessage(tr("%1 %2").arg(r->title(), runStatusText(*r).toLower()), 8000);
+        const QString outcome = r->status == RunStatus::Completed && r->stopReason == QLatin1String("iteration_limit")
+                                    ? tr("reached the iteration limit") : runStatusText(*r).toLower();
+        statusBar()->showMessage(tr("%1 %2").arg(r->title(), outcome), 8000);
         if (r->status == RunStatus::Completed || r->status == RunStatus::Stopped) {
             for (int i = 0; i < m_graphics->visibleCount(); ++i) {
                 auto* p = m_graphics->panel(i);

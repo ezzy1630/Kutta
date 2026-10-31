@@ -40,7 +40,12 @@ Human-readable output without `--json` / `--progress` is unchanged.
 user opts in with `--approximate <approximation>`) or `informational`.
 Approximable issues also carry `measured_effect` (v1 additive): the measured
 effect alone, as `summary.json` records it per approximation. Their
-`explanation` still ends with it, so older readers lose nothing.
+`explanation` still ends with it, so older readers lose nothing. They also
+carry `short` (v1 additive), a few words naming what the run does differently,
+for result badges: `wfgc` "WFGC off", `compressibility` "No compressibility
+correction", `ke-options` "Documented k-epsilon only", `reverse-flow` "No
+reverse-flow suppression". Each entry of `summary.json`'s `approximations`
+carries the same `short`.
 
 ## Progress events (`solve --progress jsonl`)
 
@@ -56,12 +61,23 @@ One JSON object per line, in order:
 {"v":1,"event":"error","message":"…","issues":[...]}
 ```
 
-`iteration` events are emitted at the monitor interval. Residual names follow
-the solved equations: `continuity` and the three velocities always, then `k`
+`iteration` events are emitted at the monitor interval (the monitor samples)
+and, v1 additive, at iterations 1 to 5. The solver monitors those anyway,
+because Fluent scales continuity by its largest value in the first five
+iterations, so reporting them costs no solver work and changes no output; the
+residual history starts at iteration 1, as in Fluent. An iteration 1-5 event
+that is not also a monitor sample has `residuals`, `sec_per_iter` and
+`elapsed`, an empty `reports` object and no `convergence`: it is not a
+convergence sample. Residual names follow
+the solved equations: `continuity`, `x-velocity`, `y-velocity` and, except for
+planar 2D cases, `z-velocity`, then `k`
 and `omega` for SST or `k` and `epsilon` for standard k-epsilon; laminar runs
 have none of these turbulence entries. SST with Fluent's Intermittency
 Transition Model adds `intermit` (v1 additive, Fluent's name) after `omega`.
-`residuals.csv` uses the same columns.
+A planar 2D case (`general/dimension` 2) has no `z-velocity` residual or
+`monitors/residual/z-velocity/*` controls, matching Fluent's 2D residual list;
+Kutta's one-cell extrusion keeps w at round-off. Readers use the names
+present. `residuals.csv` uses the same columns and rows.
 Report values are
 optional per event. stderr carries human-readable diagnostics only. Exit
 codes: 0 success, 1 rejected case or solver failure, 2 usage error. The app
@@ -169,6 +185,14 @@ Cell Based", "Green-Gauss Node Based"), `methods/pressure-scheme` (`standard`
 or `second-order`; other saved schemes keep their Fluent name and are
 unsupported) and `methods/pseudo-transient` (bool, whether the steady case
 uses the pseudo-transient formulation).
+
+`controls/courant-number` (v1 additive, read-only) is Fluent's Flow Courant
+Number as saved (`pressure-coupled/courant-number`, null when absent). Kutta's
+Coupled solver always applies Fluent's default, 200, as implicit relaxation on
+top of the pseudo time step (Theory Guide 18.4.4); its `reason` says so. With
+pseudo time it depends on `methods/pressure-velocity-coupling`
+(`active_when` `["coupled"]`); without pseudo time Kutta never runs Coupled,
+so it is inactive.
 
 On valid runs `setup` is the first event, followed by warnings and iterations;
 `done` is last and means outputs are closed. Rejected/setup-failed runs may emit
@@ -667,8 +691,9 @@ prefixes.)
 | `monitors/report/<report>/ignore-before` | integer ≥ 0 | `100` | Fluent's Ignore Iterations Before |
 
 `<equation>` is each residual name the solver reports (`continuity`,
-`x-velocity`, `y-velocity`, `z-velocity`, then `k` and `omega` or `epsilon`
-for turbulent cases). Residual `check` and
+`x-velocity`, `y-velocity`, `z-velocity` except for planar 2D cases, then `k`
+and `omega` or `epsilon` for turbulent cases, and `intermit` with the
+intermittency transition model). Residual `check` and
 `absolute-criterion` come from the case's `residuals/settings` when its rows use
 the 7-element layout Kutta parses, otherwise `check` is `false` and the
 criterion is null. A raw row that also lists equations Kutta does not solve
@@ -678,8 +703,9 @@ whether or not checking is on. Report entries exist for each force-type
 report definition (`force`, `drag`, `lift`, `downforce`); other report kinds are
 listed read-only. Report defaults are Kutta's, not read from the case.
 
-Evaluation happens at every monitor sample (each `iteration` event, including
-the final partial interval):
+Evaluation happens at every monitor sample (each `iteration` event at the
+monitor interval, including the final partial interval; not the extra
+iteration 1-5 events):
 
 - **Residuals** are one condition: met when at least one equation is checked
   and every checked equation's scaled residual is at or below its criterion.

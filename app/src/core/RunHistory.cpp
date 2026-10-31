@@ -24,9 +24,21 @@ QString runStatusLabel(RunStatus s)
     return {};
 }
 
+QString RunRecord::approximateBadge() const
+{
+    if (approximations.isEmpty()) return {};
+    // Records from before the CLI's short labels name the approximations.
+    const QStringList& words = approximationLabels.size() == approximations.size() ? approximationLabels : approximations;
+    return QStringLiteral("APPROXIMATE · %1").arg(words.join(", "));
+}
+
 QString runStatusText(const RunRecord& r)
 {
-    return r.status == RunStatus::Completed && r.converged() ? QStringLiteral("Converged") : runStatusLabel(r.status);
+    // A completed run either converged or ran out of iterations; older records
+    // without a stop reason stay "Completed".
+    if (r.status == RunStatus::Completed && r.converged()) return QStringLiteral("Converged");
+    if (r.status == RunStatus::Completed && r.stopReason == QLatin1String("iteration_limit")) return QStringLiteral("Iteration limit");
+    return runStatusLabel(r.status);
 }
 
 QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv)
@@ -120,6 +132,7 @@ QJsonObject RunRecord::toJson() const
             {"overrides", overrides},
             {"run_controls", runControls},
             {"approximations", QJsonArray::fromStringList(approximations)},
+            {"approximation_labels", QJsonArray::fromStringList(approximationLabels)},
             {"converged_by", QJsonArray::fromStringList(convergedBy)},
             {"study", studyId},
             {"backend", backend},
@@ -154,6 +167,7 @@ std::optional<RunRecord> RunRecord::fromJson(const QJsonObject& o, const QString
     r.overrides = o.value("overrides").toObject();
     r.runControls = o.value("run_controls").toObject();
     for (const QJsonValue& a : o.value("approximations").toArray()) r.approximations << a.toString();
+    for (const QJsonValue& a : o.value("approximation_labels").toArray()) r.approximationLabels << a.toString();
     for (const QJsonValue& a : o.value("converged_by").toArray()) r.convergedBy << a.toString();
     r.studyId = o.value("study").toString();
     r.backend = o.value("backend").toString();

@@ -48,6 +48,7 @@ SupportIssue parseIssue(const QJsonObject& o)
     i.explanation = o.value("explanation").toString();
     i.evidence = o.value("evidence").toString();
     i.measuredEffect = o.value("measured_effect").toString();
+    i.shortLabel = o.value("short").toString();
     return i;
 }
 
@@ -165,6 +166,13 @@ QStringList CaseSummary::approximations() const
     return out;
 }
 
+QString CaseSummary::approximationShort(const QString& name) const
+{
+    for (const auto& i : issues)
+        if (i.cls == IssueClass::Approximable && i.approximation == name && !i.shortLabel.isEmpty()) return i.shortLabel;
+    return name;
+}
+
 std::vector<const SupportIssue*> CaseSummary::blocking(const QStringList& optedIn) const
 {
     std::vector<const SupportIssue*> out;
@@ -214,6 +222,7 @@ Result<CaseSummary> parseCaseSummary(const QJsonObject& json)
     }
     const QJsonObject models = json.value("models").toObject();
     c.viscousModel = models.value("viscous").toString();
+    c.transition = models.value("transition").toString();
     if (models.value("energy").isBool()) c.energy = models.value("energy").toBool();
     if (models.value("energy_coupled").isBool()) c.energyCoupled = models.value("energy_coupled").toBool();
     for (const QJsonValue& mv : json.value("materials").toArray()) {
@@ -326,7 +335,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
 
 QStringList residualOrder(const QStringList& present)
 {
-    static const QStringList fluent{"continuity", "x-velocity", "y-velocity", "z-velocity", "energy", "k", "omega", "epsilon"};
+    static const QStringList fluent{"continuity", "x-velocity", "y-velocity", "z-velocity", "energy", "k", "omega", "epsilon", "intermit"};
     QStringList out;
     for (const QString& n : fluent)
         if (present.contains(n)) out << n;
@@ -483,7 +492,8 @@ Result<RunSummary> parseRunSummary(const QJsonObject& o)
         const QJsonObject a = av.toObject();
         s.approximations.push_back({a.value("name").toString(), a.value("setting").toString(),
                                     a.value("fluent_value").toString(), a.value("kutta_action").toString(),
-                                    a.value("measured_effect").toString(), a.value("effect_documentation").toString()});
+                                    a.value("measured_effect").toString(), a.value("effect_documentation").toString(),
+                                    a.value("short").toString()});
     }
     s.overrides = o.value("overrides").toObject();
     s.caseFile = o.value("case_file").toString();

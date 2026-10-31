@@ -925,7 +925,7 @@ QWidget* forces(const InspectorContext& c)
     auto ft = c.session->history().forces(run);
     auto* top = new QHBoxLayout;
     top->addWidget(label(QObject::tr("From %1 (forces.csv)").arg(r->title()), "muted"), 1);
-    if (r->approximate()) top->addWidget(badge("APPROXIMATE", "approximate"));
+    if (r->approximate()) top->addWidget(badge(r->approximateBadge(), "approximate"));
     if (r->modified()) top->addWidget(badge("MODIFIED", "modified"));
     if (r->synthetic) top->addWidget(badge("SYNTHETIC", "modified"));
     else if (r->fixture) top->addWidget(badge("FIXTURE REPLAY", "modified"));

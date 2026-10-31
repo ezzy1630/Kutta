@@ -18,14 +18,14 @@ class TestSession : public QObject {
     QTemporaryDir m_dir;
     QString m_elbow;
 
-    std::unique_ptr<Session> open()
+    std::unique_ptr<Session> open(QString casePath = {})
     {
         CliInfo cli;
         cli.program = QStringLiteral(KUTTA_FIXTURE_CLI);
         cli.fixture = true;
         auto s = std::make_unique<Session>(cli, m_dir.filePath("data"));
         QSignalSpy opened(s.get(), &Session::caseOpened);
-        s->openCase(m_elbow);
+        s->openCase(casePath.isEmpty() ? m_elbow : casePath);
         if (!opened.wait(20000)) return nullptr;
         return s;
     }
@@ -251,6 +251,64 @@ private slots:
         QCOMPARE(p.convergenceIter, r->iterationsDone);
         const auto marks = convergenceMarks(p, false);
         QVERIFY(std::any_of(marks.begin(), marks.end(), [](const ConvergenceMark& m) { return m.kind == ConvergenceMark::Kind::Converged; }));
+    }
+
+    // Recorded k-epsilon, laminar 2D and transition cases replay with their
+    // own equations, approximations and early iterations.
+    void recordedCasesKeepTheirOwnEquations_data()
+    {
+        QTest::addColumn<QString>("file");
+        QTest::addColumn<QStringList>("residuals");
+        QTest::addColumn<QStringList>("labels");
+        QTest::addColumn<bool>("planar");
+        QTest::addColumn<QString>("transition");
+        QTest::newRow("k-epsilon") << "elbow_param.cas.h5" << QStringList{"continuity", "x-velocity", "y-velocity", "z-velocity", "k", "epsilon"}
+                                   << QStringList{"No compressibility correction", "Documented k-epsilon only"} << false << QString();
+        QTest::newRow("laminar 2D") << "cylinder_tutorial.cas" << QStringList{"continuity", "x-velocity", "y-velocity"}
+                                    << QStringList{"No reverse-flow suppression"} << true << QString();
+        QTest::newRow("transition") << "naca4412_ground.cas" << QStringList{"continuity", "x-velocity", "y-velocity", "k", "omega", "intermit"}
+                                    << QStringList{} << true << QString("gamma-transport-eqn");
+    }
+    void recordedCasesKeepTheirOwnEquations()
+    {
+        QFETCH(QString, file);
+        QFETCH(QStringList, residuals);
+        QFETCH(QStringList, labels);
+        QFETCH(bool, planar);
+        QFETCH(QString, transition);
+        const QString path = m_dir.filePath(file);
+        QFile placeholder(path);
+        QVERIFY(placeholder.open(QIODevice::WriteOnly));
+        placeholder.close();
+        auto s = open(path);
+        QVERIFY(s);
+        QCOMPARE(s->caseSummary().planar(), planar);
+        QCOMPARE(s->caseSummary().transition, transition);
+        for (const QString& a : s->caseSummary().approximations()) s->setApproximationApproved(a, true);
+        QCOMPARE(s->settings()->setValue("run/iterations", 300), QString());
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString id = s->run();
+        QVERIFY(!id.isEmpty());
+        QVERIFY(finished.wait(60000));
+        const RunRecord* r = s->history().find(id);
+        QCOMPARE(r->status, RunStatus::Completed);
+        QCOMPARE(runStatusText(*r), QString("Iteration limit"));
+        QCOMPARE(r->approximationLabels, labels);
+        const RunProgress p = s->history().progress(id);
+        QCOMPARE(QSet<QString>(p.residuals.names.begin(), p.residuals.names.end()), QSet<QString>(residuals.begin(), residuals.end()));
+        // Iterations 1-5 come before the first monitor sample.
+        QCOMPARE(std::vector<int>(p.residuals.iterations.begin(), p.residuals.iterations.begin() + 6), (std::vector<int>{1, 2, 3, 4, 5, 20}));
+        if (transition.isEmpty()) return;
+        // The wing's downforce report is a lift with a downward vector; up stays +y in the plane.
+        QCOMPARE(s->aeroSpec().lift, QVector3D(0, 1, 0));
+        std::optional<AeroResult> aero;
+        s->aero(id, [&](Result<AeroResult> a) {
+            QVERIFY2(a.ok(), qPrintable(a ? QString() : a.error()));
+            aero = a.value();
+        });
+        QTRY_VERIFY_WITH_TIMEOUT(aero.has_value(), 20000);
+        QVERIFY(aero->total()->downforce > 30);
+        QVERIFY(aero->total()->total.drag > 0);
     }
 
     // A run that fails says why and what to do: disk full and a crash.

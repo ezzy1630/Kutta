@@ -172,6 +172,10 @@ private slots:
         QCOMPARE(r->coupling, QString("simplec"));
         const RunProgress p = s->history().progress(id);
         QVERIFY(!p.residuals.names.contains("k"));
+        // The CLI reports the 2D equations only, from iteration 1.
+        QCOMPARE(p.residuals.names, (QStringList{"continuity", "x-velocity", "y-velocity"}));
+        QCOMPARE(p.residuals.iterations.front(), 1);
+        QCOMPARE(runStatusText(*r), QString("Iteration limit"));
         bool loaded = false;
         s->loadScene("run:" + id, [&](const QString&, Result<std::shared_ptr<SceneData>> scene) {
             QVERIFY2(scene.ok(), qPrintable(scene ? QString() : scene.error()));

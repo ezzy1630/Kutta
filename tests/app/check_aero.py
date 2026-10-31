@@ -26,7 +26,9 @@ events = [json.loads(line) for line in command("solve", fixture / "mixing_elbow.
                                                "--iterations", 40, "--setup", setup, "--out", run, "--progress", "jsonl").splitlines()]
 assert events[0]["event"] == "setup" and events[0]["modified"] is False and events[0]["run_controls"] == overrides
 assert events[0]["convergence"] == {"enabled": True, "condition": "all", "residuals": {"continuity": 10}, "reports": []}
-[sample] = [e for e in events if e["event"] == "iteration"]
+# Iteration 1 is reported (already monitored) but is not a convergence sample.
+early, sample = [e for e in events if e["event"] == "iteration"]
+assert early["iter"] == 1 and "convergence" not in early and early["reports"] == {}, early
 assert sample["iter"] == 2 and sample["convergence"]["met"], sample
 [condition] = sample["convergence"]["conditions"]
 assert condition["kind"] == "residuals" and list(condition["equations"]) == ["continuity"]

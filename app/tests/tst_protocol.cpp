@@ -16,10 +16,11 @@ private slots:
         QVERIFY2(c.ok(), qPrintable(c ? QString() : c.error()));
         const CaseSummary& cs = c.value();
         QCOMPARE(cs.cells, 17822);
-        QCOMPARE(int(cs.settings.size()), 9856);
+        QCOMPARE(int(cs.settings.size()), 9857);  // with the read-only controls/courant-number
         // Includes each inlet's and outlet's turbulence method and the values
-        // of the methods it does not use, so switching method is possible.
-        QCOMPARE(int(std::count_if(cs.settings.begin(), cs.settings.end(), [](const Setting& s) { return s.editable; })), 57);
+        // of the methods it does not use, so switching method is possible,
+        // and the editable pressure scheme.
+        QCOMPARE(int(std::count_if(cs.settings.begin(), cs.settings.end(), [](const Setting& s) { return s.editable; })), 58);
         QVERIFY(cs.zone("cold-inlet"));
         QCOMPARE(cs.zone("cold-inlet")->type, QString("velocity-inlet"));
 

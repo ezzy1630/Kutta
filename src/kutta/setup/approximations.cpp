@@ -15,7 +15,8 @@ constexpr std::array allowlist{ApproximationInfo{
   "k L2 14.722368%, omega L2 2.805466%, pressure-drop error 1.973008%; "
   "combined solver discrepancy, not isolated WFGC error or a general bound",
   "Warped-face gradient correction",
-  "Fluent corrects gradients for nonplanar faces. Kutta does not yet implement Fluent's warped-face correction and will run with WFGC off only when you opt in with --approximate wfgc."},
+  "Fluent corrects gradients for nonplanar faces. Kutta does not yet implement Fluent's warped-face correction and will run with WFGC off only when you opt in with --approximate wfgc.",
+  "WFGC off"},
   ApproximationInfo{
   Approximation::compressibility,"compressibility","turb-compress-mod?","#t",
   "run without the turbulence compressibility (dilatation dissipation) correction",
@@ -24,7 +25,8 @@ constexpr std::array allowlist{ApproximationInfo{
   "for the elbow_param and elbow-2 air elbows, Fluent's saved k_max 9.99 m^2/s^2 and the ideal-gas sound "
   "speed 346.9 m/s at the coldest saved 299.4 K bound it by 1.7e-4; other cases need their own bound",
   "Turbulence compressibility correction",
-  "Fluent adds dilatation dissipation to the turbulence equations. Kutta solves constant-density flow without it and will run only when you opt in with --approximate compressibility."},
+  "Fluent adds dilatation dissipation to the turbulence equations. Kutta solves constant-density flow without it and will run only when you opt in with --approximate compressibility.",
+  "No compressibility correction"},
   ApproximationInfo{
   Approximation::ke_options,"ke-options","ke-source-mod/ke-time-marching?","#t",
   "run the documented standard k-epsilon (TG 4.3.1) without these undocumented Fluent k-epsilon solver switches",
@@ -33,7 +35,8 @@ constexpr std::array allowlist{ApproximationInfo{
   "saved fields, with compressibility also omitted: velocity L2 0.93%, pressure L2 6.37%, k L2 9.08%, "
   "epsilon L2 17.59%, pressure-drop error 0.91%; combined solver discrepancy, not an isolated error or a general bound",
   "k-epsilon solver options",
-  "Fluent enables k-epsilon solver switches whose equations are not documented. Kutta solves the documented standard k-epsilon model and will run only when you opt in with --approximate ke-options."},
+  "Fluent enables k-epsilon solver switches whose equations are not documented. Kutta solves the documented standard k-epsilon model and will run only when you opt in with --approximate ke-options.",
+  "Documented k-epsilon only"},
   ApproximationInfo{
   Approximation::reverse_flow,"reverse-flow","prevent-reverse-flow?","absent (Fluent 18.0 or earlier writer)",
   "run pressure outlets without reverse-flow suppression",
@@ -42,7 +45,8 @@ constexpr std::array allowlist{ApproximationInfo{
   "has inflow in Fluent's saved converged fields or in Kutta's converged CPU and Metal solutions, so the effect there is zero; "
   "other cases need their own check",
   "Pressure-outlet reverse flow",
-  "Fluent can suppress flow entering through a pressure outlet. Cases written by Fluent 18.0 and earlier do not record whether that was on, and the earlier behaviour is undocumented. Kutta runs without suppression only when you opt in with --approximate reverse-flow."}};
+  "Fluent can suppress flow entering through a pressure outlet. Cases written by Fluent 18.0 and earlier do not record whether that was on, and the earlier behaviour is undocumented. Kutta runs without suppression only when you opt in with --approximate reverse-flow.",
+  "No reverse-flow suppression"}};
 }
 std::span<const ApproximationInfo> approximations() {return allowlist;}
 const ApproximationInfo& approximation_info(Approximation id) {

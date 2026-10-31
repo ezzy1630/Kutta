@@ -55,6 +55,7 @@ QString fluentLabel(const QString& q)
         {"velocity_magnitude", "Velocity Magnitude"},
         {"k", "Turbulent Kinetic Energy"},
         {"omega", "Specific Dissipation Rate"},
+        {"intermittency", "Intermittency"},
         {"viscosity_ratio", "Turbulent Viscosity Ratio"},
         {"vorticity_magnitude", "Vorticity Magnitude"},
         {"vorticity", "Vorticity"},
@@ -119,7 +120,7 @@ int quantityOrder(const QString& q)
     static const QStringList order{"pressure", "pressure_coefficient", "total_pressure", "total_pressure_coefficient",
                                    "velocity_magnitude", "velocity", "velocity_x", "velocity_y", "velocity_z",
                                    "wall_shear_magnitude", "wall_shear", "skin_friction", "skin_friction_vector", "y_plus", "y_star",
-                                   "k", "omega", "epsilon", "viscosity_ratio", "vorticity_magnitude", "vorticity", "q_criterion", "helicity"};
+                                   "k", "omega", "epsilon", "intermittency", "viscosity_ratio", "vorticity_magnitude", "vorticity", "q_criterion", "helicity"};
     const qsizetype i = order.indexOf(q);
     return i < 0 ? 1000 : int(i);
 }

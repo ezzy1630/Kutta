@@ -50,7 +50,13 @@ QStringList badgesFor(const SceneData& s, const QString& key, const Session* ses
 {
     QStringList b;
     const QString p = s.provenance.toUpper();
-    if (p.contains("APPROXIMATE")) b << "APPROXIMATE";
+    if (p.contains("APPROXIMATE")) {
+        // Name the approximations when the view is a run's (or the live run's).
+        const auto& runs = session->history().runs();
+        const RunRecord* r = key.startsWith("run:") ? session->history().find(key.mid(4))
+                             : key == "live" && !runs.empty() ? &runs.back() : nullptr;
+        b << (r && r->approximate() ? r->approximateBadge() : QStringLiteral("APPROXIMATE"));
+    }
     if (p.contains("MODIFIED")) b << "MODIFIED";
     if (s.synthetic) b << "SYNTHETIC";
     else if (p.contains("FIXTURE")) b << "FIXTURE REPLAY";
@@ -252,13 +258,20 @@ void ViewportPanel::sceneArrived(std::shared_ptr<const SceneData> scene)
             if (std::find(fields.begin(), fields.end(), f) != fields.end()) d.field = f;
         }
     }
+    // The first solution after the mesh preview shows its contour plane face on,
+    // not from the mesh view's angle (a nozzle's axial slice seen obliquely).
+    if (scene && wasMesh && !isMesh && !scene->planar && commonPlaneAxis(*scene, d.visible)) d.cameraInitialized = false;
     if (scene && scene->planar) {
         // A 2D case is always seen face on; a camera from a 3D view is replaced.
         if (d.camera.up != QVector3D(0, 1, 0) || d.camera.pitch != 0 || d.camera.yaw != 90) d.cameraInitialized = false;
         if (!d.cameraInitialized) d.camera.planView();
     } else if (scene && !d.cameraInitialized) {
         if (d.camera.up != QVector3D(0, 0, 1)) d.camera = Camera{};  // leaving a 2D case's view
-        d.camera.preset(initialView(scene->bounds));
+        // Contours on one plane (a slice or symmetry plane) are seen face on;
+        // otherwise the dataset's shape decides.
+        const auto axis = isMesh ? std::nullopt : commonPlaneAxis(*scene, d.visible);
+        d.camera.preset(axis ? (*axis == 2 ? Camera::Preset::Top : *axis == 1 ? Camera::Preset::Left : Camera::Preset::Front)
+                             : initialView(scene->bounds));
     }
     m_view->setScene(scene);
     m_view->setDisplay(d);
@@ -390,13 +403,16 @@ void ViewportPanel::updateOverlay()
     o.provenance = s->provenance;
     if (s->synthetic && !o.provenance.contains("SYNTHETIC", Qt::CaseInsensitive))
         o.provenance = (o.provenance.isEmpty() ? QString() : o.provenance + " | ") + "SYNTHETIC fixture data, not a Kutta solution";
-    o.legend = fieldShown;
     o.colormap = d.effectiveColormap();
     o.range = m_view->resolvedRange();
+    const auto dataRange = s->range(d.field, d.visible);
     if (!o.range.valid()) {
-        if (auto r = s->range(d.field, d.visible)) o.range = autoRange(r->first, r->second, d.symmetricRange());
+        if (dataRange) o.range = autoRange(dataRange->first, dataRange->second, d.symmetricRange());
         if (d.rangeMode == RangeMode::Fixed) o.range = {d.fixedMin, d.fixedMax};
     }
+    // Walls carry no velocity, inlets no wall shear: say so rather than show a legend for grey.
+    o.legend = fieldShown && dataRange;
+    if (fieldShown && !dataRange) o.subtitle += tr(" · %1 is not defined on the surfaces shown").arg(displayLabel(d.field));
     o.bands = d.bands;
     if (m_probe && m_probe->hit) {
         o.probe = m_probe;

@@ -272,6 +272,16 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
       const auto& v=std::get<std::string>(j.value);*target=v=="coupled"?Coupling::coupled:v=="simple"?Coupling::simple:Coupling::simplec;});
     b.consume(c.variables,"flow/scheme");
   }
+  {
+    // Fluent's Flow Courant Number (Solution Controls with Coupled). Kutta's
+    // Coupled solver adds Fluent's default 200 as implicit relaxation on top of
+    // its pseudo time step (CoupledOptions::courant), whatever the case saved.
+    auto& s=b.add("controls/courant-number","Flow Courant number","Controls",c.numerics.courant?Json(*c.numerics.courant):Json(nullptr),"1","number");
+    s.reason="Kutta's Coupled solver always uses Fluent's default flow Courant number, 200, as implicit relaxation on top of the pseudo time step (Fluent Theory Guide 18.4.4); the saved value is not yet configurable in Kutta";
+    // Without pseudo time Kutta never runs Coupled, so the value is unused.
+    if(uses_pseudo_time(c))b.depends(s,"methods/pressure-velocity-coupling",{Json(std::string("coupled"))});else s.active=false;
+    b.consume(c.variables,"pressure-coupled/courant-number");
+  }
   b.number("controls/pseudo-time-scale-factor","Pseudo-time scale factor","Controls",c.numerics.pseudo.scale_factor,"1",true,positive,1e15);b.consume(c.variables,"pseudo-auto-time-step-scale-factor");
   const bool coupled=c.numerics.coupling==Coupling::coupled,pseudo=uses_pseudo_time(c);
   const auto dissipation=c.viscous.model==ViscousModel::ke_standard?"epsilon":"omega";
@@ -311,7 +321,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   // Convergence conditions are run controls: residual criteria come from the
   // case, report conditions use Kutta's defaults (docs/app-protocol.md).
   auto& conv=run.convergence;conv=ConvergenceControls{};
-  for(auto eq:solved_residuals(c.viscous.model,transition))conv.residuals.push_back({std::string(eq)});
+  for(auto eq:solved_residuals(c.viscous.model,transition,c.dimension==2))conv.residuals.push_back({std::string(eq)});
   if(residual_criteria(c.variables.value("residuals/settings"),conv.residuals))b.consume(c.variables,"residuals/settings");
   for(const auto& r:c.reports)conv.reports.push_back({r.name});
   b.editable(b.add("monitors/check-convergence","Check convergence","Monitors",conv.check),[t=&conv.check](const Json& j){*t=std::get<bool>(j.value);});

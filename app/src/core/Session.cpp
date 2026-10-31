@@ -112,6 +112,21 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
             m_aeroSpecSaved = true;
         } else {
             m_aeroSpec.groups = suggestAeroGroups(carZones());
+            // Axes from the case's own force reports. Teams often report downforce
+            // as a lift with a downward vector, so a report fixes the up axis, not
+            // its sign; a 2D case's up is in its plane.
+            const QVector3D up = m_case->planar() ? QVector3D(0, 1, 0) : QVector3D(0, 0, 1);
+            m_aeroSpec.lift = up;
+            for (const auto& r : m_case->reports) {
+                if (!r.direction || r.direction->isNull()) continue;
+                const QVector3D d = r.direction->normalized();
+                if (r.kind == "drag") m_aeroSpec.drag = d;
+                else if (r.kind == "lift" || r.kind == "downforce") m_aeroSpec.lift = QVector3D::dotProduct(d, up) < 0 ? -d : d;
+            }
+            if (std::abs(QVector3D::dotProduct(m_aeroSpec.drag, m_aeroSpec.lift)) > 1e-6) {
+                m_aeroSpec.drag = AeroSpec{}.drag;
+                m_aeroSpec.lift = up;
+            }
         }
         QSettings s;
         QStringList recent = s.value("recentCases").toStringList();
@@ -186,6 +201,7 @@ QString Session::start(const QJsonObject& caseOverrides, const QJsonObject& runC
     rec.overrides = caseOverrides;
     rec.runControls = runControls;
     rec.approximations = approximations;
+    for (const QString& a : approximations) rec.approximationLabels << m_case->approximationShort(a);
     rec.studyId = studyId;
     const Setting* iterations = m_settings.find("run/iterations");
     rec.iterationsRequested = runControls.contains("run/iterations") ? runControls.value("run/iterations").toInt()

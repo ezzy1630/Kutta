@@ -28,6 +28,8 @@ struct Camera {
     QVector3D forward() const;  // from eye toward target
     QVector3D eye() const { return target - forward() * distance; }
     QMatrix4x4 view() const;
+    // Screen right and up in world space, as view() renders them.
+    void screenAxes(QVector3D* right, QVector3D* upv) const;
     QMatrix4x4 projection(float aspect, float nearZ, float farZ) const;
     // Frame bounds in a viewport of the given aspect.
     void fit(const Bounds& b, float aspect, QMarginsF reserve = {});

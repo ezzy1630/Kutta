@@ -27,7 +27,8 @@ cmake --build build-app
 In order: `--cli PATH`, `KUTTA_CLI`, the bundled CLI (`Kutta.app/Contents/Helpers/kutta`,
 `Kutta\solver\kutta.exe`), the in-tree build, `kutta` on `PATH`. Only then the
 fixture CLI (`app/tools/kutta-fixture`, data in `app/fixtures/`). The fixture
-replays a recorded elbow run and generates a synthetic car. Its results are
+replays recorded runs of four cases (mixing elbow, k-epsilon elbow, laminar 2D
+cylinder, 2D ground-effect wing with transition) and generates a synthetic car. Its results are
 labelled FIXTURE REPLAY or SYNTHETIC wherever they appear. The status bar
 names the solver in use.
 
@@ -54,7 +55,11 @@ KUTTA_SCENARIO_ITERATIONS=1000 Kutta --cli build/kutta --scenario case-run \
   --screenshot cylinder.png validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.cas
 ```
 
-`car-*` and `bench` use the fixture's synthetic car. Scenarios use the fixture
+`car-*` and `bench` use the fixture's synthetic car. `param-run` (standard
+k-epsilon), `cylinder-run` (laminar 2D), `wing-models`, `wing-aero` and
+`wing-monitors` (2D wing, intermittency transition, stopping when downforce
+and drag settle) open the fixture's recorded samples, or the case given as
+the positional argument. Scenarios use the fixture
 unless `--cli` or `KUTTA_CLI` names a solver. The fixture can fail a run on
 request (`KUTTA_FIXTURE_FAIL_AT=N`, with `KUTTA_FIXTURE_FAIL_MESSAGE` for an
 error event, or none for a crash); `car-failed` uses it.
@@ -71,9 +76,26 @@ The app follows the case's model and dimension as the CLI reports them:
   solves. Run History and Run Calculation state the coupling each run used.
 - **k-epsilon and laminar** cases show their own residuals (`epsilon`, or
   none), relaxation factors, inlet turbulence inputs and fields.
+- **Transition**: Models shows the transition model next to the viscous
+  model. The Intermittency Transition Model (one transport equation for
+  intermittency on top of SST) lists its constants; Methods, Controls and the
+  inlets carry its scheme, relaxation and inflow intermittency, and runs add
+  the `intermit` residual and the Intermittency field. Transition SST and the
+  algebraic model are named with the CLI's reason Kutta does not solve them.
+- **Coupled** is offered only with the pseudo-transient formulation. Controls
+  shows the case's flow Courant number read-only: Kutta's Coupled solver uses
+  Fluent's default, 200, as implicit relaxation on top of the pseudo time
+  step.
 - **2D cases** are shown as their plane, face on with x right and y up; drag
-  pans rather than orbits, and z-velocity (round-off on Kutta's one-cell
-  extrusion) is left out of residual plots, tables and monitors.
+  pans rather than orbits. An external-flow case is framed on its body with
+  a body length of flow around it. The CLI does not report z-velocity for 2D
+  cases. Aerodynamics treats a 2D case as a section: up is +y unless a force
+  report gives another axis, there is no vehicle or balance, and forces are
+  for the reference depth.
+- **Approximate runs** carry badges naming each approximation in a few
+  words ("APPROXIMATE · WFGC off") from the CLI's `short` labels.
+- **Run status** says how a run ended: Converged, Iteration limit, Stopped,
+  Failed.
 - **Approximations** show the CLI's explanation, its measured effect and
   evidence separately, each with its own opt-in.
 - **Convergence**: the residual chart draws the run's criteria and marks the
@@ -107,7 +129,8 @@ written is refused before kutta starts.
   with Fluent fields, mass balance, stop. It skips otherwise.
 - `app-screenshot-smoke` (label `gui`): renders scenarios through Metal or
   D3D11 (WARP on GPU-less Windows) and fails when a viewport showing data
-  draws nothing.
+  draws nothing. Its default set covers the elbow setup, the synthetic car and
+  the recorded k-epsilon, laminar 2D and transition cases.
 
 ## Performance (M4 Pro, macOS, Metal)
 

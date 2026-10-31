@@ -72,6 +72,25 @@ SIMPLEC and Coupled, standard k-epsilon, laminar and 2D cases
 10. **`measured_effect` on approximable issues**, so the app shows the
     measured effect apart from the explanation.
 
+## Done (app round 2, 2026-10-31)
+
+Additive changes from `validation/results/app_round2/REPORT.md`. On the
+mixing elbow (`--approximate wfgc`, 40 iterations) `fluxes.csv`, `forces.csv`,
+`loads.json` and `result.vtu` are byte-identical to main on CPU and Metal.
+
+11. **Short approximation labels.** Approximable issues and `summary.json`'s
+    `approximations` carry `short` ("WFGC off"), so result badges say which
+    approximation a run used.
+12. **Planar 2D residuals.** 2D cases no longer report a `z-velocity`
+    residual or monitor criterion, matching Fluent's list.
+13. **Residuals from iteration 1.** Iterations 1-5, which the solver already
+    monitors for Fluent's continuity scale, are emitted as residual-only
+    events, so charts start at iteration 1 instead of the first monitor
+    sample. Measured on the elbow: identical outputs and wall time within run
+    noise (Metal 0.55 s against 0.58 s for 40 iterations).
+14. **Flow Courant number.** `controls/courant-number` shows the saved value
+    read-only, with the reason that Kutta's Coupled uses Fluent's default 200.
+
 ## Resolved since
 
 - **The monitor interval changed the solution.** Found while testing request
@@ -97,10 +116,8 @@ SIMPLEC and Coupled, standard k-epsilon, laminar and 2D cases
   0.6 s. The app groups them Fluent-style, keeps retained raw settings in a
   collapsed folder per group, and builds the searchable tree in about 120 ms.
 - **Approximation text.** The `APPROXIMATE RESULT` warning is about 600
-  characters. The app shows it in full in the console (wrapped) and in tooltips,
-  and as an APPROXIMATE badge on every result. A short machine-readable summary
-  per approximation (for example `{"approximation":"wfgc","short":"WFGC off"}`)
-  would make badges more specific.
+  characters. The app shows it in full in the console (wrapped) and in tooltips;
+  badges use each approximation's `short` label (request 11).
 - **Stop.** Closing stdin through QProcess's pipe stops the run after the
   current iteration with outputs written; verified by the app's real-CLI test.
 - **Report sampling.** Report conditions use values at the monitor interval,
@@ -110,9 +127,5 @@ SIMPLEC and Coupled, standard k-epsilon, laminar and 2D cases
 - **Residual criteria in other layouts.** Only the 7-element residual rows
   parse; elbow1's 10-element rows leave checking off with a null criterion,
   and the user must enter one to check that equation.
-- **2D residuals.** 2D cases report a `z-velocity` residual (about 1e-11 on
-  the one-cell extrusion) and list a `z-velocity` monitor criterion. The app
-  hides both for 2D cases; dropping them from the CLI for planar cases would
-  match Fluent's residual list exactly.
 - **Wording.** Fixed: the protocol doc describes the app as a native Qt
   child-process host, not a "sidecar".

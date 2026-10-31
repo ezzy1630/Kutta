@@ -300,6 +300,7 @@ QStringList SceneRenderer::visibleItems() const
 void SceneRenderer::resolveRange()
 {
     m_fieldShown = false;
+    m_range = {0, 0};  // invalid until this display's field has data on what is shown
     if (!m_scene || !m_display.contours) return;
     if (m_display.rangeMode == RangeMode::Fixed && m_display.fixedMax > m_display.fixedMin) {
         m_range = {m_display.fixedMin, m_display.fixedMax};

@@ -102,13 +102,15 @@ QStringList makeSamples(const QString& root, bool fixture)
     if (!fixture) return {};
     QDir().mkpath(root);
     QStringList out;
-    for (const char* name : {"mixing_elbow.cas.h5", "mixing_elbow.dat.h5", "fsae_car.cas.h5", "fsae_car.dat.h5"}) {
+    // Scenarios address the first two by position (elbow, car).
+    for (const char* name : {"mixing_elbow.cas.h5", "mixing_elbow.dat.h5", "fsae_car.cas.h5", "fsae_car.dat.h5",
+                             "naca4412_ground.cas", "elbow_param.cas.h5", "cylinder_tutorial.cas"}) {
         const QString p = QDir(root).filePath(name);
         if (!QFileInfo::exists(p)) {
             QFile f(p);
             if (f.open(QIODevice::WriteOnly)) f.write("Kutta fixture sample placeholder: the fixture CLI serves this case by name.\n");
         }
-        if (QString(name).contains(".cas.")) out << p;
+        if (QString(name).contains(".cas")) out << p;
     }
     return out;
 }
@@ -163,7 +165,8 @@ int main(int argc, char** argv)
     // car-* and bench use the fixture CLI's synthetic FSAE car.
     const QStringList scenarios = {"start", "open-failed", "elbow-open", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
                                    "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare", "elbow-monitors",
-                                   "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "bench",
+                                   "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "param-run", "cylinder-run",
+                                   "wing-models", "wing-aero", "wing-monitors", "bench",
                                    "case-mesh", "case-approvals", "case-methods", "case-run", "case-stop"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
@@ -230,6 +233,11 @@ int main(int argc, char** argv)
     // ---- Scenarios -------------------------------------------------------------------
     auto* sc = new Scenario(&app);
     const QString elbow = samples.value(0), car = samples.value(1);
+    auto sample = [&samples](const QString& stem) {
+        for (const QString& p : samples)
+            if (QFileInfo(p).fileName().startsWith(stem + ".")) return p;
+        return QString();
+    };
     QString caseArg = cli.positionalArguments().value(0);
     auto open = [session, sc](const QString& path, const QString& data = {}) {
         return [session, sc, path, data](std::function<void()> next) {
@@ -605,6 +613,42 @@ int main(int argc, char** argv)
             }, next, "study results");
         });
         sc->add(go("runs/studies"));
+    } else if (scenario == "param-run" || scenario == "cylinder-run") {
+        // Standard k-epsilon (3D, SIMPLE) and laminar 2D recordings: their own residual sets.
+        sc->add(open(caseArg.isEmpty() ? sample(scenario == "param-run" ? "elbow_param" : "cylinder_tutorial") : caseArg));
+        sc->add(approveAll);
+        sc->add(runWith(300));
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(go("solution/run"));
+        sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Residuals); next(); });
+    } else if (scenario == "wing-models") {
+        sc->add(open(caseArg.isEmpty() ? sample("naca4412_ground") : caseArg));
+        sc->add([&w, sc](auto next) { sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, next, "mesh to show"); });
+        sc->add(go("setup/models"));
+    } else if (scenario == "wing-aero" || scenario == "wing-monitors") {
+        // The ground-effect wing stopping when downforce and drag settle; its
+        // continuity residual levels off above the case's 1e-4 criteria.
+        sc->add(open(caseArg.isEmpty() ? sample("naca4412_ground") : caseArg));
+        sc->add(approveAll);
+        sc->add([session](auto next) {
+            for (const char* p : {"monitors/check-convergence", "monitors/report/downforce/active", "monitors/report/drag/active"})
+                session->settings()->setValue(p, true);
+            for (const Setting& st : session->caseSummary().settings)
+                if (st.path.startsWith("monitors/residual/") && st.path.endsWith("/check")) session->settings()->setValue(st.path, false);
+            next();
+        });
+        sc->add(runWith(600));
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); }));
+        if (scenario == "wing-aero") {
+            sc->add(go("results/aero"));
+            sc->add([sc, session](auto next) {
+                sc->waitFor([session] { return session->aeroIfComputed("run-0001").has_value(); }, next, "aero coefficients");
+            });
+        } else {
+            sc->add(go("solution/monitors"));
+        }
+        sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Reports); next(); });
     } else if (scenario == "bench") {
         // Frame timing on the car's surfaces; KUTTA_FIXTURE_CAR_DETAIL scales
         // the tessellation (5 gives about 10M triangles).

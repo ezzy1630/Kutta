@@ -99,7 +99,7 @@ std::vector<Issue> support_issues(const FluentCase& c,const PolyMesh& mesh,bool 
   for(const auto id:used) {
     const auto& a=setup::approximation_info(id);
     out.push_back({std::string(a.setting),std::string(a.label),"approximable",std::string(a.name),
-      std::string(a.explanation)+" "+std::string(a.measured_effect)+".",std::string(a.effect_documentation),std::string(a.measured_effect)});
+      std::string(a.explanation)+" "+std::string(a.measured_effect)+".",std::string(a.effect_documentation),std::string(a.measured_effect),std::string(a.short_label)});
   }
   return out;
 }
@@ -112,6 +112,7 @@ void write_issues(std::ostream& s,std::span<const Issue> issues) {
     if(!i.approximation.empty())s<<",\"approximation\":"<<json_string(i.approximation);
     if(!i.evidence.empty())s<<",\"evidence\":"<<json_string(i.evidence);
     if(!i.measured_effect.empty())s<<",\"measured_effect\":"<<json_string(i.measured_effect);
+    if(!i.short_label.empty())s<<",\"short\":"<<json_string(i.short_label);
     s<<'}';
   }
   s<<']';

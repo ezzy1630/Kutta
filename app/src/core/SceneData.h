@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 // CPU-side scene content: loaded view parts plus the derived arrays the GPU
 // needs (normals, scalar channels, edges). Shared read-only between viewports.
 
@@ -111,8 +113,15 @@ void makePlanar(SceneData& s);
 // A 2D case's plane: the extrusion cap facing +z (the camera's side in the
 // Top view); empty when the scene is not planar or has no such cap.
 QString planarFace(const SceneData& s);
+// Where a 2D external-flow case is first framed: the body (walls that do not
+// enclose the domain) with a body length of flow around it, clipped to the
+// domain. A far field 30 chords out would otherwise leave the wing a speck.
+std::optional<Bounds> planarFocus(const SceneData& s);
 // What a results view shows first, and the field it is coloured by.
 QStringList defaultVisibleItems(const SceneData& s);
+// The axis (0 x, 1 y, 2 z) every listed item is flat across, when they are
+// all planes with one normal: a slice or symmetry plane is first seen face on.
+std::optional<int> commonPlaneAxis(const SceneData& s, const QStringList& ids);
 FieldRef defaultField(const SceneData& s);
 
 } // namespace kapp

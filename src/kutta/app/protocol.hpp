@@ -6,6 +6,7 @@ namespace kutta::app {
 struct Issue {
   std::string setting, label, classification, approximation, explanation, evidence;
   std::string measured_effect;  // approximable issues: the measured effect, also ending the explanation
+  std::string short_label;      // approximable issues: a few words for result badges
 };
 std::vector<Issue> support_issues(const fluent::FluentCase&, const PolyMesh&, bool seeded);
 void write_issues(std::ostream&, std::span<const Issue>);

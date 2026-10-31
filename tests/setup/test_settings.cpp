@@ -258,7 +258,14 @@ TEST_CASE("Methods settings follow the case's model, gradient and pseudo-time fo
     CHECK(by.at("boundary/inlet/velocity-magnitude")->editable);
     CHECK_FALSE(by.at("controls/k-relaxation")->active);CHECK_FALSE(by.at("controls/omega-relaxation")->active);
     CHECK(by.at("controls/mom-relaxation")->active);
+    // Fluent lists no z-velocity residual for a 2D case, and neither does Kutta.
+    CHECK(by.find("monitors/residual/z-velocity/check")==by.end());
+    CHECK(by.find("monitors/residual/y-velocity/check")!=by.end());
+    CHECK(std::none_of(run.convergence.residuals.begin(),run.convergence.residuals.end(),[](const auto& r){return r.equation=="z-velocity";}));
+    // Saved Coupled without pseudo time runs SIMPLEC: the Courant number is unused.
+    CHECK_FALSE(by.at("controls/courant-number")->active);CHECK_FALSE(by.at("controls/courant-number")->editable);
   }
+  CHECK(kutta::setup::solved_residuals(kutta::fluent::ViscousModel::laminar,false,true)==std::vector<std::string_view>{"continuity","x-velocity","y-velocity"});
 #else
   MESSAGE("SKIP: HDF5 disabled");
 #endif

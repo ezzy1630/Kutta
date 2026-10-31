@@ -3,7 +3,8 @@
 // synthetic data. The app talks to it through the same process boundary as the
 // real CLI; switching is a path change.
 //
-//   mixing_elbow.cas.h5   replays a REAL recorded Kutta run (Ansys example, MIT)
+//   <name>.cas[.h5]       replays a REAL recorded Kutta run of that case when
+//                         fixtures/cases/<name>/ exists (app/fixtures/README.md)
 //   fsae_car*.cas.h5      a SYNTHETIC car; every output says "synthetic": true
 //
 // Environment:
@@ -178,17 +179,35 @@ Args parseArgs(const QStringList& args)
     return a;
 }
 
-enum class CaseKind { Elbow, Car };
+enum class CaseKind { Recorded, Car };
+
+// "elbow_param.cas.h5" -> "elbow_param": the recording's directory name.
+QString caseStem(const QString& casePath)
+{
+    QString name = QFileInfo(casePath).fileName();
+    for (const char* ext : {".h5", ".gz", ".cas", ".dat"})
+        if (name.endsWith(QLatin1String(ext))) name.chop(int(qstrlen(ext)));
+    return name;
+}
+
+QStringList recordedCases()
+{
+    return QDir(QDir(fixtureDir()).filePath("cases")).entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+}
 
 CaseKind caseKind(const QString& casePath, bool jsonl)
 {
     const QString name = QFileInfo(casePath).fileName();
-    if (name.startsWith("mixing_elbow")) return CaseKind::Elbow;
+    if (recordedCases().contains(caseStem(casePath))) return CaseKind::Recorded;
     if (name.startsWith("fsae_car")) return CaseKind::Car;
-    fail(QStringLiteral("The fixture CLI has no data for %1. It serves mixing_elbow.cas.h5 (recorded) and "
-                        "fsae_car.cas.h5 (synthetic); point the app at the real kutta CLI for other cases.").arg(name),
+    fail(QStringLiteral("The fixture CLI has no data for %1. It replays recorded runs of %2 and generates "
+                        "fsae_car.cas.h5 (synthetic); point the app at the real kutta CLI for other cases.")
+             .arg(name, recordedCases().join(", ")),
          {}, jsonl);
 }
+
+// A recorded case's files: cases/<stem>/<rel>.
+QString recorded(const QString& stem, const QString& rel) { return QStringLiteral("cases/%1/%2").arg(stem, rel); }
 
 QJsonArray rawElbowSettings()
 {
@@ -203,9 +222,12 @@ QJsonObject inspectJson(const QString& casePath, const QString& dataPath, const 
 {
     const bool data = !dataPath.isEmpty();
     QJsonObject o;
-    if (caseKind(casePath, false) == CaseKind::Elbow) {
-        o = QJsonDocument::fromJson(readFixture(data ? "cases/mixing_elbow/inspect-data.json" : "cases/mixing_elbow/inspect.json")).object();
-        if (o.isEmpty()) fail("fixture data missing: cases/mixing_elbow/inspect.json", {}, false);
+    if (caseKind(casePath, false) == CaseKind::Recorded) {
+        const QString rel = recorded(caseStem(casePath), data ? "inspect-data.json" : "inspect.json");
+        o = QJsonDocument::fromJson(readFixture(rel)).object();
+        if (o.isEmpty())
+            fail(data ? QStringLiteral("The fixture has no recording of %1 with a data file; open it without one.").arg(QFileInfo(casePath).fileName())
+                      : "fixture data missing: " + rel, {}, false);
     } else {
         o = carInspect(car, data, rawElbowSettings());
     }
@@ -255,7 +277,7 @@ void sleepMs(double ms)
 
 struct RunSpec {
     CaseKind kind;
-    QString casePath, dataPath, outDir;
+    QString casePath, dataPath, outDir, stem;
     QStringList approximations;
     int iterations = 1000, monitor = 10, liveView = 0;  // liveView: --live-every, 0 when off
     QString liveDir;
@@ -264,9 +286,17 @@ struct RunSpec {
     QJsonObject device;
 };
 
+// The recorded run's summary: what the real CLI wrote for this variant.
+QJsonObject recordedSummary(const RunSpec& r)
+{
+    return QJsonDocument::fromJson(readFixture(recorded(r.stem, QStringLiteral("run-%1/summary.json").arg(r.dataPath.isEmpty() ? "cold" : "seeded")))).object();
+}
+
 QString approximationNotice(const RunSpec& r)
 {
     if (r.approximations.isEmpty()) return {};
+    // A recording ran with exactly the approximations its case needs.
+    if (r.kind == CaseKind::Recorded) return recordedSummary(r).value("approximation_notice").toString();
     QString n = "APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without "
                 "warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.366748%, "
                 "pressure L2 2.665514%, k L2 14.722368%, omega L2 2.805466%, pressure-drop error 1.973008%; combined solver "
@@ -283,7 +313,7 @@ QString provenance(const RunSpec& r)
         parts << "MODIFIED RESULT: case settings overridden (" + keys.join(", ") + ")";
     }
     if (r.kind == CaseKind::Car) parts << "SYNTHETIC FIXTURE: invented geometry and fields for app development; not a CFD result";
-    else if (caseModified(r.overrides)) parts << "FIXTURE REPLAY: recorded mixing-elbow fields; overrides did not change these numbers";
+    else if (caseModified(r.overrides)) parts << "FIXTURE REPLAY: recorded " + r.stem + " fields; overrides did not change these numbers";
     return parts.join(" | ");
 }
 
@@ -303,7 +333,8 @@ void applyCarOverrides(RunSpec& r)
 
 QJsonObject runDescriptor(const RunSpec& r)
 {
-    return {{"case", r.kind == CaseKind::Elbow ? "mixing_elbow" : "fsae_car"},
+    return {{"case", r.kind == CaseKind::Recorded ? r.stem : QStringLiteral("fsae_car")},
+            {"recorded", r.kind == CaseKind::Recorded},
             {"variant", r.dataPath.isEmpty() ? "cold" : "seeded"},
             {"reference", !r.dataPath.isEmpty()},
             {"provenance", provenance(r)},
@@ -416,11 +447,13 @@ int solve(const Args& a)
     RunSpec r;
     r.casePath = a.positional[0];
     r.kind = caseKind(r.casePath, true);
+    r.stem = caseStem(r.casePath);
     r.dataPath = a.value("data");
     r.outDir = a.value("out");
     r.approximations = a.value("approximate").split(',', Qt::SkipEmptyParts);
+    static const QStringList allowed{"wfgc", "compressibility", "ke-options", "reverse-flow"};
     for (const QString& n : r.approximations)
-        if (n != "wfgc") fail(QStringLiteral("unknown approximation '%1'; the only allowed name is wfgc").arg(n));
+        if (!allowed.contains(n)) fail(QStringLiteral("unknown --approximate setting '%1'; allowed: %2").arg(n, allowed.join(',')));
     if (r.approximations.removeDuplicates() > 0) fail("duplicate approximation names");
     r.iterations = a.has("iterations") ? a.value("iterations").toInt() : 1000;
     r.liveDir = a.value("live-view");
@@ -494,7 +527,7 @@ int solve(const Args& a)
 
     const QString liveRunId = QStringLiteral("run-%1-0").arg(QDateTime::currentMSecsSinceEpoch());
     const QString liveRoot = r.liveDir.isEmpty() ? QString() : QDir(r.liveDir).absoluteFilePath("live");
-    QJsonObject setup{{"v", 1}, {"event", "setup"}, {"cells", double(r.kind == CaseKind::Elbow ? 17822 : 18412903)},
+    QJsonObject setup{{"v", 1}, {"event", "setup"}, {"cells", double(r.kind == CaseKind::Recorded ? summary->cells : 18412903)},
                       {"backend", r.device.value("backend")}, {"device", r.device.value("name")},
                       {"approximations", QJsonArray::fromStringList(r.approximations)},
                       {"init", r.dataPath.isEmpty() ? "hybrid" : "fluent-data"}, {"overrides", r.overrides}, {"modified", caseModified(r.overrides)},
@@ -508,7 +541,7 @@ int solve(const Args& a)
         emitJson({{"v", 1}, {"event", "warning"}, {"message", "SYNTHETIC FIXTURE: this run is generated by kutta-fixture for app development; no solver ran."}});
     else
         emitJson({{"v", 1}, {"event", "warning"}, {"message", "FIXTURE REPLAY: progress and fields were recorded from a real Kutta run of this case on Apple M4 Pro (Metal); no solver is running now."}});
-    if (r.kind == CaseKind::Elbow && !r.overrides.isEmpty())
+    if (r.kind == CaseKind::Recorded && !r.overrides.isEmpty())
         emitJson({{"v", 1}, {"event", "warning"}, {"message", "FIXTURE REPLAY: overrides were validated, but the recorded numbers do not change."}});
     if (!conv.enabled)
         emitJson({{"v", 1}, {"event", "warning"}, {"message", "Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit."}});
@@ -523,15 +556,14 @@ int solve(const Args& a)
     bool stopped = false, converged = false;
     int liveSequence = 0;
     // Publish like the CLI: complete the snapshot directory, then swap the pointer.
-    auto snapshot = [&](int iter, double convergence) {
+    auto snapshot = [&](int iter, double convergence) -> void {
         QElapsedTimer cost;
         cost.start();
         const QString rel = QStringLiteral("%1/snapshot-%2").arg(liveRunId).arg(liveSequence + 1);
         const QString dir = QDir(liveRoot).filePath(rel), staging = dir + ".staging";
         QDir(staging).removeRecursively();
-        if (r.kind == CaseKind::Elbow) {
-            // Recorded snapshots exist for 40, 120 and 300 iterations.
-            const QString src = QStringLiteral("cases/mixing_elbow/live/iter-%1").arg(iter, 4, 10, QChar('0'));
+        if (r.kind == CaseKind::Recorded) {
+            const QString src = recorded(r.stem, QStringLiteral("live/iter-%1").arg(iter, 4, 10, QChar('0')));
             if (!QFileInfo(QDir(fixtureDir()).filePath(src)).isDir()) return;
             copyFixtureDir(src, staging);
         } else {
@@ -550,9 +582,11 @@ int solve(const Args& a)
         emitJson({{"v", 1}, {"event", "snapshot"}, {"iter", iter}, {"manifest", QDir(dir).absoluteFilePath("manifest.json")},
                   {"run_id", liveRunId}, {"sequence", liveSequence}, {"snapshot_seconds", cost.nsecsElapsed() / 1e9}, {"elapsed", elapsed}});
     };
-    auto onIteration = [&](QJsonObject ev) {
+    // sample: a monitor sample. Iterations 1-5 between samples carry residuals
+    // only and are not convergence samples, as in the CLI.
+    auto onIteration = [&](QJsonObject ev, bool sample) {
         lastIter = ev.value("iter").toInt();
-        if (conv.enabled) {
+        if (conv.enabled && sample) {
             QMap<QString, double> res, reps;
             const QJsonObject ro = ev.value("residuals").toObject(), po = ev.value("reports").toObject();
             for (auto it = ro.begin(); it != ro.end(); ++it) res[it.key()] = it.value().toDouble();
@@ -577,12 +611,21 @@ int solve(const Args& a)
     };
 
     std::vector<std::pair<QString, QVector3D>> finalForce;  // car reports
-    if (r.kind == CaseKind::Elbow) {
+    if (r.kind == CaseKind::Recorded) {
         const QString variant = r.dataPath.isEmpty() ? "cold" : "seeded";
-        const QList<QByteArray> lines = readFixture("cases/mixing_elbow/progress-" + variant + ".jsonl").split('\n');
+        const QList<QByteArray> lines = readFixture(recorded(r.stem, "progress-" + variant + ".jsonl")).split('\n');
+        const int recordedIterations = recordedSummary(r).value("iterations").toInt();
         double lastElapsed = 0;
-        const int snaps[] = {40, 120, 300};
+        // Recorded live snapshots, in iteration order.
+        std::vector<int> snaps;
+        for (const QString& d : QDir(QDir(fixtureDir()).filePath(recorded(r.stem, "live"))).entryList({"iter-*"}, QDir::Dirs, QDir::Name))
+            snaps.push_back(d.mid(5).toInt());
         std::size_t nextSnap = 0;
+        int interval = 0;  // the recording's monitor interval: its first sample after iteration 5
+        for (const QByteArray& line : lines) {
+            const QJsonObject ev = QJsonDocument::fromJson(line).object();
+            if (ev.value("event").toString() == "iteration" && ev.value("iter").toInt() > 5) { interval = ev.value("iter").toInt(); break; }
+        }
         for (const QByteArray& line : lines) {
             const QJsonObject ev = QJsonDocument::fromJson(line).object();
             if (ev.value("event").toString() != "iteration") continue;
@@ -591,23 +634,23 @@ int solve(const Args& a)
             const double el = ev.value("elapsed").toDouble();
             sleepMs((el - lastElapsed) * 1000 / speed);
             lastElapsed = el;
-            onIteration(ev);
-            while (r.liveView > 0 && nextSnap < 3 && iter >= snaps[nextSnap]) snapshot(snaps[nextSnap++], 1);
+            onIteration(ev, iter > 5 || (interval > 0 && iter % interval == 0) || iter == recordedIterations);
+            while (r.liveView > 0 && nextSnap < snaps.size() && iter >= snaps[nextSnap]) snapshot(snaps[nextSnap++], 1);
             if (converged) break;
             if (g_stop) { stopped = true; break; }
         }
-        const QString run = "cases/mixing_elbow/run-" + variant;
+        const QString run = recorded(r.stem, "run-" + variant);
         for (const char* f : {"forces.csv", "fluxes.csv"}) {
             QByteArray csv = readFixture(run + "/" + f);
             // Recorded outputs keep their own headers; add the replay notice.
-            csv.prepend(QStringLiteral("# FIXTURE REPLAY: recorded final values from a 600-iteration Kutta run\n%1")
+            csv.prepend(QStringLiteral("# FIXTURE REPLAY: recorded final values from a %1-iteration Kutta run\n%2").arg(recordedIterations)
                             .arg(r.overrides.isEmpty() ? QString() : "# MODIFIED RESULT: case settings overridden; recorded values did not change\n").toUtf8());
             writeFile(QDir(r.outDir).filePath(f), csv);
         }
         // The recorded wall loads, so kutta aero works on a replayed run.
         QJsonObject loads = QJsonDocument::fromJson(readFixture(run + "/loads.json")).object();
         if (!loads.isEmpty()) {
-            loads["provenance"] = ("FIXTURE REPLAY: recorded wall loads of a 600-iteration Kutta run; " + loads.value("provenance").toString()).trimmed();
+            loads["provenance"] = (QStringLiteral("FIXTURE REPLAY: recorded wall loads of a %1-iteration Kutta run; ").arg(recordedIterations) + loads.value("provenance").toString()).trimmed();
             loads["modified"] = caseModified(r.overrides);
             writeJson(QDir(r.outDir).filePath("loads.json"), loads);
         }
@@ -624,7 +667,13 @@ int solve(const Args& a)
         const double stepMs = 1000.0 / (150.0 * speed / 6.0);
         QElapsedTimer pace;
         pace.start();
-        for (int it = r.monitor; it <= r.iterations; it += r.monitor) {
+        // Iterations 1-5 (residuals only, as the CLI reports them), then each monitor sample.
+        std::vector<int> iters;
+        for (int it = 1; it <= std::min(5, r.iterations); ++it)
+            if (it % r.monitor != 0) iters.push_back(it);
+        for (int it = r.monitor; it <= r.iterations; it += r.monitor) iters.push_back(it);
+        for (const int it : iters) {
+            const bool sample = it % r.monitor == 0;
             const double t = it;
             const double osc = 1 + 0.22 * std::sin(t / 13.0) * std::exp(-t / 600);
             auto res = [&](double a0, double tau, double floor) { return (a0 * std::exp(-t / tau) + floor * (1 + 0.15 * std::sin(t / 7.0))) * osc; };
@@ -632,16 +681,16 @@ int solve(const Args& a)
                               {"z-velocity", res(0.06, 85, 3.5e-6)}, {"k", res(0.3, 110, 2e-5)}, {"omega", res(0.2, 120, 1.5e-5)}};
             const double settle = 1 - std::exp(-t / 110) * std::cos(t / 45);
             QJsonObject reports;
-            for (const auto& [name, f] : finalForce) {
+            if (sample) for (const auto& [name, f] : finalForce) {
                 const double proj = name.contains("downforce") ? -double(f.z()) : double(f.x());
                 const double val = proj * settle * (1 + 0.004 * std::sin(t / 9.0) * std::exp(-t / 400));
                 reports[name] = QJsonObject{{"force", val}, {"coefficient", val / qa}};
             }
-            sleepMs(stepMs * r.monitor - pace.nsecsElapsed() / 1e6);
+            sleepMs(stepMs * (sample ? r.monitor : 1) - pace.nsecsElapsed() / 1e6);
             pace.restart();
             const double el = clock.nsecsElapsed() / 1e9;
             onIteration({{"v", 1}, {"event", "iteration"}, {"iter", it}, {"residuals", resid}, {"reports", reports},
-                         {"sec_per_iter", el / it}, {"elapsed", el}});
+                         {"sec_per_iter", el / it}, {"elapsed", el}}, sample);
             if (r.liveView > 0 && it % r.liveView == 0) snapshot(it, 1 - std::exp(-t / 150));
             if (converged) break;
             if (g_stop) { stopped = true; break; }
@@ -697,8 +746,7 @@ int solve(const Args& a)
     convergenceOut["met_by"] = QJsonArray::fromStringList(converged ? convergence.metBy() : QStringList{});
     convergenceOut["iteration"] = converged ? QJsonValue(lastIter) : QJsonValue();
     QJsonObject sum;
-    if (r.kind == CaseKind::Elbow)
-        sum = QJsonDocument::fromJson(readFixture(QStringLiteral("cases/mixing_elbow/run-%1/summary.json").arg(r.dataPath.isEmpty() ? "cold" : "seeded"))).object();
+    if (r.kind == CaseKind::Recorded) sum = recordedSummary(r);
     sum["v"] = 1;
     sum["fixture"] = true;
     sum["synthetic"] = r.kind == CaseKind::Car;
@@ -954,15 +1002,16 @@ int exportView(const Args& a)
     if (desc.isEmpty()) fail(dir + " is not a finished fixture run (no summary)", {}, false);
     const auto slices = parseSlices(a.opts.value("slice"));
     const QJsonObject batch = a.has("post") ? readBatch(a.value("post")) : QJsonObject{};
-    const bool car = desc.value("case").toString() != "mixing_elbow";
+    const bool car = !desc.value("recorded").toBool(desc.value("case").toString() == "mixing_elbow");
+    const QString stem = desc.value("case").toString();
     const CarParams prm = paramsFrom(desc);
     // Build beside the old view and swap at the end: a failed export keeps it.
     const QString view = QDir(dir).filePath("view"), staging = QDir(dir).filePath("view.staging");
     QDir(staging).removeRecursively();
     if (!car) {
-        copyFixtureDir("cases/mixing_elbow/run-" + desc.value("variant").toString() + "/view", staging);
+        copyFixtureDir(recorded(stem, "run-" + desc.value("variant").toString() + "/view"), staging);
         if (!slices.empty())
-            eprint("kutta-fixture: recorded elbow view has one slice (z = 0.025 m); requested slices need the real CLI");
+            eprint("kutta-fixture: a recorded view keeps its recorded slices; requested slices need the real CLI");
         QJsonObject m = readJson(QDir(staging).filePath("manifest.json"));
         if (!desc.value("provenance").toString().isEmpty()) m["provenance"] = desc.value("provenance").toString();
         writeJson(QDir(staging).filePath("manifest.json"), m);
@@ -974,7 +1023,7 @@ int exportView(const Args& a)
         if (!base) fail(base.error(), {}, false);
         QJsonObject manifest = readJson(QDir(staging).filePath("manifest.json"));
         auto needsCar = [&](const QString& what) {
-            if (!car) fail(what + " on the recorded elbow needs the real kutta CLI (the fixture has no volume fields)", {}, false);
+            if (!car) fail(what + " on a recorded case needs the real kutta CLI (the fixture has no volume fields)", {}, false);
         };
         QJsonArray traces, isos, probes, reports, available;
         int n = 0;
@@ -1087,8 +1136,8 @@ int aero(const Args& a)
     return 0;
 }
 
-// export-geometry: the case's boundary zones before any run. The elbow reuses
-// its recorded view's zones; the car is generated. Fields in zone files are
+// export-geometry: the case's boundary zones before any run. A recorded case
+// reuses its recorded view's zones; the car is generated. Fields in zone files are
 // ignored by readers of a geometry-only manifest.
 int exportGeometry(const Args& a)
 {
@@ -1099,7 +1148,7 @@ int exportGeometry(const Args& a)
     const QString root = QDir(a.value("out")).filePath("geometry"), staging = QDir(a.value("out")).filePath("geometry.staging");
     QDir(staging).removeRecursively();
     if (car) writeCarView(staging, paramsFrom({}), false, {}, {}, false);
-    else copyFixtureDir("cases/mixing_elbow/run-cold/view", staging);
+    else copyFixtureDir(recorded(caseStem(casePath), "run-cold/view"), staging);
     for (const QString& s : QDir(staging).entryList({"slice-*"})) QFile::remove(QDir(staging).filePath(s));
     QJsonObject m = readJson(QDir(staging).filePath("manifest.json"));
     m["geometry_only"] = true;

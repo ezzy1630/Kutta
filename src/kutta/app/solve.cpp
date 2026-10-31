@@ -204,7 +204,8 @@ int solve(int argc,char** argv) {
     auto residuals=output(o.out/"residuals.csv");
     if(!notice.empty()) residuals<<"# "<<notice<<'\n';
     const bool transition=setup->settings.sst && setup->settings.sst->transition;
-    const auto residual_names=setup::solved_residuals(c.viscous.model,transition);
+    const bool planar=c.dimension==2;
+    const auto residual_names=setup::solved_residuals(c.viscous.model,transition,planar);
     residuals<<"iteration";for(auto name:residual_names)residuals<<','<<name;residuals<<",seconds_per_iteration\n";
     if(!jsonl) {
       human<<"Backend: "<<backend_name(dev->backend())<<"; device: "<<dev->name()<<"\n  iter";
@@ -245,10 +246,17 @@ int solve(int argc,char** argv) {
         }
         stopped=stop.requested();
       }
-      if(iter%setup->settings.monitor_interval!=0 && iter!=o.iterations && !stopped)continue;
+      // Iterations 1-5 are already monitored (Fluent normalizes continuity by
+      // their largest value), so their residuals are reported at no solver
+      // cost, as Fluent's residual history starts at iteration 1. They are not
+      // monitor samples: no force reports and no convergence evaluation.
+      const bool sample=iter%setup->settings.monitor_interval==0 || iter==o.iterations || stopped;
+      const bool early=!sample && iter<=5 && solver.report().residual_iteration==iter;
+      if(!sample && !early)continue;
       const auto r=solver.report().residual_iteration==iter?solver.report():solver.monitor();
       dev->synchronize();const auto per_iteration=(seconds(batch)-batch_snapshot_time)/batch_count;
-      std::vector<double> values{r.continuity.fluent_scaled,r.u.fluent_scaled,r.v.fluent_scaled,r.w.fluent_scaled};
+      std::vector<double> values{r.continuity.fluent_scaled,r.u.fluent_scaled,r.v.fluent_scaled};
+      if(!planar) values.push_back(r.w.fluent_scaled);
       if(setup->settings.sst) values.insert(values.end(),{r.k.fluent_scaled,r.omega.fluent_scaled});
       if(setup->settings.realizable_ke) values.insert(values.end(),{r.k.fluent_scaled,r.epsilon.fluent_scaled});
       if(transition) values.push_back(r.intermittency.fluent_scaled);
@@ -263,9 +271,9 @@ int solve(int argc,char** argv) {
       // One force evaluation per report and sample serves the event and the
       // convergence conditions.
       std::vector<fv::ForceReport> report_forces;
-      if(jsonl || report_conditions)for(const auto& d:reports)report_forces.push_back(solver.forces(d.patches,c.reference.pressure.value_or(0)));
+      if(sample && (jsonl || report_conditions))for(const auto& d:reports)report_forces.push_back(solver.forces(d.patches,c.reference.pressure.value_or(0)));
       std::optional<setup::ConvergenceSample> state;
-      if(convergence.check) {
+      if(sample && convergence.check) {
         std::map<std::string,double> residual_values,report_values;
         for(std::size_t i=0;i<std::size(values);++i)residual_values.emplace(residual_names[i],values[i]);
         for(std::size_t i=0;i<report_forces.size();++i)report_values.emplace(reports[i].name,dot(report_forces[i].force(),*reports[i].direction));
@@ -277,7 +285,7 @@ int solve(int argc,char** argv) {
         event<<"{\"v\":1,\"event\":\"iteration\",\"iter\":"<<r.iteration<<",\"residuals\":{";
         for(std::size_t i=0;i<std::size(values);++i){if(i)event<<',';event<<json_string(residual_names[i])<<':'<<values[i];}
         event<<"},\"reports\":{";
-        for(std::size_t i=0;i<reports.size();++i) {
+        for(std::size_t i=0;i<report_forces.size();++i) {
           const auto& d=reports[i];if(i)event<<',';
           const auto& f=report_forces[i];
           const auto force=dot(f.force(),*d.direction);KUTTA_REQUIRE(std::isfinite(force),"non-finite report: "+d.name);
@@ -369,7 +377,7 @@ int solve(int argc,char** argv) {
       if(i) summary<<',';
       summary<<"\n    {\"name\": "<<json_string(info.name)<<", \"setting\": "<<json_string(info.setting)
         <<", \"fluent_value\": "<<json_string(info.fluent_value)<<", \"kutta_action\": "<<json_string(info.kutta_action)
-        <<", \"effect_documentation\": "<<json_string(info.effect_documentation)<<", \"measured_effect\": "<<json_string(info.measured_effect)<<'}';
+        <<", \"effect_documentation\": "<<json_string(info.effect_documentation)<<", \"measured_effect\": "<<json_string(info.measured_effect)<<", \"short\": "<<json_string(info.short_label)<<'}';
     }
     summary<<"],\n  \"case_file\": "<<json_string(o.input.string())<<",\n  \"case_sha256\": "<<json_string(case_hash)
       <<",\n  \"data_file\": "<<(o.data.empty()?"null":json_string(o.data.string()))<<",\n  \"data_sha256\": "<<(o.data.empty()?"null":json_string(data_hash))

@@ -167,7 +167,10 @@ void SceneView::fitCamera()
     const double keyW = m_overlayState.zoneKey.empty() ? 0 : 150;
     const QMarginsF reserve((legend ? 104 : keyW > 0 ? keyW : 12) / w, 50 / h, 12 / w, 12 / h);
     const auto pts = visiblePoints();
-    if (!pts.empty()) m_display.camera.fit(pts, aspect(), reserve);
+    const QString face = scene() ? planarFace(*scene()) : QString();
+    const bool planeShown = !face.isEmpty() && (m_display.visibleInitialized ? m_display.visible.contains(face) : true);
+    if (const auto focus = planeShown ? planarFocus(*scene()) : std::nullopt) m_display.camera.fit(*focus, aspect(), reserve);
+    else if (!pts.empty()) m_display.camera.fit(pts, aspect(), reserve);
     else if (scene() && scene()->bounds.valid) m_display.camera.fit(scene()->bounds, aspect(), reserve);
     m_display.cameraInitialized = true;
     m_autoFit = true;

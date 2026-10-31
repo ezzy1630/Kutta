@@ -402,13 +402,19 @@ QWidget* noCase(const InspectorContext& c, const QString& title)
         grid->setColumnStretch(1, 1);
         int row = 0;
         for (const QString& p : c.samples) {
-            const bool synthetic = QFileInfo(p).fileName().startsWith("fsae_car");
-            auto* b = button(QFileInfo(p).fileName(), synthetic ? "wind" : "waves");
+            const QString name = QFileInfo(p).fileName();
+            const bool aero = name.startsWith("fsae_car") || name.startsWith("naca");
+            auto* b = button(name, aero ? "wind" : "waves");
             b->setProperty("flat", true);
             QObject::connect(b, &QPushButton::clicked, b, [c, p] { c.openPath(p); });
             grid->addWidget(b, row, 0, Qt::AlignLeft | Qt::AlignTop);
-            grid->addWidget(label(synthetic ? QObject::tr("Synthetic FSAE car for trying the workbench. Not a CFD result.")
-                                            : QObject::tr("Ansys mixing elbow. Replays a recorded Kutta run."), "faint"), row++, 1);
+            const QString replays = QObject::tr("Replays a recorded Kutta run.");
+            const QString about = name.startsWith("fsae_car")     ? QObject::tr("Synthetic FSAE car for trying the workbench. Not a CFD result.")
+                                  : name.startsWith("naca")       ? QObject::tr("2D ground-effect wing: SST with intermittency transition, moving ground. %1").arg(replays)
+                                  : name.startsWith("elbow_param") ? QObject::tr("Ansys elbow: standard k-epsilon, SIMPLE. %1").arg(replays)
+                                  : name.startsWith("cylinder")   ? QObject::tr("Ansys cylinder: laminar, 2D. %1").arg(replays)
+                                                                  : QObject::tr("Ansys mixing elbow: SST, Coupled. %1").arg(replays);
+            grid->addWidget(label(about, "faint"), row++, 1);
         }
         v->addLayout(grid);
     }
@@ -597,12 +603,39 @@ QWidget* models(const InspectorContext& c)
     const CaseSummary& cs = c.session->caseSummary();
     f->addSection(QObject::tr("Viscous"));
     if (!f->addSetting("models/viscous")) f->addRow(QObject::tr("Viscous model"), label(cs.viscousModel));
+    // Fluent's Viscous Model dialog: the transition model belongs to the closure.
+    if (f->addSetting("models/transition", QObject::tr("Transition"))) {
+        const QJsonValue t = c.session->settings()->value("models/transition");
+        bool blocked = false;
+        for (const auto& i : cs.issues)
+            if (i.cls == IssueClass::Unsupported && (i.setting.contains("rp-trans") || i.setting.contains("rp-transition-model"))) {
+                f->addNote(i.explanation, "error");
+                blocked = true;
+            }
+        if (t == QJsonValue("gamma-transport-eqn")) {
+            f->addNote(QObject::tr("Fluent's Intermittency Transition Model: one transport equation for intermittency γ on top of "
+                                   "k-omega SST, which damps turbulence production in laminar boundary layers until they transition. "
+                                   "Kutta solves it with the case's constants below and adds the intermit residual and the Intermittency field."));
+            // The model constants as saved; Kutta reads and checks them.
+            const std::pair<const char*, const char*> constants[] = {
+                {"trans-one-eqn-ctu1", "CTU1"}, {"trans-one-eqn-ctu2", "CTU2"}, {"trans-one-eqn-ctu3", "CTU3"},
+                {"trans-one-eqn-cpg1", "CPG1"}, {"trans-one-eqn-cpg2", "CPG2"}, {"trans-one-eqn-cpg3", "CPG3"},
+                {"trans-one-eqn-lim-cpg1", "CPG1 lim"}, {"trans-one-eqn-lim-cpg2", "CPG2 lim"},
+                {"trans-one-eqn-csep", "CSEP"}, {"intermit-sig", "σ (intermittency Prandtl number)"}};
+            for (const auto& [key, name] : constants) f->addSetting(QStringLiteral("case/%1").arg(key), QString::fromUtf8(name));
+            f->addNote(QObject::tr("Its discretization is under Methods, its relaxation under Controls and the inflow intermittency on each "
+                                   "inlet and outlet. Changing the model or its constants is read-only in Kutta."), "faint");
+        } else if (!blocked && cs.viscousModel.contains("sst")) {
+            f->addNote(QObject::tr("Fully turbulent. Kutta also runs cases saved with Fluent's Intermittency Transition Model; "
+                                   "Transition SST and the algebraic model are not implemented."), "faint");
+        }
+    }
     f->addSection(QObject::tr("Energy"));
     f->addSetting("models/energy");
     for (const auto& i : cs.issues)
         if (i.setting.contains("energy")) f->addNote(i.explanation);
     for (const Setting* s : settingsUnder(c, "models/"))
-        if (s->path != "models/viscous" && s->path != "models/energy") f->addSetting(s->path);
+        if (s->path != "models/viscous" && s->path != "models/energy" && s->path != "models/transition") f->addSetting(s->path);
     f->finish();
     return page;
 }
@@ -772,7 +805,9 @@ static QString couplingNote(const SettingsModel& m)
     if (v == "coupled" && pt.isBool() && !pseudo)
         return QObject::tr("Saved with Coupled but without the pseudo-transient formulation, which Kutta's Coupled solver needs: "
                            "this case runs SIMPLEC. Same discrete equations; only the convergence path differs.");
-    if (v == "coupled") return QObject::tr("Pressure and momentum are solved together, with pseudo-transient steps (Kutta's native Coupled solver).");
+    if (v == "coupled")
+        return QObject::tr("Pressure and momentum are solved together, with pseudo-transient steps and Fluent's default flow Courant "
+                           "number (200) as implicit relaxation (Kutta's native Coupled solver; see Controls).");
     QString note = v == "simplec" ? QObject::tr("Segregated, with SIMPLEC's consistent pressure correction.")
                                   : QObject::tr("Segregated, with SIMPLE's pressure correction.");
     if (!offered) note += ' ' + QObject::tr("Coupled is not offered: Kutta's Coupled solver needs the pseudo-transient formulation, which this case does not use.");
@@ -812,6 +847,7 @@ QWidget* methods(const InspectorContext& c)
     add("k-scheme");
     add("omega-scheme");
     add("epsilon-scheme");
+    add("intermittency-scheme");
     add("gradient-limiting");
     bool other = false;
     for (const Setting* s : settingsUnder(c, "methods/")) {
@@ -833,10 +869,22 @@ QWidget* controls(const InspectorContext& c)
     f->addSetting("controls/k-relaxation");
     f->addSetting("controls/omega-relaxation");
     f->addSetting("controls/epsilon-relaxation");
+    f->addSetting("controls/intermit-relaxation");
     f->addSection(QObject::tr("Pseudo time"));
     f->addSetting("controls/pseudo-time-scale-factor");
+    // Fluent's Flow Courant Number, which Kutta's Coupled solver fixes at Fluent's default.
+    SettingsModel* m = c.session->settings();
+    if (f->addSetting("controls/courant-number")) {
+        auto* note = new QLabel(QObject::tr("Kutta's Coupled solver always uses Fluent's default flow Courant number, 200, as implicit "
+                                            "relaxation on top of the pseudo time step. The case's saved value is shown for reference."));
+        note->setProperty("role", "note");
+        note->setWordWrap(true);
+        f->addWidget(note);
+        note->setVisible(m->isActive("controls/courant-number"));
+        QObject::connect(m, &SettingsModel::valueChanged, note, [m, note](const QString&) { note->setVisible(m->isActive("controls/courant-number")); });
+    }
     for (const Setting* s : settingsUnder(c, "controls/"))
-        if (!s->leaf.endsWith("relaxation") && s->leaf != "pseudo-time-scale-factor") f->addSetting(s->path);
+        if (!s->leaf.endsWith("relaxation") && s->leaf != "pseudo-time-scale-factor" && s->leaf != "courant-number") f->addSetting(s->path);
     f->finish();
     return page;
 }

@@ -13,6 +13,8 @@ struct ApproximationInfo {
   std::string_view name,setting,fluent_value,kutta_action,effect_documentation,measured_effect;
   // The app's issue label and plain-language explanation (docs/app-protocol.md).
   std::string_view label,explanation;
+  // A few words naming what the run does differently, for result badges.
+  std::string_view short_label;
 };
 const ApproximationInfo& approximation_info(Approximation id);
 // The complete opt-in allowlist, in declaration order.

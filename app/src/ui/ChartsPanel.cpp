@@ -17,7 +17,7 @@ namespace {
 QStringList runBadges(const RunRecord& r)
 {
     QStringList b;
-    if (r.approximate()) b << "APPROXIMATE";
+    if (r.approximate()) b << r.approximateBadge();
     if (r.modified()) b << "MODIFIED";
     if (r.synthetic) b << "SYNTHETIC";
     else if (r.fixture) b << "FIXTURE REPLAY";
@@ -29,7 +29,7 @@ QStringList runBadges(const RunRecord& r)
 QString runProvenance(const RunRecord& r)
 {
     QStringList p;
-    if (r.approximate()) p << "APPROXIMATE: " + r.approximations.join(", ");
+    if (r.approximate()) p << r.approximateBadge();
     if (r.modified()) p << QStringLiteral("MODIFIED: %1 settings differ from the case").arg(r.overrides.size());
     if (r.synthetic) p << "SYNTHETIC fixture data, not a Kutta solution";
     else if (r.fixture) p << "FIXTURE REPLAY of a recorded Kutta run";

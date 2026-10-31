@@ -38,6 +38,7 @@ struct SupportIssue {
     QString approximation;  // name to pass to --approximate when approximable
     QString explanation, evidence;
     QString measuredEffect;  // approximable: the measured effect alone (newer CLIs)
+    QString shortLabel;      // approximable: a few words for badges ("WFGC off"; newer CLIs)
     // The explanation without the measured effect the CLI appends to it.
     QString explanationOnly() const;
 };
@@ -94,6 +95,7 @@ struct CaseSummary {
     Bounds bounds;
     std::vector<Zone> zones;
     QString viscousModel;
+    QString transition;  // models.transition: "gamma-transport-eqn" etc.; empty when none
     std::optional<bool> energy, energyCoupled;
     std::vector<Material> materials;
     std::vector<ReportDef> reports;
@@ -109,6 +111,8 @@ struct CaseSummary {
     // A 2D case, which Kutta solves as one cell through the reference depth.
     bool planar() const { return dimension == 2; }
     QStringList approximations() const;  // names a run may opt into
+    // Badge words for an approximation: the CLI's short label, else its name.
+    QString approximationShort(const QString& name) const;
     std::vector<const SupportIssue*> blocking(const QStringList& optedIn) const;
     const Zone* zone(const QString& name) const;
 };
@@ -215,7 +219,7 @@ Result<ResidualHistory> parseResidualsCsv(const QByteArray& csv);
 struct FluxRow { QString name; int zoneId = -1; double massFlow = 0; };
 Result<std::vector<FluxRow>> parseFluxesCsv(const QByteArray& csv, QString* notice = nullptr);
 
-struct ApproximationRecord { QString name, setting, fluentValue, kuttaAction, measuredEffect, documentation; };
+struct ApproximationRecord { QString name, setting, fluentValue, kuttaAction, measuredEffect, documentation, shortLabel; };
 struct RunSummary {
     bool approximate = false, modified = false, converged = false;
     QString approximationNotice;

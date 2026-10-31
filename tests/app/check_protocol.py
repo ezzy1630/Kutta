@@ -48,8 +48,11 @@ for name, status in [("tiny", "supported"), ("wfgc", "approximate"), ("unsupport
         assert "not isolated WFGC error" in issue["explanation"] and issue["evidence"]
         # The measured effect alone, for the app; the explanation still ends with it.
         assert "3.366748%" in issue["measured_effect"] and issue["explanation"].endswith(issue["measured_effect"] + ".")
+        # A few words for result badges.
+        assert issue["short"] == "WFGC off"
     for issue in summary["support"]["issues"]:
         assert ("measured_effect" in issue) == (issue["class"] == "approximable")
+        assert ("short" in issue) == (issue["class"] == "approximable")
     if name == "unsupported":
         assert {"curvature-correction?", "pseudo-time-step", "omega/default", "sst-pk-factor"} <= {i["setting"] for i in summary["support"]["issues"]}
 seed = json.loads(command("inspect", root / "tiny.cas.h5", "--data", root / "tiny.dat.h5", "--json").stdout)
@@ -97,12 +100,19 @@ for name, data, approximate in [("tiny", False, False), ("tiny", True, False), (
     assert "Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit." in [e.get("message") for e in events if e["event"] == "warning"]
     assert events[-1]["converged"] is False and events[-1]["convergence"]["met_by"] == [] and events[-1]["convergence"]["iteration"] is None
     iterations = [e for e in events if e["event"] == "iteration"]
-    assert [e["iter"] for e in iterations] == [20, 21]
+    # Iterations 1-5 are reported as the solver monitors them anyway; they
+    # carry residuals only. The monitor samples carry the reports.
+    assert [e["iter"] for e in iterations] == [1, 2, 3, 4, 5, 20, 21]
+    # Continuity is scaled by the largest of the first five, so none exceeds 1.
+    assert all(e["residuals"]["continuity"] <= 1 for e in iterations[:5])
     for e in iterations:
         assert "convergence" not in e
         assert set(e["residuals"]) == {"continuity", "x-velocity", "y-velocity", "z-velocity", "k", "omega"}
         assert all(math.isfinite(v) and v >= 0 for v in e["residuals"].values())
         assert e["sec_per_iter"] > 0 and e["elapsed"] > 0
+        if e["iter"] <= 5:
+            assert e["reports"] == {}
+            continue
         assert set(e["reports"]) == {"drag", "downforce" if name == "downforce" else "lift", "force"}
         for r in e["reports"].values():
             assert math.isclose(r["coefficient"], r["force"] / 6, abs_tol=1e-12)
@@ -137,7 +147,7 @@ for stop in (["eof", "sigint"] if os.name != "nt" else ["eof"]):
     else:
         # Prove stopping an active iteration stream, rather than just cancelling
         # during initialization before any outer iteration has happened.
-        while not prefix or prefix[-1]["event"] != "iteration":
+        while not prefix or prefix[-1]["event"] != "iteration" or prefix[-1]["iter"] < 20:
             prefix.append(json.loads(p.stdout.readline()))
         p.send_signal(signal.SIGINT)
     events = prefix + finish(p)
@@ -280,6 +290,11 @@ for report in ("drag", "lift", "force"):
 assert tiny_settings["monitors/residual/continuity/check"]["value"] is False
 assert tiny_settings["monitors/residual/continuity/absolute-criterion"]["value"] is None
 assert tiny_settings["monitors/residual/continuity/absolute-criterion"]["editable"]
+# The saved flow Courant number is shown read-only: Kutta's Coupled uses Fluent's default.
+courant = tiny_settings["controls/courant-number"]
+assert courant["value"] == 5 and not courant["editable"] and "200" in courant["reason"], courant
+assert courant["depends_on"] == "methods/pressure-velocity-coupling" and courant["active_when"] == ["coupled"]
+assert courant["active"] is (tiny_settings["methods/pressure-velocity-coupling"]["value"] == "coupled")
 converged_out, events = solve_setup({"run/iterations": 10, "run/monitor-interval": 1, "monitors/check-convergence": True,
                                      "monitors/report/drag/active": True, "monitors/report/drag/stop-criterion": 1e30,
                                      "monitors/report/drag/previous-values": 1, "monitors/report/drag/ignore-before": 0}, "report-converged", case="tiny")

@@ -376,8 +376,13 @@ void makePlanar(SceneData& s)
         const Bounds b = it.mesh->bounds();
         return b.max.z() - b.min.z() <= 1e-3f * std::max(depth, 1e-30f) && enclosesDomain(it, s.bounds);
     });
+    // The plane is the whole domain: the mesh reads best on the neutral
+    // surface colour, as in Fluent, not flooded with a zone colour.
     for (auto& it : s.items)
-        if (it.id == face) it.label = QStringLiteral("2D domain");
+        if (it.id == face) {
+            it.label = QStringLiteral("2D domain");
+            it.color = QColor();
+        }
 }
 
 QStringList defaultMeshItems(const SceneData& s)
@@ -392,6 +397,41 @@ QStringList defaultMeshItems(const SceneData& s)
         body << it.id;
     }
     return body.isEmpty() ? all : body;
+}
+
+std::optional<int> commonPlaneAxis(const SceneData& s, const QStringList& ids)
+{
+    if (ids.isEmpty() || !s.bounds.valid) return std::nullopt;
+    const float tol = 1e-3f * (s.bounds.max - s.bounds.min).length();
+    std::optional<int> axis;
+    for (const QString& id : ids) {
+        const SceneItem* it = s.item(id);
+        if (!it || !it->mesh) return std::nullopt;
+        const Bounds b = it->mesh->bounds();
+        const QVector3D e = b.max - b.min;
+        std::optional<int> flat;
+        for (int a = 0; a < 3; ++a)
+            if (e[a] <= tol) flat = a;
+        if (!flat || (axis && *axis != *flat)) return std::nullopt;
+        axis = flat;
+    }
+    return axis;
+}
+
+std::optional<Bounds> planarFocus(const SceneData& s)
+{
+    if (!s.planar || !s.bounds.valid || !isExternalFlow(s)) return std::nullopt;
+    Bounds body;
+    for (const auto& it : s.items)
+        if (it.kind == ItemKind::Zone && it.zoneType == "wall" && it.mesh && !isEnclosingWall(it, s)) body.expand(it.mesh->bounds());
+    if (!body.valid) return std::nullopt;
+    const QVector3D e = body.max - body.min;
+    const float grow = std::max(e.x(), e.y());
+    Bounds out;
+    out.min = QVector3D(std::max(body.min.x() - grow, s.bounds.min.x()), std::max(body.min.y() - grow, s.bounds.min.y()), s.bounds.min.z());
+    out.max = QVector3D(std::min(body.max.x() + grow, s.bounds.max.x()), std::min(body.max.y() + grow, s.bounds.max.y()), s.bounds.max.z());
+    out.valid = true;
+    return out;
 }
 
 QStringList defaultVisibleItems(const SceneData& s)

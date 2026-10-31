@@ -58,7 +58,9 @@ private slots:
         QVERIFY(p.setup);
         QCOMPARE(p.setup->approximations, QStringList{"wfgc"});
         QVERIFY(p.done);
-        QCOMPARE(int(p.residuals.iterations.size()), p.done->iterations / 20);
+        // Iterations 1-5 (residuals only), then every monitor interval.
+        QCOMPARE(int(p.residuals.iterations.size()), 5 + p.done->iterations / 20);
+        QCOMPARE(p.residuals.iterations.front(), 1);
         QVERIFY(p.residuals.names.contains("continuity"));
         for (const auto& series : p.residuals.values) QCOMPARE(series.size(), p.residuals.iterations.size());
         QVERIFY(!p.warnings.isEmpty());
@@ -99,6 +101,22 @@ private slots:
         conv.enabled = false;
         QCOMPARE(stopReasonText("iteration_limit", {}, conv), QString("Iteration limit; convergence checking was off"));
         QVERIFY(stopReasonText("", {}, conv).isEmpty());  // an older CLI: no reason given
+    }
+
+    // Run History's Status column names how a completed run ended.
+    void statusSaysHowARunEnded()
+    {
+        RunRecord r;
+        r.status = RunStatus::Completed;
+        r.stopReason = "iteration_limit";
+        QCOMPARE(runStatusText(r), QString("Iteration limit"));
+        r.stopReason = "converged";
+        QCOMPARE(runStatusText(r), QString("Converged"));
+        r.stopReason.clear();  // a record from an older CLI
+        QCOMPARE(runStatusText(r), QString("Completed"));
+        r.status = RunStatus::Stopped;
+        r.stopReason = "stopped";
+        QCOMPARE(runStatusText(r), QString("Stopped"));
     }
 
     // The residual chart's marks come from the run's own events: equal
