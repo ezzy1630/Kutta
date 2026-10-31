@@ -5,6 +5,11 @@
 #include "export.hpp"
 #include <algorithm>
 #include <iostream>
+#if defined(__APPLE__)
+#include <cstdlib>
+#include <mach-o/dyld.h>
+#include <unistd.h>
+#endif
 
 using namespace kutta::fluent;
 namespace {
@@ -393,7 +398,28 @@ void data_summary(const FluentCase &c, const FluentData &d) {
               << "] " << i.path << ": " << i.reason << '\n';
 }
 } // namespace
+namespace {
+// macOS malloc keeps freed blocks of every size resident for reuse, and
+// phys_footprint counts them. Metal buffers cannot reuse that memory, so each
+// setup temporary stayed in the peak: 2.40 GB instead of 1.54 GB on a 0.40M-cell
+// mesh (validation/results/memory_scale). The allocator reads its mode only at
+// process start, so re-execute once in space-efficient mode, which returns
+// freed memory. An explicit MallocSpaceEfficient setting is respected.
+void space_efficient_malloc(char** argv) {
+#if defined(__APPLE__)
+  if (std::getenv("MallocSpaceEfficient")) return;
+  char path[4096];
+  std::uint32_t size = sizeof path;
+  if (_NSGetExecutablePath(path, &size) != 0 || setenv("MallocSpaceEfficient", "1", 1) != 0) return;
+  execv(path, argv);  // returns only on failure; continue in the default mode
+#else
+  (void)argv;
+#endif
+}
+}  // namespace
+
 int main(int argc, char **argv) {
+  space_efficient_malloc(argv);
   if(argc>=2 && std::string_view(argv[1])=="solve") return solve(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="export-view") return kutta::app::export_view(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="export-geometry") return kutta::app::export_geometry(argc,argv);
