@@ -145,7 +145,11 @@ struct CoupledSolver::Impl {
     // follow the device cell_face_offsets/cell_faces order of the LSQ deltas.
     const auto offsets = dev.download(m.cell_face_offsets), faces = dev.download(m.cell_faces);
     const auto signs = dev.download(m.cell_face_sign);
-    const auto dx = dev.download(lsq.delta.x), dy = dev.download(lsq.delta.y), dz = dev.download(lsq.delta.z);
+    // Internal rows are per entry (possibly the stencil's); boundary rows are by boundary face.
+    const auto& rows = lsq.rows();
+    const auto dx = dev.download(rows.x), dy = dev.download(rows.y), dz = dev.download(rows.z);
+    const auto bx = dev.download(lsq.boundary_delta.x), by = dev.download(lsq.boundary_delta.y),
+               bz = dev.download(lsq.boundary_delta.z);
     const auto inverse = dev.download(lsq.inverse);
     const auto download3 = [&](const DeviceVec3& v) {
       return std::array{dev.download(v.x), dev.download(v.y), dev.download(v.z)};
@@ -161,7 +165,7 @@ struct CoupledSolver::Impl {
         const auto area = geom.face_area[f] * double(signs[j]);
         const auto& side = f < ni && host.owner[f] != c ? neighbour_r : owner_r;
         const Vec3d r{side[0][f], side[1][f], side[2][f]};
-        delta = delta + Vec3d{dx[j], dy[j], dz[j]};
+        delta = delta + (f < ni ? Vec3d{dx[j], dy[j], dz[j]} : Vec3d{bx[f - ni], by[f - ni], bz[f - ni]});
         double weight = 0;
         if (f < ni) {g = g + area * .5; h = h + area * .5; weight = .5;}
         else if (kinds[f - ni] == 2 || kinds[f - ni] == 4) h = h + area;
@@ -266,20 +270,20 @@ struct CoupledSolver::Impl {
     const auto& m = mesh;
     kern::coupled_fine_spmv(dev, n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent,
         m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient,
-        lsq.delta.x, lsq.delta.y, lsq.delta.z, cell, in, out, n, wc);
+        lsq.rows().x, lsq.rows().y, lsq.rows().z, cell, in, out, n, wc);
   }
   void fine_residual(const Buffer<float>& in, const Buffer<float>& rhs, Buffer<float>& out) {
     const auto& m = mesh;
     kern::coupled_fine_residual(dev, n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent,
         m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient,
-        lsq.delta.x, lsq.delta.y, lsq.delta.z, cell, in, rhs, out, n, wc);
+        lsq.rows().x, lsq.rows().y, lsq.rows().z, cell, in, rhs, out, n, wc);
   }
   void fine_smooth(Buffer<float>& out, const Buffer<float>& rhs, int sweeps, bool first) {
     const auto& m = mesh;
     for (int k = 0; k < sweeps; ++k) {
       kern::coupled_fine_smooth(dev, n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent,
           m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient,
-          lsq.delta.x, lsq.delta.y, lsq.delta.z, cell, out, rhs, fine_tmp, n, wc, options.smoother_damping,
+          lsq.rows().x, lsq.rows().y, lsq.rows().z, cell, out, rhs, fine_tmp, n, wc, options.smoother_damping,
           first && k == 0 ? 1 : 0);
       std::swap(out, fine_tmp);
     }
@@ -329,7 +333,7 @@ struct CoupledSolver::Impl {
     const auto& t = transfers[0];
     kern::coupled_galerkin_fine(dev, c.n, t.member_offsets, t.members, t.aggregate,
         m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent, m.area.x, m.area.y, m.area.z,
-        stencil.diffusion, *viscosity, *mass, coefficient, lsq.delta.x, lsq.delta.y, lsq.delta.z, cell,
+        stencil.diffusion, *viscosity, *mass, coefficient, lsq.rows().x, lsq.rows().y, lsq.rows().z, cell,
         c.rows, c.cols, c.diag, c.a, c.c, c.g, c.h, c.d, n, c.n, c.nnz, wc);
     for (std::size_t k = 1; k < levels.size(); ++k) {
       auto& f = levels[k - 1];
