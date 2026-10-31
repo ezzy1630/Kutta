@@ -1,0 +1,5 @@
+# APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+iteration,continuity,x-velocity,y-velocity,z-velocity,k,omega,seconds_per_iteration
+20,0.040384377626727835,0.0002196388555772771,7.1772324528334629e-05,7.0771443222677409e-05,0.0096266666023503682,0.0078172120500186824,0.025178845849999999
+40,0.0073614181559661426,5.8407631317647673e-05,1.3184735684191993e-05,1.3141888848222904e-05,0.0048669946052967194,0.0025600627277938288,0.016309566650000003
+60,0.00094985857945888738,4.9562744653523592e-06,1.0414026850716842e-06,1.0497913574420182e-06,0.00075948638597985352,0.00022814464026793505,0.0151335729

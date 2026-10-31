@@ -165,7 +165,7 @@ Independent checks on the restored file:
 | 1500 | identical to 1000 at print precision | | |
 | 3000 | 0.0645% | 0.506% | 0.0705% |
 
-Kutta's float plateau sits at scaled continuity 4.6e-4 and x-momentum 2.6e-8. That is a float-storage floor, not a stall in the solution: the fields stop changing by 1000 iterations. The final 1000-iteration solves took 89 s on CPU and 21 s on Metal: about 0.089 and 0.021 s per iteration. The machine and GPU were shared, so these timings are noisy.
+Kutta's float plateau sits at scaled continuity 4.6e-4 and x-momentum 2.6e-8. That is the float32 velocity-rounding floor, not a stall in the solution: the fields stop changing by 1000 iterations, and one random ulp on the velocities moves the continuity residual by as much as the plateau itself. Fluent's reference run was double precision. The 1e-5 criterion is not reachable in float32 under the documented scaling; see [the residual floor report](../residual_floor/REPORT.md). The final 1000-iteration solves took 89 s on CPU and 21 s on Metal: about 0.089 and 0.021 s per iteration. The machine and GPU were shared, so these timings are noisy.
 
 ## Ablations
 
