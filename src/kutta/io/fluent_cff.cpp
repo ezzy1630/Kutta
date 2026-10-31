@@ -268,13 +268,12 @@ Zones zones(hid_t file, const std::string& base, bool faces) {
   return z;
 }
 template <class T>
-void coverage(const Zones& z, const std::map<Index, T>& values) {
+void coverage(const Zones& z, const detail::IdRanges<T>& values) {
   std::uint64_t expected = 0;
   for (std::size_t i = 0; i < z.ids.size(); ++i) {
     expected += z.last[i] - z.first[i] + 1;
-    auto it = values.find(id(z.first[i]));
-    for (auto n = z.first[i]; n <= z.last[i]; ++n, ++it)
-      KUTTA_REQUIRE(it != values.end() && it->first == n,
+    for (auto n = z.first[i]; n <= z.last[i]; ++n)
+      KUTTA_REQUIRE(values.find(id(n)) != nullptr,
                     "CFF: missing section data in zone topology");
   }
   KUTTA_REQUIRE(values.size() == expected,
@@ -338,16 +337,13 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
                  values.size() == n * raw.dimension,
                  "CFF: node coordinate dataset length does not match "
                  "dimension/range");
+             std::vector<Vec3d> points(n);
              for (std::size_t i = 0; i < n; ++i) {
                auto k = i * raw.dimension;
-               KUTTA_REQUIRE(raw.nodes
-                                 .emplace(a + static_cast<Index>(i),
-                                          Vec3d{values[k], values[k + 1],
-                                                raw.dimension == 3
-                                                    ? values[k + 2] : 0})
-                                 .second,
-                             "CFF: overlapping node zones");
+               points[i] = {values[k], values[k + 1], raw.dimension == 3 ? values[k + 2] : 0};
              }
+             KUTTA_REQUIRE(raw.nodes.insert(a, std::move(points)),
+                           "CFF: overlapping node zones");
            }, false);
   coverage(nz, raw.nodes);
   auto cz = zones(file, root + "/cells/zoneTopology", false);
@@ -358,9 +354,9 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
     raw.zones[zone] = {
         cz.labels[z].empty() ? "zone" + std::to_string(zone) : cz.labels[z],
         "fluent-cell-zone-type-" + std::to_string(cz.types[z])};
-    for (auto c = cz.first[z]; c <= cz.last[z]; ++c)
-      KUTTA_REQUIRE(raw.cells.emplace(id(c), zone).second,
-                    "CFF: overlapping cell zones");
+    KUTTA_REQUIRE(raw.cells.insert(id(cz.first[z]),
+                                   std::vector<int>(std::size_t(cz.last[z] - cz.first[z]) + 1, zone)),
+                  "CFF: overlapping cell zones");
   }
   std::map<Index, std::int64_t> cell_types;
   if (exists(file, root + "/cells/zoneTopology/cellType")) {
@@ -373,7 +369,8 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
       cell_types.emplace(id(cz.ids[z]), types[z]);
     }
   }
-  std::set<Index> typed;
+  std::vector<bool> typed(raw.cells.size());
+  std::size_t typed_count = 0;
   sections(file, root + "/cells/ctype", false,
            [&](const std::string& base, Index a, Index b) {
              H5 group(H5Gopen2(file, base.c_str(), H5P_DEFAULT), H5Gclose, base);
@@ -387,19 +384,21 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
                              "CFF: cell-types length/range mismatch");
              }
              for (std::int64_t c = a; c <= b; ++c) {
-               auto it = raw.cells.find(id(c));
-               KUTTA_REQUIRE(it != raw.cells.end() && typed.insert(id(c)).second,
+               const auto* zone = raw.cells.find(id(c));
+               KUTTA_REQUIRE(zone && !typed[raw.cells.rank(id(c))],
                              "CFF: ctype section outside topology or overlapping");
+               typed[raw.cells.rank(id(c))] = true;
+               ++typed_count;
                auto element = type ? type : types[static_cast<std::size_t>(c - a)];
                KUTTA_REQUIRE(element >= 1 && element <= 7,
                              "CFF: invalid cell element type");
-               auto zone_type = cell_types.find(it->second);
+               auto zone_type = cell_types.find(*zone);
                KUTTA_REQUIRE(zone_type == cell_types.end() || zone_type->second == 0 ||
                                  zone_type->second == element,
                              "CFF: ctype disagrees with zone cellType");
              }
            });
-  KUTTA_REQUIRE(typed.size() == raw.cells.size(), "CFF: missing ctype data");
+  KUTTA_REQUIRE(typed_count == raw.cells.size(), "CFF: missing ctype data");
   auto fz = zones(file, root + "/faces/zoneTopology", true);
   for (std::size_t z = 0; z < fz.ids.size(); ++z) {
     auto zone = id(fz.ids[z]);
@@ -409,10 +408,10 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
     raw.zones[zone] = {
         fz.labels[z].empty() ? "zone" + std::to_string(zone) : fz.labels[z],
         detail::fluent_type(type)};
-    for (auto f = fz.first[z]; f <= fz.last[z]; ++f)
-      KUTTA_REQUIRE(
-          raw.faces.emplace(id(f), detail::FluentFace{{}, 0, 0, zone}).second,
-          "CFF: overlapping face zones");
+    KUTTA_REQUIRE(raw.faces.insert(id(fz.first[z]),
+                                   std::vector<detail::FluentFace>(std::size_t(fz.last[z] - fz.first[z]) + 1,
+                                                                   detail::FluentFace{0, 0, zone})),
+                  "CFF: overlapping face zones");
   }
   sections(file, root + "/faces/nodes", false,
            [&](const std::string& base, Index a, Index b) {
@@ -422,23 +421,24 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
                            "CFF: nnodes length/range mismatch");
              std::size_t ptr = 0;
              for (std::int64_t f = a; f <= b; ++f) {
-               auto it = raw.faces.find(id(f));
-               KUTTA_REQUIRE(it != raw.faces.end(),
-                             "CFF: face nodes outside zone topology");
-               auto& face = it->second;
-               KUTTA_REQUIRE(face.nodes.empty(),
+               auto* face = raw.faces.find(id(f));
+               KUTTA_REQUIRE(face, "CFF: face nodes outside zone topology");
+               KUTTA_REQUIRE(face->node_count == 0,
                              "CFF: overlapping face node sections");
                auto n = counts[static_cast<std::size_t>(f - a)];
                KUTTA_REQUIRE(n >= 2 && static_cast<std::uint64_t>(n) <=
                                            nodes.size() - ptr,
                              "CFF: invalid/truncated face node count");
+               face->first_node = detail::index(raw.face_nodes.size());
+               face->node_count = Index(n);
                for (std::int64_t i = 0; i < n; ++i)
-                 face.nodes.push_back(id(nodes[ptr++]));
+                 raw.face_nodes.push_back(id(nodes[ptr++]));
              }
              KUTTA_REQUIRE(ptr == nodes.size(), "CFF: trailing face nodes");
            });
   for (bool c0 : {true, false}) {
-    std::set<Index> seen;
+    std::vector<bool> seen(raw.faces.size());
+    std::size_t seen_count = 0;
     sections(
         file, root + (c0 ? "/faces/c0" : "/faces/c1"), true,
         [&](const std::string& base, Index a, Index b) {
@@ -446,24 +446,25 @@ PolyMesh read_fluent_cff(const std::filesystem::path& path, double thickness) {
           KUTTA_REQUIRE(values.size() == static_cast<std::size_t>(b) - a + 1,
                         "CFF: c0/c1 dataset length/range mismatch");
           for (std::int64_t f = a; f <= b; ++f) {
-            auto it = raw.faces.find(id(f));
-            KUTTA_REQUIRE(it != raw.faces.end() && seen.insert(id(f)).second,
+            auto* face = raw.faces.find(id(f));
+            KUTTA_REQUIRE(face && !seen[raw.faces.rank(id(f))],
                           "CFF: c0/c1 section outside topology or overlapping");
+            seen[raw.faces.rank(id(f))] = true;
+            ++seen_count;
             auto value = id(values[static_cast<std::size_t>(f - a)], true);
             if (c0)
-              it->second.c0 = value;
+              face->c0 = value;
             else
-              it->second.c1 = value;
+              face->c1 = value;
           }
         });
     if (c0)
-      KUTTA_REQUIRE(seen.size() == raw.faces.size(),
+      KUTTA_REQUIRE(seen_count == raw.faces.size(),
                     "CFF: missing c0 connectivity");
   }
-  for (const auto& [f, face] : raw.faces) {
-    (void)f;
-    KUTTA_REQUIRE(!face.nodes.empty(), "CFF: missing face node connectivity");
-  }
+  raw.faces.each([](Index, const detail::FluentFace& face) {
+    KUTTA_REQUIRE(face.node_count != 0, "CFF: missing face node connectivity");
+  });
   for (const auto& [name, size] :
        {std::pair{"nodeCount", raw.nodes.size()},
         std::pair{"cellCount", raw.cells.size()},

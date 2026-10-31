@@ -85,14 +85,15 @@ TEST_CASE("FSAE Fluent pressure mass and porous jump inputs remain distinct") {
 TEST_CASE("FSAE Fluent import retains special interior identity and input normal through RCM") {
   const auto box=make_box_hex(2,1,1,{0,0,0},{1,1,.1});const auto geometry=compute_geometry(box);
   FluentRaw raw;raw.zones.emplace(7,FluentZone{"fluid","fluid"});raw.zones.emplace(71,FluentZone{"fan","fan"});
-  for(Index p=0;p<box.n_points();++p) raw.nodes.emplace(p+1,box.points[p]);
-  for(Index c=0;c<box.n_cells;++c) raw.cells.emplace(c+1,7);
+  raw.nodes.insert(1,box.points);raw.cells.insert(1,std::vector<int>(std::size_t(box.n_cells),7));
+  std::vector<FluentFace> faces;
   for(Index f=0;f<box.n_faces();++f) {
-    const auto face=nodes(box,f);std::vector<Index> source_nodes;
-    for(auto p:face) source_nodes.push_back(p+1);std::reverse(source_nodes.begin(),source_nodes.end());
+    const auto face=nodes(box,f);const auto first=Index(raw.face_nodes.size());
+    for(auto p:face) raw.face_nodes.push_back(p+1);std::reverse(raw.face_nodes.begin()+first,raw.face_nodes.end());
     const auto zone=f<box.n_internal_faces()?71:100;
-    raw.faces.emplace(f+1,FluentFace{source_nodes,box.owner[f]+1,f<box.n_internal_faces()?box.neighbour[f]+1:0,zone});
+    faces.push_back({box.owner[f]+1,f<box.n_internal_faces()?box.neighbour[f]+1:0,zone,first,Index(face.size())});
   }
+  raw.faces.insert(1,std::move(faces));
   raw.zones.emplace(100,FluentZone{"walls","wall"});
   auto imported=assemble_fluent(raw,1).mesh;
   REQUIRE(imported.internal_face_zones.size()==1);CHECK(imported.internal_face_zones[0].source_zone_id==71);

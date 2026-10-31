@@ -108,7 +108,8 @@ void legacy_zone_header(std::string_view s, std::size_t begin, int section, Mesh
   }
 }
 FluentCase legacy_case(const std::filesystem::path &path) {
-  auto bytes = legacy::read_file(path, 512u * 1024 * 1024, "case");
+  // Mesh sections are skipped, not parsed; the bound matches the data reader.
+  auto bytes = legacy::read_file(path, std::uintmax_t(2) << 30, "case");
   std::string_view s = bytes;
   std::map<std::string, std::vector<SExpr>> sections;
   std::optional<std::string> version, origin;

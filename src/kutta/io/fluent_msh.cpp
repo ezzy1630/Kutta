@@ -258,6 +258,8 @@ detail::FluentRaw parse(std::string bytes) {
       int nd = h.size() > 4 ? v[4] : raw.dimension;
       KUTTA_REQUIRE(nd == raw.dimension, "Fluent: inconsistent node dimension");
       p.expect('(');
+      std::vector<Vec3d> points;
+      points.reserve(std::size_t(last - first) + 1);
       for (std::int64_t id = first; id <= last; ++id) {
         auto real = [&]() {
           return binary ? p.binary_real(section >= 3000) : p.real();
@@ -266,9 +268,10 @@ detail::FluentRaw parse(std::string bytes) {
         point.x = real();
         point.y = real();
         if (nd == 3) point.z = real();
-        KUTTA_REQUIRE(raw.nodes.emplace(static_cast<Index>(id), point).second,
-                      "Fluent: overlapping node sections");
+        points.push_back(point);
       }
+      KUTTA_REQUIRE(raw.nodes.insert(first, std::move(points)),
+                    "Fluent: overlapping node sections");
       p.finish(binary, section);
     } else if (code == 12) {
       KUTTA_REQUIRE(v.size() >= 5, "Fluent: cell zone requires element type");
@@ -283,11 +286,11 @@ detail::FluentRaw parse(std::string bytes) {
         auto type = v[4] == 0 ? number() : v[4];
         KUTTA_REQUIRE(type >= 1 && type <= 7,
                       "Fluent: invalid cell element type");
-        if (v[3] != 0) {
-          KUTTA_REQUIRE(raw.cells.emplace(static_cast<Index>(id), v[0]).second,
-                        "Fluent: overlapping cell sections");
-          cell_types[v[0]] = v[3];
-        }
+      }
+      if (v[3] != 0) {
+        KUTTA_REQUIRE(raw.cells.insert(first, std::vector<int>(std::size_t(last - first) + 1, v[0])),
+                      "Fluent: overlapping cell sections");
+        cell_types[v[0]] = v[3];
       }
       // Uniform cells have no payload, but binary writers still emit the
       // section trailer. Do not scan raw binary bytes for parentheses.
@@ -303,6 +306,8 @@ detail::FluentRaw parse(std::string bytes) {
       raw.zones.try_emplace(v[0],
                             detail::FluentZone{"zone" + std::to_string(v[0]),
                                                detail::fluent_type(v[3])});
+      std::vector<detail::FluentFace> faces;
+      faces.reserve(std::size_t(last - first) + 1);
       for (std::int64_t id = first; id <= last; ++id) {
         auto n = (v[4] == 0 || v[4] == 5) ? number() : v[4];
         // Referenced coordinates may be in later sections. Check node ids
@@ -310,13 +315,15 @@ detail::FluentRaw parse(std::string bytes) {
         KUTTA_REQUIRE(n >= 2, "Fluent: invalid face node count");
         detail::FluentFace f;
         f.zone = v[0];
-        for (Index j = 0; j < n; ++j) f.nodes.push_back(number());
+        f.first_node = detail::index(raw.face_nodes.size());
+        f.node_count = n;
+        for (Index j = 0; j < n; ++j) raw.face_nodes.push_back(number());
         f.c0 = number();
         f.c1 = number();
-        KUTTA_REQUIRE(
-            raw.faces.emplace(static_cast<Index>(id), std::move(f)).second,
-            "Fluent: overlapping face sections");
+        faces.push_back(f);
       }
+      KUTTA_REQUIRE(raw.faces.insert(first, std::move(faces)),
+                    "Fluent: overlapping face sections");
       p.finish(binary, section);
     } else {
       p.expect('(');
@@ -334,17 +341,14 @@ detail::FluentRaw parse(std::string bytes) {
                       "fluent-cell-zone-type-" + std::to_string(type)};
   // Declarations count ids, not active rows (dead zones may be omitted).
   if (declared_nodes)
-    KUTTA_REQUIRE(
-        raw.nodes.empty() || raw.nodes.rbegin()->first <= declared_nodes,
-        "Fluent: node exceeds declared range");
+    KUTTA_REQUIRE(raw.nodes.max_id() <= declared_nodes,
+                  "Fluent: node exceeds declared range");
   if (declared_cells)
-    KUTTA_REQUIRE(
-        raw.cells.empty() || raw.cells.rbegin()->first <= declared_cells,
-        "Fluent: cell exceeds declared range");
+    KUTTA_REQUIRE(raw.cells.max_id() <= declared_cells,
+                  "Fluent: cell exceeds declared range");
   if (declared_faces)
-    KUTTA_REQUIRE(
-        raw.faces.empty() || raw.faces.rbegin()->first <= declared_faces,
-        "Fluent: face exceeds declared range");
+    KUTTA_REQUIRE(raw.faces.max_id() <= declared_faces,
+                  "Fluent: face exceeds declared range");
   return raw;
 }
 }  // namespace
