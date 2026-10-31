@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "kernels.hpp"
+#include "kutta/core/memory.hpp"
 #include "kutta/runtime/metal/metal_kernel_table.hpp"
 
 namespace kutta {
@@ -222,6 +223,7 @@ class MetalBuffer final : public BufferHandle {
   std::uint64_t address;  // cached: recording a sequence step reads it per argument
  private:
   std::size_t bytes_;
+  memory::DeviceBytes tally_{bytes_};
 };
 
 id<MTLBuffer> metal(const BufferHandle& h) { return static_cast<const MetalBuffer&>(h).buffer; }

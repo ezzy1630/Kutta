@@ -7,6 +7,7 @@
 #include "kutta/setup/settings.hpp"
 #include "kutta/post/aero.hpp"
 #include "kutta/core/json.hpp"
+#include "kutta/core/memory.hpp"
 #include "kutta/core/path.hpp"
 #include "kutta/core/sha256.hpp"
 #include "kutta/io/mesh_io.hpp"
@@ -112,8 +113,10 @@ int solve(int argc,char** argv) {
   std::vector<app::Issue> issues;
   try {
     const auto start=Clock::now();
+    memory::phase("start");
     const auto case_hash=sha256_file(o.input),data_hash=o.data.empty()?std::string{}:sha256_file(o.data);
     auto c=fluent::read_case(o.input);
+    memory::phase("read-case");
     setup::RunControls controls{o.iterations,20};
     auto inventory=setup::settings_inventory(c,controls,!o.data.empty());
     const auto applied=o.setup_file.empty()?Json::Object{}:setup::apply_setup(o.setup_file,inventory);
@@ -128,6 +131,7 @@ int solve(int argc,char** argv) {
     const bool report_conditions=convergence.check && std::any_of(convergence.reports.begin(),convergence.reports.end(),[](const auto& r){return r.active;});
     o.iterations=controls.iterations;
     auto mesh=read_mesh(o.input);
+    memory::phase("read-mesh");
     std::optional<setup::FluentSetup> setup;std::optional<setup::Initialization> fields;
     std::vector<setup::ForceDefinition> reports;std::string errors;std::optional<fluent::FluentData> reference;
     const auto check=[&](auto fn) {try {fn();} catch(const std::exception& e) {errors+=std::string(e.what())+'\n';}};
@@ -156,12 +160,15 @@ int solve(int argc,char** argv) {
     const auto coupling=scheme==Coupling::Coupled?"coupled":scheme==Coupling::Simple?"simple":"simplec";
     const auto coupling_label=scheme==Coupling::Coupled?"Coupled":scheme==Coupling::Simple?"SIMPLE":"SIMPLEC";
     if(!jsonl)human<<"Pressure-velocity coupling: "<<coupling_label<<".\n";
+    memory::phase("case-setup");
     auto dev=device(o.backend);
+    memory::phase("device");
     fv::SteadySolver solver(*dev,std::move(mesh),setup->boundaries,setup->settings);
     setup::initialize(solver,*fields);
     if(std::holds_alternative<fv::HybridInitialization>(*fields))
       human<<"Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).\n";
     dev->synchronize();
+    memory::phase("initialize");
     std::optional<view::LiveView> live;
     if(!o.live_directory.empty())live.emplace(o.live_directory);
     app::LiveCadence cadence(o.live_every);
@@ -207,6 +214,7 @@ int solve(int argc,char** argv) {
       else {
         // One outer iteration is the cancellation boundary on every backend.
         solver.iterate(1);++batch_count;stopped=stop.requested();
+        if(solver.report().iteration==1)memory::phase("first-iteration");
       }
       const auto iter=solver.report().iteration;
       const bool report_due=iter%setup->settings.monitor_interval==0 || iter==o.iterations || stopped;
@@ -285,7 +293,9 @@ int solve(int argc,char** argv) {
       batch=Clock::now();batch_count=0;batch_snapshot_time=0;
     }
     const auto wall_time=seconds(run_start);residuals.close();
+    memory::phase("iterations");
     write_fields(*dev,solver,setup->settings,o.out/"result.vtu",notice);
+    memory::phase("write-vtu");
     auto forces=output(o.out/"forces.csv");
     if(!notice.empty()) forces<<"# "<<notice<<'\n';
     forces<<"kind,name,zone_id,pressure_x,pressure_y,pressure_z,viscous_x,viscous_y,viscous_z,total_x,total_y,total_z,direction_x,direction_y,direction_z,pressure_projection,viscous_projection,total_projection,coefficient\n";
@@ -315,7 +325,9 @@ int solve(int argc,char** argv) {
       fluxes<<csv(patch.name)<<','<<patch.source_zone_id<<','<<total<<'\n';
     }
     fluxes.close();
+    memory::phase("forces-fluxes");
     app::save_view_input(o.out/"view-input.bin",*dev,solver,c,reference?&*reference:nullptr,*setup,notice);
+    memory::phase("view-input");
     {
       // The boundary pressure and wall shear the view snapshot holds, after
       // the forces.csv evaluation refreshed them; totals match its wall rows.
@@ -363,6 +375,7 @@ int solve(int argc,char** argv) {
     summary<<",\n  \"peak_device_memory_bytes\": null,\n  \"converged\": "<<(converged?"true":"false")<<",\n  \"stop_reason\": "<<json_string(stop_reason)
       <<",\n  \"convergence\": "<<dump_json(summary_convergence)<<",\n  \"convergence_criteria_available\": true,\n  \"boundary_wall_shear_available\": true\n}\n";
     summary.close();
+    memory::phase("loads-summary");
     if(jsonl)std::cout<<"{\"v\":1,\"event\":\"done\",\"converged\":"<<(converged?"true":"false")<<",\"iterations\":"<<solver.report().iteration<<",\"elapsed\":"<<wall_time<<",\"out\":"<<json_string(utf8_path(o.out))<<",\"stop_reason\":"<<json_string(stop_reason)<<",\"convergence\":"<<dump_json(summary_convergence);
     if(jsonl){if(live)std::cout<<",\"live_view\":"<<dump_json(live_statistics(wall_time));std::cout<<'}'<<std::endl;}
     else {

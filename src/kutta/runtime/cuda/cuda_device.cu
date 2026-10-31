@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include "kernels.hpp"
+#include "kutta/core/memory.hpp"
 #include "kutta/runtime/cuda/cuda_kernel_table.hpp"
 
 namespace kutta {
@@ -24,6 +25,7 @@ class CudaBuffer final : public BufferHandle {
   void* data = nullptr;
  private:
   std::size_t bytes_;
+  memory::DeviceBytes tally_{bytes_};
 };
 
 __global__ void fill_words(unsigned int* dst, unsigned int value, std::size_t n) {

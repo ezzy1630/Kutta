@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "kernels.hpp"
+#include "kutta/core/memory.hpp"
 #include "kutta/runtime/cpu/cpu_kernel_table.hpp"
 
 namespace kutta {
@@ -20,6 +21,7 @@ class CpuBuffer final : public BufferHandle {
  private:
   std::vector<std::uint64_t> data_;  // 8-byte aligned storage
   std::size_t bytes_;
+  memory::DeviceBytes tally_{bytes_};
 };
 
 CpuBuffer& cpu(BufferHandle& h) { return static_cast<CpuBuffer&>(h); }

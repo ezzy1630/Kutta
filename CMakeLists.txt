@@ -48,6 +48,10 @@ add_library(kutta
 target_include_directories(kutta PUBLIC ${CMAKE_SOURCE_DIR}/src ${KUTTA_GEN_DIR})
 find_package(Threads REQUIRED)
 target_link_libraries(kutta PUBLIC Threads::Threads)
+# core/memory.cpp reads the process counters (GetProcessMemoryInfo).
+if(WIN32)
+  target_link_libraries(kutta PUBLIC psapi)
+endif()
 if(MSVC)
   target_compile_options(kutta PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4;/permissive->)
 else()

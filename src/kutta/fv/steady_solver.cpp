@@ -16,6 +16,7 @@
 #include "kutta/fv/boundary_physics.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
+#include "kutta/core/memory.hpp"
 
 namespace kutta::fv {
 using namespace detail;
@@ -160,7 +161,7 @@ struct SteadySolver::Impl {
       if(std::holds_alternative<PressureOutlet>(it->second)) {patch.kind=PatchKind::PressureOutlet;outlet=true;}
       if(std::holds_alternative<Symmetry>(it->second)) patch.kind=PatchKind::Symmetry;
     }
-    permutation=renumber_cells_rcm(host);geom=compute_geometry(host);
+    permutation=renumber_cells_rcm(host);memory::phase("renumber");geom=compute_geometry(host);memory::phase("geometry");
     KUTTA_REQUIRE(host.n_cells>0,"FV steady solver needs a nonempty mesh");
     if(!outlet) reference=locate_cell(host,geom,settings.reference_point);
     // A single pin cannot constrain disconnected Neumann components.
@@ -169,7 +170,8 @@ struct SteadySolver::Impl {
     for(std::size_t k=0;k<stack.size();++k) for(Index j=neighbours.offsets[stack[k]];j<neighbours.offsets[stack[k]+1];++j)
       if(!seen[neighbours.cells[j]]) {seen[neighbours.cells[j]]=true;stack.push_back(neighbours.cells[j]);}
     KUTTA_REQUIRE(stack.size()==std::size_t(host.n_cells),"FV disconnected domains require separate solvers");
-    mesh=upload_mesh(dev,host,geom);stencil=make_stencil(dev,host,geom);
+    memory::phase("connectivity");
+    mesh=upload_mesh(dev,host,geom);memory::phase("upload-mesh");stencil=make_stencil(dev,host,geom);memory::phase("stencil");
     // BEGIN FSAE physics
     zone_physics=std::make_unique<ZonePhysics>(dev,host,geom,settings.cell_zone_physics,settings.density,settings.viscosity);
     interior_jumps=std::make_unique<InteriorJumps>(dev,host,geom,settings.interior_conditions,settings.density,settings.viscosity);
@@ -258,6 +260,7 @@ struct SteadySolver::Impl {
     }
     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
     upload_vectors(dev,prescribed_velocity,velocities);
+    memory::phase("fields");
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
     krylov_workspace=std::make_shared<KrylovWorkspace>(n);
     const bool green_gauss=settings.gradient==GradientScheme::GreenGaussCell;
@@ -286,6 +289,7 @@ struct SteadySolver::Impl {
       if(turbulent_faces->corrected_faces()==0) turbulent_faces.reset();
       velocity_faces=turbulent_faces;
     }
+    memory::phase("face-reconstruction");
     if(diffusion_reconstruction) {
       for(auto& g:projected_gradient) g=vector_field(dev,nf);
     }
@@ -297,8 +301,10 @@ struct SteadySolver::Impl {
     const bool momentum_diffusion=velocity_faces && !settings.sst && !settings.realizable_ke;
     for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
       momentum_diffusion?velocity_faces:nullptr,krylov_workspace);
+    memory::phase("transport");
     velocity_lsq=fit(independent_velocity);
     pressure_lsq=fit(independent_pressure);
+    memory::phase("lsq");
     if(settings.sst) {
       std::vector<BoundaryObservation> strain_rows(nb);
       for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;
@@ -309,6 +315,7 @@ struct SteadySolver::Impl {
       KUTTA_REQUIRE(t.k_relaxation>0 && t.k_relaxation<=1 && t.omega_relaxation>0 && t.omega_relaxation<=1,"FV invalid SST relaxation");
       k_lsq=boundary_least_squares(dev,host,geom,independent_k,&stencil);
       omega_lsq=boundary_least_squares(dev,host,geom,independent_omega,&stencil);
+      memory::phase("turbulence-lsq");
       kinetic=dev.alloc<float>(n);omega=dev.alloc<float>(n);
       dev.fill(kinetic,t.model.k_floor);dev.fill(omega,t.model.omega_floor);
       rho_cell=dev.alloc<float>(n);mu_cell=dev.alloc<float>(n);
@@ -344,6 +351,7 @@ struct SteadySolver::Impl {
       k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,nullptr,krylov_workspace);
       omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
         walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,omega_observed),krylov_workspace);
+      memory::phase("turbulence-transport");
       sst=std::make_unique<SstModel>(dev,mesh,t.model);
     }
     if(settings.sa) {
@@ -354,6 +362,7 @@ struct SteadySolver::Impl {
       rke=std::make_unique<RealizableKeTransport>(dev,mesh,stencil,host,geom,boundaries,settings,pressure_matrix,turbulent_faces);
       transpose_stress=vector_field(dev,nf);
     }
+    memory::phase("turbulence");
     CsrMatrixHost initial{stencil.pattern,std::vector<double>(stencil.pattern.nnz(),0)};
     const auto cf=build_cell_faces(host);
     for(Index c=0;c<n;++c) {
@@ -383,6 +392,7 @@ struct SteadySolver::Impl {
       pressure_solver=make_amg_solver(pressure_solver_kind,dev,initial,options);
     } else pressure_solver=make_solver(pressure_solver_kind,dev,initial,
       {.structure=OperatorStructure::SymmetricMMatrix,.workspace=krylov_workspace});
+    memory::phase("pressure-solver");
     const double volume=std::accumulate(geom.cell_volume.begin(),geom.cell_volume.end(),0.);
     Vec3d lo=host.points.front(),hi=lo;
     for(auto p:host.points) {lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
@@ -390,9 +400,11 @@ struct SteadySolver::Impl {
     length=std::min(std::cbrt(volume),std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z}));
     if(settings.coupling==PressureVelocityCoupling::Coupled)
       coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference);
+    memory::phase("coupled-solver");
     update_time(bc_speed,bc_speed);
     dev.fill(momentum[0]->diagonal,1);dev.fill(momentum[0]->consistent_inverse,0);
     update_boundaries();update_pressure();update_flux();
+    memory::phase("solver-ready");
   }
 
   void apply_backflow_pressure() {
