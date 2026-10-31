@@ -40,6 +40,12 @@ enum class BoundaryObservation { Omitted, FaceValue, NormalFootValue };
 BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& mesh,
     const MeshGeometry& geometry,std::span<const BoundaryObservation> observations,
     const Stencil* stencil=nullptr);
+// Per boundary face, sum_j |r_b . M^-1 w_j d_j| over its cell's rows: how far
+// that fit's extrapolation to the face centroid can amplify the neighbour
+// differences. At most 1, the extrapolated value stays within the cell value
+// plus or minus the largest difference.
+std::vector<double> boundary_extrapolation_gain(const PolyMesh& mesh,const MeshGeometry& geometry,
+    std::span<const BoundaryObservation> observations);
 // Fluent's Green-Gauss cell-based gradient (Theory Guide 2024 R2 23.3.3.1,
 // Eq. 23-30, with the arithmetic face mean of Eq. 23-31) in the same linear
 // form: since a closed cell's area vectors sum to zero,

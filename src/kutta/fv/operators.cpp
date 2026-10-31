@@ -90,6 +90,79 @@ Stencil make_stencil(Device& dev, const PolyMesh& m, const MeshGeometry& g) {
   return s;
 }
 
+namespace {
+// One cell's fit: its weighted rows d/|d|^2 appended to delta (zero for
+// omitted boundary faces, in cell-face order) and the inverse of its normal
+// matrix sum d d^T/|d|^2.
+void cell_fit(const PolyMesh& m,const MeshGeometry& g,const kutta::CellFaces& cf,
+    std::span<const BoundaryObservation> observations,Index c,std::vector<Vec3d>& delta,double inv[3][3]) {
+  double a[3][3]{},q[3][3]{{1,0,0},{0,1,0},{0,0,1}};
+  for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
+    const auto f=cf.faces[j];
+    const bool internal=f<m.n_internal_faces();
+    if(!internal && observations[f-m.n_internal_faces()]==BoundaryObservation::Omitted) {delta.push_back({});continue;}
+    const auto n=internal?(m.owner[f]==c?m.neighbour[f]:m.owner[f]):-1;
+    auto d=(internal?g.cell_centroid[n]:g.face_centroid[f])-g.cell_centroid[c];
+    if(!internal && observations[f-m.n_internal_faces()]==BoundaryObservation::NormalFootValue) {
+      const auto area=g.face_area[f];d=area*(dot(d,area)/dot(area,area));
+    }
+    const double weight=1/dot(d,d),x[]{d.x,d.y,d.z};
+    delta.push_back(d*weight);
+    for(int r=0;r<3;++r) for(int k=0;k<3;++k) a[r][k]+=weight*x[r]*x[k];
+  }
+  // Symmetric Jacobi eigensolve. An inverse with unit eigenvalues only in
+  // deficient directions is equivalent to adding orthogonal zero rows there;
+  // unlike a diagonal ridge it does not bias any resolved gradient direction.
+  for(int sweep=0;sweep<24;++sweep) {
+    int p=0,r=1;
+    for(int i=0;i<3;++i) for(int j=i+1;j<3;++j)
+      if(std::abs(a[i][j])>std::abs(a[p][r])) {p=i;r=j;}
+    if(std::abs(a[p][r])<1e-14) break;
+    const double angle=.5*std::atan2(2*a[p][r],a[r][r]-a[p][p]);
+    const double cs=std::cos(angle),sn=std::sin(angle);
+    const double app=a[p][p],arr=a[r][r],apr=a[p][r];
+    a[p][p]=cs*cs*app-2*cs*sn*apr+sn*sn*arr;
+    a[r][r]=sn*sn*app+2*cs*sn*apr+cs*cs*arr;a[p][r]=a[r][p]=0;
+    for(int i=0;i<3;++i) {
+      if(i!=p && i!=r) {
+        const double x=a[i][p],y=a[i][r];
+        a[i][p]=a[p][i]=cs*x-sn*y;a[i][r]=a[r][i]=sn*x+cs*y;
+      }
+      const double x=q[i][p],y=q[i][r];q[i][p]=cs*x-sn*y;q[i][r]=sn*x+cs*y;
+    }
+  }
+  for(int r=0;r<3;++r) for(int j=0;j<3;++j) inv[r][j]=0;
+  for(int k=0;k<3;++k) {
+    const double eigen=a[k][k]>1e-10?1/a[k][k]:1;
+    for(int r=0;r<3;++r) for(int j=0;j<3;++j) inv[r][j]+=q[r][k]*eigen*q[j][k];
+  }
+}
+}  // namespace
+
+std::vector<double> boundary_extrapolation_gain(const PolyMesh& m,const MeshGeometry& g,
+    std::span<const BoundaryObservation> observations) {
+  KUTTA_REQUIRE(observations.size()==std::size_t(m.n_faces()-m.n_internal_faces()),
+                "FV LSQ boundary mask size mismatch");
+  const auto cf=build_cell_faces(m);
+  const auto ni=m.n_internal_faces();
+  std::vector<double> gain(m.n_faces()-ni);
+  std::vector<Vec3d> delta;
+  for(Index c=0;c<m.n_cells;++c) {
+    double inv[3][3];
+    delta.clear();cell_fit(m,g,cf,observations,c,delta,inv);
+    for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
+      const auto f=cf.faces[j];
+      if(f<ni) continue;
+      // r . M^-1 weighs each row's difference in the extrapolated face value.
+      const auto r=g.face_centroid[f]-g.cell_centroid[c];
+      const Vec3d w{r.x*inv[0][0]+r.y*inv[1][0]+r.z*inv[2][0],r.x*inv[0][1]+r.y*inv[1][1]+r.z*inv[2][1],
+                    r.x*inv[0][2]+r.y*inv[1][2]+r.z*inv[2][2]};
+      for(const auto& d:delta) gain[f-ni]+=std::abs(dot(w,d));
+    }
+  }
+  return gain;
+}
+
 BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
     const MeshGeometry& g,std::span<const BoundaryObservation> observations,const Stencil* stencil) {
   KUTTA_REQUIRE(observations.size()==std::size_t(m.n_faces()-m.n_internal_faces()),
@@ -98,46 +171,8 @@ BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
   std::vector<Vec3d> delta;
   std::vector<float> inverse(6*m.n_cells);
   for(Index c=0;c<m.n_cells;++c) {
-    double a[3][3]{},q[3][3]{{1,0,0},{0,1,0},{0,0,1}};
-    for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
-      const auto f=cf.faces[j];
-      const bool internal=f<m.n_internal_faces();
-      if(!internal && observations[f-m.n_internal_faces()]==BoundaryObservation::Omitted) {delta.push_back({});continue;}
-      const auto n=internal?(m.owner[f]==c?m.neighbour[f]:m.owner[f]):-1;
-      auto d=(internal?g.cell_centroid[n]:g.face_centroid[f])-g.cell_centroid[c];
-      if(!internal && observations[f-m.n_internal_faces()]==BoundaryObservation::NormalFootValue) {
-        const auto area=g.face_area[f];d=area*(dot(d,area)/dot(area,area));
-      }
-      const double weight=1/dot(d,d),x[]{d.x,d.y,d.z};
-      delta.push_back(d*weight);
-      for(int r=0;r<3;++r) for(int k=0;k<3;++k) a[r][k]+=weight*x[r]*x[k];
-    }
-    // Symmetric Jacobi eigensolve. An inverse with unit eigenvalues only in
-    // deficient directions is equivalent to adding orthogonal zero rows there;
-    // unlike a diagonal ridge it does not bias any resolved gradient direction.
-    for(int sweep=0;sweep<24;++sweep) {
-      int p=0,r=1;
-      for(int i=0;i<3;++i) for(int j=i+1;j<3;++j)
-        if(std::abs(a[i][j])>std::abs(a[p][r])) {p=i;r=j;}
-      if(std::abs(a[p][r])<1e-14) break;
-      const double angle=.5*std::atan2(2*a[p][r],a[r][r]-a[p][p]);
-      const double cs=std::cos(angle),sn=std::sin(angle);
-      const double app=a[p][p],arr=a[r][r],apr=a[p][r];
-      a[p][p]=cs*cs*app-2*cs*sn*apr+sn*sn*arr;
-      a[r][r]=sn*sn*app+2*cs*sn*apr+cs*cs*arr;a[p][r]=a[r][p]=0;
-      for(int i=0;i<3;++i) {
-        if(i!=p && i!=r) {
-          const double x=a[i][p],y=a[i][r];
-          a[i][p]=a[p][i]=cs*x-sn*y;a[i][r]=a[r][i]=sn*x+cs*y;
-        }
-        const double x=q[i][p],y=q[i][r];q[i][p]=cs*x-sn*y;q[i][r]=sn*x+cs*y;
-      }
-    }
-    double inv[3][3]{};
-    for(int k=0;k<3;++k) {
-      const double eigen=a[k][k]>1e-10?1/a[k][k]:1;
-      for(int r=0;r<3;++r) for(int j=0;j<3;++j) inv[r][j]+=q[r][k]*eigen*q[j][k];
-    }
+    double inv[3][3];
+    cell_fit(m,g,cf,observations,c,delta,inv);
     const double v[]{inv[0][0],inv[0][1],inv[0][2],inv[1][1],inv[1][2],inv[2][2]};
     for(int k=0;k<6;++k) inverse[c+k*m.n_cells]=float(v[k]);
   }

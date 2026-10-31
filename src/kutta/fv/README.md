@@ -69,6 +69,9 @@ stores there): at the normal foot for the standard scheme, at the face centroid
 for second-order pressure. Without those rows a tet wall cell extrapolates its
 own wall pressure from interior neighbours alone, which diverged on the
 k-epsilon elbow ([tet robustness](../../../validation/results/tet_robustness/REPORT.md)).
+Second-order pressure keeps a velocity-inlet row only where the fit without it
+has extrapolation gain above 1 at that face (`boundary_extrapolation_gain()`):
+an inlet can carry a real normal pressure gradient, which the row would bias.
 The extrapolated value never feeds the fit. Momentum separately uses
 `p_c+G·r_b` on those boundaries for second-order pressure, including at symmetry. Velocity includes wall, inlet and projected
 symmetry data, and omits outlet rows. k includes inlet rows; omega additionally
