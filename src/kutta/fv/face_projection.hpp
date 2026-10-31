@@ -68,7 +68,7 @@ class WalkFaceReconstruction final : public FaceReconstruction {
   // True when built from exactly these prescribed boundary values.
   bool observes(std::span<const BoundaryObservation>) const;
  private:
-  // Leaves the hop-3 moments in moment_[1], lo_[1] and hi_[1].
+  // Leaves the hop-3 moment rows in moment_[1].
   void moments(const Buffer<float>& field,const Buffer<float>& boundary) const;
   Device& dev_;
   const DeviceMesh& mesh_;
@@ -78,7 +78,7 @@ class WalkFaceReconstruction final : public FaceReconstruction {
   std::vector<Index> observed_host_;
   Buffer<Index> observed_,slot_,mask_;
   Buffer<float> geometry_[hops+1],coefficients_;
-  mutable Buffer<float> moment_[2],lo_[2],hi_[2];
+  mutable Buffer<float> moment_[2];
 };
 
 // Reuse shared when it observes exactly these boundary values; otherwise build

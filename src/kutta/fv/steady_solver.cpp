@@ -289,7 +289,14 @@ struct SteadySolver::Impl {
     if(diffusion_reconstruction) {
       for(auto& g:projected_gradient) g=vector_field(dev,nf);
     }
-    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,velocity_faces,krylov_workspace);
+    // Under wall functions only the momentum predictor is projected: on V6
+    // the projected mu+mu_t diffusion moved no field by more than 0.03 points
+    // (validation/results/turbulent_poly) and cost three fits per iteration.
+    // Resolved SA walls keep it, because their wall traction is the projected
+    // wall flux.
+    const bool momentum_diffusion=velocity_faces && !settings.sst && !settings.realizable_ke;
+    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
+      momentum_diffusion?velocity_faces:nullptr,krylov_workspace);
     velocity_lsq=fit(independent_velocity);
     pressure_lsq=fit(independent_pressure);
     if(settings.sst) {
@@ -332,8 +339,9 @@ struct SteadySolver::Impl {
       // Wall omega is the wall treatment's value, not a smooth trace.
       auto omega_observed=independent_omega;
       for(Index b=0;b<nb;++b) if(kinds[b]==0) omega_observed[b]=Omitted;
-      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
-        walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,independent_k),krylov_workspace);
+      // Projected k diffusion had no measurable effect on V6; omega diffusion
+      // on skewed faces was V6's largest turbulent-operator error.
+      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,nullptr,krylov_workspace);
       omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
         walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,omega_observed),krylov_workspace);
       sst=std::make_unique<SstModel>(dev,mesh,t.model);

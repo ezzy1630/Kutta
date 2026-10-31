@@ -288,23 +288,23 @@ WalkFaceReconstruction::WalkFaceReconstruction(Device& dev,const PolyMesh& mesh,
     work();for(auto& w:workers) w.join();
   }
   std::vector<Index> slot(faces,-1),mask(faces,0);
-  std::vector<std::array<float,3*terms>> coefficients;
   for(Index face=0;face<faces;++face) {
     if(fits[face].fallback) ++fallback_;
-    if(!fits[face].corrected) continue;
-    slot[face]=Index(coefficients.size());mask[face]=1;coefficients.push_back(fits[face].c);++corrected_;
+    if(fits[face].corrected) {slot[face]=slots_++;mask[face]=1;}
   }
-  slots_=Index(coefficients.size());
-  std::vector<float> planes(std::size_t(3*terms)*std::max<Index>(slots_,1),0);
-  for(Index s=0;s<slots_;++s) for(int k=0;k<3*terms;++k) planes[std::size_t(k)*slots_+s]=coefficients[s][k];
-  coefficients_=dev.upload<float>(planes);
+  corrected_=std::size_t(slots_);
+  std::vector<float> rows(std::size_t(3*terms)*std::max<Index>(slots_,1),0);
+  for(Index face=0;face<faces;++face) if(slot[face]>=0)
+    std::copy(fits[face].c.begin(),fits[face].c.end(),rows.begin()+std::ptrdiff_t(slot[face])*3*terms);
+  coefficients_=dev.upload<float>(rows);
   for(int level=0;level<=hops;++level) {
     std::vector<float> values(std::size_t(terms)*cells);
-    for(Index c=0;c<cells;++c) for(int k=0;k<terms;++k) values[std::size_t(k)*cells+c]=float(geometry[level][c][k]);
+    for(Index c=0;c<cells;++c) for(int k=0;k<terms;++k) values[std::size_t(c)*terms+k]=float(geometry[level][c][k]);
     geometry_[level]=dev.upload<float>(values);
   }
   observed_host_=observed;observed_=dev.upload<Index>(observed);slot_=dev.upload<Index>(slot);mask_=dev.upload<Index>(mask);
-  for(int k=0;k<2;++k) {moment_[k]=dev.alloc<float>(std::size_t(terms)*cells);lo_[k]=dev.alloc<float>(cells);hi_[k]=dev.alloc<float>(cells);}
+  // A moment row holds the ten moments, then the cloud minimum and maximum.
+  for(auto& moment:moment_) moment=dev.alloc<float>(std::size_t(terms+2)*cells);
 }
 bool WalkFaceReconstruction::observes(std::span<const BoundaryObservation> observations) const {
   if(observations.size()!=observed_host_.size()) return false;
@@ -322,26 +322,25 @@ std::shared_ptr<const WalkFaceReconstruction> walk_reconstruction(std::shared_pt
 void WalkFaceReconstruction::moments(const Buffer<float>& field,const Buffer<float>& boundary) const {
   const auto& m=mesh_;
   kern::fv_moment_seed(dev_,m.n_cells,m.cell_face_offsets,stencil_.adjacent,observed_,m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
-    field,boundary,moment_[0],lo_[0],hi_[0],m.n_cells,m.n_internal_faces);
+    field,boundary,moment_[0],m.n_internal_faces);
   for(int level=0;level<hops;++level) {
     const int from=level%2,to=1-from;
     kern::fv_moment_hop(dev_,m.n_cells,m.cell_face_offsets,m.cell_faces,stencil_.adjacent,m.cell_face_sign,
       m.owner_to_neighbour.x,m.owner_to_neighbour.y,m.owner_to_neighbour.z,field,geometry_[level],
-      moment_[from],lo_[from],hi_[from],moment_[to],lo_[to],hi_[to],m.n_cells);
+      moment_[from],moment_[to]);
   }
   static_assert(hops%2==1,"moments() leaves the result in the second buffer");
 }
 void WalkFaceReconstruction::diffusion_correction(const Buffer<float>& field,const Buffer<float>& boundary,Buffer<float>& out) const {
   const auto& m=mesh_;moments(field,boundary);
   kern::fv_moment_diffusion(dev_,m.n_faces,m.owner,m.neighbour,slot_,m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
-    m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,field,geometry_[hops],moment_[1],coefficients_,out,
-    m.n_cells,m.n_internal_faces,slots_);
+    m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,field,geometry_[hops],moment_[1],coefficients_,out,m.n_internal_faces);
 }
 void WalkFaceReconstruction::momentum_values(const Buffer<float>& field,const Buffer<float>& boundary,
     const Buffer<float>& diagonal,Buffer<float>& out,const Buffer<float>* cell_limiter) const {
   const auto& m=mesh_;moments(field,boundary);
   kern::fv_moment_momentum(dev_,m.n_internal_faces,m.owner,m.neighbour,slot_,m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
     m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,field,geometry_[hops],moment_[1],coefficients_,
-    lo_[1],hi_[1],diagonal,cell_limiter?*cell_limiter:diagonal,out,m.n_cells,m.n_internal_faces,slots_,cell_limiter?1:0);
+    diagonal,cell_limiter?*cell_limiter:diagonal,out,m.n_internal_faces,cell_limiter?1:0);
 }
 } // namespace kutta::fv

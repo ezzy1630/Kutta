@@ -11,8 +11,8 @@ constexpr std::array allowlist{ApproximationInfo{
   Approximation::wfgc,"wfgc","recon/cell-lsf?","#t",
   "run without warped-face gradient correction (WFGC off, #f)",
   "src/kutta/fv/VERIFICATION.md#v6-initialization-comparison",
-  "V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.363203%, pressure L2 2.686921%, "
-  "k L2 14.705141%, omega L2 2.820859%, pressure-drop error 1.986545%; "
+  "V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.366748%, pressure L2 2.665514%, "
+  "k L2 14.722368%, omega L2 2.805466%, pressure-drop error 1.973008%; "
   "combined solver discrepancy, not isolated WFGC error or a general bound",
   "Warped-face gradient correction",
   "Fluent corrects gradients for nonplanar faces. Kutta does not yet implement Fluent's warped-face correction and will run with WFGC off only when you opt in with --approximate wfgc."},

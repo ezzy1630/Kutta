@@ -40,7 +40,7 @@ def check_outputs(directory, data=False, iterations=21, case_name="tiny.cas.h5",
         assert info["fluent_value"] == "#t"
         assert "WFGC off, #f" in info["kutta_action"]
         assert info["effect_documentation"] == "src/kutta/fv/VERIFICATION.md#v6-initialization-comparison"
-        assert "3.363203%" in info["measured_effect"] and "not isolated WFGC error" in info["measured_effect"]
+        assert "3.366748%" in info["measured_effect"] and "not isolated WFGC error" in info["measured_effect"]
         notice = summary["approximation_notice"]
         assert notice.startswith("APPROXIMATE RESULT")
         for key in ("setting", "fluent_value", "kutta_action", "effect_documentation", "measured_effect"):
