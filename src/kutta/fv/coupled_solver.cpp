@@ -112,6 +112,7 @@ struct CoupledSolver::Impl {
   // Per-solve state shared by the operator kernels.
   const Buffer<float>* mass = nullptr;
   const Buffer<float>* viscosity = nullptr;
+  const Buffer<float>* weight = nullptr;
   float wc = 1;
   std::size_t owned_bytes = 0;
 
@@ -132,17 +133,18 @@ struct CoupledSolver::Impl {
       : dev(device), mesh(m), stencil(st), boundary_kind(kind), lsq(pressure_lsq), options(opt),
         n(m.n_cells), reference(ref) {
     KUTTA_REQUIRE(options.pre_sweeps >= 1 && options.post_sweeps >= 0 && options.coarsest_sweeps >= 1 &&
-                      options.smoother_damping > 0 && options.smoother_damping <= 1 &&
+                      options.smoother_damping > 0 && options.smoother_damping <= 1 && options.courant > 0 &&
                       options.coarsest_rows >= 1 && options.aggregation_passes >= 1 &&
                       options.aggregation_passes <= 8,
                   "coupled: invalid options");
     const auto kinds = dev.download(kind);
     const auto nf = m.n_faces, ni = m.n_internal_faces;
-    // Pressure-force and flux sensitivities (fv_coupled.kern.h), unscaled:
-    // G and H take half of each internal face; G takes the whole face where
-    // the boundary pressure is extrapolated from the cell, H where it is
-    // prescribed. Q uses the residual's own extrapolation vectors. Incidences
-    // follow the device cell_face_offsets/cell_faces order of the LSQ deltas.
+    // Pressure-force sensitivities (fv_coupled.kern.h), unscaled: G takes
+    // half of each internal face and the whole face where the boundary
+    // pressure is extrapolated from the cell. Q uses the residual's own
+    // extrapolation vectors. Incidences follow the device
+    // cell_face_offsets/cell_faces order of the LSQ deltas. The flux block H
+    // follows the momentum face weights and is refreshed every solve.
     const auto offsets = dev.download(m.cell_face_offsets), faces = dev.download(m.cell_faces);
     const auto signs = dev.download(m.cell_face_sign);
     // Internal rows are per entry (possibly the stencil's); boundary rows are by boundary face.
@@ -158,7 +160,7 @@ struct CoupledSolver::Impl {
     std::vector<float> packed(20 * std::size_t(n), 0);
     const auto put = [&](int slot, Index c, double value) {packed[std::size_t(slot) * n + c] = float(value);};
     for (Index c = 0; c < n; ++c) {
-      Vec3d g, h, delta;
+      Vec3d g, delta;
       std::array<double, 9> t{};  // sum S (x_f - x_c)^T, row major
       for (Index j = offsets[c]; j < offsets[c + 1]; ++j) {
         const auto f = faces[j];
@@ -171,9 +173,8 @@ struct CoupledSolver::Impl {
         if (f < ni) delta = delta + Vec3d{dx[j], dy[j], dz[j]};
         else if (prescribed) delta = delta + Vec3d{bx[f - ni], by[f - ni], bz[f - ni]};
         double weight = 0;
-        if (f < ni) {g = g + area * .5; h = h + area * .5; weight = .5;}
-        else if (prescribed) h = h + area;
-        else {g = g + area; weight = 1;}
+        if (f < ni) {g = g + area * .5; weight = .5;}
+        else if (!prescribed) {g = g + area; weight = 1;}
         const double s[]{area.x, area.y, area.z}, q[]{r.x, r.y, r.z};
         for (int a = 0; a < 3; ++a) for (int b = 0; b < 3; ++b) t[3 * a + b] += weight * s[a] * q[b];
       }
@@ -186,7 +187,6 @@ struct CoupledSolver::Impl {
       g = g - Vec3d{q[0] * delta.x + q[1] * delta.y + q[2] * delta.z, q[3] * delta.x + q[4] * delta.y + q[5] * delta.z,
                     q[6] * delta.x + q[7] * delta.y + q[8] * delta.z};
       put(4, c, g.x); put(5, c, g.y); put(6, c, g.z);
-      put(7, c, h.x); put(8, c, h.y); put(9, c, h.z);
       for (int k = 0; k < 9; ++k) put(10 + k, c, q[k]);
     }
     cell = upload(packed);
@@ -273,20 +273,20 @@ struct CoupledSolver::Impl {
   void fine_spmv(const Buffer<float>& in, Buffer<float>& out) {
     const auto& m = mesh;
     kern::coupled_fine_spmv(dev, n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent,
-        m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient,
+        m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient, *weight,
         lsq.rows().x, lsq.rows().y, lsq.rows().z, cell, in, out, n, wc);
   }
   void fine_residual(const Buffer<float>& in, const Buffer<float>& rhs, Buffer<float>& out) {
     const auto& m = mesh;
     kern::coupled_fine_residual(dev, n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent,
-        m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient,
+        m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient, *weight,
         lsq.rows().x, lsq.rows().y, lsq.rows().z, cell, in, rhs, out, n, wc);
   }
   void fine_smooth(Buffer<float>& out, const Buffer<float>& rhs, int sweeps, bool first) {
     const auto& m = mesh;
     for (int k = 0; k < sweeps; ++k) {
       kern::coupled_fine_smooth(dev, n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent,
-          m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient,
+          m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient, *weight,
           lsq.rows().x, lsq.rows().y, lsq.rows().z, cell, out, rhs, fine_tmp, n, wc, options.smoother_damping,
           first && k == 0 ? 1 : 0);
       std::swap(out, fine_tmp);
@@ -334,8 +334,8 @@ struct CoupledSolver::Impl {
     const auto& t = transfers[0];
     kern::coupled_galerkin_fine(dev, c.n, t.member_offsets, t.members, t.aggregate,
         m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent, m.area.x, m.area.y, m.area.z,
-        stencil.diffusion, *viscosity, *mass, coefficient, lsq.rows().x, lsq.rows().y, lsq.rows().z, cell,
-        c.rows, c.cols, c.diag, c.a, c.c, c.g, c.h, c.d, n, c.n, c.nnz, wc);
+        stencil.diffusion, *viscosity, *mass, coefficient, *weight, lsq.rows().x, lsq.rows().y, lsq.rows().z, cell,
+        c.rows, c.cols, c.a, c.c, c.g, c.h, c.d, n, c.n, c.nnz, wc);
     for (std::size_t k = 1; k < levels.size(); ++k) {
       auto& f = levels[k - 1];
       auto& l = levels[k];
@@ -436,10 +436,11 @@ CoupledSolver::CoupledSolver(Device& dev, const DeviceMesh& mesh, const Stencil&
                                    reference, options)) {}
 CoupledSolver::~CoupledSolver() = default;
 
-void CoupledSolver::capture_diagonal(int component, const CsrMatrix& momentum) {
+void CoupledSolver::capture_diagonal(int component, const CsrMatrix& momentum, const Buffer<float>& physical) {
   KUTTA_REQUIRE(component >= 0 && component < 3, "coupled: invalid momentum component");
   auto& s = *impl_;
-  kern::coupled_copy_diagonal(s.dev, s.n, momentum.diag, momentum.val, s.cell, component * s.n);
+  kern::coupled_copy_diagonal(s.dev, s.n, momentum.row_ptr, momentum.diag, momentum.val, physical, s.cell,
+                              component * s.n, float(1 / s.options.courant));
 }
 
 SolveStats CoupledSolver::solve(const CoupledResiduals& in, const SolveControl& control) {
@@ -449,18 +450,21 @@ SolveStats CoupledSolver::solve(const CoupledResiduals& in, const SolveControl& 
                 "coupled: invalid scales");
   s.mass = &in.mass;
   s.viscosity = &in.viscosity;
+  s.weight = &in.face_weights;
   // Continuity rows in momentum units: volume flux times rho*U.
   const double wc = in.density * in.velocity_scale;
   s.wc = float(wc);
   kern::coupled_face_coefficient(s.dev, m.n_faces, m.owner, m.neighbour, s.boundary_kind,
       s.stencil.diffusion, m.volume, in.physical_diagonal, s.coefficient, m.n_internal_faces, float(wc * wc));
+  kern::coupled_velocity_block(s.dev, s.n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, s.stencil.adjacent,
+      s.boundary_kind, m.area.x, m.area.y, m.area.z, in.face_weights, s.cell, s.n, m.n_internal_faces);
   kern::coupled_rhs(s.dev, s.n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, s.coefficient, in.mass,
       in.u, in.v, in.w, s.cell, s.b, s.n, s.reference, float(wc / in.density));
   // Smoother Schur bound; fine_tmp is free until the first sweep.
   kern::coupled_fine_gsum(s.dev, s.n, m.cell_face_offsets, s.stencil.adjacent, m.cell_faces, m.cell_face_sign,
       m.area.x, m.area.y, m.area.z, s.lsq.rows().x, s.lsq.rows().y, s.lsq.rows().z, s.cell, s.fine_tmp, s.n, float(wc));
   kern::coupled_fine_schur(s.dev, s.n, m.cell_face_offsets, s.stencil.adjacent, m.cell_faces,
-      m.area.x, m.area.y, m.area.z, s.fine_tmp, s.cell, s.n, float(wc));
+      m.area.x, m.area.y, m.area.z, in.face_weights, s.fine_tmp, s.cell, s.n, float(wc));
   s.galerkin();
   return s.bicgstab(control);
 }

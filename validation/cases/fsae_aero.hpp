@@ -42,7 +42,10 @@ struct Options {
   // uniform freestream; turbulence from the inlet intensity and ratio.
   bool hybrid = false;
   // Convergence-path controls only; they do not change the steady fixed point.
-  double pseudo_time_step = 0, pseudo_time_scale = 1, momentum_relaxation = .7, pressure_relaxation = 1;
+  // Relaxation 0 takes the scheme's Fluent default: SIMPLEC momentum 0.7 and
+  // pressure 1.0 (implicit), Coupled 0.5 and 0.5 (pseudo-transient explicit
+  // relaxation, as saved by Fluent's Coupled cases such as the V6 elbow).
+  double pseudo_time_step = 0, pseudo_time_scale = 1, momentum_relaxation = 0, pressure_relaxation = 0;
   int max_iterations = 6000, check_every = 50;
   bool write_cells = false;  // cells.csv with centroid, velocity, pressure, k, omega, mu_t
   double max_seconds = 3600;
@@ -161,8 +164,8 @@ inline Result run(Device& dev, const Options& o) {
   if (o.coupled) s.coupling = PressureVelocityCoupling::Coupled;
   s.pseudo_time_step = o.pseudo_time_step;
   s.pseudo_time_scale = o.pseudo_time_scale;
-  s.momentum_relaxation = o.momentum_relaxation;
-  s.pressure_relaxation = o.pressure_relaxation;
+  s.momentum_relaxation = o.momentum_relaxation > 0 ? o.momentum_relaxation : o.coupled ? .5 : .7;
+  s.pressure_relaxation = o.pressure_relaxation > 0 ? o.pressure_relaxation : o.coupled ? .5 : 1;
   SteadySolver solver(dev, std::move(mesh), std::move(bc), s);
   const auto n = solver.mesh().n_cells;
   const double k = 1.5 * o.intensity * o.intensity, omega = k / (s.viscosity * o.viscosity_ratio);
@@ -187,7 +190,7 @@ inline Result run(Device& dev, const Options& o) {
     std::filesystem::create_directories(o.output);
     history.open(o.output / "history.csv");
     history << "iteration,seconds,lift,drag,drag_pressure,u,v,w,continuity,k,omega," << (o.transition ? "intermit," : "")
-            << "max_velocity\n" << std::setprecision(10);
+            << "max_velocity,continuity_raw\n" << std::setprecision(10);
   }
   while (r.iterations < o.max_iterations) {
     try {
@@ -214,7 +217,9 @@ inline Result run(Device& dev, const Options& o) {
               << q.v.fluent_scaled << ',' << q.w.fluent_scaled << ',' << q.continuity.fluent_scaled << ',' << q.k.fluent_scaled << ','
               << q.omega.fluent_scaled << ',';
       if (o.transition) history << q.intermittency.fluent_scaled << ',';
-      history << q.maximum_velocity << '\n' << std::flush;
+      // Raw continuity compares schemes: the Fluent scale is the first five
+      // iterations' imbalance, which Coupled keeps far smaller than SIMPLEC.
+      history << q.maximum_velocity << ',' << q.continuity.raw << '\n' << std::flush;
     }
     std::cout << std::setprecision(8) << "fsae_aero it=" << r.iterations << " lift=" << r.lift << " drag=" << r.drag
               << " residual=" << r.max_residual << " settle=" << std::max(r.settle_lift, r.settle_drag) << std::endl;

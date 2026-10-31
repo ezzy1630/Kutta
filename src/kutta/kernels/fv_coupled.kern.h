@@ -9,7 +9,12 @@
 // Jacobian, per face f between cells i and j, s = +1 out of i:
 //   momentum  a_ij = -mu_f D_f + min(s F_f, 0)       (the assembled transport row)
 //             G_ij = wc (0.5 s S_f + Q_i d_ij)       (implicit pressure force)
-//   volume continuity H_ij = 0.5 wc s S_f, C_ij = -wc^2 rc_f D_f (implicit Rhie-Chow)
+//   volume continuity H_ij = wc s S_f a_j/(a_i + a_j), C_ij = -wc^2 rc_f D_f
+// H follows the residual's momentum-weighted face velocity (Theory Guide,
+// Discretization of the Continuity Equation; eq. 18.4-6 in Fluent 12). Equal
+// halves misstate a cell's own flux where a_j/(a_i + a_j) is far from 1/2:
+// separated and wake cells next to fast ones. The momentum diagonal is
+// floored and relaxed by the Courant number (coupled_copy_diagonal).
 // The residual's face pressures extrapolate with the cell's least-squares
 // gradient, g_i = M_i^-1 sum_j d_ij (p_j - p_i). Q_i = T_i M_i^-1 carries that
 // own-cell part exactly, with T_i = sum_f S_f (x_f - x_i)^T over boundary faces
@@ -23,11 +28,12 @@
 // Smoothers solve each cell's arrow block with the pressure diagonal raised
 // by a bound on the neighbour part of the Schur complement C - H D^-1 G:
 //   cs_i = sum_{k != i} sum_c |H_ik,c| R_k,c / D_k,c,  R_k,c = sum_j |G_kj,c|.
-// The u-p coupling is skew (G_ji = -H_ij on the face parts), so damped block
-// Jacobi converges only while rho(c^-1 H D^-1 G) < (2 - omega)/omega. With the
-// compact Rhie-Chow diagonal alone that fails on stretched cells at Fluent's
-// pseudo-time step (TMR flat plate: BiCGStab stalled at its 20-iteration cap,
-// and extra sweeps or omega 0.9 diverged). cs bounds the radius by 1
+// The u-p coupling is near-skew (G_ji = -H_ij for equal face weights), so
+// damped block Jacobi converges only while
+// rho(c^-1 H D^-1 G) < (2 - omega)/omega. With the compact Rhie-Chow diagonal
+// alone that fails on stretched cells at Fluent's pseudo-time step (TMR flat
+// plate: BiCGStab stalled at its 20-iteration cap, and extra sweeps or
+// omega 0.9 diverged). cs bounds the radius by 1
 // (Gershgorin over the face coupling); the plate's smoother is then stable
 // up to omega 0.9. Only the smoothers use cs; the operator (J x) stays exact.
 //
@@ -63,6 +69,31 @@ KUTTA_FN ksum ksum_add(ksum a, float b) {
 }
 KUTTA_FN float ksum_value(ksum a) { return a.s + a.e; }
 KUTTA_FN ksum ksum0() { ksum r; r.s = 0.0f; r.e = 0.0f; return r; }
+
+// Share of cell c in the face velocity it shares with cell i: the residual's
+// momentum-weighted interpolation u_f = (a_i u_i + a_c u_c)/(a_i + a_c)
+// (fv_momentum_faces and the face reconstructions).
+KUTTA_FN float coupled_share(KIn(float) weight, int i, int c) {
+  return weight[c] / kmax(weight[i] + weight[c], 1.0e-30f);
+}
+
+// Own-cell continuity-velocity block H_ii (unscaled): the cell's share of
+// each internal face velocity plus whole pressure-specified boundary faces,
+// whose face velocity is the cell's. Refreshed every solve with the weights.
+KUTTA_KERNEL void coupled_velocity_block(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
+    KIn(int) adjacent, KIn(int) kind, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) weight,
+    KOut(float) cell, int n, int internal) {
+  float hx = 0.0f, hy = 0.0f, hz = 0.0f;
+  for (int j = offsets[i]; j < offsets[i + 1]; ++j) {
+    int f = faces[j], c = adjacent[j];
+    float share = 0.0f;
+    if (c >= 0) share = 1.0f - coupled_share(weight, i, c);
+    else if (kind[f - internal] == 2 || kind[f - internal] == 4) share = 1.0f;
+    float s = share * sign[j];
+    hx += s * sx[f]; hy += s * sy[f]; hz += s * sz[f];
+  }
+  cell[7 * n + i] = hx; cell[8 * n + i] = hy; cell[9 * n + i] = hz;
+}
 
 // Volume-flux Rhie-Chow coefficient d(face flux)/d(p_owner - p_other), using
 // the same physical diagonal as fv_rhie_chow. Pressure-specified faces
@@ -100,9 +131,29 @@ KUTTA_KERNEL void coupled_rhs(int i, KIn(int) offsets, KIn(int) faces, KIn(float
   b[3 * n + i] = -continuity_scale * imbalance;
 }
 
-KUTTA_KERNEL void coupled_copy_diagonal(int i, KIn(int) diag, KIn(float) values, KOut(float) cell,
-                                        int offset) {
-  cell[offset + i] = values[diag[i]];
+// Jacobian momentum diagonal: the assembled diagonal (pseudo time, no
+// implicit relaxation) with the physical part a_P floored at the off-diagonal
+// sum, then Fluent's Coupled implicit relaxation a_P / alpha with
+// (1 - alpha) / alpha = 1 / CFL (Theory Guide, Steady-State Iterative
+// Algorithm, the flow Courant number; eqs. 18.4-23 and 18.4-24 in Fluent 12).
+// That is a local time step; the global pseudo time step is negligible in
+// cells much smaller than the domain length scale.
+//  - The floor: the assembled a_P = sum(D + max(F, 0)) carries the net
+//    outflow, so a cell that the current flux only feeds (a sink, common in
+//    a non-solenoidal start-up) has a_P near zero, and its row returned
+//    updates of tens of U on external-aero meshes. Patankar's rule
+//    a_P >= sum |a_nb| keeps the implicit operator an M-matrix.
+//  - The Courant term: closed streamlines (separation, a blunt trailing edge's
+//    wake, the gap under a wing in ground effect) leave upwind rows with zero
+//    row sums, so the momentum block is singular there without it.
+// The residual is unchanged and the floor vanishes at convergence (it is the
+// continuity residual), so both change only the convergence path.
+KUTTA_KERNEL void coupled_copy_diagonal(int i, KIn(int) rows, KIn(int) diag, KIn(float) values,
+                                        KIn(float) physical, KOut(float) cell, int offset, float inverse_courant) {
+  float off = 0.0f;
+  for (int j = rows[i]; j < rows[i + 1]; ++j) if (j != diag[i]) off += kabs(values[j]);
+  float floored = kmax(physical[i], off);
+  cell[offset + i] = values[diag[i]] + (floored - physical[i]) + inverse_courant * floored;
 }
 
 // Absolute row sums of the pressure-force block per component, R_k,c,
@@ -126,15 +177,15 @@ KUTTA_KERNEL void coupled_fine_gsum(int i, KIn(int) offsets, KIn(int) adjacent, 
   r[i] = gx; r[n + i] = gy; r[2 * n + i] = gz;
 }
 
-// cs_i from H_ik = (wc/2) s S_f and the neighbours' row sums.
+// cs_i from H_ik = wc s S_f (a_k / (a_i + a_k)) and the neighbours' row sums.
 KUTTA_KERNEL void coupled_fine_schur(int i, KIn(int) offsets, KIn(int) adjacent, KIn(int) faces,
-    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) r, KOut(float) cell, int n, float wc) {
-  float half_wc = 0.5f * wc, sum = 0.0f;
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) weight, KIn(float) r, KOut(float) cell, int n, float wc) {
+  float sum = 0.0f;
   for (int j = offsets[i]; j < offsets[i + 1]; ++j) {
     int c = adjacent[j];
     if (c < 0) continue;
     int f = faces[j];
-    sum += half_wc * (kabs(sx[f]) * r[c] / cell[c] + kabs(sy[f]) * r[n + c] / cell[n + c] +
+    sum += wc * coupled_share(weight, i, c) * (kabs(sx[f]) * r[c] / cell[c] + kabs(sy[f]) * r[n + c] / cell[n + c] +
                       kabs(sz[f]) * r[2 * n + c] / cell[2 * n + c]);
   }
   cell[19 * n + i] = sum;
@@ -144,7 +195,7 @@ KUTTA_KERNEL void coupled_fine_schur(int i, KIn(int) offsets, KIn(int) adjacent,
 // Rhie-Chow assemblies already hold, plus the least-squares deltas.
 KUTTA_FN kblock4 coupled_fine_row(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
     KIn(int) adjacent, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion,
-    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) dx, KIn(float) dy,
+    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) weight, KIn(float) dx, KIn(float) dy,
     KIn(float) dz, KIn(float) cell, KIn(float) x, int n, float wc) {
   float xu = x[i], xv = x[n + i], xw = x[2 * n + i], xp = x[3 * n + i];
   float ex = wc * cell[4 * n + i], ey = wc * cell[5 * n + i], ez = wc * cell[6 * n + i];
@@ -165,28 +216,29 @@ KUTTA_FN kblock4 coupled_fine_row(int i, KIn(int) offsets, KIn(int) faces, KIn(f
     float gx = bx + q00 * dx[j] + q01 * dy[j] + q02 * dz[j];
     float gy = by + q10 * dx[j] + q11 * dy[j] + q12 * dz[j];
     float gz = bz + q20 * dx[j] + q21 * dy[j] + q22 * dz[j];
+    float h = wc * s * coupled_share(weight, i, c);
     float pu = x[c], pv = x[n + c], pw = x[2 * n + c], pp = x[3 * n + c];
     y.u += a * pu + gx * pp; y.v += a * pv + gy * pp; y.w += a * pw + gz * pp;
-    y.p += bx * pu + by * pv + bz * pw - coefficient[f] * pp;
+    y.p += h * (sx[f] * pu + sy[f] * pv + sz[f] * pw) - coefficient[f] * pp;
   }
   return y;
 }
 
 KUTTA_KERNEL void coupled_fine_spmv(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
     KIn(int) adjacent, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion,
-    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) dx, KIn(float) dy,
+    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) weight, KIn(float) dx, KIn(float) dy,
     KIn(float) dz, KIn(float) cell, KIn(float) x, KOut(float) y, int n, float wc) {
   kblock4 r = coupled_fine_row(i, offsets, faces, sign, adjacent, sx, sy, sz, diffusion, mu, mass,
-                               coefficient, dx, dy, dz, cell, x, n, wc);
+                               coefficient, weight, dx, dy, dz, cell, x, n, wc);
   y[i] = r.u; y[n + i] = r.v; y[2 * n + i] = r.w; y[3 * n + i] = r.p;
 }
 
 KUTTA_KERNEL void coupled_fine_residual(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
     KIn(int) adjacent, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion,
-    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) dx, KIn(float) dy,
+    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) weight, KIn(float) dx, KIn(float) dy,
     KIn(float) dz, KIn(float) cell, KIn(float) x, KIn(float) b, KOut(float) r, int n, float wc) {
   kblock4 y = coupled_fine_row(i, offsets, faces, sign, adjacent, sx, sy, sz, diffusion, mu, mass,
-                               coefficient, dx, dy, dz, cell, x, n, wc);
+                               coefficient, weight, dx, dy, dz, cell, x, n, wc);
   r[i] = b[i] - y.u; r[n + i] = b[n + i] - y.v; r[2 * n + i] = b[2 * n + i] - y.w;
   r[3 * n + i] = b[3 * n + i] - y.p;
 }
@@ -195,13 +247,13 @@ KUTTA_KERNEL void coupled_fine_residual(int i, KIn(int) offsets, KIn(int) faces,
 // first != 0 means x == 0, so the residual is b and x is not read.
 KUTTA_KERNEL void coupled_fine_smooth(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
     KIn(int) adjacent, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion,
-    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) dx, KIn(float) dy,
+    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) weight, KIn(float) dx, KIn(float) dy,
     KIn(float) dz, KIn(float) cell, KIn(float) x, KIn(float) b, KOut(float) next,
     int n, float wc, float omega, int first) {
   kblock4 r = kb4(b[i], b[n + i], b[2 * n + i], b[3 * n + i]);
   if (first == 0) {
     kblock4 y = coupled_fine_row(i, offsets, faces, sign, adjacent, sx, sy, sz, diffusion, mu, mass,
-                                 coefficient, dx, dy, dz, cell, x, n, wc);
+                                 coefficient, weight, dx, dy, dz, cell, x, n, wc);
     r = kb4(r.u - y.u, r.v - y.v, r.w - y.w, r.p - y.p);
   }
   kblock4 d = coupled_block_solve(r, cell[i], cell[n + i], cell[2 * n + i],
@@ -269,8 +321,8 @@ KUTTA_FN int coupled_entry(KIn(int) rows, KIn(int) cols, int row, int col) {
 KUTTA_KERNEL void coupled_galerkin_fine(int i, KIn(int) member_offsets, KIn(int) members,
     KIn(int) aggregate, KIn(int) offsets, KIn(int) faces, KIn(float) sign, KIn(int) adjacent,
     KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion, KIn(float) mu,
-    KIn(float) mass, KIn(float) coefficient, KIn(float) dx, KIn(float) dy, KIn(float) dz,
-    KIn(float) cell, KIn(int) rows, KIn(int) cols, KIn(int) diag,
+    KIn(float) mass, KIn(float) coefficient, KIn(float) weight, KIn(float) dx, KIn(float) dy, KIn(float) dz,
+    KIn(float) cell, KIn(int) rows, KIn(int) cols,
     KOut(float) a, KOut(float) c, KOut(float) g, KOut(float) h, KOut(float) d,
     int nf, int n, int nnz, float wc) {
   for (int j = rows[i]; j < rows[i + 1]; ++j) {
@@ -303,21 +355,24 @@ KUTTA_KERNEL void coupled_galerkin_fine(int i, KIn(int) member_offsets, KIn(int)
       float gy = by + q10 * dx[j] + q11 * dy[j] + q12 * dz[j];
       float gz = bz + q20 * dx[j] + q21 * dy[j] + q22 * dz[j];
       float pp = -coefficient[f];
+      float share = wc * s * coupled_share(weight, q, other);
+      float hx = share * sx[f], hy = share * sy[f], hz = share * sz[f];
       int target = aggregate[other];
       if (target == i) {
         su = ksum_add(su, uu); sv = ksum_add(sv, uu); sw = ksum_add(sw, uu);
         sgx = ksum_add(sgx, gx); sgy = ksum_add(sgy, gy); sgz = ksum_add(sgz, gz);
-        shx = ksum_add(shx, bx); shy = ksum_add(shy, by); shz = ksum_add(shz, bz);
+        shx = ksum_add(shx, hx); shy = ksum_add(shy, hy); shz = ksum_add(shz, hz);
         sc = ksum_add(sc, pp);
       } else {
         int e = coupled_entry(rows, cols, i, target);
         a[e] += uu; c[e] += pp;
         g[e] += gx; g[nnz + e] += gy; g[2 * nnz + e] += gz;
-        h[e] += bx; h[nnz + e] += by; h[2 * nnz + e] += bz;
+        h[e] += hx; h[nnz + e] += hy; h[2 * nnz + e] += hz;
       }
     }
   }
-  int k = diag[i];
+  // Metal's 31-argument limit leaves no slot for the diagonal index array.
+  int k = coupled_entry(rows, cols, i, i);
   d[i] = ksum_value(su); d[n + i] = ksum_value(sv); d[2 * n + i] = ksum_value(sw);
   c[k] = ksum_value(sc);
   g[k] = ksum_value(sgx); g[nnz + k] = ksum_value(sgy); g[2 * nnz + k] = ksum_value(sgz);

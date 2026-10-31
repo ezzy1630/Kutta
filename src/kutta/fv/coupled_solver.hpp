@@ -28,6 +28,10 @@ struct CoupledOptions {
   // the Metal block solve for the same Krylov iteration counts.
   int pre_sweeps = 1, post_sweeps = 2, coarsest_sweeps = 8;
   float smoother_damping = .7f;
+  // Fluent's flow Courant number for the Coupled scheme (default 200; Theory
+  // Guide eq. 18.4-24 in Fluent 12): implicit relaxation a_P (1 + 1/CFL) of
+  // the momentum Jacobian. It changes only the convergence path.
+  double courant = 200;
   Index coarsest_rows = 48;
   int aggregation_passes = 3;
 };
@@ -39,6 +43,9 @@ struct CoupledResiduals {
   const Buffer<float>& mass;           // kg/s per face, out of owner
   const Buffer<float>& viscosity;      // face momentum diffusivity
   const Buffer<float>& physical_diagonal;
+  // Cell weights of the face velocity interpolation (u_f = (a_P u_P +
+  // a_N u_N)/(a_P + a_N)); the continuity-velocity block follows them.
+  const Buffer<float>& face_weights;
   double density = 1, velocity_scale = 1;
 };
 
@@ -56,9 +63,11 @@ class CoupledSolver {
   CoupledSolver(const CoupledSolver&) = delete;
   CoupledSolver& operator=(const CoupledSolver&) = delete;
 
-  // Copies one component's assembled momentum diagonal (pseudo time included,
-  // no implicit relaxation). Off-diagonals are shared and never copied.
-  void capture_diagonal(int component, const CsrMatrix& momentum);
+  // Captures one component's assembled momentum diagonal (pseudo time
+  // included, no implicit relaxation): the physical (unrelaxed, no pseudo
+  // time) part is floored at the off-diagonal sum and relaxed by the Courant
+  // number. Off-diagonals are shared and never copied.
+  void capture_diagonal(int component, const CsrMatrix& momentum, const Buffer<float>& physical);
   // Assembles the Jacobian and RHS, then solves for the update.
   SolveStats solve(const CoupledResiduals& residuals, const SolveControl& control);
   // u += alpha_u du, p += alpha_p dp (Fluent's explicit relaxation), then

@@ -1,0 +1,4 @@
+elbow_simplec cpu identical Pressure-velocity coupling: SIMPLEC sha256(result.vtu)=19e3b126c3329979
+elbow_param_simple cpu identical Pressure-velocity coupling: SIMPLE sha256(result.vtu)=359a2b4519b5a051
+elbow_simplec metal identical Pressure-velocity coupling: SIMPLEC sha256(result.vtu)=f9b146533e3936d8
+elbow_param_simple metal identical Pressure-velocity coupling: SIMPLE sha256(result.vtu)=d5dd146b8d27220a

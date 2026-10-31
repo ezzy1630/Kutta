@@ -702,12 +702,12 @@ struct SteadySolver::Impl {
     for(int k=0;k<3;++k) {
       momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport,wall_terms(k));
       residual(dev,momentum[k]->matrix,*q[k],momentum[k]->rhs,*res[k]);
-      coupled->capture_diagonal(k,momentum[k]->matrix);
+      coupled->capture_diagonal(k,momentum[k]->matrix,momentum[k]->diagonal);
       report.momentum[k]={};
     }
     update_momentum_diagonal();
     report.pressure=coupled->solve({residual_u,residual_v,residual_w,mass,viscosity,physical_diagonal,
-      settings.density,velocity_scale},settings.coupled_linear);
+      face_velocity_weights(),settings.density,velocity_scale},settings.coupled_linear);
     coupled->update(velocity,pressure,settings.momentum_relaxation,settings.pressure_relaxation);
     update_boundaries();update_pressure();update_flux();
     kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
