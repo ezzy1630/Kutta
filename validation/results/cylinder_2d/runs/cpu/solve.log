@@ -1,0 +1,63 @@
+APPROXIMATE RESULT: not a faithful Fluent reproduction; reverse-flow: prevent-reverse-flow? Fluent absent (Fluent 18.0 or earlier writer) -> Kutta run pressure outlets without reverse-flow suppression; suppression acts only on outlet faces with inflow; for the Fluent 18.0 Re 40 cylinder, none of the outlet's 30 faces has inflow in Fluent's saved converged fields or in Kutta's converged CPU and Metal solutions, so the effect there is zero; other cases need their own check; evidence: validation/results/cylinder_2d/REPORT.md#reverse-flow
+Setup: pbs/flux-index: absent (case predates the flux-type selector); momentum-weighted Rhie-Chow, Fluent 12.0 TG 18.4.1
+Setup: Coupled without pseudo time: its explicit momentum and pressure relaxation become SIMPLEC under-relaxation; the Courant-number implicit relaxation is not reproduced; convergence path only
+Setup: zone/4/p-profile-multiplier: absent (Fluent 18.0 writer); immaterial for the constant zero gauge pressure
+Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.
+Pressure-velocity coupling: SIMPLEC.
+Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).
+Backend: cpu; device: CPU reference (serial)
+  iter    continuity    x-velocity    y-velocity    z-velocity       sec/iter
+    20  8.740162e-02  1.173753e-04  9.162132e-05  9.823819e-12   7.708895e-02
+    40  7.152335e-02  1.029561e-04  7.289942e-05  1.121031e-11   7.430552e-02
+    60  6.258019e-02  9.529381e-05  5.972514e-05  1.291317e-11   7.890025e-02
+    80  5.921125e-02  8.694121e-05  4.860644e-05  1.413770e-11   7.939063e-02
+   100  6.112072e-02  7.793762e-05  4.012294e-05  1.552106e-11   8.067953e-02
+   120  6.296771e-02  6.896520e-05  3.444895e-05  1.641910e-11   7.981608e-02
+   140  6.196400e-02  6.037142e-05  3.063817e-05  1.753905e-11   7.961688e-02
+   160  5.959722e-02  5.258287e-05  2.758706e-05  1.861662e-11   7.732323e-02
+   180  5.406083e-02  4.581278e-05  2.473058e-05  1.979546e-11   7.756187e-02
+   200  4.909446e-02  4.008471e-05  2.187564e-05  2.044953e-11   7.532397e-02
+   220  4.554694e-02  3.518506e-05  1.909273e-05  2.104617e-11   7.467646e-02
+   240  4.315495e-02  3.071051e-05  1.646947e-05  2.254263e-11   7.268881e-02
+   260  4.011387e-02  2.643586e-05  1.394095e-05  2.305011e-11   6.882385e-02
+   280  3.655140e-02  2.234648e-05  1.153431e-05  2.389321e-11   6.847165e-02
+   300  3.176763e-02  1.847129e-05  9.327621e-06  2.500017e-11   6.848739e-02
+   320  2.707753e-02  1.491485e-05  7.429956e-06  2.536332e-11   6.943450e-02
+   340  2.242823e-02  1.174860e-05  5.841754e-06  2.571740e-11   6.938180e-02
+   360  1.809135e-02  9.076276e-06  4.529642e-06  2.626249e-11   6.865808e-02
+   380  1.425131e-02  6.878823e-06  3.440678e-06  2.695506e-11   6.892663e-02
+   400  1.114900e-02  5.142327e-06  2.570485e-06  2.688854e-11   6.862900e-02
+   420  8.295646e-03  3.799384e-06  1.892117e-06  2.672900e-11   6.903569e-02
+   440  6.554224e-03  2.780554e-06  1.395961e-06  2.725902e-11   6.918777e-02
+   460  4.930369e-03  2.029488e-06  1.028545e-06  2.739146e-11   6.946155e-02
+   480  3.816693e-03  1.461139e-06  7.544442e-07  2.723299e-11   6.910146e-02
+   500  2.907775e-03  1.039066e-06  5.424164e-07  2.707100e-11   6.817845e-02
+   520  2.146702e-03  7.328508e-07  3.841365e-07  2.735241e-11   7.161046e-02
+   540  1.587701e-03  5.161526e-07  2.718268e-07  2.728004e-11   7.252611e-02
+   560  1.271370e-03  3.639458e-07  1.928413e-07  2.710192e-11   7.411925e-02
+   580  1.017566e-03  2.612081e-07  1.415269e-07  2.710842e-11   7.490624e-02
+   600  8.211075e-04  1.916432e-07  1.054835e-07  2.743636e-11   7.844301e-02
+   620  7.230357e-04  1.434961e-07  8.147135e-08  2.705563e-11   8.381047e-02
+   640  6.582994e-04  1.060341e-07  6.604237e-08  2.714082e-11   8.813537e-02
+   660  5.884435e-04  8.107395e-08  5.706632e-08  2.770574e-11   9.289701e-02
+   680  5.369598e-04  7.174685e-08  5.166779e-08  2.783001e-11   9.608830e-02
+   700  4.783501e-04  7.087058e-08  4.836900e-08  2.757461e-11   9.828201e-02
+   720  4.748644e-04  7.384930e-08  4.828278e-08  2.735968e-11   9.840659e-02
+   740  5.187664e-04  7.231044e-08  4.571032e-08  2.719176e-11   9.961181e-02
+   760  5.239880e-04  6.365190e-08  4.224678e-08  2.749464e-11   9.683260e-02
+   780  5.190216e-04  5.501659e-08  3.804576e-08  2.739010e-11   9.621432e-02
+   800  5.242137e-04  5.063905e-08  3.551936e-08  2.759225e-11   9.851705e-02
+   820  4.744917e-04  5.049406e-08  3.359728e-08  2.728993e-11   1.021833e-01
+   840  4.562122e-04  5.224375e-08  3.196222e-08  2.735780e-11   1.018267e-01
+   860  4.643488e-04  5.078533e-08  2.919519e-08  2.711514e-11   1.007302e-01
+   880  4.636605e-04  4.637868e-08  2.535067e-08  2.709859e-11   1.010825e-01
+   900  4.815156e-04  3.986096e-08  2.292494e-08  2.763491e-11   1.024817e-01
+   920  4.501681e-04  3.581069e-08  2.133718e-08  2.765882e-11   1.031220e-01
+   940  4.347868e-04  3.588011e-08  1.994718e-08  2.776358e-11   1.018698e-01
+   960  4.348052e-04  3.752268e-08  1.866561e-08  2.692876e-11   1.046439e-01
+   980  4.534104e-04  3.735858e-08  1.735236e-08  2.747524e-11   1.043658e-01
+  1000  4.577421e-04  3.562772e-08  1.581648e-08  2.741739e-11   1.031026e-01
+Reached the iteration limit (1000 iterations).
+Wrote build/cyl_final_cpu (1000 iterations, 8.338174e+01 s solve).
+APPROXIMATE RESULT: not a faithful Fluent reproduction; reverse-flow: prevent-reverse-flow? Fluent absent (Fluent 18.0 or earlier writer) -> Kutta run pressure outlets without reverse-flow suppression; suppression acts only on outlet faces with inflow; for the Fluent 18.0 Re 40 cylinder, none of the outlet's 30 faces has inflow in Fluent's saved converged fields or in Kutta's converged CPU and Metal solutions, so the effect there is zero; other cases need their own check; evidence: validation/results/cylinder_2d/REPORT.md#reverse-flow
+./build/kutta solve $C/cylinder_tutorial.cas --backend $be --iterations 1000   88.01s user 1.45s system 99% cpu 1:29.46 total

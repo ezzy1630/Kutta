@@ -1,5 +1,6 @@
 #include "kutta/case/fluent_case.hpp"
 #include "kutta/case/hdf5.hpp"
+#include "kutta/case/legacy.hpp"
 #include <algorithm>
 #include <cctype>
 #include <charconv>
@@ -56,53 +57,7 @@ void check_thread_topology(FluentCase &c) {
   check(c.mesh.cell_zones, c.cell_zones, true);
   check(c.mesh.face_zones, c.boundaries, false);
 }
-std::string read_bytes(const std::filesystem::path &path) {
-  std::ifstream f(path, std::ios::binary | std::ios::ate);
-  if (!f)
-    throw std::runtime_error("cannot open case: " + path.string());
-  auto length = f.tellg();
-  if (length < 0 || length > 512 * 1024 * 1024)
-    throw std::runtime_error("legacy case exceeds 512 MiB limit");
-  std::string bytes(static_cast<std::size_t>(length), '\0');
-  f.seekg(0);
-  if (!f.read(bytes.data(), static_cast<std::streamsize>(bytes.size())))
-    throw std::runtime_error("cannot read case");
-  return bytes;
-}
-std::size_t balanced_end(std::string_view s, std::size_t p) {
-  std::size_t level = 0;
-  bool quoted = false, escaped = false, comment = false;
-  for (; p < s.size(); ++p) {
-    char ch = s[p];
-    if (comment) {
-      if (ch == '\n')
-        comment = false;
-      continue;
-    }
-    if (quoted) {
-      if (escaped)
-        escaped = false;
-      else if (ch == '\\')
-        escaped = true;
-      else if (ch == '"')
-        quoted = false;
-      continue;
-    }
-    if (ch == '"')
-      quoted = true;
-    else if (ch == ';')
-      comment = true;
-    else if (ch == '(')
-      ++level;
-    else if (ch == ')') {
-      if (level == 0)
-        throw std::runtime_error("unbalanced legacy section");
-      if (--level == 0)
-        return p + 1;
-    }
-  }
-  throw std::runtime_error("truncated legacy section");
-}
+using legacy::balanced_end;
 // Read only counts and ID intervals from mesh section headers. Bodies stay opaque;
 // geometry/connectivity and PolyMesh construction belong exclusively to lane B.
 void legacy_zone_header(std::string_view s, std::size_t begin, int section, MeshMetadata &mesh) {
@@ -152,8 +107,8 @@ void legacy_zone_header(std::string_view s, std::size_t begin, int section, Mesh
                      static_cast<int>(values[3])});
   }
 }
-FluentCase legacy(const std::filesystem::path &path) {
-  auto bytes = read_bytes(path);
+FluentCase legacy_case(const std::filesystem::path &path) {
+  auto bytes = legacy::read_file(path, 512u * 1024 * 1024, "case");
   std::string_view s = bytes;
   std::map<std::string, std::vector<SExpr>> sections;
   std::optional<std::string> version, origin;
@@ -179,24 +134,7 @@ FluentCase legacy(const std::filesystem::path &path) {
       throw std::runtime_error("invalid legacy section number");
     legacy_zone_header(s, p, section, metadata);
     if (section >= 2000 && section < 4000) {
-      // Binary mesh bodies are opaque. Fluent's explicit terminator lets us
-      // isolate Scheme sections without interpreting connectivity or geometry.
-      const std::string_view marker = "End of Binary Section";
-      auto end = s.find(marker, p);
-      if (end == s.npos)
-        throw std::runtime_error("missing binary section terminator");
-      p = end + marker.size();
-      while (p < s.size() && std::isspace(static_cast<unsigned char>(s[p])))
-        ++p;
-      int closing_section = 0;
-      auto close = std::from_chars(s.data() + p, s.data() + s.size(), closing_section);
-      if (close.ec != std::errc{} || closing_section != section)
-        throw std::runtime_error("binary section terminator ID mismatch");
-      p = static_cast<std::size_t>(close.ptr - s.data());
-      while (p < s.size() && std::isspace(static_cast<unsigned char>(s[p])))
-        ++p;
-      if (p == s.size() || s[p++] != ')')
-        throw std::runtime_error("malformed binary section terminator");
+      p = legacy::skip_binary(s, p, section);
       continue;
     }
     p = balanced_end(s, begin);
@@ -343,7 +281,7 @@ FluentCase read_case(const std::filesystem::path &path) {
           "HDF5 support is not built; configure with an available HDF5 C library");
 #endif
     }
-    return legacy(path);
+    return legacy_case(path);
   }();
   c.source_path = std::filesystem::absolute(path).lexically_normal();
   check_thread_topology(c);

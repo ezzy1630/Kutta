@@ -1,0 +1,6 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+[doctest] test cases:     246 |     246 passed | 0 failed | 26 skipped
+[doctest] assertions: 7415453 | 7415453 passed | 0 failed |
+[doctest] Status: SUCCESS!
+./build/kutta-tests --test-suite-exclude=slow  29.70s user 11.03s system 34% cpu 1:58.44 total

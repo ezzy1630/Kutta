@@ -145,6 +145,27 @@ BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
   return fit;
 }
 
+BoundaryLeastSquares green_gauss_cell(Device& dev,const PolyMesh& m,const MeshGeometry& g) {
+  const auto cf=build_cell_faces(m);
+  std::vector<Vec3d> delta;
+  for(Index c=0;c<m.n_cells;++c) {
+    const double volume=g.cell_volume[c];
+    KUTTA_REQUIRE(volume>0,"FV Green-Gauss needs positive cell volumes");
+    for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
+      const auto f=cf.faces[j];
+      const auto outward=g.face_area[f]*double(cf.signs[j]);
+      delta.push_back(outward*((f<m.n_internal_faces()?.5:1.)/volume));
+    }
+  }
+  std::vector<float> inverse(6*m.n_cells,0.f);
+  for(Index c=0;c<m.n_cells;++c) inverse[c]=inverse[c+3*m.n_cells]=inverse[c+5*m.n_cells]=1.f;
+  BoundaryLeastSquares fit;
+  fit.delta=vectors(dev,delta);
+  fit.boundary_delta=vectors(dev,boundary_rows(m,cf,delta));
+  fit.inverse=dev.upload<float>(inverse);
+  return fit;
+}
+
 FaceJumpFit face_jump_least_squares(Device& dev,const PolyMesh& m,const MeshGeometry& g) {
   const auto cf=build_cell_faces(m);std::vector<Vec3d> delta;
   std::vector<float> inverse(6*m.n_cells);

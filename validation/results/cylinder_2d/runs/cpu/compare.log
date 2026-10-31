@@ -1,0 +1,19 @@
+REFERENCE_CASE sha256=cb624e78a0543f2d87c975a2392cd1dac76c6bd1b51468c5acd8d7f1b35a08b3 data_sha256=cb7dce25827ca4aea45f6fc4bd9936d4ff55fa84ee14d361cec65c7d90ec57cb result_sha256=3be7142290ab496a5ad10e88af53b219c9488c9bf243485339891a92105cc42b backend=cpu cells=25740
+REFERENCE_SAVED iteration=66 continuity_scaled=9.31972941066e-06
+REFERENCE_FIELD velocity relative_L2=0.00064482628364
+REFERENCE_FIELD pressure relative_L2=0.00517498183765
+REFERENCE_ZONE wall ours=-240.683691025 Fluent=-241.641938983
+REFERENCE_FORCE wall pressure ours=834.57121098,0.123711049557,6.38930021568e-19 Fluent=830.755433149,0.0287217307535,6.34789175011e-19 relative=0.0045945651609
+REFERENCE_FORCE wall shear ours=436.290095232,0.208318848163,-4.09415025875e-08 Fluent=440.98894403,0.459205551361,0 relative=0.0106704246652
+REFERENCE_FORCE wall total ours=1270.86130621,0.33202989772,-4.09415025868e-08 Fluent=1271.74437718,0.487927282115,6.34789175011e-19 relative=0.000705115273047
+REFERENCE_ZONE pressure_outlet.6 ours=0 Fluent=0
+REFERENCE_ZONE inlet ours=51.2084813436 Fluent=50.9493472957
+REFERENCE_ZONE bottom ours=3.42593831023 Fluent=3.25473542716
+REFERENCE_ZONE top ours=3.43322306871 Fluent=3.24552041255
+REFERENCE_BACKFLOW pressure_outlet.6 ours=0 Fluent=0 faces=30
+REFERENCE_PRESSURE_DROP ours=51.2084813436 Fluent=50.9493472957 relative=0.00508611123966
+REFERENCE_REPORT cd-1 type=drag scaled=true
+REFERENCE_REPORT cl-1 type=lift scaled=true
+REFERENCE_COEFFICIENT cd-1 scaled=true ours=1270.86130621 Fluent=1271.74437718 relative=0.000694377724002
+REFERENCE_COEFFICIENT cl-1 scaled=true ours=0.33202989772 Fluent=0.487927282115 relative=0.319509464032
+APPROXIMATE RESULT: not a faithful Fluent reproduction; reverse-flow: prevent-reverse-flow? Fluent absent (Fluent 18.0 or earlier writer) -> Kutta run pressure outlets without reverse-flow suppression; suppression acts only on outlet faces with inflow; for the Fluent 18.0 Re 40 cylinder, none of the outlet's 30 faces has inflow in Fluent's saved converged fields or in Kutta's converged CPU and Metal solutions, so the effect there is zero; other cases need their own check; evidence: validation/results/cylinder_2d/REPORT.md#reverse-flow

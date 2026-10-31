@@ -336,11 +336,16 @@ TEST_CASE("Case support is an allowlist for authoritative physics flags") {
     INFO(key);
     CHECK(issue_at(c, "case-config/" + std::string(key)));
   }
-  for (auto [key, val] : {std::pair{"rp-3d?", "#f"}, {"rp-visc?", "#f"},
-                           {"rp-unsteady?", "#t"}, {"rp-seg?", "#f"}}) {
+  for (auto [key, val] : {std::pair{"rp-visc?", "#f"}, {"rp-unsteady?", "#t"}, {"rp-seg?", "#f"}}) {
     auto c = synthetic("(case-config ((" + std::string(key) + " . " + val + "))) ");
     CHECK(issue_at(c, "case-config/" + std::string(key)));
   }
+  // rp-3d? sets the dimension; the solve adapter decides what it can run
+  // (tests/fv/test_fluent_coverage.cpp rejects a 2D mesh of the wrong depth).
+  auto planar = synthetic("(case-config ((rp-3d? . #f))) ");
+  CHECK_FALSE(issue_at(planar, "case-config/rp-3d?"));
+  CHECK(planar.config.interpreted.contains("rp-3d?"));
+  CHECK(planar.dimension == 2);
   auto c = synthetic(config(false, true) + "(kw-sst-on? #t) (kw-bsl-on? #f) (kw-std-on? #f) (ke-easm-on? #t) (gravity? #t) (gravity/x 0) (gravity/y -9.81) (gravity/z 0)");
   CHECK(issue_at(c, "rp/ke-easm-on?"));
   CHECK(issue_at(c, "rp/gravity?"));

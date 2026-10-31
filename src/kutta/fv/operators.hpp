@@ -40,6 +40,15 @@ enum class BoundaryObservation { Omitted, FaceValue, NormalFootValue };
 BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& mesh,
     const MeshGeometry& geometry,std::span<const BoundaryObservation> observations,
     const Stencil* stencil=nullptr);
+// Fluent's Green-Gauss cell-based gradient (Theory Guide 2024 R2 23.3.3.1,
+// Eq. 23-30, with the arithmetic face mean of Eq. 23-31) in the same linear
+// form: since a closed cell's area vectors sum to zero,
+//   (1/V) sum_f phi_f A_f = (1/V) sum_f (phi_f - phi_c) A_f,
+// so the rows are A_f/(2V) at internal faces, A_f/V at boundary faces (the
+// actual boundary value is the face value) and the inverse is the identity.
+// Every boundary face is observed. The operator suits any consumer of a fit,
+// including the Coupled block system.
+BoundaryLeastSquares green_gauss_cell(Device& dev,const PolyMesh& mesh,const MeshGeometry& geometry);
 void gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
     const BoundaryLeastSquares& lsq,const Buffer<float>& cell,
     const Buffer<float>& boundary,DeviceVec3& result);

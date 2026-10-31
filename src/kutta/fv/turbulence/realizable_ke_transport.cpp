@@ -39,7 +39,10 @@ RealizableKeTransport::RealizableKeTransport(Device& d,const DeviceMesh& m,const
       if(p.kind==PatchKind::Wall) k_observations[j]=BoundaryObservation::NormalFootValue;
     }
   }
-  spec_=d.upload<Index>(methods);a_=d.upload<float>(first);b_=d.upload<float>(second);k_lsq_=boundary_least_squares(d,h,g,k_observations);e_lsq_=boundary_least_squares(d,h,g,observations);
+  spec_=d.upload<Index>(methods);a_=d.upload<float>(first);b_=d.upload<float>(second);
+  // Green-Gauss observes every boundary face value (operators.hpp).
+  if(o.gradient==GradientScheme::GreenGaussCell) {k_lsq_=green_gauss_cell(d,h,g);e_lsq_=green_gauss_cell(d,h,g);}
+  else {k_lsq_=boundary_least_squares(d,h,g,k_observations);e_lsq_=boundary_least_squares(d,h,g,observations);}
 }
 void RealizableKeTransport::initialize(std::span<const double> kinetic,std::span<const double> dissipation,const MeshPermutation& p) {
   KUTTA_REQUIRE(kinetic.size()==std::size_t(mesh_.n_cells) && dissipation.size()==kinetic.size(),"realizable k-epsilon: initialization size mismatch");

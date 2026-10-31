@@ -137,7 +137,9 @@ computed by the same setup, initialization and report validation as solve.
 When `--data` is supplied, saved fields replace initialization validation.
 Informational issues do not block solve; the only approximable settings are the
 explicit setup allowlist (`wfgc`, `compressibility` for the k-epsilon
-dilatation term, `ke-options` for undocumented k-epsilon solver switches). Each
+dilatation term, `ke-options` for undocumented k-epsilon solver switches,
+`reverse-flow` for pressure outlets of Fluent 18.0 and earlier cases, which do
+not record `prevent-reverse-flow?`). Each
 approximable issue carries its measured effect and evidence. An unparsed WFGC
 flag is unsupported, not approximable. A downforce report is normally a lift report whose direction
 points down; its sign and reference scaling are preserved.

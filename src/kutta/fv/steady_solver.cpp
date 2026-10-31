@@ -258,7 +258,16 @@ struct SteadySolver::Impl {
     upload_vectors(dev,prescribed_velocity,velocities);
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
     krylov_workspace=std::make_shared<KrylovWorkspace>(n);
-    if(!settings.sst && !settings.sa && !settings.realizable_ke) {
+    const bool green_gauss=settings.gradient==GradientScheme::GreenGaussCell;
+    // SST's strain and SA's gradients have only been verified with LSQ fits.
+    KUTTA_REQUIRE(!green_gauss || (!settings.sst && !settings.sa),"FV: Green-Gauss gradients serve laminar and k-epsilon flows only");
+    const auto fit=[&](std::span<const BoundaryObservation> observations) {
+      return green_gauss?green_gauss_cell(dev,host,geom):boundary_least_squares(dev,host,geom,observations,&stencil);
+    };
+    // The projected reconstruction is a quadratic least-squares extension of
+    // the linear primary/secondary split; a Green-Gauss case keeps Fluent's
+    // documented split with its own cell gradients.
+    if(!settings.sst && !settings.sa && !settings.realizable_ke && !green_gauss) {
       const auto nonsmooth=discontinuous_wall_cells(host,boundaries,frames);
       diffusion_reconstruction=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,independent_velocity,nonsmooth);
       if(diffusion_reconstruction->corrected_faces()==0) diffusion_reconstruction.reset();
@@ -267,8 +276,8 @@ struct SteadySolver::Impl {
       for(auto& g:projected_gradient) g=vector_field(dev,nf);
     }
     for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,diffusion_reconstruction,krylov_workspace);
-    velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity,&stencil);
-    pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure,&stencil);
+    velocity_lsq=fit(independent_velocity);
+    pressure_lsq=fit(independent_pressure);
     if(settings.sst) {
       std::vector<BoundaryObservation> strain_rows(nb);
       for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;

@@ -1,0 +1,9 @@
+# kutta solve <case> --approximate <list> --backend <b> --iterations 40 --out DIR
+# main = ccd9ed4 (git archive, built in a temporary directory); branch = t3/dbfd9a6f working tree
+# cases: v6 = mixing_elbow/mixing_elbow.cas.h5 --approximate wfgc; param = mixing_elbow/elbow_param.cas.h5 --approximate compressibility,ke-options; nozzle = flprj_3891/.../Base DP/nozzle_para_named_1.cas.h5 --approximate wfgc
+cpu v6 fluxes.csv=identical(e7ec49d30104b7af) forces.csv=identical(2926501958692e75) loads.json=identical(1f5d655397e1dba9) result.vtu=identical(71536c0d73079c92) residuals.csv-minus-seconds_per_iteration=identical
+cpu param fluxes.csv=identical(7cfbe18a81b6ff56) forces.csv=identical(ef190502b98408f6) loads.json=identical(5c3fd5d1cc570e87) result.vtu=identical(66c5b3942b12f349) residuals.csv-minus-seconds_per_iteration=identical
+cpu nozzle fluxes.csv=identical(517415d8b9eea307) forces.csv=identical(0728a471b6c1d72d) loads.json=identical(a835e9101c13e68a) result.vtu=identical(e1d429986ce9a8aa) residuals.csv-minus-seconds_per_iteration=identical
+metal v6 fluxes.csv=identical(5b88c0a02693d6ad) forces.csv=identical(04a0a5787bdd521a) loads.json=identical(58c54485552d364b) result.vtu=identical(c3d1f688adc0464f) residuals.csv-minus-seconds_per_iteration=identical
+metal param fluxes.csv=identical(383dd3a8456cdec2) forces.csv=identical(188dd2683c75441d) loads.json=identical(dfd943e12d3baaeb) result.vtu=identical(5176fcd114a3dad3) residuals.csv-minus-seconds_per_iteration=identical
+metal nozzle fluxes.csv=identical(e28daa02e116c7cb) forces.csv=identical(fce9e8beb8cfb3b0) loads.json=identical(fd372bf1bcb8e849) result.vtu=identical(2b6f96f1d29279c5) residuals.csv-minus-seconds_per_iteration=identical

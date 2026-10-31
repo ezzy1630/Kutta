@@ -36,6 +36,7 @@ struct Zone {double pressure_sum=0,area=0;Vec3d pressure_force,shear_force;};
 std::map<std::string,Zone> reference_zones(const fluent::FluentCase& c,const fluent::FluentData& d,const PolyMesh& mesh) {
   const auto g=compute_geometry(mesh);std::map<std::string,Zone> out;
   for(const auto& patch:mesh.patches) {
+    if(patch.source_zone_id<0) continue;  // a 2D case's extrusion caps have no Fluent zone
     const auto z=std::find_if(c.mesh.face_zones.begin(),c.mesh.face_zones.end(),[&](const auto& z){return z.zone_id==patch.source_zone_id;});
     KUTTA_REQUIRE(z!=c.mesh.face_zones.end() && z->size()==std::uint64_t(patch.size),"source face identity mismatch");
     auto& r=out[patch.name];
@@ -106,19 +107,46 @@ int main(int argc,char** argv) {
     // Initialization rebuilds boundary reconstruction at these final fields.
     const auto bp=dev->download(solver.boundary_pressure());const auto& g=solver.geometry();
     double inlet=0,inlet_ref=0,ia=0,outlet=0,outlet_ref=0,oa=0;
+    std::map<std::string,std::pair<Vec3d,Vec3d>> wall_forces;  // ours, Fluent
     for(const auto& patch:solver.mesh().patches) {
+      if(!zones.contains(patch.name)) continue;
       const auto& r=zones.at(patch.name);double ps=0,a=0;
       for(Index f=patch.start;f<patch.start+patch.size;++f) {const double af=norm(g.face_area[f]);a+=af;ps+=af*bp[f-solver.mesh().n_internal_faces()];}
       std::cout<<"REFERENCE_ZONE "<<patch.name<<" ours="<<ps/a<<" Fluent="<<r.pressure_sum/r.area<<'\n';
       if(patch.kind==PatchKind::VelocityInlet) {inlet+=ps;inlet_ref+=r.pressure_sum;ia+=a;}
       if(patch.kind==PatchKind::PressureOutlet) {outlet+=ps;outlet_ref+=r.pressure_sum;oa+=a;}
-      if(patch.kind==PatchKind::Wall) {const std::vector<std::string> names{patch.name};const auto f=solver.forces(names,c.reference.pressure.value_or(0));vector("pressure",patch.name,f.pressure,r.pressure_force);vector("shear",patch.name,f.viscous,r.shear_force);vector("total",patch.name,f.force(),r.pressure_force+r.shear_force);}
+      if(patch.kind==PatchKind::Wall) {const std::vector<std::string> names{patch.name};const auto f=solver.forces(names,c.reference.pressure.value_or(0));vector("pressure",patch.name,f.pressure,r.pressure_force);vector("shear",patch.name,f.viscous,r.shear_force);vector("total",patch.name,f.force(),r.pressure_force+r.shear_force);
+        wall_forces[patch.name]={f.force(),r.pressure_force+r.shear_force};}
+    }
+    // Faces where flow enters through a pressure outlet: the only faces that
+    // reverse-flow suppression acts on. Both fluxes are outward positive.
+    const auto mass=dev->download(solver.mass_flux());
+    for(const auto& patch:solver.mesh().patches) if(patch.kind==PatchKind::PressureOutlet) {
+      const auto z=std::find_if(c.mesh.face_zones.begin(),c.mesh.face_zones.end(),[&](const auto& z){return z.zone_id==patch.source_zone_id;});
+      Index ours=0,saved=0;
+      for(Index j=0;j<patch.size;++j) {
+        if(mass[patch.start+j]<0) ++ours;
+        if(d.face_fields.at("SV_FLUX").at(z->first+j)[0]<0) ++saved;
+      }
+      std::cout<<"REFERENCE_BACKFLOW "<<patch.name<<" ours="<<ours<<" Fluent="<<saved<<" faces="<<patch.size<<'\n';
     }
     if(ia>0 && oa>0) {const double drop=inlet/ia-outlet/oa,reference=inlet_ref/ia-outlet_ref/oa;std::cout<<"REFERENCE_PRESSURE_DROP ours="<<drop<<" Fluent="<<reference<<" relative="<<std::abs(drop/reference-1)<<'\n';}
     for(const auto& r:c.reports) {
       std::cout<<"REFERENCE_REPORT "<<r.name<<" type="<<r.fluent_type<<" scaled="<<(r.scaled?(*r.scaled?"true":"false"):"absent")<<'\n';
       // Raw report definitions remain in inspect output. The solver's forces.csv
       // is authoritative for evaluated projections and coefficient reference values.
+    }
+    // Force reports evaluated from both sides' wall forces with the case's
+    // reference values (Fluent's coefficient: F.d / (0.5 rho U^2 A)).
+    for(const auto& d:setup::force_definitions(c,mesh)) {
+      if(!d.direction) continue;
+      Vec3d ours,saved;
+      for(const auto& name:d.patches) {const auto& f=wall_forces.at(name);ours=ours+f.first;saved=saved+f.second;}
+      const auto direction=*d.direction/norm(*d.direction);
+      double a=dot(ours,direction),b=dot(saved,direction);
+      if(d.scaled) {const double q=.5**c.reference.density**c.reference.velocity**c.reference.velocity**c.reference.area;a/=q;b/=q;}
+      std::cout<<"REFERENCE_COEFFICIENT "<<d.name<<" scaled="<<(d.scaled?"true":"false")<<" ours="<<a<<" Fluent="<<b
+        <<" relative="<<std::abs(a/b-1)<<'\n';
     }
     std::cout<<setup::approximation_notice(problem.approximations)<<'\n';return 0;
   } catch(const std::exception& e) {std::cerr<<"Fluent comparison: "<<e.what()<<'\n';return 1;}

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <set>
 #include <type_traits>
 
@@ -78,6 +79,28 @@ bool unevaluated_report(const FluentCase& c,const std::string& path) {
     return output_only(r) && (path=="report/"+r.name || path.starts_with("report/"+r.name+"/"));
   });
 }
+int version_major(const std::string& version) {
+  int major=0;for(char ch:version) {if(ch<'0' || ch>'9') break;major=10*major+(ch-'0');}
+  return major;
+}
+// A 2D Fluent case is admitted only as read_fluent_msh's one-cell extrusion:
+// exactly the two zone-less symmetry caps front/back, one face per cell each,
+// and a thickness equal to Fluent's reference depth, so wall forces are the
+// forces Fluent reports for that depth.
+bool planar_extrusion(const FluentCase& c,const PolyMesh& mesh) {
+  if(c.mesh.dimension!=2) return false;
+  std::vector<const Patch*> caps;
+  for(const auto& p:mesh.patches) if(p.source_zone_id<0) caps.push_back(&p);
+  if(caps.size()!=2) return false;
+  for(const auto* p:caps)
+    if(p->kind!=PatchKind::Symmetry || p->size!=mesh.n_cells || (p->name!="front" && p->name!="back") ||
+       std::any_of(c.boundaries.begin(),c.boundaries.end(),[&](const auto& z){return z.name==p->name;})) return false;
+  const auto* depth=c.variables.value("reference-depth");
+  if(!depth || !depth->number() || !(*depth->number()>0)) return false;
+  double lo=std::numeric_limits<double>::infinity(),hi=-lo;
+  for(const auto& point:mesh.points) {lo=std::min(lo,point.z);hi=std::max(hi,point.z);}
+  return std::abs((hi-lo)-*depth->number())<=1e-12*std::max(1.,*depth->number());
+}
 std::vector<std::uint64_t> cell_ids(const FluentCase& c,const PolyMesh& mesh) {
   std::vector<std::uint64_t> ids(mesh.n_cells,0);
   for(const auto& zone:mesh.cell_zones) {
@@ -113,7 +136,9 @@ TurbulenceValues turbulence_values(const TurbulenceCondition& spec,double speed,
   require(std::isfinite(out.k) && out.k>=0 && std::isfinite(out.omega) && out.omega>=0,"k/omega");return out;
 }
 FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std::span<const Approximation> allowed) {
-  require(c.dimension==3,"dimension","requires a 3D case");require(c.pressure_based==true,"rp-seg?","requires the pressure-based solver");require(c.unsteady==false,"rp-unsteady?","only steady cases are supported");
+  const bool planar=c.dimension==2 && planar_extrusion(c,mesh);
+  require(c.dimension==3 || planar,"dimension","requires a 3D case, or a 2D case read as a one-cell extrusion of the reference depth with front/back symmetry");
+  require(c.pressure_based==true,"rp-seg?","requires the pressure-based solver");require(c.unsteady==false,"rp-unsteady?","only steady cases are supported");
   const bool laminar=c.viscous.model==ViscousModel::laminar,sst=c.viscous.model==ViscousModel::kw_sst;
   epsilon_model=c.viscous.model==ViscousModel::ke_standard;
   require(laminar || sst || epsilon_model,"viscous-model","requires laminar, k-omega SST or standard k-epsilon");
@@ -135,7 +160,10 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   s.density=rho.value_or(0);s.viscosity=mu.value_or(0);
   require(c.gravity==false,"gravity? (body force not adapted)");
   if(c.energy==true) out.convergence_notes.push_back("energy is decoupled: active material density and viscosity are constant");
-  require(n.gradient==Gradient::least_squares_cell,"recon/cell-lsq?","requires least-squares cell gradients");
+  if(n.gradient==Gradient::green_gauss_cell) {
+    s.gradient=GradientScheme::GreenGaussCell;
+    require(!sst,"recon/cell-lsq?","Green-Gauss cell gradients are adapted for laminar and standard k-epsilon flow only");
+  } else require(n.gradient==Gradient::least_squares_cell,"recon/cell-lsq?","requires least-squares or Green-Gauss cell-based gradients");
   if(n.pressure==Scheme::standard_pressure) s.pressure_interpolation=PressureInterpolation::Standard;
   else require(n.pressure==Scheme::second_pressure,"pressure/scheme","requires second-order or standard pressure interpolation");
   s.convection=convection(n.momentum,"mom/scheme");
@@ -329,6 +357,9 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
     require(face_zone!=mesh.internal_face_zones.end(),key+"identity","porous jump requires retained internal face-zone metadata");
   }
   for(const auto& patch:mesh.patches) {
+    // A planar case has no z flux, z derivative or z face: the extrusion caps
+    // are symmetry planes and w stays zero (docs/research/fluent-reference-cases.md).
+    if(planar && patch.source_zone_id<0) {out.boundaries.push_back({patch.name,Symmetry{}});continue;}
     const auto it=std::find_if(c.boundaries.begin(),c.boundaries.end(),[&](const auto& z){return z.id==patch.source_zone_id;});
     require(it!=c.boundaries.end() && it->name==patch.name,"mesh/patch identity: "+patch.name);
     if(it==c.boundaries.end()) continue;
@@ -357,9 +388,23 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
       }
       out.boundaries.push_back({patch.name,VelocityInlet{velocity,turbulence(z)}});
     } else if(z.type==ZoneType::pressure_outlet) {
-      require(z.prevent_reverse_flow==false,prefix+"prevent-reverse-flow?");
+      // Writers up to Fluent 18.0 store neither key (the corpus's 17.2 and 18.0
+      // cases; 21.2 and later store both). What such a writer did at backflow
+      // faces is undocumented, so running without suppression is named.
+      const bool early=c.solver_version && version_major(*c.solver_version)<=18;
+      if(!z.raw.entry("prevent-reverse-flow?") && early) {
+        const auto& info=approximation_info(Approximation::reverse_flow);
+        if(std::find(allowed.begin(),allowed.end(),info.id)!=allowed.end()) {
+          if(std::find(out.approximations.begin(),out.approximations.end(),info.id)==out.approximations.end()) out.approximations.push_back(info.id);
+        } else require(false,prefix+std::string(info.setting),"absent (Fluent "+*c.solver_version+" writer); opt in with --approximate "+
+          std::string(info.name)+" to "+std::string(info.kutta_action)+"; effect: "+std::string(info.effect_documentation));
+      } else require(z.prevent_reverse_flow==false,prefix+"prevent-reverse-flow?");
       require(number(z.raw,"direction-spec")==1,prefix+"direction-spec (normal backflow)");
-      require(number(z.raw,"p-profile-multiplier")==1,prefix+"p-profile-multiplier");
+      // Any multiplier of a constant zero gauge pressure is zero.
+      const auto gauge=scalar(z.gauge_pressure,prefix+"p");
+      if(!z.raw.entry("p-profile-multiplier") && gauge==0 && z.gauge_pressure && z.gauge_pressure->kind==ScalarValue::Kind::constant)
+        out.convergence_notes.push_back(prefix+"p-profile-multiplier: absent (Fluent "+c.solver_version.value_or("unknown")+" writer); immaterial for the constant zero gauge pressure");
+      else require(number(z.raw,"p-profile-multiplier")==1,prefix+"p-profile-multiplier");
       const auto type=required(z.backflow_pressure_spec,prefix+"p-backflow-spec");require(type==0 || type==1,prefix+"p-backflow-spec");
       out.boundaries.push_back({patch.name,PressureOutlet{scalar(z.gauge_pressure,prefix+"p"),NormalBackflow{},
         type==0?BackflowPressure::Total:BackflowPressure::Static,turbulence(z)}});
@@ -423,8 +468,11 @@ CellFields fluent_fields(const FluentCase& c,const FluentData& d,const PolyMesh&
     const auto value=it->second.at(id);require(value.size()==1 && std::isfinite(value[0]),key);return value[0];
   };
   const bool sst=c.viscous.model==ViscousModel::kw_sst,epsilon=c.viscous.model==ViscousModel::ke_standard;
+  // A planar case stores no SV_W; its w is zero.
+  const bool planar=c.dimension==2;
+  require(!planar || !d.cell_fields.contains("SV_W"),"SV_W in a 2D case");
   for(auto id:ids) {
-    out.velocity.push_back({get("SV_U",id),get("SV_V",id),get("SV_W",id)});out.pressure.push_back(get("SV_P",id));
+    out.velocity.push_back({get("SV_U",id),get("SV_V",id),planar?0.:get("SV_W",id)});out.pressure.push_back(get("SV_P",id));
     if(sst) {out.k.push_back(get("SV_K",id));out.omega.push_back(get("SV_O",id));}
     if(epsilon) {out.k.push_back(get("SV_K",id));out.epsilon.push_back(get("SV_D",id));}
   }

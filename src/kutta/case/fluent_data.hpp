@@ -26,7 +26,8 @@ struct ZoneFieldView {
 struct ResidualHistory {
   std::vector<std::uint64_t> iterations;
   // Four columns retained verbatim. Column 0 raw residual, column 1 scale;
-  // columns 2/3 are undocumented. Histories can be decimated, not per-iteration.
+  // columns 2/3 are undocumented, and NaN for legacy .dat files, which store
+  // only the first two. Histories can be decimated, not per-iteration.
   std::vector<std::array<double, 4>> rows;
 };
 struct FluentData {
@@ -45,6 +46,7 @@ struct FluentData {
   std::vector<ZoneFieldView> zone_field(FieldLocation, std::int64_t zone_id,
                                         std::string_view field) const;
 };
+// Legacy .dat or CFF .dat.h5, by extension, as read_case.
 // Requires metadata from the SAME case: validates each field interval against
 // the union of its cell/face zones, including gaps, rather than assuming ID==index.
 // Present P/U/V/W fields must cover every fluid-cell zone. Counts and ranges

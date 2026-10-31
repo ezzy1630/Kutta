@@ -102,6 +102,10 @@ enum class FaceVelocityWeights { Momentum, Distance };
 // Face pressure in the momentum pressure force, TG 23-43 (second order) and
 // 23-42 (standard, momentum-coefficient weighted).
 enum class PressureInterpolation { SecondOrder, Standard };
+// Fluent's cell gradient method (Theory Guide 23.3.3): least-squares cell
+// based, or Green-Gauss cell based (operators.hpp, green_gauss_cell). It
+// changes the fixed point. Green-Gauss serves laminar and k-epsilon flows.
+enum class GradientScheme { LeastSquares, GreenGaussCell };
 
 struct SolverSettings {
   double density=1, viscosity=.01;
@@ -116,6 +120,7 @@ struct SolverSettings {
   bool pseudo_transient=true;
   FaceVelocityWeights face_velocity=FaceVelocityWeights::Momentum;
   PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
+  GradientScheme gradient=GradientScheme::LeastSquares;
   double pseudo_time_scale=1;
   // Zero selects the conservative global automatic time scale, updated only
   // at monitor intervals (where speed reductions are already permitted).

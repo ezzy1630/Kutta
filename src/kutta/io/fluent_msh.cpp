@@ -211,6 +211,18 @@ detail::FluentRaw parse(std::string bytes) {
       p.finish(true, section);
       continue;
     }
+    if (code == 40 && binary) {
+      // Cell partition ids ("(zone first last partitions)"), one 32-bit id
+      // per cell in either precision. Parallel layout, not connectivity.
+      auto h = p.header();
+      KUTTA_REQUIRE(h.size() >= 3, "Fluent: malformed partition header");
+      auto first = Parser::integer(h[1]), last = Parser::integer(h[2]);
+      KUTTA_REQUIRE(first > 0 && last >= first, "Fluent: invalid partition range");
+      p.expect('(');
+      p.skip_binary(static_cast<std::uint64_t>(last) - first + 1, 4);
+      p.finish(true, section);
+      continue;
+    }
     if (code != 10 && code != 12 && code != 13 && code != 18) {
       KUTTA_REQUIRE(!binary, "Fluent: unsupported binary section " +
                                  std::to_string(section));
@@ -282,6 +294,11 @@ detail::FluentRaw parse(std::string bytes) {
       p.finish(binary, section, body);
     } else if (code == 13) {
       KUTTA_REQUIRE(v.size() >= 5, "Fluent: face zone requires face type");
+      // Type codes above 1000 mark nonconformal interface zones; their parent
+      // faces have no nodes (the VKI turbine's periodic pairs).
+      KUTTA_REQUIRE(v[3] < 1000,
+                    "Fluent: adapted/hanging-node/nonconformal meshes are not "
+                    "supported; export a conformal active-cell mesh");
       p.expect('(');
       raw.zones.try_emplace(v[0],
                             detail::FluentZone{"zone" + std::to_string(v[0]),

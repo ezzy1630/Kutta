@@ -23,7 +23,7 @@ Issue describe(const SettingIssue& i) {
     {"viscous-model", "Viscous model", "This selects Fluent's laminar or turbulence closure. The Fluent solve adapter implements laminar flow, k-omega SST and standard k-epsilon with standard wall functions; substituting another closure changes turbulent stresses and separation."},
     {"rp-unsteady", "Transient flow", "Fluent advances physical time for this setting. Kutta's case adapter currently solves a steady fixed point; pseudo time is a convergence aid and cannot reproduce physical transients."},
     {"rp-seg", "Pressure-based solver", "This selects Fluent's pressure-based or density-based formulation. Kutta implements the incompressible pressure-based equations and cannot reproduce a density-based solution."},
-    {"dimension", "Mesh dimension", "This describes the case dimension. The Fluent solve adapter requires a three-dimensional case; mesh extrusion alone does not define the missing case boundary and reference semantics."},
+    {"dimension", "Mesh dimension", "This describes the case dimension. The Fluent solve adapter solves 3D cases, and planar 2D cases as a one-cell extrusion of Fluent's reference depth between two symmetry planes; axisymmetric and other 2D readings are not adapted."},
     {"rf-energy", "Energy equation", "Fluent solves temperature or enthalpy. Kutta omits energy; it is decoupled from momentum only when all active density and viscosity laws are constant. Temperature results are unavailable."},
     {"energy", "Energy equation", "Fluent solves temperature or enthalpy. Kutta omits energy; it is decoupled from momentum only when all active density and viscosity laws are constant. Temperature results are unavailable."},
     {"gravity", "Gravity and buoyancy", "Fluent applies a gravitational body force. The Fluent adapter does not yet transfer this source or its pressure convention, even when density is constant."},
@@ -33,8 +33,8 @@ Issue describe(const SettingIssue& i) {
     {"rough", "Wall roughness", "Fluent modifies the wall law using roughness height and constant. Kutta currently implements smooth-wall laws only, so roughness drag and y-plus cannot be reproduced."},
     {"shear-bc", "Wall shear condition", "Fluent can prescribe shear or slip at a wall. Kutta's adapter currently requires a smooth no-slip wall and computes shear with the active model's wall treatment."},
     {"wall-omega", "SST wall omega treatment", "Fluent selects a wall-omega correlation or a tabulated law. Kutta implements the correlation only; the alternative table is unavailable. Correlation face-omega offset was about 0.42% on the saved Fluent 22.2 elbow fields; this is not a flow-solution error bound."},
-    {"recon/cell-lsq", "Gradient reconstruction", "Fluent selects its cell or node gradient method. Kutta uses inverse-square least-squares cell gradients; Green-Gauss and Fluent node reconstruction are not adapted."},
-    {"recon/node", "Gradient reconstruction", "Fluent selects node-based gradient reconstruction. Kutta's Fluent adapter requires cell least-squares gradients; a different reconstruction changes transport fluxes."},
+    {"recon/cell-lsq", "Gradient reconstruction", "Fluent selects its cell or node gradient method. Kutta implements least-squares and Green-Gauss cell-based gradients, Green-Gauss for laminar and standard k-epsilon flow; node-based reconstruction is not adapted."},
+    {"recon/node", "Gradient reconstruction", "Fluent selects node-based gradient reconstruction. Kutta's Fluent adapter implements cell-based gradients only; a different reconstruction changes transport fluxes."},
     {"recon/lim", "Gradient limiter", "Fluent limits reconstructed values before evaluating face fluxes. Kutta implements the standard face-based limiter without filtering; other limiter settings alter the discrete transport equations."},
     {"pressure/scheme", "Pressure interpolation", "Fluent selects the pressure interpolation at faces. Kutta implements standard and second-order pressure; PRESTO, linear and body-force-weighted interpolation are not implemented."},
     {"/scheme", "Discretization scheme", "Fluent selects the face interpolation for this equation. Kutta's transport adapter implements first- and second-order upwind only; other schemes change numerical diffusion and the solution."},
@@ -85,7 +85,8 @@ std::vector<Issue> support_issues(const FluentCase& c,const PolyMesh& mesh,bool 
     if(std::none_of(out.begin(),out.end(),[&](const auto& p){return p.setting==d.setting && p.classification==d.classification;})) out.push_back(std::move(d));
   };
   const auto check=[&](auto fn) {try {fn();}catch(const setup::RejectedSettings& e){for(const auto& i:e.issues()) append(i);}};
-  const setup::Approximation all[]={setup::Approximation::wfgc,setup::Approximation::compressibility,setup::Approximation::ke_options};
+  std::vector<setup::Approximation> all;
+  for(const auto& a:setup::approximations()) all.push_back(a.id);
   std::vector<setup::Approximation> used;
   check([&]{used=setup::fluent_setup(c,mesh,all).approximations;});
   if(!seeded) check([&]{(void)setup::initial_fields(c,mesh);});
@@ -95,16 +96,9 @@ std::vector<Issue> support_issues(const FluentCase& c,const PolyMesh& mesh,bool 
   if(c.numerics.warped_face_correction==true && std::ranges::find(used,setup::Approximation::wfgc)==used.end())
     used.insert(used.begin(),setup::Approximation::wfgc);
   for(const auto id:used) {
-    using enum setup::Approximation;
     const auto& a=setup::approximation_info(id);
-    const std::string_view label=id==wfgc?"Warped-face gradient correction":id==compressibility?"Turbulence compressibility correction":"k-epsilon solver options";
-    const std::string_view text=id==wfgc
-      ?"Fluent corrects gradients for nonplanar faces. Kutta does not yet implement Fluent's warped-face correction and will run with WFGC off only when you opt in with --approximate wfgc."
-      :id==compressibility
-      ?"Fluent adds dilatation dissipation to the turbulence equations. Kutta solves constant-density flow without it and will run only when you opt in with --approximate compressibility."
-      :"Fluent enables k-epsilon solver switches whose equations are not documented. Kutta solves the documented standard k-epsilon model and will run only when you opt in with --approximate ke-options.";
-    out.push_back({std::string(a.setting),std::string(label),"approximable",std::string(a.name),
-      std::string(text)+" "+std::string(a.measured_effect)+".",std::string(a.effect_documentation)});
+    out.push_back({std::string(a.setting),std::string(a.label),"approximable",std::string(a.name),
+      std::string(a.explanation)+" "+std::string(a.measured_effect)+".",std::string(a.effect_documentation)});
   }
   return out;
 }

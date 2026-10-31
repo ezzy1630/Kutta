@@ -370,7 +370,9 @@ void config_support(FluentCase &c) {
       expected.emplace(key, v);
     }
   };
-  add("rp-seg? rp-3d? rp-visc?", true);
+  // rp-3d? sets FluentCase::dimension (model()); the solve adapter decides
+  // which dimensions it can represent.
+  add("rp-seg? rp-visc?", true);
   add("rp-acoustics? rp-optics? rp-atm? rp-axi? rp-des? rp-dpm-cache? rp-dpm-cache-serial? "
       "rp-unsteady? rp-dual-time? rp-amg? rp-hvac? rp-inviscid? rp-kklw? rp-les? "
       "rp-structure? rp-structure-damping? rp-structure-linear? rp-structure-nonlinear? "
@@ -415,6 +417,10 @@ void config_support(FluentCase &c) {
     auto value = entry_value(e);
     if (key == "rf-energy?")
       continue; // Classified after the active materials are known.
+    if (key == "rp-3d?" && boolean(value)) {
+      c.config.interpreted.insert(key);
+      continue;
+    }
     if (metadata.contains(key) && boolean(value)) {
       c.config.interpreted.insert(key);
       continue;
