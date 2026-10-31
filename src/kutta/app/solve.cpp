@@ -152,8 +152,10 @@ int solve(int argc,char** argv) {
     if(!notice.empty() && !jsonl) human<<notice<<std::endl;
     if(!jsonl)for(const auto& note:setup->convergence_notes) human<<"Setup: "<<note<<'\n';
     if(!jsonl && !convergence_warning.empty())human<<convergence_warning<<'\n';
-    const auto coupling=setup->settings.coupling==fv::PressureVelocityCoupling::Coupled?"coupled":"simplec";
-    if(!jsonl)human<<"Pressure-velocity coupling: "<<(setup->settings.coupling==fv::PressureVelocityCoupling::Coupled?"Coupled":"SIMPLEC")<<".\n";
+    using Coupling=fv::PressureVelocityCoupling;const auto scheme=setup->settings.coupling;
+    const auto coupling=scheme==Coupling::Coupled?"coupled":scheme==Coupling::Simple?"simple":"simplec";
+    const auto coupling_label=scheme==Coupling::Coupled?"Coupled":scheme==Coupling::Simple?"SIMPLE":"SIMPLEC";
+    if(!jsonl)human<<"Pressure-velocity coupling: "<<coupling_label<<".\n";
     auto dev=device(o.backend);
     fv::SteadySolver solver(*dev,std::move(mesh),setup->boundaries,setup->settings);
     setup::initialize(solver,*fields);

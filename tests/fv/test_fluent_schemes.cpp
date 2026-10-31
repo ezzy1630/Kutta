@@ -42,7 +42,7 @@ TEST_CASE("FV SIMPLE and classic steady iteration reach the pseudo-time SIMPLEC 
     // Fluent's classic steady SIMPLE: no pseudo-time term, implicit momentum
     // relaxation and explicit pressure relaxation only. Rhie-Chow uses the
     // unrelaxed diagonal, so the fixed point is the same.
-    auto classic=base;classic.pseudo_transient=false;classic.pressure_correction=PressureCorrection::Simple;
+    auto classic=base;classic.pseudo_transient=false;classic.coupling=PressureVelocityCoupling::Simple;
     classic.momentum_relaxation=.7;classic.pressure_relaxation=.3;
     const auto simple=channel(*dev,classic,1200);
     CHECK(simple.report.continuity.raw<1e-6);

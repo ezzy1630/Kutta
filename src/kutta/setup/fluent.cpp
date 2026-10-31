@@ -172,7 +172,7 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   const auto run=n.run_coupling.value_or(coupling);
   if(run!=coupling) out.convergence_notes.push_back("flow/scheme: "+std::string(name(run))+
     " selected by setup override for a "+std::string(name(coupling))+" case; its pseudo-time controls and relaxation factors apply; convergence path only");
-  if(run==Coupling::simple) s.pressure_correction=PressureCorrection::Simple;
+  if(run==Coupling::simple) s.coupling=fv::PressureVelocityCoupling::Simple;
   if(required(n.high_order_relaxation,"recon/relax/relax?")) out.convergence_notes.push_back("high-order term relaxation omitted; same fixed point");
   const auto method=coupling==Coupling::coupled?n.pseudo.coupled_method:n.pseudo.segregated_method;
   if(method) require(*method==0 || *method==1,"pseudo-time-method/dt-method","only off (0) and global time step (1) are implemented");

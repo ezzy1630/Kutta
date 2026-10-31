@@ -133,6 +133,8 @@ struct SteadySolver::Impl {
 
   Impl(Device& device,PolyMesh input,std::vector<PatchCondition> conditions,SolverSettings options)
       :dev(device),host(std::move(input)),settings(options) {
+    KUTTA_REQUIRE(settings.pseudo_transient || settings.coupling!=PressureVelocityCoupling::Coupled,
+      "FV: the Coupled solver requires pseudo-transient stepping");
     KUTTA_REQUIRE(int(settings.sa.has_value())+int(settings.sst.has_value())+int(settings.realizable_ke.has_value())<=1,"FV: select exactly one turbulence model");
     KUTTA_REQUIRE(settings.density>0 && std::isfinite(settings.density) && settings.viscosity>0 &&
       std::isfinite(settings.viscosity) && settings.momentum_relaxation>0 && settings.momentum_relaxation<=1 &&
@@ -540,7 +542,7 @@ struct SteadySolver::Impl {
   }
   // SIMPLE replaces SIMPLEC's consistent inverse with the relaxed diagonal's.
   void momentum_correction_coefficient(int component) {
-    if(settings.pressure_correction!=PressureCorrection::Simple) return;
+    if(settings.coupling!=PressureVelocityCoupling::Simple) return;
     auto& eq=*momentum[component];
     kern::fv_simple_inverse(dev,mesh.n_cells,eq.matrix.diag,eq.matrix.val,eq.consistent_inverse);
   }

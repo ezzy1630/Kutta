@@ -143,9 +143,11 @@ flag is unsupported, not approximable. A downforce report is normally a lift rep
 points down; its sign and reference scaling are preserved.
 
 `setup` and `summary.json` carry `pressure_velocity_coupling` (v1 additive):
-`"coupled"` or `"simplec"`, the algorithm that actually ran. A case saved with
-Fluent's Coupled scheme runs Kutta's Coupled solver; SIMPLE, SIMPLEC and PISO
-cases run SIMPLEC (SIMPLE and PISO with a convergence-path warning).
+`"coupled"`, `"simplec"` or `"simple"`, the algorithm that actually ran. Each
+of Fluent's SIMPLE, SIMPLEC and Coupled schemes runs natively; PISO is rejected.
+`methods/pressure-velocity-coupling` switches between the three; Coupled needs
+the pseudo-transient formulation, and a saved Coupled case without it runs
+SIMPLEC with a convergence-path note.
 
 On valid runs `setup` is the first event, followed by warnings and iterations;
 `done` is last and means outputs are closed. Rejected/setup-failed runs may emit

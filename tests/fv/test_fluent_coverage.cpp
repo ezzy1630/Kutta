@@ -124,7 +124,7 @@ TEST_CASE("Fluent corpus pairs run only with their named approximations and map 
       REQUIRE(s.realizable_ke);CHECK(s.realizable_ke->model.variant==KeVariant::Standard);
       CHECK(s.realizable_ke->model.wall==KeWallTreatment::Standard);
       CHECK(s.pressure_interpolation==PressureInterpolation::Standard);
-      CHECK(s.pressure_correction==PressureCorrection::Simple);
+      CHECK(s.coupling==PressureVelocityCoupling::Simple);
       CHECK(!s.pseudo_transient);CHECK(s.convection==ConvectionScheme::FirstOrderUpwind);
     } else {
       REQUIRE(s.sst);

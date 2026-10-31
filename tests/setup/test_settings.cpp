@@ -188,7 +188,7 @@ TEST_CASE("Mixing elbow runs Fluent's Coupled scheme natively and can switch to 
   const auto it=std::find_if(settings.begin(),settings.end(),[](const auto& s){return s.path=="methods/pressure-velocity-coupling";});
   REQUIRE(it!=settings.end());
   CHECK(it->value==Json("coupled"));CHECK(it->value_label=="Coupled");CHECK(it->editable);
-  CHECK(it->options==Json::Array{"simplec","coupled"});
+  CHECK(it->options==Json::Array{"simple","simplec","coupled"});
   MeshTemp t;
   mesh_text(t.path("simplec.json"),"{\"v\":1,\"overrides\":{\"methods/pressure-velocity-coupling\":\"simplec\"}}");
   CHECK(kutta::setup::apply_setup(t.path("simplec.json"),settings).size()==1);
@@ -197,6 +197,9 @@ TEST_CASE("Mixing elbow runs Fluent's Coupled scheme natively and can switch to 
   // The saved Coupled pseudo-time controls still apply; only the path changes.
   CHECK(switched.settings.momentum_relaxation==.5);CHECK(switched.settings.pseudo_time_scale==saved.settings.pseudo_time_scale);
   CHECK(notes(switched).find("SIMPLEC selected by setup override for a Coupled case")!=std::string::npos);
+  mesh_text(t.path("simple.json"),"{\"v\":1,\"overrides\":{\"methods/pressure-velocity-coupling\":\"simple\"}}");
+  CHECK(kutta::setup::apply_setup(t.path("simple.json"),settings).size()==1);
+  CHECK(kutta::setup::fluent_setup(c,mesh,wfgc).settings.coupling==kutta::fv::PressureVelocityCoupling::Simple);
 #else
   MESSAGE("SKIP: HDF5 disabled");
 #endif

@@ -90,13 +90,13 @@ struct RealizableKeSettings {
   SolveControl linear{1e-3,1e-12,100};
 };
 
-// Fluent's flow/scheme. Coupled solves momentum and continuity as one block
-// system (fv/coupled_solver.hpp); both share one discrete fixed point.
-enum class PressureVelocityCoupling { Simplec, Coupled };
+// Fluent's flow/scheme. SIMPLE replaces SIMPLEC's consistent inverse with the
+// relaxed diagonal's; Coupled solves momentum and continuity as one
+// pseudo-transient block system (fv/coupled_solver.hpp). Rhie-Chow always uses
+// the unrelaxed physical diagonal, so all three share one discrete fixed point.
+enum class PressureVelocityCoupling { Simplec, Simple, Coupled };
 // Fluent pressure-velocity options (Theory Guide, pressure-based solver).
-// Rhie-Chow always uses the unrelaxed physical diagonal, so none of these
-// changes the converged fixed point except the two face interpolations.
-enum class PressureCorrection { Simplec, Simple };
+// Unlike the coupling, these face interpolations change the fixed point.
 // Face velocity in the face mass flux, TG 23-48 (distance) and 23-49 (momentum).
 enum class FaceVelocityWeights { Momentum, Distance };
 // Face pressure in the momentum pressure force, TG 23-43 (second order) and
@@ -114,7 +114,6 @@ struct SolverSettings {
   // False is Fluent's classic steady formulation: no pseudo-time term, only
   // the implicit under-relaxation factors.
   bool pseudo_transient=true;
-  PressureCorrection pressure_correction=PressureCorrection::Simplec;
   FaceVelocityWeights face_velocity=FaceVelocityWeights::Momentum;
   PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
   double pseudo_time_scale=1;
