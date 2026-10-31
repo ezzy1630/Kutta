@@ -1,0 +1,44 @@
+# 2026-10-30T23:51:12Z ke-channel cpu 20 main run=1
+KE channel progress backend=cpu n=20 steps=100 defect=0.000376486 change=0.0456685
+KE channel progress backend=cpu n=20 steps=200 defect=9.89351e-05 change=0.021302
+KE channel progress backend=cpu n=20 steps=300 defect=2.25204e-05 change=0.00482436
+KE channel progress backend=cpu n=20 steps=400 defect=5.20094e-06 change=0.00110974
+KE channel progress backend=cpu n=20 steps=500 defect=1.16578e-06 change=0.000256337
+KE channel progress backend=cpu n=20 steps=600 defect=2.84526e-07 change=5.97591e-05
+KE_CHANNEL backend=cpu source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=20 steps=600 converged=1 seconds=0.040042041 ms_per_step=0.066736735 tau=0.999962151 defect=2.84526092e-07 change=5.97590855e-05
+real 0.04
+user 0.04
+sys 0.00
+# 2026-10-30T23:51:12Z ke-channel cpu 20 candidate run=1
+KE channel progress backend=cpu n=20 steps=100 defect=0.000376486 change=0.0456685
+KE channel progress backend=cpu n=20 steps=200 defect=9.89351e-05 change=0.021302
+KE channel progress backend=cpu n=20 steps=300 defect=2.25204e-05 change=0.00482436
+KE channel progress backend=cpu n=20 steps=400 defect=5.20094e-06 change=0.00110974
+KE channel progress backend=cpu n=20 steps=500 defect=1.16578e-06 change=0.000256337
+KE channel progress backend=cpu n=20 steps=600 defect=2.84526e-07 change=5.97591e-05
+KE_CHANNEL backend=cpu source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=20 steps=600 converged=1 seconds=0.040337375 ms_per_step=0.0672289583 tau=0.999962151 defect=2.84526092e-07 change=5.97590855e-05
+real 0.04
+user 0.04
+sys 0.00
+# 2026-10-30T23:51:13Z ke-channel cpu 20 main run=2
+KE channel progress backend=cpu n=20 steps=100 defect=0.000376486 change=0.0456685
+KE channel progress backend=cpu n=20 steps=200 defect=9.89351e-05 change=0.021302
+KE channel progress backend=cpu n=20 steps=300 defect=2.25204e-05 change=0.00482436
+KE channel progress backend=cpu n=20 steps=400 defect=5.20094e-06 change=0.00110974
+KE channel progress backend=cpu n=20 steps=500 defect=1.16578e-06 change=0.000256337
+KE channel progress backend=cpu n=20 steps=600 defect=2.84526e-07 change=5.97591e-05
+KE_CHANNEL backend=cpu source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=20 steps=600 converged=1 seconds=0.040084375 ms_per_step=0.0668072917 tau=0.999962151 defect=2.84526092e-07 change=5.97590855e-05
+real 0.04
+user 0.04
+sys 0.00
+# 2026-10-30T23:51:13Z ke-channel cpu 20 candidate run=2
+KE channel progress backend=cpu n=20 steps=100 defect=0.000376486 change=0.0456685
+KE channel progress backend=cpu n=20 steps=200 defect=9.89351e-05 change=0.021302
+KE channel progress backend=cpu n=20 steps=300 defect=2.25204e-05 change=0.00482436
+KE channel progress backend=cpu n=20 steps=400 defect=5.20094e-06 change=0.00110974
+KE channel progress backend=cpu n=20 steps=500 defect=1.16578e-06 change=0.000256337
+KE channel progress backend=cpu n=20 steps=600 defect=2.84526e-07 change=5.97591e-05
+KE_CHANNEL backend=cpu source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=20 steps=600 converged=1 seconds=0.040215625 ms_per_step=0.0670260417 tau=0.999962151 defect=2.84526092e-07 change=5.97590855e-05
+real 0.04
+user 0.04
+sys 0.00

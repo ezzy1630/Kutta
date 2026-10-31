@@ -1,0 +1,45 @@
+# 2026-10-30T23:35:52Z parity cpu main
+KE channel progress backend=cpu n=20 steps=100 defect=0.000376486 change=0.0456685
+KE channel progress backend=cpu n=20 steps=200 defect=9.89351e-05 change=0.021302
+KE channel progress backend=cpu n=20 steps=300 defect=2.25204e-05 change=0.00482436
+KE channel progress backend=cpu n=20 steps=400 defect=5.20094e-06 change=0.00110974
+KE channel progress backend=cpu n=20 steps=500 defect=1.16578e-06 change=0.000256337
+KE channel progress backend=cpu n=20 steps=600 defect=2.84526e-07 change=5.97591e-05
+PARITY backend=cpu source=63287b941fd08b53c7e29bd30428034cdbccbaee case=ke-channel-20 hash=4263a6c55de206aa seconds=0.0410583
+PARITY backend=cpu source=63287b941fd08b53c7e29bd30428034cdbccbaee case=sst-tet-channel hash=1ed4c187c03fa89b seconds=0.351468
+PARITY backend=cpu source=63287b941fd08b53c7e29bd30428034cdbccbaee case=laminar-lid-box hash=51924bc0604c9eff seconds=0.0617344
+PARITY backend=cpu source=63287b941fd08b53c7e29bd30428034cdbccbaee case=laminar-lid-box-140k hash=7132b2ddd3a62835 seconds=2.64607
+# 2026-10-30T23:35:55Z parity cpu candidate
+KE channel progress backend=cpu n=20 steps=100 defect=0.000376486 change=0.0456685
+KE channel progress backend=cpu n=20 steps=200 defect=9.89351e-05 change=0.021302
+KE channel progress backend=cpu n=20 steps=300 defect=2.25204e-05 change=0.00482436
+KE channel progress backend=cpu n=20 steps=400 defect=5.20094e-06 change=0.00110974
+KE channel progress backend=cpu n=20 steps=500 defect=1.16578e-06 change=0.000256337
+KE channel progress backend=cpu n=20 steps=600 defect=2.84526e-07 change=5.97591e-05
+PARITY backend=cpu source=7eea93c863a3357ed05fc0613d4b8fa750e06610 case=ke-channel-20 hash=4263a6c55de206aa seconds=0.0413688
+PARITY backend=cpu source=7eea93c863a3357ed05fc0613d4b8fa750e06610 case=sst-tet-channel hash=1ed4c187c03fa89b seconds=0.353908
+PARITY backend=cpu source=7eea93c863a3357ed05fc0613d4b8fa750e06610 case=laminar-lid-box hash=51924bc0604c9eff seconds=0.0615399
+PARITY backend=cpu source=7eea93c863a3357ed05fc0613d4b8fa750e06610 case=laminar-lid-box-140k hash=7132b2ddd3a62835 seconds=2.18914
+# 2026-10-30T23:35:58Z parity metal main
+KE channel progress backend=metal n=20 steps=100 defect=0.000376531 change=0.0456687
+KE channel progress backend=metal n=20 steps=200 defect=9.89376e-05 change=0.0213022
+KE channel progress backend=metal n=20 steps=300 defect=2.2492e-05 change=0.00482422
+KE channel progress backend=metal n=20 steps=400 defect=5.20172e-06 change=0.00110939
+KE channel progress backend=metal n=20 steps=500 defect=1.21809e-06 change=0.000256478
+KE channel progress backend=metal n=20 steps=600 defect=3.24642e-07 change=5.95474e-05
+PARITY backend=metal source=63287b941fd08b53c7e29bd30428034cdbccbaee case=ke-channel-20 hash=72586688e49e9606 seconds=13.2116
+PARITY backend=metal source=63287b941fd08b53c7e29bd30428034cdbccbaee case=sst-tet-channel hash=253bfa09c0471f56 seconds=0.398925
+PARITY backend=metal source=63287b941fd08b53c7e29bd30428034cdbccbaee case=laminar-lid-box hash=d34d0604f98f7a95 seconds=0.242327
+PARITY backend=metal source=63287b941fd08b53c7e29bd30428034cdbccbaee case=laminar-lid-box-140k hash=1dda4da81f0c54de seconds=1.20489
+# 2026-10-30T23:36:13Z parity metal candidate
+KE channel progress backend=metal n=20 steps=100 defect=0.000376531 change=0.0456687
+KE channel progress backend=metal n=20 steps=200 defect=9.89376e-05 change=0.0213022
+KE channel progress backend=metal n=20 steps=300 defect=2.2492e-05 change=0.00482422
+KE channel progress backend=metal n=20 steps=400 defect=5.20172e-06 change=0.00110939
+KE channel progress backend=metal n=20 steps=500 defect=1.21809e-06 change=0.000256478
+KE channel progress backend=metal n=20 steps=600 defect=3.24642e-07 change=5.95474e-05
+PARITY backend=metal source=7eea93c863a3357ed05fc0613d4b8fa750e06610 case=ke-channel-20 hash=72586688e49e9606 seconds=6.48621
+PARITY backend=metal source=7eea93c863a3357ed05fc0613d4b8fa750e06610 case=sst-tet-channel hash=253bfa09c0471f56 seconds=0.345913
+PARITY backend=metal source=7eea93c863a3357ed05fc0613d4b8fa750e06610 case=laminar-lid-box hash=d34d0604f98f7a95 seconds=0.241323
+PARITY backend=metal source=7eea93c863a3357ed05fc0613d4b8fa750e06610 case=laminar-lid-box-140k hash=1dda4da81f0c54de seconds=0.726269
+# 2026-10-30T23:52:38Z done

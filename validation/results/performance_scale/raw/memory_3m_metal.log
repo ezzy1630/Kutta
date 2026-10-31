@@ -1,0 +1,11 @@
+# 2026-10-31T01:13:39Z candidate metal 160 160 120 swap_before=1913.12M
+MEMORY_PHASE source=c21e59c0f83b56ed05a103e16bbff4c7fba7ef23 phase=device seconds=0.0310377 footprint_GB=0.0097327 heap_GB=0.00268194 peak_rss_GB=0.0214467
+MEMORY_PHASE source=c21e59c0f83b56ed05a103e16bbff4c7fba7ef23 phase=mesh seconds=4.77594 footprint_GB=1.28243 heap_GB=0.631616 peak_rss_GB=3.47754
+MEMORY_PHASE source=c21e59c0f83b56ed05a103e16bbff4c7fba7ef23 phase=solver_setup seconds=9.1394 footprint_GB=10.243 heap_GB=1.26951 peak_rss_GB=6.58126
+MEMORY_PHASE source=c21e59c0f83b56ed05a103e16bbff4c7fba7ef23 phase=initialize seconds=0.785663 footprint_GB=6.5085 heap_GB=1.26952 peak_rss_GB=6.58126
+MEMORY_PHASE source=c21e59c0f83b56ed05a103e16bbff4c7fba7ef23 phase=first_iteration seconds=0.69487 footprint_GB=6.67357 heap_GB=1.26984 peak_rss_GB=6.58126
+MEMORY_PHASE source=c21e59c0f83b56ed05a103e16bbff4c7fba7ef23 phase=iterations seconds=1.13935 footprint_GB=6.67357 heap_GB=1.26984 peak_rss_GB=6.58126
+MEMORY_TOTAL source=c21e59c0f83b56ed05a103e16bbff4c7fba7ef23 backend=metal cells=3072000 faces=9280000 internal_faces=9152000 device_bytes_per_cell=1631.63 device_peak_bytes_per_cell=1631.63 device_GB=5.01235 footprint_GB=6.67357 peak_footprint_GB=10.8299 heap_GB=1.26984 peak_rss_GB=6.58126 seconds_per_iteration=0.569674 pressure_iterations=25 finite=1
+       16.65 real        14.45 user         1.62 sys
+         10829946800  peak memory footprint
+# swap_after=2124.88M

@@ -1,0 +1,48 @@
+# 2026-10-30T23:51:13Z elbow metal main run=1 iterations=150
+real 4.65
+ELBOW setup_time_seconds=1.811219083 wall_time_seconds=2.603244208 iterations=150
+ELBOW_HASH residuals=b31cc5c309a5b305 forces=62620087e01e830d fluxes=1cec2c6342f687a6 vtu=9272b5efcd6fcf37
+# 2026-10-30T23:51:17Z elbow metal candidate run=1 iterations=150
+real 3.76
+ELBOW setup_time_seconds=1.57025225 wall_time_seconds=1.971734333 iterations=150
+ELBOW_HASH residuals=b31cc5c309a5b305 forces=62620087e01e830d fluxes=1cec2c6342f687a6 vtu=9272b5efcd6fcf37
+# 2026-10-30T23:51:21Z elbow metal main run=2 iterations=150
+real 4.61
+ELBOW setup_time_seconds=1.805887583 wall_time_seconds=2.562138959 iterations=150
+ELBOW_HASH residuals=b31cc5c309a5b305 forces=62620087e01e830d fluxes=1cec2c6342f687a6 vtu=9272b5efcd6fcf37
+# 2026-10-30T23:51:26Z elbow metal candidate run=2 iterations=150
+real 3.75
+ELBOW setup_time_seconds=1.568122125 wall_time_seconds=1.971970667 iterations=150
+ELBOW_HASH residuals=b31cc5c309a5b305 forces=62620087e01e830d fluxes=1cec2c6342f687a6 vtu=9272b5efcd6fcf37
+# 2026-10-30T23:51:30Z elbow metal main run=3 iterations=150
+real 4.62
+ELBOW setup_time_seconds=1.804992458 wall_time_seconds=2.576770125 iterations=150
+ELBOW_HASH residuals=b31cc5c309a5b305 forces=62620087e01e830d fluxes=1cec2c6342f687a6 vtu=9272b5efcd6fcf37
+# 2026-10-30T23:51:35Z elbow metal candidate run=3 iterations=150
+real 3.75
+ELBOW setup_time_seconds=1.560059584 wall_time_seconds=1.972161083 iterations=150
+ELBOW_HASH residuals=b31cc5c309a5b305 forces=62620087e01e830d fluxes=1cec2c6342f687a6 vtu=9272b5efcd6fcf37
+# 2026-10-30T23:51:38Z elbow cpu main run=1 iterations=30
+real 9.75
+ELBOW setup_time_seconds=6.74169325 wall_time_seconds=2.771760417 iterations=30
+ELBOW_HASH residuals=66e236eb661851e9 forces=c64a075e3fb91892 fluxes=7fc883918a8c2233 vtu=6e015e0383fd20e5
+# 2026-10-30T23:51:48Z elbow cpu candidate run=1 iterations=30
+real 9.70
+ELBOW setup_time_seconds=6.69683275 wall_time_seconds=2.788341334 iterations=30
+ELBOW_HASH residuals=66e236eb661851e9 forces=c64a075e3fb91892 fluxes=7fc883918a8c2233 vtu=6e015e0383fd20e5
+# 2026-10-30T23:51:58Z elbow cpu main run=2 iterations=30
+real 9.75
+ELBOW setup_time_seconds=6.747999416 wall_time_seconds=2.754904791 iterations=30
+ELBOW_HASH residuals=66e236eb661851e9 forces=c64a075e3fb91892 fluxes=7fc883918a8c2233 vtu=6e015e0383fd20e5
+# 2026-10-30T23:52:08Z elbow cpu candidate run=2 iterations=30
+real 9.92
+ELBOW setup_time_seconds=6.777504666 wall_time_seconds=2.915463125 iterations=30
+ELBOW_HASH residuals=66e236eb661851e9 forces=c64a075e3fb91892 fluxes=7fc883918a8c2233 vtu=6e015e0383fd20e5
+# 2026-10-30T23:52:18Z elbow cpu main run=3 iterations=30
+real 10.11
+ELBOW setup_time_seconds=7.009031833 wall_time_seconds=2.850160875 iterations=30
+ELBOW_HASH residuals=66e236eb661851e9 forces=c64a075e3fb91892 fluxes=7fc883918a8c2233 vtu=6e015e0383fd20e5
+# 2026-10-30T23:52:28Z elbow cpu candidate run=3 iterations=30
+real 10.08
+ELBOW setup_time_seconds=6.956901333 wall_time_seconds=2.895899208 iterations=30
+ELBOW_HASH residuals=66e236eb661851e9 forces=c64a075e3fb91892 fluxes=7fc883918a8c2233 vtu=6e015e0383fd20e5

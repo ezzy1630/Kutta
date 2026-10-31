@@ -1,0 +1,36 @@
+# 2026-10-30T22:37:55Z main metal 160x128x100
+MEMORY_PHASE source=63287b941fd08b53c7e29bd30428034cdbccbaee phase=device seconds=0.0338228 footprint_GB=0.00881514 heap_GB=0.00220434 peak_rss_GB=0.019841
+MEMORY_PHASE source=63287b941fd08b53c7e29bd30428034cdbccbaee phase=mesh seconds=4.47042 footprint_GB=0.436078 heap_GB=0.329378 peak_rss_GB=2.19134
+MEMORY_PHASE source=63287b941fd08b53c7e29bd30428034cdbccbaee phase=solver_setup seconds=12.362 footprint_GB=6.4958 heap_GB=0.859345 peak_rss_GB=4.22923
+MEMORY_PHASE source=63287b941fd08b53c7e29bd30428034cdbccbaee phase=initialize seconds=0.489234 footprint_GB=6.2629 heap_GB=0.859349 peak_rss_GB=4.22923
+MEMORY_PHASE source=63287b941fd08b53c7e29bd30428034cdbccbaee phase=first_iteration seconds=0.502383 footprint_GB=6.60592 heap_GB=0.859661 peak_rss_GB=4.22923
+MEMORY_PHASE source=63287b941fd08b53c7e29bd30428034cdbccbaee phase=iterations seconds=1.16917 footprint_GB=5.76645 heap_GB=0.859661 peak_rss_GB=4.22923
+MEMORY_ARRAYS source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=2048000 length=boundary_faces arrays=36 bytes_per_cell=6.93
+MEMORY_ARRAYS source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=2048000 length=cell_face_entries arrays=35 bytes_per_cell=840
+MEMORY_ARRAYS source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=2048000 length=cells arrays=191 bytes_per_cell=764
+MEMORY_ARRAYS source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=2048000 length=cells+1 arrays=2 bytes_per_cell=8
+MEMORY_ARRAYS source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=2048000 length=faces arrays=32 bytes_per_cell=387.08
+MEMORY_ARRAYS source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=2048000 length=internal_faces arrays=5 bytes_per_cell=59.5187
+MEMORY_ARRAYS source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=2048000 length=matrix_entries arrays=3 bytes_per_cell=83.4225
+MEMORY_ARRAYS source=63287b941fd08b53c7e29bd30428034cdbccbaee cells=2048000 length=other arrays=148 bytes_per_cell=20.8446
+MEMORY_TOTAL source=63287b941fd08b53c7e29bd30428034cdbccbaee backend=metal cells=2048000 faces=6193280 internal_faces=6094720 device_bytes_per_cell=2169.8 device_peak_bytes_per_cell=2169.8 device_GB=4.44374 footprint_GB=5.76645 peak_footprint_GB=6.87465 heap_GB=0.859662 peak_rss_GB=4.22923 seconds_per_iteration=0.389722 pressure_iterations=24 finite=1
+          4229234688  maximum resident set size
+          6874650456  peak memory footprint
+# 2026-10-30T22:38:14Z candidate metal 160x128x100
+MEMORY_PHASE source=7eea93c863a3357ed05fc0613d4b8fa750e06610 phase=device seconds=0.03327 footprint_GB=0.00929026 heap_GB=0.00222818 peak_rss_GB=0.0207913
+MEMORY_PHASE source=7eea93c863a3357ed05fc0613d4b8fa750e06610 phase=mesh seconds=3.29648 footprint_GB=0.436127 heap_GB=0.329402 peak_rss_GB=2.19203
+MEMORY_PHASE source=7eea93c863a3357ed05fc0613d4b8fa750e06610 phase=solver_setup seconds=6.41166 footprint_GB=5.53411 heap_GB=0.859344 peak_rss_GB=5.64694
+MEMORY_PHASE source=7eea93c863a3357ed05fc0613d4b8fa750e06610 phase=initialize seconds=0.475841 footprint_GB=6.04501 heap_GB=0.859348 peak_rss_GB=5.64694
+MEMORY_PHASE source=7eea93c863a3357ed05fc0613d4b8fa750e06610 phase=first_iteration seconds=0.511066 footprint_GB=5.7868 heap_GB=0.859677 peak_rss_GB=5.64694
+MEMORY_PHASE source=7eea93c863a3357ed05fc0613d4b8fa750e06610 phase=iterations seconds=1.18091 footprint_GB=4.91291 heap_GB=0.859677 peak_rss_GB=5.64694
+MEMORY_ARRAYS source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=2048000 length=boundary_faces arrays=54 bytes_per_cell=10.395
+MEMORY_ARRAYS source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=2048000 length=cell_face_entries arrays=20 bytes_per_cell=480
+MEMORY_ARRAYS source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=2048000 length=cells arrays=146 bytes_per_cell=584
+MEMORY_ARRAYS source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=2048000 length=cells+1 arrays=2 bytes_per_cell=8
+MEMORY_ARRAYS source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=2048000 length=faces arrays=32 bytes_per_cell=387.08
+MEMORY_ARRAYS source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=2048000 length=internal_faces arrays=5 bytes_per_cell=59.5187
+MEMORY_ARRAYS source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=2048000 length=matrix_entries arrays=3 bytes_per_cell=83.4225
+MEMORY_ARRAYS source=7eea93c863a3357ed05fc0613d4b8fa750e06610 cells=2048000 length=other arrays=150 bytes_per_cell=20.8446
+MEMORY_TOTAL source=7eea93c863a3357ed05fc0613d4b8fa750e06610 backend=metal cells=2048000 faces=6193280 internal_faces=6094720 device_bytes_per_cell=1633.26 device_peak_bytes_per_cell=1633.26 device_GB=3.34492 footprint_GB=4.91291 peak_footprint_GB=6.16527 heap_GB=0.859677 peak_rss_GB=5.64694 seconds_per_iteration=0.393638 pressure_iterations=24 finite=1
+          5646942208  maximum resident set size
+          6165271616  peak memory footprint
