@@ -63,10 +63,14 @@ Wall force is pressure relative to the requested reference, minus the viscous
 traction on the fluid, integrated using Device double/compensated reductions.
 
 `boundary_least_squares()` precomputes each field's observation matrix for
-laminar and SST flow alike. Pressure includes prescribed outlet pressure and
-omits wall, inlet and symmetry rows. Extrapolated boundary pressure supplies no
-independent LSQ observation. Momentum separately uses `p_c+G·r_b` on those
-boundaries, including at symmetry. Velocity includes wall, inlet and projected
+laminar and SST flow alike. Pressure includes prescribed outlet pressure and,
+at every other boundary face, a row holding the cell pressure (the value Fluent
+stores there): at the normal foot for the standard scheme, at the face centroid
+for second-order pressure. Without those rows a tet wall cell extrapolates its
+own wall pressure from interior neighbours alone, which diverged on the
+k-epsilon elbow ([tet robustness](../../../validation/results/tet_robustness/REPORT.md)).
+The extrapolated value never feeds the fit. Momentum separately uses
+`p_c+G·r_b` on those boundaries for second-order pressure, including at symmetry. Velocity includes wall, inlet and projected
 symmetry data, and omits outlet rows. k includes inlet rows; omega additionally
 includes independent wall reconstruction values. Excluded rows have zero
 weighted deltas. A symmetric eigensolve constrains only deficient directions,

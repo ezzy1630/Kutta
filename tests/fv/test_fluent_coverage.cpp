@@ -24,6 +24,7 @@ namespace {
 struct Pair {
   const char* name;std::filesystem::path cas,dat;
   std::vector<Approximation> approximations;
+  bool second_order_pressure=false;  // the methods/pressure-scheme override
 };
 const std::filesystem::path elbow_steady="other_folders/result_files/fluent-mixing_elbow_steady-state";
 const std::filesystem::path nozzle_run="flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP";
@@ -68,7 +69,7 @@ struct Restored {
   ~Restored() {std::error_code ec;std::filesystem::remove(path,ec);}
 };
 struct Comparison {
-  double velocity=0,pressure=0,k=0,second=0,pressure_drop=0,wall_force=0;
+  double continuity=0,momentum=0,velocity=0,pressure=0,k=0,second=0,pressure_drop=0,wall_force=0;
   std::map<std::string,std::pair<double,double>> coefficients;  // force reports: ours, Fluent
   Index backflow=0;  // pressure-outlet faces with inflow in the solved state
 };
@@ -78,7 +79,8 @@ struct Comparison {
 // cases have no closure fields; a 2D case's extrusion caps have no zone.
 Comparison solve_and_compare(Device& dev,const Pair& pair,int iterations) {
   const auto cp=fluent_examples()/pair.cas,dp=fluent_examples()/pair.dat;
-  const auto c=fluent::read_case(cp);const auto mesh=read_mesh(cp);const auto d=fluent::read_data(dp,c);
+  auto c=fluent::read_case(cp);const auto mesh=read_mesh(cp);const auto d=fluent::read_data(dp,c);
+  if(pair.second_order_pressure) c.numerics.pressure=fluent::Scheme::second_pressure;
   const auto saved=setup::fluent_fields(c,d,mesh);const auto problem=setup::fluent_setup(c,mesh,pair.approximations);
   SteadySolver solver(dev,mesh,problem.boundaries,problem.settings);
   setup::initialize(solver,setup::initial_fields(c,mesh));
@@ -89,6 +91,7 @@ Comparison solve_and_compare(Device& dev,const Pair& pair,int iterations) {
   INFO(std::string(pair.name));
   const bool turbulent=!saved.k.empty(),ke=!saved.epsilon.empty();
   Comparison out;
+  out.continuity=report.continuity.fluent_scaled;out.momentum=std::max({report.u.scaled,report.v.scaled,report.w.scaled});
   {
     const auto mass=dev.download(solver.mass_flux());
     for(const auto& patch:solver.mesh().patches) if(patch.kind==PatchKind::PressureOutlet)
@@ -220,6 +223,43 @@ TEST_CASE("Fluent standard k-epsilon elbow and SST nozzle match converged Fluent
       CHECK(r.velocity<.025);CHECK(r.pressure<.009);CHECK(r.k<.08);CHECK(r.second<.085);
       CHECK(r.pressure_drop<.008);CHECK(r.wall_force<.01);
     }
+  }
+}
+
+// The k-epsilon elbow's tet wall cells have interior neighbours almost in one
+// plane. With second-order pressure their fit once held no wall data and the
+// run went non-finite within 30 iterations on every backend
+// (validation/results/tet_robustness/REPORT.md).
+TEST_CASE("Second-order pressure keeps the k-epsilon elbow tet wall layer bounded") {
+  auto pair=elbow_param();pair.second_order_pressure=true;
+  if(!present(pair)) return;
+  const auto cp=fluent_examples()/pair.cas;
+  auto c=fluent::read_case(cp);c.numerics.pressure=fluent::Scheme::second_pressure;
+  const auto mesh=read_mesh(cp);const auto problem=setup::fluent_setup(c,mesh,pair.approximations);
+  REQUIRE(problem.settings.pressure_interpolation==PressureInterpolation::SecondOrder);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    SteadySolver solver(*dev,mesh,problem.boundaries,problem.settings);
+    setup::initialize(solver,setup::initial_fields(c,mesh));
+    solver.iterate(30);
+    const auto r=solver.monitor();
+    // Inlets are 10 and 25 m/s; the unclosed fit reached 3,600 m/s.
+    CHECK(std::isfinite(r.continuity.fluent_scaled));CHECK(r.maximum_velocity<50);
+    CHECK(r.continuity.fluent_scaled<.1);
+  }
+}
+
+// The same elbow with second-order pressure, against Fluent's converged
+// standard-pressure fields. Bounds are about 1.5x the measured CPU and Metal
+// values in validation/results/tet_robustness/REPORT.md; the schemes differ,
+// so these bound agreement rather than claim a same-scheme comparison.
+TEST_CASE("Fluent k-epsilon elbow converges with second-order pressure" * doctest::test_suite("slow")) {
+  auto pair=elbow_param();pair.second_order_pressure=true;
+  if(!present(pair)) return;
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    const auto r=solve_and_compare(*dev,pair,400);
+    CHECK(r.continuity<1e-4);CHECK(r.momentum<1e-6);
+    CHECK(r.velocity<.016);CHECK(r.pressure<.087);CHECK(r.k<.131);CHECK(r.second<.254);
+    CHECK(r.pressure_drop<.017);CHECK(r.wall_force<.0061);
   }
 }
 

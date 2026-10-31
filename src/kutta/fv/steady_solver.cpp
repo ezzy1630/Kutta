@@ -250,11 +250,16 @@ struct SteadySolver::Impl {
     std::vector<BoundaryObservation> independent_velocity(nb),independent_pressure(nb),independent_k(nb),independent_omega(nb);
     for(Index b=0;b<nb;++b) {
       independent_velocity[b]=kinds[b]==3?NormalFootValue:((kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted);
-      // Second-order pressure extrapolates unprescribed boundary values, so they
-      // carry no information. The standard scheme's zero normal derivative is
-      // data: it closes wall-cell fits whose neighbours lie in one plane.
+      // Unprescribed boundary rows hold the cell pressure, the value Fluent
+      // stores there. The standard scheme's zero normal derivative sits at
+      // the normal foot. Second-order pressure still extrapolates momentum's
+      // boundary pressure, but its fit keeps Fluent's face-centroid rows (the
+      // best fit to Fluent's converged V6 momentum residual): without them
+      // wall cells extrapolate from interior neighbours alone and the
+      // mixing-elbow tet wall layer diverges
+      // (validation/results/tet_robustness/REPORT.md).
       const bool zero_normal=settings.pressure_interpolation==PressureInterpolation::Standard;
-      independent_pressure[b]=(kinds[b]==2 || kinds[b]==4)?FaceValue:(zero_normal?NormalFootValue:Omitted);
+      independent_pressure[b]=(kinds[b]==2 || kinds[b]==4)?FaceValue:(zero_normal?NormalFootValue:FaceValue);
       independent_k[b]=kinds[b]==1?FaceValue:Omitted;independent_omega[b]=(kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted;
       // BEGIN FSAE physics: pressure inlets prescribe transported inflow data.
       if(open_kinds[b]==1) {independent_velocity[b]=FaceValue;independent_k[b]=FaceValue;independent_omega[b]=FaceValue;}
@@ -596,9 +601,8 @@ struct SteadySolver::Impl {
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
       prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
-    if(settings.pressure_interpolation==PressureInterpolation::Standard)
-      kern::fv_standard_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,pressure,
-        boundary_pressure,mesh.n_internal_faces);
+    kern::fv_cell_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,pressure,
+      boundary_pressure,mesh.n_internal_faces);
     apply_backflow_pressure();
     reconstruct_pressure(pressure,boundary_pressure,grad_p);
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
