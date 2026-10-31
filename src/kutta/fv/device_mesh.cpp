@@ -113,11 +113,19 @@ class WallBvh {
   }
 };
 
-DeviceVec3 upload_vectors(Device& dev, const std::vector<Vec3d>& values) {
-  std::vector<float> x, y, z;
-  x.reserve(values.size()); y.reserve(values.size()); z.reserve(values.size());
-  for (auto v : values) { x.push_back(float(v.x)); y.push_back(float(v.y)); z.push_back(float(v.z)); }
-  return {dev.upload<float>(x), dev.upload<float>(y), dev.upload<float>(z)};
+// Uploads value(0..n) one float component at a time, so neither a Vec3d
+// array nor three float copies of it are held on the host.
+template <class F>
+DeviceVec3 upload_vectors(Device& dev, std::size_t n, const F& value) {
+  std::vector<float> c(n);
+  DeviceVec3 out;
+  for (std::size_t i = 0; i < n; ++i) c[i] = float(value(i).x);
+  out.x = dev.upload<float>(c);
+  for (std::size_t i = 0; i < n; ++i) c[i] = float(value(i).y);
+  out.y = dev.upload<float>(c);
+  for (std::size_t i = 0; i < n; ++i) c[i] = float(value(i).z);
+  out.z = dev.upload<float>(c);
+  return out;
 }
 }  // namespace
 
@@ -130,21 +138,22 @@ DeviceMesh upload_mesh(Device& dev, const PolyMesh& mesh, const MeshGeometry& g)
   DeviceMesh m;
   m.n_cells = mesh.n_cells; m.n_faces = mesh.n_faces(); m.n_internal_faces = mesh.n_internal_faces();
   m.owner = dev.upload<Index>(mesh.owner); m.neighbour = dev.upload<Index>(mesh.neighbour);
-  m.area = upload_vectors(dev, g.face_area);
-  std::vector<Vec3d> rp, rn, d;
-  std::vector<float> weights, volumes, distance, normal_distance(m.n_boundary_faces(), 0);
-  for (Index f = 0; f < m.n_faces; ++f) {
-    rp.push_back(g.face_centroid[f] - g.cell_centroid[mesh.owner[f]]);
-    if (f < m.n_internal_faces) {
-      rn.push_back(g.face_centroid[f] - g.cell_centroid[mesh.neighbour[f]]);
-      d.push_back(g.cell_centroid[mesh.neighbour[f]] - g.cell_centroid[mesh.owner[f]]);
-      const double owner_normal = dot(rp.back(), g.face_area[f]);
-      const double neighbour_normal = -dot(rn.back(), g.face_area[f]);
-      weights.push_back(float(neighbour_normal / (owner_normal + neighbour_normal)));
-    } else d.push_back(rp.back());
+  const auto faces = std::size_t(m.n_faces), internal = std::size_t(m.n_internal_faces);
+  m.area = upload_vectors(dev, faces, [&](std::size_t f) { return g.face_area[f]; });
+  const auto rp = [&](std::size_t f) { return g.face_centroid[f] - g.cell_centroid[mesh.owner[f]]; };
+  const auto rn = [&](std::size_t f) { return g.face_centroid[f] - g.cell_centroid[mesh.neighbour[f]]; };
+  std::vector<float> weights(internal), volumes, distance, normal_distance(m.n_boundary_faces(), 0);
+  for (std::size_t f = 0; f < internal; ++f) {
+    const double owner_normal = dot(rp(f), g.face_area[f]);
+    const double neighbour_normal = -dot(rn(f), g.face_area[f]);
+    weights[f] = float(neighbour_normal / (owner_normal + neighbour_normal));
   }
-  m.owner_to_face = upload_vectors(dev, rp); m.neighbour_to_face = upload_vectors(dev, rn);
-  m.owner_to_neighbour = upload_vectors(dev, d); m.weight = dev.upload<float>(weights);
+  m.owner_to_face = upload_vectors(dev, faces, rp);
+  m.neighbour_to_face = upload_vectors(dev, internal, rn);
+  m.owner_to_neighbour = upload_vectors(dev, faces, [&](std::size_t f) {
+    return f < internal ? g.cell_centroid[mesh.neighbour[f]] - g.cell_centroid[mesh.owner[f]] : rp(f);
+  });
+  m.weight = dev.upload<float>(weights);
   const auto cf = build_cell_faces(mesh);
   m.cell_face_offsets = dev.upload<Index>(cf.offsets); m.cell_faces = dev.upload<Index>(cf.faces);
   std::vector<float> sign(cf.signs.begin(), cf.signs.end());
@@ -173,7 +182,7 @@ DeviceMesh upload_mesh(Device& dev, const PolyMesh& mesh, const MeshGeometry& g)
     m.patches.push_back({p.name, p.kind, p.start, p.size});
     if (p.kind == PatchKind::Wall)
       for (Index f = p.start; f < p.start + p.size; ++f)
-        normal_distance[f - m.n_internal_faces] = float(std::abs(dot(rp[f], g.face_area[f])) / norm(g.face_area[f]));
+        normal_distance[f - m.n_internal_faces] = float(std::abs(dot(rp(std::size_t(f)), g.face_area[f])) / norm(g.face_area[f]));
   }
   m.volume = dev.upload<float>(volumes); m.wall_distance = dev.upload<float>(distance);
   m.wall_normal_distance = dev.upload<float>(normal_distance);

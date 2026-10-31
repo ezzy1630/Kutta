@@ -11,10 +11,18 @@
 namespace kutta::fv {
 using namespace detail;
 namespace {
+// One component at a time: three float copies would add half again to the
+// Vec3d array's host footprint during setup.
 DeviceVec3 vectors(Device& dev, const std::vector<Vec3d>& values) {
-  std::vector<float> x, y, z;
-  for (auto v : values) { x.push_back(float(v.x)); y.push_back(float(v.y)); z.push_back(float(v.z)); }
-  return {dev.upload<float>(x),dev.upload<float>(y),dev.upload<float>(z)};
+  std::vector<float> c(values.size());
+  DeviceVec3 out;
+  for (std::size_t i = 0; i < c.size(); ++i) c[i] = float(values[i].x);
+  out.x = dev.upload<float>(c);
+  for (std::size_t i = 0; i < c.size(); ++i) c[i] = float(values[i].y);
+  out.y = dev.upload<float>(c);
+  for (std::size_t i = 0; i < c.size(); ++i) c[i] = float(values[i].z);
+  out.z = dev.upload<float>(c);
+  return out;
 }
 // The rows of boundary faces, in boundary-face order, from per-entry rows.
 // A boundary face has exactly one cell-face entry (its owner's).

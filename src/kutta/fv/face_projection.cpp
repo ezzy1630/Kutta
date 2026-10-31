@@ -196,29 +196,7 @@ WalkFaceReconstruction::WalkFaceReconstruction(Device& dev,const PolyMesh& mesh,
   std::vector<Index> observed(faces-internal);
   for(Index b=0;b<faces-internal;++b) observed[b]=observations[b]==BoundaryObservation::FaceValue;
   const auto other=[&](Index c,Index f) {return mesh.owner[f]==c?mesh.neighbour[f]:mesh.owner[f];};
-  // Geometry moments G^k (moments of the constant one), exactly as the device
-  // hops accumulate them: one walk step per internal face of the cell.
-  std::vector<std::vector<Row>> geometry(hops+1,std::vector<Row>(cells));
-  for(Index c=0;c<cells;++c) {
-    Row m{};m[9]=1;
-    for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
-      const auto f=cf.faces[j];if(f<internal || !observed[f-internal]) continue;
-      const auto b=basis(g.face_centroid[f]-g.cell_centroid[c]);for(int k=0;k<terms;++k) m[k]+=b[k];
-    }
-    geometry[0][c]=m;
-  }
-  for(int level=0;level<hops;++level) for(Index c=0;c<cells;++c) {
-    auto m=geometry[level][c];
-    for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
-      const auto f=cf.faces[j];if(f>=internal) continue;const auto d=other(c,f);
-      const auto s=shift(geometry[level][d],g.cell_centroid[d]-g.cell_centroid[c]);for(int k=0;k<terms;++k) m[k]+=s[k];
-    }
-    geometry[level+1][c]=m;
-  }
-  // Each face's fit is independent; workers fill per-face results and the
-  // slots are numbered serially afterwards, so threading never changes them.
   struct Fit {bool corrected=false,fallback=false;std::array<float,3*terms> c{};};
-  std::vector<Fit> fits(faces);
   const auto fit_face=[&](Index face,std::map<Index,double>& walks,std::map<Index,double>& next) {
     Fit out;
     if(face>=internal && !observed[face-internal]) return out;
@@ -276,31 +254,67 @@ WalkFaceReconstruction::WalkFaceReconstruction(Device& dev,const PolyMesh& mesh,
     }
     out.corrected=true;out.fallback=false;return out;
   };
+  // Each face's fit is independent. Workers keep each chunk's corrected rows
+  // only, and slots are numbered serially afterwards in face order, so
+  // threading never changes them and uncorrected faces cost no row storage.
+  constexpr Index chunk=256;
+  struct Chunk {std::vector<Index> corrected;std::vector<float> rows;Index fallback=0;};
+  std::vector<Chunk> chunks((std::size_t(faces)+chunk-1)/chunk);
   {
-    std::atomic<Index> cursor{0};constexpr Index chunk=256;
+    std::atomic<Index> cursor{0};
     const auto work=[&] {
       std::map<Index,double> walks,next;
-      for(Index begin;(begin=cursor.fetch_add(chunk))<faces;)
-        for(Index face=begin;face<std::min(faces,begin+chunk);++face) fits[face]=fit_face(face,walks,next);
+      for(Index begin;(begin=cursor.fetch_add(chunk))<faces;) {
+        auto& out=chunks[std::size_t(begin/chunk)];
+        for(Index face=begin;face<std::min(faces,begin+chunk);++face) {
+          const auto fit=fit_face(face,walks,next);
+          out.fallback+=fit.fallback;
+          if(fit.corrected) {out.corrected.push_back(face);out.rows.insert(out.rows.end(),fit.c.begin(),fit.c.end());}
+        }
+      }
     };
     std::vector<std::thread> workers(std::max(1u,std::min(std::thread::hardware_concurrency(),32u))-1);
     for(auto& w:workers) w=std::thread(work);
     work();for(auto& w:workers) w.join();
   }
   std::vector<Index> slot(faces,-1),mask(faces,0);
-  for(Index face=0;face<faces;++face) {
-    if(fits[face].fallback) ++fallback_;
-    if(fits[face].corrected) {slot[face]=slots_++;mask[face]=1;}
+  for(const auto& c:chunks) {
+    fallback_+=std::size_t(c.fallback);
+    for(auto face:c.corrected) {slot[face]=slots_++;mask[face]=1;}
   }
   corrected_=std::size_t(slots_);
-  std::vector<float> rows(std::size_t(3*terms)*std::max<Index>(slots_,1),0);
-  for(Index face=0;face<faces;++face) if(slot[face]>=0)
-    std::copy(fits[face].c.begin(),fits[face].c.end(),rows.begin()+std::ptrdiff_t(slot[face])*3*terms);
-  coefficients_=dev.upload<float>(rows);
+  {
+    std::vector<float> rows(std::size_t(3*terms)*std::max<Index>(slots_,1),0);
+    auto at=rows.begin();
+    for(auto& c:chunks) {at=std::copy(c.rows.begin(),c.rows.end(),at);c=Chunk{};}
+    coefficients_=dev.upload<float>(rows);
+  }
+  // Geometry moments G^k (moments of the constant one), exactly as the device
+  // hops accumulate them: one walk step per internal face of the cell. Each
+  // level needs only the previous one.
+  std::vector<Row> level_moments(cells),next_moments(cells);
+  for(Index c=0;c<cells;++c) {
+    Row m{};m[9]=1;
+    for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
+      const auto f=cf.faces[j];if(f<internal || !observed[f-internal]) continue;
+      const auto b=basis(g.face_centroid[f]-g.cell_centroid[c]);for(int k=0;k<terms;++k) m[k]+=b[k];
+    }
+    level_moments[c]=m;
+  }
   for(int level=0;level<=hops;++level) {
     std::vector<float> values(std::size_t(terms)*cells);
-    for(Index c=0;c<cells;++c) for(int k=0;k<terms;++k) values[std::size_t(c)*terms+k]=float(geometry[level][c][k]);
+    for(Index c=0;c<cells;++c) for(int k=0;k<terms;++k) values[std::size_t(c)*terms+k]=float(level_moments[c][k]);
     geometry_[level]=dev.upload<float>(values);
+    if(level==hops) break;
+    for(Index c=0;c<cells;++c) {
+      auto m=level_moments[c];
+      for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
+        const auto f=cf.faces[j];if(f>=internal) continue;const auto d=other(c,f);
+        const auto s=shift(level_moments[d],g.cell_centroid[d]-g.cell_centroid[c]);for(int k=0;k<terms;++k) m[k]+=s[k];
+      }
+      next_moments[c]=m;
+    }
+    level_moments.swap(next_moments);
   }
   observed_host_=observed;observed_=dev.upload<Index>(observed);slot_=dev.upload<Index>(slot);mask_=dev.upload<Index>(mask);
   // A moment row holds the ten moments, then the cloud minimum and maximum.

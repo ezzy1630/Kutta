@@ -78,23 +78,26 @@ std::string csv(const std::string& s) {
 }
 double seconds(Clock::time_point start) {return std::chrono::duration<double>(Clock::now()-start).count();}
 void write_fields(Device& dev,const fv::SteadySolver& solver,const fv::SolverSettings& settings,const std::filesystem::path& path,std::string_view notice) {
-  const auto download=[&](const Buffer<float>& b) {
+  // Each float download goes straight into the double array the writer reads,
+  // one component at a time, so the export holds no second copy of a field.
+  const auto download=[&](const Buffer<float>& b,std::vector<double>& to,std::size_t components=1,std::size_t component=0) {
     const auto v=dev.download(b);
     KUTTA_REQUIRE(std::all_of(v.begin(),v.end(),[](float q){return std::isfinite(q);}),"non-finite result field");
-    return std::vector<double>(v.begin(),v.end());
+    to.resize(components*v.size());
+    for(std::size_t i=0;i<v.size();++i) to[i*components+component]=v[i];
   };
-  const auto x=download(solver.velocity().x),y=download(solver.velocity().y),z=download(solver.velocity().z);
-  std::vector<double> u;u.reserve(3*x.size());
-  for(std::size_t i=0;i<x.size();++i) {u.push_back(x[i]);u.push_back(y[i]);u.push_back(z[i]);}
-  const auto p=download(solver.pressure());
+  const auto field=[&](const Buffer<float>& b) {std::vector<double> to;download(b,to);return to;};
+  std::vector<double> u;
+  download(solver.velocity().x,u,3,0);download(solver.velocity().y,u,3,1);download(solver.velocity().z,u,3,2);
+  const auto p=field(solver.pressure());
   std::vector<CellField> fields{{"u",3,u},{"p",1,p}};
   // Turbulence fields exist only for the active closure; laminar has none.
   std::vector<double> k,omega,mu;
   if(settings.sst) {
-    k=download(solver.kinetic_energy());omega=download(solver.specific_dissipation());mu=download(solver.turbulence().mu_t);
+    k=field(solver.kinetic_energy());omega=field(solver.specific_dissipation());mu=field(solver.turbulence().mu_t);
     fields.insert(fields.end(),{{"k",1,k},{"omega",1,omega},{"mu_t",1,mu}});
   } else if(settings.realizable_ke) {
-    k=download(solver.kinetic_energy());omega=download(solver.dissipation());mu=download(solver.realizable_turbulence().mu_t);
+    k=field(solver.kinetic_energy());omega=field(solver.dissipation());mu=field(solver.realizable_turbulence().mu_t);
     fields.insert(fields.end(),{{"k",1,k},{"epsilon",1,omega},{"mu_t",1,mu}});
   }
   // Fields and geometry both use the solver's owned RCM order.
