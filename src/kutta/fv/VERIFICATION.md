@@ -186,6 +186,13 @@ cancellation because pressure and viscous forces are also gated separately.
 The three ≥1.8 tet force assertions fail on each backend. This MMS does not
 establish second-order tet loads for FSAE use, so V2 remains failed.
 
+Known failure since `80535e5` (tetrahedral robustness): the tet 8→16 velocity
+order is 1.815 against the unchanged ≥1.9 gate (main had 1.902), on CPU and
+Metal. The boundary-pressure rule that stops second-order pressure from
+diverging on near-planar tet wall cells lowers the velocity error 18-23% at
+every level, more on the coarse levels, and 16→32 remains second order. The
+trade and its evidence are in `validation/results/tet_robustness/REPORT.md`.
+
 ## V3 cavity refinement
 
 Re=1000 uses uniform 65², 129² and 257² cell grids against every point in the
