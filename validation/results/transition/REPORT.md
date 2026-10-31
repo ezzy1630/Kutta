@@ -280,7 +280,9 @@ force change below 1e-5. Both runs stall at the continuity defect of about
 | Cf at x = 0.05 / 0.5 / 1.9 | 0.004381 / 0.003026 / 0.002476 | 0.004668 / 0.003127 / 0.002543 | +6.5% / +3.3% / +2.7% |
 
 The intermittency model transitions between x = 0.02 and 0.045 (Re_x 1e5 to
-2.3e5) and is fully turbulent downstream. In the turbulent layer, gamma = 1 apart from
+2.3e5) and is fully turbulent downstream. That transition location is set by this grid's
+4 mm leading-edge cells. With 0.05 mm cells it moves to x = 0.054, against 0.058 for
+the documented model solved independently (verification §6). In the turbulent layer, gamma = 1 apart from
 the viscous sublayer (at x = 0.95, gamma is 0.04 in the wall cell, 0.12 at
 y+ 8 and 0.99 by y+ 19). Cf stays **2.7-3.3% above SST** downstream, though: it does not
 decay as a pure shift of the turbulent origin would.
