@@ -30,6 +30,9 @@ __pycache__/
 /validation/data/ghia1982_cavity/raw/gist_ivan-pi_ghiau.txt
 /validation/data/ghia1982_cavity/raw/psiboil_Ghia-u.dat
 /validation/data/ghia1982_cavity/raw/psiboil_Ghia-v.dat
+# CC BY-NC-SA 4.0: provenance is tracked, the data is not.
+/validation/data/ercoftac_t3_flat_plate/*
+!/validation/data/ercoftac_t3_flat_plate/SOURCE.md
 
 # Derived by tools/prepare_tmr.py from checksum-verified bundled gzip fixtures.
 /validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt

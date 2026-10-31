@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; ++i) {
       std::string key = argv[i];
       KUTTA_REQUIRE(key.starts_with("--"), "expected --option, got " + key);
-      const bool flag = key == "--moving-ground" || key == "--coupled" || key == "--downforce" || key == "--cells" || key == "--lift-z" || key == "--hybrid";
+      const bool flag = key == "--moving-ground" || key == "--coupled" || key == "--downforce" || key == "--cells" || key == "--lift-z" || key == "--hybrid" || key == "--transition" || key == "--laminar";
       KUTTA_REQUIRE(flag || i + 1 < argc, "missing value for " + key);
       args[key] = flag ? "1" : argv[++i];
     }
@@ -37,6 +37,8 @@ int main(int argc, char** argv) {
     o.moving_ground = args.contains("--moving-ground");
     o.coupled = args.contains("--coupled");
     o.hybrid = args.contains("--hybrid");
+    o.transition = args.contains("--transition");
+    o.laminar = args.contains("--laminar");
     o.write_cells = args.contains("--cells");
     if (args.contains("--downforce")) o.lift_direction = {0, -1, 0};
     if (args.contains("--lift-z")) o.lift_direction = {0, 0, 1};

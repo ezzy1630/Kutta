@@ -70,4 +70,10 @@ struct DeviceMesh {
 // host in double (BVH over faces of PatchKind::Wall patches).
 DeviceMesh upload_mesh(Device& dev, const PolyMesh& mesh, const MeshGeometry& geometry);
 
+// Per cell, the unit vector from the nearest wall point (same BVH and surface
+// as wall_distance) to the centroid: the wall-normal direction n = grad(d)
+// wherever d is differentiable. Zero where there is no wall. Computed on demand
+// because only the transition model needs it.
+DeviceVec3 wall_direction(Device& dev, const PolyMesh& mesh, const MeshGeometry& geometry);
+
 }  // namespace kutta

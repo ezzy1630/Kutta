@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <optional>
 #include <sstream>
 #include <string_view>
 
@@ -63,6 +64,10 @@ struct Options {
   double max_seconds=600;
   bool symmetry_top=false;
   SstOptions model;
+  // Inflow k and omega instead of the TMR freestream (the fully turbulent
+  // transition regression raises the freestream turbulence).
+  std::optional<TurbulenceValues> inflow;
+  std::optional<IntermittencySettings> transition;
   std::filesystem::path output;
 };
 struct Sample {
@@ -101,7 +106,7 @@ inline double change(const Sample& a,const Sample& b,Case c) {
   return result;
 }
 inline double defect(const IterationReport& r) {
-  return std::max({r.u.scaled,r.v.scaled,r.k.scaled,r.omega.scaled,r.continuity.scaled});
+  return std::max({r.u.scaled,r.v.scaled,r.k.scaled,r.omega.scaled,r.continuity.scaled,r.intermittency.scaled});
 }
 struct Result {
   Index cells=0;int iterations=0;double setup_seconds=0,solve_seconds=0,load_change=0;
@@ -111,7 +116,7 @@ inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level
   using Clock=std::chrono::steady_clock;auto start=Clock::now();
   auto path=grid(root,c,level);KUTTA_REQUIRE(std::filesystem::exists(path),"TMR grid missing; run python3 tools/prepare_tmr.py: "+path.string());auto mesh=read_plot3d(path,span);
   std::vector<PatchCondition> bc;const double nu=c==Case::FlatPlate?1./5e6:1./3e6;
-  const TurbulenceValues turbulence{2.25e-7,25e-6/nu};
+  const auto turbulence=options.inflow.value_or(TurbulenceValues{2.25e-7,25e-6/nu});
   for(const auto& p:mesh.patches) {
     if(p.kind==PatchKind::Wall) bc.push_back({p.name,Wall{}});
     else if(p.source_type=="subsonic_inflow_pt") bc.push_back({p.name,VelocityInlet{Vec3d{1,0,0},turbulence}});
@@ -120,7 +125,7 @@ inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level
     else if(p.kind==PatchKind::Symmetry || (p.source_type=="farfield_riem" && options.symmetry_top)) bc.push_back({p.name,Symmetry{}});
     else throw Error("TMR unmapped boundary: "+p.name+" ("+p.source_type+")");
   }
-  SolverSettings settings;settings.viscosity=nu;settings.sst=SstSettings{};settings.sst->model=options.model;
+  SolverSettings settings;settings.viscosity=nu;settings.sst=SstSettings{};settings.sst->model=options.model;settings.sst->transition=options.transition;
   settings.sst->k_convection=ConvectionScheme::FirstOrderUpwind;settings.sst->omega_convection=ConvectionScheme::FirstOrderUpwind;
   settings.monitor_interval=100;
   // The bump domain extends 25 lengths upstream/downstream. Its global
@@ -162,8 +167,20 @@ inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level
   if(!options.output.empty() && result.failure.empty()) {
     auto x=dev.download(solver.velocity().x),y=dev.download(solver.velocity().y),mt=dev.download(solver.turbulence().mu_t);
     auto ke=dev.download(solver.kinetic_energy()),om=dev.download(solver.specific_dissipation());
-    std::ofstream fields(options.output/"cells.csv");fields<<"original_cell,x,y,u,v,mut_over_mu,k,omega\n"<<std::setprecision(12);
-    for(Index i=0;i<n;++i) {const auto point=solver.geometry().cell_centroid[i];fields<<solver.permutation().cells_new_to_old[i]<<','<<point.x<<','<<point.y<<','<<x[i]<<','<<y[i]<<','<<mt[i]/nu<<','<<ke[i]<<','<<om[i]<<'\n';}
+    const auto gamma=options.transition?dev.download(solver.intermittency()):std::vector<float>{};
+    std::ofstream fields(options.output/"cells.csv");fields<<"original_cell,x,y,u,v,mut_over_mu,k,omega"<<(options.transition?",intermittency":"")<<'\n'<<std::setprecision(12);
+    for(Index i=0;i<n;++i) {
+      const auto point=solver.geometry().cell_centroid[i];fields<<solver.permutation().cells_new_to_old[i]<<','<<point.x<<','<<point.y<<','<<x[i]<<','<<y[i]<<','<<mt[i]/nu<<','<<ke[i]<<','<<om[i];
+      if(options.transition) fields<<','<<gamma[i];
+      fields<<'\n';
+    }
+    const auto tau_x=dev.download(solver.turbulence().wall_shear.x),tau_y=dev.download(solver.turbulence().wall_shear.y);
+    std::ofstream wall(options.output/"wall_cf.csv");wall<<"patch,x,cf\n"<<std::setprecision(12);
+    for(const auto& patch:solver.mesh().patches) if(patch.kind==PatchKind::Wall)
+      for(Index f=patch.start;f<patch.start+patch.size;++f) {
+        const auto b=f-solver.mesh().n_internal_faces();const auto a=solver.geometry().face_area[f];
+        wall<<patch.name<<','<<solver.geometry().face_centroid[f].x<<','<<2*(a.y*tau_x[b]-a.x*tau_y[b])/std::hypot(a.x,a.y)<<'\n';
+      }
   }
   return result;
 }

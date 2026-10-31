@@ -33,6 +33,11 @@ struct Options {
   bool moving_ground = false;        // "ground" wall translates at U
   double intensity = .001, viscosity_ratio = 1;
   bool coupled = false;
+  // Fluent's intermittency transition model on top of SST, with Fluent's
+  // default constants; inflow intermittency 1.
+  bool transition = false;
+  // Laminar flow (no turbulence model): a mesh check against Blasius.
+  bool laminar = false;
   // Fluent hybrid initialization (Laplace potential flow) instead of the
   // uniform freestream; turbulence from the inlet intensity and ratio.
   bool hybrid = false;
@@ -62,8 +67,10 @@ struct Result {
   std::vector<Sample> history;
 };
 
-inline double max_residual(const IterationReport& r, bool three_d) {
+inline double max_residual(const IterationReport& r, bool three_d, bool transition = false) {
   double m = std::max({r.u.fluent_scaled, r.v.fluent_scaled, r.continuity.fluent_scaled, r.k.fluent_scaled, r.omega.fluent_scaled});
+  // Laminar runs report zero turbulence residuals.
+  if (transition) m = std::max(m, r.intermittency.fluent_scaled);
   return three_d ? std::max(m, r.w.fluent_scaled) : m;
 }
 
@@ -101,9 +108,9 @@ inline Sample sample(SteadySolver& solver, const Options& o, int iteration, doub
 // Wall distributions: one row per wall face in the original patch order.
 inline void write_walls(Device& dev, SteadySolver& solver, const Options& o, std::ostream& out, Result& r) {
   const auto pressure = dev.download(solver.boundary_pressure());
-  const auto& shear = solver.turbulence().wall_shear;
+  const auto& shear = solver.wall_shear();
   const auto tx = dev.download(shear.x), ty = dev.download(shear.y), tz = dev.download(shear.z);
-  const auto yplus = dev.download(solver.turbulence().wall_y_plus);
+  const auto yplus = o.laminar ? std::vector<float>(tx.size(), 0.0f) : dev.download(solver.turbulence().wall_y_plus);
   const auto& mesh = solver.mesh();
   const auto& g = solver.geometry();
   out << "patch,x,y,z,nx,ny,nz,area,cp,tau_x,tau_y,tau_z,yplus\n" << std::setprecision(9);
@@ -147,7 +154,9 @@ inline Result run(Device& dev, const Options& o) {
   auto bc = boundaries(mesh, o);
   SolverSettings s;
   s.viscosity = o.length / o.reynolds;
-  s.sst = SstSettings{};
+  KUTTA_REQUIRE(!(o.laminar && o.transition), "fsae_aero: transition requires the turbulence model");
+  if (!o.laminar) s.sst = SstSettings{};
+  if (o.transition) s.sst->transition = IntermittencySettings{};
   s.monitor_interval = o.check_every;
   if (o.coupled) s.coupling = PressureVelocityCoupling::Coupled;
   s.pseudo_time_step = o.pseudo_time_step;
@@ -165,7 +174,8 @@ inline Result run(Device& dev, const Options& o) {
     h.turbulence_viscosity_ratio = o.viscosity_ratio;
     solver.initialize_hybrid(h);
   } else {
-    solver.initialize_fields(u, p, kk, w);
+    if (o.laminar) solver.initialize_fields(u, p);
+    else solver.initialize_fields(u, p, kk, w);
   }
   dev.synchronize();
   Result r;
@@ -176,7 +186,8 @@ inline Result run(Device& dev, const Options& o) {
   if (!o.output.empty()) {
     std::filesystem::create_directories(o.output);
     history.open(o.output / "history.csv");
-    history << "iteration,seconds,lift,drag,drag_pressure,u,v,w,continuity,k,omega,max_velocity\n" << std::setprecision(10);
+    history << "iteration,seconds,lift,drag,drag_pressure,u,v,w,continuity,k,omega," << (o.transition ? "intermit," : "")
+            << "max_velocity\n" << std::setprecision(10);
   }
   while (r.iterations < o.max_iterations) {
     try {
@@ -192,7 +203,7 @@ inline Result run(Device& dev, const Options& o) {
     r.lift = h.lift;
     r.drag = h.drag;
     r.drag_pressure = h.drag_pressure;
-    r.max_residual = max_residual(h.report, three_d);
+    r.max_residual = max_residual(h.report, three_d, o.transition);
     r.settle_lift = relative_change(r.history, o.window, &Sample::lift);
     r.settle_drag = relative_change(r.history, o.window, &Sample::drag);
     r.residuals_met = r.max_residual <= o.residual;
@@ -201,7 +212,9 @@ inline Result run(Device& dev, const Options& o) {
       const auto& q = h.report;
       history << h.iteration << ',' << h.seconds << ',' << h.lift << ',' << h.drag << ',' << h.drag_pressure << ',' << q.u.fluent_scaled << ','
               << q.v.fluent_scaled << ',' << q.w.fluent_scaled << ',' << q.continuity.fluent_scaled << ',' << q.k.fluent_scaled << ','
-              << q.omega.fluent_scaled << ',' << q.maximum_velocity << '\n' << std::flush;
+              << q.omega.fluent_scaled << ',';
+      if (o.transition) history << q.intermittency.fluent_scaled << ',';
+      history << q.maximum_velocity << '\n' << std::flush;
     }
     std::cout << std::setprecision(8) << "fsae_aero it=" << r.iterations << " lift=" << r.lift << " drag=" << r.drag
               << " residual=" << r.max_residual << " settle=" << std::max(r.settle_lift, r.settle_drag) << std::endl;
@@ -218,14 +231,21 @@ inline Result run(Device& dev, const Options& o) {
   dev.synchronize();
   if (o.write_cells && !o.output.empty()) {
     const auto ux = dev.download(solver.velocity().x), uy = dev.download(solver.velocity().y), uz = dev.download(solver.velocity().z);
-    const auto pc = dev.download(solver.pressure()), kc = dev.download(solver.kinetic_energy()), wc = dev.download(solver.specific_dissipation());
-    const auto mt = dev.download(solver.turbulence().mu_t);
+    // Laminar runs have no turbulence fields; their columns are zero.
+    const auto turbulent = [&](auto field) { return o.laminar ? std::vector<float>(std::size_t(n), 0.0f) : dev.download(field()); };
+    const auto pc = dev.download(solver.pressure());
+    const auto kc = turbulent([&]() -> const Buffer<float>& { return solver.kinetic_energy(); });
+    const auto wc = turbulent([&]() -> const Buffer<float>& { return solver.specific_dissipation(); });
+    const auto mt = turbulent([&]() -> const Buffer<float>& { return solver.turbulence().mu_t; });
+    const auto gamma = o.transition ? dev.download(solver.intermittency()) : std::vector<float>{};
     std::ofstream cells(o.output / "cells.csv");
-    cells << "x,y,z,volume,u,v,w,p,k,omega,mu_t\n" << std::setprecision(9);
+    cells << "x,y,z,volume,u,v,w,p,k,omega,mu_t" << (o.transition ? ",intermittency" : "") << "\n" << std::setprecision(9);
     for (Index i = 0; i < n; ++i) {
       const auto c = solver.geometry().cell_centroid[i];
       cells << c.x << ',' << c.y << ',' << c.z << ',' << solver.geometry().cell_volume[i] << ',' << ux[i] << ',' << uy[i] << ',' << uz[i] << ','
-            << pc[i] << ',' << kc[i] << ',' << wc[i] << ',' << mt[i] << '\n';
+            << pc[i] << ',' << kc[i] << ',' << wc[i] << ',' << mt[i];
+      if (o.transition) cells << ',' << gamma[i];
+      cells << '\n';
     }
   }
   r.solve_seconds = std::chrono::duration<double>(Clock::now() - start).count();

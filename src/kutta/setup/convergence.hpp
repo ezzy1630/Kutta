@@ -11,7 +11,8 @@ namespace kutta::setup {
 inline constexpr std::array<std::string_view,6> residual_equations{"continuity","x-velocity","y-velocity","z-velocity","k","omega"};
 // The residuals reported for a closure: residual_equations for SST, k and
 // epsilon for k-epsilon, continuity and momentum only for laminar flow.
-std::vector<std::string_view> solved_residuals(std::optional<fluent::ViscousModel>);
+// transition: Fluent's intermittency model is active (adds "intermit").
+std::vector<std::string_view> solved_residuals(std::optional<fluent::ViscousModel>,bool transition=false);
 struct ResidualCriterion {
   std::string equation;
   bool check=false;

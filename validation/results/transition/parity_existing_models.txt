@@ -1,0 +1,32 @@
+# Bitwise parity of existing models, branch vs main 256aeec (same machine)
+# Rerun 2026-10-31 on the branch's final source (after the last library
+# change), Apple M4 Pro, CPU and Metal; base = main 256aeec built separately.
+
+## kutta solve --iterations 40 (fluxes.csv, forces.csv, loads.json, result.vtu, residuals.csv minus seconds_per_iteration)
+ep_cpu fluxes.csv IDENTICAL
+ep_cpu forces.csv IDENTICAL
+ep_cpu loads.json IDENTICAL
+ep_cpu result.vtu IDENTICAL
+ep_cpu residuals.csv IDENTICAL
+ep_metal fluxes.csv IDENTICAL
+ep_metal forces.csv IDENTICAL
+ep_metal loads.json IDENTICAL
+ep_metal result.vtu IDENTICAL
+ep_metal residuals.csv IDENTICAL
+v6_cpu fluxes.csv IDENTICAL
+v6_cpu forces.csv IDENTICAL
+v6_cpu loads.json IDENTICAL
+v6_cpu result.vtu IDENTICAL
+v6_cpu residuals.csv IDENTICAL
+v6_metal fluxes.csv IDENTICAL
+v6_metal forces.csv IDENTICAL
+v6_metal loads.json IDENTICAL
+v6_metal result.vtu IDENTICAL
+v6_metal residuals.csv IDENTICAL
+ALL_IDENTICAL
+
+## Library laminar and SA solves (12x8x3 box channel, 30 iterations; velocity, pressure, mass flux, wall shear, nu~ and residuals as raw float bytes)
+cpu_laminar IDENTICAL (9952 bytes)
+cpu_sa IDENTICAL (11104 bytes)
+metal_laminar IDENTICAL (9952 bytes)
+metal_sa IDENTICAL (11104 bytes)

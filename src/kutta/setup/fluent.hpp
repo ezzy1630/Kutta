@@ -44,9 +44,10 @@ fv::TurbulenceValues turbulence_values(const fv::TurbulenceCondition& spec,
     double speed,double density,double viscosity);
 // Turbulence vectors are empty when the closure does not transport them:
 // SST fills k/omega, standard k-epsilon fills k/epsilon, laminar neither.
+// intermittency is filled only with the transition model.
 struct CellFields {
   std::vector<Vec3d> velocity;
-  std::vector<double> pressure,k,omega,epsilon;
+  std::vector<double> pressure,k,omega,epsilon,intermittency;
 };
 CellFields fluent_fields(const fluent::FluentCase& input,const fluent::FluentData& data,
                         const PolyMesh& original_mesh);

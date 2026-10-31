@@ -23,8 +23,31 @@ double segment_distance2(Vec3d p, Vec3d a, Vec3d b) {
   return dot(r, r);
 }
 
+Vec3d segment_closest(Vec3d p, Vec3d a, Vec3d b) {
+  const auto ab = b - a;
+  const double length2 = dot(ab, ab);
+  const double t = length2 == 0 ? 0 : std::clamp(dot(p - a, ab) / length2, 0., 1.);
+  return a + ab * t;
+}
+
 struct Triangle {
   Vec3d a, b, c;
+  // Same projection test as distance2, returning the point instead.
+  Vec3d closest(Vec3d p) const {
+    const auto ab = b - a, ac = c - a, ap = p - a;
+    const auto n = cross(ab, ac);
+    const double nn = dot(n, n);
+    if (nn > 0) {
+      const auto q = p - n * (dot(ap, n) / nn);
+      if (dot(cross(ab, q - a), n) >= 0 &&
+          dot(cross(c - b, q - b), n) >= 0 &&
+          dot(cross(a - c, q - c), n) >= 0) return q;
+    }
+    Vec3d best = segment_closest(p, a, b);
+    for (auto q : {segment_closest(p, b, c), segment_closest(p, c, a)})
+      if (dot(p - q, p - q) < dot(p - best, p - best)) best = q;
+    return best;
+  }
   double distance2(Vec3d p) const {
     const auto ab = b - a, ac = c - a, ap = p - a;
     const auto n = cross(ab, ac);
@@ -94,6 +117,21 @@ class WallBvh {
     search(left_first ? n.left : n.right, p, best);
     search(left_first ? n.right : n.left, p, best);
   }
+  void search_closest(int id, Vec3d p, double& best, Vec3d& point) const {
+    const auto& n = nodes_[id];
+    if (n.bounds.distance2(p) > best) return;
+    if (n.left < 0) {
+      for (auto j = n.begin; j < n.end; ++j) {
+        const auto q = triangles_[j].closest(p);
+        const double d2 = dot(p - q, p - q);
+        if (d2 < best) { best = d2; point = q; }
+      }
+      return;
+    }
+    const bool left_first = nodes_[n.left].bounds.distance2(p) <= nodes_[n.right].bounds.distance2(p);
+    search_closest(left_first ? n.left : n.right, p, best, point);
+    search_closest(left_first ? n.right : n.left, p, best, point);
+  }
  public:
   explicit WallBvh(const PolyMesh& m) {
     for (const auto& patch : m.patches) if (patch.kind == PatchKind::Wall) {
@@ -111,6 +149,15 @@ class WallBvh {
     if (!nodes_.empty()) search(0, p, best);
     return std::sqrt(best);
   }
+  // Unit vector from the nearest wall point to p; zero on a wall or without one.
+  Vec3d direction(Vec3d p) const {
+    double best = std::numeric_limits<double>::infinity();
+    Vec3d point = p;
+    if (!nodes_.empty()) search_closest(0, p, best, point);
+    const auto r = p - point;
+    const double length = std::sqrt(dot(r, r));
+    return length > 0 ? r / length : Vec3d{};
+  }
 };
 
 // Uploads value(0..n) one float component at a time, so neither a Vec3d
@@ -127,7 +174,26 @@ DeviceVec3 upload_vectors(Device& dev, std::size_t n, const F& value) {
   out.z = dev.upload<float>(c);
   return out;
 }
+template <class F>
+void for_cells(std::size_t cells, const F& body) {
+  const auto workers = std::clamp<std::size_t>(std::thread::hardware_concurrency(), 1, cells / 4096 + 1);
+  // std::thread, not jthread: the CI macOS libc++ lacks jthread.
+  std::vector<std::thread> threads;
+  for (std::size_t t = 0; t < workers; ++t)
+    threads.emplace_back([&, begin = cells * t / workers, end = cells * (t + 1) / workers] {
+      for (auto c = begin; c < end; ++c) body(c);
+    });
+  for (auto& t : threads) t.join();
+}
 }  // namespace
+
+DeviceVec3 wall_direction(Device& dev, const PolyMesh& mesh, const MeshGeometry& g) {
+  KUTTA_REQUIRE(g.cell_centroid.size() == std::size_t(mesh.n_cells), "FV geometry size mismatch");
+  const WallBvh walls(mesh);
+  std::vector<Vec3d> direction(std::size_t(mesh.n_cells));
+  for_cells(direction.size(), [&](std::size_t c) { direction[c] = walls.direction(g.cell_centroid[c]); });
+  return upload_vectors(dev, direction.size(), [&](std::size_t c) { return direction[c]; });
+}
 
 DeviceMesh upload_mesh(Device& dev, const PolyMesh& mesh, const MeshGeometry& g) {
   validate(mesh);

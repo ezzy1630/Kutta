@@ -56,6 +56,7 @@ view::Fields collect_view_fields(Device& dev,const fv::SteadySolver& solver,
       auto ratio=dev.download(sst?solver.turbulence().mu_t:solver.realizable_turbulence().mu_t);for(auto& v:ratio)v=float(v/setup.settings.viscosity);
       s.cells.push_back({"viscosity_ratio","1",1,std::move(ratio)});
     }
+    if(sst && setup.settings.sst->transition) s.cells.push_back({"intermittency","1",1,dev.download(solver.intermittency())});
   }
   s.boundary.push_back({"pressure","Pa",1,dev.download(solver.boundary_pressure())});
   s.boundary.push_back(vector_field(dev,"wall_shear","Pa",solver.wall_shear()));

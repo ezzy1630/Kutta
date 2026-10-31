@@ -19,6 +19,10 @@ void validate(const SstOptions& o) {
   KUTTA_REQUIRE(!o.curvature_correction, "SST: curvature correction is unsupported (requires strain material derivatives)");
   KUTTA_REQUIRE(!o.compressibility, "SST: compressibility is unsupported by the incompressible model");
   KUTTA_REQUIRE(!(o.kato_launder && o.vorticity_production), "SST: Kato-Launder and vorticity production are mutually exclusive");
+  if (o.intermittency)
+    KUTTA_REQUIRE(std::isfinite(o.intermittency->ck) && o.intermittency->ck >= 0 &&
+                      std::isfinite(o.intermittency->csep) && o.intermittency->csep >= 0,
+                  "SST: invalid intermittency coupling constants");
   switch (o.gamma_set) {
     case SstGammaSet::Computed1994: case SstGammaSet::Menter2003: break;
     default: throw Error("SST: invalid gamma set");
@@ -84,6 +88,7 @@ SstModel::SstModel(Device& dev, const DeviceMesh& mesh, SstOptions options)
   f.wall_shear = {boundary(), boundary(), boundary()};
   f.wall_shear_coefficient = boundary(); f.wall_face_omega = boundary();
   wall_cell_omega_ = boundary(); face_production_ = boundary();
+  if (options_.intermittency) f.production_limit = cell();
 }
 
 void SstModel::update(const SstInputs& in) {
@@ -95,6 +100,9 @@ void SstModel::update(const SstInputs& in) {
   size(in.k, nc, "k"); size(in.omega, nc, "omega");
   size(in.k_gradient, nc, "grad k"); size(in.omega_gradient, nc, "grad omega");
   size(in.wall_velocity, nb, "wall velocity");
+  KUTTA_REQUIRE(bool(in.intermittency) == bool(options_.intermittency),
+                "SST: intermittency input must be supplied exactly when the coupling is enabled");
+  if (in.intermittency) size(*in.intermittency, nc, "intermittency");
   auto& d = device_; auto& f = fields_; const auto& o = options_;
   kern::sst_rates(d, nc, g.u.x, g.u.y, g.u.z, g.v.x, g.v.y, g.v.z, g.w.x, g.w.y, g.w.z,
                   f.strain, f.vorticity);
@@ -105,6 +113,9 @@ void SstModel::update(const SstInputs& in) {
       o.cdkw_floor, o.k_floor, o.omega_floor,
       o.low_re, o.viscosity_limiter == SstViscosityLimiter::Vorticity,
       o.max_viscosity_ratio);
+  if (o.intermittency)
+    kern::sst_transition_f1(d, nc, in.density, in.viscosity, in.k, mesh_.wall_distance, f.mu_t,
+        f.f1, f.diffusivity_k, f.diffusivity_omega, o.k_floor);
   kern::sst_wall(d, nb, mesh_.owner, wall_mask_, mesh_.n_internal_faces,
       mesh_.area.x, mesh_.area.y, mesh_.area.z,
       in.velocity.x, in.velocity.y, in.velocity.z,
@@ -126,6 +137,10 @@ void SstModel::update(const SstInputs& in) {
       o.low_re, o.gamma_set == SstGammaSet::Menter2003, production_mode,
       o.production_limiter, o.limit_omega_production, o.wall_production,
       o.production_clip, o.limit_cross_diffusion, o.cross_diffusion_clip, o.k_floor, o.omega_floor);
+  if (o.intermittency)
+    kern::sst_transition_k(d, nc, *in.intermittency, in.density, in.viscosity, mesh_.wall_distance,
+        f.strain, f.vorticity, f.mu_t, f.k_source, f.k_sink, f.production_limit,
+        o.intermittency->ck, o.intermittency->csep);
   kern::sst_face_diffusion(d, nf, mesh_.owner, mesh_.neighbour, mesh_.weight, wall_mask_,
       in.viscosity, f.diffusivity_k, f.diffusivity_omega, mesh_.n_internal_faces,
       f.face_diffusivity_k, f.face_diffusivity_omega);

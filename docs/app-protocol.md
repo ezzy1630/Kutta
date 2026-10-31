@@ -59,7 +59,9 @@ One JSON object per line, in order:
 `iteration` events are emitted at the monitor interval. Residual names follow
 the solved equations: `continuity` and the three velocities always, then `k`
 and `omega` for SST or `k` and `epsilon` for standard k-epsilon; laminar runs
-have none of these turbulence entries. `residuals.csv` uses the same columns.
+have none of these turbulence entries. SST with Fluent's Intermittency
+Transition Model adds `intermit` (v1 additive, Fluent's name) after `omega`.
+`residuals.csv` uses the same columns.
 Report values are
 optional per event. stderr carries human-readable diagnostics only. Exit
 codes: 0 success, 1 rejected case or solver failure, 2 usage error. The app
@@ -260,6 +262,19 @@ Values no method of the model reads (epsilon for k-omega) are read-only. A
 laminar case reads no turbulence inputs: its saved turbulence specification
 and values, and its k and dissipation relaxation entries, are inactive and
 read-only.
+
+Transition models (v1 additive). `models/transition` is a read-only enum on
+every case: `none`, `gamma-transport-eqn` (Fluent's Intermittency Transition
+Model), `gamma-algebraic` or `transition-sst`. Only `none` and
+`gamma-transport-eqn` with SST run; the others are unsupported issues at
+`case-config/rp-transition-model` with a plain reason. With the
+intermittency model, `inspect --json` adds `"transition":"gamma-transport-eqn"`
+to `models` (absent otherwise), and the settings add
+`methods/intermittency-scheme` (first or second order upwind),
+`controls/intermit-relaxation`, and `boundary/<zone>/intermittency` (0 to 1,
+the inflow value) on inlets and outlets. `result.vtu` and `export-view` add a
+cell field `intermittency` (dimensionless gamma). The model's constants are
+read from the case and checked; see `src/kutta/fv/turbulence/transition.md`.
 
 ```sh
 kutta solve case.cas.h5 --setup setup.json --out run --progress jsonl

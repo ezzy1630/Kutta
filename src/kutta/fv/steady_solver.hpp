@@ -11,6 +11,7 @@
 #include "kutta/fv/zone_physics.hpp"
 #include "kutta/fv/interior_jump.hpp"
 #include "kutta/fv/turbulence/sst.hpp"
+#include "kutta/fv/turbulence/intermittency_fields.hpp"
 #include "kutta/fv/turbulence/sa.hpp"
 #include "kutta/fv/turbulence/realizable_ke.hpp"
 #include "kutta/mesh/topology.hpp"
@@ -31,9 +32,12 @@ struct SaViscosityRatio { double ratio=0; };
 struct KeValues {double k=0,epsilon=0;};
 struct IntensityDiameter {double intensity=0,diameter=0;};
 using TurbulenceCondition=std::variant<TurbulenceValues,IntensityLength,IntensityViscosityRatio,ModifiedViscosity,SaViscosityRatio,KeValues,IntensityDiameter>;
+// Inflow `intermittency` is the transition model's gamma on inflow faces
+// (Fluent zone value `intermit`); it is unused without a transition model.
 struct VelocityInlet {
   VelocityProfile velocity=Vec3d{};
   std::optional<TurbulenceCondition> turbulence;
+  double intermittency=1;
 };
 struct NormalBackflow {};
 using BackflowProfile=std::variant<NormalBackflow,Vec3d,std::function<Vec3d(Vec3d)>>;
@@ -42,6 +46,7 @@ struct PressureOutlet {
   double pressure=0; BackflowProfile backflow_velocity=NormalBackflow{};
   BackflowPressure backflow_pressure=BackflowPressure::Static;
   std::optional<TurbulenceCondition> turbulence;
+  double intermittency=1;
 };
 struct Symmetry {};
 struct PressureInlet {
@@ -49,11 +54,13 @@ struct PressureInlet {
   // Absent means inward face normal. Otherwise global Cartesian direction.
   std::optional<Vec3d> direction;
   std::optional<TurbulenceCondition> turbulence;
+  double intermittency=1;
 };
 struct MassFlowInlet {
   double mass_flow=0; // kg/s, positive into the domain, for the WHOLE patch
   std::optional<Vec3d> direction;
   std::optional<TurbulenceCondition> turbulence;
+  double intermittency=1;
 };
 using BoundaryCondition=std::variant<Wall,VelocityInlet,PressureOutlet,Symmetry,PressureInlet,MassFlowInlet>;
 struct PatchCondition { std::string patch; BoundaryCondition condition; };
@@ -70,8 +77,29 @@ struct HybridInitialization {
   std::vector<std::pair<std::string,double>> inlet_pressure;
 };
 
+// Fluent's Intermittency Transition Model (TG 4.8). Defaults are Fluent's
+// documented constants; names in comments are the case-file rpvars.
+struct IntermittencyOptions {
+  // Re_theta_c correlation and F_PG, TG 4.8.2: trans-one-eqn-ctu1..3,
+  // -cpg1..3, -lim-cpg1, -lim-cpg2 (Fluent's rescaled lambda units).
+  float ctu1=100,ctu2=1000,ctu3=1,cpg1=1,cpg2=-.5f,cpg3=0,cpg1_lim=1.5f,cpg2_lim=3;
+  float csep=1;    // trans-one-eqn-csep, P_k^lim
+  float ck=1;      // trans-one-eqn-tke-term-coef, P_k^lim's C_k (name-based mapping)
+  float sigma=1;   // intermit-sig
+  float minimum=1e-7f,maximum=1;  // trans-intermit/min-limit, max-limit
+};
+struct IntermittencySettings {
+  IntermittencyOptions model;
+  ConvectionScheme convection=ConvectionScheme::SecondOrderUpwind;
+  double relaxation=.8;  // intermit/relax (Fluent default)
+  SolveControl linear{1e-3,1e-12,100};
+};
+
 struct SstSettings {
   SstOptions model;
+  // Present: SST with Fluent's intermittency transition model. The solver
+  // derives model.intermittency from it; set only this.
+  std::optional<IntermittencySettings> transition;
   ConvectionScheme k_convection=ConvectionScheme::SecondOrderUpwind;
   ConvectionScheme omega_convection=ConvectionScheme::SecondOrderUpwind;
   double k_relaxation=.75,omega_relaxation=.75;
@@ -153,10 +181,10 @@ struct ResidualValue {
 struct IterationReport {
   int iteration=0;
   std::optional<int> residual_iteration;
-  ResidualValue u,v,w,continuity,k,omega,nu_tilde,epsilon;
+  ResidualValue u,v,w,continuity,k,omega,nu_tilde,epsilon,intermittency;
   double corrected_mass_imbalance=0;
   double maximum_velocity=0, pseudo_time_step=0;
-  SolveStats momentum[3],pressure,turbulence[2];
+  SolveStats momentum[3],pressure,turbulence[2],transition;
 };
 struct ReferenceValues { double density=1,velocity=1,area=1,pressure=0; };
 struct ForceReport {
@@ -180,8 +208,9 @@ class SteadySolver {
   void initialize(const std::function<Vec3d(Vec3d)>& velocity,
                   const std::function<double(Vec3d)>& pressure);
   // Arrays follow the ORIGINAL input mesh cell order, before owned RCM.
+  // intermittency: transition model gamma; empty keeps its uniform start of 1.
   void initialize_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
-      std::span<const double> k={},std::span<const double> omega={});
+      std::span<const double> k={},std::span<const double> omega={},std::span<const double> intermittency={});
   void initialize_hybrid(const HybridInitialization& settings);
   void initialize_sa_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
                             std::span<const double> modified_viscosity);
@@ -202,6 +231,9 @@ class SteadySolver {
   const Buffer<float>& kinetic_energy() const;
   const Buffer<float>& specific_dissipation() const;
   const SstFields& turbulence() const;
+  // Transition model gamma per cell (RCM order); requires SstSettings::transition.
+  const Buffer<float>& intermittency() const;
+  const IntermittencyFields& transition() const;
   // Wall shear stress on the fluid per boundary face (zero off walls) for the
   // active closure; force on the wall is -shear*|A|. Laminar refreshes it.
   const DeviceVec3& wall_shear() const;

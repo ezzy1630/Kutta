@@ -19,7 +19,7 @@ void require(bool ok,const std::string& key) {KUTTA_REQUIRE(ok,"Fluent setup: un
 // values below exist only during validation and never reach a solver.
 class SetupValidation {
   std::vector<SettingIssue> errors;
-  bool epsilon_model=false;
+  bool epsilon_model=false,transition=false;
  public:
   void require(bool ok,const std::string& key,const std::string& reason="value is unsupported or required setting is absent") {
     if(!ok) errors.push_back({key,reason});
@@ -65,6 +65,13 @@ TurbulenceCondition turbulence(const BoundaryZone& z) {
     case TurbulenceSpec::intensity_viscosity_ratio:return IntensityViscosityRatio{get("turb-intensity"),get("turb-viscosity-ratio")};
   }
   require(false,key+"ke-spec");return TurbulenceValues{};
+}
+// Inflow gamma of the intermittency model; unused (1) without it.
+double intermittency(const BoundaryZone& z) {
+  if(!transition) return 1;
+  const auto key="zone/"+std::to_string(z.id)+"/intermit";
+  const auto value=scalar(z.intermittency,key);
+  require(value>=0 && value<=1,key,"intermittency must lie in [0, 1]");return value;
 }
 FluentSetup build(const FluentCase& c,const PolyMesh& mesh,std::span<const Approximation> allowed);
 };
@@ -295,6 +302,36 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   require(flag(c.variables,"sst-linearize-neg-cross-diff?"),"sst-linearize-neg-cross-diff?");
   out.convergence_notes.push_back("kw-dissipation-newton?: Newton implicit destruction with matching RHS correction");
   }
+  // Fluent's Intermittency Transition Model (TG 4.8) on SST. Every constant
+  // Fluent lets a user change is read and used; only the switches whose
+  // physics Kutta lacks are rejected. Transition SST and the algebraic model
+  // are unsupported issues of the case itself (fluent_case.cpp).
+  transition=t.transition==TransitionModel::intermittency;
+  if(transition) require(sst,"case-config/rp-trans-one-eqn?","the intermittency transition model is implemented with k-omega SST only");
+  if(transition && sst) {
+    auto& tr=s.sst->transition.emplace();auto& m=tr.model;
+    const auto coefficient=[&](const std::string& key) {
+      const auto it=t.transition_coefficients.find(key);
+      require(it!=t.transition_coefficients.end(),"rp/"+key,"required setting absent or unparsed");
+      const double v=it==t.transition_coefficients.end()?0:it->second;
+      require(std::isfinite(float(v)),"rp/"+key,"requires a value representable in float storage");return float(v);
+    };
+    for(auto [key,target]:std::vector<std::pair<std::string,float*>>{{"trans-one-eqn-ctu1",&m.ctu1},{"trans-one-eqn-ctu2",&m.ctu2},
+        {"trans-one-eqn-ctu3",&m.ctu3},{"trans-one-eqn-cpg1",&m.cpg1},{"trans-one-eqn-cpg2",&m.cpg2},{"trans-one-eqn-cpg3",&m.cpg3},
+        {"trans-one-eqn-lim-cpg1",&m.cpg1_lim},{"trans-one-eqn-lim-cpg2",&m.cpg2_lim},{"trans-one-eqn-csep",&m.csep},
+        {"trans-one-eqn-tke-term-coef",&m.ck},{"intermit-sig",&m.sigma},{"trans-intermit/min-limit",&m.minimum},
+        {"trans-intermit/max-limit",&m.maximum}}) *target=coefficient(key);
+    require(m.csep>=0 && m.ck>=0,"rp/trans-one-eqn-csep/tke-term-coef","requires nonnegative values");
+    require(m.sigma>0,"rp/intermit-sig","requires a positive Prandtl number");
+    require(m.minimum>0 && m.minimum<m.maximum && m.maximum<=1,"rp/trans-intermit/min-limit/max-limit","requires 0 < min < max <= 1");
+    require(t.transition_crossflow==false,"rp/trans-one-eqn-crossflow?","crossflow transition (TG 4.8.2, local C1 criterion) is not implemented");
+    require(t.transition_smoothing==false,"rp/trans-intermit-smoothing?","intermittency smoothing is undocumented and not implemented");
+    // Fluent documents dV/dy but not its selector; 1 is the stored default.
+    require(t.transition_normal_derivative==1,"rp/trans-one-eqn-dudn-method","only the default method (1) is admitted");
+    out.convergence_notes.push_back("trans-one-eqn-dudn-method 1: dV/dy = n.grad(n.U) with n from the nearest wall point "
+      "(Menter et al. 2015); Fluent does not document the method it selects");
+    tr.convection=convection(n.intermittency,"intermit/scheme");tr.relaxation=relax("intermit");
+  }
   if(epsilon_model) {
     // Standard k-epsilon, TG 4.3.1, with standard wall functions.
     auto o=standard_ke_options();
@@ -387,7 +424,7 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
           require(norm(area(f)/norm(area(f))-normal)<1e-6,prefix+"normal velocity on nonplanar patch");
         velocity=normal*(-scalar(z.velocity_magnitude,prefix+"vmag"));
       }
-      out.boundaries.push_back({patch.name,VelocityInlet{velocity,turbulence(z)}});
+      out.boundaries.push_back({patch.name,VelocityInlet{velocity,turbulence(z),intermittency(z)}});
     } else if(z.type==ZoneType::pressure_outlet) {
       // Writers up to Fluent 18.0 store neither key (the corpus's 17.2 and 18.0
       // cases; 21.2 and later store both). What such a writer did at backflow
@@ -408,21 +445,21 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
       else require(number(z.raw,"p-profile-multiplier")==1,prefix+"p-profile-multiplier");
       const auto type=required(z.backflow_pressure_spec,prefix+"p-backflow-spec");require(type==0 || type==1,prefix+"p-backflow-spec");
       out.boundaries.push_back({patch.name,PressureOutlet{scalar(z.gauge_pressure,prefix+"p"),NormalBackflow{},
-        type==0?BackflowPressure::Total:BackflowPressure::Static,turbulence(z)}});
+        type==0?BackflowPressure::Total:BackflowPressure::Static,turbulence(z),intermittency(z)}});
     } else if(z.type==ZoneType::pressure_inlet || z.type==ZoneType::mass_flow_inlet) {
       require(z.prevent_reverse_flow!=true,prefix+"prevent-reverse-flow?","reverse-flow suppression is unsupported");
       require(z.frame_of_reference==0,prefix+"frame-of-reference","only absolute inlet data is implemented");
       require(z.direction_spec==0 || z.direction_spec==1,prefix+"direction-spec","only Cartesian direction or inward normal is implemented");
       std::optional<Vec3d> direction;
       if(z.direction_spec==0) {direction=vector(z.direction,prefix+"direction");require(norm(*direction)>0,prefix+"direction");}
-      if(z.type==ZoneType::pressure_inlet) out.boundaries.push_back({patch.name,PressureInlet{scalar(z.total_pressure,prefix+"p0"),direction,turbulence(z)}});
+      if(z.type==ZoneType::pressure_inlet) out.boundaries.push_back({patch.name,PressureInlet{scalar(z.total_pressure,prefix+"p0"),direction,turbulence(z),intermittency(z)}});
       else {
         require(z.mass_flow_spec==0 || z.mass_flow_spec==1,prefix+"flow-spec","only uniform mass-flow rate or uniform mass flux are implemented");
         double rate=0;
         if(z.mass_flow_spec==0) rate=scalar(z.mass_flow,prefix+"mass-flow");
         else {double area=0;for(Index f=patch.start;f<patch.start+patch.size;++f) area+=norm(face_geometry(mesh,f).area);rate=area*scalar(z.mass_flux,prefix+"mass-flux");}
         require(rate>=0,prefix+"mass-flow","negative mass-flow inlet is unsupported");
-        out.boundaries.push_back({patch.name,MassFlowInlet{rate,direction,turbulence(z)}});
+        out.boundaries.push_back({patch.name,MassFlowInlet{rate,direction,turbulence(z),intermittency(z)}});
       }
     } else require(false,prefix+"type");
   }
@@ -469,6 +506,7 @@ CellFields fluent_fields(const FluentCase& c,const FluentData& d,const PolyMesh&
     const auto value=it->second.at(id);require(value.size()==1 && std::isfinite(value[0]),key);return value[0];
   };
   const bool sst=c.viscous.model==ViscousModel::kw_sst,epsilon=c.viscous.model==ViscousModel::ke_standard;
+  const bool transition=sst && c.viscous.transition==TransitionModel::intermittency;
   // A planar case stores no SV_W; its w is zero.
   const bool planar=c.dimension==2;
   require(!planar || !d.cell_fields.contains("SV_W"),"SV_W in a 2D case");
@@ -476,6 +514,8 @@ CellFields fluent_fields(const FluentCase& c,const FluentData& d,const PolyMesh&
     out.velocity.push_back({get("SV_U",id),get("SV_V",id),planar?0.:get("SV_W",id)});out.pressure.push_back(get("SV_P",id));
     if(sst) {out.k.push_back(get("SV_K",id));out.omega.push_back(get("SV_O",id));}
     if(epsilon) {out.k.push_back(get("SV_K",id));out.epsilon.push_back(get("SV_D",id));}
+    // Fluent's intermittency solver variable (UDF macro C_INTERMIT).
+    if(transition) out.intermittency.push_back(get("SV_INTERMIT",id));
   }
   return out;
 }
@@ -526,6 +566,11 @@ Initialization initial_fields(const FluentCase& c,const PolyMesh& mesh) {
   out.pressure.assign(mesh.n_cells,v.number(c.variables,"pressure/default"));
   const bool sst=c.viscous.model==ViscousModel::kw_sst;
   if(sst) {out.k.assign(mesh.n_cells,v.number(c.variables,"k/default"));out.omega.assign(mesh.n_cells,v.number(c.variables,"omega/default"));}
+  if(sst && c.viscous.transition==TransitionModel::intermittency) {
+    const double gamma=v.number(c.variables,"intermit/default");
+    v.require(gamma>=0 && gamma<=1,"intermit/default","intermittency must lie in [0, 1]");
+    out.intermittency.assign(mesh.n_cells,gamma);
+  }
   if(c.viscous.model==ViscousModel::ke_standard) {
     out.k.assign(mesh.n_cells,v.number(c.variables,"k/default"));out.epsilon.assign(mesh.n_cells,v.number(c.variables,"epsilon/default"));
     v.require(out.epsilon.empty() || out.epsilon.front()>0,"epsilon/default","requires positive dissipation");
@@ -547,7 +592,7 @@ Initialization initial_fields(const FluentCase& c,const PolyMesh& mesh) {
 void initialize(SteadySolver& solver,const Initialization& init) {
   if(const auto* fields=std::get_if<CellFields>(&init)) {
     if(!fields->epsilon.empty()) solver.initialize_ke_fields(fields->velocity,fields->pressure,fields->k,fields->epsilon);
-    else solver.initialize_fields(fields->velocity,fields->pressure,fields->k,fields->omega);
+    else solver.initialize_fields(fields->velocity,fields->pressure,fields->k,fields->omega,fields->intermittency);
   }
   else solver.initialize_hybrid(std::get<HybridInitialization>(init));
 }

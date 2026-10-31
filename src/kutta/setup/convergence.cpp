@@ -57,10 +57,12 @@ ConvergenceSample ConvergenceMonitor::sample(int iteration,const std::map<std::s
   out.json={{"met",out.met},{"conditions",std::move(conditions)}};
   return out;
 }
-std::vector<std::string_view> solved_residuals(std::optional<fluent::ViscousModel> model) {
+std::vector<std::string_view> solved_residuals(std::optional<fluent::ViscousModel> model,bool transition) {
   std::vector<std::string_view> out(residual_equations.begin(),residual_equations.begin()+4);
   if(model==fluent::ViscousModel::ke_standard) out.insert(out.end(),{"k","epsilon"});
   else if(model!=fluent::ViscousModel::laminar) out.insert(out.end(),{"k","omega"});
+  // Fluent's residual monitor names the intermittency equation "intermit".
+  if(transition) out.push_back("intermit");
   return out;
 }
 } // namespace kutta::setup

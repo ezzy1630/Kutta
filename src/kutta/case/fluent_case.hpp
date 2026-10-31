@@ -31,6 +31,10 @@ enum class ViscousModel {
   kw_bsl,
   kw_sst
 };
+// case-config rp-trans-one-eqn?, rp-trans-sst? and rp-transition-model.
+// intermittency is Fluent's one-equation gamma model (UG 16.9
+// "gamma-transport-eqn"); algebraic is "gamma-algebraic".
+enum class TransitionModel { none, intermittency, transition_sst, algebraic };
 enum class Scheme {
   first_upwind = 0,
   second_upwind = 1,
@@ -90,12 +94,19 @@ struct Turbulence {
   std::optional<double> production_factor, curvature_factor, omega_floor;
   std::optional<WallOmega> wall_omega;
   std::optional<bool> sa_alternate_production,sa_damping,sa_enhanced_wall;
+  std::optional<TransitionModel> transition;
+  // Intermittency model inputs, parsed only while it is active: the
+  // trans-one-eqn-* constants, intermit-sig, trans-intermit/min-limit and
+  // max-limit, intermit/default.
+  std::map<std::string, double> transition_coefficients;
+  std::optional<bool> transition_crossflow, transition_smoothing;
+  std::optional<int> transition_normal_derivative;  // trans-one-eqn-dudn-method
   std::map<std::string, double> coefficients;
   std::map<std::string, bool> unsupported_options;
   bool operator==(const Turbulence &) const = default;
 };
 struct Numerics {
-  std::optional<Scheme> pressure, momentum, k, omega, epsilon,modified_viscosity;
+  std::optional<Scheme> pressure, momentum, k, omega, epsilon,modified_viscosity,intermittency;
   std::optional<Gradient> gradient;
   std::optional<Limiter> limiter;
   std::optional<bool> limiting, limit_to_face, limiter_filter, warped_face_correction,
@@ -143,6 +154,7 @@ struct BoundaryZone {
   // Raw SA selector; its version-dependent integer mapping is not accepted.
   std::optional<int> sa_spec;
   std::map<std::string, ScalarValue> turbulence;
+  std::optional<ScalarValue> intermittency;  // `intermit`, with the transition model only
   std::optional<WallMotion> wall_motion;
   std::optional<bool> relative_motion, specified_shear, prevent_reverse_flow, wall_components;
   std::optional<int> frame_of_reference, backflow_pressure_spec, shear_bc, rough_bc;
@@ -220,6 +232,7 @@ FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,
                         std::optional<std::string> origin = {});
 FluentCase read_case(const std::filesystem::path &);
 std::string_view name(ViscousModel);
+std::string_view name(TransitionModel);
 std::string_view name(Scheme);
 std::string_view name(Coupling);
 } // namespace kutta::fluent

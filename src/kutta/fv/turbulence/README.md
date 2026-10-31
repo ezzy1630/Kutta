@@ -3,6 +3,8 @@
 Experimental SA and realizable k-epsilon live in separate files; see
 [their contracts and unresolved Fluent wall gates](car_models.md). They remain
 rejected by the Fluent case adapter. The SST contract below is unchanged.
+Fluent's Intermittency Transition Model couples to SST through
+`SstOptions::intermittency`; see [transition.md](transition.md).
 
 `sst.hpp` contains the caller sketch. Construct `SstModel(device, mesh, options)`
 once, then call `update(inputs)` each outer iteration. Inputs borrow device SoA

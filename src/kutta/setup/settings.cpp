@@ -130,6 +130,12 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   b.add("general/dimension","Dimension","General",c.dimension?Json(*c.dimension):Json(nullptr),"","integer");
   b.add("models/viscous","Viscous model","Models",c.viscous.model?Json(std::string(name(*c.viscous.model))):Json(nullptr),"","enum").value_label=c.viscous.model?viscous_label(*c.viscous.model):"";
   b.add("models/energy","Energy equation","Models",c.energy?Json(*c.energy):Json(nullptr),"","bool");
+  {
+    auto& s=b.add("models/transition","Transition model","Models",c.viscous.transition?Json(std::string(name(*c.viscous.transition))):Json(nullptr),"","enum");
+    s.options={"none","gamma-transport-eqn","gamma-algebraic","transition-sst"};
+    s.option_labels={"None","Intermittency Transition Model","Algebraic Transition Model","Transition SST"};label_value(s);
+  }
+  const bool transition=c.viscous.transition==TransitionModel::intermittency;
   b.consume(c.variables,"case-config");b.raw(c.config,"general/case-config/");
   b.consume(c.variables,"materials");
   for(auto& m:c.materials) {
@@ -193,6 +199,11 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
       if((inlet || outlet) && !when.empty() && (v.constant || v.resolved))b.editable(s,[target=&v](const Json& j){ScalarValue x;x.kind=ScalarValue::Kind::constant;x.constant=std::get<double>(j.value);*target=x;},key=="k" || key=="turb-intensity"?0:positive,key=="turb-intensity"?1:1e30);
       b.consume(z.raw,key=="omega"?"o":key=="epsilon"?"e":key);
     }
+    if(transition && (inlet || outlet)) {
+      // Fluent's inlet (outlet: backflow) intermittency, used on inflow faces.
+      b.scalar(prefix+"intermittency","Intermittency","Boundary Conditions",z.intermittency,"1",true,0,1);
+      b.consume(z.raw,"intermit");
+    }
     b.raw(z.raw,prefix+"raw/","Boundary Conditions");
   }
   for(auto [key,label,unit,v,editable]:std::vector<std::tuple<std::string,std::string,std::string,std::optional<double>*,bool>>{
@@ -230,6 +241,13 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     s.options={"standard","second-order"};s.option_labels={"Standard","Second Order"};if(p)s.value_label=scheme_label(*p);
     b.consume(c.variables,"pressure/scheme");
   }
+  if(transition) {
+    auto& target=c.numerics.intermittency;
+    auto& s=b.add("methods/intermittency-scheme","Intermittency","Methods",target?Json(*target==Scheme::first_upwind?"first-order-upwind":*target==Scheme::second_upwind?"second-order-upwind":std::string(name(*target))):Json(nullptr),"","enum");
+    s.options={"first-order-upwind","second-order-upwind"};s.option_labels={"First Order Upwind","Second Order Upwind"};if(target)s.value_label=scheme_label(*target);
+    if(target)b.editable(s,[target=&target](const Json& j){*target=std::get<std::string>(j.value)=="first-order-upwind"?Scheme::first_upwind:Scheme::second_upwind;});
+    b.consume(c.variables,"intermit/scheme");
+  }
   b.add("methods/pseudo-transient","Pseudo-transient formulation","Methods",Json(uses_pseudo_time(c)),"","bool");
   b.consume(c.variables,"pseudo-transient-formulation?");
   auto& limit=b.add("methods/gradient-limiting","Gradient limiting","Methods",c.numerics.limiting?Json(*c.numerics.limiting):Json(nullptr),"","bool");
@@ -254,7 +272,9 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   b.number("controls/pseudo-time-scale-factor","Pseudo-time scale factor","Controls",c.numerics.pseudo.scale_factor,"1",true,positive,1e15);b.consume(c.variables,"pseudo-auto-time-step-scale-factor");
   const bool coupled=c.numerics.coupling==Coupling::coupled,pseudo=uses_pseudo_time(c);
   const auto dissipation=c.viscous.model==ViscousModel::ke_standard?"epsilon":"omega";
-  for(auto eq:{"mom","pressure","k",dissipation}) {
+  std::vector<const char*> relaxed{"mom","pressure","k",dissipation};
+  if(transition)relaxed.push_back("intermit");
+  for(auto eq:relaxed) {
     const bool flow=std::string_view(eq)=="mom" || std::string_view(eq)=="pressure";
     // The factors the solve adapter uses: pseudo-time factors, classic
     // under-relaxation, or (Coupled without pseudo time) the stored explicit
@@ -288,7 +308,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   // Convergence conditions are run controls: residual criteria come from the
   // case, report conditions use Kutta's defaults (docs/app-protocol.md).
   auto& conv=run.convergence;conv=ConvergenceControls{};
-  for(auto eq:solved_residuals(c.viscous.model))conv.residuals.push_back({std::string(eq)});
+  for(auto eq:solved_residuals(c.viscous.model,transition))conv.residuals.push_back({std::string(eq)});
   if(residual_criteria(c.variables.value("residuals/settings"),conv.residuals))b.consume(c.variables,"residuals/settings");
   for(const auto& r:c.reports)conv.reports.push_back({r.name});
   b.editable(b.add("monitors/check-convergence","Check convergence","Monitors",conv.check),[t=&conv.check](const Json& j){*t=std::get<bool>(j.value);});

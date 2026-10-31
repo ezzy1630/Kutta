@@ -22,11 +22,18 @@ int main(int argc,char** argv) {
     else if(mode=="no-wall-production") o.model.wall_production=false;
     else if(mode=="no-cross-clip") o.model.limit_cross_diffusion=false;
     else if(mode=="symmetry-top") o.symmetry_top=true;
+    // Fully turbulent transition regression: Tu 5% and mu_t/mu 100 at the
+    // inflow (about 2% at the leading edge after SST decay), SST alone or with
+    // the intermittency transition model at Fluent's defaults.
+    else if(mode=="high-tu" || mode=="high-tu-transition") {
+      const double nu=name=="plate"?1./5e6:1./3e6,k=1.5*.05*.05;o.inflow=fv::TurbulenceValues{k,k/(100*nu)};
+      if(mode=="high-tu-transition") o.transition=fv::IntermittencySettings{};
+    }
     else KUTTA_REQUIRE(mode=="default","unknown model/BC diagnostic");
     if(argc>8) o.max_seconds=integer(argv[8]);
     auto dev=Device::create(backend=="cpu"?Backend::Cpu:(backend=="metal"?Backend::Metal:Backend::Cuda));
     const auto r=run(*dev,argv[1],name=="plate"?Case::FlatPlate:Case::Bump,level,o);
-    std::cout<<std::setprecision(12)<<"RESULT configured_commit="<<KUTTA_BENCH_COMMIT<<" device="<<dev->name()<<" mode="<<mode<<" cells="<<r.cells<<" iterations="<<r.iterations<<" setup_s="<<r.setup_seconds<<" solve_s="<<r.solve_seconds<<" budget="<<r.stopped_for_budget<<" converged="<<r.converged<<" defect="<<defect(r.residual)<<" change="<<r.load_change<<" continuity_raw="<<r.residual.continuity.raw<<" continuity_scale="<<r.residual.continuity.fluent_normalization<<" corrected_mass="<<r.residual.corrected_mass_imbalance<<" ru="<<r.residual.u.scaled<<" rv="<<r.residual.v.scaled<<" rk="<<r.residual.k.scaled<<" rw="<<r.residual.omega.scaled<<" drag="<<r.values.drag<<" ymaxplus="<<r.values.max_yplus;
+    std::cout<<std::setprecision(12)<<"RESULT configured_commit="<<KUTTA_BENCH_COMMIT<<" device="<<dev->name()<<" mode="<<mode<<" cells="<<r.cells<<" iterations="<<r.iterations<<" setup_s="<<r.setup_seconds<<" solve_s="<<r.solve_seconds<<" budget="<<r.stopped_for_budget<<" converged="<<r.converged<<" defect="<<defect(r.residual)<<" change="<<r.load_change<<" continuity_raw="<<r.residual.continuity.raw<<" continuity_scale="<<r.residual.continuity.fluent_normalization<<" corrected_mass="<<r.residual.corrected_mass_imbalance<<" ru="<<r.residual.u.scaled<<" rv="<<r.residual.v.scaled<<" rk="<<r.residual.k.scaled<<" rw="<<r.residual.omega.scaled<<" rgamma="<<r.residual.intermittency.scaled<<" drag="<<r.values.drag<<" ymaxplus="<<r.values.max_yplus;
     for(auto q:r.values.cf) std::cout<<" cf="<<q;for(auto q:r.values.cp) std::cout<<" cp="<<q;std::cout<<'\n';
     if(!r.failure.empty()) std::cout<<"FAILURE completed_iterations="<<r.iterations<<" reason="<<r.failure<<'\n';
     return r.converged?0:2;

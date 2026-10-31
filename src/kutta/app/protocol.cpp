@@ -175,6 +175,8 @@ int inspect_json(int argc,char** argv) {
     s<<"],\"models\":{\"viscous\":"<<(c.viscous.model?json_string(*c.viscous.model==ViscousModel::kw_sst?std::string_view("k-omega-sst"):name(*c.viscous.model)):"null")<<",\"energy\":";boolean(s,c.energy);
     bool constant=!c.cell_zones.empty();for(const auto& z:c.cell_zones){auto m=std::find_if(c.materials.begin(),c.materials.end(),[&](const auto& m){return z.material==m.name;});constant &= z.type==ZoneType::fluid && m!=c.materials.end() && m->nonconstant_density==false && m->nonconstant_viscosity==false;}
     s<<",\"energy_coupled\":";if(c.energy==false || constant)s<<"false";else s<<"null";
+    // v1-additive: present only when a transition model is selected.
+    if(c.viscous.transition && *c.viscous.transition!=TransitionModel::none)s<<",\"transition\":"<<json_string(name(*c.viscous.transition));
     s<<"},\"materials\":[";first=true;
     for(const auto& m:c.materials){if(!first)s<<',';first=false;s<<"{\"name\":"<<json_string(m.name)<<",\"density\":";scalar(s,m.density);s<<",\"viscosity\":";scalar(s,m.viscosity);s<<'}';}
     s<<"],\"reports\":[";first=true;

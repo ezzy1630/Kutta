@@ -1,6 +1,7 @@
 #include "kutta/fv/steady_solver.hpp"
 #include "kutta/fv/turbulence/sa_transport.hpp"
 #include "kutta/fv/turbulence/realizable_ke_transport.hpp"
+#include "kutta/fv/turbulence/intermittency.hpp"
 #include "kutta/fv/coupled_solver.hpp"
 
 #include <algorithm>
@@ -94,6 +95,7 @@ struct SteadySolver::Impl {
   std::unique_ptr<SstModel> sst;
   std::unique_ptr<SaTransport> sa;
   std::unique_ptr<RealizableKeTransport> rke;
+  std::unique_ptr<IntermittencyTransport> transition;
   std::unique_ptr<TransportEquation> k_equation,omega_equation;
   Buffer<float> kinetic,omega,rho_cell,mu_cell,boundary_k,boundary_omega,turbulence_a,turbulence_b;
   Buffer<Index> turbulence_spec,turbulence_kind,zero_mask,total_pressure;
@@ -352,7 +354,15 @@ struct SteadySolver::Impl {
       omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
         walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,omega_observed),krylov_workspace);
       memory::phase("turbulence-transport");
-      sst=std::make_unique<SstModel>(dev,mesh,t.model);
+      KUTTA_REQUIRE(!t.model.intermittency,"FV: enable transition with SstSettings::transition, not SstOptions::intermittency");
+      auto sst_options=t.model;
+      if(t.transition) {
+        sst_options.intermittency=SstIntermittency{t.transition->model.ck,t.transition->model.csep};
+        transition=std::make_unique<IntermittencyTransport>(dev,mesh,stencil,host,geom,boundaries,settings,
+          pressure_matrix,k_lsq,krylov_workspace);
+        memory::phase("transition");
+      }
+      sst=std::make_unique<SstModel>(dev,mesh,sst_options);
     }
     if(settings.sa) {
       sa=std::make_unique<SaTransport>(dev,mesh,stencil,host,geom,boundaries,settings,pressure_matrix,turbulent_faces);
@@ -428,7 +438,8 @@ struct SteadySolver::Impl {
   }
   void evaluate_turbulence() {
     sst->update({velocity,{strain_gradient[0],strain_gradient[1],strain_gradient[2]},rho_cell,mu_cell,
-      kinetic,omega,k_equation->grad,omega_equation->grad,boundary_velocity});
+      kinetic,omega,k_equation->grad,omega_equation->grad,boundary_velocity,
+      transition?&transition->gamma():nullptr});
   }
   void update_turbulence(bool velocity_changed=true) {
     if(rke) {
@@ -455,6 +466,7 @@ struct SteadySolver::Impl {
     gradient(dev,mesh,stencil,k_lsq,kinetic,boundary_k,k_equation->grad);
     gradient(dev,mesh,stencil,omega_lsq,omega,boundary_omega,omega_equation->grad);
     evaluate_turbulence();
+    if(transition) transition->update(sst->fields(),rho_cell,mu_cell,kinetic,omega,strain_gradient,boundary_kind,mass);
     kern::fv_effective_viscosity(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.weight,sst->fields().mu_t,viscosity,mesh.n_internal_faces,float(settings.viscosity));
   }
@@ -509,6 +521,8 @@ struct SteadySolver::Impl {
     update_turbulence(false);assemble_turbulence(true);
     report.turbulence[1]=omega_equation->solve(omega,settings.sst->linear);
     kern::fv_floor(dev,mesh.n_cells,omega,settings.sst->model.omega_floor);
+    // Fluent order: k, omega, then intermittency, each from the latest fields.
+    if(transition) {update_turbulence(false);report.transition=transition->solve(time_step);}
   }
   void monitor_turbulence() {
     if(rke) {auto r=rke->monitor(time_step);report.k=r[0];report.epsilon=r[1];return;}
@@ -527,6 +541,7 @@ struct SteadySolver::Impl {
       return ResidualValue{raw,scaled(den),scaled(fluent_den),fluent_den};
     };
     report.k=measure(false);report.omega=measure(true);
+    if(transition) report.intermittency=transition->monitor(time_step);
   }
   // Fluent's automatic global time step (Theory Guide 23.6.2, eqs. 23-102 to
   // 23-105): 0.3 L / max(0.1 U_bc, U_domain, U_dp). Fluent defines it for the
@@ -842,8 +857,10 @@ void SteadySolver::initialize(const std::function<Vec3d(Vec3d)>& velocity,const 
   s.update_flux();
 }
 void SteadySolver::initialize_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
-    std::span<const double> k,std::span<const double> omega) {
+    std::span<const double> k,std::span<const double> omega,std::span<const double> intermittency) {
   auto& s=*impl_;const auto n=std::size_t(s.mesh.n_cells);
+  KUTTA_REQUIRE(intermittency.empty() || s.transition,"FV intermittency initialization requires the transition model");
+  if(!intermittency.empty()) s.transition->initialize(intermittency,s.permutation);
   KUTTA_REQUIRE(velocity.size()==n && pressure.size()==n,"FV initialization field size mismatch");
   KUTTA_REQUIRE(s.sst?(k.size()==n && omega.size()==n):(k.empty() && omega.empty()),"FV turbulence initialization size mismatch");
   std::vector<Vec3d> u(n);std::vector<float> p(n),kinetic(n),dissipation(n);
@@ -1092,6 +1109,8 @@ const DeviceVec3& SteadySolver::wall_shear() const {
   return s.laminar_wall_shear;
 }
 const SstFields& SteadySolver::turbulence() const {KUTTA_REQUIRE(impl_->sst,"FV SST disabled");return impl_->sst->fields();}
+const Buffer<float>& SteadySolver::intermittency() const {KUTTA_REQUIRE(impl_->transition,"FV transition model disabled");return impl_->transition->gamma();}
+const IntermittencyFields& SteadySolver::transition() const {KUTTA_REQUIRE(impl_->transition,"FV transition model disabled");return impl_->transition->fields();}
 const SaFields& SteadySolver::sa_turbulence() const {KUTTA_REQUIRE(impl_->sa,"FV SA disabled");return impl_->sa->fields();}
 const SaWallFields& SteadySolver::sa_wall() const {KUTTA_REQUIRE(impl_->sa,"FV SA disabled");return impl_->sa->wall_fields();}
 const RealizableKeFields& SteadySolver::realizable_turbulence() const {KUTTA_REQUIRE(impl_->rke,"FV realizable k-epsilon disabled");return impl_->rke->fields();}

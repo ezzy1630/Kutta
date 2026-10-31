@@ -19,6 +19,8 @@
 //
 // Fields remain on device; update allocates nothing and never downloads data.
 
+#include <optional>
+
 #include "kutta/fv/device_mesh.hpp"
 
 namespace kutta {
@@ -26,6 +28,15 @@ namespace kutta {
 enum class SstGammaSet { Computed1994, Menter2003 };
 enum class SstViscosityLimiter { Strain, Vorticity };
 enum class SstWallOmega { Correlation, Tabulated };
+
+// k-equation side of Fluent's Intermittency Transition Model (TG 4-205..207
+// and Menter et al. 2015, see transition.md): k production gamma*G~_k + P_k^lim,
+// destruction min(max(gamma,.1),1)*Y_k and F1 = max(F1, F3). The gamma
+// equation itself lives in IntermittencyTransport.
+struct SstIntermittency {
+  float ck = 1.0f;    // C_k in P_k^lim; Fluent rpvar trans-one-eqn-tke-term-coef
+  float csep = 1.0f;  // C_SEP in P_k^lim; Fluent rpvar trans-one-eqn-csep
+};
 
 struct SstOptions {
   bool production_limiter = true;
@@ -48,6 +59,8 @@ struct SstOptions {
   float omega_floor = 1e-20f;
   float k_floor = 1e-14f;
   float max_viscosity_ratio = 1e5f;
+  // Absent: plain SST, with no extra kernel or buffer.
+  std::optional<SstIntermittency> intermittency;
 };
 
 // Tensor rows are velocity components: u.x = du/dx, u.y = du/dy, etc.
@@ -68,6 +81,8 @@ struct SstInputs {
   const DeviceVec3& k_gradient;
   const DeviceVec3& omega_gradient;
   const DeviceVec3& wall_velocity;  // per BOUNDARY face; stationary walls require zeros
+  // Required exactly when SstOptions::intermittency is set; per cell, in [0, 1].
+  const Buffer<float>* intermittency = nullptr;
 };
 
 struct SstFields {
@@ -97,6 +112,9 @@ struct SstFields {
   // Diagnostics and cell diffusivities, also useful to the transport assembler.
   Buffer<float> strain, vorticity, f1, f2, cdkw;
   Buffer<float> diffusivity_k, diffusivity_omega, production_k;
+  // P_k^lim, allocated only with SstOptions::intermittency. production_k stays
+  // SST's G~_k; k_source/k_sink carry the intermittency-coupled terms.
+  Buffer<float> production_limit;
 };
 
 class SstModel {

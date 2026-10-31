@@ -378,7 +378,7 @@ void config_support(FluentCase &c) {
       "rp-structure? rp-structure-damping? rp-structure-linear? rp-structure-nonlinear? "
       "rp-structure-time? rp-lsf? rp-net? rp-react? rp-sa? rp-sas? rp-sge? rp-spe? "
       "rp-spe-part? rp-potential? rp-lithium? rp-dual-potential? rp-electrolysis? "
-      "rp-electro-chem? rp-spe-site? rp-spe-surf? rp-trans-one-eqn? rp-trans-sst? "
+      "rp-electro-chem? rp-spe-site? rp-spe-surf? "
       "rp-absorbing-media? rp-v2f? sg-cylindrical? sg-disco? sg-montecarlo? sg-bee-gees? "
       "sg-crev? sg-dpm? sg-dqmom-iem? sg-dtrm? sg-dynmesh? sg-overset? sg-ecfm? sg-geqn? "
       "sg-hg? sg-inert? sg-ignite? sg-network? sg-pcb? sg-node-udm? sg-noniterative? "
@@ -387,7 +387,6 @@ void config_support(FluentCase &c) {
       "sg-s2s? sg-soot? sg-sox? sg-spark? sg-swirl? sg-twotemp? sg-udm? sg-uds? "
       "sg-addon? sg-addon-loaded? sg-vfr? sg-solar? sg-wetsteam? sg-moistair? sg-wallfilm? "
       "rp-spe-surf-rc? rp-watercontent? sg-vbm? rp-ablation?", false);
-  expected.emplace("rp-transition-model", SExpr::symbol("none"));
   // These describe precision, execution, initialization or registered storage;
   // neither boolean value changes the selected physical equations.
   const std::set<std::string> metadata = {"rp-double?", "rp-graphics?", "rp-host?", "rp-thread?",
@@ -417,6 +416,8 @@ void config_support(FluentCase &c) {
     auto value = entry_value(e);
     if (key == "rf-energy?")
       continue; // Classified after the active materials are known.
+    if (key == "rp-trans-one-eqn?" || key == "rp-trans-sst?" || key == "rp-transition-model")
+      continue; // Classified by transition_model().
     if (key == "rp-3d?" && boolean(value)) {
       c.config.interpreted.insert(key);
       continue;
@@ -471,6 +472,43 @@ void property_support(FluentCase &c) {
         : "unsupported: gravity with nonconstant or unverified density",
         constant ? IssueClass::informational : IssueClass::unsupported});
 }
+// The selector symbols follow the Fluent User's Guide option names (16.9);
+// no saved transition case was available to confirm them, so any other
+// combination is rejected rather than guessed.
+void transition_model(FluentCase &c, Extractor &cfg, Extractor &x) {
+  auto &t = c.viscous;
+  const auto one = cfg.flag("rp-trans-one-eqn?", false), sst = cfg.flag("rp-trans-sst?", false);
+  const auto selector = cfg.str("rp-transition-model", false);
+  const bool none = selector.value_or("none") == "none";
+  if (one != true && sst != true && none) t.transition = TransitionModel::none;
+  else if (one == true && sst != true && selector.value_or("gamma-transport-eqn") == "gamma-transport-eqn")
+    t.transition = TransitionModel::intermittency;
+  else if (sst == true && one != true && none) t.transition = TransitionModel::transition_sst;
+  else if (one != true && sst != true && selector == "gamma-algebraic") t.transition = TransitionModel::algebraic;
+  else {
+    c.issues.push_back({"case-config/rp-transition-model",
+        "unparsed: inconsistent or unknown rp-trans-one-eqn?/rp-trans-sst?/rp-transition-model"});
+    return;
+  }
+  // Typed for display; only the intermittency model is implemented.
+  if (t.transition == TransitionModel::transition_sst)
+    c.issues.push_back({"case-config/rp-trans-sst?",
+        "unsupported: Transition SST (gamma-Re_theta) is not implemented; Kutta implements Fluent's "
+        "Intermittency Transition Model (gamma-transport-eqn)"});
+  if (t.transition == TransitionModel::algebraic)
+    c.issues.push_back({"case-config/rp-transition-model",
+        "unsupported: the algebraic transition model is not implemented; Kutta implements Fluent's "
+        "Intermittency Transition Model (gamma-transport-eqn)"});
+  if (t.transition != TransitionModel::intermittency) return;
+  for (auto key : {"trans-one-eqn-ctu1", "trans-one-eqn-ctu2", "trans-one-eqn-ctu3", "trans-one-eqn-cpg1",
+                   "trans-one-eqn-cpg2", "trans-one-eqn-cpg3", "trans-one-eqn-lim-cpg1", "trans-one-eqn-lim-cpg2",
+                   "trans-one-eqn-csep", "trans-one-eqn-tke-term-coef", "trans-one-eqn-crossflow-crsf",
+                   "intermit-sig", "trans-intermit/min-limit", "trans-intermit/max-limit", "intermit/default"})
+    if (auto v = x.num(key)) t.transition_coefficients.emplace(key, *v);
+  t.transition_crossflow = x.flag("trans-one-eqn-crossflow?");
+  t.transition_smoothing = x.flag("trans-intermit-smoothing?");
+  t.transition_normal_derivative = x.code("trans-one-eqn-dudn-method");
+}
 void model(FluentCase &c) {
   auto &r = c.variables;
   Extractor x(c, r, "rp/");
@@ -511,6 +549,7 @@ void model(FluentCase &c) {
     c.issues.push_back(
         {"viscous-model", "unparsed: absent, conflicting or unsupported case-config/model flags"});
   config_support(c);
+  transition_model(c, cfg, x);
   const bool epsilon = epsilon_model(c);
   if (t.model && t.model != ViscousModel::laminar && t.model != ViscousModel::kw_sst &&
       t.model != ViscousModel::ke_standard)
@@ -588,6 +627,8 @@ void numerics(FluentCase &c) {
       n.epsilon = x.enumeration("epsilon/scheme", convection);
     else if(c.viscous.model != ViscousModel::spalart_allmaras)
       n.omega = x.enumeration("omega/scheme", convection);
+    if (c.viscous.transition == TransitionModel::intermittency)
+      n.intermittency = x.enumeration("intermit/scheme", convection);
   }
   n.coupling = x.enumeration(
       "flow/scheme", {Coupling::simple, Coupling::simplec, Coupling::piso, Coupling::coupled});
@@ -623,6 +664,7 @@ void numerics(FluentCase &c) {
   if (turbulent) {
     if(c.viscous.model == ViscousModel::spalart_allmaras) equations.push_back("nut");
     else {equations.push_back("k");equations.push_back(epsilon_model(c) ? "epsilon" : "omega");}
+    if (c.viscous.transition == TransitionModel::intermittency) equations.push_back("intermit");
     equations.push_back("turb-viscosity");
   }
   const bool pseudo = n.pseudo.formulation == true;
@@ -963,6 +1005,8 @@ void thread(FluentCase &c, const SExpr &e) {
         z.turbulence.emplace(k == "o" ? "omega" : (k == "e" ? "epsilon" : key), *v);
     }
     }
+    if (c.viscous.transition == TransitionModel::intermittency)
+      z.intermittency = x.scalar("intermit");
     if (outlet) {
       z.backflow_pressure_spec = x.code("p-backflow-spec");
       z.prevent_reverse_flow = x.flag("prevent-reverse-flow?", false);
@@ -1199,6 +1243,15 @@ FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,
   if (!c.solver_version)
     c.issues.push_back({"solver-version", "absent: no default assumed"});
   return c;
+}
+std::string_view name(TransitionModel v) {
+  switch (v) {
+  case TransitionModel::none: return "none";
+  case TransitionModel::intermittency: return "gamma-transport-eqn";
+  case TransitionModel::transition_sst: return "transition-sst";
+  case TransitionModel::algebraic: return "gamma-algebraic";
+  }
+  return "unknown";
 }
 std::string_view name(ViscousModel v) {
   switch (v) {

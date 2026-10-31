@@ -100,6 +100,8 @@ void write_fields(Device& dev,const fv::SteadySolver& solver,const fv::SolverSet
     k=field(solver.kinetic_energy());omega=field(solver.dissipation());mu=field(solver.realizable_turbulence().mu_t);
     fields.insert(fields.end(),{{"k",1,k},{"epsilon",1,omega},{"mu_t",1,mu}});
   }
+  std::vector<double> gamma;
+  if(settings.sst && settings.sst->transition) {gamma=field(solver.intermittency());fields.push_back({"intermittency",1,gamma});}
   // Fields and geometry both use the solver's owned RCM order.
   write_vtu(path,solver.mesh(),fields,notice);
 }
@@ -201,7 +203,8 @@ int solve(int argc,char** argv) {
     std::filesystem::remove(o.out/"loads.json");std::filesystem::remove(o.out/"aero.json");
     auto residuals=output(o.out/"residuals.csv");
     if(!notice.empty()) residuals<<"# "<<notice<<'\n';
-    const auto residual_names=setup::solved_residuals(c.viscous.model);
+    const bool transition=setup->settings.sst && setup->settings.sst->transition;
+    const auto residual_names=setup::solved_residuals(c.viscous.model,transition);
     residuals<<"iteration";for(auto name:residual_names)residuals<<','<<name;residuals<<",seconds_per_iteration\n";
     if(!jsonl) {
       human<<"Backend: "<<backend_name(dev->backend())<<"; device: "<<dev->name()<<"\n  iter";
@@ -248,6 +251,7 @@ int solve(int argc,char** argv) {
       std::vector<double> values{r.continuity.fluent_scaled,r.u.fluent_scaled,r.v.fluent_scaled,r.w.fluent_scaled};
       if(setup->settings.sst) values.insert(values.end(),{r.k.fluent_scaled,r.omega.fluent_scaled});
       if(setup->settings.realizable_ke) values.insert(values.end(),{r.k.fluent_scaled,r.epsilon.fluent_scaled});
+      if(transition) values.push_back(r.intermittency.fluent_scaled);
       KUTTA_REQUIRE(values.size()==residual_names.size(),"residual names do not match the solved equations");
       residuals<<r.iteration;
       if(!jsonl)human<<std::setw(6)<<r.iteration<<std::scientific<<std::setprecision(6);
