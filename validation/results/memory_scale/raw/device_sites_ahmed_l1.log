@@ -1,0 +1,62 @@
+MEMORY_ARRAYS cells=403604 length=boundary_faces arrays=55 bytes_per_cell=14.7043
+MEMORY_ARRAYS cells=403604 length=cell_face_entries arrays=20 bytes_per_cell=480
+MEMORY_ARRAYS cells=403604 length=cells arrays=146 bytes_per_cell=584
+MEMORY_ARRAYS cells=403604 length=cells+1 arrays=2 bytes_per_cell=8.00002
+MEMORY_ARRAYS cells=403604 length=faces arrays=35 bytes_per_cell=424.679
+MEMORY_ARRAYS cells=403604 length=internal_faces arrays=5 bytes_per_cell=59.3316
+MEMORY_ARRAYS cells=403604 length=matrix_entries arrays=3 bytes_per_cell=83.1979
+MEMORY_ARRAYS cells=403604 length=other arrays=117 bytes_per_cell=633.26
+MEMORY_SITE cells=403604 site="kutta::KrylovWorkspace::vector [403604]" arrays=10 bytes_per_cell=40
+MEMORY_SITE cells=403604 site="kutta::SstModel::SstModel [1224300]" arrays=2 bytes_per_cell=24.2674
+MEMORY_SITE cells=403604 site="kutta::SstModel::SstModel [26976]" arrays=13 bytes_per_cell=3.47557
+MEMORY_SITE cells=403604 site="kutta::SstModel::SstModel [403604]" arrays=17 bytes_per_cell=68
+MEMORY_SITE cells=403604 site="kutta::anon::Level::Level [0]" arrays=37 bytes_per_cell=0
+MEMORY_SITE cells=403604 site="kutta::anon::Level::Level [1532]" arrays=4 bytes_per_cell=0.0607328
+MEMORY_SITE cells=403604 site="kutta::anon::Level::Level [2231]" arrays=4 bytes_per_cell=0.0884431
+MEMORY_SITE cells=403604 site="kutta::anon::Level::Level [403604]" arrays=2 bytes_per_cell=8
+MEMORY_SITE cells=403604 site="kutta::anon::Level::Level [53038]" arrays=4 bytes_per_cell=2.10258
+MEMORY_SITE cells=403604 site="kutta::anon::Level::Level [7883]" arrays=4 bytes_per_cell=0.312504
+MEMORY_SITE cells=403604 site="kutta::fv::SteadySolver::Impl::Impl [1197324]" arrays=5 bytes_per_cell=59.3316
+MEMORY_SITE cells=403604 site="kutta::fv::SteadySolver::Impl::Impl [1224300]" arrays=21 bytes_per_cell=254.807
+MEMORY_SITE cells=403604 site="kutta::fv::SteadySolver::Impl::Impl [2421624]" arrays=2 bytes_per_cell=48
+MEMORY_SITE cells=403604 site="kutta::fv::SteadySolver::Impl::Impl [26976]" arrays=23 bytes_per_cell=6.14908
+MEMORY_SITE cells=403604 site="kutta::fv::SteadySolver::Impl::Impl [2798252]" arrays=2 bytes_per_cell=55.4653
+MEMORY_SITE cells=403604 site="kutta::fv::SteadySolver::Impl::Impl [403604]" arrays=70 bytes_per_cell=280
+MEMORY_SITE cells=403604 site="kutta::fv::SteadySolver::Impl::Impl [403605]" arrays=2 bytes_per_cell=8.00002
+MEMORY_SITE cells=403604 site="kutta::fv::TransportEquation::TransportEquation [1224300]" arrays=6 bytes_per_cell=72.8021
+MEMORY_SITE cells=403604 site="kutta::fv::TransportEquation::TransportEquation [403604]" arrays=40 bytes_per_cell=160
+MEMORY_SITE cells=403604 site="kutta::fv::WalkFaceReconstruction::WalkFaceReconstruction [1224300]" arrays=2 bytes_per_cell=24.2674
+MEMORY_SITE cells=403604 site="kutta::fv::WalkFaceReconstruction::WalkFaceReconstruction [26976]" arrays=1 bytes_per_cell=0.267351
+MEMORY_SITE cells=403604 site="kutta::fv::WalkFaceReconstruction::WalkFaceReconstruction [34667640]" arrays=1 bytes_per_cell=343.581
+MEMORY_SITE cells=403604 site="kutta::fv::WalkFaceReconstruction::WalkFaceReconstruction [4036040]" arrays=4 bytes_per_cell=160
+MEMORY_SITE cells=403604 site="kutta::fv::WalkFaceReconstruction::WalkFaceReconstruction [4843248]" arrays=2 bytes_per_cell=96
+MEMORY_SITE cells=403604 site="kutta::fv::anon::vectors [1224300]" arrays=3 bytes_per_cell=36.401
+MEMORY_SITE cells=403604 site="kutta::fv::anon::vectors [2421624]" arrays=9 bytes_per_cell=216
+MEMORY_SITE cells=403604 site="kutta::fv::anon::vectors [26976]" arrays=18 bytes_per_cell=4.81232
+MEMORY_SITE cells=403604 site="kutta::fv::boundary_least_squares [2421624]" arrays=5 bytes_per_cell=120
+MEMORY_SITE cells=403604 site="kutta::fv::face_jump_least_squares [2421624]" arrays=1 bytes_per_cell=24
+MEMORY_SITE cells=403604 site="kutta::fv::make_stencil [1224300]" arrays=1 bytes_per_cell=12.1337
+MEMORY_SITE cells=403604 site="kutta::fv::make_stencil [2421624]" arrays=3 bytes_per_cell=72
+MEMORY_SITE cells=403604 site="kutta::linalg_detail::krylov_solver [0]" arrays=12 bytes_per_cell=0
+MEMORY_SITE cells=403604 site="kutta::linalg_detail::krylov_solver [24]" arrays=6 bytes_per_cell=0.00142714
+MEMORY_SITE cells=403604 site="kutta::linalg_detail::krylov_solver [3]" arrays=6 bytes_per_cell=0.000178393
+MEMORY_SITE cells=403604 site="kutta::linalg_detail::krylov_solver [403604]" arrays=5 bytes_per_cell=20
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [104833]" arrays=3 bytes_per_cell=3.11691
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [104834]" arrays=1 bytes_per_cell=1.03898
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [1532]" arrays=1 bytes_per_cell=0.0151832
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [1533]" arrays=2 bytes_per_cell=0.0303862
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [2231]" arrays=3 bytes_per_cell=0.0663323
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [2232]" arrays=2 bytes_per_cell=0.0442414
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [23313]" arrays=3 bytes_per_cell=0.693145
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [23314]" arrays=1 bytes_per_cell=0.231058
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [2798252]" arrays=1 bytes_per_cell=27.7326
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [403604]" arrays=2 bytes_per_cell=8
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [53038]" arrays=3 bytes_per_cell=1.57693
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [53039]" arrays=2 bytes_per_cell=1.05131
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [569160]" arrays=3 bytes_per_cell=16.9223
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [569161]" arrays=1 bytes_per_cell=5.64079
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [7883]" arrays=3 bytes_per_cell=0.234378
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [7884]" arrays=2 bytes_per_cell=0.156272
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [9922]" arrays=2 bytes_per_cell=0.196668
+MEMORY_SITE cells=403604 site="kutta::make_amg_solver [9923]" arrays=1 bytes_per_cell=0.0983439
+MEMORY_TOTAL backend=metal cells=403604 faces=1224300 internal_faces=1197324 device_bytes_per_cell=2287.17 device_peak_bytes_per_cell=2287.17 device_GB=0.923112 footprint_GB=1.1834 peak_footprint_GB=1.18342 heap_GB=0.150128 peak_rss_GB=1.00978 seconds_per_iteration=0.100446 pressure_iterations=13 finite=1

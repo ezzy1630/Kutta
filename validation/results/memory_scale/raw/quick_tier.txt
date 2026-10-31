@@ -1,0 +1,3 @@
+[doctest] test cases:     250 |     250 passed | 0 failed | 29 skipped
+[doctest] assertions: 7417230 | 7417230 passed | 0 failed |
+[doctest] Status: SUCCESS!

@@ -16,7 +16,9 @@
 // Exported by libSystem; declared only in the private headers.
 extern "C" int proc_rlimit_control(pid_t pid, int flavor, void* arg);
 #elif defined(_WIN32)
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 #include <psapi.h>
 #endif

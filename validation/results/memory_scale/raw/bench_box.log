@@ -1,0 +1,24 @@
+== before 80x128x100
+MEMORY_PHASE source= phase=device seconds=0.0424075 footprint_GB=0.0114694 heap_GB=0.00308478 peak_rss_GB=0.0240026
+MEMORY_PHASE source= phase=mesh seconds=1.60169 footprint_GB=0.232621 heap_GB=0.166828 peak_rss_GB=1.10777
+MEMORY_PHASE source= phase=solver_setup seconds=3.00977 footprint_GB=4.1302 heap_GB=0.390214 peak_rss_GB=4.07978
+MEMORY_PHASE source= phase=initialize seconds=0.179783 footprint_GB=4.38548 heap_GB=0.390358 peak_rss_GB=4.10495
+MEMORY_PHASE source= phase=first_iteration seconds=0.22051 footprint_GB=4.46622 heap_GB=0.390545 peak_rss_GB=4.10581
+MEMORY_PHASE source= phase=iterations seconds=0.549204 footprint_GB=4.46623 heap_GB=0.390545 peak_rss_GB=4.10586
+MEMORY_TOTAL source= backend=metal cells=1024000 faces=3103040 internal_faces=3040960 device_bytes_per_cell=1636.48 device_peak_bytes_per_cell=1708.85 device_GB=1.67576 footprint_GB=4.46623 peak_footprint_GB=4.46623 heap_GB=0.390545 peak_rss_GB=4.10586 seconds_per_iteration=0.183068 pressure_iterations=18 finite=1
+== after 80x128x100
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=device seconds=0.0336699 footprint_GB=0.0113547 heap_GB=0.00307622 peak_rss_GB=0.0238715
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=mesh seconds=1.66844 footprint_GB=0.232654 heap_GB=0.16682 peak_rss_GB=1.10972
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=solver_setup seconds=3.38757 footprint_GB=3.28378 heap_GB=0.382169 peak_rss_GB=3.23559
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=initialize seconds=0.174438 footprint_GB=3.53932 heap_GB=0.38231 peak_rss_GB=3.26102
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=first_iteration seconds=0.212945 footprint_GB=3.62008 heap_GB=0.382499 peak_rss_GB=3.26194
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=iterations seconds=0.542182 footprint_GB=3.62008 heap_GB=0.382499 peak_rss_GB=3.26197
+MEMORY_TOTAL source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 backend=metal cells=1024000 faces=3103040 internal_faces=3040960 device_bytes_per_cell=1636.48 device_peak_bytes_per_cell=1708.85 device_GB=1.67576 footprint_GB=3.62008 peak_footprint_GB=3.62008 heap_GB=0.3825 peak_rss_GB=3.26197 seconds_per_iteration=0.180727 pressure_iterations=18 finite=1
+== after-space-efficient 80x128x100
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=device seconds=0.0336502 footprint_GB=0.00601348 heap_GB=0.00307622 peak_rss_GB=0.0231834
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=mesh seconds=1.72451 footprint_GB=0.120571 heap_GB=0.145848 peak_rss_GB=0.885228
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=solver_setup seconds=3.81738 footprint_GB=2.19085 heap_GB=0.355971 peak_rss_GB=2.43656
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=initialize seconds=0.18289 footprint_GB=2.44564 heap_GB=0.355975 peak_rss_GB=2.43656
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=first_iteration seconds=0.218668 footprint_GB=2.52638 heap_GB=0.356304 peak_rss_GB=2.43656
+MEMORY_PHASE source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 phase=iterations seconds=0.543978 footprint_GB=2.52638 heap_GB=0.356304 peak_rss_GB=2.43656
+MEMORY_TOTAL source=96b30c906e0a5b54e9f53abe4ebc43a5924f0b68 backend=metal cells=1024000 faces=3103040 internal_faces=3040960 device_bytes_per_cell=1636.48 device_peak_bytes_per_cell=1708.85 device_GB=1.67576 footprint_GB=2.52638 peak_footprint_GB=2.53169 heap_GB=0.356305 peak_rss_GB=2.43656 seconds_per_iteration=0.181326 pressure_iterations=18 finite=1
