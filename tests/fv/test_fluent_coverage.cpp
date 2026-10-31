@@ -84,7 +84,9 @@ Comparison solve_and_compare(Device& dev,const Pair& pair,int iterations) {
   setup::initialize(solver,setup::initial_fields(c,mesh));
   solver.iterate(iterations);
   const auto report=solver.monitor();
-  INFO(pair.name<<" continuity="<<report.continuity.fluent_scaled);
+  // Run-independent context, so assertions match across builds; the
+  // FLUENT_COVERAGE message carries this run's continuity.
+  INFO(std::string(pair.name));
   const bool turbulent=!saved.k.empty(),ke=!saved.epsilon.empty();
   Comparison out;
   {
@@ -159,7 +161,7 @@ Comparison solve_and_compare(Device& dev,const Pair& pair,int iterations) {
 
 TEST_CASE("Fluent corpus pairs run only with their named approximations and map their numerics") {
   for(const auto& pair:{pptx(),dash(),nozzle(),elbow_param(),elbow_two(),cylinder()}) {
-    INFO(pair.name);
+    INFO(std::string(pair.name));
     if(!present(pair)) continue;
     const auto cp=fluent_examples()/pair.cas;
     const auto c=fluent::read_case(cp);const auto mesh=read_mesh(cp);
