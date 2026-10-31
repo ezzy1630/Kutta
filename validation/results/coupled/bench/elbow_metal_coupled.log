@@ -1,0 +1,30 @@
+DIAGNOSTIC APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+CONVERGENCE_NOTE energy is decoupled: active material density and viscosity are constant
+CONVERGENCE_NOTE kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+CASE source=9d0f838b9d8d3559bc7e547766167ce1289322a6 name=elbow model=sst backend=metal cells=17822 dt=0 momentum_relaxation=0.5 pressure_relaxation=0.5 scheme=coupled coupled_bytes_per_cell=389.040287285
+STEP it=50 seconds=1.048662125 defect=0.0937782565273 continuity=0.0937782565273 raw=9.15986996661e-05 scale=0.000976758398568 corrected=9.15986996661e-05 u=0.000292689881154 v=0.000588631222852 k=0.00460843742982 omega=0.00177407156701 sa=0 change=inf step_change=inf drag=0.00672176541696 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=6 inner_p=3 p_ratio=0.0544249618014 converged=0
+STEP it=100 seconds=2.0017835 defect=0.016451488171 continuity=0.016451488171 raw=1.606912924e-05 scale=0.000976758398568 corrected=1.606912924e-05 u=2.3812375072e-05 v=7.28734277046e-05 k=0.000548820933912 omega=0.000167397859772 sa=0 change=inf step_change=0.0113319117598 drag=0.00679880891971 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=4 inner_p=3 p_ratio=0.0549016832778 converged=0
+STEP it=150 seconds=2.958969834 defect=0.00372490670732 continuity=0.00372490670732 raw=3.63833391026e-06 scale=0.000976758398568 corrected=3.63833391026e-06 u=4.94057580277e-06 v=1.41247602358e-05 k=9.20994892101e-05 omega=2.57281057822e-05 sa=0 change=0.0151316109168 step_change=0.00384325053289 drag=0.00682503925546 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=5 inner_p=3 p_ratio=0.0427652643068 converged=0
+STEP it=200 seconds=4.068442167 defect=0.000737373784499 continuity=0.000737373784499 raw=7.20236036894e-07 scale=0.000976758398568 corrected=7.20236036894e-07 u=1.12867938808e-06 v=2.91700859656e-06 k=2.59312129465e-05 omega=6.42405885949e-06 sa=0 change=0.00428457325572 step_change=0.000443025380356 drag=0.00682806426123 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=5 inner_p=3 p_ratio=0.0401114126872 converged=0
+STEP it=250 seconds=5.367744875 defect=0.000185636713425 continuity=0.000185636713425 raw=1.8132221892e-07 scale=0.000976758398568 corrected=1.8132221892e-07 u=3.21851416339e-07 v=8.35917838139e-07 k=7.20223918596e-06 omega=1.78732461381e-06 sa=0 change=0.000283719726892 step_change=0.000159376261192 drag=0.00682697620329 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=18 inner_p=3 p_ratio=0.0741699841641 converged=0
+STEP it=300 seconds=6.946944042 defect=8.20774700275e-05 continuity=8.20774700275e-05 raw=8.01698581826e-08 scale=0.000976758398568 corrected=8.01698581826e-08 u=1.05684138114e-07 v=2.23251234267e-07 k=1.69311965435e-06 omega=4.61145648495e-07 sa=0 change=0.000226773964402 step_change=6.73869633272e-05 drag=0.00682651618509 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=16 inner_p=2 p_ratio=0.0826150269844 converged=0
+STEP it=350 seconds=8.395819084 defect=5.8644452993e-05 continuity=5.8644452993e-05 raw=5.72814619904e-08 scale=0.000976758398568 corrected=5.72814619904e-08 u=5.39910661908e-08 v=7.64211234966e-08 k=3.8378433778e-07 omega=1.4096174856e-07 sa=0 change=8.4103757953e-05 step_change=1.67156682077e-05 drag=0.00682640207722 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=16 inner_p=2 p_ratio=0.0954449172727 converged=1
+       10.14 real         0.90 user         0.89 sys
+           165625856  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               11019  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+               70870  involuntary context switches
+         14926085050  instructions retired
+          6776206010  cycles elapsed
+           239764176  peak memory footprint
+EXIT 0

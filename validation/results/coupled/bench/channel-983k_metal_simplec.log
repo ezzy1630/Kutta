@@ -1,0 +1,30 @@
+CASE source=9d0f838b9d8d3559bc7e547766167ce1289322a6 name=channel model=sst backend=metal cells=983040 dt=0.01 momentum_relaxation=0.3 pressure_relaxation=0.05 scheme=simplec coupled_bytes_per_cell=0
+STEP it=20 seconds=3.284544875 defect=1.68530155155 continuity=1.68530155155 raw=0.0839703294623 scale=0.0498251066019 corrected=0.000124506506836 u=0.000723296449825 v=0.000283606163369 k=0.00967731195935 omega=0.00920732158216 sa=0 change=inf step_change=inf drag=0.0915779803904 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=3 inner_p=29 p_ratio=0.000936031761549 converged=0
+STEP it=40 seconds=5.94025 defect=0.983583764877 continuity=0.983583764877 raw=0.0490071659369 scale=0.0498251066019 corrected=8.55778489495e-05 u=0.000678019089116 v=0.000240873950863 k=0.0074795098177 omega=0.00538451070312 sa=0 change=inf step_change=0.186329067091 drag=0.0771944167354 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=3 inner_p=23 p_ratio=0.000807945767146 converged=0
+STEP it=60 seconds=8.806393458 defect=0.392652451337 continuity=0.392652451337 raw=0.0195639502454 scale=0.0498251066019 corrected=3.33114148816e-05 u=0.000595124890638 v=0.000114705872619 k=0.00700953253232 omega=0.00391585983676 sa=0 change=inf step_change=0.104232429266 drag=0.0699077609836 cf0=0 cf1=0 cf2=0 inner_u=1 inner_sa=3 inner_p=30 p_ratio=0.000823726540665 converged=0
+STEP it=80 seconds=11.768526 defect=0.262914032667 continuity=0.262914032667 raw=0.0130997197048 scale=0.0498251066019 corrected=2.67112409347e-05 u=0.000533193763272 v=7.2722877193e-05 k=0.0066186198753 omega=0.00305003295725 sa=0 change=inf step_change=0.0860169848802 drag=0.0643707805282 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=3 inner_p=28 p_ratio=0.000908316435367 converged=0
+STEP it=100 seconds=14.600266208 defect=0.281307581816 continuity=0.281307581816 raw=0.0140161802519 scale=0.0498251066019 corrected=2.79286396108e-05 u=0.000492467948719 v=8.10241437515e-05 k=0.00608807652888 omega=0.00260978745255 sa=0 change=inf step_change=0.0728503537616 drag=0.0599997756467 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=3 inner_p=25 p_ratio=0.000927651524312 converged=0
+STEP it=120 seconds=17.248200042 defect=0.263069469716 continuity=0.263069469716 raw=0.0131074643723 scale=0.0498251066019 corrected=2.64577211055e-05 u=0.000464172559224 v=7.89271340936e-05 k=0.00552800272304 omega=0.00237438746145 sa=0 change=0.629556855903 step_change=0.0676479797969 drag=0.0561980884918 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=3 inner_p=23 p_ratio=0.000908982896191 converged=0
+STEP it=140 seconds=19.764949375 defect=0.213201384173 continuity=0.213201384173 raw=0.0106227816941 scale=0.0498251066019 corrected=2.07090524782e-05 u=0.000424739792079 v=6.91176054217e-05 k=0.00491335622498 omega=0.00213430229454 sa=0 change=0.460937884642 step_change=0.063573247836 drag=0.0528389451372 cf0=0 cf1=0 cf2=0 inner_u=1 inner_sa=3 inner_p=24 p_ratio=0.000907190690892 converged=0
+STEP it=160 seconds=22.459698042 defect=0.210435976539 continuity=0.210435976539 raw=0.0104849949639 scale=0.0498251066019 corrected=1.83215088327e-05 u=0.000396083367427 v=6.01143195732e-05 k=0.00429854324948 omega=0.00185264483542 sa=0 change=0.394202566641 step_change=0.0537913372189 drag=0.050141753183 cf0=0 cf1=0 cf2=0 inner_u=1 inner_sa=3 inner_p=24 p_ratio=0.00089750073122 converged=0
+STEP it=180 seconds=25.066556167 defect=0.204243682342 continuity=0.204243682342 raw=0.0101764632454 scale=0.0498251066019 corrected=1.9135815819e-05 u=0.000371000798208 v=6.13290199919e-05 k=0.00370859909041 omega=0.00175786010962 sa=0 change=0.346583294126 step_change=0.0489238536549 drag=0.0478030440515 cf0=0 cf1=0 cf2=0 inner_u=1 inner_sa=3 inner_p=23 p_ratio=0.000992739177264 converged=0
+STEP it=200 seconds=27.669605083 defect=0.191115708138 continuity=0.191115708138 raw=0.00952236053126 scale=0.0498251066019 corrected=1.65763849509e-05 u=0.00035004973267 v=5.93544237649e-05 k=0.00317823934182 omega=0.00162848777138 sa=0 change=0.311430497901 step_change=0.0448434045961 drag=0.0457513957032 cf0=0 cf1=0 cf2=0 inner_u=1 inner_sa=3 inner_p=23 p_ratio=0.000799564170132 converged=0
+       34.21 real         6.32 user         0.96 sys
+          2332114944  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              166475  page reclaims
+                  74  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   9  voluntary context switches
+               49117  involuntary context switches
+        102494793318  instructions retired
+         27541026877  cycles elapsed
+          2997635592  peak memory footprint
+EXIT 2

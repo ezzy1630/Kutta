@@ -1,0 +1,1476 @@
+{
+  "cases": [
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re100 and Re400 cavity reported deviations",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V4 Fluent cavity matches its actual grid",
+      "baseline_assertions": 763,
+      "final_assertions": 763,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "baseline_assertions": 2601,
+      "final_assertions": 2581,
+      "baseline_failed": 29,
+      "final_failed": 29
+    },
+    {
+      "case": "FSAE V12 native Fluent polynomial fan import acceptance",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 1,
+      "final_failed": 1
+    },
+    {
+      "case": "V8 realizable KE scalable channel MKM DNS profile and momentum balance",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes hex refinement",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes tet refinement",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 6,
+      "final_failed": 6
+    },
+    {
+      "case": "FV V1 manufactured scalar diffusion and upwind refinement",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV SIMPLEC develops planar Couette flow with moving and slip walls",
+      "baseline_assertions": 14,
+      "final_assertions": 14,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "baseline_assertions": 36,
+      "final_assertions": 36,
+      "baseline_failed": 6,
+      "final_failed": 6
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "baseline_assertions": 47,
+      "final_assertions": 47,
+      "baseline_failed": 9,
+      "final_failed": 10
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "baseline_assertions": 70,
+      "final_assertions": 70,
+      "baseline_failed": 17,
+      "final_failed": 17
+    },
+    {
+      "case": "FSAE V7.1 translating-wall Couette hex and poly",
+      "baseline_assertions": 104,
+      "final_assertions": 104,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.2 rotating-wall Taylor Couette hex and poly",
+      "baseline_assertions": 6668,
+      "final_assertions": 6668,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V8 Darcy Forchheimer pressure drop and oblique directions",
+      "baseline_assertions": 24,
+      "final_assertions": 24,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10 incompressible pressure and mass-flow inlets",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V11 internal fan polynomial and porous jump pressure discontinuity",
+      "baseline_assertions": 312,
+      "final_assertions": 312,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.3 rotation and translation preserve Taylor Couette pressure",
+      "baseline_assertions": 6,
+      "final_assertions": 6,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent research downloads retain published byte identities",
+      "baseline_assertions": 26,
+      "final_assertions": 26,
+      "baseline_failed": 0,
+      "final_failed": 0
+    }
+  ],
+  "regressions": [
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.632197"
+        ],
+        0
+      ],
+      "before": "0.0992376 <= 0.1",
+      "after": "0.106805 <= 0.1"
+    }
+  ],
+  "recoveries": [],
+  "changed_values": [
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        0
+      ],
+      "before": "1.67167 <  100",
+      "after": "1.66846 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        1
+      ],
+      "before": "1.66833 <  100",
+      "after": "1.66898 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        2
+      ],
+      "before": "1.66898 <  100",
+      "after": "1.66895 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        3
+      ],
+      "before": "1.66898 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        4
+      ],
+      "before": "1.66892 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        5
+      ],
+      "before": "1.66892 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        6
+      ],
+      "before": "1.66892 <  100",
+      "after": "1.66816 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "186",
+        "CHECK",
+        "eu.l2<.005",
+        [
+          "backend: cpu"
+        ],
+        0
+      ],
+      "before": "0.0360161 <  0.005",
+      "after": "0.0360099 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "187",
+        "CHECK",
+        "std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001",
+        [
+          "backend: cpu"
+        ],
+        0
+      ],
+      "before": "0.154821 <  0.001",
+      "after": "0.154775 <  0.001",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: cpu"
+        ],
+        0
+      ],
+      "before": "0.0225891 <  0.005",
+      "after": "0.0225888 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: cpu"
+        ],
+        1
+      ],
+      "before": "0.015058 <  0.005",
+      "after": "0.0150925 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: cpu"
+        ],
+        2
+      ],
+      "before": "0.00609643 <  0.005",
+      "after": "0.00609713 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: cpu"
+        ],
+        3
+      ],
+      "before": "0.0206996 <  0.005",
+      "after": "0.0207196 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "208",
+        "CHECK",
+        "std::abs(drop/reference-1)<.005",
+        [
+          "backend: cpu"
+        ],
+        0
+      ],
+      "before": "0.0118722 <  0.005",
+      "after": "0.011837 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        7
+      ],
+      "before": "1.64505 <  100",
+      "after": "1.6688 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        8
+      ],
+      "before": "1.67271 <  100",
+      "after": "1.66899 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        9
+      ],
+      "before": "1.66968 <  100",
+      "after": "1.66895 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        10
+      ],
+      "before": "1.6688 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        11
+      ],
+      "before": "1.66882 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        12
+      ],
+      "before": "1.6689 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "186",
+        "CHECK",
+        "eu.l2<.005",
+        [
+          "backend: cpu"
+        ],
+        1
+      ],
+      "before": "0.0360147 <  0.005",
+      "after": "0.0360102 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: cpu"
+        ],
+        4
+      ],
+      "before": "0.0225895 <  0.005",
+      "after": "0.0225889 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: cpu"
+        ],
+        5
+      ],
+      "before": "0.0150753 <  0.005",
+      "after": "0.0150906 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: cpu"
+        ],
+        6
+      ],
+      "before": "0.00609829 <  0.005",
+      "after": "0.00609709 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: cpu"
+        ],
+        7
+      ],
+      "before": "0.0207055 <  0.005",
+      "after": "0.0207177 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "208",
+        "CHECK",
+        "std::abs(drop/reference-1)<.005",
+        [
+          "backend: cpu"
+        ],
+        1
+      ],
+      "before": "0.0118503 <  0.005",
+      "after": "0.0118391 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        0
+      ],
+      "before": "1.67167 <  100",
+      "after": "1.66846 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        1
+      ],
+      "before": "1.66833 <  100",
+      "after": "1.66898 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        2
+      ],
+      "before": "1.66898 <  100",
+      "after": "1.66895 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        3
+      ],
+      "before": "1.66898 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        4
+      ],
+      "before": "1.66892 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        5
+      ],
+      "before": "1.66892 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        6
+      ],
+      "before": "1.66892 <  100",
+      "after": "1.66816 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "186",
+        "CHECK",
+        "eu.l2<.005",
+        [
+          "backend: metal"
+        ],
+        0
+      ],
+      "before": "0.036016 <  0.005",
+      "after": "0.0360099 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "187",
+        "CHECK",
+        "std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001",
+        [
+          "backend: metal"
+        ],
+        0
+      ],
+      "before": "0.15482 <  0.001",
+      "after": "0.154775 <  0.001",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: metal"
+        ],
+        0
+      ],
+      "before": "0.022589 <  0.005",
+      "after": "0.0225889 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: metal"
+        ],
+        1
+      ],
+      "before": "0.0150586 <  0.005",
+      "after": "0.0150927 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: metal"
+        ],
+        2
+      ],
+      "before": "0.00609667 <  0.005",
+      "after": "0.00609701 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: metal"
+        ],
+        3
+      ],
+      "before": "0.0206984 <  0.005",
+      "after": "0.0207197 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "208",
+        "CHECK",
+        "std::abs(drop/reference-1)<.005",
+        [
+          "backend: metal"
+        ],
+        0
+      ],
+      "before": "0.0118713 <  0.005",
+      "after": "0.0118368 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        7
+      ],
+      "before": "1.64505 <  100",
+      "after": "1.6688 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        8
+      ],
+      "before": "1.67271 <  100",
+      "after": "1.66899 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        9
+      ],
+      "before": "1.66967 <  100",
+      "after": "1.66895 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        10
+      ],
+      "before": "1.6688 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        11
+      ],
+      "before": "1.66881 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        12
+      ],
+      "before": "1.6689 <  100",
+      "after": "1.66893 <  100",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "186",
+        "CHECK",
+        "eu.l2<.005",
+        [
+          "backend: metal"
+        ],
+        1
+      ],
+      "before": "0.0360146 <  0.005",
+      "after": "0.0360102 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: metal"
+        ],
+        4
+      ],
+      "before": "0.0225896 <  0.005",
+      "after": "0.0225889 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: metal"
+        ],
+        5
+      ],
+      "before": "0.0150683 <  0.005",
+      "after": "0.0150907 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: metal"
+        ],
+        6
+      ],
+      "before": "0.00609795 <  0.005",
+      "after": "0.00609735 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "202",
+        "CHECK",
+        "norm(a-b)/norm(b)<.005",
+        [
+          "backend: metal"
+        ],
+        7
+      ],
+      "before": "0.0207032 <  0.005",
+      "after": "0.0207177 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "208",
+        "CHECK",
+        "std::abs(drop/reference-1)<.005",
+        [
+          "backend: metal"
+        ],
+        1
+      ],
+      "before": "0.0118545 <  0.005",
+      "after": "0.0118392 <  0.005",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "64",
+        "CHECK",
+        "r.iterations<=3000",
+        [
+          "backend: cpu",
+          "level: 2"
+        ],
+        0
+      ],
+      "before": "2300 <= 3000",
+      "after": "2200 <= 3000",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.632197"
+        ],
+        0
+      ],
+      "before": "0.0992376 <= 0.1",
+      "after": "0.106805 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": false
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.632197"
+        ],
+        0
+      ],
+      "before": "0.000392239 <= 0.03",
+      "after": "0.0001693 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.75"
+        ],
+        0
+      ],
+      "before": "0.138695 <= 0.1",
+      "after": "0.147388 <= 0.1",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.75"
+        ],
+        0
+      ],
+      "before": "0.0158279 <= 0.03",
+      "after": "0.0152151 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.867803"
+        ],
+        0
+      ],
+      "before": "0.251899 <= 0.1",
+      "after": "0.275879 <= 0.1",
+      "baseline_passed": false,
+      "final_passed": false
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.867803"
+        ],
+        0
+      ],
+      "before": "0.00584098 <= 0.03",
+      "after": "0.00621789 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    }
+  ],
+  "missing_assertions": [
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: cpu"
+        ],
+        13
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        13
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: cpu"
+        ],
+        14
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        14
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: cpu"
+        ],
+        15
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        15
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: cpu"
+        ],
+        16
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        16
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: cpu"
+        ],
+        17
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: cpu"
+        ],
+        17
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: metal"
+        ],
+        13
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        13
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: metal"
+        ],
+        14
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        14
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: metal"
+        ],
+        15
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        15
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: metal"
+        ],
+        16
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        16
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "std::isfinite(maximum)",
+        [
+          "backend: metal"
+        ],
+        17
+      ]
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "assertion": [
+        "tests/fv/test_fluent_elbow.cpp",
+        "172",
+        "REQUIRE",
+        "r.maximum_velocity<100",
+        [
+          "backend: metal"
+        ],
+        17
+      ]
+    }
+  ],
+  "new_assertions": [],
+  "missing_cases": [],
+  "new_cases": [],
+  "no_new_failures": false
+}

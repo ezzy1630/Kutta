@@ -1,0 +1,34 @@
+DIAGNOSTIC APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+CONVERGENCE_NOTE energy is decoupled: active material density and viscosity are constant
+CONVERGENCE_NOTE kw-dissipation-newton?: Newton implicit destruction with matching RHS correction
+CASE source=9d0f838b9d8d3559bc7e547766167ce1289322a6 name=elbow model=sst backend=cpu cells=17822 dt=0 momentum_relaxation=0.5 pressure_relaxation=0.5 scheme=simplec coupled_bytes_per_cell=0
+STEP it=50 seconds=4.450557583 defect=0.0236080626124 continuity=0.0236080626124 raw=0.000589263134598 scale=0.0249602495669 corrected=6.64753998736e-07 u=0.00127321057585 v=0.0013804414486 k=0.00441565864715 omega=0.00263940291894 sa=0 change=inf step_change=inf drag=0.00638976096178 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=6 inner_p=11 p_ratio=0.000685347348083 converged=0
+STEP it=100 seconds=8.562575416 defect=0.0169072377253 continuity=0.0169072377253 raw=0.000422008873111 scale=0.0249602495669 corrected=6.15481011212e-07 u=0.000623031366491 v=0.00120163722735 k=0.00330525995161 omega=0.00110289814403 sa=0 change=inf step_change=0.0365938621189 drag=0.00663246860336 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=5 inner_p=11 p_ratio=0.000906648869081 converged=0
+STEP it=150 seconds=12.71266525 defect=0.00555236533134 continuity=0.00555236533134 raw=0.000138588424357 scale=0.0249602495669 corrected=1.7052913328e-07 u=0.000174083420176 v=0.000593283187148 k=0.00128056461715 omega=0.000394343551121 sa=0 change=0.0563242782727 step_change=0.0204798530734 drag=0.00677114056732 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=5 inner_p=18 p_ratio=0.000773745680353 converged=0
+STEP it=200 seconds=16.96056725 defect=0.00232001272758 continuity=0.00232001272758 raw=5.79080966788e-05 scale=0.0249602495669 corrected=9.41005105781e-08 u=5.18624466804e-05 v=0.000195849725279 k=0.000414119387647 omega=0.000124652965416 sa=0 change=0.0272227600969 step_change=0.0068838880391 drag=0.00681807543525 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=4 inner_p=15 p_ratio=0.000839498036677 converged=0
+STEP it=250 seconds=21.356993583 defect=0.000929981734588 continuity=0.000929981734588 raw=2.3212576188e-05 scale=0.0249602495669 corrected=5.55891595255e-08 u=1.83262204336e-05 v=5.02128022407e-05 k=0.000125466166267 omega=3.73303929207e-05 sa=0 change=0.00889421735896 step_change=0.00202426412748 drag=0.0068319050155 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=4 inner_p=17 p_ratio=0.000961761488171 converged=0
+STEP it=300 seconds=25.77811775 defect=0.0003050829233 continuity=0.0003050829233 raw=7.61494590418e-06 scale=0.0249602495669 corrected=3.85573441231e-08 u=6.56139435481e-06 v=1.61750745907e-05 k=4.71244438549e-05 omega=1.32421009984e-05 sa=0 change=0.00216106783589 step_change=0.000137081196966 drag=0.00683284166961 cf0=0 cf1=0 cf2=0 inner_u=2 inner_sa=4 inner_p=13 p_ratio=0.000952046509918 converged=0
+STEP it=350 seconds=30.410205541 defect=0.000210765699149 continuity=0.000210765699149 raw=5.2607644509e-06 scale=0.0249602495669 corrected=3.76347888964e-08 u=3.04740189254e-06 v=8.66318741255e-06 k=1.97769438304e-05 omega=5.89331514973e-06 sa=0 change=0.00026616731646 step_change=0.000403303798794 drag=0.00683008706955 cf0=0 cf1=0 cf2=0 inner_u=3 inner_sa=6 inner_p=17 p_ratio=0.000886992811205 converged=0
+STEP it=400 seconds=35.701995708 defect=9.04186559292e-05 continuity=9.04186559292e-05 raw=2.2568722175e-06 scale=0.0249602495669 corrected=3.44536225556e-08 u=1.37544985403e-06 v=4.32109338032e-06 k=8.16336025942e-06 omega=2.6246693751e-06 sa=0 change=0.000695120542845 step_change=0.000291699100696 drag=0.00682809532029 cf0=0 cf1=0 cf2=0 inner_u=15 inner_sa=18 inner_p=18 p_ratio=0.000690222038941 converged=0
+STEP it=450 seconds=41.779933666 defect=4.01394478951e-05 continuity=4.01394478951e-05 raw=1.00189063694e-06 scale=0.0249602495669 corrected=3.40485895034e-08 u=6.01374900863e-07 v=1.88152016248e-06 k=3.17619085204e-06 omega=1.07531381967e-06 sa=0 change=0.0004446681175 step_change=0.000152924408892 drag=0.0068270512975 cf0=0 cf1=0 cf2=0 inner_u=14 inner_sa=17 inner_p=18 p_ratio=0.000916757233361 converged=0
+STEP it=500 seconds=48.469847125 defect=3.08597724257e-05 continuity=3.08597724257e-05 raw=7.70267621325e-07 scale=0.0249602495669 corrected=3.49824039875e-08 u=3.76911096158e-07 v=9.8526341496e-07 k=1.20627992371e-06 omega=4.33721600713e-07 sa=0 change=0.000220461821663 step_change=6.75270862317e-05 drag=0.00682659031775 cf0=0 cf1=0 cf2=0 inner_u=14 inner_sa=16 inner_p=17 p_ratio=0.000834676753993 converged=0
+STEP it=550 seconds=55.355005083 defect=5.82267238312e-05 continuity=5.82267238312e-05 raw=1.45335355829e-06 scale=0.0249602495669 corrected=3.41878232391e-08 u=1.30862326464e-07 v=2.99316795923e-07 k=4.27139655951e-07 omega=1.84782626625e-07 sa=0 change=8.89122447465e-05 step_change=2.13837145349e-05 drag=0.00682644434301 cf0=0 cf1=0 cf2=0 inner_u=14 inner_sa=15 inner_p=15 p_ratio=0.000886918521121 converged=1
+       62.03 real        61.89 user         0.10 sys
+           161923072  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               10707  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                2795  involuntary context switches
+       1054633196807  instructions retired
+        242749470946  cycles elapsed
+           133235216  peak memory footprint
+EXIT 0

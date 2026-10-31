@@ -1,0 +1,24 @@
+CASE source=9d0f838b9d8d3559bc7e547766167ce1289322a6 name=channel model=sst backend=metal cells=4608 dt=0.01 momentum_relaxation=0.5 pressure_relaxation=0.5 scheme=coupled coupled_bytes_per_cell=344.315104167
+STEP it=20 seconds=0.15266275 defect=3.45759745249 continuity=3.45759745249 raw=0.0165477269329 scale=0.00478590326384 corrected=0.0165477269329 u=0.0011246333988 v=0.000286727448772 k=0.0864503092631 omega=0.0392703250072 sa=0 change=inf step_change=inf drag=0.0308334043366 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=2 inner_p=1 p_ratio=0.0547357909171 converged=0
+STEP it=40 seconds=0.324091542 defect=7.79945724942 continuity=7.79945724942 raw=0.0373274479061 scale=0.00478590326384 corrected=0.0373274479061 u=0.0016986359905 v=0.000638995810568 k=0.0474531890694 omega=0.0306378299053 sa=0 change=inf step_change=0.00574510133204 drag=0.0310115689426 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=2 inner_p=1 p_ratio=0.0578168636264 converged=0
+STEP it=60 seconds=0.44713275 defect=67.8204531503 continuity=67.8204531503 raw=0.324582128087 scale=0.00478590326384 corrected=0.324582128087 u=0.00584027444274 v=0.00245850114301 k=0.0332558151021 omega=0.0292745743586 sa=0 change=inf step_change=0.00443478831082 drag=0.0308746464216 cf0=0 cf1=0 cf2=0 inner_u=0 inner_sa=2 inner_p=1 p_ratio=0.0381763238487 converged=0
+FAILURE completed_iterations=73 seconds=0.64017625 reason=<checkout>/src/kutta/linalg/solver.cpp:102: solve: nonfinite input vector
+        0.72 real         0.07 user         0.10 sys
+            34996224  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2434  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                6574  involuntary context switches
+          1236423920  instructions retired
+           633469719  cycles elapsed
+           114557576  peak memory footprint
+EXIT 1
