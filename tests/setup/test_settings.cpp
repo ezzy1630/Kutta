@@ -193,7 +193,7 @@ TEST_CASE("Mixing elbow runs Fluent's Coupled scheme natively and can switch to 
   std::map<std::string,const kutta::setup::Setting*> by;for(const auto& s:settings)by[s.path]=&s;
   CHECK(by.at("methods/pseudo-transient")->value==Json(true));CHECK_FALSE(by.at("methods/pseudo-transient")->editable);
   CHECK(by.at("methods/gradient")->value==Json("least-squares-cell-based"));CHECK(by.at("methods/gradient")->value_label=="Least Squares Cell Based");
-  CHECK(by.at("methods/pressure-scheme")->value_label=="Second Order");CHECK_FALSE(by.at("methods/pressure-scheme")->editable);
+  CHECK(by.at("methods/pressure-scheme")->value_label=="Second Order");CHECK(by.at("methods/pressure-scheme")->editable);
   // SST solves k and omega; the epsilon scheme is listed but unused.
   CHECK(by.at("methods/omega-scheme")->active);CHECK(by.at("methods/omega-scheme")->editable);
   CHECK_FALSE(by.at("methods/epsilon-scheme")->active);CHECK_FALSE(by.at("methods/epsilon-scheme")->editable);
