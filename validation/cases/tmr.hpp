@@ -54,7 +54,10 @@ inline double reference_station(const Zone& zone,double x) {
   std::sort(points.begin(),points.end());return interpolate(points,x);
 }
 inline std::filesystem::path grid(const std::filesystem::path& root,Case c,int level) {
-  KUTTA_REQUIRE(level>=0 && level<=2,"TMR level must be 0..2");
+  // Plate level 3 is the 273x193 grid (tools/prepare_tmr.py expands it); used
+  // for the transition model's leading-edge mesh check.
+  if(c==Case::FlatPlate && level==3) return root/"2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.p2dfmt";
+  KUTTA_REQUIRE(level>=0 && level<=2,"TMR level must be 0..2 (plate: 0..3)");
   const std::array<std::string,3> plate{"flatplate_clust2_4levelsdown_35x25","flatplate_clust2_3levelsdown_69x49","flatplate_clust2_2levelsdown_137x97"};
   const std::array<std::string,3> bump{"bump_4levelsdown_89x41","bump_3levelsdown_177x81","bump_2levelsdown_353x161"};
   return root/(c==Case::FlatPlate?"2DZP_flatplate":"2DBC_bump")/"grids"/((c==Case::FlatPlate?plate:bump)[level]+".p2dfmt");

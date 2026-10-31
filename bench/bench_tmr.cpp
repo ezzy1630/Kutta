@@ -5,11 +5,11 @@
 int main(int argc,char** argv) {
   using namespace kutta;using namespace validation::tmr;
   try {
-    KUTTA_REQUIRE(argc>=5,"usage: bench_tmr <data-root> <plate|bump> <cpu|metal|cuda> <level 0..2> [iterations] [output-dir] [model-mode] [max-seconds]");
+    KUTTA_REQUIRE(argc>=5,"usage: bench_tmr <data-root> <plate|bump> <cpu|metal|cuda> <level 0..2, plate 0..3> [iterations] [output-dir] [model-mode] [max-seconds]");
     auto integer=[](const char* s){int value=0;const auto [end,error]=std::from_chars(s,s+std::char_traits<char>::length(s),value);KUTTA_REQUIRE(error==std::errc{} && *end=='\0' && value>0,"invalid positive integer");return value;};
     const std::string_view name=argv[2],backend=argv[3];
     KUTTA_REQUIRE(name=="plate" || name=="bump","unknown TMR case");KUTTA_REQUIRE(backend=="cpu" || backend=="metal" || backend=="cuda","unknown backend");
-    const std::string_view level_text=argv[4];KUTTA_REQUIRE(level_text=="0" || level_text=="1" || level_text=="2","level must be 0..2");const int level=argv[4][0]-'0';
+    const std::string_view level_text=argv[4];KUTTA_REQUIRE(level_text=="0" || level_text=="1" || level_text=="2" || (level_text=="3" && name=="plate"),"level must be 0..2 (plate: 0..3)");const int level=argv[4][0]-'0';
     Options o;if(argc>5) o.max_iterations=integer(argv[5]);if(argc>6) o.output=argv[6];
     const std::string_view mode=argc>7?argv[7]:"default";
     if(mode=="2003") o.model.gamma_set=SstGammaSet::Menter2003;

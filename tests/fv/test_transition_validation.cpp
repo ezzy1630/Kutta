@@ -74,9 +74,12 @@ std::filesystem::path scratch(const std::string& name) {
 }  // namespace
 
 // T3A (Coupland, ERCOFTAC case 020): zero-pressure-gradient plate, Tu 3.4% at
-// the leading edge. No acceptance for T3A is documented; these bounds are the
-// L1 accuracy measured on 2026-10-31 (REPORT.md), rounded up.
-TEST_CASE("Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD)" * doctest::test_suite("slow")) {
+// the leading edge. No acceptance for T3A is documented; the experiment bounds
+// are the L1 accuracy measured on 2026-10-31 (REPORT.md), rounded up.
+// The same solve is also VERIFIED against an independent double-precision
+// boundary-layer solution of the documented equations (tracked, our own
+// computation: validation/results/transition_verification/REPORT.md).
+TEST_CASE("Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)" * doctest::test_suite("slow")) {
   const auto summary = data / "ercoftac_t3_flat_plate/raw/t3ay.dat";
   if (!present(summary, "restricted reference data, see its SOURCE.md")) return;
   const char* env = std::getenv("KUTTA_TRANSITION_MESHES");
@@ -157,6 +160,29 @@ TEST_CASE("Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUAR
   CHECK(std::abs(onset_error) <= .13);
   CHECK(laminar <= .13);
   CHECK(turbulent <= .075);
+
+  // VERIFICATION: the documented model solved independently
+  // (tools/transition/verify/boundary_layer.py, converged to 1.6% in Cf and
+  // 0.5% in onset). It predicts the experiment misses above too: Cf 7-15% high
+  // before transition. Kutta's L1 mesh is itself within 1-2% of Blasius, so
+  // 3% (Cf) and 5% (onset) bound the remaining discretization difference;
+  // measured 2026-10-31: 1.7%, 1.3% and +2.6%.
+  std::vector<std::array<double, 2>> independent;  // Re_x, Cf gamma
+  const auto reference = csv(source / "validation/results/transition_verification/independent_t3a.csv");
+  REQUIRE(reference.size() > 100);
+  for (std::size_t i = 1; i < reference.size(); ++i) independent.push_back({number(reference[i][1]), number(reference[i][3])});
+  const double verified_onset = onset(computed) / onset(independent) - 1;
+  double verified_laminar = 0, verified_turbulent = 0;
+  for (const auto& [rex, cf] : measured) {
+    const double e = interpolate(computed, rex) / interpolate(independent, rex) - 1;
+    if (rex < .8 * onset(independent)) verified_laminar = std::max(verified_laminar, std::abs(e));
+    if (rex > 2.6e5) verified_turbulent = std::max(verified_turbulent, std::abs(e));
+  }
+  MESSAGE("vs independent solution: onset " << 100 * verified_onset << "%, laminar max " << 100 * verified_laminar
+                                            << "%, turbulent max " << 100 * verified_turbulent << "%");
+  CHECK(std::abs(verified_onset) <= .05);
+  CHECK(verified_laminar <= .03);
+  CHECK(verified_turbulent <= .03);
 }
 
 // S1223 at Re 2e5 (UIUC LSATs vol. 1), the documented FSAE acceptance of

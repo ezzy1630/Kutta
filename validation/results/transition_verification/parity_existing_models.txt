@@ -1,0 +1,26 @@
+# Bitwise parity of existing models, this branch vs main 2747dd2 (same machine, 2026-10-31)
+# Apple M4 Pro, CPU and Metal. main built from 'git archive 2747dd2' in a separate directory.
+# The branch changes no compiled source (git diff 2747dd2 -- src: transition.md only), so laminar and SA are unchanged by construction.
+
+## kutta solve --iterations 40 (V6 = mixing_elbow.cas.h5 --approximate wfgc, SST; ep = elbow_param.cas.h5 --approximate compressibility,ke-options, standard k-epsilon)
+v6_cpu fluxes.csv IDENTICAL
+v6_cpu forces.csv IDENTICAL
+v6_cpu loads.json IDENTICAL
+v6_cpu result.vtu IDENTICAL
+v6_metal fluxes.csv IDENTICAL
+v6_metal forces.csv IDENTICAL
+v6_metal loads.json IDENTICAL
+v6_metal result.vtu IDENTICAL
+ep_cpu fluxes.csv IDENTICAL
+ep_cpu forces.csv IDENTICAL
+ep_cpu loads.json IDENTICAL
+ep_cpu result.vtu IDENTICAL
+ep_metal fluxes.csv IDENTICAL
+ep_metal forces.csv IDENTICAL
+ep_metal loads.json IDENTICAL
+ep_metal result.vtu IDENTICAL
+v6_cpu residuals.csv IDENTICAL (seconds_per_iteration column masked)
+v6_metal residuals.csv IDENTICAL (seconds_per_iteration column masked)
+ep_cpu residuals.csv IDENTICAL (seconds_per_iteration column masked)
+ep_metal residuals.csv IDENTICAL (seconds_per_iteration column masked)
+ALL_IDENTICAL

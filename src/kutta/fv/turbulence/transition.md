@@ -82,6 +82,28 @@ These come from Menter et al. 2015 as restated on NASA TMR's
   part is explicit and the quadratic part becomes an implicit sink. Both
   coefficients are nonnegative, and the steady solution is unchanged.
 
+## Properties of the documented model (verified, not defects)
+
+`tools/transition/verify` solves the documented equations independently in
+double precision: a fully developed channel and a parabolic flat-plate boundary
+layer. Kutta matches both. See validation/results/transition_verification/REPORT.md.
+
+- **Fully turbulent layers are not plain SST.** E_gamma is nonzero at gamma = 1
+  wherever F_turb > 0, which means R_T below about 3 (y+ below about 15). There
+  F_onset = 0, so gamma falls to about 1/c_e2 = 0.02-0.04 in the viscous
+  sublayer. Two terms then compete:
+  - G*_k = gamma G~_k cuts buffer-layer production;
+  - the 0.1 floor on Y*_k cuts sublayer destruction by up to 10x.
+
+  The net effect is buffer-layer nu_t 5-17% above SST and a log-law shift of
+  about -0.45 u+. Cf is 3-4% above SST for Re_tau 500-20000, independent of grid
+  and of the k wall condition.
+- **Freestream eddy viscosity enters the laminar layer undamped.** The coupling
+  scales k sources only. With the decay-fitted T3 inlets, pre-transition Cf is
+  7-15% (T3A) and 25-50% (T3B) above Blasius.
+- **Transition is short at low Tu.** On T3A- the rise completes within about
+  20% of Re_x (F_length = 100).
+
 ## Not implemented (rejected with a reason)
 
 - Crossflow transition (`trans-one-eqn-crossflow?`), intermittency smoothing,
