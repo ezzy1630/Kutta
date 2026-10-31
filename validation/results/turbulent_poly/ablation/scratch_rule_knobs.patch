@@ -1,0 +1,25 @@
+--- a/src/kutta/fv/steady_solver.cpp
++++ b/src/kutta/fv/steady_solver.cpp
+@@ -1,3 +1,4 @@
++#include <cstdlib>
+ #include "kutta/fv/steady_solver.hpp"
+ #include "kutta/fv/turbulence/sa_transport.hpp"
+ #include "kutta/fv/turbulence/realizable_ke_transport.hpp"
+@@ -262,7 +263,7 @@
+     if(diffusion_reconstruction) {
+       for(auto& g:projected_gradient) g=vector_field(dev,nf);
+     }
+-    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,velocity_faces);
++    for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,(settings.sa||!std::getenv("SCRATCH_NO_MOMDIFF"))?velocity_faces:nullptr);
+     velocity_lsq=boundary_least_squares(dev,host,geom,independent_velocity);
+     pressure_lsq=boundary_least_squares(dev,host,geom,independent_pressure);
+     if(settings.sst) {
+@@ -306,7 +307,7 @@
+       auto omega_observed=independent_omega;
+       for(Index b=0;b<nb;++b) if(kinds[b]==0) omega_observed[b]=Omitted;
+       k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
+-        walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,independent_k));
++        std::getenv("SCRATCH_NO_KDIFF")?nullptr:walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,independent_k));
+       omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
+         walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,omega_observed));
+       sst=std::make_unique<SstModel>(dev,mesh,t.model);

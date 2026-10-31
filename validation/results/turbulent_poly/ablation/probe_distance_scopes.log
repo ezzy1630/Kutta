@@ -1,0 +1,56 @@
+== scope 4
+V6_PROBE backend=metal scope=4 u=0.001147067 v=0.002116594 w=0.0006007902 k=0.00941024 omega=0.02464549 continuity_raw=0.002258612 sum_abs_div=0.002258612
+V6_FLUX bin=all faces=86782 relative_L2=0.01075336 median=0.00761544 p90=0.1228464
+V6_LOCAL field=velocity relative_L2=0.03605479
+V6_LOCAL field=pressure relative_L2=0.02959963
+V6_LOCAL field=k relative_L2=0.1514054
+V6_LOCAL field=omega relative_L2=0.04060193
+== scope 36
+V6_PROBE backend=metal scope=36 u=0.001147067 v=0.002116594 w=0.0006007902 k=0.009387767 omega=0.02464549 continuity_raw=0.002258612 sum_abs_div=0.002258612
+V6_FLUX bin=all faces=86782 relative_L2=0.01075336 median=0.00761544 p90=0.1228464
+V6_LOCAL field=velocity relative_L2=0.03607371
+V6_LOCAL field=pressure relative_L2=0.02962996
+V6_LOCAL field=k relative_L2=0.1514299
+V6_LOCAL field=omega relative_L2=0.04060513
+== scope 68
+V6_PROBE backend=metal scope=68 u=0.001147067 v=0.002116594 w=0.0006007902 k=0.00941024 omega=0.02537896 continuity_raw=0.002258612 sum_abs_div=0.002258612
+V6_FLUX bin=all faces=86782 relative_L2=0.01075336 median=0.00761544 p90=0.1228464
+V6_LOCAL field=velocity relative_L2=0.03599844
+V6_LOCAL field=pressure relative_L2=0.02959849
+V6_LOCAL field=k relative_L2=0.1548051
+V6_LOCAL field=omega relative_L2=0.08474373
+== scope 20
+V6_PROBE backend=metal scope=20 u=0.001147067 v=0.002116594 w=0.0006007902 k=0.00941024 omega=0.02438004 continuity_raw=0.002258612 sum_abs_div=0.002258612
+V6_FLUX bin=all faces=86782 relative_L2=0.01075336 median=0.00761544 p90=0.1228464
+V6_LOCAL field=velocity relative_L2=0.03602393
+V6_LOCAL field=pressure relative_L2=0.02965726
+V6_LOCAL field=k relative_L2=0.153441
+V6_LOCAL field=omega relative_L2=0.03418487
+== scope 9
+V6_PROBE backend=metal scope=9 u=0.001374497 v=0.002289228 w=0.0005387942 k=0.00867642 omega=0.02446043 continuity_raw=0.002419713 sum_abs_div=0.002419713
+V6_FLUX bin=all faces=86782 relative_L2=0.01180302 median=0.01140341 p90=0.1098096
+V6_LOCAL field=velocity relative_L2=0.03471723
+V6_LOCAL field=pressure relative_L2=0.02809935
+V6_LOCAL field=k relative_L2=0.1503606
+V6_LOCAL field=omega relative_L2=0.08773127
+== scope 10
+V6_PROBE backend=metal scope=10 u=0.0011392 v=0.002115742 w=0.0006012165 k=0.009387767 omega=0.02537896 continuity_raw=0.002258612 sum_abs_div=0.002258612
+V6_FLUX bin=all faces=86782 relative_L2=0.01075336 median=0.00761544 p90=0.1228464
+V6_LOCAL field=velocity relative_L2=0.03576453
+V6_LOCAL field=pressure relative_L2=0.02989412
+V6_LOCAL field=k relative_L2=0.1537366
+V6_LOCAL field=omega relative_L2=0.08529877
+== scope 15
+V6_PROBE backend=metal scope=15 u=0.001371818 v=0.002285625 w=0.000539017 k=0.008688051 omega=0.02373501 continuity_raw=0.002419713 sum_abs_div=0.002419713
+V6_FLUX bin=all faces=86782 relative_L2=0.01180302 median=0.01140341 p90=0.1098096
+V6_LOCAL field=velocity relative_L2=0.03447043
+V6_LOCAL field=pressure relative_L2=0.02825918
+V6_LOCAL field=k relative_L2=0.1453433
+V6_LOCAL field=omega relative_L2=0.04180841
+== scope 31
+V6_PROBE backend=metal scope=31 u=0.001371818 v=0.002285625 w=0.000539017 k=0.008688051 omega=0.0234779 continuity_raw=0.002419713 sum_abs_div=0.002419713
+V6_FLUX bin=all faces=86782 relative_L2=0.01180302 median=0.01140341 p90=0.1098096
+V6_LOCAL field=velocity relative_L2=0.03442972
+V6_LOCAL field=pressure relative_L2=0.02831897
+V6_LOCAL field=k relative_L2=0.1476559
+V6_LOCAL field=omega relative_L2=0.03467288

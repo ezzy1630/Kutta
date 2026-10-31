@@ -1,0 +1,282 @@
+diff --git a/src/kutta/fv/face_projection.cpp b/src/kutta/fv/face_projection.cpp
+index a688737..072cd15 100644
+--- a/src/kutta/fv/face_projection.cpp
++++ b/src/kutta/fv/face_projection.cpp
+@@ -2,6 +2,9 @@
+ #include <algorithm>
+ #include <array>
+ #include <cmath>
++#include <cstdio>
++#include <cstdlib>
++#include <map>
+ #include <set>
+ #include <limits>
+ #include "kernels.hpp"
+@@ -67,7 +70,8 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
+     bool accepted=false;
+     // Overlap gives the two adjacent cells the same smooth reconstruction.
+     // Expand only when the requested functionals are rank deficient.
+-    for(int rings=3;rings<=5 && !accepted;++rings) {
++    const int first_ring=std::getenv("KUTTA_RINGS")?std::atoi(std::getenv("KUTTA_RINGS")):3; // SCRATCH
++    for(int rings=first_ring;rings<=5 && !accepted;++rings) {
+       std::set<Index> cloud{owner};if(face<internal) cloud.insert(mesh.neighbour[face]);
+       for(int depth=0;depth<rings;++depth) {
+         const auto old=cloud;
+@@ -89,9 +93,19 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
+       if(scale.x<length*1e-10) scale.x=length;if(scale.y<length*1e-10) scale.y=length;if(scale.z<length*1e-10) scale.z=length;
+       auto scaled=[&](Vec3d r) {return Vec3d{r.x/scale.x,r.y/scale.y,r.z/scale.z};};
+       Matrix a{};std::vector<Row> rows;std::vector<double> weights;
++      // SCRATCH: walk-count weights of (I+A)^rings from P plus from N.
++      const char* mode=std::getenv("KUTTA_WEIGHTS");std::map<Index,double> walks;
++      if(mode) for(Index start:{owner,face<internal?mesh.neighbour[face]:Index(-1)}) {
++        if(start<0) continue;std::map<Index,double> v{{start,1.}};
++        for(int depth=0;depth<rings;++depth) {
++          auto next=v;for(auto [c,x]:v) for(Index j=cn.offsets[c];j<cn.offsets[c+1];++j) next[cn.cells[j]]+=x;v=std::move(next);
++        }
++        for(auto [c,x]:v) walks[c]+=x;
++      }
+       for(auto i:samples) {
+         const auto r=scaled(point(i)-fit_origin);const auto b=basis(r);const auto sample=point(i),other=face<internal?g.cell_centroid[mesh.neighbour[face]]:g.face_centroid[face];
+-        const double w=1/(dot(sample-g.cell_centroid[owner],sample-g.cell_centroid[owner])+dot(sample-other,sample-other));
++        double w=1/(dot(sample-g.cell_centroid[owner],sample-g.cell_centroid[owner])+dot(sample-other,sample-other));
++        if(mode) {const Index c=i<0?mesh.owner[internal-i-1]:i;w=walks.count(c)?walks.at(c):0.;}
+         rows.push_back(b);weights.push_back(w);
+         for(int k=0;k<terms;++k) for(int j=0;j<terms;++j) a[k][j]+=w*b[k]*b[j];
+       }
+@@ -143,6 +157,7 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
+     if(!accepted) ++fallback_;
+     offsets.push_back(Index(points.size()));
+   }
++  std::fprintf(stderr,"PROJECTED_SAMPLES faces=%zu samples=%zu\n",corrected_,points.size()); // SCRATCH
+   offsets_=dev.upload<Index>(offsets);points_=dev.upload<Index>(points);owner_=dev.upload<Index>(mesh.owner);mask_=dev.upload<Index>(mask);
+   value_weights_=dev.upload<float>(wvalue);
+   {
+diff --git a/src/kutta/fv/steady_solver.cpp b/src/kutta/fv/steady_solver.cpp
+index cfd1ee2..6f366cf 100644
+--- a/src/kutta/fv/steady_solver.cpp
++++ b/src/kutta/fv/steady_solver.cpp
+@@ -4,6 +4,8 @@
+ 
+ #include <algorithm>
+ #include <cmath>
++#include <cstdio>
++#include <cstdlib>
+ #include <limits>
+ #include <map>
+ #include <numeric>
+@@ -102,7 +104,7 @@ struct SteadySolver::Impl {
+   Buffer<Index> boundary_kind,scalar_kind;
+   DeviceVec3 grad_p,limited_gradient[3];
+   std::unique_ptr<TransportEquation> momentum[3];
+-  std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction;
++  std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction,predictor_reconstruction;
+   DeviceVec3 projected_gradient[3];
+   std::shared_ptr<CsrMatrix> pressure_matrix;
+   std::unique_ptr<LinearSolver> pressure_solver;
+@@ -240,11 +242,20 @@ struct SteadySolver::Impl {
+     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
+     upload_vectors(dev,prescribed_velocity,velocities);
+     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
+-    if(!settings.sst && !settings.sa && !settings.realizable_ke) {
++    // SCRATCH ablation: bit 1 predictor, 2 momentum diffusion, 4 k/omega diffusion, 8 omit wall samples.
++    const bool turbulent_model=settings.sst || settings.sa || settings.realizable_ke;
++    const int scope=std::getenv("KUTTA_PROJECTED")?std::atoi(std::getenv("KUTTA_PROJECTED")):(turbulent_model?0:3);
++    std::shared_ptr<const ProjectedFaceReconstruction> velocity_reconstruction;
++    if(scope&3) {
+       const auto nonsmooth=discontinuous_wall_cells(host,boundaries,frames);
+-      diffusion_reconstruction=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,independent_velocity,nonsmooth);
+-      if(diffusion_reconstruction->corrected_faces()==0) diffusion_reconstruction.reset();
++      auto observed=independent_velocity;
++      if(scope&8) for(Index b=0;b<nb;++b) if(kinds[b]==0) observed[b]=Omitted;
++      velocity_reconstruction=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,observed,nonsmooth);
++      std::fprintf(stderr,"PROJECTED scope=%d corrected=%zu fallback=%zu\n",scope,velocity_reconstruction->corrected_faces(),velocity_reconstruction->fallback_faces());
++      if(velocity_reconstruction->corrected_faces()==0) velocity_reconstruction.reset();
+     }
++    if(scope&2) diffusion_reconstruction=velocity_reconstruction;
++    if(scope&1) predictor_reconstruction=velocity_reconstruction;
+     if(diffusion_reconstruction) {
+       for(auto& g:projected_gradient) g=vector_field(dev,nf);
+     }
+@@ -288,8 +299,19 @@ struct SteadySolver::Impl {
+         }
+       }
+       turbulence_spec=dev.upload<Index>(specs);turbulence_a=dev.upload<float>(a);turbulence_b=dev.upload<float>(b);
+-      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
+-      omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix);
++      std::shared_ptr<const ProjectedFaceReconstruction> kr,orr;
++      if(scope&4) {
++        auto ok=independent_k,oo=independent_omega;
++        if(scope&16) for(Index b=0;b<nb;++b) if(kinds[b]==0) oo[b]=Omitted;
++        if(!(scope&32)) kr=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,ok);
++        if(!(scope&64)) orr=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,oo);
++        std::fprintf(stderr,"PROJECTED k=%zu omega=%zu\n",kr?kr->corrected_faces():0,orr?orr->corrected_faces():0);
++      }
++      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,kr);
++      omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,orr);
++      if(scope&128) {k_equation->side_mode=1;omega_equation->side_mode=1;}
++      if(scope&512) {k_equation->side_mode=2;omega_equation->side_mode=2;}
++      if(scope&256) for(auto& eq:momentum) eq->side_mode=1;
+       sst=std::make_unique<SstModel>(dev,mesh,t.model);
+     }
+     if(settings.sa) {
+@@ -535,10 +557,10 @@ struct SteadySolver::Impl {
+       velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+       physical_diagonal,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
+       face_velocity.x,face_velocity.y,face_velocity.z,mesh.n_internal_faces);
+-    if(diffusion_reconstruction) {
+-      diffusion_reconstruction->momentum_values(velocity.x,boundary_velocity.x,physical_diagonal,face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
+-      diffusion_reconstruction->momentum_values(velocity.y,boundary_velocity.y,physical_diagonal,face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
+-      diffusion_reconstruction->momentum_values(velocity.z,boundary_velocity.z,physical_diagonal,face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
++    if(predictor_reconstruction) {
++      predictor_reconstruction->momentum_values(velocity.x,boundary_velocity.x,physical_diagonal,face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
++      predictor_reconstruction->momentum_values(velocity.y,boundary_velocity.y,physical_diagonal,face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
++      predictor_reconstruction->momentum_values(velocity.z,boundary_velocity.z,physical_diagonal,face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
+     }
+     kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
+       mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,
+diff --git a/src/kutta/fv/transport.cpp b/src/kutta/fv/transport.cpp
+index ec8f509..fd1fc5c 100644
+--- a/src/kutta/fv/transport.cpp
++++ b/src/kutta/fv/transport.cpp
+@@ -7,7 +7,7 @@
+ namespace kutta::fv {
+ 
+ TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stencil& s,
+-                                     const PolyMesh&,const MeshGeometry&,
++                                     const PolyMesh& host,const MeshGeometry& geometry,
+                                      std::shared_ptr<CsrMatrix> shared_matrix,
+                                      std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction)
+     :matrix_storage_(shared_matrix?std::move(shared_matrix):std::make_shared<CsrMatrix>(upload(dev,s.pattern))),
+@@ -23,6 +23,9 @@ TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stenc
+   solver_=make_solver(transport_solver_kind,dev,initial);
+   zero_=dev.alloc<float>(m.n_cells);dev.fill(zero_,0);
+   diffusion_reconstruction_=std::move(diffusion_reconstruction);
++  {std::vector<BoundaryObservation> omitted(m.n_boundary_faces(),BoundaryObservation::Omitted);
++   hessian_lsq_=boundary_least_squares(dev,host,geometry,omitted);for(auto& h:hessian_) h=vector_field(dev,m.n_cells);
++   hessian_boundary_=dev.alloc<float>(m.n_boundary_faces());dev.fill(hessian_boundary_,0);}
+   if(diffusion_reconstruction_) diffusion_correction_=dev.alloc<float>(m.n_faces);
+ }
+ 
+@@ -56,6 +59,24 @@ void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const
+       grad.x,grad.y,grad.z,limiter,flux,mu,kind,
+       diffusion_reconstruction_->mask(),diffusion_correction_,face_correction,m.n_internal_faces,
+       settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
++  } else if(side_mode==2) {
++    gradient(dev,m,s,hessian_lsq_,grad.x,hessian_boundary_,hessian_[0]);
++    gradient(dev,m,s,hessian_lsq_,grad.y,hessian_boundary_,hessian_[1]);
++    gradient(dev,m,s,hessian_lsq_,grad.z,hessian_boundary_,hessian_[2]);
++    kern::fv_hessian_transport_faces(dev,m.n_faces,m.owner,m.neighbour,
++      m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
++      m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
++      m.area.x,m.area.y,m.area.z,s.diffusion,grad.x,grad.y,grad.z,
++      hessian_[0].x,hessian_[0].y,hessian_[0].z,hessian_[1].x,hessian_[1].y,hessian_[1].z,hessian_[2].x,hessian_[2].y,hessian_[2].z,
++      limiter,flux,mu,kind,face_correction,m.n_internal_faces,
++      settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
++  } else if(side_mode) {
++    kern::fv_side_transport_faces(dev,m.n_faces,m.owner,m.neighbour,
++      m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
++      m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
++      m.area.x,m.area.y,m.area.z,s.diffusion,
++      grad.x,grad.y,grad.z,limiter,flux,mu,kind,face_correction,m.n_internal_faces,
++      settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
+   } else {
+     kern::fv_transport_faces(dev,m.n_faces,m.owner,m.neighbour,m.weight,
+       m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
+diff --git a/src/kutta/fv/transport.hpp b/src/kutta/fv/transport.hpp
+index a600648..84754c1 100644
+--- a/src/kutta/fv/transport.hpp
++++ b/src/kutta/fv/transport.hpp
+@@ -49,6 +49,8 @@ class TransportEquation {
+   Buffer<float> rhs, diagonal, consistent_inverse;
+   DeviceVec3 grad;
+   Buffer<float> limiter, face_correction;
++  int side_mode=0; // SCRATCH
++  BoundaryLeastSquares hessian_lsq_;DeviceVec3 hessian_[3];Buffer<float> hessian_boundary_;
+  private:
+   Device& dev_;
+   const DeviceMesh& mesh_;
+diff --git a/src/kutta/kernels/fv_face_projection.kern.h b/src/kutta/kernels/fv_face_projection.kern.h
+index 704a648..b76f66b 100644
+--- a/src/kutta/kernels/fv_face_projection.kern.h
++++ b/src/kutta/kernels/fv_face_projection.kern.h
+@@ -88,7 +88,9 @@ KUTTA_KERNEL void fv_projected_transport_faces(int i, KIn(int) owner, KIn(int) n
+     if(kind[i-internal]!=0) x=y=z=0.0f;
+     if(flux[i]>0.0f && kind[i-internal]!=2) conv=limiter[p]*(gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])*flux[i];
+   }
+-  float diffusion=reconstructed_mask[i]!=0?reconstructed_correction[i]:x*tx[i]+y*ty[i]+z*tz[i];
++  // Like the legacy kernel, only Dirichlet boundary faces carry diffusion.
++  int dirichlet=i<internal || kind[i-internal]==0;
++  float diffusion=reconstructed_mask[i]!=0 && dirichlet!=0?reconstructed_correction[i]:x*tx[i]+y*ty[i]+z*tz[i];
+   correction[i]=mu[i]*diffusion-(second_order!=0?conv:0.0f);
+ }
+ 
+diff --git a/src/kutta/kernels/fv_transport.kern.h b/src/kutta/kernels/fv_transport.kern.h
+index e19b208..990f80c 100644
+--- a/src/kutta/kernels/fv_transport.kern.h
++++ b/src/kutta/kernels/fv_transport.kern.h
+@@ -94,3 +94,65 @@ KUTTA_KERNEL void fv_scalar_monitor(int i,KIn(float) field,KIn(float) diagonal,
+   float time=dt>0.0f?rho*volume[i]/dt:0.0f;
+   fluent_scale[i]=excluded[i]!=0?0.0f:kabs((diagonal[i]+time)*field[i]);
+ }
++
++// SCRATCH: per-side secondary diffusion alpha*(gN.tan(F-N)-gP.tan(F-P)).
++KUTTA_KERNEL void fv_side_transport_faces(int i, KIn(int) owner, KIn(int) neighbour,
++    KIn(float) px, KIn(float) py, KIn(float) pz,
++    KIn(float) nx, KIn(float) ny, KIn(float) nz,
++    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) alpha,
++    KIn(float) gx, KIn(float) gy, KIn(float) gz, KIn(float) limiter,
++    KIn(float) flux, KIn(float) mu, KIn(int) kind, KOut(float) correction,
++    int internal, int second_order) {
++  int p=owner[i];
++  float a2=sx[i]*sx[i]+sy[i]*sy[i]+sz[i]*sz[i];
++  float dpn=(px[i]*sx[i]+py[i]*sy[i]+pz[i]*sz[i])/a2;
++  float tpx=px[i]-dpn*sx[i],tpy=py[i]-dpn*sy[i],tpz=pz[i]-dpn*sz[i];
++  float diffusion=-alpha[i]*(gx[p]*tpx+gy[p]*tpy+gz[p]*tpz);
++  float conv=0.0f;
++  if(i<internal) {
++    int n=neighbour[i];
++    float dnn=(nx[i]*sx[i]+ny[i]*sy[i]+nz[i]*sz[i])/a2;
++    float tnx=nx[i]-dnn*sx[i],tny=ny[i]-dnn*sy[i],tnz=nz[i]-dnn*sz[i];
++    diffusion+=alpha[i]*(gx[n]*tnx+gy[n]*tny+gz[n]*tnz);
++    int up=flux[i]>=0.0f?p:n;
++    float rx=flux[i]>=0.0f?px[i]:nx[i],ry=flux[i]>=0.0f?py[i]:ny[i],rz=flux[i]>=0.0f?pz[i]:nz[i];
++    conv=limiter[up]*(gx[up]*rx+gy[up]*ry+gz[up]*rz)*flux[i];
++  } else {
++    if(kind[i-internal]!=0) diffusion=0.0f;
++    if(flux[i]>0.0f && kind[i-internal]!=2) conv=limiter[p]*(gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])*flux[i];
++  }
++  correction[i]=mu[i]*diffusion-(second_order!=0?conv:0.0f);
++}
++
++// SCRATCH: per-side quadratic Taylor shifts with gradient-of-gradient Hessians.
++KUTTA_KERNEL void fv_hessian_transport_faces(int i, KIn(int) owner, KIn(int) neighbour,
++    KIn(float) px, KIn(float) py, KIn(float) pz,
++    KIn(float) nx, KIn(float) ny, KIn(float) nz,
++    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) alpha,
++    KIn(float) gx, KIn(float) gy, KIn(float) gz,
++    KIn(float) hxx, KIn(float) hxy, KIn(float) hxz, KIn(float) hyx, KIn(float) hyy, KIn(float) hyz,
++    KIn(float) hzx, KIn(float) hzy, KIn(float) hzz, KIn(float) limiter,
++    KIn(float) flux, KIn(float) mu, KIn(int) kind, KOut(float) correction,
++    int internal, int second_order) {
++  int p=owner[i];
++  float a2=sx[i]*sx[i]+sy[i]*sy[i]+sz[i]*sz[i];
++  float dpn=(px[i]*sx[i]+py[i]*sy[i]+pz[i]*sz[i])/a2;
++  float tx=px[i]-dpn*sx[i],ty=py[i]-dpn*sy[i],tz=pz[i]-dpn*sz[i];
++  float quad=tx*(hxx[p]*tx+hxy[p]*ty+hxz[p]*tz)+ty*(hyx[p]*tx+hyy[p]*ty+hyz[p]*tz)+tz*(hzx[p]*tx+hzy[p]*ty+hzz[p]*tz);
++  float diffusion=-alpha[i]*(gx[p]*tx+gy[p]*ty+gz[p]*tz+0.5f*quad);
++  float conv=0.0f;
++  if(i<internal) {
++    int n=neighbour[i];
++    float dnn=(nx[i]*sx[i]+ny[i]*sy[i]+nz[i]*sz[i])/a2;
++    float ux=nx[i]-dnn*sx[i],uy=ny[i]-dnn*sy[i],uz=nz[i]-dnn*sz[i];
++    float qn=ux*(hxx[n]*ux+hxy[n]*uy+hxz[n]*uz)+uy*(hyx[n]*ux+hyy[n]*uy+hyz[n]*uz)+uz*(hzx[n]*ux+hzy[n]*uy+hzz[n]*uz);
++    diffusion+=alpha[i]*(gx[n]*ux+gy[n]*uy+gz[n]*uz+0.5f*qn);
++    int up=flux[i]>=0.0f?p:n;
++    float rx=flux[i]>=0.0f?px[i]:nx[i],ry=flux[i]>=0.0f?py[i]:ny[i],rz=flux[i]>=0.0f?pz[i]:nz[i];
++    conv=limiter[up]*(gx[up]*rx+gy[up]*ry+gz[up]*rz)*flux[i];
++  } else {
++    if(kind[i-internal]!=0) diffusion=0.0f;
++    if(flux[i]>0.0f && kind[i-internal]!=2) conv=limiter[p]*(gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])*flux[i];
++  }
++  correction[i]=mu[i]*diffusion-(second_order!=0?conv:0.0f);
++}

@@ -1,0 +1,30 @@
+SCRATCH pressure steps 350 iterations 5387
+V6_MESH cells=17822 faces=91581 internal=86782 faces_per_cell 6:772 7:1303 8:5878 9:1199 10:2017 11:2043 12:1318 13:966 14:798 15:636 16:425 17:260 18:125 19:54 20:19 21:8 22:1
+V6_PROBE backend=metal u=0.001147067 v=0.002116594 w=0.0006007902 k=0.009387767 omega=0.02537896 continuity_raw=0.002258612 sum_abs_div=0.002258612
+V6_FLUX bin=orthogonal faces=1417 relative_L2=0.001875652 median=0.001189336 p90=0.03805171
+V6_FLUX bin=skew<0.05 faces=18291 relative_L2=0.02197912 median=0.0237374 p90=0.2286794
+V6_FLUX bin=skew<0.2 faces=46316 relative_L2=0.009003208 median=0.005100307 p90=0.1028864
+V6_FLUX bin=skew>=0.2 faces=20758 relative_L2=0.01245926 median=0.006365115 p90=0.07366326
+V6_FLUX bin=all faces=86782 relative_L2=0.01075336 median=0.00761544 p90=0.1228464
+V6_LOCAL field=velocity relative_L2=0.03601605 [wall cells=2436 share=0.2149574 class_L2=0.09731404] [interior,skew<0.1 cells=2858 share=0.1527996 class_L2=0.03622128] [interior,skew<0.3 cells=8085 share=0.4318078 class_L2=0.03287503] [interior,skew>=0.3 cells=4443 share=0.2004352 class_L2=0.02937927]
+V6_LOCAL field=pressure relative_L2=0.0296246 [wall cells=2436 share=0.1514437 class_L2=0.03014569] [interior,skew<0.1 cells=2858 share=0.1220472 class_L2=0.03302319] [interior,skew<0.3 cells=8085 share=0.4372529 class_L2=0.03021218] [interior,skew>=0.3 cells=4443 share=0.2892561 class_L2=0.02752296]
+V6_LOCAL field=k relative_L2=0.1548205 [wall cells=2436 share=0.1577169 class_L2=0.1364734] [interior,skew<0.1 cells=2858 share=0.1462623 class_L2=0.1122653] [interior,skew<0.3 cells=8085 share=0.4710914 class_L2=0.171536] [interior,skew>=0.3 cells=4443 share=0.2249294 class_L2=0.1997583]
+V6_LOCAL field=omega relative_L2=0.08474905 [wall cells=2436 share=0.03372358 class_L2=0.01620743] [interior,skew<0.1 cells=2858 share=0.006262734 class_L2=0.07265056] [interior,skew<0.3 cells=8085 share=0.01642152 class_L2=0.09139933] [interior,skew>=0.3 cells=4443 share=0.9435922 class_L2=0.350188]
+       13.65 real         1.30 user         1.61 sys
+           180011008  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               11790  page reclaims
+                 197  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  23  voluntary context switches
+              142201  involuntary context switches
+         21947982376  instructions retired
+         10774638495  cycles elapsed
+           252183296  peak memory footprint

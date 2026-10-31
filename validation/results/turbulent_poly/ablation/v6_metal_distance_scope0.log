@@ -1,0 +1,145 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+V6 Fluent=22.2 cells=17822 saved_iterations=absent last_residual_iteration=294 reports=0
+V6_FLUENT_RESIDUAL continuity raw=2.475884062e-06 scale=0.002614088497 scaled=0.000947130927
+V6_FLUENT_RESIDUAL energy raw=0.003127095862 scale=231923.8785 scaled=1.348328547e-08
+V6_FLUENT_RESIDUAL k raw=2.496480082e-07 scale=0.004837463694 scaled=5.160721071e-05
+V6_FLUENT_RESIDUAL omega raw=0.001920308188 scale=91.09322473 scaled=2.108069172e-05
+V6_FLUENT_RESIDUAL x-velocity raw=2.356566155e-06 scale=1.686371385 scaled=1.397418253e-06
+V6_FLUENT_RESIDUAL y-velocity raw=6.556134085e-06 scale=1.68649825 scaled=3.887424185e-06
+V6_FLUENT_RESIDUAL z-velocity raw=1.701407993e-06 scale=1.698761099 scaled=1.001558132e-06
+===============================================================================
+<checkout>/tests/fv/test_fluent_elbow.cpp:98:
+TEST SUITE: slow
+TEST CASE:  FV V6 Fluent mixing elbow fixed point and cold start
+
+<checkout>/tests/fv/test_fluent_elbow.cpp:116: ERROR: CHECK_NOTHROW( setup::fluent_setup(c,mesh) ) THREW exception: "Fluent setup rejected:
+  recon/cell-lsf?: warped-face gradient correction is not implemented; opt in with --approximate wfgc to run without warped-face gradient correction (WFGC off, #f); effect: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison"
+
+V6_DIAGNOSTIC APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison; cold start uses stored hybrid initialization settings
+V6_FIELD initial_wall_distance relative_L2=2.093238401e-05 max_absolute=1.164756306e-05 relative_max=0.0002387150477
+V6_FIELD initial_mu_t relative_L2=0.01032625273 max_absolute=3.890473643e-05 relative_max=0.1048399602
+<checkout>/tests/fv/test_fluent_elbow.cpp:150: ERROR: CHECK( r0.continuity.raw<8e-4 ) is NOT correct!
+  values: CHECK( 0.00225861 <  0.0008 )
+  logged: backend: metal
+
+V6_INITIAL backend=metal mode=seeded u=0.001147066633 v=0.002116593996 w=0.0006007901805 pseudo_time_step=0.02452421188 continuity_raw=0.002258611829 k=0.009387766869 omega=0.02537896139
+V6_SAVED_RESIDUAL backend=metal equation=x-velocity raw=0.0008810771517 steady_scaled=0.001147066633 Fluent_scaled=0.0004918575398 normalization=1.791325903
+V6_SAVED_RESIDUAL backend=metal equation=y-velocity raw=0.001625784026 steady_scaled=0.002116593996 Fluent_scaled=0.0009075226822 normalization=1.791452774
+V6_SAVED_RESIDUAL backend=metal equation=z-velocity raw=0.0004614749358 steady_scaled=0.0006007901805 Fluent_scaled=0.0002558480244 normalization=1.803707247
+V6_SAVED_RESIDUAL backend=metal equation=k raw=4.102013693e-05 steady_scaled=0.009387766869 Fluent_scaled=0.008019878348 normalization=0.005114807875
+V6_SAVED_RESIDUAL backend=metal equation=omega raw=2.082973527 steady_scaled=0.02537896139 Fluent_scaled=0.02199469587 normalization=94.70344753
+V6_ITER backend=metal mode=seeded iteration=50 u=0.0001510955593 v=0.0001774930279 w=0.0001062679795 k=0.0006891506841 omega=0.0002527177813 continuity=6.530543142e-05 corrected_mass=9.955014914e-08 max_u=1.671672106
+V6_ITER backend=metal mode=seeded iteration=100 u=7.846845739e-05 v=0.0001282324476 w=6.055699205e-05 k=0.000310925858 omega=0.0001156706253 continuity=8.135963278e-05 corrected_mass=1.322481382e-07 max_u=1.668330789
+V6_ITER backend=metal mode=seeded iteration=150 u=1.965338646e-05 v=4.528334176e-05 w=1.741145051e-05 k=8.132857284e-05 omega=3.25723776e-05 continuity=2.756177241e-05 corrected_mass=5.4450135e-08 max_u=1.668984652
+V6_ITER backend=metal mode=seeded iteration=200 u=4.235470593e-06 v=1.019129349e-05 w=4.030484556e-06 k=1.989979612e-05 omega=7.545983148e-06 continuity=4.786411417e-06 corrected_mass=3.666707464e-08 max_u=1.668975949
+V6_ITER backend=metal mode=seeded iteration=250 u=9.728849772e-07 v=2.245659574e-06 w=8.51475519e-07 k=5.551928414e-06 omega=1.806192345e-06 continuity=2.205411991e-06 corrected_mass=3.40105606e-08 max_u=1.668921709
+V6_ITER backend=metal mode=seeded iteration=300 u=3.365612481e-07 v=8.596456656e-07 w=3.002416823e-07 k=1.662703291e-06 omega=6.461584196e-07 continuity=4.115279378e-07 corrected_mass=3.231501618e-08 max_u=1.66891849
+V6_ITER backend=metal mode=seeded iteration=350 u=1.912953013e-07 v=4.688138795e-07 w=2.102126967e-07 k=7.07182348e-07 omega=2.579753084e-07 continuity=3.994283402e-07 corrected_mass=3.227498227e-08 max_u=1.668924809
+V6_INITIAL_CONTINUITY backend=metal mode=seeded scaled=0.04561211104 first_five_scale=0.04951780958
+V6_RESULT backend=metal mode=seeded iterations=350 seconds=8.214255667 converged=1
+V6_FIELD velocity relative_L2=0.03601604702 max_absolute=0.3416304519 relative_max=0.2057527661
+V6_FIELD pressure relative_L2=0.0296245967 max_absolute=0.1121997299 relative_max=0.09789520439
+V6_FIELD k relative_L2=0.1548204759 max_absolute=0.01548738329 relative_max=0.549042186
+V6_FIELD omega relative_L2=0.08474904698 max_absolute=10979.12273 relative_max=0.1218186364
+<checkout>/tests/fv/test_fluent_elbow.cpp:186: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+  values: CHECK( 0.036016 <  0.005 )
+  logged: backend: metal
+
+<checkout>/tests/fv/test_fluent_elbow.cpp:187: ERROR: CHECK( std::max({eu.l2,ep.l2,ek.l2,eo.l2})<.001 ) is NOT correct!
+  values: CHECK( 0.15482 <  0.001 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE wall-elbow ours=0.2403573453 Fluent=0.2443336319
+V6_FORCE wall-elbow pressure ours=0.006418973077,-0.005943256264,0.01525417825 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01556516404
+V6_FORCE wall-elbow shear ours=0.0003329840921,0.0006876455348,-5.868207456e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.02258897713
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.022589 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-elbow total ours=0.006751957169,-0.005255610729,0.01519549618 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.01505861238
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0150586 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE wall-inlet ours=0.7719686236 Fluent=0.7882671307
+V6_FORCE wall-inlet pressure ours=7.329256574e-05,-4.916842123e-06,0.001579488262 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02073234429
+V6_FORCE wall-inlet shear ours=1.266212878e-06,7.126292191e-05,3.891687862e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.006096674072
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.00609667 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-inlet total ours=7.455877862e-05,6.634607978e-05,0.00157987743 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.02069838522
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0206984 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE outlet ours=0 Fluent=0
+V6_ZONE_PRESSURE cold-inlet ours=0.5075244458 Fluent=0.5016180027
+V6_ZONE_PRESSURE hot-inlet ours=1.10089334 Fluent=1.087188619
+V6_ZONE_PRESSURE symmetry-xyplane ours=0.2558003111 Fluent=0.2603867108
+V6_PRESSURE_DROP ours=0.5414663052 Fluent=0.5351137855 relative=0.01187134385
+<checkout>/tests/fv/test_fluent_elbow.cpp:208: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+  values: CHECK( 0.0118713 <  0.005 )
+  logged: backend: metal
+
+V6_INITIAL backend=metal mode=cold-hybrid u=0.009049881601 v=0.01024192522 w=0.001242852245 pseudo_time_step=0.01712153479 continuity_raw=9.159623666e-06 k=0.01144462292 omega=0.0289665323
+V6_ITER backend=metal mode=cold-hybrid iteration=50 u=0.001273217124 v=0.00138046514 w=0.0005889715335 k=0.004415661412 omega=0.002639406918 continuity=0.0005893086052 corrected_mass=6.675711324e-07 max_u=1.645046473
+V6_ITER backend=metal mode=cold-hybrid iteration=100 u=0.0006230231882 v=0.001201612515 w=0.0003693347202 k=0.003305257967 omega=0.001102896122 continuity=0.0004224348218 corrected_mass=6.105353302e-07 max_u=1.672713637
+V6_ITER backend=metal mode=cold-hybrid iteration=150 u=0.0001730513844 v=0.0005898108809 w=0.0001385112493 k=0.001280523964 omega=0.0003943356388 continuity=0.0001585516684 corrected_mass=2.267775909e-07 max_u=1.669674397
+V6_ITER backend=metal mode=cold-hybrid iteration=200 u=5.187530444e-05 v=0.0001958754365 w=4.652487407e-05 k=0.0004141281525 omega=0.0001246514215 continuity=5.803774215e-05 corrected_mass=9.395994835e-08 max_u=1.668800712
+V6_ITER backend=metal mode=cold-hybrid iteration=250 u=1.824077372e-05 v=5.005406331e-05 w=1.595194305e-05 k=0.0001254551955 omega=3.732517752e-05 continuity=2.352470393e-05 corrected_mass=5.676286199e-08 max_u=1.668814778
+V6_ITER backend=metal mode=cold-hybrid iteration=300 u=6.55558419e-06 v=1.617818657e-05 w=5.009975337e-06 k=4.712290912e-05 omega=1.324301201e-05 continuity=7.645943631e-06 corrected_mass=3.938695553e-08 max_u=1.668896079
+V6_ITER backend=metal mode=cold-hybrid iteration=350 u=3.030397137e-06 v=8.610442878e-06 w=2.479157565e-06 k=1.977866214e-05 omega=5.892830198e-06 continuity=5.340425441e-06 corrected_mass=3.672951226e-08 max_u=1.668928266
+V6_ITER backend=metal mode=cold-hybrid iteration=400 u=1.365926364e-06 v=4.290397354e-06 w=1.145775209e-06 k=8.162972559e-06 omega=2.623519456e-06 continuity=2.669801836e-06 corrected_mass=3.516375612e-08 max_u=1.668939114
+V6_ITER backend=metal mode=cold-hybrid iteration=450 u=6.053793048e-07 v=1.890710717e-06 w=5.536287849e-07 k=3.175991624e-06 omega=1.075750722e-06 continuity=1.437755674e-06 corrected_mass=3.436260747e-08 max_u=1.668937683
+V6_ITER backend=metal mode=cold-hybrid iteration=500 u=2.33188683e-07 v=6.8176955e-07 w=1.62896116e-07 k=1.1997496e-06 omega=4.330262105e-07 continuity=3.697169894e-07 corrected_mass=3.278626243e-08 max_u=1.668933272
+V6_ITER backend=metal mode=cold-hybrid iteration=550 u=1.188316063e-07 v=2.734773813e-07 w=9.508158848e-08 k=4.213687664e-07 omega=1.739950552e-07 continuity=3.255011014e-07 corrected_mass=3.216054194e-08 max_u=1.668929338
+V6_INITIAL_CONTINUITY backend=metal mode=cold-hybrid scaled=0.0003669665112 first_five_scale=0.02496038027
+V6_RESULT backend=metal mode=cold-hybrid iterations=550 seconds=12.64818746 converged=1
+V6_FIELD velocity relative_L2=0.03601464446 max_absolute=0.341606636 relative_max=0.2057384226
+V6_FIELD pressure relative_L2=0.02961693403 max_absolute=0.112186587 relative_max=0.09788373716
+V6_FIELD k relative_L2=0.1547895806 max_absolute=0.01548802032 relative_max=0.5490647691
+V6_FIELD omega relative_L2=0.08474927333 max_absolute=10979.15495 relative_max=0.121818994
+<checkout>/tests/fv/test_fluent_elbow.cpp:186: ERROR: CHECK( eu.l2<.005 ) is NOT correct!
+  values: CHECK( 0.0360146 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE wall-elbow ours=0.2403544166 Fluent=0.2443336319
+V6_FORCE wall-elbow pressure ours=0.006418915185,-0.005943217071,0.01525399315 Fluent=0.006362455524,-0.005934901867,0.01552523764 relative=0.01557461246
+V6_FORCE wall-elbow shear ours=0.0003329841908,0.0006876413438,-5.868113985e-05 Fluent=0.0003481685928,0.0006880408909,-6.734241096e-05 relative=0.02258958757
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0225896 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-elbow total ours=0.006751899375,-0.005255575728,0.01519531201 Fluent=0.006710624117,-0.005246860976,0.01545789523 relative=0.0150683411
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0150683 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE wall-inlet ours=0.7719649116 Fluent=0.7882671307
+V6_FORCE wall-inlet pressure ours=7.329053224e-05,-4.916835611e-06,0.001579480686 Fluent=7.988724203e-05,-4.692876481e-06,0.001612299233 relative=0.02073719322
+V6_FORCE wall-inlet shear ours=1.26623324e-06,7.126301964e-05,3.891719422e-07 Fluent=1.013114139e-06,7.091390076e-05,4.221385465e-07 relative=0.00609795113
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.00609795 <  0.005 )
+  logged: backend: metal
+
+V6_FORCE wall-inlet total ours=7.455676548e-05,6.634618403e-05,0.001579869858 Fluent=8.090035617e-05,6.622102428e-05,0.001612721372 relative=0.02070322222
+<checkout>/tests/fv/test_fluent_elbow.cpp:202: ERROR: CHECK( norm(a-b)/norm(b)<.005 ) is NOT correct!
+  values: CHECK( 0.0207032 <  0.005 )
+  logged: backend: metal
+
+V6_ZONE_PRESSURE outlet ours=0 Fluent=0
+V6_ZONE_PRESSURE cold-inlet ours=0.507515142 Fluent=0.5016180027
+V6_ZONE_PRESSURE hot-inlet ours=1.100889126 Fluent=1.087188619
+V6_ZONE_PRESSURE symmetry-xyplane ours=0.2557992538 Fluent=0.2603867108
+V6_PRESSURE_DROP ours=0.5414572927 Fluent=0.5351137855 relative=0.01185450158
+<checkout>/tests/fv/test_fluent_elbow.cpp:208: ERROR: CHECK( std::abs(drop/reference-1)<.005 ) is NOT correct!
+  values: CHECK( 0.0118545 <  0.005 )
+  logged: backend: metal
+
+V6_DIAGNOSTIC APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+===============================================================================
+[doctest] test cases:    1 |    0 passed |  1 failed | 248 skipped
+[doctest] assertions: 2526 | 2511 passed | 15 failed |
+[doctest] Status: FAILURE!

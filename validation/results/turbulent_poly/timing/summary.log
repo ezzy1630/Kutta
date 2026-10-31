@@ -1,0 +1,17 @@
+START sst branch 1 17:23:17 load={ 2.18 4.45 4.45 }
+sst branch 1 iterations=2100 solve_s=624.305655042 cf_x0.75=0.0067697440014
+START sst main 1 17:33:43 load={ 4.19 5.00 4.85 }
+sst main 1 iterations=2400 solve_s=619.530142 cf_x0.75=0.00670927042539
+START sa branch 1 17:44:03 load={ 3.70 3.55 4.05 }
+sa branch 1 SA_RESULT steps=2200 seconds=627.356319542 budget=1 Cf=0.00564670659634 Cf=0.00683735057484 Cf=0.00347712544746
+START sa main 1 17:54:32 load={ 2.61 2.73 3.32 }
+sa main 1 SA_RESULT steps=2600 seconds=606.357720208 budget=1 Cf=0.00558162409196 Cf=0.00691381959929 Cf=0.00321083778734
+START sst branch 2 18:04:39 load={ 3.08 4.01 3.86 }
+sst branch 2 iterations=2100 solve_s=623.312313083 cf_x0.75=0.0067697440014
+START sst main 2 18:15:04 load={ 2.98 3.20 3.47 }
+sst main 2 iterations=2400 solve_s=601.785266041 cf_x0.75=0.00670927042539
+START sa branch 2 18:25:07 load={ 1.38 2.61 3.28 }
+sa branch 2 SA_RESULT steps=2200 seconds=601.682203959 budget=1 Cf=0.00564670659634 Cf=0.00683735057484 Cf=0.00347712544746
+START sa main 2 18:35:09 load={ 2.20 2.05 2.54 }
+sa main 2 SA_RESULT steps=2800 seconds=612.554622708 budget=1 Cf=0.00552984812788 Cf=0.00684953367403 Cf=0.00312403724441
+DONE

@@ -1,0 +1,7 @@
+main   1 steps=5700 seconds=178.404070333 converged=1 [doctest] assertions: 18 | 18 passed | 0 failed |
+branch 1 steps=5600 seconds=180.203052042 converged=0 [doctest] assertions: 18 | 17 passed | 1 failed |
+main   2 steps=5700 seconds=157.787219084 converged=1 [doctest] assertions: 18 | 18 passed | 0 failed |
+branch 2 steps=5700 seconds=169.116625917 converged=1 [doctest] assertions: 18 | 18 passed | 0 failed |
+main   3 steps=5400 seconds=182.739624625 converged=0 [doctest] assertions: 18 | 17 passed | 1 failed |
+branch 3 steps=4400 seconds=180.161542833 converged=0 [doctest] assertions: 18 | 17 passed | 1 failed |
+DONE

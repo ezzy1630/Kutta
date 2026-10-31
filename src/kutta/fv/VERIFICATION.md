@@ -2570,6 +2570,16 @@ six-run bump study above was rerun. No missing grid is counted as a result.
 
 ### V6 initialization comparison
 
+**Current values (turbulent projected faces, 2026-10-30).** The approximation
+notice quotes the CPU hybrid row below. The older table that follows is the
+historical pre-projection measurement. Evidence and the full before/after
+comparison: [turbulent polyhedral report](../../../validation/results/turbulent_poly/REPORT.md).
+
+| Backend / cold start | Steps | Velocity L2 % | Pressure L2 % | k L2 % | omega L2 % | Drop Pa (error %) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| CPU hybrid | 500 | 3.366748 | 2.665514 | 14.722368 | 2.805466 | .545671623 (1.973008) |
+| Metal hybrid | 500 | 3.366746 | 2.665415 | 14.722363 | 2.805459 | .545670693 (1.972834) |
+
 The normal V6 stopping criteria and accuracy gates are unchanged. The original
 WFGC-enabled setup still fails its setting assertion. With the same explicitly
 disabled WFGC diagnostic used before, seeded solves take 350 steps on both
@@ -2702,3 +2712,34 @@ interpolation ablations are recorded in the report. No original gate was relaxed
 SST, SA and realizable-k-epsilon retain their diffusion and wall-function
 contracts; V6 remains approximately 3.60% velocity / 2.96% pressure error, with
 its existing WFGC mismatch and failed accuracy assertions unresolved.
+
+## Turbulent polyhedral face reconstruction (2026-10-30)
+
+The [turbulent polyhedral report](../../../validation/results/turbulent_poly/REPORT.md)
+records the V6 operator ablations, error localization, memory measurements,
+full slow-tier assertion comparison and CPU/Metal/CUDA evidence.
+
+Measured on V6, the largest turbulent-operator error was omega diffusion on
+skewed faces (94% of the squared omega error sat in high-skew interior cells);
+k diffusion and mu_t momentum diffusion were marginal; the momentum predictor
+moved velocity, pressure, k and wall forces, and the pressure drop the other
+way. The remaining velocity/pressure/k error is spread uniformly over skew
+classes and is not a skew-truncation error of these operators.
+
+The turbulent momentum predictor and the omega, nu-tilde and k/epsilon
+diffusion operators now use the same projected normal-line functionals as the
+laminar path, but fitted with walk-count weights, `(I+A)^3` from both adjacent
+cells. These make each face's fit moments a sum of per-cell quadratic moments
+gathered over three face-neighbour hops, so storage is 40 floats per cell and
+30 per corrected face. SST k diffusion and, under wall functions, mu+mu_t
+momentum diffusion keep the compact operator: projecting them moved no V6
+field by more than 0.03 points and cost four fits per iteration. SA keeps
+projected momentum diffusion because its resolved wall traction is the
+projected wall flux. The laminar 3-ring fit would need on the order of
+100 GB on a 20-40M cell FSAE car. Wall values stay out of SST and k-epsilon
+fits because the wall function owns the wall-to-cell profile; resolved SA
+walls are Dirichlet samples, and SA wall traction keeps the projected wall
+flux. V6 CPU hybrid versus Fluent: velocity 3.601459% -> 3.366748%, pressure
+2.961922% -> 2.665514%, k 15.478919% -> 14.722368%, omega 8.474918% ->
+2.805466%; pressure-drop error 1.185077% -> 1.973008%. The laminar path is
+unchanged. No acceptance threshold was changed.

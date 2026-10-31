@@ -1,0 +1,53 @@
+diff --git a/src/kutta/fv/face_projection.cpp b/src/kutta/fv/face_projection.cpp
+index a688737..072cd15 100644
+--- a/src/kutta/fv/face_projection.cpp
++++ b/src/kutta/fv/face_projection.cpp
+@@ -2,6 +2,9 @@
+ #include <algorithm>
+ #include <array>
+ #include <cmath>
++#include <cstdio>
++#include <cstdlib>
++#include <map>
+ #include <set>
+ #include <limits>
+ #include "kernels.hpp"
+@@ -67,7 +70,8 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
+     bool accepted=false;
+     // Overlap gives the two adjacent cells the same smooth reconstruction.
+     // Expand only when the requested functionals are rank deficient.
+-    for(int rings=3;rings<=5 && !accepted;++rings) {
++    const int first_ring=std::getenv("KUTTA_RINGS")?std::atoi(std::getenv("KUTTA_RINGS")):3; // SCRATCH
++    for(int rings=first_ring;rings<=5 && !accepted;++rings) {
+       std::set<Index> cloud{owner};if(face<internal) cloud.insert(mesh.neighbour[face]);
+       for(int depth=0;depth<rings;++depth) {
+         const auto old=cloud;
+@@ -89,9 +93,19 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
+       if(scale.x<length*1e-10) scale.x=length;if(scale.y<length*1e-10) scale.y=length;if(scale.z<length*1e-10) scale.z=length;
+       auto scaled=[&](Vec3d r) {return Vec3d{r.x/scale.x,r.y/scale.y,r.z/scale.z};};
+       Matrix a{};std::vector<Row> rows;std::vector<double> weights;
++      // SCRATCH: walk-count weights of (I+A)^rings from P plus from N.
++      const char* mode=std::getenv("KUTTA_WEIGHTS");std::map<Index,double> walks;
++      if(mode) for(Index start:{owner,face<internal?mesh.neighbour[face]:Index(-1)}) {
++        if(start<0) continue;std::map<Index,double> v{{start,1.}};
++        for(int depth=0;depth<rings;++depth) {
++          auto next=v;for(auto [c,x]:v) for(Index j=cn.offsets[c];j<cn.offsets[c+1];++j) next[cn.cells[j]]+=x;v=std::move(next);
++        }
++        for(auto [c,x]:v) walks[c]+=x;
++      }
+       for(auto i:samples) {
+         const auto r=scaled(point(i)-fit_origin);const auto b=basis(r);const auto sample=point(i),other=face<internal?g.cell_centroid[mesh.neighbour[face]]:g.face_centroid[face];
+-        const double w=1/(dot(sample-g.cell_centroid[owner],sample-g.cell_centroid[owner])+dot(sample-other,sample-other));
++        double w=1/(dot(sample-g.cell_centroid[owner],sample-g.cell_centroid[owner])+dot(sample-other,sample-other));
++        if(mode) {const Index c=i<0?mesh.owner[internal-i-1]:i;w=walks.count(c)?walks.at(c):0.;}
+         rows.push_back(b);weights.push_back(w);
+         for(int k=0;k<terms;++k) for(int j=0;j<terms;++j) a[k][j]+=w*b[k]*b[j];
+       }
+@@ -143,6 +157,7 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
+     if(!accepted) ++fallback_;
+     offsets.push_back(Index(points.size()));
+   }
++  std::fprintf(stderr,"PROJECTED_SAMPLES faces=%zu samples=%zu\n",corrected_,points.size()); // SCRATCH
+   offsets_=dev.upload<Index>(offsets);points_=dev.upload<Index>(points);owner_=dev.upload<Index>(mesh.owner);mask_=dev.upload<Index>(mask);
+   value_weights_=dev.upload<float>(wvalue);
+   {
