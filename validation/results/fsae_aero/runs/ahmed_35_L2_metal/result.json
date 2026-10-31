@@ -1,0 +1,93 @@
+{
+ "source": "b08c7141c3383fd21107b0cf972fc3a192e6fe03",
+ "device": "Apple M4 Pro",
+ "backend": "metal",
+ "result": {
+  "cells": 690104,
+  "iterations": 5000,
+  "setup_s": 19.8279015,
+  "solve_s": 797.6975293,
+  "lift": 0.1686096332,
+  "drag": 0.3269342976,
+  "drag_pressure": 0.27949367,
+  "max_residual": 0.006795356249,
+  "settle_lift": 0.3153287962,
+  "settle_drag": 0.03189425329,
+  "residuals_met": false,
+  "settled": false,
+  "budget": false,
+  "yplus_max": 7.233674526,
+  "yplus_mean": 3.03407686,
+  "failure": ""
+ },
+ "peak_footprint_bytes": 3350563840.0,
+ "max_rss_bytes": 2455814144.0,
+ "wall_seconds": 817.66,
+ "case": "ahmed",
+ "point": "35",
+ "level": 2,
+ "exit": 0,
+ "tag": "",
+ "command": [
+  "build/bench_fsae_aero",
+  "--mesh",
+  "runs/fsae_aero/mesh/ahmed35_L2.msh",
+  "--backend",
+  "metal",
+  "--out",
+  "runs/fsae_aero/results_ahmed/ahmed_35_L2_metal",
+  "--iterations",
+  "5000",
+  "--max-seconds",
+  "5400.0",
+  "--check",
+  "50",
+  "--tu",
+  "0.01",
+  "--ratio",
+  "1.0",
+  "--re",
+  "2780000.0",
+  "--length",
+  "1.044",
+  "--area",
+  "0.11203199999999999",
+  "--walls",
+  "body",
+  "--lift-z",
+  "--window",
+  "1000"
+ ],
+ "mesh": {
+  "cells": 690104,
+  "faces": 2089647,
+  "nodes": 742868,
+  "case": "ahmed",
+  "slant_deg": 35.0,
+  "level": 2,
+  "surface_size": 0.028,
+  "body_triangles": 5696,
+  "prism_layers": 16,
+  "layer_thickness": 0.017244847559655885,
+  "first_height": 5e-05,
+  "growth": 1.35,
+  "tets": 104174,
+  "prisms": 91136,
+  "hexes": 690104,
+  "domain": {
+   "x": [
+    -4.176,
+    5.220000000000001
+   ],
+   "y": [
+    -0.9396000000000001,
+    0.9396000000000001
+   ],
+   "z": [
+    0,
+    1.2006
+   ],
+   "ground_wall_from_x": -3.132
+  }
+ }
+}
