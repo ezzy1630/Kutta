@@ -221,7 +221,7 @@ def build(slant, level, out, first=FIRST):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--slant", type=float, default=35.0)
-    ap.add_argument("--level", type=int, default=2)
+    ap.add_argument("--level", type=float, default=2, help="refinement level; 3.5 is half a level above 3")
     ap.add_argument("--out", required=True)
     ap.add_argument("--first", type=float, default=FIRST, help="first prism height, m")
     a = ap.parse_args()

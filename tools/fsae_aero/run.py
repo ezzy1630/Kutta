@@ -29,14 +29,14 @@ def mesh_for(case, point, level, far=1.0, first=None):
     if case == "ahmed":
         # point = slant angle; a non-default first prism height is in the name
         suffix = f"_first{first * 1e6:g}um" if first else ""
-        path = MESHES / f"ahmed{point}_L{level}{suffix}.msh"
-        cmd = [PY, str(ROOT / "tools/fsae_aero/ahmed.py"), "--slant", point, "--level", str(level), "--out", str(path)]
+        path = MESHES / f"ahmed{point}_L{level:g}{suffix}.msh"
+        cmd = [PY, str(ROOT / "tools/fsae_aero/ahmed.py"), "--slant", point, "--level", f"{level:g}", "--out", str(path)]
         cmd += ["--first", str(first)] if first else []
     else:
         tag = f"h{point}" if case == "zerihan" else f"a{point}"
-        path = MESHES / f"{case}_{tag}_L{level}{f'_far{far:g}' if far != 1 else ''}.msh"
+        path = MESHES / f"{case}_{tag}_L{level:g}{f'_far{far:g}' if far != 1 else ''}.msh"
         flag = "--hc" if case == "zerihan" else "--alpha"
-        cmd = [PY, str(ROOT / "tools/fsae_aero/wing2d.py"), case, flag, point, "--level", str(level), "--out", str(path),
+        cmd = [PY, str(ROOT / "tools/fsae_aero/wing2d.py"), case, flag, point, "--level", f"{level:g}", "--out", str(path),
                "--far", str(far)]
     if not path.exists():
         MESHES.mkdir(parents=True, exist_ok=True)
@@ -47,7 +47,7 @@ def mesh_for(case, point, level, far=1.0, first=None):
 def solve(case, point, args):
     mesh = mesh_for(case, point, args.level, args.far, args.first)
     first = f"_first{args.first * 1e6:g}um" if case == "ahmed" and args.first else ""
-    tag = f"{case}{'_re' + args.re if case == 's1223' else ''}_{point}_L{args.level}{first}_{args.backend}{args.tag}"
+    tag = f"{case}{'_re' + args.re if case == 's1223' else ''}_{point}_L{args.level:g}{first}_{args.backend}{args.tag}"
     out = pathlib.Path(args.out) / tag
     out.mkdir(parents=True, exist_ok=True)
     cmd = [str(ROOT / "build/bench_fsae_aero"), "--mesh", str(mesh), "--backend", args.backend, "--out", str(out),
@@ -92,7 +92,7 @@ def main():
     ap.add_argument("case", choices=["zerihan", "s1223", "ahmed"])
     ap.add_argument("--points", required=True, help="comma list: h/c (or 'free'), alpha deg, or slant deg")
     ap.add_argument("--re", default="2e5", help="S1223 chord Reynolds number")
-    ap.add_argument("--level", type=int, default=2)
+    ap.add_argument("--level", type=float, default=2, help="mesh level (Ahmed accepts fractions, e.g. 3.5)")
     ap.add_argument("--backend", default="metal")
     ap.add_argument("--iterations", type=int, default=6000)
     ap.add_argument("--max-seconds", type=float, default=3600)

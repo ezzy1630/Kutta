@@ -152,3 +152,36 @@ TEST_CASE("FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC" * doctest::
   CHECK(std::abs(r.lift - cl) <= .10);
   CHECK(std::abs(r.drag / cd - 1) <= .25);
 }
+
+TEST_CASE("FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled" * doctest::test_suite("slow")) {
+  // A 15 um first layer, as the CFX-5 SST reference. Its wall cells at the
+  // sharp edges diverged under SIMPLEC, and Coupled diverged on every Ahmed
+  // mesh, until validation/results/external_3d_robustness/REPORT.md.
+  const auto mesh = meshes() / "ahmed35_L1_first15um.msh";
+  if (!present(mesh, "build-py/bin/python tools/fsae_aero/run.py ahmed --points 35 --level 1 --first 1.5e-5")) return;
+  auto dev = fastest();
+  Options o;
+  o.mesh = mesh;
+  o.reynolds = 2.78e6;
+  o.length = 1.044;
+  o.reference_area = .389 * .288;
+  o.lift_direction = {0, 0, 1};
+  o.force_walls = {"body"};
+  o.intensity = .01;
+  o.window = 1000;
+  o.max_iterations = 2000;  // SIMPLEC drag is constant to 4 digits from iteration 1000
+  const auto simplec = solve(*dev, o);
+  CHECK_MESSAGE(simplec.failure.empty(), simplec.failure);
+  CHECK(simplec.residuals_met);
+  CHECK(simplec.wall_yplus_mean < 1.5);
+  MESSAGE("REGRESSION GUARD (misses the 8% gate vs Cd 0.26, REPORT.md): Cd " << simplec.drag << " vs measured 0.3545");
+  CHECK(std::abs(simplec.drag / .3545 - 1) <= .02);
+  o.coupled = true;
+  const auto coupled = solve(*dev, o);
+  CHECK_MESSAGE(coupled.failure.empty(), coupled.failure);
+  // Coupled's continuity plateaus above Fluent's scaled 1e-3 here (REPORT.md,
+  // open items), so it is held to SIMPLEC's forces, not to the residuals.
+  MESSAGE("REGRESSION GUARD: Coupled Cd " << coupled.drag << " vs SIMPLEC " << simplec.drag);
+  CHECK(std::abs(coupled.drag / simplec.drag - 1) <= .01);
+  CHECK(std::abs(coupled.lift / simplec.lift - 1) <= .03);
+}
