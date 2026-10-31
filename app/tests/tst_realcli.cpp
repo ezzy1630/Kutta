@@ -1,7 +1,9 @@
 // The session against the real kutta CLI on the Ansys mixing elbow. Skipped
 // unless KUTTA_REAL_CLI (the binary) and KUTTA_ELBOW_CASE (mixing_elbow.cas.h5,
 // with its .dat.h5 beside it) are set: CI has no solver build or case files.
+// The 2D, laminar and k-epsilon cases also need KUTTA_FLUENT_EXAMPLES.
 
+#include "core/SceneData.h"
 #include "core/Session.h"
 
 #include <QFileInfo>
@@ -17,13 +19,13 @@ class TestRealCli : public QObject {
     QTemporaryDir m_dir;
     QString m_cli, m_case, m_data;
 
-    std::unique_ptr<Session> open(bool withData)
+    std::unique_ptr<Session> open(bool withData, const QString& other = {})
     {
         CliInfo cli;
         cli.program = m_cli;
         auto s = std::make_unique<Session>(cli, m_dir.filePath("data"));
         QSignalSpy opened(s.get(), &Session::caseOpened);
-        s->openCase(m_case, withData ? m_data : QString());
+        s->openCase(other.isEmpty() ? m_case : other, withData ? m_data : QString());
         if (!opened.wait(60000)) return nullptr;
         for (const QString& a : s->caseSummary().approximations()) s->setApproximationApproved(a, true);
         return s;
@@ -139,6 +141,66 @@ private slots:
         for (const auto& row : forces->rows)
             if (row.kind == "wall") drag += row.total.x();
         QVERIFY(std::abs(a.total()->total.drag - drag) <= 1e-5 * std::abs(drag));
+    }
+
+    // The 2D laminar cylinder: a planar case seen as its plane, saved Coupled
+    // without pseudo time (so it runs SIMPLEC), Green-Gauss gradients, no
+    // turbulence, opt-in reverse flow with its measured effect.
+    void planarLaminarCylinder()
+    {
+        const QString corpus = qEnvironmentVariable("KUTTA_FLUENT_EXAMPLES");
+        const QString cylinder = corpus + "/adjoint_cylinder_tutorial/cylinder_tutorial.cas";
+        if (corpus.isEmpty() || !QFileInfo::exists(cylinder)) QSKIP("set KUTTA_FLUENT_EXAMPLES for the 2D cylinder");
+        auto s = open(false, cylinder);
+        QVERIFY(s);
+        const CaseSummary& cs = s->caseSummary();
+        QVERIFY(cs.planar());
+        QCOMPARE(cs.viscousModel, QString("laminar"));
+        auto issue = std::find_if(cs.issues.begin(), cs.issues.end(), [](const SupportIssue& i) { return i.approximation == "reverse-flow"; });
+        QVERIFY(issue != cs.issues.end() && !issue->measuredEffect.isEmpty());
+        SettingsModel* m = s->settings();
+        QCOMPARE(m->find("methods/gradient")->valueLabel, QString("Green-Gauss Cell Based"));
+        QVERIFY(!m->isActive("methods/k-scheme") && !m->isActive("boundary/inlet/k"));
+        QCOMPARE(m->value("methods/pressure-velocity-coupling").toString(), QString("coupled"));
+        QVERIFY(!m->value("methods/pseudo-transient").toBool());
+        QCOMPARE(m->setValue("run/iterations", 40), QString());
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString id = s->run();
+        QVERIFY(finished.wait(300000));
+        const RunRecord* r = s->history().find(id);
+        QCOMPARE(r->status, RunStatus::Completed);
+        QCOMPARE(r->coupling, QString("simplec"));
+        const RunProgress p = s->history().progress(id);
+        QVERIFY(!p.residuals.names.contains("k"));
+        bool loaded = false;
+        s->loadScene("run:" + id, [&](const QString&, Result<std::shared_ptr<SceneData>> scene) {
+            QVERIFY2(scene.ok(), qPrintable(scene ? QString() : scene.error()));
+            QVERIFY(scene.value()->planar);
+            QCOMPARE(defaultVisibleItems(*scene.value()), QStringList{planarFace(*scene.value())});
+            loaded = true;
+        });
+        QTRY_VERIFY_WITH_TIMEOUT(loaded, 60000);
+    }
+
+    // Standard k-epsilon with SIMPLE: epsilon residuals and scheme, and no
+    // Coupled choice without pseudo time.
+    void kEpsilonElbow()
+    {
+        const QString corpus = qEnvironmentVariable("KUTTA_FLUENT_EXAMPLES");
+        const QString param = corpus + "/mixing_elbow/elbow_param.cas.h5";
+        if (corpus.isEmpty() || !QFileInfo::exists(param)) QSKIP("set KUTTA_FLUENT_EXAMPLES for elbow_param");
+        auto s = open(false, param);
+        QVERIFY(s);
+        SettingsModel* m = s->settings();
+        QVERIFY(m->isActive("methods/epsilon-scheme") && !m->isActive("methods/omega-scheme"));
+        QVERIFY(!m->find("methods/pressure-velocity-coupling")->options.contains(QJsonValue("coupled")));
+        QCOMPARE(m->setValue("run/iterations", 40), QString());
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString id = s->run();
+        QVERIFY(finished.wait(300000));
+        const RunRecord* r = s->history().find(id);
+        QCOMPARE(r->coupling, QString("simple"));
+        QVERIFY(s->history().progress(id).residuals.names.contains("epsilon"));
     }
 
     void stopFinishesTheCurrentIteration()

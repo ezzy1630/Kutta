@@ -152,13 +152,19 @@ int main(int argc, char** argv)
     cli.addOptions({cliOpt, dataOpt, scenarioOpt, shotOpt, themeOpt, sizeOpt, listOpt, benchOpt, caseOpt});
     cli.process(app);
 
+    // case-* scenarios take any case (the positional argument; no data file
+    // unless --open-data) and are meant for the real CLI: the mesh, the
+    // approvals, the Methods page, a run with convergence checking on
+    // (KUTTA_SCENARIO_ITERATIONS, default 300) and a run stopped by the user;
+    // KUTTA_SCENARIO_PAGE shows another inspector page at the end.
     // elbow-* scenarios are meant for the real CLI and the Ansys mixing elbow
     // (pass the case path; --open-data defaults to the .dat.h5 beside it).
     // Post-processing ones need the real CLI: the fixture has no volume fields.
     // car-* and bench use the fixture CLI's synthetic FSAE car.
     const QStringList scenarios = {"start", "open-failed", "elbow-open", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
                                    "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare", "elbow-monitors",
-                                   "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "bench"};
+                                   "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "bench",
+                                   "case-mesh", "case-approvals", "case-methods", "case-run", "case-stop"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
         return 0;
@@ -344,8 +350,7 @@ int main(int argc, char** argv)
             sc->add(go("solution/run"));
         }
     } else if (scenario == "elbow-monitors") {
-        // The seeded elbow stopping on its own residual criteria. The recorded
-        // fixture predates convergence checking and shows the older-CLI page.
+        // The seeded elbow stopping on its own residual criteria.
         sc->add(open(elbowCase, elbowData));
         sc->add(approveAll);
         sc->add([session](auto next) {
@@ -609,6 +614,54 @@ int main(int argc, char** argv)
         sc->add(showScene(0, "run:run-0001"));
         sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
         sc->add([&w](auto next) { w.graphics()->panel(0)->view()->fitView(); next(); });
+    } else if (scenario.startsWith("case-")) {
+        const QString path = caseArg.isEmpty() ? elbow : caseArg;
+        sc->add(open(path, cli.value(caseOpt)));
+        const int iterations = qEnvironmentVariableIsSet("KUTTA_SCENARIO_ITERATIONS") ? qEnvironmentVariableIntValue("KUTTA_SCENARIO_ITERATIONS") : 300;
+        if (scenario == "case-mesh") {
+            sc->add([&w, sc](auto next) { sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, next, "mesh to show"); });
+            sc->add(go("setup/general"));
+        } else if (scenario == "case-approvals") {
+            sc->add([&w, sc](auto next) { sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, next, "mesh to show"); });
+            sc->add([session](auto next) {
+                // The first approximation approved, the others still waiting: both states show.
+                QSettings().setValue("ui/hideGettingStarted", true);
+                const QStringList a = session->caseSummary().approximations();
+                if (!a.isEmpty()) session->setApproximationApproved(a.first(), true);
+                next();
+            });
+            sc->add(go("setup/general"));
+        } else if (scenario == "case-methods") {
+            sc->add([&w, sc](auto next) { sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, next, "mesh to show"); });
+            sc->add(go("solution/methods"));
+        } else if (scenario == "case-run") {
+            sc->add(approveAll);
+            sc->add([session](auto next) {
+                session->settings()->setValue("monitors/check-convergence", true);
+                next();
+            });
+            sc->add(runWith(iterations));
+            sc->add(showScene(0, "run:run-0001"));
+            sc->add(go("solution/monitors"));
+            sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Residuals); next(); });
+        } else {  // case-stop
+            sc->add(approveAll);
+            sc->add([session, sc, iterations](auto next) {
+                session->settings()->setValue("monitors/check-convergence", true);
+                session->settings()->setValue("run/iterations", 100000);
+                if (session->run().isEmpty()) return sc->fail("run refused");
+                // Stop as the user would, once the run is under way.
+                sc->waitFor([session, iterations] { return session->live().last && session->live().last->iter >= iterations; }, [session, sc, next] {
+                    session->stop();
+                    sc->waitFor([session] { return !session->running(); }, next, "run to stop", 120000);
+                }, "run to reach the stop iteration", 300000);
+            });
+            sc->add(showScene(0, "run:run-0001"));
+            sc->add(go("solution/run"));
+            sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Residuals); next(); });
+        }
+        // Another page of the same state, e.g. KUTTA_SCENARIO_PAGE=runs/history.
+        if (const QString page = qEnvironmentVariable("KUTTA_SCENARIO_PAGE"); !page.isEmpty()) sc->add(go(page));
     } else if (scenario == "settings") {
         sc->add(open(elbowCase));
         sc->add([&w](auto next) {

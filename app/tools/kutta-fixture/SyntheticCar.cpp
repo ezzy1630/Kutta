@@ -1050,15 +1050,31 @@ QJsonObject carInspect(const CarParams& prm, bool withData, const QJsonArray& ra
     s.append(setting("reference/length", "Reference length", "Reference Values", prm.refLength, "m", "number", fmin, 1e30, true));
     s.append(setting("reference/compute-from", "Compute from", "Reference Values", "inlet", "", "string", QJsonValue(), QJsonValue(), false));
     const QJsonArray schemes{"first-order-upwind", "second-order-upwind"};
-    s.append(setting("methods/scheme", "Pressure-velocity coupling", "Methods", "coupled", "", "string", QJsonValue(), QJsonValue(), false));
-    s.append(setting("methods/gradient", "Gradient", "Methods", "least-squares-cell-based", "", "string", QJsonValue(), QJsonValue(), false));
-    s.append(setting("methods/pressure-scheme", "Pressure", "Methods", "second-order", "", "string", QJsonValue(), QJsonValue(), false));
-    s.append(setting("methods/momentum-scheme", "Momentum", "Methods", "second-order-upwind", "", "enum", QJsonValue(), QJsonValue(), true, schemes));
-    s.append(setting("methods/k-scheme", "Turbulent kinetic energy", "Methods", "second-order-upwind", "", "enum", QJsonValue(), QJsonValue(), true, schemes));
-    s.append(setting("methods/omega-scheme", "Specific dissipation rate", "Methods", "second-order-upwind", "", "enum", QJsonValue(), QJsonValue(), true, schemes));
+    // Fluent's Methods panel, with the real CLI's paths, labels and activity.
+    auto labelled = [](QJsonObject o, const QStringList& labels) {
+        o["option_labels"] = QJsonArray::fromStringList(labels);
+        const QJsonArray opts = o.value("options").toArray();
+        for (qsizetype i = 0; i < opts.size() && i < labels.size(); ++i)
+            if (opts[i] == o.value("value")) o["value_label"] = labels[i];
+        return o;
+    };
+    const QStringList schemeLabels{"First Order Upwind", "Second Order Upwind"};
+    s.append(labelled(setting("methods/pressure-velocity-coupling", "Pressure-velocity coupling", "Methods", "coupled", "", "enum", QJsonValue(), QJsonValue(), true,
+                              QJsonArray{"simple", "simplec", "coupled"}), {"SIMPLE", "SIMPLEC", "Coupled"}));
+    s.append(setting("methods/pseudo-transient", "Pseudo-transient formulation", "Methods", true, "", "bool", QJsonValue(), QJsonValue(), false));
+    s.append(labelled(setting("methods/gradient", "Gradient", "Methods", "least-squares-cell-based", "", "enum", QJsonValue(), QJsonValue(), false,
+                              QJsonArray{"least-squares-cell-based", "green-gauss-cell-based", "green-gauss-node-based"}),
+                      {"Least Squares Cell Based", "Green-Gauss Cell Based", "Green-Gauss Node Based"}));
+    s.append(labelled(setting("methods/pressure-scheme", "Pressure", "Methods", "second-order", "", "enum", QJsonValue(), QJsonValue(), false,
+                              QJsonArray{"standard", "second-order"}), {"Standard", "Second Order"}));
+    s.append(labelled(setting("methods/momentum-scheme", "Momentum", "Methods", "second-order-upwind", "", "enum", QJsonValue(), QJsonValue(), true, schemes), schemeLabels));
+    s.append(labelled(setting("methods/k-scheme", "Turbulent kinetic energy", "Methods", "second-order-upwind", "", "enum", QJsonValue(), QJsonValue(), true, schemes), schemeLabels));
+    s.append(labelled(setting("methods/omega-scheme", "Specific dissipation rate", "Methods", "second-order-upwind", "", "enum", QJsonValue(), QJsonValue(), true, schemes), schemeLabels));
+    QJsonObject epsilonScheme = labelled(setting("methods/epsilon-scheme", "Turbulent dissipation rate", "Methods", QJsonValue(), "", "enum", QJsonValue(), QJsonValue(), false, schemes), schemeLabels);
+    epsilonScheme["active"] = false;
+    epsilonScheme["reason"] = "not solved by the case's viscous model";
+    s.append(epsilonScheme);
     s.append(setting("methods/gradient-limiting", "Gradient limiting", "Methods", true, "", "bool", QJsonValue(), QJsonValue(), true));
-    s.append(setting("methods/pseudo-time", "Pseudo time method", "Methods", "global", "", "string", QJsonValue(), QJsonValue(), false));
-    s.append(setting("methods/warped-face-gradient-correction", "Warped-face gradient correction", "Methods", true, "", "bool", QJsonValue(), QJsonValue(), false));
     s.append(setting("controls/pseudo-time-scale-factor", "Pseudo-time scale factor", "Controls", 1, "1", "number", fmin, 1e15, true));
     struct Relax { const char* key; const char* label; double value; };
     for (const Relax& r : {Relax{"mom", "Momentum relaxation", 0.5}, Relax{"pressure", "Pressure relaxation", 0.5},

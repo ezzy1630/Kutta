@@ -114,6 +114,22 @@ QByteArray readFixture(const QString& rel)
     return {};
 }
 
+// The pressure-velocity coupling a run uses, as the CLI's setup event reports
+// it: the override or case value, except that Coupled without the
+// pseudo-transient formulation runs SIMPLEC.
+QString couplingRun(const QJsonObject& inspected, const QJsonObject& overrides)
+{
+    QString scheme;
+    bool pseudo = true;
+    for (const QJsonValue& v : inspected.value("settings").toArray()) {
+        const QJsonObject o = v.toObject();
+        if (o.value("path") == "methods/pressure-velocity-coupling") scheme = o.value("value").toString();
+        if (o.value("path") == "methods/pseudo-transient") pseudo = o.value("value").toBool(true);
+    }
+    scheme = overrides.value("methods/pressure-velocity-coupling").toString(scheme);
+    return scheme == "coupled" && !pseudo ? QStringLiteral("simplec") : scheme;
+}
+
 // Run controls (iterations, monitor interval, convergence) never make a result MODIFIED.
 QJsonObject caseOverrides(const QJsonObject& overrides)
 {
@@ -482,7 +498,7 @@ int solve(const Args& a)
                       {"backend", r.device.value("backend")}, {"device", r.device.value("name")},
                       {"approximations", QJsonArray::fromStringList(r.approximations)},
                       {"init", r.dataPath.isEmpty() ? "hybrid" : "fluent-data"}, {"overrides", r.overrides}, {"modified", caseModified(r.overrides)},
-                      {"convergence", conv.toJson()}};
+                      {"convergence", conv.toJson()}, {"pressure_velocity_coupling", couplingRun(inspected, r.overrides)}};
     if (r.liveView > 0)
         setup["live_view"] = QJsonObject{{"directory", liveRoot}, {"run_id", liveRunId}, {"every", r.liveView},
                                          {"unit", "iterations"}, {"budget_fraction", 0.05}};
@@ -587,6 +603,13 @@ int solve(const Args& a)
             csv.prepend(QStringLiteral("# FIXTURE REPLAY: recorded final values from a 600-iteration Kutta run\n%1")
                             .arg(r.overrides.isEmpty() ? QString() : "# MODIFIED RESULT: case settings overridden; recorded values did not change\n").toUtf8());
             writeFile(QDir(r.outDir).filePath(f), csv);
+        }
+        // The recorded wall loads, so kutta aero works on a replayed run.
+        QJsonObject loads = QJsonDocument::fromJson(readFixture(run + "/loads.json")).object();
+        if (!loads.isEmpty()) {
+            loads["provenance"] = ("FIXTURE REPLAY: recorded wall loads of a 600-iteration Kutta run; " + loads.value("provenance").toString()).trimmed();
+            loads["modified"] = caseModified(r.overrides);
+            writeJson(QDir(r.outDir).filePath("loads.json"), loads);
         }
     } else {
         const auto forces = carForces(r.car);
@@ -698,6 +721,7 @@ int solve(const Args& a)
     sum["converged"] = converged;
     sum["convergence"] = convergenceOut;
     sum["convergence_criteria_available"] = true;
+    sum["pressure_velocity_coupling"] = couplingRun(inspected, r.overrides);
     sum["replay_seconds"] = elapsed;
     if (r.kind == CaseKind::Car) {
         sum["cells"] = 18412903;

@@ -73,6 +73,9 @@ struct SceneData {
     bool reference = false; // Fluent fields present
     bool runDelta = false;  // fields are Run A − Run B
     bool geometryOnly = false;  // a case's boundary mesh, before any run
+    // A 2D case, solved as one cell between two symmetry caps: shown as the
+    // plane (one cap), seen face on, panned and zoomed but not orbited.
+    bool planar = false;
     Bounds bounds;
     std::vector<SceneItem> items;
 
@@ -102,6 +105,12 @@ bool enclosesDomain(const SceneItem& it, const Bounds& domain);
 // walls that do not, the body. Pipes and ducts are internal.
 bool isExternalFlow(const SceneData& s);
 bool isEnclosingWall(const SceneItem& it, const SceneData& s);
+// Marks a 2D case's scene: its plane is the +z extrusion cap, labelled as the
+// domain; the opposite cap (the same cells, facing away) is dropped.
+void makePlanar(SceneData& s);
+// A 2D case's plane: the extrusion cap facing +z (the camera's side in the
+// Top view); empty when the scene is not planar or has no such cap.
+QString planarFace(const SceneData& s);
 // What a results view shows first, and the field it is coloured by.
 QStringList defaultVisibleItems(const SceneData& s);
 FieldRef defaultField(const SceneData& s);

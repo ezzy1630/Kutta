@@ -34,6 +34,7 @@ struct RunRecord {
     QStringList convergedBy;   // conditions met when it stopped converged
     QString studyId;
     QString backend, device;
+    QString coupling;      // pressure-velocity coupling that ran ("simplec"); empty from older CLIs
     int iterationsRequested = 0;
     int liveViewInterval = 0;
     QDateTime started, finished;
@@ -54,6 +55,11 @@ struct RunRecord {
     static std::optional<RunRecord> fromJson(const QJsonObject& o, const QString& dir);
 };
 
+// Why a finished run stopped, in a sentence: the conditions it converged on,
+// a stop by the user, or the iteration limit (with checking on or off).
+// `stopReason` is the CLI's; `conv` the run's convergence setup.
+QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv);
+
 // What happened to a run that did not complete and what to do next, in
 // plain words (disk full, out of memory, crash, stopped); empty when it completed.
 QString runOutcomeAdvice(const RunRecord& r);
@@ -67,9 +73,23 @@ struct RunProgress {
     std::optional<SetupEvent> setup;
     std::optional<DoneEvent> done;
     std::optional<ErrorEvent> error;
+    // Each condition's state at the last monitor sample (convergence checking on).
+    std::optional<ConvergenceState> convergence;
+    int convergenceIter = 0;
 };
 RunProgress parseProgressLog(const QByteArray& jsonl);
 void appendIteration(RunProgress& p, const IterationEvent& e);
+
+// What a residual chart marks for one run: its residual criteria (when
+// convergence checking was on; equal criteria share one line) and the
+// iteration it stopped at, with why. 2D cases omit z-velocity.
+struct ConvergenceMark {
+    enum class Kind { Criterion, Converged, Stopped, IterationLimit };
+    Kind kind = Kind::Criterion;
+    double value = 0;  // criterion, or the stopping iteration
+    QString label;
+};
+std::vector<ConvergenceMark> convergenceMarks(const RunProgress& p, bool planar);
 
 // A row of a settings comparison.
 struct SettingDiff { QString path, label, unit; QJsonValue a, b; };

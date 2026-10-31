@@ -32,11 +32,31 @@ QString pct(double fraction) { return QLocale().toString(fraction * 100, 'g', 3)
 
 } // namespace
 
+namespace {
+
+// Checked residuals that were above their criterion at the sample before the
+// last: the ones whose drop ended the run.
+QStringList lastToConverge(const RunProgress& p, const ConvergenceSetup& setup)
+{
+    const auto& r = p.residuals;
+    QStringList out;
+    if (r.iterations.size() < 2) return out;
+    const std::size_t prev = r.iterations.size() - 2;
+    for (auto it = setup.residuals.begin(); it != setup.residuals.end(); ++it) {
+        const qsizetype n = r.names.indexOf(it.key());
+        if (n >= 0 && r.values[std::size_t(n)][prev] > it.value()) out << it.key();
+    }
+    return residualOrder(out);
+}
+
+} // namespace
+
 QWidget* convergenceStatus(const InspectorContext& c)
 {
     Session* s = c.session;
     auto* box = new QFrame;
     box->setProperty("callout", "neutral");
+    box->setAccessibleName(QObject::tr("Convergence status"));
     auto* v = new QVBoxLayout(box);
     v->setContentsMargins(10, 8, 10, 10);
     v->setSpacing(3);
@@ -45,12 +65,12 @@ QWidget* convergenceStatus(const InspectorContext& c)
     tf.setWeight(QFont::DemiBold);
     title->setFont(tf);
     v->addWidget(title);
+    auto* note = label({}, "muted");
+    v->addWidget(note);
     auto* grid = new QGridLayout;
     grid->setHorizontalSpacing(12);
     grid->setVerticalSpacing(2);
     v->addLayout(grid);
-    auto* note = label({}, "muted");
-    v->addWidget(note);
 
     auto refresh = [s, box, title, grid, note] {
         while (QLayoutItem* it = grid->takeAt(0)) {
@@ -58,6 +78,7 @@ QWidget* convergenceStatus(const InspectorContext& c)
             delete it;
         }
         const auto& t = tokens();
+        const bool planar = s->hasCase() && s->caseSummary().planar();
         auto row = [&](int r, const QString& name, const QString& value, const QString& criterion, bool met) {
             grid->addWidget(label(name), r, 0);
             auto* val = label(value);
@@ -68,10 +89,28 @@ QWidget* convergenceStatus(const InspectorContext& c)
             if (met) m->setStyleSheet(QStringLiteral("color: %1").arg((t.dark ? t.accent : t.accent.darker(125)).name()));
             grid->addWidget(m, r, 3);
         };
+        // Each condition at one monitor sample: residuals first, then reports.
+        auto conditions = [&](const ConvergenceState& state) {
+            int r = 0;
+            for (const ConditionState& cs : state.conditions) {
+                if (cs.kind == "residuals") {
+                    for (const QString& eq : residualOrder(cs.equations.keys())) {
+                        if (!residualShown(eq, planar)) continue;
+                        const auto& e = cs.equations[eq];
+                        row(r++, residualLabel(eq), QString::number(e.value, 'e', 2),
+                            QObject::tr("≤ %1").arg(QString::number(e.criterion, 'g', 3)), e.met);
+                    }
+                } else {
+                    row(r++, cs.report, cs.value ? pct(*cs.value) : QObject::tr("too few values"),
+                        QObject::tr("< %1").arg(pct(cs.criterion.value_or(0))), cs.met);
+                }
+            }
+            grid->setColumnStretch(4, 1);
+        };
         const auto& live = s->live();
-        const std::optional<ConvergenceState> state = s->running() && live.last ? live.last->convergence : std::nullopt;
-        const ConvergenceSetup setup = s->running() && live.setup ? live.setup->convergence : ConvergenceSetup{};
         if (s->running()) {
+            const std::optional<ConvergenceState> state = live.last ? live.last->convergence : std::nullopt;
+            const ConvergenceSetup setup = live.setup ? live.setup->convergence : ConvergenceSetup{};
             if (!setup.enabled) {
                 title->setText(QObject::tr("Running to the iteration limit"));
                 note->setText(QObject::tr("Convergence checking was off when this run started."));
@@ -80,18 +119,7 @@ QWidget* convergenceStatus(const InspectorContext& c)
                                      : QObject::tr("Waiting for the first monitor sample"));
                 note->setText(setup.condition == "any" ? QObject::tr("Stops when any condition is met.") : QObject::tr("Stops when all conditions are met at the same sample."));
             }
-            int r = 0;
-            if (state)
-                for (const ConditionState& cs : state->conditions) {
-                    if (cs.kind == "residuals") {
-                        for (auto it = cs.equations.begin(); it != cs.equations.end(); ++it)
-                            row(r++, residualLabel(it.key()), QString::number(it.value().value, 'e', 2),
-                                QObject::tr("≤ %1").arg(QString::number(it.value().criterion, 'g', 3)), it.value().met);
-                    } else {
-                        row(r++, cs.report, cs.value ? pct(*cs.value) : QObject::tr("too few values"),
-                            QObject::tr("< %1").arg(pct(cs.criterion.value_or(0))), cs.met);
-                    }
-                }
+            if (state) conditions(*state);
             box->setVisible(true);
             return;
         }
@@ -101,21 +129,34 @@ QWidget* convergenceStatus(const InspectorContext& c)
             return;
         }
         box->setVisible(true);
+        const RunProgress progress = s->history().progress(last->id);
         const auto summary = s->history().summary(last->id);
-        const ConvergenceSetup conv = summary ? summary->convergence : ConvergenceSetup{};
+        const ConvergenceSetup conv = summary ? summary->convergence : progress.setup ? progress.setup->convergence : ConvergenceSetup{};
         if (last->converged()) {
             title->setText(QObject::tr("%1 converged at iteration %2").arg(last->title()).arg(last->iterationsDone));
             QStringList met;
             for (const QString& id : last->convergedBy) met << describeCondition(id, conv);
-            note->setText(QObject::tr("Stopped because %1.").arg(met.join(QObject::tr("; and "))));
+            QString text = QObject::tr("Stopped because %1.").arg(met.join(QObject::tr("; and ")));
+            if (last->convergedBy.contains("residuals")) {
+                QStringList lastEq;
+                for (const QString& eq : lastToConverge(progress, conv))
+                    if (residualShown(eq, planar)) lastEq << eq;
+                if (!lastEq.isEmpty()) text += ' ' + QObject::tr("Last to reach its criterion: %1.").arg(lastEq.join(", "));
+            }
+            note->setText(text);
         } else if (last->status == RunStatus::Completed) {
             title->setText(QObject::tr("%1 reached the iteration limit (%2) without converging").arg(last->title()).arg(last->iterationsDone));
-            note->setText(conv.enabled ? QObject::tr("Its criteria were not met; look at the residual and report plots before trusting the numbers.")
-                                       : QObject::tr("Convergence checking was off for that run."));
+            note->setText(conv.enabled ? QObject::tr("Not every condition was met at the last sample; check the residual and report plots before trusting the numbers.")
+                                       : QObject::tr("Convergence checking was off for that run, so it ran to the iteration limit."));
+        } else if (last->status == RunStatus::Stopped) {
+            title->setText(QObject::tr("%1 stopped by you at iteration %2").arg(last->title()).arg(last->iterationsDone));
+            note->setText(conv.enabled ? QObject::tr("Not converged: you stopped it before its conditions were met. The results so far are kept and can be post-processed.")
+                                       : QObject::tr("Not converged (checking was off). The results so far are kept and can be post-processed."));
         } else {
             title->setText(QObject::tr("%1 %2 at iteration %3").arg(last->title(), runStatusText(*last).toLower()).arg(last->iterationsDone));
             note->setText(QObject::tr("Not converged."));
         }
+        if (progress.convergence) conditions(*progress.convergence);
     };
     refresh();
     QObject::connect(s, &Session::iteration, box, refresh);
@@ -172,6 +213,8 @@ QWidget* monitors(const InspectorContext& c)
     for (const Setting& s : m->settings())
         if (s.path.startsWith("monitors/residual/") && s.path.endsWith("/check")) eqs << s.path.section('/', 2, 2);
     eqs = residualOrder(eqs);
+    const bool planar = c.session->caseSummary().planar();
+    eqs.removeIf([planar](const QString& eq) { return !residualShown(eq, planar); });
     int r = 1;
     for (const QString& eq : eqs) {
         rg->addWidget(label(residualLabel(eq)), r, 0);
@@ -182,6 +225,12 @@ QWidget* monitors(const InspectorContext& c)
     rg->setColumnStretch(3, 1);
     v->addLayout(rg);
     v->addWidget(label(QObject::tr("Met when every checked equation's scaled residual is at or below its criterion. Values are read from the case."), "faint"));
+    // Fluent's definition, which Kutta reports: users compare these numbers with Fluent's.
+    auto* def = label(QObject::tr("Scaled residuals, as Fluent defines them: each momentum and turbulence equation's imbalance summed over the cells, "
+                                  "divided by the sum of |a_P φ_P|; continuity's mass imbalance divided by its largest value in the first five iterations."), "faint");
+    def->setAccessibleName(QObject::tr("Scaled residual definition"));
+    v->addWidget(def);
+    if (planar) v->addWidget(label(QObject::tr("2D case: no z-velocity. Kutta solves w on the one-cell extrusion, where it stays at round-off."), "faint"));
 
     // Report definitions, as Fluent's Convergence Conditions dialog lists them.
     v->addWidget(section(QObject::tr("Report definitions")));
@@ -208,6 +257,16 @@ QWidget* monitors(const InspectorContext& c)
         }
         g->setColumnStretch(0, 1);
         v->addLayout(g);
+        // Reports the CLI cannot use as a condition say why, once.
+        QStringList fixed;
+        QString why;
+        for (const QString& rep : reports)
+            if (const Setting* a = m->find("monitors/report/" + rep + "/active"); a && !a->editable) {
+                fixed << decodePathSegment(rep);
+                why = a->reason;
+            }
+        if (!fixed.isEmpty())
+            v->addWidget(label(QObject::tr("%1: read only (%2).").arg(fixed.join(", "), why), "faint"));
         v->addWidget(label(QObject::tr("Stop at: Fluent's stop criterion. Values: how many previous values to compare (Fluent's Use Iterations). Ignore <: iterations to skip at the start."), "faint"));
         v->addWidget(label(QObject::tr("A report is converged when the change between each of its last N values, divided by the current value, is below the stop criterion (Fluent's rule). Kutta takes report values at the monitor interval, so with an interval above 1 this is stricter than Fluent's per-iteration check."), "faint"));
     }

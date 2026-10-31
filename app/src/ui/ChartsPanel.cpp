@@ -131,6 +131,20 @@ std::vector<ChartsPanel::Source> ChartsPanel::sources() const
     return out;
 }
 
+std::vector<PlotGuide> convergenceGuides(const RunProgress& p, bool planar)
+{
+    const auto& t = tokens();
+    std::vector<PlotGuide> out;
+    for (const ConvergenceMark& m : convergenceMarks(p, planar)) {
+        using K = ConvergenceMark::Kind;
+        const QColor c = m.kind == K::Converged ? (t.dark ? t.accent : t.accent.darker(130))
+                       : m.kind == K::Stopped   ? (t.dark ? t.amber : t.amberText)
+                                                : QColor();
+        out.push_back({m.kind == K::Criterion ? PlotGuide::Along::Y : PlotGuide::Along::X, m.value, m.label, c});
+    }
+    return out;
+}
+
 void ChartsPanel::rebuild()
 {
     const auto& t = tokens();
@@ -148,7 +162,10 @@ void ChartsPanel::rebuild()
             if (!badges.contains(b)) badges << b;
         if (!s.provenance.isEmpty()) provenance << (multi ? s.title + ": " : QString()) + s.provenance;
         const auto& r = s.progress.residuals;
-        const QStringList order = residualOrder(r.names);
+        const bool planar = m_session->hasCase() && m_session->caseSummary().planar();
+        QStringList order;
+        for (const QString& name : residualOrder(r.names))
+            if (residualShown(name, planar)) order << name;
         std::vector<double> xs(r.iterations.begin(), r.iterations.end());
         for (int i = 0; i < order.size(); ++i) {
             const int n = int(r.names.indexOf(order[i]));
@@ -187,6 +204,10 @@ void ChartsPanel::rebuild()
     m_residuals->setProvenance(provenance.join(" | "));
     m_reports->setProvenance(provenance.join(" | "));
     m_reports->setAxisLabels(tr("Iteration"), m_reportQuantity->currentData().toString() == "coefficient" ? tr("Coefficient") : tr("Force [N]"));
+    // One run: its residual criteria and where (and why) it stopped.
+    std::vector<PlotGuide> guides;
+    if (src.size() == 1) guides = convergenceGuides(src.front().progress, m_session->hasCase() && m_session->caseSummary().planar());
+    m_residuals->setGuides(std::move(guides));
     m_residuals->setSeries(std::move(res));
     m_reports->setSeries(std::move(rep));
 }

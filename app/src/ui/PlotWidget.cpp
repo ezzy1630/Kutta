@@ -72,6 +72,13 @@ void PlotWidget::setSeries(std::vector<PlotSeries> series)
     update();
 }
 
+void PlotWidget::setGuides(std::vector<PlotGuide> guides)
+{
+    m_guides = std::move(guides);
+    if (m_follow) fitData();
+    update();
+}
+
 void PlotWidget::resetView()
 {
     m_follow = true;
@@ -93,6 +100,13 @@ void PlotWidget::fitData()
             y1 = std::max(y1, s.y[i]);
         }
     }
+    // A criterion below the residuals is the distance still to go: keep it in view.
+    if (y1 >= y0)
+        for (const auto& g : m_guides)
+            if (g.along == PlotGuide::Along::Y && finite(g.value) && !(log && g.value <= 0)) {
+                y0 = std::min(y0, g.value);
+                y1 = std::max(y1, g.value);
+            }
     if (!(x1 >= x0)) { x0 = 0; x1 = 1; }
     if (!(y1 >= y0)) { y0 = log ? 1e-6 : 0; y1 = 1; }
     if (x1 == x0) x1 = x0 + 1;
@@ -284,11 +298,48 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
         }
     }
 
+    // Guides, under the series.
+    const bool log = m_y.scale() == Axis::Scale::Log;
+    const bool hasData = std::any_of(m_series.begin(), m_series.end(), [](const PlotSeries& s) { return s.visible && !s.x.empty(); });
+    // Labels go over the series, on the panel colour, so lines never cross the text.
+    struct GuideLabel { QRectF rect; QString text; QColor ink; int align; };
+    std::vector<GuideLabel> guideLabels;
+    if (hasData) {
+        p.save();
+        p.setClipRect(plot);
+        const QFontMetricsF gm(p.font());
+        for (const auto& g : m_guides) {
+            if (!finite(g.value) || (g.along == PlotGuide::Along::Y && log && g.value <= 0)) continue;
+            const QColor c = g.color.isValid() ? g.color : t.muted;
+            QPen gp(c, 1);
+            gp.setDashPattern({2, 3});
+            p.setPen(gp);
+            QColor ink = c;
+            if (g.along == PlotGuide::Along::Y) {
+                const double py = m_y.toPixel(g.value);
+                if (py < plot.top() - 0.5 || py > plot.bottom() + 0.5) continue;
+                p.drawLine(QPointF(plot.left(), py), QPointF(plot.right(), py));
+                const double w = gm.horizontalAdvance(g.label);
+                // Above the line, unless that runs out of the plot.
+                const double top = py - gm.height() - 1 < plot.top() ? py + 1 : py - gm.height() - 1;
+                guideLabels.push_back({QRectF(plot.right() - w - 6, top, w + 4, gm.height()), g.label, ink, int(Qt::AlignRight | Qt::AlignVCenter)});
+            } else {
+                const double px = m_x.toPixel(g.value);
+                if (px < plot.left() - 0.5 || px > plot.right() + 0.5) continue;
+                p.drawLine(QPointF(px, plot.top()), QPointF(px, plot.bottom()));
+                const double w = gm.horizontalAdvance(g.label);
+                // Beside the line, inside the plot.
+                const double left = px + 4 + w > plot.right() ? px - 4 - w : px + 4;
+                guideLabels.push_back({QRectF(left, plot.top() + 2, w + 1, gm.height()), g.label, ink, int(Qt::AlignLeft | Qt::AlignVCenter)});
+            }
+        }
+        p.restore();
+    }
+
     // Series.
     bool anyData = false;
     p.save();
     p.setClipRect(plot.adjusted(-1, -1, 1, 1));
-    const bool log = m_y.scale() == Axis::Scale::Log;
     for (const auto& s : m_series) {
         if (!s.visible) continue;
         QPainterPath path;
@@ -339,6 +390,13 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
         }
     }
     p.restore();
+    for (const auto& gl : guideLabels) {
+        QColor bg = t.panel;
+        bg.setAlphaF(0.85f);
+        p.fillRect(gl.rect.adjusted(-2, 0, 2, 0), bg);
+        p.setPen(gl.ink);
+        p.drawText(gl.rect, gl.align, gl.text);
+    }
 
     if (!anyData) {
         p.setPen(t.faint);

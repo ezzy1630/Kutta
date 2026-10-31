@@ -45,6 +45,8 @@ struct Camera {
 
     enum class Preset { Front, Back, Left, Right, Top, Bottom, Isometric };
     void preset(Preset p);
+    // A 2D case's view: face on to the xy plane, x right and y up.
+    void planView();
     static QString presetName(Preset p);
 
     QJsonObject toJson() const;

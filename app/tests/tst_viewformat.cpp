@@ -80,6 +80,29 @@ private slots:
         QCOMPARE(defaultVisibleItems(*duct), QStringList{"zone:mid"});
     }
 
+    // A 2D case is shown as its plane: the +z extrusion cap, labelled as the
+    // domain; the opposite cap (the same cells) is dropped, and the walls and
+    // inlets (edge-on strips) are not shown first.
+    void planarCaseShowsItsPlane()
+    {
+        auto s = scene({
+            zone("wall", "wall", quad({4, 4, 0}, {5, 4, 0}, {5, 4, 1}, {4, 4, 1})),
+            zone("inlet", "velocity-inlet", quad({0, 0, 0}, {0, 10, 0}, {0, 10, 1}, {0, 0, 1})),
+            zone("bottom", "symmetry", quad({0, 0, 0}, {10, 0, 0}, {10, 0, 1}, {0, 0, 1})),
+            zone("front", "symmetry", quad({0, 0, 0}, {10, 0, 0}, {10, 10, 0}, {0, 10, 0})),
+            zone("back", "symmetry", quad({0, 0, 1}, {10, 0, 1}, {10, 10, 1}, {0, 10, 1})),
+        });
+        QVERIFY(planarFace(*s).isEmpty());  // not marked planar: an ordinary thin domain
+        makePlanar(*s);
+        QVERIFY(s->planar);
+        QCOMPARE(planarFace(*s), QString("zone:back"));  // the cap at z = 1 faces the plan view
+        QVERIFY(!s->item("zone:front"));
+        QCOMPARE(s->item("zone:back")->label, QString("2D domain"));
+        QVERIFY(s->item("zone:bottom"));  // a symmetry boundary of the 2D case stays
+        QCOMPARE(defaultVisibleItems(*s), QStringList{"zone:back"});
+        QCOMPARE(defaultMeshItems(*s), QStringList{"zone:back"});
+    }
+
     void roundTrip()
     {
         ViewPart part;

@@ -44,7 +44,7 @@ private slots:
         QVERIFY(!m.setValue("methods/momentum-scheme", "third-order").isEmpty());
         QVERIFY(!m.setValue("run/iterations", 10.5).isEmpty());
         // Read-only settings explain themselves.
-        QCOMPARE(m.setValue("reference/length", 2.0), QString("not yet configurable in Kutta"));
+        QCOMPARE(m.setValue("general/operating-pressure", 2.0), QString("not yet configurable in Kutta"));
         QVERIFY(!m.setValue("no/such/setting", 1).isEmpty());
         QCOMPARE(m.modifiedCount(), 0);
         QCOMPARE(m.undoStack()->count(), 0);
@@ -79,7 +79,7 @@ private slots:
         const QJsonObject run{{"controls/mom-relaxation", 0.4}, {"run/iterations", 200}};
         QCOMPARE(m.applyOverrides(run, "restore"), QString());
         QCOMPARE(m.overrides(), run);
-        QVERIFY(!m.applyOverrides(QJsonObject{{"reference/length", 2.0}}, "bad").isEmpty());
+        QVERIFY(!m.applyOverrides(QJsonObject{{"general/operating-pressure", 2.0}}, "bad").isEmpty());
     }
 
     // A method choice decides which of its fields the case uses, live, with

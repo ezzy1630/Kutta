@@ -37,6 +37,9 @@ struct SupportIssue {
     IssueClass cls = IssueClass::Informational;
     QString approximation;  // name to pass to --approximate when approximable
     QString explanation, evidence;
+    QString measuredEffect;  // approximable: the measured effect alone (newer CLIs)
+    // The explanation without the measured effect the CLI appends to it.
+    QString explanationOnly() const;
 };
 
 struct Zone {
@@ -101,7 +104,10 @@ struct CaseSummary {
     QStringList dataFields;
     std::optional<int> iterationsHint;
     bool synthetic = false;  // fixture data invented for demonstration
+    std::optional<int> dimension;  // general/dimension: 2 for planar cases
 
+    // A 2D case, which Kutta solves as one cell through the reference depth.
+    bool planar() const { return dimension == 2; }
     QStringList approximations() const;  // names a run may opt into
     std::vector<const SupportIssue*> blocking(const QStringList& optedIn) const;
     const Zone* zone(const QString& name) const;
@@ -145,6 +151,7 @@ struct SetupEvent {
     bool modified = false;
     QString liveRunId;  // live_view.run_id: snapshots from any other run are stale
     ConvergenceSetup convergence;
+    QString coupling;   // pressure_velocity_coupling that actually runs; empty from older CLIs
 };
 struct IterationEvent {
     int iter = 0;
@@ -178,6 +185,11 @@ QString cliMessage(const QString& text);
 // Residual names in Fluent's display order.
 QStringList residualOrder(const QStringList& present);
 QString residualLabel(const QString& name);
+// Residuals a Fluent user expects for the case: a 2D case has no z-velocity
+// (Kutta solves it on the one-cell extrusion, where it stays at round-off).
+bool residualShown(const QString& name, bool planar);
+// Fluent's name for a pressure-velocity coupling id ("simplec" -> "SIMPLEC").
+QString couplingLabel(const QString& id);
 
 // ---- run outputs ----------------------------------------------------------------------
 
@@ -217,6 +229,7 @@ struct RunSummary {
     ConvergenceSetup convergence;
     QStringList metBy;
     std::optional<int> convergedIteration;
+    QString coupling;  // pressure_velocity_coupling that ran
 };
 Result<RunSummary> parseRunSummary(const QJsonObject& json);
 

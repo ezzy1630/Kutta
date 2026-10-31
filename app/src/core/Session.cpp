@@ -126,7 +126,8 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
         for (const auto& i : c.issues)
             if (i.cls != IssueClass::Informational)
                 emit consoleLine(i.cls == IssueClass::Unsupported ? ConsoleLevel::Error : ConsoleLevel::Warning,
-                                 QStringLiteral("%1 (%2): %3").arg(i.label, i.setting, i.explanation));
+                                 QStringLiteral("%1 (%2): %3%4").arg(i.label, i.setting, i.explanationOnly(),
+                                     i.measuredEffect.isEmpty() ? QString() : QStringLiteral(" Measured effect: %1.").arg(i.measuredEffect)));
         emit caseOpened();
         emit historyChanged();
         emit studiesChanged();
@@ -268,7 +269,11 @@ void Session::stop()
 void Session::printResidualRow(const IterationEvent& e)
 {
     // Fluent-style residual table in the console.
-    if (m_tableNames.isEmpty()) m_tableNames = residualOrder(e.residuals.keys());
+    if (m_tableNames.isEmpty()) {
+        const bool planar = m_case && m_case->planar();
+        for (const QString& n : residualOrder(e.residuals.keys()))
+            if (residualShown(n, planar)) m_tableNames << n;
+    }
     if (m_tableRows % 20 == 0) {
         QString head = QStringLiteral("  iter");
         for (const QString& n : m_tableNames) head += QStringLiteral("  %1").arg(n.left(11), 11);
@@ -290,13 +295,16 @@ void Session::onProgress(const ProgressEvent& ev)
         using T = std::decay_t<decltype(e)>;
         if constexpr (std::is_same_v<T, SetupEvent>) {
             m_live.setup = e;
+            m_live.progress.setup = e;
             m_current->backend = e.backend;
             m_current->device = e.device;
+            m_current->coupling = e.coupling;
             m_history.save(*m_current);
             m_state = RunState::Running;
             emit runStateChanged(m_state);
-            emit consoleLine(ConsoleLevel::Info, QStringLiteral("Solving on %1 (%2), %3 cells, initialization: %4")
-                                 .arg(e.device, e.backend, QLocale().toString(e.cells), e.init));
+            emit consoleLine(ConsoleLevel::Info, QStringLiteral("Solving on %1 (%2), %3 cells, initialization: %4%5")
+                                 .arg(e.device, e.backend, QLocale().toString(e.cells), e.init,
+                                      e.coupling.isEmpty() ? QString() : QStringLiteral(", %1 pressure-velocity coupling").arg(couplingLabel(e.coupling))));
         } else if constexpr (std::is_same_v<T, IterationEvent>) {
             appendIteration(m_live.progress, e);
             m_live.last = e;
@@ -313,17 +321,9 @@ void Session::onProgress(const ProgressEvent& ev)
             m_current->iterationsDone = e.iterations;
             m_current->convergedBy = e.metBy;
             const ConvergenceSetup conv = m_live.setup ? m_live.setup->convergence : ConvergenceSetup{};
-            QString why;
-            if (e.stopReason == "converged") {
-                QStringList met;
-                for (const QString& id : e.metBy) met << describeCondition(id, conv);
-                why = QStringLiteral("Converged: %1").arg(met.join("; "));
-            } else if (e.stopReason == "stopped") {
-                why = QStringLiteral("Stopped by you; not converged");
-            } else {
-                why = conv.enabled ? QStringLiteral("Iteration limit; convergence criteria not met")
-                                   : QStringLiteral("Iteration limit; convergence checking was off");
-            }
+            QString why = stopReasonText(e.stopReason, e.metBy, conv);
+            if (why.isEmpty()) why = conv.enabled ? QStringLiteral("Iteration limit; convergence criteria not met")
+                                                  : QStringLiteral("Iteration limit; convergence checking was off");
             emit consoleLine(e.stopReason == "converged" ? ConsoleLevel::Success : ConsoleLevel::Info,
                              QStringLiteral("Done: %1 iterations in %2 s. %3.").arg(e.iterations).arg(e.elapsed, 0, 'f', 1).arg(why));
         } else if constexpr (std::is_same_v<T, ErrorEvent>) {
@@ -346,6 +346,7 @@ void Session::onProgress(const ProgressEvent& ev)
             }
             auto scene = kapp::loadScene(m.value(), QStringLiteral("Live · iteration %1").arg(e.iter));
             if (!scene) return;
+            if (m_case && m_case->planar()) makePlanar(*scene.value());
             m_scenes.insert("live", scene.value());
             m_live.lastSnapshotIter = e.iter;
             emit liveSceneChanged(e.iter);
@@ -579,7 +580,8 @@ QString Session::latestSceneKey() const
 
 std::vector<Plane> Session::defaultSlices() const
 {
-    if (!m_case || !m_case->bounds.valid) return {};
+    // A 2D case is its own plane: the extrusion's face shows the solution.
+    if (!m_case || !m_case->bounds.valid || m_case->planar()) return {};
     // External aero (a ground or moving wall): the car's symmetry plane, which
     // is y = 0 whenever the domain spans it. Otherwise slice the domain through
     // its thinnest direction, where internal flows usually vary least.
@@ -722,6 +724,7 @@ void Session::exportNow(const QString& runId, const std::vector<Plane>& planes, 
         m_views.insert(runId, m.value());
         auto scene = kapp::loadScene(m.value(), title);
         if (scene) {
+            if (m_case && m_case->planar()) makePlanar(*scene.value());
             m_scenes.insert(key, scene.value());
             emit sceneChanged(key);
         }
@@ -756,7 +759,10 @@ void Session::loadSceneNow(const QString& key, SceneCallback done)
             if (m) {
                 m_views.insert(id, m.value());
                 auto scene = kapp::loadScene(m.value(), r->title());
-                if (scene) m_scenes.insert(key, scene.value());
+                if (scene) {
+                    if (m_case && m_case->planar()) makePlanar(*scene.value());
+                    m_scenes.insert(key, scene.value());
+                }
                 return done(key, scene);
             }
         }
@@ -772,6 +778,7 @@ void Session::loadSceneNow(const QString& key, SceneCallback done)
             auto scene = kapp::loadScene(m.value(), tr("Mesh"));
             if (scene) {
                 scene.value()->geometryOnly = true;
+                if (m_case && m_case->planar()) makePlanar(*scene.value());
                 m_scenes.insert(key, scene.value());
             }
             done(key, scene);

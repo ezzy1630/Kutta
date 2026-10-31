@@ -43,10 +43,45 @@ KUTTA_REAL_CLI=/path/to/kutta ELBOW_CASE=/path/to/mixing_elbow.cas.h5 \
   app/scripts/capture_screens.sh build-app/Kutta.app/Contents/MacOS/Kutta docs/app-screens
 ```
 
+`case-*` scenarios take any case as the positional argument and are meant for
+the real CLI: `case-mesh`, `case-approvals` (the first approximation
+approved), `case-methods`, `case-run` (convergence checking on,
+`KUTTA_SCENARIO_ITERATIONS`, default 300) and `case-stop` (stopped by the user
+at that iteration). `KUTTA_SCENARIO_PAGE` shows another page at the end:
+
+```sh
+KUTTA_SCENARIO_ITERATIONS=1000 Kutta --cli build/kutta --scenario case-run \
+  --screenshot cylinder.png validation/fluent_examples/adjoint_cylinder_tutorial/cylinder_tutorial.cas
+```
+
 `car-*` and `bench` use the fixture's synthetic car. Scenarios use the fixture
 unless `--cli` or `KUTTA_CLI` names a solver. The fixture can fail a run on
 request (`KUTTA_FIXTURE_FAIL_AT=N`, with `KUTTA_FIXTURE_FAIL_MESSAGE` for an
 error event, or none for a crash); `car-failed` uses it.
+
+## Case types and convergence
+
+The app follows the case's model and dimension as the CLI reports them:
+
+- **Methods** lays out Fluent's panel: the pressure-velocity coupling
+  (SIMPLE, SIMPLEC, Coupled; Coupled is offered only with the
+  pseudo-transient formulation, and a case saved with Coupled but without it
+  says it runs SIMPLEC), the gradient (least squares or Green-Gauss cell
+  based), pressure interpolation and the schemes of the equations the model
+  solves. Run History and Run Calculation state the coupling each run used.
+- **k-epsilon and laminar** cases show their own residuals (`epsilon`, or
+  none), relaxation factors, inlet turbulence inputs and fields.
+- **2D cases** are shown as their plane, face on with x right and y up; drag
+  pans rather than orbits, and z-velocity (round-off on Kutta's one-cell
+  extrusion) is left out of residual plots, tables and monitors.
+- **Approximations** show the CLI's explanation, its measured effect and
+  evidence separately, each with its own opt-in.
+- **Convergence**: the residual chart draws the run's criteria and marks the
+  iteration it stopped at with the reason (converged, stopped by you,
+  iteration limit). Monitors, Run Calculation and Run History say why a run
+  stopped, with each condition's last value against its criterion and the
+  residual that was last to converge. The Monitors page states Fluent's
+  scaled-residual definition.
 
 ## First run and failures
 
@@ -89,7 +124,7 @@ scales the synthetic car):
 Idle: 0 frames rendered and 0.01–0.02% CPU over 5 s with no input. Nothing
 animates continuously; views repaint only on change.
 
-On the real elbow (9,844 settings, 41 editable): `inspect` 0.6 s; the All Case
+On the real elbow (9,856 settings, 57 editable): `inspect` 0.6 s; the All Case
 Settings tree builds in about 120 ms.
 
 ## Packaging

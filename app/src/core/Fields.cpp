@@ -49,6 +49,8 @@ QString fluentLabel(const QString& q)
         {"wall_shear", "Wall Shear Stress"},
         {"wall_shear_magnitude", "Wall Shear Stress Magnitude"},
         {"y_plus", "Wall Yplus"},
+        {"y_star", "Wall Ystar"},
+        {"epsilon", "Turbulent Dissipation Rate (Epsilon)"},
         {"velocity", "Velocity"},
         {"velocity_magnitude", "Velocity Magnitude"},
         {"k", "Turbulent Kinetic Energy"},
@@ -116,8 +118,8 @@ int quantityOrder(const QString& q)
 {
     static const QStringList order{"pressure", "pressure_coefficient", "total_pressure", "total_pressure_coefficient",
                                    "velocity_magnitude", "velocity", "velocity_x", "velocity_y", "velocity_z",
-                                   "wall_shear_magnitude", "wall_shear", "skin_friction", "skin_friction_vector", "y_plus",
-                                   "k", "omega", "viscosity_ratio", "vorticity_magnitude", "vorticity", "q_criterion", "helicity"};
+                                   "wall_shear_magnitude", "wall_shear", "skin_friction", "skin_friction_vector", "y_plus", "y_star",
+                                   "k", "omega", "epsilon", "viscosity_ratio", "vorticity_magnitude", "vorticity", "q_criterion", "helicity"};
     const qsizetype i = order.indexOf(q);
     return i < 0 ? 1000 : int(i);
 }

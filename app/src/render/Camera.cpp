@@ -165,6 +165,14 @@ void Camera::zoomAt(QPointF ndc, float aspect, float factor)
     distance *= factor;
 }
 
+void Camera::planView()
+{
+    // With y as the vertical, yaw 90 at the horizon looks along -z.
+    up = QVector3D(0, 1, 0);
+    yaw = 90;
+    pitch = 0;
+}
+
 void Camera::preset(Preset p)
 {
     switch (p) {

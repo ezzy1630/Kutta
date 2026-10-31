@@ -16,10 +16,10 @@ private slots:
         QVERIFY2(c.ok(), qPrintable(c ? QString() : c.error()));
         const CaseSummary& cs = c.value();
         QCOMPARE(cs.cells, 17822);
-        QCOMPARE(int(cs.settings.size()), 9844);
+        QCOMPARE(int(cs.settings.size()), 9856);
         // Includes each inlet's and outlet's turbulence method and the values
         // of the methods it does not use, so switching method is possible.
-        QCOMPARE(int(std::count_if(cs.settings.begin(), cs.settings.end(), [](const Setting& s) { return s.editable; })), 41);
+        QCOMPARE(int(std::count_if(cs.settings.begin(), cs.settings.end(), [](const Setting& s) { return s.editable; })), 57);
         QVERIFY(cs.zone("cold-inlet"));
         QCOMPARE(cs.zone("cold-inlet")->type, QString("velocity-inlet"));
 
@@ -39,6 +39,35 @@ private slots:
         QVERIFY(!k.active);
         QVERIFY(find("boundary/cold-inlet/turb-hydraulic-diam").active);
         QCOMPARE(find("boundary/cold-inlet/velocity-specification").valueLabel, QString("Magnitude, Normal to Boundary"));
+
+        // Fluent's Methods panel: the three couplings, the gradient, and the
+        // schemes of the equations SST solves (epsilon's is listed, unused).
+        const Setting& coupling = find("methods/pressure-velocity-coupling");
+        QCOMPARE(coupling.value.toString(), QString("coupled"));
+        QCOMPARE(coupling.optionLabels, (QStringList{"SIMPLE", "SIMPLEC", "Coupled"}));
+        QVERIFY(coupling.editable);
+        QVERIFY(find("methods/pseudo-transient").value.toBool());
+        QCOMPARE(find("methods/gradient").valueLabel, QString("Least Squares Cell Based"));
+        QVERIFY(find("methods/omega-scheme").active);
+        QVERIFY(!find("methods/epsilon-scheme").active);
+        QCOMPARE(cs.dimension, std::optional<int>(3));
+        QVERIFY(!cs.planar());
+    }
+
+    // Approximable issues carry their measured effect separately (newer CLIs);
+    // the explanation then drops the copy the CLI appends to it.
+    void approximationMeasuredEffect()
+    {
+        const CaseSummary cs = parseCaseSummary(fixtureJson("cases/mixing_elbow/inspect.json")).value();
+        auto it = std::find_if(cs.issues.begin(), cs.issues.end(), [](const SupportIssue& i) { return i.approximation == "wfgc"; });
+        QVERIFY(it != cs.issues.end());
+        QVERIFY(it->measuredEffect.contains("3.366748%"));
+        QVERIFY(it->explanation.endsWith(it->measuredEffect + '.'));
+        QVERIFY(!it->explanationOnly().contains("3.366748%"));
+        QVERIFY(it->explanationOnly().endsWith("--approximate wfgc."));
+        SupportIssue older;  // no measured_effect: the explanation stands as sent
+        older.explanation = "Text. effect.";
+        QCOMPARE(older.explanationOnly(), older.explanation);
     }
 
     void approximationsBlockUntilApproved()
@@ -84,9 +113,14 @@ private slots:
 
     void progressEvents()
     {
-        auto setup = parseProgressLine(R"({"v":1,"event":"setup","cells":17822,"backend":"metal","device":"M4","approximations":["wfgc"],"init":"hybrid","overrides":{},"modified":false})");
+        auto setup = parseProgressLine(R"({"v":1,"event":"setup","cells":17822,"backend":"metal","device":"M4","approximations":["wfgc"],"init":"hybrid","overrides":{},"modified":false,"pressure_velocity_coupling":"simplec"})");
         QVERIFY(setup.ok());
         QCOMPARE(std::get<SetupEvent>(setup.value()).approximations, QStringList{"wfgc"});
+        QCOMPARE(std::get<SetupEvent>(setup.value()).coupling, QString("simplec"));
+        QCOMPARE(couplingLabel("simplec"), QString("SIMPLEC"));
+        // The recorded run states the coupling that ran.
+        auto recorded = parseProgressLine(fixtureBytes("cases/mixing_elbow/progress-cold.jsonl").split('\n').first());
+        QCOMPARE(std::get<SetupEvent>(recorded.value()).coupling, QString("coupled"));
         auto it = parseProgressLine(R"({"v":1,"event":"iteration","iter":20,"residuals":{"continuity":0.1,"k":null},"reports":{"drag":{"force":1.5,"coefficient":null}},"sec_per_iter":0.01})");
         QVERIFY(it.ok());
         const auto& e = std::get<IterationEvent>(it.value());
@@ -127,6 +161,11 @@ private slots:
     {
         QCOMPARE(residualOrder({"omega", "k", "y-velocity", "continuity", "x-velocity"}),
                  (QStringList{"continuity", "x-velocity", "y-velocity", "k", "omega"}));
+        QCOMPARE(residualOrder({"epsilon", "k", "z-velocity", "continuity"}), (QStringList{"continuity", "z-velocity", "k", "epsilon"}));
+        // A 2D case has no z-velocity, whatever the extrusion reports.
+        QVERIFY(!residualShown("z-velocity", true));
+        QVERIFY(residualShown("z-velocity", false));
+        QVERIFY(residualShown("y-velocity", true));
     }
 };
 

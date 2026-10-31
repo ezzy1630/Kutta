@@ -182,7 +182,9 @@ void SceneView::fitView()
 
 void SceneView::applyPreset(Camera::Preset p)
 {
-    m_display.camera.preset(p);
+    // A 2D case is seen face on, as in Fluent; other angles show an edge.
+    if (scene() && scene()->planar) m_display.camera.planView();
+    else m_display.camera.preset(p);
     fitView();
 }
 
@@ -295,7 +297,8 @@ void SceneView::mouseMoveEvent(QMouseEvent* e)
     m_lastPos = pos;
     if ((pos - m_pressPos).manhattanLength() > 3) m_dragged = true;
     if (!m_dragged) return;
-    const bool pan = m_dragButton == Qt::MiddleButton || (m_dragButton == Qt::LeftButton && (e->modifiers() & Qt::ShiftModifier));
+    const bool planar = scene() && scene()->planar;  // 2D: drag pans, nothing orbits
+    const bool pan = m_dragButton == Qt::MiddleButton || (m_dragButton == Qt::LeftButton && (planar || (e->modifiers() & Qt::ShiftModifier)));
     m_autoFit = false;
     if (pan) {
         m_display.camera.pan(QPointF(2.0 * d.x() / width(), -2.0 * d.y() / height()), aspect());
@@ -340,10 +343,18 @@ void SceneView::keyPressEvent(QKeyEvent* e)
     case Qt::Key_6: applyPreset(Camera::Preset::Bottom); return;
     case Qt::Key_7:
     case Qt::Key_0: applyPreset(Camera::Preset::Isometric); return;
-    case Qt::Key_Left: m_autoFit = false; m_display.camera.orbit(10, 0); cameraEdited(); return;
-    case Qt::Key_Right: m_autoFit = false; m_display.camera.orbit(-10, 0); cameraEdited(); return;
-    case Qt::Key_Up: m_autoFit = false; m_display.camera.orbit(0, 10); cameraEdited(); return;
-    case Qt::Key_Down: m_autoFit = false; m_display.camera.orbit(0, -10); cameraEdited(); return;
+    case Qt::Key_Left:
+    case Qt::Key_Right:
+    case Qt::Key_Up:
+    case Qt::Key_Down: {
+        m_autoFit = false;
+        const bool h = e->key() == Qt::Key_Left || e->key() == Qt::Key_Right;
+        const float sign = e->key() == Qt::Key_Left || e->key() == Qt::Key_Down ? 1.0f : -1.0f;
+        if (scene() && scene()->planar) m_display.camera.pan(h ? QPointF(-0.1 * sign, 0) : QPointF(0, -0.1 * sign), aspect());
+        else m_display.camera.orbit(h ? 10 * sign : 0, h ? 0 : 10 * -sign);
+        cameraEdited();
+        return;
+    }
     case Qt::Key_Plus:
     case Qt::Key_Equal: m_autoFit = false; m_display.camera.zoomAt({0, 0}, aspect(), 0.85f); cameraEdited(); return;
     case Qt::Key_Minus: m_autoFit = false; m_display.camera.zoomAt({0, 0}, aspect(), 1.0f / 0.85f); cameraEdited(); return;

@@ -54,6 +54,24 @@ The CLI now gives the numbers an FSAE aero engineer designs with;
    milliseconds, so editing groups or the vehicle never re-solves. On the
    elbow its totals match `forces.csv` to 4e-9 relative.
 
+## Done (app catch-up, 2026-10-30)
+
+Additive protocol fixes made while bringing the app up to date with SIMPLE,
+SIMPLEC and Coupled, standard k-epsilon, laminar and 2D cases
+(`validation/results/app_catchup/REPORT.md`):
+
+7. **Methods panel entries.** `methods/gradient`, `methods/pressure-scheme`
+   and `methods/pseudo-transient` (read-only) and `methods/epsilon-scheme`;
+   scheme entries are active only for the equations the model solves.
+8. **Coupling options follow pseudo time.** A case without the
+   pseudo-transient formulation is offered Coupled only if it was saved with
+   it; before, the app offered Coupled and the solve then rejected it.
+9. **Laminar turbulence inputs.** A laminar case's saved turbulence
+   specification, values and relaxation are inactive and read-only; before,
+   inlet k was editable and would have marked a run MODIFIED for nothing.
+10. **`measured_effect` on approximable issues**, so the app shows the
+    measured effect apart from the explanation.
+
 ## Resolved since
 
 - **The monitor interval changed the solution.** Found while testing request
@@ -75,7 +93,7 @@ The CLI now gives the numbers an FSAE aero engineer designs with;
   at interval 20 and 9.6 s at interval 1 (+17%). Most of that is likely the
   per-event residual reduction on a small mesh. The cost is worth knowing
   before considering an independent `--progress-every`.
-- **Inventory size.** `inspect --json` returns 9,844 settings (41 editable) in
+- **Inventory size.** `inspect --json` returns 9,856 settings (57 editable) in
   0.6 s. The app groups them Fluent-style, keeps retained raw settings in a
   collapsed folder per group, and builds the searchable tree in about 120 ms.
 - **Approximation text.** The `APPROXIMATE RESULT` warning is about 600
@@ -92,5 +110,9 @@ The CLI now gives the numbers an FSAE aero engineer designs with;
 - **Residual criteria in other layouts.** Only the 7-element residual rows
   parse; elbow1's 10-element rows leave checking off with a null criterion,
   and the user must enter one to check that equation.
+- **2D residuals.** 2D cases report a `z-velocity` residual (about 1e-11 on
+  the one-cell extrusion) and list a `z-velocity` monitor criterion. The app
+  hides both for 2D cases; dropping them from the CLI for planar cases would
+  match Fluent's residual list exactly.
 - **Wording.** Fixed: the protocol doc describes the app as a native Qt
   child-process host, not a "sidecar".

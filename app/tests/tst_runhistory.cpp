@@ -84,6 +84,57 @@ private slots:
         b.overrides = a.overrides;
         QVERIFY(diffRuns(a, b, {s}).empty());
     }
+
+    // Why a run stopped, in words, for each of the CLI's stop reasons.
+    void stopReasonsInWords()
+    {
+        ConvergenceSetup conv;
+        conv.enabled = true;
+        conv.residuals = {{"continuity", 1e-3}};
+        conv.reports.push_back({"drag", 1e-3, 5, 100});
+        QCOMPARE(stopReasonText("converged", {"residuals"}, conv), QString("Converged: every checked residual reached its criterion"));
+        QVERIFY(stopReasonText("converged", {"report:drag"}, conv).contains("drag changed less than 0.1 %"));
+        QCOMPARE(stopReasonText("stopped", {}, conv), QString("Stopped by you; not converged"));
+        QCOMPARE(stopReasonText("iteration_limit", {}, conv), QString("Iteration limit; convergence criteria not met"));
+        conv.enabled = false;
+        QCOMPARE(stopReasonText("iteration_limit", {}, conv), QString("Iteration limit; convergence checking was off"));
+        QVERIFY(stopReasonText("", {}, conv).isEmpty());  // an older CLI: no reason given
+    }
+
+    // The residual chart's marks come from the run's own events: equal
+    // criteria share one line, a 2D case has no z-velocity criterion, and the
+    // stop is marked with its reason; the last condition states are kept.
+    void convergenceMarksFromProgress()
+    {
+        const QByteArray log =
+            R"({"v":1,"event":"setup","cells":10,"backend":"cpu","device":"cpu","approximations":[],"init":"hybrid","pressure_velocity_coupling":"simplec","convergence":{"enabled":true,"condition":"all","residuals":{"continuity":1e-05,"x-velocity":1e-05,"y-velocity":1e-05,"z-velocity":1e-03},"reports":[]}})" "\n"
+            R"({"v":1,"event":"iteration","iter":20,"residuals":{"continuity":1e-3,"x-velocity":1e-6,"y-velocity":1e-6,"z-velocity":1e-11},"convergence":{"met":false,"conditions":[{"kind":"residuals","met":false,"equations":{"continuity":{"value":1e-3,"criterion":1e-5,"met":false}}}]}})" "\n"
+            R"({"v":1,"event":"done","converged":false,"iterations":20,"elapsed":1,"out":"x","stop_reason":"stopped"})" "\n";
+        const RunProgress p = parseProgressLog(log);
+        QCOMPARE(p.setup->coupling, QString("simplec"));
+        QVERIFY(p.convergence && !p.convergence->met);
+        QCOMPARE(p.convergenceIter, 20);
+        auto marks = convergenceMarks(p, true);
+        QCOMPARE(int(marks.size()), 2);
+        QCOMPARE(marks[0].kind, ConvergenceMark::Kind::Criterion);
+        QCOMPARE(marks[0].label, QString("criterion 1e-05"));
+        QCOMPARE(marks[1].kind, ConvergenceMark::Kind::Stopped);
+        QCOMPARE(marks[1].value, 20.0);
+        marks = convergenceMarks(p, false);  // 3D: two distinct criteria, each named
+        QCOMPARE(int(marks.size()), 3);
+        QCOMPARE(marks[0].label, QString("criterion 1e-05 · continuity, x-velocity, y-velocity"));
+        QCOMPARE(marks[1].label, QString("criterion 0.001 · z-velocity"));
+    }
+
+    void couplingPersistsWithTheRun()
+    {
+        RunRecord r;
+        r.id = "run-0001";
+        r.coupling = "simplec";
+        const auto back = RunRecord::fromJson(r.toJson(), "/x");
+        QVERIFY(back);
+        QCOMPARE(back->coupling, QString("simplec"));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestRunHistory)

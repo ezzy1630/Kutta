@@ -129,6 +129,8 @@ private slots:
         QCOMPARE(r->iterationsRequested, 200);
         QVERIFY(!r->modified());  // the iteration count is a run control, not a case change
         QVERIFY(r->fixture);
+        QCOMPARE(r->coupling, QString("coupled"));  // what the setup event says ran
+        QCOMPARE(r->stopReason, QString("iteration_limit"));
         // The events the app received are kept with the run.
         const RunProgress p = s->history().progress(id);
         QVERIFY(p.done);
@@ -226,6 +228,29 @@ private slots:
         QCOMPARE(r->stopReason, QString("stopped"));
         QVERIFY(r->iterationsDone >= 60 && r->iterationsDone < 600);
         QVERIFY(runOutcomeAdvice(*r).contains("Stopped by you"));
+    }
+
+    // With convergence checking on, the run stops on the case's own residual
+    // criteria and says so; the last sample's condition states are kept.
+    void convergedRunSaysWhichConditionsWereMet()
+    {
+        auto s = open();
+        QVERIFY(s);
+        s->setApproximationApproved("wfgc", true);
+        QCOMPARE(s->settings()->setValue("monitors/check-convergence", true), QString());
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString id = s->run();
+        QVERIFY(finished.wait(60000));
+        const RunRecord* r = s->history().find(id);
+        QVERIFY(r->converged());
+        QCOMPARE(r->convergedBy, QStringList{"residuals"});
+        QVERIFY(r->iterationsDone < 1000);
+        QVERIFY(!r->modified());  // convergence controls are run controls
+        const RunProgress p = s->history().progress(id);
+        QVERIFY(p.convergence && p.convergence->met);
+        QCOMPARE(p.convergenceIter, r->iterationsDone);
+        const auto marks = convergenceMarks(p, false);
+        QVERIFY(std::any_of(marks.begin(), marks.end(), [](const ConvergenceMark& m) { return m.kind == ConvergenceMark::Kind::Converged; }));
     }
 
     // A run that fails says why and what to do: disk full and a crash.

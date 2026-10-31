@@ -30,6 +30,7 @@ const QHash<QString, QString>& leafLabels()
         {"epsilon", "Turbulent dissipation rate"},
         {"k-relaxation", "Turbulent kinetic energy"},
         {"omega-relaxation", "Specific dissipation rate"},
+        {"epsilon-relaxation", "Turbulent dissipation rate"},
         {"mom-relaxation", "Momentum"},
         {"pressure-relaxation", "Pressure"},
         {"pseudo-time-scale-factor", "Pseudo time scale factor"},

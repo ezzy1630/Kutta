@@ -15,6 +15,9 @@ class QTabWidget;
 
 namespace kapp {
 
+// convergenceMarks() as chart guides, coloured by outcome.
+std::vector<PlotGuide> convergenceGuides(const RunProgress& p, bool planar);
+
 class ChartsPanel : public QWidget {
     Q_OBJECT
 public:

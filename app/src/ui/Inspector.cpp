@@ -481,12 +481,28 @@ QWidget* general(const InspectorContext& c)
         top->addWidget(t, 1);
         if (on) top->addWidget(badge("APPROXIMATE", "approximate"));
         static_cast<QVBoxLayout*>(f->layout())->addLayout(top);
-        f->layout()->addWidget(label(i->explanation));
-        if (!i->evidence.isEmpty()) f->layout()->addWidget(label(QObject::tr("Measured: %1").arg(i->evidence), "muted"));
+        f->layout()->addWidget(label(i->explanationOnly()));
+        // The measured effect is what the user weighs before opting in; older
+        // CLIs fold it into the explanation above.
+        if (!i->measuredEffect.isEmpty()) {
+            QString effect = i->measuredEffect;
+            effect[0] = effect[0].toUpper();
+            auto* head = label(QObject::tr("Measured effect"), "faint");
+            QFont hf = head->font();
+            hf.setWeight(QFont::DemiBold);
+            head->setFont(hf);
+            f->layout()->addWidget(head);
+            f->layout()->addWidget(label(effect + '.', "muted"));
+        }
+        if (!i->evidence.isEmpty()) {
+            auto* ev = label(QObject::tr("Evidence: %1").arg(i->evidence), "faint");
+            ev->setTextInteractionFlags(Qt::TextSelectableByMouse);
+            f->layout()->addWidget(ev);
+        }
         auto* cb = new QCheckBox(QObject::tr("Run with this approximation"), f);
         cb->setChecked(on);
         cb->setAccessibleDescription(QObject::tr("Results will be marked APPROXIMATE in every view, chart and export."));
-        cb->setToolTip(cb->accessibleDescription());
+        cb->setToolTip(QObject::tr("%1\nkutta solve --approximate %2").arg(cb->accessibleDescription(), i->approximation));
         const QString name = i->approximation;
         QObject::connect(cb, &QCheckBox::toggled, cb, [c, name](bool b) {
             // Defer: the page is rebuilt on approval changes.
@@ -539,7 +555,15 @@ QWidget* general(const InspectorContext& c)
     form->layout()->setContentsMargins(0, 0, 0, 0);
     form->addRow(QObject::tr("Type"), label(QObject::tr("Pressure-based, steady (as read from the case)")));
     form->addSetting("general/operating-pressure");
-    form->addSetting("general/dimension");
+    if (cs.dimension) {
+        form->addRow(QObject::tr("Dimension"), label(cs.planar() ? QObject::tr("2D (planar)") : QObject::tr("%1D").arg(*cs.dimension)));
+        if (cs.planar() && cs.bounds.valid)
+            form->addNote(QObject::tr("Kutta solves a 2D case as one cell through its %1 m reference depth, between two symmetry planes: "
+                                      "the same planar equations. Forces are for that depth, as in Fluent; views show the plane face on.")
+                              .arg(formatNumber(cs.bounds.max.z() - cs.bounds.min.z(), 4)));
+    } else {
+        form->addSetting("general/dimension");
+    }
     v->addWidget(form);
 
     if (!notes.empty()) {
@@ -734,18 +758,67 @@ QWidget* reference(const InspectorContext& c)
 
 // ---- Solution ------------------------------------------------------------------------
 
+// What the selected pressure-velocity coupling does for this case, in one
+// sentence: Kutta's Coupled solver needs pseudo time, so a case saved with
+// Coupled but without it runs SIMPLEC, and such a case is not offered Coupled.
+static QString couplingNote(const SettingsModel& m)
+{
+    const Setting* s = m.find("methods/pressure-velocity-coupling");
+    if (!s) return {};
+    const QString v = m.value(s->path).toString();
+    const QJsonValue pt = m.value("methods/pseudo-transient");
+    const bool pseudo = pt.isBool() && pt.toBool();
+    const bool offered = s->options.contains(QJsonValue("coupled"));
+    if (v == "coupled" && pt.isBool() && !pseudo)
+        return QObject::tr("Saved with Coupled but without the pseudo-transient formulation, which Kutta's Coupled solver needs: "
+                           "this case runs SIMPLEC. Same discrete equations; only the convergence path differs.");
+    if (v == "coupled") return QObject::tr("Pressure and momentum are solved together, with pseudo-transient steps (Kutta's native Coupled solver).");
+    QString note = v == "simplec" ? QObject::tr("Segregated, with SIMPLEC's consistent pressure correction.")
+                                  : QObject::tr("Segregated, with SIMPLE's pressure correction.");
+    if (!offered) note += ' ' + QObject::tr("Coupled is not offered: Kutta's Coupled solver needs the pseudo-transient formulation, which this case does not use.");
+    return note;
+}
+
 QWidget* methods(const InspectorContext& c)
 {
     QWidget* page;
     SettingsForm* f = formPage(c, QObject::tr("Methods"), QObject::tr("Solution"), &page);
-    f->addSection(QObject::tr("Spatial discretization"));
-    f->addSetting("methods/momentum-scheme");
-    f->addSetting("methods/k-scheme");
-    f->addSetting("methods/omega-scheme");
-    f->addSection(QObject::tr("Gradients"));
-    f->addSetting("methods/gradient-limiting");
-    for (const Setting* s : settingsUnder(c, "methods/"))
-        if (!QStringList{"momentum-scheme", "k-scheme", "omega-scheme", "gradient-limiting"}.contains(s->leaf)) f->addSetting(s->path);
+    SettingsModel* m = c.session->settings();
+    QStringList placed;
+    auto add = [&](const QString& leaf, const QString& label = {}) {
+        if (f->addSetting("methods/" + leaf, label)) placed << leaf;
+    };
+    // Fluent's Methods panel, top to bottom.
+    f->addSection(QObject::tr("Pressure-Velocity Coupling"));
+    add("pressure-velocity-coupling", QObject::tr("Scheme"));
+    add("pseudo-transient", QObject::tr("Pseudo-transient formulation"));
+    if (m->find("methods/pressure-velocity-coupling")) {
+        auto* note = new QLabel(couplingNote(*m));
+        note->setProperty("role", "note");
+        note->setWordWrap(true);
+        f->addWidget(note);
+        QObject::connect(m, &SettingsModel::valueChanged, note, [m, note](const QString& p) {
+            if (p == "methods/pressure-velocity-coupling") note->setText(couplingNote(*m));
+        });
+        // What the last run actually ran, from its setup event.
+        const auto& runs = c.session->history().runs();
+        auto last = std::find_if(runs.rbegin(), runs.rend(), [](const RunRecord& r) { return !r.coupling.isEmpty(); });
+        if (last != runs.rend()) f->addNote(QObject::tr("%1 ran %2.").arg(last->title(), couplingLabel(last->coupling)), "faint");
+    }
+    f->addSection(QObject::tr("Spatial Discretization"));
+    add("gradient");
+    add("pressure-scheme");
+    add("momentum-scheme");
+    add("k-scheme");
+    add("omega-scheme");
+    add("epsilon-scheme");
+    add("gradient-limiting");
+    bool other = false;
+    for (const Setting* s : settingsUnder(c, "methods/")) {
+        if (placed.contains(s->leaf)) continue;
+        if (!other) { f->addSection(QObject::tr("Other")); other = true; }
+        f->addSetting(s->path);
+    }
     f->finish();
     return page;
 }
@@ -759,6 +832,7 @@ QWidget* controls(const InspectorContext& c)
     f->addSetting("controls/mom-relaxation");
     f->addSetting("controls/k-relaxation");
     f->addSetting("controls/omega-relaxation");
+    f->addSetting("controls/epsilon-relaxation");
     f->addSection(QObject::tr("Pseudo time"));
     f->addSetting("controls/pseudo-time-scale-factor");
     for (const Setting* s : settingsUnder(c, "controls/"))
@@ -889,9 +963,12 @@ QWidget* run(const InspectorContext& c)
     outcome->layout()->addWidget(outcomeError);
     outcome->layout()->addWidget(outcomeAdvice);
     f->addWidget(outcome);
-    if (s->settings()->find("monitors/check-convergence")) f->addWidget(convergenceStatus(c));
+    // With convergence criteria, the status card says why the last run stopped;
+    // the outcome callout is then only for runs that failed.
+    const bool hasCriteria = s->settings()->find("monitors/check-convergence") != nullptr;
+    if (hasCriteria) f->addWidget(convergenceStatus(c));
 
-    auto refresh = [s, runBtn, stopBtn, status, why, outcome, outcomeTitle, outcomeError, outcomeAdvice] {
+    auto refresh = [s, hasCriteria, runBtn, stopBtn, status, why, outcome, outcomeTitle, outcomeError, outcomeAdvice] {
         QString reason;
         const bool can = s->canRun(&reason);
         runBtn->setEnabled(can);
@@ -914,12 +991,14 @@ QWidget* run(const InspectorContext& c)
             } else t = QObject::tr("Setting up on %1…").arg(l.setup ? l.setup->device : QObject::tr("the device"));
             status->setText(t);
         } else if (const RunRecord* r = s->history().runs().empty() ? nullptr : &s->history().runs().back()) {
-            status->setText(QObject::tr("Last run: %1 · %2 · %3 iterations").arg(r->title(), runStatusText(*r)).arg(r->iterationsDone));
+            QString t = QObject::tr("Last run: %1 · %2 · %3 iterations").arg(r->title(), runStatusText(*r)).arg(r->iterationsDone);
+            if (!r->coupling.isEmpty()) t += QObject::tr(" · %1").arg(couplingLabel(r->coupling));
+            status->setText(t);
         } else {
             status->setText(QObject::tr("No runs yet for this case."));
         }
         const RunRecord* last = s->running() || s->history().runs().empty() ? nullptr : &s->history().runs().back();
-        const QString advice = last ? runOutcomeAdvice(*last) : QString();
+        const QString advice = last && !(hasCriteria && last->status == RunStatus::Stopped) ? runOutcomeAdvice(*last) : QString();
         outcome->setVisible(!advice.isEmpty());
         if (!advice.isEmpty()) {
             const bool failed = last->status == RunStatus::Failed || last->status == RunStatus::Interrupted;

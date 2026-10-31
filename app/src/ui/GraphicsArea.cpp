@@ -252,7 +252,14 @@ void ViewportPanel::sceneArrived(std::shared_ptr<const SceneData> scene)
             if (std::find(fields.begin(), fields.end(), f) != fields.end()) d.field = f;
         }
     }
-    if (scene && !d.cameraInitialized) d.camera.preset(initialView(scene->bounds));
+    if (scene && scene->planar) {
+        // A 2D case is always seen face on; a camera from a 3D view is replaced.
+        if (d.camera.up != QVector3D(0, 1, 0) || d.camera.pitch != 0 || d.camera.yaw != 90) d.cameraInitialized = false;
+        if (!d.cameraInitialized) d.camera.planView();
+    } else if (scene && !d.cameraInitialized) {
+        if (d.camera.up != QVector3D(0, 0, 1)) d.camera = Camera{};  // leaving a 2D case's view
+        d.camera.preset(initialView(scene->bounds));
+    }
     m_view->setScene(scene);
     m_view->setDisplay(d);
     if (scene && (!d.cameraInitialized || wasMesh != isMesh)) m_view->fitView();
@@ -348,7 +355,9 @@ void ViewportPanel::updateOverlay()
         std::size_t faces = 0;
         for (const auto& z : m_session->hasCase() ? m_session->caseSummary().zones : std::vector<Zone>{})
             if (z.type != "interior") faces += std::size_t(z.faces);
-        o.subtitle = m_session->hasCase() ? tr("%1 · %2 boundary faces").arg(m_session->caseName(), QLocale().toString(qulonglong(faces))) : QString();
+        o.subtitle = !m_session->hasCase() ? QString()
+                     : s->planar ? tr("%1 · 2D · %2 cells").arg(m_session->caseName(), QLocale().toString(m_session->caseSummary().cells))
+                                 : tr("%1 · %2 boundary faces").arg(m_session->caseName(), QLocale().toString(qulonglong(faces)));
         for (const auto& it : s->items)
             if (it.kind == ItemKind::Zone && d.visible.contains(it.id)) o.zoneKey.push_back({it.label, d.zoneColors ? it.color : QColor()});
         if (m_probe && m_probe->hit) {

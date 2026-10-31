@@ -1,8 +1,8 @@
-# APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.601459%, pressure L2 2.961922%, k L2 15.478919%, omega L2 8.474918%, pressure-drop error 1.185077%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
+# APPROXIMATE RESULT: not a faithful Fluent reproduction; wfgc: recon/cell-lsf? Fluent #t -> Kutta run without warped-face gradient correction (WFGC off, #f); V6 CPU hybrid diagnostic versus Fluent: velocity L2 3.366748%, pressure L2 2.665514%, k L2 14.722368%, omega L2 2.805466%, pressure-drop error 1.973008%; combined solver discrepancy, not isolated WFGC error or a general bound; evidence: src/kutta/fv/VERIFICATION.md#v6-initialization-comparison
 name,zone_id,mass_flow_outward
 "wall-elbow",34,0
 "wall-inlet",33,0
-"outlet",32,0.0051141540183152756
+"outlet",32,0.0051141539354375709
 "cold-inlet",31,-0.0047670772364654113
 "hot-inlet",30,-0.00034707683835222269
 "symmetry-xyplane",29,0

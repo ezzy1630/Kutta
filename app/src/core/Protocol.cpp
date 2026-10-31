@@ -47,6 +47,7 @@ SupportIssue parseIssue(const QJsonObject& o)
     i.approximation = o.value("approximation").toString();
     i.explanation = o.value("explanation").toString();
     i.evidence = o.value("evidence").toString();
+    i.measuredEffect = o.value("measured_effect").toString();
     return i;
 }
 
@@ -116,6 +117,13 @@ QString Setting::labelFor(const QJsonValue& v) const
     for (qsizetype i = 0; i < options.size() && i < optionLabels.size(); ++i)
         if (same(options[i], v) && !optionLabels[i].isEmpty()) return optionLabels[i];
     return same(v, value) ? valueLabel : QString();
+}
+
+QString SupportIssue::explanationOnly() const
+{
+    const QString tail = ' ' + measuredEffect + '.';
+    if (!measuredEffect.isEmpty() && explanation.endsWith(tail)) return explanation.chopped(tail.size());
+    return explanation;
 }
 
 QString decodePathSegment(const QString& segment)
@@ -230,6 +238,8 @@ Result<CaseSummary> parseCaseSummary(const QJsonObject& json)
         auto s = parseSetting(sv.toObject());
         if (!s) return R::failure("inspect: " + s.error());
         c.settings.push_back(std::move(s).value());
+        if (c.settings.back().path == "general/dimension" && c.settings.back().value.isDouble())
+            c.dimension = c.settings.back().value.toInt();
     }
     const QJsonObject data = json.value("data").toObject();
     c.dataPresent = data.value("present").toBool();
@@ -268,6 +278,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
         s.overrides = o.value("overrides").toObject();
         s.modified = o.value("modified").toBool();
         s.convergence = parseConvergenceSetup(o.value("convergence").toObject());
+        s.coupling = o.value("pressure_velocity_coupling").toString();
         return ProgressEvent{s};
     }
     if (ev == "iteration") {
@@ -315,7 +326,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
 
 QStringList residualOrder(const QStringList& present)
 {
-    static const QStringList fluent{"continuity", "x-velocity", "y-velocity", "z-velocity", "energy", "k", "omega"};
+    static const QStringList fluent{"continuity", "x-velocity", "y-velocity", "z-velocity", "energy", "k", "omega", "epsilon"};
     QStringList out;
     for (const QString& n : fluent)
         if (present.contains(n)) out << n;
@@ -325,6 +336,17 @@ QStringList residualOrder(const QStringList& present)
 }
 
 QString residualLabel(const QString& name) { return name; }  // Fluent prints the same names
+
+bool residualShown(const QString& name, bool planar) { return !(planar && name == QLatin1String("z-velocity")); }
+
+QString couplingLabel(const QString& id)
+{
+    if (id == "simple") return QStringLiteral("SIMPLE");
+    if (id == "simplec") return QStringLiteral("SIMPLEC");
+    if (id == "coupled") return QStringLiteral("Coupled");
+    if (id == "piso") return QStringLiteral("PISO");
+    return id;
+}
 
 QStringList splitCsvLine(const QString& line)
 {
@@ -482,6 +504,7 @@ Result<RunSummary> parseRunSummary(const QJsonObject& o)
     s.convergence = parseConvergenceSetup(conv);
     s.metBy = strings(conv.value("met_by"));
     if (conv.value("iteration").isDouble()) s.convergedIteration = conv.value("iteration").toInt();
+    s.coupling = o.value("pressure_velocity_coupling").toString();
     return s;
 }
 

@@ -5,7 +5,9 @@
 #include <QJsonArray>
 #include <QLocale>
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <unordered_set>
 
 namespace kapp {
@@ -344,8 +346,43 @@ bool isExternalFlow(const SceneData& s)
     return enclosure && body;
 }
 
+QString planarFace(const SceneData& s)
+{
+    if (!s.planar || !s.bounds.valid) return {};
+    QString best;
+    float top = -std::numeric_limits<float>::infinity();
+    const float depth = s.bounds.max.z() - s.bounds.min.z();
+    for (const auto& it : s.items) {
+        if (it.kind != ItemKind::Zone || it.zoneType != "symmetry" || !it.mesh) continue;
+        const Bounds b = it.mesh->bounds();
+        // A cap spans the plane and is flat through the depth.
+        if (b.max.z() - b.min.z() > 1e-3f * std::max(depth, 1e-30f) || !enclosesDomain(it, s.bounds)) continue;
+        if (b.max.z() > top) {
+            top = b.max.z();
+            best = it.id;
+        }
+    }
+    return best;
+}
+
+void makePlanar(SceneData& s)
+{
+    s.planar = true;
+    const QString face = planarFace(s);
+    if (face.isEmpty()) return;
+    const float depth = s.bounds.max.z() - s.bounds.min.z();
+    std::erase_if(s.items, [&](const SceneItem& it) {
+        if (it.id == face || it.kind != ItemKind::Zone || it.zoneType != "symmetry" || !it.mesh) return false;
+        const Bounds b = it.mesh->bounds();
+        return b.max.z() - b.min.z() <= 1e-3f * std::max(depth, 1e-30f) && enclosesDomain(it, s.bounds);
+    });
+    for (auto& it : s.items)
+        if (it.id == face) it.label = QStringLiteral("2D domain");
+}
+
 QStringList defaultMeshItems(const SceneData& s)
 {
+    if (const QString face = planarFace(s); !face.isEmpty()) return {face};
     QStringList body, all;
     for (const auto& it : s.items) {
         if (it.kind != ItemKind::Zone || !it.mesh) continue;
@@ -361,7 +398,8 @@ QStringList defaultVisibleItems(const SceneData& s)
 {
     // External aero: the body's walls, without the ground or tunnel. Internal
     // flow: the planes through it (a slice, else the symmetry plane), since
-    // walls enclose the flow.
+    // walls enclose the flow. A 2D case: its plane.
+    if (const QString face = planarFace(s); !face.isEmpty()) return {face};
     QStringList walls, slices, symmetry;
     for (const auto& it : s.items) {
         if (it.kind == ItemKind::Slice) slices << it.id;
@@ -399,6 +437,7 @@ std::shared_ptr<SceneData> runDifference(const SceneData& a, const SceneData& b,
     out->provenance = a.provenance.isEmpty() ? b.provenance : a.provenance;
     out->synthetic = a.synthetic || b.synthetic;
     out->runDelta = true;
+    out->planar = a.planar;
     out->bounds = a.bounds;
     for (const auto& ia : a.items) {
         const SceneItem* ib = b.item(ia.id);

@@ -99,7 +99,7 @@ def main():
         export_view(args.kutta, run_dir, [SLICE])
         dest = OUT / f"run-{variant}"
         dest.mkdir()
-        for f in ("summary.json", "forces.csv", "fluxes.csv", "residuals.csv"):
+        for f in ("summary.json", "forces.csv", "fluxes.csv", "residuals.csv", "loads.json"):
             shutil.copy(run_dir / f, dest / f)
         shutil.copytree(run_dir / "view", dest / "view")
 

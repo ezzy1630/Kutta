@@ -29,6 +29,20 @@ QString runStatusText(const RunRecord& r)
     return r.status == RunStatus::Completed && r.converged() ? QStringLiteral("Converged") : runStatusLabel(r.status);
 }
 
+QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv)
+{
+    if (stopReason == "converged") {
+        QStringList met;
+        for (const QString& id : metBy) met << describeCondition(id, conv);
+        return met.isEmpty() ? QStringLiteral("Converged") : QStringLiteral("Converged: %1").arg(met.join("; "));
+    }
+    if (stopReason == "stopped") return QStringLiteral("Stopped by you; not converged");
+    if (stopReason == "iteration_limit")
+        return conv.enabled ? QStringLiteral("Iteration limit; convergence criteria not met")
+                            : QStringLiteral("Iteration limit; convergence checking was off");
+    return {};
+}
+
 QString runOutcomeAdvice(const RunRecord& r)
 {
     const QString e = r.error.toLower();
@@ -110,6 +124,7 @@ QJsonObject RunRecord::toJson() const
             {"study", studyId},
             {"backend", backend},
             {"device", device},
+            {"coupling", coupling},
             {"iterations_requested", iterationsRequested},
             {"live_view", liveViewInterval},
             {"started", started.toString(Qt::ISODateWithMs)},
@@ -143,6 +158,7 @@ std::optional<RunRecord> RunRecord::fromJson(const QJsonObject& o, const QString
     r.studyId = o.value("study").toString();
     r.backend = o.value("backend").toString();
     r.device = o.value("device").toString();
+    r.coupling = o.value("coupling").toString();
     r.iterationsRequested = o.value("iterations_requested").toInt();
     r.liveViewInterval = o.value("live_view").toInt();
     r.started = QDateTime::fromString(o.value("started").toString(), Qt::ISODateWithMs);
@@ -171,6 +187,10 @@ void appendIteration(RunProgress& p, const IterationEvent& it)
     for (int n = 0; n < res.names.size(); ++n)
         res.values[std::size_t(n)].push_back(it.residuals.value(res.names[n], std::nan("")));
     res.secPerIter.push_back(it.secPerIter.value_or(std::nan("")));
+    if (it.convergence) {
+        p.convergence = it.convergence;
+        p.convergenceIter = it.iter;
+    }
     for (auto r = it.reports.begin(); r != it.reports.end(); ++r) {
         auto s = std::find_if(p.reports.begin(), p.reports.end(), [&](const ReportSeries& x) { return x.name == r.key(); });
         if (s == p.reports.end()) {
@@ -181,6 +201,31 @@ void appendIteration(RunProgress& p, const IterationEvent& it)
         s->force.push_back(r.value().force.value_or(std::nan("")));
         s->coefficient.push_back(r.value().coefficient.value_or(std::nan("")));
     }
+}
+
+std::vector<ConvergenceMark> convergenceMarks(const RunProgress& p, bool planar)
+{
+    std::vector<ConvergenceMark> out;
+    if (p.setup && p.setup->convergence.enabled) {
+        QMap<double, QStringList> byValue;
+        const auto& res = p.setup->convergence.residuals;
+        for (auto it = res.begin(); it != res.end(); ++it)
+            if (residualShown(it.key(), planar)) byValue[it.value()] << it.key();
+        for (auto it = byValue.begin(); it != byValue.end(); ++it) {
+            const QString v = QString::number(it.key(), 'g', 3);
+            out.push_back({ConvergenceMark::Kind::Criterion, it.key(),
+                           byValue.size() == 1 ? QStringLiteral("criterion %1").arg(v)
+                                               : QStringLiteral("criterion %1 · %2").arg(v, residualOrder(it.value()).join(", "))});
+        }
+    }
+    if (p.done && !p.residuals.iterations.empty()) {
+        const QString why = p.done->stopReason;
+        const int at = p.done->iterations;
+        if (why == "converged") out.push_back({ConvergenceMark::Kind::Converged, double(at), QStringLiteral("Converged · %1").arg(at)});
+        else if (why == "stopped") out.push_back({ConvergenceMark::Kind::Stopped, double(at), QStringLiteral("Stopped by you · %1").arg(at)});
+        else if (why == "iteration_limit") out.push_back({ConvergenceMark::Kind::IterationLimit, double(at), QStringLiteral("Iteration limit · %1").arg(at)});
+    }
+    return out;
 }
 
 RunProgress parseProgressLog(const QByteArray& jsonl)

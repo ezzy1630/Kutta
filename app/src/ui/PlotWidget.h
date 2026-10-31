@@ -26,6 +26,16 @@ struct PlotSeries {
     QString legendKey() const { return legend.isEmpty() ? name : legend; }
 };
 
+// A reference line across the plot: a convergence criterion (y) or the
+// iteration a run stopped at (x), labelled inside the plot.
+struct PlotGuide {
+    enum class Along { X, Y };
+    Along along = Along::Y;
+    double value = 0;
+    QString label;
+    QColor color;  // invalid: the theme's muted ink
+};
+
 class PlotWidget : public QWidget {
     Q_OBJECT
 public:
@@ -41,6 +51,9 @@ public:
     void setEmptyText(const QString& t);
 
     void setSeries(std::vector<PlotSeries> series);
+    // Guides stay in view: y guides widen the fitted range to include them.
+    void setGuides(std::vector<PlotGuide> guides);
+    const std::vector<PlotGuide>& guides() const { return m_guides; }
     const std::vector<PlotSeries>& series() const { return m_series; }
     // Data changed and the view follows it unless the user zoomed or panned.
     void resetView();
@@ -94,6 +107,7 @@ private:
     QString m_title, m_xLabel, m_yLabel, m_emptyText, m_provenance;
     QStringList m_badges;
     std::vector<PlotSeries> m_series;
+    std::vector<PlotGuide> m_guides;
     mutable Axis m_x, m_y;
     bool m_follow = true;
     std::optional<double> m_cursorX;
