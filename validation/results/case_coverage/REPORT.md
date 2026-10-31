@@ -162,7 +162,7 @@ solver discrepancy, not an isolated error or a general bound.
 | New slow test, `elbow_param` and nozzle, CPU and Metal | 17,044 / 17,044 assertions |
 | Slow tier against my own `c24da6d` baseline, `compare_slow_assertions.py` | **no new failures**: 0 regressions, 0 missing assertions; the same 68 failed assertions in the same 6 test cases on both (V6 and others that fail on main); candidate 28,098 passed (17,044 new) against baseline 11,054 |
 
-Eight slow values changed, all in V7 SA TMR bump level 2 on CPU. Both runs stopped on that test's 600-second wall-clock budget, unconverged (2,500 steps on the baseline, 2,700 on the candidate, with other lanes sharing the machine), so the step count and its cf/cd errors track machine load. SA code paths are unchanged, and pass/fail status is identical. Files: [`slow-c24da6d.xml.gz`](slow-c24da6d.xml.gz), [`slow-cd68d0c.xml.gz`](slow-cd68d0c.xml.gz), [`slow-compare.json`](slow-compare.json).
+Eight slow values changed, all in V7 SA TMR bump level 2 on CPU. Both runs stopped on that test's 600-second wall-clock budget, unconverged (2,500 steps on the baseline, 2,700 on the candidate, with other lanes sharing the machine), so the step count and its cf/cd errors track machine load. SA code paths are unchanged, and pass/fail status is identical. Files: [`slow-c24da6d.xml.gz`](slow-c24da6d.xml.gz), [`slow-cd68d0c.xml.gz`](slow-cd68d0c.xml.gz), [`slow-compare.json.gz`](slow-compare.json.gz).
 
 One existing quick test changed meaning. `Unsupported k epsilon retains its
 active equation schemes` asserted that standard k-epsilon was rejected. It now
