@@ -299,10 +299,7 @@ struct CoupledSolver::Impl {
   void cycle(std::size_t k) {
     auto& l = levels[k];
     if (k + 1 == levels.size()) {
-      if (l.n <= 4 * options.coarsest_rows)
-        kern::coupled_coarsest_solve(dev, 1, l.rows, l.cols, l.diag, l.a, l.c, l.g, l.h, l.d,
-            l.x, l.b, l.n, l.nnz, options.coarsest_sweeps);
-      else coarse_smooth(l, 4 * options.coarsest_sweeps, true);
+      coarse_smooth(l, options.coarsest_sweeps, true);
       return;
     }
     auto& c = levels[k + 1];

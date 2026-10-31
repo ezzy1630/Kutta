@@ -23,6 +23,9 @@
 namespace kutta::fv {
 
 struct CoupledOptions {
+  // The coarsest level (aggregation often stalls near 100 rows) gets parallel
+  // block-Jacobi sweeps: a single-thread Gauss-Seidel there cost about half of
+  // the Metal block solve for the same Krylov iteration counts.
   int pre_sweeps = 1, post_sweeps = 2, coarsest_sweeps = 8;
   float smoother_damping = .7f;
   Index coarsest_rows = 48;

@@ -258,38 +258,6 @@ KUTTA_KERNEL void coupled_coarse_smooth(int i, KIn(int) rows, KIn(int) cols, KIn
   next[2 * n + i] = base_w + omega * s.w; next[3 * n + i] = base_p + omega * s.p;
 }
 
-// Coarsest level: one thread runs symmetric block Gauss-Seidel sweeps in place.
-// Deterministic and free of host transfers; the level has a few dozen rows.
-KUTTA_KERNEL void coupled_coarsest_solve(int i, KIn(int) rows, KIn(int) cols, KIn(int) diag,
-    KIn(float) a, KIn(float) c, KIn(float) g, KIn(float) h, KIn(float) d, KOut(float) x,
-    KIn(float) b, int n, int nnz, int sweeps) {
-  if (i != 0) return;
-  for (int k = 0; k < 4 * n; ++k) x[k] = 0.0f;
-  for (int sweep = 0; sweep < 2 * sweeps; ++sweep) {
-    for (int step = 0; step < n; ++step) {
-      int row = sweep % 2 == 0 ? step : n - 1 - step;
-      int k = diag[row];
-      float ex = g[k], ey = g[nnz + k], ez = g[2 * nnz + k];
-      float hx = h[k], hy = h[nnz + k], hz = h[2 * nnz + k];
-      float xu = x[row], xv = x[n + row], xw = x[2 * n + row], xp = x[3 * n + row];
-      float ru = b[row] - (d[row] * xu + ex * xp);
-      float rv = b[n + row] - (d[n + row] * xv + ey * xp);
-      float rw = b[2 * n + row] - (d[2 * n + row] * xw + ez * xp);
-      float rp = b[3 * n + row] - (c[k] * xp + hx * xu + hy * xv + hz * xw);
-      for (int j = rows[row]; j < rows[row + 1]; ++j) {
-        if (j == k) continue;
-        int m = cols[j];
-        float pu = x[m], pv = x[n + m], pw = x[2 * n + m], pp = x[3 * n + m];
-        ru -= a[j] * pu + g[j] * pp; rv -= a[j] * pv + g[nnz + j] * pp; rw -= a[j] * pw + g[2 * nnz + j] * pp;
-        rp -= h[j] * pu + h[nnz + j] * pv + h[2 * nnz + j] * pw + c[j] * pp;
-      }
-      kblock4 s = coupled_block_solve(kb4(ru, rv, rw, rp), d[row], d[n + row], d[2 * n + row],
-                                      ex, ey, ez, hx, hy, hz, c[k] + d[3 * n + row]);
-      x[row] = xu + s.u; x[n + row] = xv + s.v; x[2 * n + row] = xw + s.w; x[3 * n + row] = xp + s.p;
-    }
-  }
-}
-
 // Linear search in one sorted coarse row; rows hold a few dozen entries.
 KUTTA_FN int coupled_entry(KIn(int) rows, KIn(int) cols, int row, int col) {
   for (int j = rows[row]; j < rows[row + 1]; ++j) if (cols[j] == col) return j;
