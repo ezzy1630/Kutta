@@ -165,10 +165,14 @@ struct CoupledSolver::Impl {
         const auto area = geom.face_area[f] * double(signs[j]);
         const auto& side = f < ni && host.owner[f] != c ? neighbour_r : owner_r;
         const Vec3d r{side[0][f], side[1][f], side[2][f]};
-        delta = delta + (f < ni ? Vec3d{dx[j], dy[j], dz[j]} : Vec3d{bx[f - ni], by[f - ni], bz[f - ni]});
+        const bool prescribed = f >= ni && (kinds[f - ni] == 2 || kinds[f - ni] == 4);
+        // An unprescribed boundary row observes the cell's own pressure, so
+        // its difference, and its share of d g_c / d p_c, is zero.
+        if (f < ni) delta = delta + Vec3d{dx[j], dy[j], dz[j]};
+        else if (prescribed) delta = delta + Vec3d{bx[f - ni], by[f - ni], bz[f - ni]};
         double weight = 0;
         if (f < ni) {g = g + area * .5; h = h + area * .5; weight = .5;}
-        else if (kinds[f - ni] == 2 || kinds[f - ni] == 4) h = h + area;
+        else if (prescribed) h = h + area;
         else {g = g + area; weight = 1;}
         const double s[]{area.x, area.y, area.z}, q[]{r.x, r.y, r.z};
         for (int a = 0; a < 3; ++a) for (int b = 0; b < 3; ++b) t[3 * a + b] += weight * s[a] * q[b];

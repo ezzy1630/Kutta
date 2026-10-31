@@ -244,7 +244,8 @@ turbulence specification (k-omega models), outlet gauge pressure, active
 constant material density/viscosity, reference area/density/speed/pressure and
 length (length scales moment coefficients in `kutta aero`),
 implemented momentum/k/omega/epsilon upwind schemes, gradient limiting, the
-pressure-velocity coupling (`methods/pressure-velocity-coupling`, below), pseudo-time
+pressure interpolation (`methods/pressure-scheme`, options `standard` and
+`second-order`), the pressure-velocity coupling (`methods/pressure-velocity-coupling`, below), pseudo-time
 scale and active equation relaxation, standard numeric initialization values
 when not seeded, force-report directions, and run iteration and monitor
 intervals, and the convergence controls under `monitors/` (below). Changing the

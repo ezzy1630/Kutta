@@ -76,6 +76,7 @@ TEST_CASE("Mixing elbow settings carry Fluent labels, activity and a guarded tur
   CHECK(by.at("boundary/outlet/gauge-pressure")->active);CHECK_FALSE(by.contains("boundary/outlet/velocity-specification"));
   CHECK(by.at("models/viscous")->value_label=="k-omega SST");CHECK(by.at("boundary/wall-elbow/type")->value_label=="wall");
   CHECK(by.at("methods/momentum-scheme")->value_label=="Second Order Upwind");
+  CHECK(by.at("methods/pressure-scheme")->value==Json("second-order"));CHECK(by.at("methods/pressure-scheme")->editable);
   CHECK(by.at("initialization/method")->value_label=="Hybrid Initialization");
   const auto json=kutta::dump_json(kutta::setup::settings_json(settings));
   for(auto key:{"\"option_labels\":","\"value_label\":","\"active\":","\"depends_on\":","\"active_when\":"})CHECK(json.find(key)!=std::string::npos);

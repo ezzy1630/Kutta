@@ -239,6 +239,9 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     const auto& p=c.numerics.pressure;
     auto& s=b.add("methods/pressure-scheme","Pressure","Methods",p?Json(*p==Scheme::standard_pressure?"standard":*p==Scheme::second_pressure?"second-order":std::string(name(*p))):Json(nullptr),"","enum");
     s.options={"standard","second-order"};s.option_labels={"Standard","Second Order"};if(p)s.value_label=scheme_label(*p);
+    // Fluent's pressure/scheme: the two interpolations the solve adapter runs.
+    if(p)b.editable(s,[target=&c.numerics.pressure](const Json& j){
+      *target=std::get<std::string>(j.value)=="standard"?Scheme::standard_pressure:Scheme::second_pressure;});
     b.consume(c.variables,"pressure/scheme");
   }
   if(transition) {
