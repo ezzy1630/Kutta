@@ -388,9 +388,9 @@ struct SteadySolver::Impl {
     for(auto p:host.points) {lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
     // Fluent's conservative length scale: min(domain volume^(1/3), largest extent).
     length=std::min(std::cbrt(volume),std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z}));
-    update_time(bc_speed);
     if(settings.coupling==PressureVelocityCoupling::Coupled)
       coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference);
+    update_time(bc_speed,bc_speed);
     dev.fill(momentum[0]->diagonal,1);dev.fill(momentum[0]->consistent_inverse,0);
     update_boundaries();update_pressure();update_flux();
   }
@@ -516,11 +516,17 @@ struct SteadySolver::Impl {
     };
     report.k=measure(false);report.omega=measure(true);
   }
-  void update_time(double maximum_speed) {
+  // Fluent's automatic global time step (Theory Guide 23.6.2, eqs. 23-102 to
+  // 23-105): 0.3 L / max(0.1 U_bc, U_domain, U_dp). Fluent defines it for the
+  // Coupled solver only, where U_domain is the arithmetic mean cell speed.
+  // SIMPLE and SIMPLEC keep Kutta's older, more conservative maximum cell
+  // speed. The Coupled block scaling wc keeps the maximum speed either way.
+  void update_time(double maximum_speed,double mean_speed) {
     velocity_scale=std::max({.1*bc_speed,maximum_speed,pressure_speed,1e-10});
     if(!settings.pseudo_transient) {time_step=0;return;}
+    const double time_speed=coupled?std::max({.1*bc_speed,mean_speed,pressure_speed,1e-10}):velocity_scale;
     time_step=settings.pseudo_time_step>0?float(settings.pseudo_time_step):
-      float(.3*length*settings.pseudo_time_scale/velocity_scale);
+      float(.3*length*settings.pseudo_time_scale/time_speed);
   }
   // The automatic pseudo time step follows the current flow. step() and
   // monitor() both refresh it from the same state, so monitoring never changes
@@ -529,7 +535,10 @@ struct SteadySolver::Impl {
   void refresh_time_step() {
     if(settings.pseudo_time_step>0 || !settings.pseudo_transient) return;
     kern::fv_speed(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,speed);
-    update_time(dev.max_abs(speed,mesh.n_cells));
+    if(!coupled) {const auto maximum=dev.max_abs(speed,mesh.n_cells);update_time(maximum,maximum);return;}
+    const auto speeds=dev.reduce_many({Device::HostReduction::max_abs(speed,mesh.n_cells),
+      Device::HostReduction::sum(speed,mesh.n_cells)});
+    update_time(speeds[0],speeds[1]/double(mesh.n_cells));
   }
   void update_boundaries() {
     kern::fv_velocity_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,

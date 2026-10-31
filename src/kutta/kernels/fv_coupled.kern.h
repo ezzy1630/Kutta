@@ -20,11 +20,22 @@
 // The continuity rows are scaled by wc = rho*U and p by 1/wc, so both rows
 // carry momentum units.
 //
+// Smoothers solve each cell's arrow block with the pressure diagonal raised
+// by a bound on the neighbour part of the Schur complement C - H D^-1 G:
+//   cs_i = sum_{k != i} sum_c |H_ik,c| R_k,c / D_k,c,  R_k,c = sum_j |G_kj,c|.
+// The u-p coupling is skew (G_ji = -H_ij on the face parts), so damped block
+// Jacobi converges only while rho(c^-1 H D^-1 G) < (2 - omega)/omega. With the
+// compact Rhie-Chow diagonal alone that fails on stretched cells at Fluent's
+// pseudo-time step (TMR flat plate: BiCGStab stalled at its 20-iteration cap,
+// and extra sweeps or omega 0.9 diverged). cs bounds the radius by 1
+// (Gershgorin over the face coupling); the plate's smoother is then stable
+// up to omega 0.9. Only the smoothers use cs; the operator (J x) stays exact.
+//
 // Packed storage (Metal allows 31 buffer arguments per kernel):
-//   fine cell data, 19n floats: [du|dv|dw|cd | Gx|Gy|Gz | Hx|Hy|Hz | Q (9, row major)],
-//   G, H and Q unscaled by wc;
+//   fine cell data, 20n floats: [du|dv|dw|cd | Gx|Gy|Gz | Hx|Hy|Hz | Q (9, row major) | cs],
+//   G, H and Q unscaled by wc, cs the Schur addition (scaled);
 //   coarse levels: a, c per entry, G and H as 3*nnz [x | y | z] (scaled),
-//   momentum diagonals as 3n [du | dv | dw].
+//   momentum diagonals and Schur addition as 4n [du | dv | dw | cs].
 
 struct kblock4 { float u, v, w, p; };
 
@@ -94,6 +105,41 @@ KUTTA_KERNEL void coupled_copy_diagonal(int i, KIn(int) diag, KIn(float) values,
   cell[offset + i] = values[diag[i]];
 }
 
+// Absolute row sums of the pressure-force block per component, R_k,c,
+// written to r as 3n [x | y | z]. Smoother setup only (see the header).
+KUTTA_KERNEL void coupled_fine_gsum(int i, KIn(int) offsets, KIn(int) adjacent, KIn(int) faces,
+    KIn(float) sign, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) dx, KIn(float) dy,
+    KIn(float) dz, KIn(float) cell, KOut(float) r, int n, float wc) {
+  float q00 = wc * cell[10 * n + i], q01 = wc * cell[11 * n + i], q02 = wc * cell[12 * n + i];
+  float q10 = wc * cell[13 * n + i], q11 = wc * cell[14 * n + i], q12 = wc * cell[15 * n + i];
+  float q20 = wc * cell[16 * n + i], q21 = wc * cell[17 * n + i], q22 = wc * cell[18 * n + i];
+  float half_wc = 0.5f * wc;
+  float gx = kabs(wc * cell[4 * n + i]), gy = kabs(wc * cell[5 * n + i]), gz = kabs(wc * cell[6 * n + i]);
+  for (int j = offsets[i]; j < offsets[i + 1]; ++j) {
+    if (adjacent[j] < 0) continue;
+    int f = faces[j];
+    float s = sign[j];
+    gx += kabs(half_wc * s * sx[f] + q00 * dx[j] + q01 * dy[j] + q02 * dz[j]);
+    gy += kabs(half_wc * s * sy[f] + q10 * dx[j] + q11 * dy[j] + q12 * dz[j]);
+    gz += kabs(half_wc * s * sz[f] + q20 * dx[j] + q21 * dy[j] + q22 * dz[j]);
+  }
+  r[i] = gx; r[n + i] = gy; r[2 * n + i] = gz;
+}
+
+// cs_i from H_ik = (wc/2) s S_f and the neighbours' row sums.
+KUTTA_KERNEL void coupled_fine_schur(int i, KIn(int) offsets, KIn(int) adjacent, KIn(int) faces,
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) r, KOut(float) cell, int n, float wc) {
+  float half_wc = 0.5f * wc, sum = 0.0f;
+  for (int j = offsets[i]; j < offsets[i + 1]; ++j) {
+    int c = adjacent[j];
+    if (c < 0) continue;
+    int f = faces[j];
+    sum += half_wc * (kabs(sx[f]) * r[c] / cell[c] + kabs(sy[f]) * r[n + c] / cell[n + c] +
+                      kabs(sz[f]) * r[2 * n + c] / cell[2 * n + c]);
+  }
+  cell[19 * n + i] = sum;
+}
+
 // Matrix-free fine-level row: (J x)_i from the face data the momentum and
 // Rhie-Chow assemblies already hold, plus the least-squares deltas.
 KUTTA_FN kblock4 coupled_fine_row(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
@@ -160,7 +206,7 @@ KUTTA_KERNEL void coupled_fine_smooth(int i, KIn(int) offsets, KIn(int) faces, K
   }
   kblock4 d = coupled_block_solve(r, cell[i], cell[n + i], cell[2 * n + i],
       wc * cell[4 * n + i], wc * cell[5 * n + i], wc * cell[6 * n + i],
-      wc * cell[7 * n + i], wc * cell[8 * n + i], wc * cell[9 * n + i], cell[3 * n + i]);
+      wc * cell[7 * n + i], wc * cell[8 * n + i], wc * cell[9 * n + i], cell[3 * n + i] + cell[19 * n + i]);
   float base_u = first == 0 ? x[i] : 0.0f, base_v = first == 0 ? x[n + i] : 0.0f;
   float base_w = first == 0 ? x[2 * n + i] : 0.0f, base_p = first == 0 ? x[3 * n + i] : 0.0f;
   next[i] = base_u + omega * d.u; next[n + i] = base_v + omega * d.v;
@@ -205,7 +251,7 @@ KUTTA_KERNEL void coupled_coarse_smooth(int i, KIn(int) rows, KIn(int) cols, KIn
   }
   int k = diag[i];
   kblock4 s = coupled_block_solve(r, d[i], d[n + i], d[2 * n + i], g[k], g[nnz + k], g[2 * nnz + k],
-                                  h[k], h[nnz + k], h[2 * nnz + k], c[k]);
+                                  h[k], h[nnz + k], h[2 * nnz + k], c[k] + d[3 * n + i]);
   float base_u = first == 0 ? x[i] : 0.0f, base_v = first == 0 ? x[n + i] : 0.0f;
   float base_w = first == 0 ? x[2 * n + i] : 0.0f, base_p = first == 0 ? x[3 * n + i] : 0.0f;
   next[i] = base_u + omega * s.u; next[n + i] = base_v + omega * s.v;
@@ -238,7 +284,7 @@ KUTTA_KERNEL void coupled_coarsest_solve(int i, KIn(int) rows, KIn(int) cols, KI
         rp -= h[j] * pu + h[nnz + j] * pv + h[2 * nnz + j] * pw + c[j] * pp;
       }
       kblock4 s = coupled_block_solve(kb4(ru, rv, rw, rp), d[row], d[n + row], d[2 * n + row],
-                                      ex, ey, ez, hx, hy, hz, c[k]);
+                                      ex, ey, ez, hx, hy, hz, c[k] + d[3 * n + row]);
       x[row] = xu + s.u; x[n + row] = xv + s.v; x[2 * n + row] = xw + s.w; x[3 * n + row] = xp + s.p;
     }
   }
@@ -346,6 +392,29 @@ KUTTA_KERNEL void coupled_galerkin_coarse(int i, KIn(int) member_offsets, KIn(in
   c[k] = ksum_value(sc);
   g[k] = ksum_value(sgx); g[nnz + k] = ksum_value(sgy); g[2 * nnz + k] = ksum_value(sgz);
   h[k] = ksum_value(shx); h[nnz + k] = ksum_value(shy); h[2 * nnz + k] = ksum_value(shz);
+}
+
+// Coarse-level row sums R_j,c of |G| (diagonal included), as 3n in r.
+KUTTA_KERNEL void coupled_coarse_gsum(int i, KIn(int) rows, KIn(float) g, KOut(float) r, int n, int nnz) {
+  float gx = 0.0f, gy = 0.0f, gz = 0.0f;
+  for (int j = rows[i]; j < rows[i + 1]; ++j) {
+    gx += kabs(g[j]); gy += kabs(g[nnz + j]); gz += kabs(g[2 * nnz + j]);
+  }
+  r[i] = gx; r[n + i] = gy; r[2 * n + i] = gz;
+}
+
+// Coarse-level cs_i from the Galerkin H entries. Aggregated momentum
+// diagonals stay positive (pseudo time); the floor only guards round-off.
+KUTTA_KERNEL void coupled_coarse_schur(int i, KIn(int) rows, KIn(int) cols, KIn(int) diag,
+    KIn(float) h, KIn(float) r, KOut(float) d, int n, int nnz) {
+  float sum = 0.0f;
+  for (int j = rows[i]; j < rows[i + 1]; ++j) {
+    if (j == diag[i]) continue;
+    int m = cols[j];
+    sum += kabs(h[j]) * r[m] / kmax(d[m], 1.0e-30f) + kabs(h[nnz + j]) * r[n + m] / kmax(d[n + m], 1.0e-30f) +
+           kabs(h[2 * nnz + j]) * r[2 * n + m] / kmax(d[2 * n + m], 1.0e-30f);
+  }
+  d[3 * n + i] = sum;
 }
 
 KUTTA_KERNEL void coupled_restrict(int i, KIn(int) member_offsets, KIn(int) members,

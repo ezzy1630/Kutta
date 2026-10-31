@@ -89,7 +89,7 @@ struct Transfer {
 struct Level {
   Index n = 0, nnz = 0;
   Buffer<Index> rows, cols, diag;
-  Buffer<float> a, c, g, h, d;  // g, h: 3*nnz, d: 3n (see fv_coupled.kern.h)
+  Buffer<float> a, c, g, h, d;  // g, h: 3*nnz, d: 4n (see fv_coupled.kern.h)
   Buffer<float> x, b, r, tmp;
 };
 }  // namespace
@@ -103,7 +103,7 @@ struct CoupledSolver::Impl {
   CoupledOptions options;
   Index n = 0, reference = -1;
   // Fine level (matrix-free).
-  Buffer<float> cell, coefficient, fine_r, fine_tmp;  // cell: [du|dv|dw|cd|G|H|Q], 19n
+  Buffer<float> cell, coefficient, fine_r, fine_tmp;  // cell: [du|dv|dw|cd|G|H|Q|cs], 20n
   std::vector<Transfer> transfers;  // transfers[k]: level k -> k+1
   std::vector<Level> levels;        // coarse levels 1..L, stored at [0..L-1]
   // Krylov workspace over 4n.
@@ -155,7 +155,7 @@ struct CoupledSolver::Impl {
       return std::array{dev.download(v.x), dev.download(v.y), dev.download(v.z)};
     };
     const auto owner_r = download3(m.owner_to_face), neighbour_r = download3(m.neighbour_to_face);
-    std::vector<float> packed(19 * std::size_t(n), 0);
+    std::vector<float> packed(20 * std::size_t(n), 0);
     const auto put = [&](int slot, Index c, double value) {packed[std::size_t(slot) * n + c] = float(value);};
     for (Index c = 0; c < n; ++c) {
       Vec3d g, h, delta;
@@ -257,7 +257,7 @@ struct CoupledSolver::Impl {
       level.rows = upload(row_ptr); level.cols = upload(cols); level.diag = upload(diag);
       level.a = alloc<float>(cols.size()); level.c = alloc<float>(cols.size());
       level.g = alloc<float>(3 * cols.size()); level.h = alloc<float>(3 * cols.size());
-      level.d = alloc<float>(3 * std::size_t(count));
+      level.d = alloc<float>(4 * std::size_t(count));
       for (auto* v : {&level.x, &level.b, &level.r, &level.tmp}) *v = alloc<float>(4 * std::size_t(count));
       levels.push_back(std::move(level));
       graph = std::move(coarse);
@@ -342,6 +342,11 @@ struct CoupledSolver::Impl {
       kern::coupled_galerkin_coarse(dev, l.n, tr.member_offsets, tr.members, tr.aggregate,
           f.rows, f.cols, f.diag, f.a, f.c, f.g, f.h, f.d,
           l.rows, l.cols, l.diag, l.a, l.c, l.g, l.h, l.d, f.n, f.nnz, l.n, l.nnz);
+    }
+    // Smoother Schur bounds; tmp is free until the first sweep.
+    for (auto& l : levels) {
+      kern::coupled_coarse_gsum(dev, l.n, l.rows, l.g, l.tmp, l.n, l.nnz);
+      kern::coupled_coarse_schur(dev, l.n, l.rows, l.cols, l.diag, l.h, l.tmp, l.d, l.n, l.nnz);
     }
   }
 
@@ -450,6 +455,11 @@ SolveStats CoupledSolver::solve(const CoupledResiduals& in, const SolveControl& 
       s.stencil.diffusion, m.volume, in.physical_diagonal, s.coefficient, m.n_internal_faces, float(wc * wc));
   kern::coupled_rhs(s.dev, s.n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, s.coefficient, in.mass,
       in.u, in.v, in.w, s.cell, s.b, s.n, s.reference, float(wc / in.density));
+  // Smoother Schur bound; fine_tmp is free until the first sweep.
+  kern::coupled_fine_gsum(s.dev, s.n, m.cell_face_offsets, s.stencil.adjacent, m.cell_faces, m.cell_face_sign,
+      m.area.x, m.area.y, m.area.z, s.lsq.rows().x, s.lsq.rows().y, s.lsq.rows().z, s.cell, s.fine_tmp, s.n, float(wc));
+  kern::coupled_fine_schur(s.dev, s.n, m.cell_face_offsets, s.stencil.adjacent, m.cell_faces,
+      m.area.x, m.area.y, m.area.z, s.fine_tmp, s.cell, s.n, float(wc));
   s.galerkin();
   return s.bicgstab(control);
 }

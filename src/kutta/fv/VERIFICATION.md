@@ -736,7 +736,10 @@ Other consequential case settings:
   relaxation (momentum/pressure .5) and implicit k/omega .75. It solves the
   SIMPLEC residual in delta form, so only the convergence path differs; the
   SIMPLEC override reproduces the earlier substitution. Conservative automatic
-  global pseudo-time uses scale 1. Evidence: `validation/results/coupled/REPORT.md`.
+  global pseudo-time uses scale 1 and, for Coupled, Fluent's mean cell speed
+  (TG 23-103): 0.0426537 s at the saved state against the case's saved
+  `pseudo-auto-time-step` 0.0426536 s. Evidence: `validation/results/coupled/REPORT.md`,
+  `validation/results/coupled_convergence/REPORT.md`.
   Rhie-Chow uses the trace/3 of physical component momentum diagonals, including
   wall drag and excluding relaxation/pseudo-time. The scalar trace choice is
   rotationally invariant; exact equivalence to Fluent's undocumented high-order
@@ -1219,7 +1222,7 @@ The following raw L1 defects compare directly with Fluent's raw column. Final va
 | cpu | continuity | 2.4758841e-06 | 0.0020682484 → 0.00076560919 | 0.00094713093 | first-five scales differ by run | 0.29287807 (Fluent saved scale) |
 | metal | continuity | 2.4758841e-06 | 0.0020682484 → 0.0007656092 | 0.00094713093 | first-five scales differ by run | 0.29287807 (Fluent saved scale) |
 
-Final Kutta normalization denominators (CPU; Metal agrees to shown precision) are 1.797622959 / 1.797749829 / 1.810004303 for momentum, 0.00513915321 for k and 95.26775816 for omega. Kutta automatic pseudo time is 0.02452421188 s at the saved state; Fluent saved 0.04265362362 s. Consequently these denominators are not claimed to reproduce Fluent's normalization numbers: the formulas match, but the pseudo time, flux and viscosity differ. Continuity in the last column alone uses Fluent's recorded scale 0.002614088497 kg/s. Energy is decoupled and unsolved.
+Final Kutta normalization denominators (CPU; Metal agrees to shown precision) are 1.797622959 / 1.797749829 / 1.810004303 for momentum, 0.00513915321 for k and 95.26775816 for omega. Kutta automatic pseudo time is 0.02452421188 s at the saved state; Fluent saved 0.04265362362 s. (Superseded for Coupled: its automatic step now uses Fluent's mean cell speed and is 0.0426537171 s at the saved state; see `validation/results/coupled_convergence/REPORT.md`. The table above predates that change.) Consequently these denominators are not claimed to reproduce Fluent's normalization numbers: the formulas match, but the pseudo time, flux and viscosity differ. Continuity in the last column alone uses Fluent's recorded scale 0.002614088497 kg/s. Energy is decoupled and unsolved.
 
 Reweighting only the pseudo-time contribution to Fluent's saved 0.04265362362 s,
 using the saved rho, volumes and velocity magnitude, gives momentum denominators

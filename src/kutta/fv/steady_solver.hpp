@@ -122,8 +122,9 @@ struct SolverSettings {
   PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
   GradientScheme gradient=GradientScheme::LeastSquares;
   double pseudo_time_scale=1;
-  // Zero selects the conservative global automatic time scale, updated only
-  // at monitor intervals (where speed reductions are already permitted).
+  // Zero selects the conservative global automatic time step, refreshed every
+  // iteration from the current flow. Its velocity scale is the mean cell
+  // speed for Coupled (Fluent TG 23-103) and the maximum for SIMPLE/SIMPLEC.
   double pseudo_time_step=0;
   SolveControl momentum_linear{1e-2,1e-10,100};
   SolveControl pressure_linear{1e-3,1e-12,300};

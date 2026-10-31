@@ -28,17 +28,23 @@ int main(int argc,char** argv) {
     KUTTA_REQUIRE(level>=0 && level<=2 && iterations>0,"invalid level/iteration count");
     auto dev=Device::create(backend=="cpu"?Backend::Cpu:backend=="metal"?Backend::Metal:Backend::Cuda);
     PolyMesh mesh;std::vector<PatchCondition> bc;SolverSettings s;std::optional<setup::Initialization> initialization;
-    const bool plate=name=="plate",channel=name=="channel",elbow=name=="elbow";
+    // Fluent cases: the V6 elbow and the SST nozzle, each against its saved run.
+    const bool plate=name=="plate",channel=name=="channel",nozzle=name=="nozzle",elbow=name=="elbow" || nozzle;
     KUTTA_REQUIRE(plate || name=="bump" || channel || elbow,"invalid case");
-    KUTTA_REQUIRE(!(channel || elbow) || model=="sst","channel/elbow require SST");
+    KUTTA_REQUIRE(!(channel || elbow) || model=="sst","channel/elbow/nozzle require SST");
+    double continuity_target=0;
     const auto c=plate?Case::FlatPlate:Case::Bump;
     if(channel) {
       mesh=bench::sst_channel(integer("--nx",24,2),integer("--ny",8,2),integer("--nz",4));
       bc=bench::channel_boundaries(mesh);s=bench::channel_settings();s.viscosity=number("--viscosity",.0001);
     } else if(elbow) {
       const auto* fixtures=std::getenv("KUTTA_FLUENT_EXAMPLES");
-      const auto path=str("--fixture",fixtures?fixtures:"validation/fluent_examples")+"/mixing_elbow/mixing_elbow.cas.h5";
-      auto fluent=fluent::read_case(path);mesh=read_fluent_cff(path);
+      const auto stem=str("--fixture",fixtures?fixtures:"validation/fluent_examples")+
+        (nozzle?"/flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1":"/mixing_elbow/mixing_elbow");
+      const auto path=stem+".cas.h5";
+      auto fluent=fluent::read_case(path);mesh=read_mesh(path);
+      // V6's criterion: the saved run's final raw continuity.
+      continuity_target=fluent::read_data(stem+".dat.h5",fluent).residuals.at("continuity").rows.back()[0];
       auto problem=setup::fluent_setup(fluent,mesh,setup::parse_approximations("wfgc"));
       std::cout<<"DIAGNOSTIC "<<setup::approximation_notice(problem.approximations)<<std::endl;
       for(const auto& note:problem.convergence_notes) std::cout<<"CONVERGENCE_NOTE "<<note<<std::endl;
@@ -80,7 +86,7 @@ int main(int argc,char** argv) {
     using Clock=std::chrono::steady_clock;dev->synchronize();const auto start=Clock::now();
     std::cout<<std::setprecision(12)<<"CASE source="<<KUTTA_BENCH_COMMIT<<" name="<<name<<" model="<<model<<" backend="<<backend<<" cells="<<n<<" dt="<<s.pseudo_time_step<<" momentum_relaxation="<<s.momentum_relaxation<<" pressure_relaxation="<<s.pressure_relaxation
       <<" scheme="<<(s.coupling==PressureVelocityCoupling::Coupled?"coupled":"simplec")
-      <<" coupled_bytes_per_cell="<<double(solver.coupled_solver_bytes())/n<<std::endl;
+      <<" coupled_bytes_per_cell="<<double(solver.coupled_solver_bytes())/n<<" continuity_target="<<continuity_target<<std::endl;
     std::deque<std::pair<int,Sample>> window;bool converged=false;
     while(solver.report().iteration<iterations) {
       try {solver.iterate(std::min(interval,iterations-solver.report().iteration));}
@@ -100,7 +106,7 @@ int main(int argc,char** argv) {
       const double d=std::max({r.u.scaled,r.v.scaled,r.w.scaled,r.k.scaled,r.omega.scaled,r.nu_tilde.scaled,r.continuity.scaled});
       // V6's recorded raw mass target and steady transport criterion differ
       // from the TMR gates. WFGC remains an explicitly allowed diagnostic.
-      converged=elbow?(std::max({r.u.scaled,r.v.scaled,r.w.scaled,r.k.scaled,r.omega.scaled})<1e-6 && r.continuity.raw<2.475884062e-6):
+      converged=elbow?(std::max({r.u.scaled,r.v.scaled,r.w.scaled,r.k.scaled,r.omega.scaled})<1e-6 && r.continuity.raw<continuity_target):
         (has_window && d<=1e-5 && delta<=.001);
       std::cout<<"STEP it="<<r.iteration<<" seconds="<<std::chrono::duration<double>(Clock::now()-start).count()<<" defect="<<d<<" continuity="<<r.continuity.scaled<<" raw="<<r.continuity.raw<<" scale="<<r.continuity.fluent_normalization<<" corrected="<<r.corrected_mass_imbalance<<" u="<<r.u.scaled<<" v="<<r.v.scaled<<" k="<<r.k.scaled<<" omega="<<r.omega.scaled<<" sa="<<r.nu_tilde.scaled<<" change="<<delta<<" step_change="<<step_change<<" drag="<<value.drag<<" cf0="<<value.cf[0]<<" cf1="<<value.cf[1]<<" cf2="<<value.cf[2]<<" inner_u="<<r.momentum[0].iterations<<" inner_sa="<<r.turbulence[0].iterations<<" inner_p="<<r.pressure.iterations<<" p_ratio="<<r.pressure.final_residual/std::max(r.pressure.initial_residual,1e-30)<<" converged="<<converged<<std::endl;
       if(converged) break;
