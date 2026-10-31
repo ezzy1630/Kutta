@@ -139,6 +139,10 @@ endif()
 file(GLOB KUTTA_BENCH_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/bench/*.cpp)
 foreach(src ${KUTTA_BENCH_SOURCES})
   get_filename_component(name ${src} NAME_WE)
+  # The memory probe reads POSIX rusage and backtraces; it measures Mac and Linux.
+  if(WIN32 AND name STREQUAL "bench_memory")
+    continue()
+  endif()
   add_executable(${name} ${src})
   target_link_libraries(${name} PRIVATE kutta)
   execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

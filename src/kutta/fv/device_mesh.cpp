@@ -161,11 +161,13 @@ DeviceMesh upload_mesh(Device& dev, const PolyMesh& mesh, const MeshGeometry& g)
   const auto cells = std::size_t(m.n_cells);
   const auto workers = std::clamp<std::size_t>(std::thread::hardware_concurrency(), 1, cells / 4096 + 1);
   {
-    std::vector<std::jthread> threads;
+    // std::thread, not jthread: the CI macOS libc++ lacks jthread.
+    std::vector<std::thread> threads;
     for (std::size_t t = 0; t < workers; ++t)
       threads.emplace_back([&, begin = cells * t / workers, end = cells * (t + 1) / workers] {
         for (auto c = begin; c < end; ++c) distance[c] = float(walls.distance(g.cell_centroid[c]));
       });
+    for (auto& t : threads) t.join();
   }
   for (const auto& p : mesh.patches) {
     m.patches.push_back({p.name, p.kind, p.start, p.size});

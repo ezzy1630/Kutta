@@ -10,6 +10,8 @@ fixture tests elsewhere silently skip. Build paths from KUTTA_SOURCE_DIR. In any
 tracked text (docs, logs, results) they also publish the author's local layout
 from this public repository; write <checkout> instead.
 
+std::jthread is likewise missing from that libc++; use std::thread and join.
+
 HDF5 takes char* file names and expects UTF-8; path::c_str() is wchar_t on
 Windows and path::string() uses the ANSI code page there. Use kutta::utf8_path.
 """
@@ -24,6 +26,7 @@ SOURCE_DIRS = ("src", "tests", "bench", "tools")
 SUFFIXES = {".cpp", ".hpp", ".h", ".cu", ".mm"}
 # Third argument of from_chars(first, last, value[, base_or_format]).
 CALL = re.compile(r"from_chars\s*\([^;]*?,[^;]*?,\s*(\w+)\s*[,)]")
+JTHREAD = re.compile(r"\bstd::jthread\b")
 H5_FILE = re.compile(r"\bH5F(?:open|create|is_accessible)\s*\(\s*(?!kutta::utf8_path\()")
 # Generic placeholder accounts (upstream docs, CI runners) reveal nothing.
 ANY_HOME = re.compile(r"(?:/Users|/home)/(?!(?:user|username|runner)/)[A-Za-z0-9._-]+/"
@@ -61,6 +64,9 @@ def main() -> int:
             for m in H5_FILE.finditer(text) if path.suffix != ".py" else ():
                 line = text.count("\n", 0, m.start()) + 1
                 bad.append(f"{path.relative_to(ROOT)}:{line}: HDF5 file name must be kutta::utf8_path(...)")
+            for m in JTHREAD.finditer(text) if path.suffix != ".py" else ():
+                line = text.count("\n", 0, m.start()) + 1
+                bad.append(f"{path.relative_to(ROOT)}:{line}: std::jthread is missing from macOS CI libc++; use std::thread")
             if path.suffix == ".py" or path.name == "parse.cpp":
                 continue
             for m in CALL.finditer(text):
