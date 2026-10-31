@@ -85,4 +85,11 @@ struct MeshGeometry {
 
 MeshGeometry compute_geometry(const PolyMesh& mesh);
 
+// One face's centroid and area vector, the same doubles compute_geometry
+// stores, without geometry for the rest of the mesh.
+struct FaceGeometry {
+  Vec3d centroid, area;
+};
+FaceGeometry face_geometry(const PolyMesh& mesh, Index face);
+
 }  // namespace kutta

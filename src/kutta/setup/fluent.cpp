@@ -381,9 +381,10 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
         velocity=direction*(scalar(z.velocity_magnitude,prefix+"vmag")/norm(direction));
       } else {
         require(z.velocity_spec==VelocitySpec::normal,prefix+"velocity-spec");
-        const auto geom=compute_geometry(mesh);const auto normal=geom.face_area[patch.start]/norm(geom.face_area[patch.start]);
+        const auto area=[&](Index f) {return face_geometry(mesh,f).area;};
+        const auto normal=area(patch.start)/norm(area(patch.start));
         for(Index f=patch.start;f<patch.start+patch.size;++f)
-          require(norm(geom.face_area[f]/norm(geom.face_area[f])-normal)<1e-6,prefix+"normal velocity on nonplanar patch");
+          require(norm(area(f)/norm(area(f))-normal)<1e-6,prefix+"normal velocity on nonplanar patch");
         velocity=normal*(-scalar(z.velocity_magnitude,prefix+"vmag"));
       }
       out.boundaries.push_back({patch.name,VelocityInlet{velocity,turbulence(z)}});
@@ -419,7 +420,7 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
         require(z.mass_flow_spec==0 || z.mass_flow_spec==1,prefix+"flow-spec","only uniform mass-flow rate or uniform mass flux are implemented");
         double rate=0;
         if(z.mass_flow_spec==0) rate=scalar(z.mass_flow,prefix+"mass-flow");
-        else {const auto geometry=compute_geometry(mesh);double area=0;for(Index f=patch.start;f<patch.start+patch.size;++f) area+=norm(geometry.face_area[f]);rate=area*scalar(z.mass_flux,prefix+"mass-flux");}
+        else {double area=0;for(Index f=patch.start;f<patch.start+patch.size;++f) area+=norm(face_geometry(mesh,f).area);rate=area*scalar(z.mass_flux,prefix+"mass-flux");}
         require(rate>=0,prefix+"mass-flow","negative mass-flow inlet is unsupported");
         out.boundaries.push_back({patch.name,MassFlowInlet{rate,direction,turbulence(z)}});
       }
