@@ -46,6 +46,10 @@ for name, status in [("tiny", "supported"), ("wfgc", "approximate"), ("unsupport
         [issue] = [i for i in summary["support"]["issues"] if i["class"] == "approximable"]
         assert issue["approximation"] == "wfgc" and "3.366748%" in issue["explanation"]
         assert "not isolated WFGC error" in issue["explanation"] and issue["evidence"]
+        # The measured effect alone, for the app; the explanation still ends with it.
+        assert "3.366748%" in issue["measured_effect"] and issue["explanation"].endswith(issue["measured_effect"] + ".")
+    for issue in summary["support"]["issues"]:
+        assert ("measured_effect" in issue) == (issue["class"] == "approximable")
     if name == "unsupported":
         assert {"curvature-correction?", "pseudo-time-step", "omega/default", "sst-pk-factor"} <= {i["setting"] for i in summary["support"]["issues"]}
 seed = json.loads(command("inspect", root / "tiny.cas.h5", "--data", root / "tiny.dat.h5", "--json").stdout)

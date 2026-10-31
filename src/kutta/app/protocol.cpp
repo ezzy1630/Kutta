@@ -37,6 +37,7 @@ Issue describe(const SettingIssue& i) {
     {"recon/node", "Gradient reconstruction", "Fluent selects node-based gradient reconstruction. Kutta's Fluent adapter implements cell-based gradients only; a different reconstruction changes transport fluxes."},
     {"recon/lim", "Gradient limiter", "Fluent limits reconstructed values before evaluating face fluxes. Kutta implements the standard face-based limiter without filtering; other limiter settings alter the discrete transport equations."},
     {"pressure/scheme", "Pressure interpolation", "Fluent selects the pressure interpolation at faces. Kutta implements standard and second-order pressure; PRESTO, linear and body-force-weighted interpolation are not implemented."},
+    {"flow/scheme", "Pressure-velocity coupling", "Fluent selects SIMPLE, SIMPLEC, Coupled or PISO. Kutta runs SIMPLE, SIMPLEC and its pseudo-transient Coupled solver natively; PISO is not implemented."},
     {"/scheme", "Discretization scheme", "Fluent selects the face interpolation for this equation. Kutta's transport adapter implements first- and second-order upwind only; other schemes change numerical diffusion and the solution."},
     {"pseudo", "Pseudo-transient controls", "Fluent uses these controls to converge a steady solution. Kutta adapts global pseudo-time stepping and the classic relaxation-only iteration; local or other pseudo-time formulations are unavailable."},
     {"relax", "Equation relaxation", "Fluent damps iterative updates using this factor. Kutta uses the factors of the active formulation (pseudo-time or classic); missing or incompatible controls cannot be replaced by guessed defaults."},
@@ -98,7 +99,7 @@ std::vector<Issue> support_issues(const FluentCase& c,const PolyMesh& mesh,bool 
   for(const auto id:used) {
     const auto& a=setup::approximation_info(id);
     out.push_back({std::string(a.setting),std::string(a.label),"approximable",std::string(a.name),
-      std::string(a.explanation)+" "+std::string(a.measured_effect)+".",std::string(a.effect_documentation)});
+      std::string(a.explanation)+" "+std::string(a.measured_effect)+".",std::string(a.effect_documentation),std::string(a.measured_effect)});
   }
   return out;
 }
@@ -110,6 +111,7 @@ void write_issues(std::ostream& s,std::span<const Issue> issues) {
       <<",\"explanation\":"<<json_string(i.explanation);
     if(!i.approximation.empty())s<<",\"approximation\":"<<json_string(i.approximation);
     if(!i.evidence.empty())s<<",\"evidence\":"<<json_string(i.evidence);
+    if(!i.measured_effect.empty())s<<",\"measured_effect\":"<<json_string(i.measured_effect);
     s<<'}';
   }
   s<<']';

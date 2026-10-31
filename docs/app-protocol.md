@@ -38,6 +38,9 @@ Human-readable output without `--json` / `--progress` is unchanged.
 
 `class` is `unsupported` (blocks a run), `approximable` (runs only when the
 user opts in with `--approximate <approximation>`) or `informational`.
+Approximable issues also carry `measured_effect` (v1 additive): the measured
+effect alone, as `summary.json` records it per approximation. Their
+`explanation` still ends with it, so older readers lose nothing.
 
 ## Progress events (`solve --progress jsonl`)
 
@@ -149,7 +152,21 @@ points down; its sign and reference scaling are preserved.
 of Fluent's SIMPLE, SIMPLEC and Coupled schemes runs natively; PISO is rejected.
 `methods/pressure-velocity-coupling` switches between the three; Coupled needs
 the pseudo-transient formulation, and a saved Coupled case without it runs
-SIMPLEC with a convergence-path note.
+SIMPLEC with a convergence-path note. Its `options` therefore omit `coupled`
+for a case without pseudo time unless the case was saved with Coupled.
+
+The Methods group (v1 additive) follows Fluent's Methods panel. Every case
+lists `methods/momentum-scheme`, `k-scheme`, `omega-scheme` and
+`epsilon-scheme`; a scheme is `active` only when the case's viscous model
+solves that equation (k and omega for k-omega models, k and epsilon for
+k-epsilon models, momentum only for laminar), and only active saved schemes
+are editable. Read-only entries describe the rest of the panel:
+`methods/gradient` (`least-squares-cell-based`, `green-gauss-cell-based` or
+`green-gauss-node-based`, labelled "Least Squares Cell Based", "Green-Gauss
+Cell Based", "Green-Gauss Node Based"), `methods/pressure-scheme` (`standard`
+or `second-order`; other saved schemes keep their Fluent name and are
+unsupported) and `methods/pseudo-transient` (bool, whether the steady case
+uses the pseudo-transient formulation).
 
 On valid runs `setup` is the first event, followed by warnings and iterations;
 `done` is last and means outputs are closed. Rejected/setup-failed runs may emit
@@ -224,9 +241,8 @@ active inlet speed/components/direction, inlet/outlet turbulence values and
 turbulence specification (k-omega models), outlet gauge pressure, active
 constant material density/viscosity, reference area/density/speed/pressure and
 length (length scales moment coefficients in `kutta aero`),
-implemented momentum/k/omega upwind schemes, gradient limiting, the
-pressure-velocity coupling (`methods/pressure-velocity-coupling`, options
-`simplec` and `coupled`), pseudo-time
+implemented momentum/k/omega/epsilon upwind schemes, gradient limiting, the
+pressure-velocity coupling (`methods/pressure-velocity-coupling`, below), pseudo-time
 scale and active equation relaxation, standard numeric initialization values
 when not seeded, force-report directions, and run iteration and monitor
 intervals, and the convergence controls under `monitors/` (below). Changing the
@@ -240,7 +256,10 @@ current method), so switching never runs on a guessed value. Turbulence values
 a method of the case's model can use stay editable while inactive, so the app
 can switch method and set its values in one setup file; an override of an
 inactive value is accepted and has no effect, as Fluent keeps such values.
-Values no method of the model reads (epsilon for k-omega) are read-only.
+Values no method of the model reads (epsilon for k-omega) are read-only. A
+laminar case reads no turbulence inputs: its saved turbulence specification
+and values, and its k and dissipation relaxation entries, are inactive and
+read-only.
 
 ```sh
 kutta solve case.cas.h5 --setup setup.json --out run --progress jsonl

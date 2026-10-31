@@ -143,6 +143,8 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   for(auto& z:c.cell_zones){const auto prefix="cell-zone/"+segment(z.name)+"/";b.add(prefix+"type","Zone type","Cell Zone Conditions",z.fluent_type,"","enum").value_label=z.fluent_type;b.raw(z.raw,prefix+"raw/","Cell Zone Conditions");}
   const bool omega_model=c.viscous.model==ViscousModel::kw_sst || c.viscous.model==ViscousModel::kw_bsl || c.viscous.model==ViscousModel::kw_standard;
   const bool epsilon_model=c.viscous.model==ViscousModel::ke_standard || c.viscous.model==ViscousModel::ke_rng || c.viscous.model==ViscousModel::ke_realizable;
+  // Laminar (and one-equation) cases read no two-equation turbulence inputs.
+  const bool two_equation=omega_model || epsilon_model;
   for(auto& z:c.boundaries) {
     const auto prefix="boundary/"+segment(z.name)+"/";
     b.add(prefix+"type","Boundary type","Boundary Conditions",z.fluent_type,"","enum").value_label=z.fluent_type;
@@ -168,7 +170,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     const Json::Array labels{epsilon_model?"K and Epsilon":"K and Omega","Intensity and Length Scale","Intensity and Viscosity Ratio","Intensity and Hydraulic Diameter"};
     const auto saved=[&](const std::string& key){const auto it=z.turbulence.find(key);if(it==z.turbulence.end())return false;const auto n=it->second.constant?it->second.constant:it->second.resolved;return n && std::isfinite(*n);};
     auto& specification=b.add(spec_path,"Turbulence specification method","Boundary Conditions",spec?Json(int(*spec)):Json(nullptr),"","enum");
-    specification.options={0,1,2,3};specification.option_labels=labels;label_value(specification);specification.active=spec.has_value();b.consume(z.raw,"ke-spec");
+    specification.options={0,1,2,3};specification.option_labels=labels;label_value(specification);specification.active=spec.has_value() && two_equation;b.consume(z.raw,"ke-spec");
     if((inlet || outlet) && omega_model && spec) {
       specification.options.clear();specification.option_labels.clear();
       for(int i=0;i<4;++i)if(i==int(*spec) || std::all_of(required[i].begin(),required[i].end(),saved)){specification.options.push_back(i);specification.option_labels.push_back(labels[i]);}
@@ -182,7 +184,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
       std::optional<ScalarValue> wrapped=v;
       auto& s=b.add(prefix+key,it!=known.end()?std::get<0>(it->second):key,"Boundary Conditions",value(wrapped),it!=known.end()?std::get<1>(it->second):"1","number");
       Json::Array when;
-      if(it!=known.end() && (key!="omega" || omega_model) && (key!="epsilon" || epsilon_model))for(auto i:std::get<2>(it->second))when.push_back(i);
+      if(it!=known.end() && two_equation && (key!="omega" || omega_model) && (key!="epsilon" || epsilon_model))for(auto i:std::get<2>(it->second))when.push_back(i);
       if(it!=known.end())b.depends(s,spec_path,when);
       else s.active=false; // e.g. SA nut: its selector mapping is unsupported
       // Inactive values stay editable, so a user can switch method and then
@@ -203,23 +205,47 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   // canonical values above.
   if(const auto* r=c.variables.value("reference-values")){RawSettings nested;nested.alist=*r;for(auto key:{"area","length","density","velocity","pressure","viscosity"})b.consume(nested,key);b.raw(nested,"reference/raw/","Reference Values");}
   b.consume(c.variables,"reference-values");
-  for(auto [path,label,key,target]:std::vector<std::tuple<std::string,std::string,std::string,std::optional<Scheme>*>>{
-      {"momentum-scheme","Momentum","mom/scheme",&c.numerics.momentum},{"k-scheme","Turbulent kinetic energy","k/scheme",&c.numerics.k},{"omega-scheme","Specific dissipation rate","omega/scheme",&c.numerics.omega}}) {
+  // Fluent's Methods panel. Each transport equation's scheme is listed for
+  // every case; only the equations the case's model solves are active, and
+  // only active saved schemes are editable.
+  for(auto [path,label,key,target,active]:std::vector<std::tuple<std::string,std::string,std::string,std::optional<Scheme>*,bool>>{
+      {"momentum-scheme","Momentum","mom/scheme",&c.numerics.momentum,true},{"k-scheme","Turbulent kinetic energy","k/scheme",&c.numerics.k,two_equation},
+      {"omega-scheme","Specific dissipation rate","omega/scheme",&c.numerics.omega,omega_model},{"epsilon-scheme","Turbulent dissipation rate","epsilon/scheme",&c.numerics.epsilon,epsilon_model}}) {
     auto& s=b.add("methods/"+path,label,"Methods",*target?Json(**target==Scheme::first_upwind?"first-order-upwind":**target==Scheme::second_upwind?"second-order-upwind":std::string(name(**target))):Json(nullptr),"","enum");
     s.options={"first-order-upwind","second-order-upwind"};s.option_labels={"First Order Upwind","Second Order Upwind"};if(*target)s.value_label=scheme_label(**target);
-    if(*target)b.editable(s,[target](const Json& j){*target=std::get<std::string>(j.value)=="first-order-upwind"?Scheme::first_upwind:Scheme::second_upwind;});
+    s.active=active;
+    if(*target && active)b.editable(s,[target](const Json& j){*target=std::get<std::string>(j.value)=="first-order-upwind"?Scheme::first_upwind:Scheme::second_upwind;});
+    else if(!active)s.reason="not solved by the case's viscous model";
     b.consume(c.variables,key);
   }
+  {
+    const auto& g=c.numerics.gradient;
+    auto& s=b.add("methods/gradient","Gradient","Methods",g?Json(*g==Gradient::least_squares_cell?"least-squares-cell-based":*g==Gradient::green_gauss_cell?"green-gauss-cell-based":"green-gauss-node-based"):Json(nullptr),"","enum");
+    s.options={"least-squares-cell-based","green-gauss-cell-based","green-gauss-node-based"};s.option_labels={"Least Squares Cell Based","Green-Gauss Cell Based","Green-Gauss Node Based"};label_value(s);
+    b.consume(c.variables,"recon/cell-lsq?");b.consume(c.variables,"recon/node-lsq?");
+  }
+  {
+    const auto& p=c.numerics.pressure;
+    auto& s=b.add("methods/pressure-scheme","Pressure","Methods",p?Json(*p==Scheme::standard_pressure?"standard":*p==Scheme::second_pressure?"second-order":std::string(name(*p))):Json(nullptr),"","enum");
+    s.options={"standard","second-order"};s.option_labels={"Standard","Second Order"};if(p)s.value_label=scheme_label(*p);
+    b.consume(c.variables,"pressure/scheme");
+  }
+  b.add("methods/pseudo-transient","Pseudo-transient formulation","Methods",Json(uses_pseudo_time(c)),"","bool");
+  b.consume(c.variables,"pseudo-transient-formulation?");
   auto& limit=b.add("methods/gradient-limiting","Gradient limiting","Methods",c.numerics.limiting?Json(*c.numerics.limiting):Json(nullptr),"","bool");
   if(c.numerics.limiting)b.editable(limit,[target=&c.numerics.limiting](const Json& j){*target=std::get<bool>(j.value);});
   b.consume(c.variables,"recon/limit?");
   // Fluent's flow/scheme: SIMPLE, SIMPLEC and Coupled each run natively and may
-  // be switched to one another; PISO is rejected by the solve adapter.
+  // be switched to one another; PISO is rejected by the solve adapter. Kutta's
+  // Coupled solver is pseudo-transient, so a case without pseudo time offers
+  // Coupled only when it was saved with it (and then runs SIMPLEC).
   {
     const auto& scheme=c.numerics.run_coupling?c.numerics.run_coupling:c.numerics.coupling;
     const auto id=[](Coupling v) {return v==Coupling::coupled?std::string("coupled"):v==Coupling::simplec?std::string("simplec"):v==Coupling::simple?std::string("simple"):std::string("piso");};
     auto& s=b.add("methods/pressure-velocity-coupling","Pressure-velocity coupling","Methods",scheme?Json(id(*scheme)):Json(nullptr),"","enum");
-    s.options={"simple","simplec","coupled"};s.option_labels={"SIMPLE","SIMPLEC","Coupled"};label_value(s);
+    s.options={"simple","simplec"};s.option_labels={"SIMPLE","SIMPLEC"};
+    if(uses_pseudo_time(c) || c.numerics.coupling==Coupling::coupled){s.options.push_back("coupled");s.option_labels.push_back("Coupled");}
+    label_value(s);
     if(scheme && s.value_label.empty())s.value_label=std::string(name(*scheme));
     if(scheme)b.editable(s,[target=&c.numerics.run_coupling](const Json& j){
       const auto& v=std::get<std::string>(j.value);*target=v=="coupled"?Coupling::coupled:v=="simple"?Coupling::simple:Coupling::simplec;});
@@ -237,6 +263,12 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
       const auto key="pressure-coupled/"+std::string(eq)+"/explicit-relax";const auto* v=c.variables.value(key);
       auto& s=b.add("controls/"+std::string(eq)+"-relaxation",std::string(eq)+" relaxation","Controls",v && v->number()?Json(*v->number()):Json(nullptr),"1","number");
       s.reason="Coupled explicit relaxation is not yet configurable in Kutta";b.consume(c.variables,key);
+      continue;
+    }
+    if(!flow && !two_equation) {
+      // Laminar: no turbulence equation is relaxed.
+      auto& s=b.add("controls/"+std::string(eq)+"-relaxation",std::string(eq)+" relaxation","Controls",Json(nullptr),"1","number");
+      s.active=false;s.reason="not solved by the case's viscous model";
       continue;
     }
     if(!pseudo) {

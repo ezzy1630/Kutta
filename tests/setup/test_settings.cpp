@@ -189,6 +189,13 @@ TEST_CASE("Mixing elbow runs Fluent's Coupled scheme natively and can switch to 
   REQUIRE(it!=settings.end());
   CHECK(it->value==Json("coupled"));CHECK(it->value_label=="Coupled");CHECK(it->editable);
   CHECK(it->options==Json::Array{"simple","simplec","coupled"});
+  std::map<std::string,const kutta::setup::Setting*> by;for(const auto& s:settings)by[s.path]=&s;
+  CHECK(by.at("methods/pseudo-transient")->value==Json(true));CHECK_FALSE(by.at("methods/pseudo-transient")->editable);
+  CHECK(by.at("methods/gradient")->value==Json("least-squares-cell-based"));CHECK(by.at("methods/gradient")->value_label=="Least Squares Cell Based");
+  CHECK(by.at("methods/pressure-scheme")->value_label=="Second Order");CHECK_FALSE(by.at("methods/pressure-scheme")->editable);
+  // SST solves k and omega; the epsilon scheme is listed but unused.
+  CHECK(by.at("methods/omega-scheme")->active);CHECK(by.at("methods/omega-scheme")->editable);
+  CHECK_FALSE(by.at("methods/epsilon-scheme")->active);CHECK_FALSE(by.at("methods/epsilon-scheme")->editable);
   MeshTemp t;
   mesh_text(t.path("simplec.json"),"{\"v\":1,\"overrides\":{\"methods/pressure-velocity-coupling\":\"simplec\"}}");
   CHECK(kutta::setup::apply_setup(t.path("simplec.json"),settings).size()==1);
@@ -200,6 +207,57 @@ TEST_CASE("Mixing elbow runs Fluent's Coupled scheme natively and can switch to 
   mesh_text(t.path("simple.json"),"{\"v\":1,\"overrides\":{\"methods/pressure-velocity-coupling\":\"simple\"}}");
   CHECK(kutta::setup::apply_setup(t.path("simple.json"),settings).size()==1);
   CHECK(kutta::setup::fluent_setup(c,mesh,wfgc).settings.coupling==kutta::fv::PressureVelocityCoupling::Simple);
+#else
+  MESSAGE("SKIP: HDF5 disabled");
+#endif
+}
+TEST_CASE("Methods settings follow the case's model, gradient and pseudo-time formulation") {
+#if KUTTA_HAS_HDF5
+  using kutta::Json;
+  const auto param=fluent_examples()/"mixing_elbow/elbow_param.cas.h5";
+  const auto cylinder=fluent_examples()/"adjoint_cylinder_tutorial/cylinder_tutorial.cas";
+  if(!std::filesystem::exists(param) || !std::filesystem::exists(cylinder)){MESSAGE("SKIP: optional Fluent elbow_param or cylinder absent");return;}
+  const auto index=[](const std::vector<kutta::setup::Setting>& settings) {
+    std::map<std::string,const kutta::setup::Setting*> by;for(const auto& s:settings)by[s.path]=&s;return by;
+  };
+  {
+    // Standard k-epsilon, SIMPLE without pseudo time: Coupled is not offered,
+    // and the epsilon scheme is the solved dissipation equation's.
+    auto c=kutta::fluent::read_case(param);kutta::setup::RunControls run;
+    const auto settings=kutta::setup::settings_inventory(c,run);const auto by=index(settings);
+    const auto& coupling=*by.at("methods/pressure-velocity-coupling");
+    CHECK(coupling.value==Json("simple"));CHECK(coupling.options==Json::Array{"simple","simplec"});CHECK(coupling.option_labels.size()==2);
+    CHECK(by.at("methods/pseudo-transient")->value==Json(false));
+    CHECK(by.at("methods/pressure-scheme")->value==Json("standard"));
+    CHECK(by.at("methods/epsilon-scheme")->active);CHECK(by.at("methods/epsilon-scheme")->editable);
+    CHECK(by.at("methods/epsilon-scheme")->value==Json("first-order-upwind"));
+    CHECK_FALSE(by.at("methods/omega-scheme")->active);CHECK(by.at("methods/k-scheme")->active);
+    MeshTemp t;
+    mesh_text(t.path("coupled.json"),"{\"v\":1,\"overrides\":{\"methods/pressure-velocity-coupling\":\"coupled\"}}");
+    CHECK_THROWS_AS(kutta::setup::apply_setup(t.path("coupled.json"),settings),kutta::setup::RejectedSettings);
+    mesh_text(t.path("epsilon.json"),"{\"v\":1,\"overrides\":{\"methods/epsilon-scheme\":\"second-order-upwind\"}}");
+    CHECK(kutta::setup::apply_setup(t.path("epsilon.json"),settings).size()==1);
+    CHECK(c.numerics.epsilon==kutta::fluent::Scheme::second_upwind);
+  }
+  {
+    // 2D laminar, Green-Gauss cell based, saved Coupled without pseudo time
+    // (which runs SIMPLEC): no turbulence scheme is active.
+    auto c=kutta::fluent::read_case(cylinder);kutta::setup::RunControls run;
+    const auto settings=kutta::setup::settings_inventory(c,run);const auto by=index(settings);
+    CHECK(by.at("general/dimension")->value==Json(2));
+    CHECK(by.at("methods/gradient")->value==Json("green-gauss-cell-based"));CHECK(by.at("methods/gradient")->value_label=="Green-Gauss Cell Based");
+    CHECK(by.at("methods/pressure-velocity-coupling")->value==Json("coupled"));
+    CHECK(by.at("methods/pressure-velocity-coupling")->options==Json::Array{"simple","simplec","coupled"});
+    CHECK(by.at("methods/pseudo-transient")->value==Json(false));
+    for(auto p:{"methods/k-scheme","methods/omega-scheme","methods/epsilon-scheme"}){CAPTURE(p);CHECK_FALSE(by.at(p)->active);CHECK_FALSE(by.at(p)->editable);}
+    CHECK(by.at("methods/momentum-scheme")->active);
+    // Its inlet's saved turbulence inputs are unused and cannot be changed.
+    CHECK_FALSE(by.at("boundary/inlet/turbulence-specification")->active);
+    for(auto p:{"boundary/inlet/k","boundary/inlet/turb-intensity"}){CAPTURE(p);CHECK_FALSE(by.at(p)->active);CHECK_FALSE(by.at(p)->editable);}
+    CHECK(by.at("boundary/inlet/velocity-magnitude")->editable);
+    CHECK_FALSE(by.at("controls/k-relaxation")->active);CHECK_FALSE(by.at("controls/omega-relaxation")->active);
+    CHECK(by.at("controls/mom-relaxation")->active);
+  }
 #else
   MESSAGE("SKIP: HDF5 disabled");
 #endif
