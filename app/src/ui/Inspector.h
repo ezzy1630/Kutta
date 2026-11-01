@@ -24,6 +24,8 @@ struct InspectorContext {
     std::function<void(const QString& filter)> showSettings;  // All Case Settings, filtered
     std::function<void()> openDialog;                          // File ▸ Open Case…
     std::function<void(const QString& casePath)> openPath;
+    std::function<void()> newCaseDialog;                       // File ▸ New Case from Mesh…
+    std::function<void()> createCaseDialog;                    // where to write the new case
     QStringList samples;                                       // sample cases the CLI can serve
     std::function<void()> refresh;                             // rebuild the current page
     std::function<QString()> current;                          // the current page's id
@@ -86,6 +88,8 @@ QWidget* studies(const InspectorContext& c);
 QWidget* compare(const InspectorContext& c);
 QWidget* allSettings(const InspectorContext& c, const QString& filter);
 QWidget* noCase(const InspectorContext& c, const QString& title);
+// File ▸ New Case from Mesh (NewCasePage.cpp).
+QWidget* newCase(const InspectorContext& c);
 // Where the live or last run stands against its convergence criteria.
 QWidget* convergenceStatus(const InspectorContext& c);
 } // namespace pages

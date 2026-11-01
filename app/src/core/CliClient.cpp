@@ -286,6 +286,35 @@ void CliClient::aero(const QString& runDir, const QString& specFile, std::functi
     });
 }
 
+void CliClient::newCase(const NewCaseRequest& req, std::function<void(Result<NewCaseDraft>)> done)
+{
+    QStringList args{"new-case", req.meshPath, "--json"};
+    if (req.speed > 0) args << "--speed" << QString::number(req.speed, 'g', 17);
+    for (auto it = req.roles.begin(); it != req.roles.end(); ++it) args << "--role" << it.key() + "=" + it.value();
+    if (!req.out.isEmpty()) args << "--out" << req.out << "--force";
+    run(args, [done](int code, const QByteArray& out, const QByteArray& err) {
+        // Exit 2 is a usage error: a CLI from before new-case.
+        if (code == 2 && !out.contains("\"event\"")) return done(Result<NewCaseDraft>::failure("this kutta CLI cannot set up a case from a mesh (no new-case)"));
+        if (code != 0) return done(Result<NewCaseDraft>::failure(failureText(code, out, err)));
+        auto obj = jsonObject(out);
+        if (!obj) return done(Result<NewCaseDraft>::failure(obj.error()));
+        done(parseNewCase(obj.value()));
+    });
+}
+
+void CliClient::convert(const QString& casePath, const QString& setupFile, const QString& out, std::function<void(Result<ConvertResult>)> done)
+{
+    QStringList args{"convert", casePath, "--out", out, "--force", "--json"};
+    if (!setupFile.isEmpty()) args << "--setup" << setupFile;
+    run(args, [done](int code, const QByteArray& stdoutText, const QByteArray& err) {
+        if (code == 2 && !stdoutText.contains("\"event\"")) return done(Result<ConvertResult>::failure("this kutta CLI cannot save Kutta cases (no convert)"));
+        if (code != 0) return done(Result<ConvertResult>::failure(failureText(code, stdoutText, err)));
+        auto obj = jsonObject(stdoutText);
+        if (!obj) return done(Result<ConvertResult>::failure(obj.error()));
+        done(parseConvert(obj.value()));
+    });
+}
+
 SolveProcess* CliClient::solve(const SolveRequest& req, QObject* parent)
 {
     auto* s = new SolveProcess(m_info, req, parent);

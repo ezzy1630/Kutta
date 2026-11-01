@@ -64,6 +64,29 @@ unless `--cli` or `KUTTA_CLI` names a solver. The fixture can fail a run on
 request (`KUTTA_FIXTURE_FAIL_AT=N`, with `KUTTA_FIXTURE_FAIL_MESSAGE` for an
 error event, or none for a crash); `car-failed` uses it.
 
+`new-case`, `new-case-run` and `new-case-save` start from a bare mesh (the
+positional argument, else the fixture's NACA wing mesh): the New Case page
+with a role and the speed changed, the created case after a run, and that case
+saved with a changed reference area and reopened (the save needs the real
+CLI; the fixture refuses to drop setting changes).
+
+## New cases from a mesh, and saving
+
+File ▸ New Case from Mesh reads a mesh (`.msh`, `.msh.h5`, or the mesh of a
+`.cas`) with `kutta new-case --json` and shows its boundary zones, each with
+the role the CLI suggests from its name (inlet, outlet, ground, symmetry
+words, else the mesh's zone type, else a car wall with its aero group) and why.
+Pick a role per zone and the freestream speed; Create Case writes the Kutta
+case (`kutta new-case --out`) and opens it, after which the usual Setup and
+Solution pages edit it and Run solves it ([docs/kutta-case.md](kutta-case.md)).
+
+File ▸ Save Case writes the open case with the current changes as a Kutta
+case (`kutta convert --setup`), in place for a Kutta case and as a new
+`.kutta.json` for a Fluent case (Save as Kutta Case chooses the file). The
+case is reopened from the saved file, so the changes become its own settings.
+A saved case with different settings is a different case: its runs start a
+new history, as a changed `.cas` does.
+
 ## Case types and convergence
 
 The app follows the case's model and dimension as the CLI reports them:
@@ -126,7 +149,8 @@ written is refused before kutta starts.
   and report written by `export-view --post` on the elbow (`app/tests/data/`).
 - `tst_realcli` runs the session against the real CLI when `KUTTA_REAL_CLI`
   and `KUTTA_ELBOW_CASE` are set: full inventory, live run, post-processing
-  with Fluent fields, mass balance, stop. It skips otherwise.
+  with Fluent fields, mass balance, stop, a new case from a bare mesh run and
+  saved with a change, and the elbow saved as a Kutta case. It skips otherwise.
 - `app-screenshot-smoke` (label `gui`): renders scenarios through Metal or
   D3D11 (WARP on GPU-less Windows) and fails when a viewport showing data
   draws nothing. Its default set covers the elbow setup, the synthetic car and

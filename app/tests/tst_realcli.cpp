@@ -6,8 +6,10 @@
 #include "core/SceneData.h"
 #include "core/Session.h"
 
+#include <QDir>
 #include <QFileInfo>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -221,6 +223,94 @@ private slots:
         QCOMPARE(r->status, RunStatus::Stopped);
         QVERIFY(r->iterationsDone >= 20 && r->iterationsDone < 5000);
         QVERIFY(s->history().forces(id));  // outputs were written
+    }
+
+    // File ▸ New Case from Mesh on a bare mesh (every zone exported as a
+    // wall): roles from the names, the case written and run, then saved with
+    // a changed setting, which the reopened case carries as its own.
+    void newCaseFromBareMeshRunsAndSaves()
+    {
+        CliInfo cli;
+        cli.program = m_cli;
+        Session s(cli, m_dir.filePath("data-new"));
+        const QString mesh = m_dir.filePath("box/fsae_box.msh");
+        QDir().mkpath(m_dir.filePath("box"));
+        QFile::remove(mesh);
+        QVERIFY(QFile::copy(QStringLiteral(KUTTA_SOLVER_TEST_DATA "/meshes/fsae_box.msh"), mesh));
+        s.startNewCase(mesh);
+        QTRY_VERIFY_WITH_TIMEOUT(!s.newCaseBusy(), 60000);
+        QVERIFY2(s.newCaseDraft(), qPrintable(s.newCaseError()));
+        QMap<QString, QString> roles;
+        for (const NewCaseZone* z : s.newCaseDraft()->boundaries()) {
+            QCOMPARE(z->meshType, QString("wall"));
+            roles[z->name] = z->role;
+        }
+        QCOMPARE(roles, (QMap<QString, QString>{{"front_wing", "wall"}, {"ground", "moving-ground"}, {"inlet", "velocity-inlet"},
+                                                {"outlet", "pressure-outlet"}, {"side_left", "symmetry"}, {"side_right", "symmetry"},
+                                                {"top", "symmetry"}}));
+        QCOMPARE(s.newCaseDraft()->zone("front_wing")->group, QString("Front wing"));
+        s.setNewCaseSpeed(25);
+        const QString out = m_dir.filePath("box/box.kutta.json");
+        QSignalSpy opened(&s, &Session::caseOpened);
+        s.createNewCase(out);
+        QVERIFY(opened.wait(60000));
+        const CaseSummary& c = s.caseSummary();
+        QVERIFY(c.kuttaCase());
+        QCOMPARE(c.status, SupportStatus::Supported);
+        QCOMPARE(c.zone("inlet")->type, QString("velocity-inlet"));
+        QCOMPARE(s.settings()->value("boundary/inlet/velocity-magnitude").toDouble(), 25.0);
+
+        QCOMPARE(s.settings()->setValue("run/iterations", 20), QString());
+        QSignalSpy finished(&s, &Session::runFinished);
+        const QString id = s.run();
+        QVERIFY(!id.isEmpty());
+        QVERIFY(finished.wait(120000));
+        QCOMPARE(s.history().find(id)->status, RunStatus::Completed);
+        const auto forces = s.history().forces(id);
+        QVERIFY(forces);
+
+        const QString before = c.sha256;
+        QCOMPARE(s.settings()->setValue("reference/area", 0.5), QString());
+        QSignalSpy saved(&s, &Session::caseSaved);
+        s.saveCase(out);
+        QVERIFY(opened.wait(60000));
+        QCOMPARE(saved.count(), 1);
+        QCOMPARE(s.casePath(), out);
+        QCOMPARE(s.settings()->value("reference/area").toDouble(), 0.5);
+        QVERIFY(s.settings()->caseOverrides().isEmpty());
+        QVERIFY(s.caseSummary().sha256 != before);
+        QFile f(out);
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const QJsonObject written = QJsonDocument::fromJson(f.readAll()).object();
+        QCOMPARE(written.value("mesh").toString(), QString("fsae_box.msh"));
+        QCOMPARE(written.value("reference_values").toObject().value("area").toDouble(), 0.5);
+    }
+
+    // File ▸ Save as Kutta Case on a Fluent case: the same zones and the
+    // same approximation the Fluent case needs.
+    void fluentCaseSavesAsKuttaCase()
+    {
+        auto s = open(false);
+        QVERIFY(s);
+        // Boundary zones; the mesh reader keeps no identity for plain interior zones.
+        const auto boundaries = [&s] {
+            QStringList names;
+            for (const Zone& z : s->caseSummary().zones)
+                if (z.type != "interior") names << z.name + ":" + z.type;
+            return names;
+        };
+        const QStringList zones = boundaries();
+        const QStringList approximations = s->caseSummary().approximations();
+        const QString out = m_dir.filePath("elbow/mixing_elbow.kutta.json");
+        QDir().mkpath(QFileInfo(out).absolutePath());
+        QSignalSpy opened(s.get(), &Session::caseOpened);
+        s->saveCase(out);
+        QVERIFY(opened.wait(60000));
+        QVERIFY(s->caseSummary().kuttaCase());
+        QCOMPARE(s->casePath(), out);
+        QCOMPARE(boundaries(), zones);
+        QCOMPARE(s->caseSummary().approximations(), approximations);
+        QCOMPARE(QFileInfo(s->caseSummary().meshFile).canonicalFilePath(), QFileInfo(m_case).canonicalFilePath());
     }
 };
 

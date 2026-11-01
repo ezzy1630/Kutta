@@ -302,7 +302,7 @@ std::vector<SettingDiff> diffRuns(const RunRecord& a, const RunRecord& b, const 
 void RunHistory::setCase(const QString& casePath, const QString& sha)
 {
     QString name = QFileInfo(casePath).fileName();
-    name.remove(QRegularExpression("\\.(cas|dat)(\\.h5)?$"));
+    name.remove(QRegularExpression("\\.(cas|dat)(\\.h5)?$|(\\.kutta)?\\.json$"));
     name.replace(QRegularExpression("[^A-Za-z0-9._-]"), "_");
     const QString key = sha.isEmpty() ? name : name + "-" + sha.left(12);
     m_caseDir = QDir(m_root).filePath(key);

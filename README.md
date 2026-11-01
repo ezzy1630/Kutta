@@ -77,9 +77,24 @@ the current VTU writer has no boundary-face wall shear output.
 Windows CI produces `kutta-windows-rtx.zip` with HDF5/zlib DLLs, license notices
 and [Windows requirements and examples](docs/README-windows.txt).
 
+## Run without a Fluent case
+
+A Kutta case is a mesh plus a small JSON setup that states only what differs
+from Fluent's defaults ([docs/kutta-case.md](docs/kutta-case.md)):
+
+```sh
+./build/kutta new-case car.msh --speed 20 --out car.kutta.json  # zone roles suggested from their names
+./build/kutta solve car.kutta.json --backend metal --out results
+./build/kutta convert old.cas.h5 --out old.kutta.json            # a Fluent case's settings as a Kutta case
+```
+
+The desktop app does the same with File ▸ New Case from Mesh and File ▸ Save
+Case.
+
 ## Docs
 
 - [Architecture and acceptance gates](docs/ARCHITECTURE.md)
+- [Kutta cases: mesh plus JSON setup](docs/kutta-case.md)
 - [Flow solver design](docs/fv-design.md)
 - [Research](docs/research/): Fluent numerics and file formats, SST forensics, verification cases, NVIDIA build path
 

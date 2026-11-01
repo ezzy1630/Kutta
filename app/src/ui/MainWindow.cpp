@@ -18,6 +18,7 @@
 #include <QComboBox>
 #include <QDragEnterEvent>
 #include <QFileDialog>
+#include <QDir>
 #include <QFileInfo>
 #include <QIntValidator>
 #include <QLabel>
@@ -39,7 +40,7 @@ namespace {
 bool isCaseFile(const QString& p)
 {
     const QString n = QFileInfo(p).fileName().toLower();
-    return n.endsWith(".cas.h5") || n.endsWith(".cas") || n.endsWith(".cas.gz");
+    return n.endsWith(".cas.h5") || n.endsWith(".cas") || n.endsWith(".cas.gz") || n.endsWith(".kutta.json");
 }
 
 QToolButton* iconButton(const QString& icon, const QString& name, QWidget* parent)
@@ -250,6 +251,8 @@ void MainWindow::buildDocks()
     InspectorContext& ctx = m_inspector->context();
     ctx.openDialog = [this] { openCaseDialog(); };
     ctx.openPath = [this](const QString& p) { openCase(p); };
+    ctx.newCaseDialog = [this] { newCaseDialog(); };
+    ctx.createCaseDialog = [this] { createCaseDialog(); };
     ctx.samples = m_samples;
     m_inspector->refresh();
 
@@ -307,6 +310,7 @@ void MainWindow::buildMenus()
         const QString dat = QFileDialog::getOpenFileName(this, tr("Fluent data"), QFileInfo(cas).absolutePath(), tr("Fluent data (*.dat.h5 *.dat)"));
         openCase(cas, dat);
     });
+    add(file, tr("New Case from Mesh…"), "plus", QKeySequence::New, [this] { newCaseDialog(); });
     m_recentMenu = file->addMenu(tr("Open Recent"));
     connect(m_recentMenu, &QMenu::aboutToShow, this, [this] {
         m_recentMenu->clear();
@@ -316,6 +320,32 @@ void MainWindow::buildMenus()
             a->setEnabled(QFileInfo::exists(p));
         }
         if (m_recentMenu->isEmpty()) m_recentMenu->addAction(tr("No recent cases"))->setEnabled(false);
+    });
+    file->addSeparator();
+    // A Kutta case saves in place; a Fluent case saves as a new Kutta case.
+    m_saveAction = add(file, tr("Save Case"), "save", QKeySequence::Save, [this] {
+        if (m_session->hasCase() && m_session->caseSummary().kuttaCase()) m_session->saveCase(m_session->casePath());
+        else saveCaseAsDialog();
+    });
+    m_saveAsAction = add(file, tr("Save as Kutta Case…"), {}, QKeySequence(), [this] { saveCaseAsDialog(); });
+    auto updateSave = [this] {
+        const bool open = m_session->hasCase();
+        m_saveAction->setEnabled(open);
+        m_saveAsAction->setEnabled(open);
+        m_saveAction->setToolTip(open && !m_session->caseSummary().kuttaCase() ? tr("A Fluent case is saved as a new Kutta case") : QString());
+    };
+    connect(m_session, &Session::caseOpened, this, updateSave);
+    updateSave();
+    connect(m_session, &Session::saveFailed, this, [this](const QString& message) {
+        statusBar()->showMessage(tr("Could not save the case: %1").arg(message.section('\n', 0, 0)), 8000);
+    });
+    connect(m_session, &Session::caseSaved, this, [this](const QString& path) {
+        statusBar()->showMessage(tr("Saved %1").arg(QFileInfo(path).fileName()), 5000);
+    });
+    connect(m_session, &Session::newCaseChanged, this, [this] {
+        // A mesh being read or a draft to edit: show the New Case page.
+        if ((m_session->newCaseBusy() || m_session->newCaseDraft() || !m_session->newCaseError().isEmpty()) && m_inspector->current() != "new-case")
+            navigate("new-case");
     });
     file->addSeparator();
     add(file, tr("Save Viewport Image…"), "image-down", QKeySequence("Ctrl+Shift+S"), [this] { exportActiveViewport(); });
@@ -490,8 +520,43 @@ void MainWindow::navigate(const QString& id)
 void MainWindow::openCaseDialog()
 {
     QString start = m_session->hasCase() ? QFileInfo(m_session->casePath()).absolutePath() : QString();
-    const QString f = QFileDialog::getOpenFileName(this, tr("Open Fluent case"), start, tr("Fluent case (*.cas.h5 *.cas *.cas.gz);;All files (*)"));
+    const QString f = QFileDialog::getOpenFileName(this, tr("Open case"), start,
+                                                   tr("Cases (*.cas.h5 *.cas *.cas.gz *.kutta.json);;Fluent case (*.cas.h5 *.cas *.cas.gz);;Kutta case (*.kutta.json);;All files (*)"));
     if (!f.isEmpty()) openCase(f);
+}
+
+void MainWindow::newCaseDialog()
+{
+    const QString start = m_session->hasCase() ? QFileInfo(m_session->casePath()).absolutePath() : QString();
+    const QString f = QFileDialog::getOpenFileName(this, tr("New case from mesh"), start,
+                                                   tr("Mesh (*.msh *.msh.h5 *.cas *.cas.h5);;All files (*)"));
+    if (f.isEmpty()) return;
+    navigate("new-case");
+    m_session->startNewCase(f);
+}
+
+void MainWindow::createCaseDialog()
+{
+    const auto& draft = m_session->newCaseDraft();
+    if (!draft) return;
+    QString stem = QFileInfo(draft->meshPath).fileName();
+    for (const char* ext : {".msh.h5", ".msh", ".cas.h5", ".cas"})
+        if (stem.endsWith(QLatin1String(ext))) { stem.chop(int(qstrlen(ext))); break; }
+    const QString suggested = QDir(QFileInfo(draft->meshPath).absolutePath()).filePath(stem + ".kutta.json");
+    QString f = QFileDialog::getSaveFileName(this, tr("Create Kutta case"), suggested, tr("Kutta case (*.kutta.json)"));
+    if (f.isEmpty()) return;
+    if (!f.endsWith(".json")) f += ".kutta.json";
+    m_session->createNewCase(f);
+}
+
+void MainWindow::saveCaseAsDialog()
+{
+    if (!m_session->hasCase()) return;
+    const QString suggested = QDir(QFileInfo(m_session->casePath()).absolutePath()).filePath(m_session->caseName() + ".kutta.json");
+    QString f = QFileDialog::getSaveFileName(this, tr("Save as Kutta case"), suggested, tr("Kutta case (*.kutta.json)"));
+    if (f.isEmpty()) return;
+    if (!f.endsWith(".json")) f += ".kutta.json";
+    m_session->saveCase(f);
 }
 
 void MainWindow::openCase(const QString& path, const QString& data)

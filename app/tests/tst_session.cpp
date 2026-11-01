@@ -364,6 +364,89 @@ private slots:
         QVERIFY(refused.first().first().toString().contains("Could not start the run"));
         QVERIFY(!s->running());
     }
+
+    // File ▸ New Case from Mesh: suggestions, a changed role and speed, the
+    // created Kutta case opened and run, then saved elsewhere and reopened.
+    void newCaseFromMeshCreatesRunsAndSaves()
+    {
+        CliInfo cli;
+        cli.program = QStringLiteral(KUTTA_FIXTURE_CLI);
+        cli.fixture = true;
+        Session s(cli, m_dir.filePath("data-new"));
+        QDir().mkpath(m_dir.filePath("mesh"));
+        const QString mesh = m_dir.filePath("mesh/naca4412_ground.msh");
+        QFile f(mesh);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.close();
+
+        s.startNewCase(mesh);
+        QVERIFY(s.newCaseBusy());
+        QTRY_VERIFY_WITH_TIMEOUT(!s.newCaseBusy(), 20000);
+        QVERIFY2(s.newCaseDraft(), qPrintable(s.newCaseError()));
+        const NewCaseDraft& d = *s.newCaseDraft();
+        QCOMPARE(d.dimension, 2);
+        QMap<QString, QString> suggested;
+        for (const NewCaseZone* z : d.boundaries()) suggested[z->name] = z->suggestedRole;
+        QCOMPARE(suggested, (QMap<QString, QString>{{"wing", "wall"}, {"inlet", "velocity-inlet"}, {"outlet", "pressure-outlet"},
+                                                    {"top", "symmetry"}, {"ground", "moving-ground"}}));
+        s.setNewCaseRole("top", "wall");
+        s.setNewCaseRole("top", "no-such-role");  // ignored
+        s.setNewCaseSpeed(20);
+        for (const NewCaseZone* z : s.newCaseDraft()->boundaries())
+            if (z->name == "top") QCOMPARE(z->role, QString("wall"));
+        QCOMPARE(s.newCaseDraft()->speed, 20.0);
+
+        const QString out = m_dir.filePath("cases/wing.kutta.json");
+        QDir().mkpath(m_dir.filePath("cases"));
+        QSignalSpy opened(&s, &Session::caseOpened);
+        s.createNewCase(out);
+        QVERIFY(opened.wait(20000));
+        QVERIFY(!s.newCaseDraft());
+        QVERIFY(s.caseSummary().kuttaCase());
+        QCOMPARE(s.caseName(), QString("wing"));
+        QCOMPARE(QFileInfo(s.caseSummary().meshFile).canonicalFilePath(), QFileInfo(mesh).canonicalFilePath());
+        QCOMPARE(s.caseSummary().zone("top")->type, QString("wall"));
+        const QJsonObject written = QJsonDocument::fromJson([&] { QFile c(out); c.open(QIODevice::ReadOnly); return c.readAll(); }()).object();
+        QCOMPARE(written.value("mesh").toString(), QString("../mesh/naca4412_ground.msh"));
+        QCOMPARE(written.value("boundaries").toObject().value("inlet").toObject().value("speed").toDouble(), 20.0);
+        QCOMPARE(written.value("reports").toObject().value("drag").toObject().value("zones").toArray(), (QJsonArray{"wing", "top"}));
+
+        QCOMPARE(s.settings()->setValue("run/iterations", 20), QString());
+        QSignalSpy finished(&s, &Session::runFinished);
+        const QString id = s.run();
+        QVERIFY(!id.isEmpty());
+        QVERIFY(finished.wait(60000));
+        QCOMPARE(s.history().find(id)->status, RunStatus::Completed);
+
+        // Save As with no changes: the copy opens from its new place.
+        const QString copy = m_dir.filePath("cases/saved/wing-copy.kutta.json");
+        QDir().mkpath(QFileInfo(copy).absolutePath());
+        QSignalSpy saved(&s, &Session::caseSaved);
+        s.saveCase(copy);
+        QVERIFY(opened.wait(20000));
+        QCOMPARE(saved.count(), 1);
+        QCOMPARE(s.casePath(), copy);
+        QCOMPARE(QFileInfo(s.caseSummary().meshFile).canonicalFilePath(), QFileInfo(mesh).canonicalFilePath());
+
+        // The fixture cannot write changed settings; the session says so and keeps the case.
+        QCOMPARE(s.settings()->setValue("reference/area", 0.5), QString());
+        QSignalSpy failed(&s, &Session::saveFailed);
+        s.saveCase(copy);
+        QVERIFY(failed.wait(20000));
+        QVERIFY(failed.first().first().toString().contains("real kutta CLI"));
+        QCOMPARE(s.casePath(), copy);
+    }
+
+    void missingMeshSaysSo()
+    {
+        CliInfo cli;
+        cli.program = QStringLiteral(KUTTA_FIXTURE_CLI);
+        cli.fixture = true;
+        Session s(cli, m_dir.filePath("data-missing"));
+        s.startNewCase(m_dir.filePath("nowhere.msh"));
+        QVERIFY(!s.newCaseDraft());
+        QVERIFY(s.newCaseError().contains("does not exist"));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestSession)

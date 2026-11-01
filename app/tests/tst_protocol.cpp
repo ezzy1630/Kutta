@@ -3,6 +3,7 @@
 #include "TestSupport.h"
 #include "core/Protocol.h"
 
+#include <QJsonArray>
 #include <QtTest>
 
 using namespace kapp;
@@ -171,6 +172,49 @@ private slots:
         QVERIFY(!residualShown("z-velocity", true));
         QVERIFY(residualShown("z-velocity", false));
         QVERIFY(residualShown("y-velocity", true));
+    }
+
+    // kutta new-case --json (recorded from the real CLI on the NACA wing mesh).
+    void newCaseReply()
+    {
+        auto d = parseNewCase(fixtureJson("cases/naca4412_ground/new-case.json"));
+        QVERIFY2(d.ok(), qPrintable(d.error()));
+        QCOMPARE(d->dimension, 2);
+        QCOMPARE(d->templateName, QString("fsae-external"));
+        QCOMPARE(d->speed, 15.0);
+        QCOMPARE(int(d->boundaries().size()), 5);
+        QVERIFY(d->roles.contains("moving-ground"));
+        const NewCaseZone* wing = d->zone("wing");
+        QVERIFY(wing);
+        QCOMPARE(wing->group, QString("Wing"));
+        QCOMPARE(d->zone("ground")->suggestedRole, QString("moving-ground"));
+        QVERIFY(d->kuttaCase.value("boundaries").isObject());
+        QVERIFY(!parseNewCase(QJsonObject{{"v", 2}}));
+        QVERIFY(!parseNewCase(QJsonObject{{"v", 1}}));
+    }
+
+    void kuttaCaseSummaryAndConvertReply()
+    {
+        QJsonObject o = fixtureJson("cases/naca4412_ground/inspect.json");
+        auto fluent = parseCaseSummary(o);
+        QVERIFY(fluent && !fluent->kuttaCase());  // recordings from before the field
+        QJsonObject file = o.value("file").toObject();
+        file["format"] = "kutta";
+        file["mesh_file"] = QJsonObject{{"path", "/m/wing.msh"}, {"sha256", "ab"}};
+        o["file"] = file;
+        auto kutta = parseCaseSummary(o);
+        QVERIFY(kutta && kutta->kuttaCase());
+        QCOMPARE(kutta->meshFile, QString("/m/wing.msh"));
+
+        auto r = parseConvert({{"v", 1}, {"out", "/c/wing.kutta.json"}, {"replaced_input", true},
+                               {"omitted", QJsonArray{QJsonObject{{"path", "case-config/rf-energy?"}, {"reason", "energy"}, {"class", "informational"}}}},
+                               {"run_controls_not_saved", QJsonArray{"run/iterations"}}});
+        QVERIFY(r);
+        QCOMPARE(r->out, QString("/c/wing.kutta.json"));
+        QCOMPARE(int(r->omitted.size()), 1);
+        QVERIFY(!r->omitted[0].changesSolution);
+        QCOMPARE(r->runControlsNotSaved, QStringList{"run/iterations"});
+        QVERIFY(!parseConvert({{"v", 1}}));
     }
 };
 

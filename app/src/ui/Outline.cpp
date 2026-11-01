@@ -4,6 +4,7 @@
 
 #include <QHeaderView>
 #include <QPainter>
+#include <QSignalBlocker>
 #include <QStyledItemDelegate>
 
 namespace kapp {
@@ -257,6 +258,11 @@ void Outline::select(const QString& id)
         setCurrentItem(it);
         scrollToItem(it);
     } else {
+        // A page with no outline node (New Case from Mesh): nothing stays highlighted.
+        {
+            const QSignalBlocker block(this);
+            setCurrentItem(nullptr);
+        }
         emit nodeSelected(id);
     }
 }

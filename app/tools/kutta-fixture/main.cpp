@@ -27,6 +27,7 @@
 #include "core/ViewFormat.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
 #include <QElapsedTimer>
@@ -70,7 +71,9 @@ void eprint(const QString& s)
 {
     const QString msg = "Usage: kutta-fixture devices --json | inspect CASE [--data DAT] --json | solve CASE ... --out DIR "
                         "--progress jsonl [--live-view DIR [--live-every N]] | export-view DIR [--post FILE] [--slice ox,oy,oz,nx,ny,nz]... "
-                        "| export-geometry CASE --out DIR [--json] | aero DIR [--aero SPEC] [--json]";
+                        "| export-geometry CASE --out DIR [--json] | aero DIR [--aero SPEC] [--json] "
+                        "| new-case MESH [--speed U] [--role ZONE=ROLE]... [--out CASE.kutta.json [--force]] [--json] "
+                        "| convert CASE.kutta.json [--setup FILE] --out CASE.kutta.json [--force] [--json]";
     if (jsonl) emitJson({{"v", 1}, {"event", "error"}, {"message", msg}, {"issues", QJsonArray{}}});
     eprint(msg);
     std::exit(2);
@@ -171,6 +174,7 @@ Args parseArgs(const QStringList& args)
     for (int i = 0; i < args.size(); ++i) {
         const QString& s = args[i];
         if (s == "--json") a.opts["json"] << "1";
+        else if (s == "--force") a.opts["force"] << "1";
         else if (s.startsWith("--")) {
             if (i + 1 >= args.size()) usage(false);
             a.opts[s.mid(2)] << args[++i];
@@ -181,11 +185,26 @@ Args parseArgs(const QStringList& args)
 
 enum class CaseKind { Recorded, Car };
 
-// "elbow_param.cas.h5" -> "elbow_param": the recording's directory name.
+bool isKuttaCase(const QString& path) { return path.endsWith(".json", Qt::CaseInsensitive); }
+
+// A Kutta case's mesh, absolute (relative paths are relative to the case file).
+QString kuttaMesh(const QString& casePath)
+{
+    QFile f(casePath);
+    if (!f.open(QIODevice::ReadOnly)) return {};
+    const QString mesh = QJsonDocument::fromJson(f.readAll()).object().value("mesh").toString();
+    if (mesh.isEmpty()) return {};
+    return QDir::cleanPath(QFileInfo(mesh).isAbsolute() ? mesh : QDir(QFileInfo(casePath).absolutePath()).absoluteFilePath(mesh));
+}
+
+// "elbow_param.cas.h5" -> "elbow_param": the recording's directory name. A
+// Kutta case replays its mesh's recording.
 QString caseStem(const QString& casePath)
 {
+    if (isKuttaCase(casePath))
+        if (const QString mesh = kuttaMesh(casePath); !mesh.isEmpty()) return caseStem(mesh);
     QString name = QFileInfo(casePath).fileName();
-    for (const char* ext : {".h5", ".gz", ".cas", ".dat"})
+    for (const char* ext : {".h5", ".gz", ".cas", ".dat", ".msh"})
         if (name.endsWith(QLatin1String(ext))) name.chop(int(qstrlen(ext)));
     return name;
 }
@@ -233,6 +252,26 @@ QJsonObject inspectJson(const QString& casePath, const QString& dataPath, const 
     }
     QJsonObject file = o.value("file").toObject();
     file["path"] = QFileInfo(casePath).absoluteFilePath();
+    if (isKuttaCase(casePath)) {
+        // The recording's settings, with the case file's identity and boundary types.
+        QFile f(casePath);
+        const QByteArray text = f.open(QIODevice::ReadOnly) ? f.readAll() : QByteArray();
+        const QJsonObject kutta = QJsonDocument::fromJson(text).object();
+        file["format"] = "kutta";
+        file["fluent_version"] = QJsonValue::Null;
+        file["setup_sha256"] = QString::fromLatin1(QCryptographicHash::hash(text, QCryptographicHash::Sha256).toHex());
+        file["sha256"] = file["setup_sha256"];
+        file["mesh_file"] = QJsonObject{{"path", kuttaMesh(casePath)}, {"sha256", QString()}};
+        const QJsonObject boundaries = kutta.value("boundaries").toObject();
+        QJsonArray zones;
+        for (const QJsonValue& zv : o.value("zones").toArray()) {
+            QJsonObject z = zv.toObject();
+            const QString type = boundaries.value(z.value("name").toString()).toObject().value("type").toString();
+            if (!type.isEmpty()) z["type"] = type;
+            zones.append(z);
+        }
+        o["zones"] = zones;
+    }
     o["file"] = file;
     if (data) {
         QJsonObject d = o.value("data").toObject();
@@ -1169,6 +1208,107 @@ int exportGeometry(const Args& a)
     return 0;
 }
 
+// kutta new-case: the recorded reply for a mesh, with the requested speed and
+// roles applied the way the CLI's FSAE template applies them.
+QJsonObject starterBoundary(const QString& role, double speed)
+{
+    const QJsonArray x{1, 0, 0};
+    const QJsonObject turbulence{{"intensity", 0.01}, {"viscosity_ratio", 10}};
+    if (role == "velocity-inlet") return {{"type", role}, {"speed", speed}, {"direction", x}, {"turbulence", turbulence}};
+    if (role == "pressure-outlet") return {{"type", role}, {"gauge_pressure", 0}, {"turbulence", turbulence}};
+    if (role == "moving-ground") return {{"type", "wall"}, {"motion", "moving"}, {"speed", speed}, {"direction", x}};
+    return {{"type", role}};
+}
+
+int newCase(const Args& a)
+{
+    const bool json = a.has("json");
+    if (a.positional.size() != 1) usage(false);
+    const QString mesh = a.positional[0];
+    QJsonObject o = QJsonDocument::fromJson(readFixture(recorded(caseStem(mesh), "new-case.json"))).object();
+    if (o.isEmpty())
+        fail(QStringLiteral("The fixture CLI has a recorded mesh for naca4412_ground.msh only; point the app at the real kutta CLI to set up %1.")
+                 .arg(QFileInfo(mesh).fileName()), {}, json);
+    if (!QFileInfo(mesh).isFile()) fail(mesh + ": no such file", {}, json);
+    double speed = o.value("speed").toDouble();
+    if (a.has("speed")) {
+        bool ok = false;
+        speed = a.value("speed").toDouble(&ok);
+        if (!ok || !(speed > 0)) fail("speed: --speed must be a positive number of m/s", {}, json);
+    }
+    QMap<QString, QString> roles;
+    const QJsonArray known = o.value("roles").toArray();
+    for (const QString& r : a.opts.value("role")) {
+        const qsizetype eq = r.lastIndexOf('=');
+        if (eq < 0 || !known.contains(r.mid(eq + 1))) fail("role: --role " + r + ": expected ZONE=ROLE", {}, json);
+        roles[r.left(eq)] = r.mid(eq + 1);
+    }
+    QJsonObject kase = o.value("case").toObject(), boundaries;
+    QJsonArray zones, walls;
+    for (const QJsonValue& zv : o.value("zones").toArray()) {
+        QJsonObject z = zv.toObject();
+        const QString name = z.value("name").toString();
+        z["role"] = roles.value(name, z.value("suggested_role").toString());
+        boundaries[name] = starterBoundary(z.value("role").toString(), speed);
+        if (z.value("role") == "wall") walls.append(name);
+        zones.append(z);
+    }
+    kase["boundaries"] = boundaries;
+    QJsonObject reports = kase.value("reports").toObject();
+    for (const QString& name : reports.keys()) {
+        QJsonObject r = reports.value(name).toObject();
+        r["zones"] = walls;
+        reports[name] = r;
+    }
+    kase["reports"] = reports;
+    QJsonObject reference = kase.value("reference_values").toObject();
+    reference["velocity"] = speed;
+    kase["reference_values"] = reference;
+    const QString target = a.value("out");
+    kase["mesh"] = target.isEmpty() ? mesh : QDir(QFileInfo(target).absolutePath()).relativeFilePath(QFileInfo(mesh).absoluteFilePath());
+    if (!target.isEmpty()) {
+        if (QFileInfo::exists(target) && !a.has("force")) fail(target + " exists; pass --force to replace it", {}, json);
+        writeJson(target, kase);
+    }
+    QJsonObject meshInfo = o.value("mesh").toObject();
+    meshInfo["path"] = QFileInfo(mesh).absoluteFilePath();
+    o["mesh"] = meshInfo;
+    o["zones"] = zones;
+    o["speed"] = speed;
+    o["case"] = kase;
+    o["out"] = target.isEmpty() ? QJsonValue(QJsonValue::Null) : QJsonValue(QFileInfo(target).absoluteFilePath());
+    if (json) out() << QJsonDocument(o).toJson(QJsonDocument::Compact) << '\n';
+    else out() << QJsonDocument(kase).toJson(QJsonDocument::Indented);
+    return 0;
+}
+
+// kutta convert: a Kutta case copied to a new place (its mesh path follows).
+// The fixture applies no setting changes; it refuses rather than drop them.
+int convert(const Args& a)
+{
+    const bool json = a.has("json");
+    if (a.positional.size() != 1 || !a.has("out")) usage(false);
+    const QString input = a.positional[0], target = a.value("out");
+    if (!isKuttaCase(input))
+        fail("The fixture CLI saves Kutta cases only; point the app at the real kutta CLI to save a Fluent case as a Kutta case.", {}, json);
+    if (a.has("setup") && !caseOverrides(readJson(a.value("setup")).value("overrides").toObject()).isEmpty())
+        fail("The fixture CLI cannot write setting changes into a case; point the app at the real kutta CLI to save them.", {}, json);
+    if (QFileInfo::exists(target) && !a.has("force")) fail(target + " exists; pass --force to replace it", {}, json);
+    QJsonObject kase = readJson(input);
+    if (kase.isEmpty()) fail(input + ": not a Kutta case", {}, json);
+    const QString mesh = kuttaMesh(input);
+    const bool same = QFileInfo(input).canonicalFilePath() == QFileInfo(target).canonicalFilePath();
+    kase["mesh"] = QDir(QFileInfo(target).absolutePath()).relativeFilePath(mesh);
+    writeJson(target, kase);
+    if (json)
+        out() << QJsonDocument(QJsonObject{{"v", 1}, {"out", QFileInfo(target).absoluteFilePath()}, {"replaced_input", same},
+                                           {"omitted", QJsonArray{}}, {"run_controls_not_saved", QJsonArray{}}})
+                     .toJson(QJsonDocument::Compact)
+              << '\n';
+    else eprint("Wrote " + target);
+    return 0;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -1193,5 +1333,7 @@ int main(int argc, char** argv)
     if (cmd == "export-view") return exportView(a);
     if (cmd == "export-geometry") return exportGeometry(a);
     if (cmd == "aero") return aero(a);
+    if (cmd == "new-case") return newCase(a);
+    if (cmd == "convert") return convert(a);
     usage(false);
 }

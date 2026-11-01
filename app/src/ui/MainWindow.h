@@ -40,6 +40,9 @@ public:
     ConsoleView* console() const { return m_console; }
 
     void openCaseDialog();
+    void newCaseDialog();
+    void createCaseDialog();
+    void saveCaseAsDialog();
     void openCase(const QString& path, const QString& data = {});
     void navigate(const QString& id);
     void showPalette(const QString& query = {});
@@ -69,6 +72,8 @@ private:
     ConsoleView* m_console = nullptr;
     CommandPalette* m_palette = nullptr;
     QList<QAction*> m_commands;
+    QAction* m_saveAction = nullptr;
+    QAction* m_saveAsAction = nullptr;
 
     // Toolbar
     QLabel* m_caseLabel = nullptr;

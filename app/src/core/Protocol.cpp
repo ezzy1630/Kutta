@@ -199,6 +199,8 @@ Result<CaseSummary> parseCaseSummary(const QJsonObject& json)
     c.filePath = file.value("path").toString();
     c.sha256 = file.value("sha256").toString();
     c.fluentVersion = file.value("fluent_version").toString();
+    if (file.value("format").isString()) c.format = file.value("format").toString();
+    c.meshFile = file.value("mesh_file").toObject().value("path").toString();
     const QJsonObject mesh = json.value("mesh").toObject();
     c.cells = qint64(mesh.value("cells").toDouble());
     c.faces = qint64(mesh.value("faces").toDouble());
@@ -708,6 +710,67 @@ Result<AeroResult> parseAero(const QJsonObject& o)
     a.balance.frontPercent = num(b.value("front_percent"));
     a.balance.copFromFrontAxle = num(b.value("cop_from_front_axle"));
     return a;
+}
+
+
+std::vector<const NewCaseZone*> NewCaseDraft::boundaries() const
+{
+    std::vector<const NewCaseZone*> out;
+    for (const auto& z : zones)
+        if (z.kind == "boundary") out.push_back(&z);
+    return out;
+}
+
+NewCaseZone* NewCaseDraft::zone(const QString& name)
+{
+    for (auto& z : zones)
+        if (z.name == name) return &z;
+    return nullptr;
+}
+
+Result<NewCaseDraft> parseNewCase(const QJsonObject& json)
+{
+    using R = Result<NewCaseDraft>;
+    if (!versionOk(json)) return R::failure("new-case: unsupported protocol version");
+    NewCaseDraft d;
+    d.templateName = json.value("template").toString();
+    d.speed = json.value("speed").toDouble();
+    const QJsonObject mesh = json.value("mesh").toObject();
+    d.meshPath = mesh.value("path").toString();
+    d.dimension = mesh.value("dimension").toInt(3);
+    d.cells = qint64(mesh.value("cells").toDouble());
+    d.faces = qint64(mesh.value("faces").toDouble());
+    d.nodes = qint64(mesh.value("nodes").toDouble());
+    d.polyhedral = mesh.value("polyhedral").toBool();
+    for (const QJsonValue& v : json.value("zones").toArray()) {
+        const QJsonObject o = v.toObject();
+        NewCaseZone z{o.value("id").toInt(-1), o.value("name").toString(), o.value("mesh_type").toString(), o.value("kind").toString(),
+                      qint64(o.value("faces").toDouble()), o.value("role").toString(), o.value("suggested_role").toString(),
+                      o.value("reason").toString(), o.value("group").toString()};
+        if (z.name.isEmpty()) return R::failure("new-case: zone without a name");
+        d.zones.push_back(z);
+    }
+    for (const QJsonValue& v : json.value("roles").toArray()) d.roles << v.toString();
+    for (const QJsonValue& v : json.value("notes").toArray()) d.notes << v.toString();
+    d.kuttaCase = json.value("case").toObject();
+    d.out = json.value("out").toString();
+    if (d.meshPath.isEmpty() || d.roles.isEmpty()) return R::failure("new-case: incomplete reply");
+    return d;
+}
+
+Result<ConvertResult> parseConvert(const QJsonObject& json)
+{
+    using R = Result<ConvertResult>;
+    if (!versionOk(json)) return R::failure("convert: unsupported protocol version");
+    ConvertResult r;
+    r.out = json.value("out").toString();
+    for (const QJsonValue& v : json.value("omitted").toArray()) {
+        const QJsonObject o = v.toObject();
+        r.omitted.push_back({o.value("path").toString(), o.value("reason").toString(), o.value("class").toString() == "unsupported"});
+    }
+    for (const QJsonValue& v : json.value("run_controls_not_saved").toArray()) r.runControlsNotSaved << v.toString();
+    if (r.out.isEmpty()) return R::failure("convert: no output path in the reply");
+    return r;
 }
 
 } // namespace kapp

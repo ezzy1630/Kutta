@@ -6,6 +6,7 @@
 
 #include "core/Protocol.h"
 
+#include <QMap>
 #include <QObject>
 #include <QPointer>
 #include <QProcess>
@@ -89,6 +90,20 @@ public:
     // Aero coefficients, breakdown and balance of a finished run (kutta aero);
     // reads the run's loads.json, never re-solves.
     void aero(const QString& runDir, const QString& specFile, std::function<void(Result<AeroResult>)> done);
+
+    // A starter Kutta case for a bare mesh (kutta new-case): roles override
+    // the CLI's suggestions by zone name; with `out` the case is written there,
+    // replacing any file.
+    struct NewCaseRequest {
+        QString meshPath;
+        double speed = 0;  // 0: the template's default
+        QMap<QString, QString> roles;
+        QString out;
+    };
+    void newCase(const NewCaseRequest& req, std::function<void(Result<NewCaseDraft>)> done);
+    // The case's settings, with the setup file's overrides applied, written as
+    // a Kutta case at `out` (kutta convert --force).
+    void convert(const QString& casePath, const QString& setupFile, const QString& out, std::function<void(Result<ConvertResult>)> done);
 
     SolveProcess* solve(const SolveRequest& req, QObject* parent);
 

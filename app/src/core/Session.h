@@ -76,6 +76,24 @@ public:
     const OpenError& openError() const { return m_openError; }
     void clearOpenError() { m_openError = {}; }
 
+    // New case from a mesh: a starter Kutta case the New Case page edits
+    // until it is created (kutta new-case); the open case, if any, stays open
+    // meanwhile.
+    void startNewCase(const QString& meshPath);
+    bool newCaseBusy() const { return m_draftBusy; }
+    const std::optional<NewCaseDraft>& newCaseDraft() const { return m_draft; }
+    QString newCaseError() const { return m_draftError; }
+    void setNewCaseRole(const QString& zone, const QString& role);
+    void setNewCaseSpeed(double speed);
+    void discardNewCase();
+    // Writes the case at `outPath` (replacing it) and opens it.
+    void createNewCase(const QString& outPath);
+    // Saves the open case, with the current changes, as a Kutta case at
+    // `outPath` (kutta convert) and reopens it from there, so the changes
+    // become the case's own settings.
+    void saveCase(const QString& outPath);
+    bool saving() const { return m_saving; }
+
     // Approximation opt-in: explicit per approximation, reset for each case.
     QStringList approvedApproximations() const { return m_approved; }
     void setApproximationApproved(const QString& name, bool approved);
@@ -157,6 +175,9 @@ signals:
     void aeroComputed(const QString& runId);
     void approvalsChanged();
     void consoleLine(kapp::ConsoleLevel level, const QString& text);
+    void newCaseChanged();
+    void caseSaved(const QString& path);
+    void saveFailed(const QString& message);
 
 private:
     QString start(const QJsonObject& caseOverrides, const QJsonObject& runControls, const QStringList& approximations,
@@ -200,6 +221,10 @@ private:
     bool m_aeroSpecSaved = false;
     QHash<QString, AeroResult> m_aero;
     QHash<QString, std::vector<std::function<void(Result<AeroResult>)>>> m_aeroPending;
+    std::optional<NewCaseDraft> m_draft;
+    QString m_draftError;
+    bool m_draftBusy = false;
+    bool m_saving = false;
     int m_tableRows = 0;
     QStringList m_tableNames;
 };

@@ -90,6 +90,10 @@ QString decodePathSegment(const QString& segment);
 
 struct CaseSummary {
     QString filePath, sha256, fluentVersion;
+    // "kutta" for a Kutta case (mesh + *.kutta.json), whose sha256 covers both
+    // files; "fluent" otherwise (and from CLIs before the field).
+    QString format = "fluent";
+    QString meshFile;  // a Kutta case's mesh
     qint64 cells = 0, faces = 0, nodes = 0;
     QMap<QString, qint64> cellTypes;
     Bounds bounds;
@@ -108,6 +112,7 @@ struct CaseSummary {
     bool synthetic = false;  // fixture data invented for demonstration
     std::optional<int> dimension;  // general/dimension: 2 for planar cases
 
+    bool kuttaCase() const { return format == "kutta"; }
     // A 2D case, which Kutta solves as one cell through the reference depth.
     bool planar() const { return dimension == 2; }
     QStringList approximations() const;  // names a run may opt into
@@ -117,6 +122,40 @@ struct CaseSummary {
     const Zone* zone(const QString& name) const;
 };
 Result<CaseSummary> parseCaseSummary(const QJsonObject& json);
+
+// ---- kutta new-case / convert --------------------------------------------------------
+
+// Zone roles a starter case can give (kutta new-case --role ZONE=ROLE).
+struct NewCaseZone {
+    int id = -1;
+    QString name, meshType, kind;  // kind: "boundary" | "interior" | "cell"
+    qint64 faces = 0;
+    QString role, suggestedRole, reason, group;
+};
+// A starter case for a bare mesh, before it is written.
+struct NewCaseDraft {
+    QString meshPath, templateName;
+    double speed = 0;
+    int dimension = 3;
+    qint64 cells = 0, faces = 0, nodes = 0;
+    bool polyhedral = false;
+    std::vector<NewCaseZone> zones;
+    QStringList roles, notes;
+    QJsonObject kuttaCase;  // the case as written
+    QString out;            // where it was written, if it was
+    std::vector<const NewCaseZone*> boundaries() const;
+    NewCaseZone* zone(const QString& name);
+    const NewCaseZone* zone(const QString& name) const { return const_cast<NewCaseDraft*>(this)->zone(name); }
+};
+Result<NewCaseDraft> parseNewCase(const QJsonObject& json);
+
+struct ConvertResult {
+    QString out;
+    struct Omitted { QString path, reason; bool changesSolution = false; };
+    std::vector<Omitted> omitted;
+    QStringList runControlsNotSaved;
+};
+Result<ConvertResult> parseConvert(const QJsonObject& json);
 
 // ---- solve --progress jsonl -------------------------------------------------------
 

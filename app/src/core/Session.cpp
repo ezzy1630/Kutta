@@ -60,7 +60,7 @@ void Session::setBackend(const QString& b)
 QString Session::caseName() const
 {
     QString n = QFileInfo(m_casePath).fileName();
-    for (const char* ext : {".cas.h5", ".cas", ".msh.h5", ".msh"})
+    for (const char* ext : {".kutta.json", ".json", ".cas.h5", ".cas", ".msh.h5", ".msh"})
         if (n.endsWith(QLatin1String(ext))) { n.chop(int(qstrlen(ext))); break; }
     return n;
 }
@@ -94,6 +94,8 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
             return;
         }
         m_openError = {};
+        m_draft.reset();
+        m_draftError.clear();
         m_case = std::move(r).value();
         m_casePath = casePath;
         m_dataPath = dataPath;
@@ -135,19 +137,135 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
         s.setValue("recentCases", recent.mid(0, 10));
         const auto& c = *m_case;
         emit consoleLine(ConsoleLevel::Info,
-                         QStringLiteral("Case %1: %2 cells, %3 faces, %4 zones, Fluent %5").arg(caseName(),
+                         QStringLiteral("Case %1: %2 cells, %3 faces, %4 zones, %5").arg(caseName(),
                              QLocale().toString(c.cells), QLocale().toString(c.faces), QString::number(c.zones.size()),
-                             c.fluentVersion.isEmpty() ? "version unknown" : c.fluentVersion));
+                             c.kuttaCase() ? "Kutta case on " + QFileInfo(c.meshFile).fileName()
+                                           : "Fluent " + (c.fluentVersion.isEmpty() ? QStringLiteral("version unknown") : c.fluentVersion)));
         for (const auto& i : c.issues)
             if (i.cls != IssueClass::Informational)
                 emit consoleLine(i.cls == IssueClass::Unsupported ? ConsoleLevel::Error : ConsoleLevel::Warning,
                                  QStringLiteral("%1 (%2): %3%4").arg(i.label, i.setting, i.explanationOnly(),
                                      i.measuredEffect.isEmpty() ? QString() : QStringLiteral(" Measured effect: %1.").arg(i.measuredEffect)));
         emit caseOpened();
+        emit newCaseChanged();
         emit historyChanged();
         emit studiesChanged();
         emit aeroSpecChanged();
         emit approvalsChanged();
+    });
+}
+
+void Session::startNewCase(const QString& meshPath)
+{
+    m_draft.reset();
+    m_draftError.clear();
+    if (!QFileInfo(meshPath).isFile()) {
+        m_draftError = tr("%1 does not exist (moved, renamed or on a drive that is not connected).").arg(QDir::toNativeSeparators(meshPath));
+        emit newCaseChanged();
+        return;
+    }
+    m_draftBusy = true;
+    emit newCaseChanged();
+    emit consoleLine(ConsoleLevel::Info, tr("Reading mesh %1").arg(QDir::toNativeSeparators(meshPath)));
+    m_cli->newCase({meshPath, 0, {}, {}}, [this](Result<NewCaseDraft> r) {
+        m_draftBusy = false;
+        if (!r) {
+            m_draftError = r.error();
+            emit consoleLine(ConsoleLevel::Error, r.error());
+        } else {
+            m_draft = std::move(r).value();
+            emit consoleLine(ConsoleLevel::Info, tr("Mesh %1: %2 cells, %3 boundary zones; roles suggested from the zone names")
+                                                     .arg(QFileInfo(m_draft->meshPath).fileName(), QLocale().toString(m_draft->cells))
+                                                     .arg(m_draft->boundaries().size()));
+        }
+        emit newCaseChanged();
+    });
+}
+
+void Session::setNewCaseRole(const QString& zone, const QString& role)
+{
+    if (!m_draft || !m_draft->roles.contains(role)) return;
+    if (NewCaseZone* z = m_draft->zone(zone); z && z->role != role) {
+        z->role = role;
+        emit newCaseChanged();
+    }
+}
+
+void Session::setNewCaseSpeed(double speed)
+{
+    if (!m_draft || !(speed > 0) || speed == m_draft->speed) return;
+    m_draft->speed = speed;
+    emit newCaseChanged();
+}
+
+void Session::discardNewCase()
+{
+    m_draft.reset();
+    m_draftError.clear();
+    m_draftBusy = false;
+    emit newCaseChanged();
+}
+
+void Session::createNewCase(const QString& outPath)
+{
+    if (!m_draft || m_draftBusy) return;
+    if (running()) {
+        m_draftError = tr("Stop the running calculation before creating a case.");
+        emit newCaseChanged();
+        return;
+    }
+    CliClient::NewCaseRequest req{m_draft->meshPath, m_draft->speed, {}, outPath};
+    for (const auto& z : m_draft->zones)
+        if (z.role != z.suggestedRole) req.roles[z.name] = z.role;
+    m_draftBusy = true;
+    m_draftError.clear();
+    emit newCaseChanged();
+    m_cli->newCase(req, [this, outPath](Result<NewCaseDraft> r) {
+        m_draftBusy = false;
+        if (!r) {
+            m_draftError = r.error();
+            emit consoleLine(ConsoleLevel::Error, r.error());
+            emit newCaseChanged();
+            return;
+        }
+        emit consoleLine(ConsoleLevel::Success, tr("Wrote %1").arg(QDir::toNativeSeparators(outPath)));
+        openCase(outPath);  // clears the draft once the case is open
+    });
+}
+
+void Session::saveCase(const QString& outPath)
+{
+    if (!m_case || m_saving) return;
+    if (running()) {
+        emit saveFailed(tr("Stop the running calculation before saving the case."));
+        return;
+    }
+    // The overrides go to convert as a setup file, as they go to solve.
+    QString setupFile;
+    const QJsonObject setup = SettingsModel::setupJsonFor(m_settings.caseOverrides(), {});
+    if (!setup.value("overrides").toObject().isEmpty()) {
+        setupFile = QDir(m_history.caseDir()).filePath("save-setup.json");
+        QSaveFile f(setupFile);
+        if (!f.open(QIODevice::WriteOnly) || f.write(QJsonDocument(setup).toJson(QJsonDocument::Indented)) < 0 || !f.commit()) {
+            emit saveFailed(tr("Kutta cannot write the changed settings in %1.").arg(QDir::toNativeSeparators(m_history.caseDir())));
+            return;
+        }
+    }
+    m_saving = true;
+    m_cli->convert(m_casePath, setupFile, outPath, [this, outPath, setupFile](Result<ConvertResult> r) {
+        m_saving = false;
+        if (!setupFile.isEmpty()) QFile::remove(setupFile);
+        if (!r) {
+            emit consoleLine(ConsoleLevel::Error, tr("Could not save %1: %2").arg(QFileInfo(outPath).fileName(), r.error()));
+            emit saveFailed(r.error());
+            return;
+        }
+        for (const auto& o : r->omitted)
+            emit consoleLine(ConsoleLevel::Info, tr("Not saved: %1 (%2)").arg(o.path, o.reason));
+        emit consoleLine(ConsoleLevel::Success, tr("Saved %1").arg(QDir::toNativeSeparators(outPath)));
+        emit caseSaved(outPath);
+        // Reopen from the saved file: its settings now include the changes.
+        openCase(outPath);
     });
 }
 
@@ -167,7 +285,7 @@ int Session::requestedIterations() const
 bool Session::canRun(QString* reason) const
 {
     auto no = [&](const QString& r) { if (reason) *reason = r; return false; };
-    if (!m_case) return no("Open a Fluent case first.");
+    if (!m_case) return no("Open a case first.");
     if (running()) return no("A calculation is already running.");
     const auto blocking = m_case->blocking(m_approved);
     if (!blocking.empty()) {
@@ -456,7 +574,7 @@ bool Session::startStudy(const QString& id, QString* why)
     auto it = std::find_if(m_studies.begin(), m_studies.end(), [&](const Study& s) { return s.id == id; });
     if (it == m_studies.end()) return no(tr("No such study."));
     if (running()) return no(tr("A calculation is already running."));
-    if (!m_case) return no(tr("Open a Fluent case first."));
+    if (!m_case) return no(tr("Open a case first."));
     const auto blocking = m_case->blocking(it->approximations);
     if (!blocking.empty()) return no(tr("This study's runs need approvals the case requires: %1.").arg(blocking.front()->label));
     requeue(*it);

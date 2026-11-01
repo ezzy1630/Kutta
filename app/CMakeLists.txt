@@ -107,6 +107,7 @@ foreach(src ${KUTTA_APP_TESTS})
   target_compile_definitions(${name} PRIVATE
     KUTTA_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
     KUTTA_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data"
+    KUTTA_SOLVER_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/../tests/data"
     KUTTA_FIXTURE_CLI="$<TARGET_FILE:kutta-fixture>")
   add_dependencies(${name} kutta-fixture)
   target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)

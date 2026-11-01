@@ -41,6 +41,9 @@ Inspector::Inspector(Session* session, GraphicsArea* graphics, ChartsPanel* char
     connect(graphics, &GraphicsArea::activeChanged, this, [this] {
         if (m_id.startsWith("results/") && m_id != "results/residuals" && m_id != "results/report-plots") refresh();
     });
+    connect(session, &Session::newCaseChanged, this, [this] {
+        if (m_id == "new-case") refresh();
+    });
     connect(session, &Session::approvalsChanged, this, [this] {
         if (m_id == "setup/general" || m_id == "solution/run") refresh();
     });
@@ -100,6 +103,7 @@ void Inspector::show(const QString& rawId)
 QWidget* Inspector::build(const QString& id)
 {
     const InspectorContext& c = m_ctx;
+    if (id == "new-case") return pages::newCase(c);
     const bool needsCase = id.startsWith("setup/") || id.startsWith("solution/");
     if (needsCase && !c.session->hasCase()) return pages::noCase(c, Outline::titleOf(id));
     if (id == "setup/general") return pages::general(c);
@@ -234,7 +238,7 @@ QWidget* openErrorCallout(const InspectorContext& c)
     f->layout()->addWidget(label(e.message));
     f->layout()->addWidget(label(c.session->hasCase()
                                      ? QObject::tr("%1 is still open.").arg(c.session->caseName())
-                                     : QObject::tr("Kutta reads Fluent cases saved as .cas.h5. Check the file is one, and that it is readable."),
+                                     : QObject::tr("Kutta reads Fluent cases (.cas.h5, .cas) and Kutta cases (.kutta.json). Check the file is one, and that it is readable."),
                                  "muted"));
     return f;
 }
@@ -313,8 +317,10 @@ QWidget* gettingStarted(const InspectorContext& c, bool hideable)
         step(Mark::Later, QObject::tr("Read the results"), {}, nullptr);
         return w;
     }
-    step(Mark::Done, QObject::tr("Open your Fluent case"),
-         s->dataPath().isEmpty() ? QObject::tr("%1, without Fluent data (no comparison)").arg(s->caseName())
+    const bool kutta = s->caseSummary().kuttaCase();
+    step(Mark::Done, kutta ? QObject::tr("Open your case") : QObject::tr("Open your Fluent case"),
+         kutta                    ? QObject::tr("%1, a Kutta case on %2").arg(s->caseName(), QFileInfo(s->caseSummary().meshFile).fileName())
+         : s->dataPath().isEmpty() ? QObject::tr("%1, without Fluent data (no comparison)").arg(s->caseName())
                                  : QObject::tr("%1 with Fluent's data, for comparison").arg(s->caseName()), nullptr);
 
     // 2. Approvals
@@ -335,7 +341,8 @@ QWidget* gettingStarted(const InspectorContext& c, bool hideable)
              review);
     } else {
         step(Mark::Done, QObject::tr("Review what Kutta needs from you"),
-             approved.isEmpty() ? QObject::tr("Nothing to approve: Kutta solves this case as Fluent defines it.")
+             approved.isEmpty() ? (kutta ? QObject::tr("Nothing to approve: Kutta solves this case as its setup defines it.")
+                                         : QObject::tr("Nothing to approve: Kutta solves this case as Fluent defines it."))
                                 : QObject::tr("Approved; results will be marked APPROXIMATE."), nullptr);
     }
 
@@ -389,10 +396,18 @@ QWidget* noCase(const InspectorContext& c, const QString& title)
         return page;
     }
     // Welcome: what Kutta does, and the ways to start.
-    QWidget* page = makePage(QObject::tr("Open a Fluent case"), {}, &v);
+    QWidget* page = makePage(QObject::tr("Open a case"), {}, &v);
     if (QWidget* e = openErrorCallout(c)) v->addWidget(e);
     v->addWidget(label(QObject::tr("Kutta reads a Fluent case (.cas.h5), solves it on this computer's GPU and shows the results next to Fluent's. Open a case, or drop one on the window."), "muted"));
     v->addWidget(gettingStarted(c, false));
+    // No Fluent case: start from the mesh alone.
+    auto* fromMesh = new QHBoxLayout;
+    auto* nb = button(QObject::tr("New Case from Mesh…"), "plus");
+    nb->setProperty("flat", true);
+    QObject::connect(nb, &QPushButton::clicked, nb, [c] { if (c.newCaseDialog) c.newCaseDialog(); });
+    fromMesh->addWidget(nb);
+    fromMesh->addWidget(label(QObject::tr("No Fluent case? Start from your mesh (.msh) and set it up here."), "faint"), 1);
+    v->addLayout(fromMesh);
     if (!c.samples.isEmpty()) {
         v->addSpacing(6);
         v->addWidget(section(QObject::tr("Samples")));
@@ -453,7 +468,8 @@ QWidget* general(const InspectorContext& c)
     else statusRow->addWidget(badge("APPROXIMATE", "approximate"));
     if (cs.synthetic) statusRow->addWidget(badge("SYNTHETIC", "modified"));
     if (c.session->cliInfo().fixture) statusRow->addWidget(badge("FIXTURE CLI", "neutral"));
-    QString statusText = cs.status == SupportStatus::Supported ? QObject::tr("Kutta solves this case as Fluent defines it.")
+    QString statusText = cs.status == SupportStatus::Supported ? (cs.kuttaCase() ? QObject::tr("Kutta solves this case as its setup defines it.")
+                                                                                 : QObject::tr("Kutta solves this case as Fluent defines it."))
                          : unsupported ? QObject::tr("Kutta cannot solve this case; see below.")
                                        : QObject::tr("Kutta can solve this case only with the approximations below. Results are marked APPROXIMATE everywhere.");
     statusRow->addStretch(1);
@@ -532,7 +548,12 @@ QWidget* general(const InspectorContext& c)
     grid->setColumnStretch(1, 1);
     addRow(QObject::tr("File"), QDir::toNativeSeparators(c.session->casePath()));
     addRow(QObject::tr("Data"), c.session->dataPath().isEmpty() ? QObject::tr("none (initialized by Kutta)") : QDir::toNativeSeparators(c.session->dataPath()));
-    addRow(QObject::tr("Written by"), cs.fluentVersion.isEmpty() ? QObject::tr("unknown Fluent version") : "Fluent " + cs.fluentVersion);
+    if (cs.kuttaCase()) {
+        addRow(QObject::tr("Format"), QObject::tr("Kutta case (mesh and JSON setup)"));
+        addRow(QObject::tr("Mesh"), QDir::toNativeSeparators(cs.meshFile));
+    } else {
+        addRow(QObject::tr("Written by"), cs.fluentVersion.isEmpty() ? QObject::tr("unknown Fluent version") : "Fluent " + cs.fluentVersion);
+    }
     addRow(QObject::tr("SHA-256"), cs.sha256.left(16) + "…");
     v->addLayout(grid);
 

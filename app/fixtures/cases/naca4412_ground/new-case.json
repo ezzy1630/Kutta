@@ -1,0 +1,169 @@
+{
+ "case": {
+  "boundaries": {
+   "ground": {
+    "direction": [
+     1,
+     0,
+     0
+    ],
+    "motion": "moving",
+    "speed": 15,
+    "type": "wall"
+   },
+   "inlet": {
+    "direction": [
+     1,
+     0,
+     0
+    ],
+    "speed": 15,
+    "turbulence": {
+     "intensity": 0.01,
+     "viscosity_ratio": 10
+    },
+    "type": "velocity-inlet"
+   },
+   "outlet": {
+    "gauge_pressure": 0,
+    "turbulence": {
+     "intensity": 0.01,
+     "viscosity_ratio": 10
+    },
+    "type": "pressure-outlet"
+   },
+   "top": {
+    "type": "symmetry"
+   },
+   "wing": {
+    "type": "wall"
+   }
+  },
+  "kutta_case": 1,
+  "material": {
+   "density": 1.225,
+   "name": "air",
+   "viscosity": 1.7894e-05
+  },
+  "mesh": "naca4412_ground.msh",
+  "methods": {
+   "specific_dissipation_rate": "second-order-upwind",
+   "turbulent_kinetic_energy": "second-order-upwind"
+  },
+  "models": {
+   "viscous": "k-omega-sst"
+  },
+  "reference_values": {
+   "area": 1,
+   "density": 1.225,
+   "length": 1,
+   "velocity": 15
+  },
+  "reports": {
+   "downforce": {
+    "coefficient": true,
+    "direction": [
+     0,
+     -1,
+     0
+    ],
+    "type": "lift",
+    "zones": [
+     "wing"
+    ]
+   },
+   "drag": {
+    "coefficient": true,
+    "direction": [
+     1,
+     0,
+     0
+    ],
+    "type": "drag",
+    "zones": [
+     "wing"
+    ]
+   }
+  }
+ },
+ "mesh": {
+  "cells": 53881,
+  "dimension": 2,
+  "faces": 189737,
+  "nodes": 56188,
+  "path": "naca4412_ground.msh",
+  "polyhedral": false
+ },
+ "notes": [
+  "Reference area is Fluent's default, 1 m^2; set your car's frontal area (reference_values/area) for meaningful coefficients."
+ ],
+ "out": null,
+ "roles": [
+  "velocity-inlet",
+  "pressure-outlet",
+  "moving-ground",
+  "wall",
+  "symmetry",
+  "interior"
+ ],
+ "speed": 15,
+ "template": "fsae-external",
+ "v": 1,
+ "zones": [
+  {
+   "faces": 120,
+   "group": "Wing",
+   "id": 4,
+   "kind": "boundary",
+   "mesh_type": "wall",
+   "name": "wing",
+   "reason": "a wall of the car",
+   "role": "wall",
+   "suggested_role": "wall"
+  },
+  {
+   "faces": 12,
+   "group": null,
+   "id": 5,
+   "kind": "boundary",
+   "mesh_type": "velocity-inlet",
+   "name": "inlet",
+   "reason": "name contains \"inlet\"",
+   "role": "velocity-inlet",
+   "suggested_role": "velocity-inlet"
+  },
+  {
+   "faces": 10,
+   "group": null,
+   "id": 6,
+   "kind": "boundary",
+   "mesh_type": "pressure-outlet",
+   "name": "outlet",
+   "reason": "name contains \"outlet\"",
+   "role": "pressure-outlet",
+   "suggested_role": "pressure-outlet"
+  },
+  {
+   "faces": 26,
+   "group": null,
+   "id": 7,
+   "kind": "boundary",
+   "mesh_type": "symmetry",
+   "name": "top",
+   "reason": "name contains \"top\"; domain boundaries are slip planes",
+   "role": "symmetry",
+   "suggested_role": "symmetry"
+  },
+  {
+   "faces": 459,
+   "group": null,
+   "id": 8,
+   "kind": "boundary",
+   "mesh_type": "wall",
+   "name": "ground",
+   "reason": "name contains \"ground\"; the road moves with the freestream",
+   "role": "moving-ground",
+   "suggested_role": "moving-ground"
+  }
+ ]
+}

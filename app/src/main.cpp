@@ -104,7 +104,7 @@ QStringList makeSamples(const QString& root, bool fixture)
     QStringList out;
     // Scenarios address the first two by position (elbow, car).
     for (const char* name : {"mixing_elbow.cas.h5", "mixing_elbow.dat.h5", "fsae_car.cas.h5", "fsae_car.dat.h5",
-                             "naca4412_ground.cas", "elbow_param.cas.h5", "cylinder_tutorial.cas"}) {
+                             "naca4412_ground.cas", "elbow_param.cas.h5", "cylinder_tutorial.cas", "naca4412_ground.msh"}) {
         const QString p = QDir(root).filePath(name);
         if (!QFileInfo::exists(p)) {
             QFile f(p);
@@ -163,11 +163,15 @@ int main(int argc, char** argv)
     // (pass the case path; --open-data defaults to the .dat.h5 beside it).
     // Post-processing ones need the real CLI: the fixture has no volume fields.
     // car-* and bench use the fixture CLI's synthetic FSAE car.
+    // new-case* start from a bare mesh (the positional argument, else the
+    // fixture's NACA wing mesh): the New Case page, the created case after a
+    // run, and that case saved with a changed setting and reopened.
     const QStringList scenarios = {"start", "open-failed", "elbow-open", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
                                    "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare", "elbow-monitors",
                                    "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "param-run", "cylinder-run",
                                    "wing-models", "wing-aero", "wing-monitors", "bench",
-                                   "case-mesh", "case-approvals", "case-methods", "case-run", "case-stop"};
+                                   "case-mesh", "case-approvals", "case-methods", "case-run", "case-stop",
+                                   "new-case", "new-case-run", "new-case-save"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
         return 0;
@@ -649,6 +653,59 @@ int main(int argc, char** argv)
             sc->add(go("solution/monitors"));
         }
         sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Reports); next(); });
+    } else if (scenario.startsWith("new-case")) {
+        const QString mesh = caseArg.isEmpty() ? QDir(dataRoot).filePath("samples/naca4412_ground.msh") : caseArg;
+        sc->add([session, sc, mesh](auto next) {
+            session->startNewCase(mesh);
+            sc->waitFor([session] { return !session->newCaseBusy(); }, [session, sc, next] {
+                if (!session->newCaseDraft()) return sc->fail("new case: " + session->newCaseError());
+                next();
+            }, "mesh to read");
+        });
+        if (scenario == "new-case") {
+            // A role and the speed changed from the template, as a user checking the suggestions would.
+            sc->add([session](auto next) {
+                session->setNewCaseSpeed(20);
+                for (const NewCaseZone* z : session->newCaseDraft()->boundaries())
+                    if (z->role == "symmetry") {
+                        session->setNewCaseRole(z->name, "wall");
+                        break;
+                    }
+                next();
+            });
+            sc->add(go("new-case"));
+        } else {
+            const QString out = QDir(dataRoot).filePath("cases/" + QFileInfo(mesh).completeBaseName() + ".kutta.json");
+            QDir().mkpath(QFileInfo(out).absolutePath());
+            sc->add([session, sc, out](auto next) {
+                bool* done = new bool(false);
+                QObject::connect(session, &Session::caseOpened, sc, [done] { *done = true; }, Qt::SingleShotConnection);
+                session->createNewCase(out);
+                sc->waitFor([done] { return *done; }, [done, next] { delete done; next(); }, "new case to open");
+            });
+            sc->add(approveAll);
+            const int iterations = qEnvironmentVariableIntValue("KUTTA_SCENARIO_ITERATIONS");
+            sc->add(runWith(iterations > 0 ? iterations : 300));
+            sc->add(showScene(0, "run:run-0001"));
+            sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); }));
+            if (scenario == "new-case-save") {
+                // Save with a changed reference area; the reopened case carries it.
+                sc->add([session, sc, out](auto next) {
+                    session->settings()->setValue("reference/area", 0.5);
+                    bool* done = new bool(false);
+                    QObject::connect(session, &Session::caseSaved, sc, [session, sc, done] {
+                        QObject::connect(session, &Session::caseOpened, sc, [done] { *done = true; }, Qt::SingleShotConnection);
+                    }, Qt::SingleShotConnection);
+                    QObject::connect(session, &Session::saveFailed, sc, [sc](const QString& m) { sc->fail("save: " + m); }, Qt::SingleShotConnection);
+                    session->saveCase(out);
+                    sc->waitFor([done] { return *done; }, [done, next] { delete done; next(); }, "saved case to reopen");
+                });
+                sc->add(go("setup/reference"));
+            } else {
+                sc->add(go("setup/general"));
+            }
+            sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Reports); next(); });
+        }
     } else if (scenario == "bench") {
         // Frame timing on the car's surfaces; KUTTA_FIXTURE_CAR_DETAIL scales
         // the tessellation (5 gives about 10M triangles).

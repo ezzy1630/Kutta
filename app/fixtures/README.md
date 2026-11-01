@@ -27,6 +27,12 @@ replaced by file names):
   Transition Model, drag and downforce reports. Its summary counts 4 cells
   under poor mesh numerics (`poor_quality_cells`).
 
+`cases/naca4412_ground/new-case.json` is `kutta new-case --json` on the
+wing's mesh (`naca_ground_case.py --write msh`). The fixture serves it for any
+`naca4412_ground.msh`, applying `--speed` and `--role` as the FSAE template
+does; a Kutta case replays its mesh's recording, and `convert` copies a Kutta
+case but refuses setting changes, which only the real CLI can write.
+
 `mixing_elbow` was recorded at `868f478`; the other three at `e308968`.
 
 The 2D views keep only the extrusion cap the app shows. Replay changes
