@@ -752,7 +752,7 @@ time. `max_seconds` stays available to the benches, off by default.
 
 | Test | Was | Now |
 | --- | --- | --- |
-| V5 SST and V7 SA TMR, CPU level-2 bump | 3,000 steps or 600 s: 2,000-2,700 steps reached, by load | 2,200 steps (`tmr::test_iterations`) |
+| V5 SST and V7 SA TMR, CPU level-2 bump | 3,000 steps or 600 s: 2,000-2,700 steps reached, by load | 3,000 steps (`tmr::test_iterations`) |
 | V5/V7, every other grid and backend | 3,000 steps or 600 s (3,000 always reached) | 3,000 steps |
 | V8 k-epsilon channel | 10,000 steps or 180 s (Metal 80 cells: 5,700 steps in 78-181 s) | 10,000 steps |
 | FSAE aero and transition | 6,000 steps or 3,600 s (recorded runs: 166-715 s) | 6,000 steps |
@@ -765,34 +765,35 @@ expression, every 100 steps; gates cf 0.1, cp 0.03, SA cd 0.1):
 | ---: | --- | --- | ---: |
 | 2,000 | **0.0992** / 0.152 / 0.353 | 0.105 / 0.129 / 0.355 | 0.175 |
 | 2,100 | 0.0904 / 0.142 / 0.324 | **0.0969** / 0.120 / 0.327 | 0.162 |
-| **2,200** | 0.0825 / 0.132 / 0.297 | 0.0892 / 0.112 / 0.301 | 0.151 |
+| 2,200 | 0.0825 / 0.132 / 0.297 | 0.0892 / 0.112 / 0.301 | 0.151 |
 | 2,300 | 0.0752 / 0.124 / 0.273 | 0.0822 / 0.105 / 0.276 | 0.140 |
 | 2,400 | 0.0689 / 0.116 / 0.250 | 0.0757 / *0.0985* / 0.254 | 0.130 |
-| 3,000 | 0.0415 / *0.0834* / 0.145 | 0.0466 / *0.0691* / 0.150 | *0.0859* |
+| **3,000** | 0.0415 / *0.0834* / 0.145 | 0.0466 / *0.0691* / 0.150 | *0.0859* |
 
 Every cp error stays under 0.0083. Main's last slow tier
 (`fluent_face_velocity/slow-main-12-22.xml.gz`) matches these rows at 2,000
 steps for SST and 2,100 for SA. Those runs passed station 0.632 and failed
-0.75 and 0.868 (and SA cd). 2,200 keeps exactly those outcomes, with the
-widest margins in the range the budget used to reach: 0.0175 and 0.011 below
-the bound at 0.632, 0.012 above it for SA at 0.75. Italic values would pass.
-A 3,000-step budget, which Metal already gets, would turn three of these
-failures into passes. That is a change of acceptance budget, not made here.
+0.75 and 0.868 (and SA cd); italic values pass. The CPU level-2 bump now gets
+the same 3,000 steps as Metal and every other grid, so both backends are
+measured at the same point. The gates are unchanged; at 3,000 steps SST and
+SA cf at 0.75 and SA cd pass (three fewer known failures: 62), and cf at 0.868
+still fails on both models. A budget chosen to keep the old load-dependent
+outcomes (2,200 was considered) would pick the stopping point by its result.
 
 The affected level-2 CPU assertions, from three slow tiers. The first is main
 at `1bb54a9`, from `fluent_face_velocity/slow-main-12-22.xml.gz`. The second is
 main at `530d3be` today, whose wall budget happened to stop at 2,200 steps. The
-third is this change.
+third is this change (measured on the merged branch).
 
-| Assertion (CPU, bump level 2) | main `1bb54a9`, wall | main `530d3be`, wall | this change, 2,200 steps |
+| Assertion (CPU, bump level 2) | main `1bb54a9`, wall | main `530d3be`, wall | this change, 3,000 steps |
 | --- | --- | --- | --- |
-| V5 SST steps | 2,000 | 2,200 | 2,200 |
-| V5 cf 0.632 / 0.75 / 0.868 | 0.0991 / **0.152** / **0.353** | 0.0825 / **0.132** / **0.297** | 0.0825 / **0.132** / **0.297** |
-| V5 cp 0.632 / 0.75 / 0.868 | 0.0044 / 0.0023 / 0.0144 | 0.0039 / 0.0039 / 0.0136 | 0.0039 / 0.0039 / 0.0136 |
-| V7 SA steps | 2,100 | 2,200 | 2,200 |
-| V7 cd | **0.162** | **0.151** | **0.151** |
-| V7 cf 0.632 / 0.75 / 0.868 | 0.0969 / **0.120** / **0.327** | 0.0892 / **0.112** / **0.301** | 0.0892 / **0.112** / **0.301** |
-| V7 cp 0.632 / 0.75 / 0.868 | 0.0030 / 0.0035 / 0.0107 | 0.0028 / 0.0042 / 0.0103 | 0.0028 / 0.0042 / 0.0103 |
+| V5 SST steps | 2,000 | 2,200 | 3,000 |
+| V5 cf 0.632 / 0.75 / 0.868 | 0.0991 / **0.152** / **0.353** | 0.0825 / **0.132** / **0.297** | 0.0415 / 0.0834 / **0.145** |
+| V5 cp 0.632 / 0.75 / 0.868 | 0.0044 / 0.0023 / 0.0144 | 0.0039 / 0.0039 / 0.0136 | 0.0025 / 0.0082 / 0.0106 |
+| V7 SA steps | 2,100 | 2,200 | 3,000 |
+| V7 cd | **0.162** | **0.151** | 0.0859 |
+| V7 cf 0.632 / 0.75 / 0.868 | 0.0969 / **0.120** / **0.327** | 0.0892 / **0.112** / **0.301** | 0.0466 / 0.0691 / **0.150** |
+| V7 cp 0.632 / 0.75 / 0.868 | 0.0030 / 0.0035 / 0.0107 | 0.0028 / 0.0042 / 0.0103 | 0.0015 / 0.0083 / 0.0080 |
 
 Bold values fail their gate. The V8 Metal 80-cell channel converged at 5,700
 steps in 107 s here (it used to fail when load pushed it past 180 s).
@@ -817,7 +818,9 @@ the absolute path, with identical values).
 Against main: 0 regressions, 0 recoveries, 0 changed values, 0 missing. The 8
 new assertions are the passing ledger checks, one per fixture use. The 65
 failures are the known ones: V6 25, V2 tet 8, V5 plate 6 (unconverged), V5
-bump 9, V7 SA 16 and V12 1 (no native fan case). Parts took 13, 22, 51 and 16
+bump 9, V7 SA 16 and V12 1 (no native fan case). That run used a 2,200-step
+CPU level-2 bump budget; the merged 3,000-step budget recovers three of them
+(SST and SA cf at x=0.75, SA cd; measured above), leaving 62. Parts took 13, 22, 51 and 16
 minutes on each build. The XML is not committed: its messages and expanded
 values carry restricted reference data (T3A measurements, UIUC and CFL3D
 coefficients).

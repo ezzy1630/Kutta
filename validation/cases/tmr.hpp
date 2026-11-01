@@ -62,12 +62,11 @@ inline std::filesystem::path grid(const std::filesystem::path& root,Case c,int l
   const std::array<std::string,3> bump{"bump_4levelsdown_89x41","bump_3levelsdown_177x81","bump_2levelsdown_353x161"};
   return root/(c==Case::FlatPlate?"2DZP_flatplate":"2DBC_bump")/"grids"/((c==Case::FlatPlate?plate:bump)[level]+".p2dfmt");
 }
-// The slow tests' iteration budget. On the level-2 bump the serial CPU backend
-// used to stop on a 600 s wall-clock budget, after 2,000-2,700 steps depending
-// on machine load, so its asserted values moved with load. 2,200 steps sits in
-// that range and keeps every gate's recorded outcome (VERIFICATION.md,
-// "Generated fixtures and iteration budgets"); every other run gets 3,000.
-inline int test_iterations(Backend backend,Case c,int level) {return backend==Backend::Cpu && c==Case::Bump && level==2?2200:3000;}
+// The slow tests' iteration budget: 3,000 steps on every grid and backend. The
+// serial CPU backend's level-2 bump used to stop on a 600 s wall-clock budget,
+// after 2,000-2,700 steps depending on machine load, so its asserted values
+// moved with load (VERIFICATION.md, "Generated fixtures and iteration budgets").
+inline int test_iterations(Backend,Case,int) {return 3000;}
 struct Options {
   int max_iterations=3000;
   // An optional wall-clock stop for exploratory runs (bench_tmr's last
