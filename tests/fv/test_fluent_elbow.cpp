@@ -206,6 +206,26 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
       const auto drop=inlet/inlet_area-outlet/outlet_area,reference=inlet_ref/inlet_area-outlet_ref/outlet_area;
       std::cout<<"V6_PRESSURE_DROP ours="<<drop<<" Fluent="<<reference<<" relative="<<std::abs(drop/reference-1)<<std::endl;
       CHECK(std::abs(drop/reference-1)<.005);
+      // Optional converged wall and cell fields for tools/forensics/wall_shear.py,
+      // which splits the wall-force gates face by face against Fluent's saved data.
+      if(const auto* directory=std::getenv("KUTTA_V6_WALL_DIR")) {
+        std::filesystem::create_directories(directory);
+        const auto stem=std::filesystem::path(directory)/(std::string(backend_name(dev->backend()))+"-"+mode);
+        const auto u=original(*dev,solver,solver.velocity().x),v=original(*dev,solver,solver.velocity().y),w=original(*dev,solver,solver.velocity().z);
+        const auto p=original(*dev,solver,solver.pressure()),k=original(*dev,solver,solver.kinetic_energy());
+        const auto omega=original(*dev,solver,solver.specific_dissipation());
+        std::ofstream cells(stem.string()+"-cells.csv");REQUIRE(cells);cells<<std::setprecision(17)<<"u,v,w,p,k,omega\n";
+        for(std::size_t i=0;i<p.size();++i) cells<<u[i]<<','<<v[i]<<','<<w[i]<<','<<p[i]<<','<<k[i]<<','<<omega[i]<<'\n';
+        // Force on the wall per face, -shear*|A| (SteadySolver::wall_shear),
+        // and the wall cell in Fluent's cell order.
+        const auto sx=dev->download(solver.wall_shear().x),sy=dev->download(solver.wall_shear().y),sz=dev->download(solver.wall_shear().z);
+        const auto& m=solver.mesh();const auto& order=solver.permutation().cells_new_to_old;
+        std::ofstream walls(stem.string()+"-walls.csv");REQUIRE(walls);walls<<std::setprecision(17)<<"patch,x,y,z,fx,fy,fz,cell\n";
+        for(const auto& patch:m.patches) if(patch.kind==PatchKind::Wall) for(Index f=patch.start;f<patch.start+patch.size;++f) {
+          const auto b=f-m.n_internal_faces();const double a=norm(g.face_area[f]);const auto x=g.face_centroid[f];
+          walls<<patch.name<<','<<x.x<<','<<x.y<<','<<x.z<<','<<-sx[b]*a<<','<<-sy[b]*a<<','<<-sz[b]*a<<','<<order[m.owner[f]]<<'\n';
+        }
+      }
       // Optional fixed-point comparison, after (and separate from) every
       // unchanged V6 gate above. Both cold starts reach the same 1,200 steps.
       if(const auto* directory=std::getenv("KUTTA_V6_COMPARE_DIR")) {

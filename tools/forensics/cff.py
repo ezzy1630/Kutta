@@ -161,6 +161,30 @@ def load(case_dir, stem, cache_dir):
     mesh.update(farea=farea, fcent=fcent, vol=vol, cen=cen, nfaces_per_cell=cnt)
     mesh["cells"] = read_fields(dat, "cells")
     mesh["faces"] = read_fields(dat, "faces")
+    return boundary_faces_first(mesh)
+
+
+def boundary_faces_first(mesh):
+    """Renumber faces zone by zone so boundary zones come first (fvops.Ctx needs it).
+
+    Some files interleave interior and boundary zones (the flprj nozzle). Face
+    fields are re-indexed with the faces; cells and nodes are untouched.
+    """
+    zones = sorted(mesh["zones"], key=lambda z: (z["type"] == 2, z["lo"]))
+    order = np.concatenate([np.arange(z["lo"], z["hi"]) for z in zones])
+    if order.size != mesh["c0"].size or np.array_equal(order, np.arange(order.size)):
+        return mesh
+    new_id = np.empty(order.size, np.int64)
+    new_id[order] = np.arange(order.size)
+    start = 0
+    for z in zones:
+        z["lo"], z["hi"], start = start, start + z["hi"] - z["lo"], start + z["hi"] - z["lo"]
+    mesh["zones"] = zones
+    ptr = np.concatenate([[0], np.cumsum(mesh["nnodes"])])
+    mesh["fnodes"] = np.concatenate([mesh["fnodes"][ptr[f] : ptr[f + 1]] for f in order])
+    for key in ("c0", "c1", "nnodes", "farea", "fcent"):
+        mesh[key] = mesh[key][order]
+    mesh["faces"] = {name: (new_id[ids], v) for name, (ids, v) in mesh["faces"].items()}
     return mesh
 
 
