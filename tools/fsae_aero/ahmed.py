@@ -173,9 +173,11 @@ def build(slant, level, out, first=FIRST):
     fmin = f.add("Min")
     f.setNumbers(fmin, "FieldsList", [thr, wake])
     f.setAsBackgroundMesh(fmin)
+    # One thread: with eight, gmsh 4.15.2 produced a different mesh on every
+    # run, so no regenerated mesh matched validation/generated_fixtures.tsv.
     for key, value in {"Mesh.MeshSizeExtendFromBoundary": 0, "Mesh.MeshSizeFromPoints": 0,
                        "Mesh.MeshSizeFromCurvature": 0, "Mesh.Algorithm": 6, "Mesh.Algorithm3D": 1,
-                       "Mesh.Optimize": 1, "General.NumThreads": 8}.items():
+                       "Mesh.Optimize": 1, "General.NumThreads": 1}.items():
         gmsh.option.setNumber(key, value)
     gmsh.model.mesh.generate(3)
     tags, coords, _ = gmsh.model.mesh.getNodes()

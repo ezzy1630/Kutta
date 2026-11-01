@@ -38,7 +38,7 @@ TEST_CASE("V5 TMR flat plate SST accuracy and three-grid trend" * doctest::test_
   KUTTA_FOR_EACH_BACKEND(dev) {
     std::array<double,3> error{};
     for(int level=0;level<3;++level) {
-      INFO("level: "<<level);const auto r=run(*dev,root,Case::FlatPlate,level);
+      INFO("level: "<<level);const auto r=run(*dev,root,Case::FlatPlate,level,{.max_iterations=test_iterations(dev->backend(),Case::FlatPlate,level)});
       CHECK_MESSAGE(r.failure.empty(),r.failure);CHECK(r.converged);CHECK(r.iterations<=3000);CHECK(std::isfinite(r.values.drag));
       if(!r.failure.empty()) {error[level]=std::numeric_limits<double>::infinity();if(level<2) continue;}
       error[level]=std::max(relative(r.values.cf[0],ref_cf),relative(r.values.drag,ref_cd));
@@ -56,7 +56,7 @@ TEST_CASE("V5 TMR bump SST station accuracy and three-grid trend" * doctest::tes
   KUTTA_FOR_EACH_BACKEND(dev) {
     std::array<double,3> error{};
     for(int level=0;level<3;++level) {
-      INFO("level: "<<level);const auto r=run(*dev,root,Case::Bump,level);
+      INFO("level: "<<level);const auto r=run(*dev,root,Case::Bump,level,{.max_iterations=test_iterations(dev->backend(),Case::Bump,level)});
       std::cout<<"V5 bump measurement backend="<<backend_name(dev->backend())<<" cells="<<r.cells<<" iterations="<<r.iterations<<" seconds="<<r.solve_seconds<<" setup_s="<<r.setup_seconds<<" converged="<<r.converged<<" budget="<<r.stopped_for_budget<<" change="<<r.load_change<<" drag="<<r.values.drag;
       for(auto value:r.values.cf) std::cout<<" cf="<<value;
       for(auto value:r.values.cp) std::cout<<" cp="<<value;

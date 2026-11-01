@@ -21,7 +21,7 @@ TEST_CASE("V7 SA TMR flat plate and bump accuracy convergence and three-grid tre
       std::array<double,3> errors{};
       for(int level=0;level<3;++level) {
         INFO("case "<<(plate?"plate":"bump")<<" level "<<level);
-        const auto r=sa::run(*dev,root,c,level);const auto& v=r.values;
+        const auto r=sa::run(*dev,root,c,level,test_iterations(dev->backend(),c,level));const auto& v=r.values;
         CHECK_MESSAGE(r.failure.empty(),r.failure);CHECK(r.converged);CHECK(r.iterations<=3000);CHECK(std::isfinite(v.drag));
         const double cd_error=relative(v.drag,reference(drag,0,plate?3:4));errors[level]=cd_error;
         if(level==2) CHECK(cd_error<=(plate?.07:.1));

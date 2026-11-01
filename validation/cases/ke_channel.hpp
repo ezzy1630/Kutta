@@ -51,6 +51,7 @@ inline Result run(Device& d,int count) {
       equation==0?TransportTerms{nullptr,&diagonal}:TransportTerms{equation==1?&f.k_sink:&f.epsilon_sink});
     if(equation==2) kern::fv_fixed_rows(d,n,eq.matrix.row_ptr,eq.matrix.diag,f.fixed_epsilon_mask,f.fixed_epsilon,eq.matrix.val,eq.rhs);
   };
+  // Stops on convergence or after 10,000 steps, never on wall time.
   Result result;std::vector<float> previous=initial_u;
   for(int step=1;step<=10000;++step) {
     for(int equation=0;equation<3;++equation) {
@@ -69,7 +70,7 @@ inline Result run(Device& d,int count) {
     for(Index c=0;c<n;++c) result.change=std::max(result.change,std::abs(double(current[c]-previous[c]))/std::max(double(current[c]),1e-20));
     previous=current;result.steps=step;result.converged=result.defect<=1e-5 && result.change<=1e-4;
     std::cout<<"KE channel progress backend="<<backend_name(d.backend())<<" n="<<n<<" steps="<<step<<" defect="<<result.defect<<" change="<<result.change<<std::endl;
-    if(result.converged || std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count()>=180) break;
+    if(result.converged) break;
   }
   update();const auto u=d.download(velocity.x),stress=d.download(model.fields().wall_tau);
   result.tau=0;int walls=0;for(Index b=0;b<nb;++b) if(mask[b]) {result.tau+=stress[b];++walls;}result.tau/=walls;

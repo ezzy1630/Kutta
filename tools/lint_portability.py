@@ -16,6 +16,11 @@ Tests reach the Fluent corpus only through tests/fluent_examples.hpp, which
 honours KUTTA_FLUENT_EXAMPLES; a hard-coded corpus path silently skips in any
 checkout (worktree, CI) that keeps the corpus elsewhere.
 
+Tests reach generated meshes (tools/generate_fixtures.py) only through
+tests/generated_fixtures.hpp, which honours KUTTA_RUNS and checks each file
+against validation/generated_fixtures.tsv; a runs/ path built anywhere else
+skips silently in every checkout that has no runs/ of its own.
+
 HDF5 takes char* file names and expects UTF-8; path::c_str() is wchar_t on
 Windows and path::string() uses the ANSI code page there. Use kutta::utf8_path.
 """
@@ -32,6 +37,7 @@ SUFFIXES = {".cpp", ".hpp", ".h", ".cu", ".mm"}
 CALL = re.compile(r"from_chars\s*\([^;]*?,[^;]*?,\s*(\w+)\s*[,)]")
 JTHREAD = re.compile(r"\bstd::jthread\b")
 CORPUS = re.compile(r"validation/fluent_examples\b")
+RUNS = re.compile(r"[\"'/]runs(?:/|[\"'])|\bKUTTA_RUNS\b|\bKUTTA_\w+_MESHES\b")
 H5_FILE = re.compile(r"\bH5F(?:open|create|is_accessible)\s*\(\s*(?!kutta::utf8_path\()")
 # Generic placeholder accounts (upstream docs, CI runners) reveal nothing.
 ANY_HOME = re.compile(r"(?:/Users|/home)/(?!(?:user|username|runner)/)[A-Za-z0-9._-]+/"
@@ -77,6 +83,11 @@ def main() -> int:
                     line = text.count("\n", 0, m.start()) + 1
                     bad.append(f"{path.relative_to(ROOT)}:{line}: Fluent corpus path; use fluent_examples() "
                                f"from tests/fluent_examples.hpp")
+            if d == "tests" and path.suffix != ".py" and path.name != "generated_fixtures.hpp":
+                for m in RUNS.finditer(text):
+                    line = text.count("\n", 0, m.start()) + 1
+                    bad.append(f"{path.relative_to(ROOT)}:{line}: generated-fixture path '{m.group(0)}'; use "
+                               f"generated_fixture() from tests/generated_fixtures.hpp")
             if path.suffix == ".py" or path.name == "parse.cpp":
                 continue
             for m in CALL.finditer(text):

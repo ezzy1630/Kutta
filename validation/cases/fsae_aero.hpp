@@ -51,7 +51,9 @@ struct Options {
   double pseudo_time_step = 0, pseudo_time_scale = 1, momentum_relaxation = 0, pressure_relaxation = 0;
   int max_iterations = 6000, check_every = 50;
   bool write_cells = false;  // cells.csv with centroid, velocity, pressure, k, omega, mu_t
-  double max_seconds = 3600;
+  // An optional wall-clock stop for exploratory runs (bench_fsae_aero
+  // --max-seconds). Tests leave it off, so their results do not depend on load.
+  double max_seconds = std::numeric_limits<double>::infinity();
   // Stop once Fluent-scaled residuals are below `residual` AND both force
   // coefficients moved less than `settle` (relative) over `window` iterations.
   double residual = 1e-3, settle = 5e-4;

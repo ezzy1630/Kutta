@@ -24,9 +24,9 @@ __pycache__/
 
 # Reference data whose terms don't allow public redistribution. Kept locally for
 # V&V only; each directory's SOURCE.md says where to fetch it.
-/validation/data/ercoftac_ahmed_body/
-/validation/data/uiuc_lsat_s1223/
-/validation/data/zerihan_tyrrell026_ground_effect/
+/validation/data/ercoftac_ahmed_body
+/validation/data/uiuc_lsat_s1223
+/validation/data/zerihan_tyrrell026_ground_effect
 /validation/data/ghia1982_cavity/raw/gist_ivan-pi_ghiau.txt
 /validation/data/ghia1982_cavity/raw/psiboil_Ghia-u.dat
 /validation/data/ghia1982_cavity/raw/psiboil_Ghia-v.dat

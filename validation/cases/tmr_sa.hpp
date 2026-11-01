@@ -22,7 +22,8 @@ inline Sample sample(Device& dev,SteadySolver& solver,Case c) {
   }
   result.drag=solver.forces(walls).coefficient({1,0,0},{1,1,(c==Case::FlatPlate?2.:1.5)*span,0});return result;
 }
-inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level) {
+// Stops on convergence or after max_iterations, never on wall time.
+inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level,int max_iterations=3000) {
   using Clock=std::chrono::steady_clock;auto start=Clock::now();auto path=grid(root,c,level);
   KUTTA_REQUIRE(std::filesystem::exists(path),"SA TMR grid missing; run tools/prepare_tmr.py");
   auto mesh=read_plot3d(path,span);const double nu=c==Case::FlatPlate?1./5e6:1./3e6;
@@ -43,15 +44,14 @@ inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level
   solver.initialize_sa_fields(std::vector<Vec3d>(n,{1,0,0}),std::vector<double>(n,0),std::vector<double>(n,3*nu));
   dev.synchronize();Result result;result.cells=n;result.setup_seconds=std::chrono::duration<double>(Clock::now()-start).count();
   start=Clock::now();Sample previous;bool has_previous=false;
-  while(solver.report().iteration<3000) {
-    try {solver.iterate(100);result.residual=solver.monitor();result.values=sa::sample(dev,solver,c);}
+  while(solver.report().iteration<max_iterations) {
+    try {solver.iterate(std::min(100,max_iterations-solver.report().iteration));result.residual=solver.monitor();result.values=sa::sample(dev,solver,c);}
     catch(const Error& e) {result.failure=e.what();result.iterations=solver.report().iteration;break;}
     result.iterations=result.residual.iteration;result.load_change=has_previous?change(previous,result.values,c):std::numeric_limits<double>::infinity();
     const auto& r=result.residual;const double defect=std::max({r.u.scaled,r.v.scaled,r.nu_tilde.scaled,r.continuity.scaled});
     result.converged=has_previous && defect<=1e-5 && result.load_change<=.001;
     std::cout<<std::setprecision(12)<<"SA TMR progress "<<backend_name(dev.backend())<<' '<<(c==Case::FlatPlate?"plate":"bump")<<' '<<level<<" it="<<r.iteration<<" defect="<<defect<<" load_change="<<result.load_change<<" Cf="<<result.values.cf[0]<<" Cd="<<result.values.drag<<std::endl;
     if(result.converged || !std::isfinite(defect) || !std::isfinite(result.values.drag)) break;
-    if(std::chrono::duration<double>(Clock::now()-start).count()>=600) {result.stopped_for_budget=true;break;}
     previous=result.values;has_previous=true;
   }
   dev.synchronize();result.solve_seconds=std::chrono::duration<double>(Clock::now()-start).count();return result;
