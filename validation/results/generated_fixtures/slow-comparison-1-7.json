@@ -1,0 +1,61 @@
+{
+  "cases": [
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re100 and Re400 cavity reported deviations",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V4 Fluent cavity matches its actual grid",
+      "baseline_assertions": 763,
+      "final_assertions": 763,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "baseline_assertions": 17044,
+      "final_assertions": 17044,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent k-epsilon elbow converges with second-order pressure",
+      "baseline_assertions": 11220,
+      "final_assertions": 11220,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent laminar 2D cylinder matches converged Fluent fields",
+      "baseline_assertions": 207,
+      "final_assertions": 207,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "baseline_assertions": 2565,
+      "final_assertions": 2565,
+      "baseline_failed": 25,
+      "final_failed": 25
+    }
+  ],
+  "regressions": [],
+  "recoveries": [],
+  "changed_values": [],
+  "missing_assertions": [],
+  "new_assertions": [],
+  "missing_cases": [],
+  "new_cases": [],
+  "no_new_failures": true
+}

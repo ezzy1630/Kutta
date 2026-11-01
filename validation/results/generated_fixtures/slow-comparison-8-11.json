@@ -1,0 +1,134 @@
+{
+  "cases": [
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "baseline_assertions": 25,
+      "final_assertions": 28,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "baseline_assertions": 3,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 8,
+      "final_assertions": 9,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "baseline_assertions": 7,
+      "final_assertions": 8,
+      "baseline_failed": 0,
+      "final_failed": 0
+    }
+  ],
+  "regressions": [],
+  "recoveries": [],
+  "changed_values": [],
+  "missing_assertions": [],
+  "new_assertions": [
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "assertion": [
+        "tests/fv/../generated_fixtures.hpp",
+        "56",
+        "CHECK",
+        "found == expected->second",
+        [
+          "p.hc := freestream",
+          "fsae_aero/mesh/zerihan_hfree_L2.msh matches validation/generated_fixtures.tsv"
+        ],
+        0
+      ],
+      "passed": true,
+      "expanded": "97f29211d2ddac2dc873ad5759a295ba80ba53afd670961fee7d0065c5bcfd53 == 97f29211d2ddac2dc873ad5759a295ba80ba53afd670961fee7d0065c5bcfd53"
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "assertion": [
+        "tests/fv/../generated_fixtures.hpp",
+        "56",
+        "CHECK",
+        "found == expected->second",
+        [
+          "p.hc := 0.224",
+          "fsae_aero/mesh/zerihan_h0.224_L2.msh matches validation/generated_fixtures.tsv"
+        ],
+        0
+      ],
+      "passed": true,
+      "expanded": "8e07959462635925c0f5c89f42b7774cd4114fa15d806da3f252cc4e0da24ed2 == 8e07959462635925c0f5c89f42b7774cd4114fa15d806da3f252cc4e0da24ed2"
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "assertion": [
+        "tests/fv/../generated_fixtures.hpp",
+        "56",
+        "CHECK",
+        "found == expected->second",
+        [
+          "p.hc := 0.090",
+          "fsae_aero/mesh/zerihan_h0.090_L2.msh matches validation/generated_fixtures.tsv"
+        ],
+        0
+      ],
+      "passed": true,
+      "expanded": "26909ad68c551c2a172edf12dfdd5e10987e39e4dd34fc27ad9cf47811a71bcd == 26909ad68c551c2a172edf12dfdd5e10987e39e4dd34fc27ad9cf47811a71bcd"
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "assertion": [
+        "tests/fv/../generated_fixtures.hpp",
+        "56",
+        "CHECK",
+        "found == expected->second",
+        [
+          "fsae_aero/mesh/ahmed35_L1.msh matches validation/generated_fixtures.tsv"
+        ],
+        0
+      ],
+      "passed": true,
+      "expanded": "0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609 == 0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609"
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "assertion": [
+        "tests/fv/../generated_fixtures.hpp",
+        "56",
+        "CHECK",
+        "found == expected->second",
+        [
+          "fsae_aero/mesh/s1223_a4.76_L2.msh matches validation/generated_fixtures.tsv"
+        ],
+        0
+      ],
+      "passed": true,
+      "expanded": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034 == d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034"
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "assertion": [
+        "tests/fv/../generated_fixtures.hpp",
+        "56",
+        "CHECK",
+        "found == expected->second",
+        [
+          "fsae_aero/mesh/ahmed35_L1_first15um.msh matches validation/generated_fixtures.tsv"
+        ],
+        0
+      ],
+      "passed": true,
+      "expanded": "9f39867109f04f2f0cc2bcc1207e195d7029f68f4d094c3676d67911918cb135 == 9f39867109f04f2f0cc2bcc1207e195d7029f68f4d094c3676d67911918cb135"
+    }
+  ],
+  "missing_cases": [],
+  "new_cases": [],
+  "no_new_failures": true
+}

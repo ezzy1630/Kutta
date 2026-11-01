@@ -678,6 +678,171 @@ Fresh evidence is in `build/baseline-tests.log`, `build/operator-tests.log`,
 `build/final-build.log`. These are local artifacts, not committed fixtures.
 Only local commits are made; nothing is pushed.
 
+## Generated fixtures and iteration budgets
+
+The FSAE external-aero and transition slow tests read meshes that tools
+generate from documented geometry and from restricted reference data. They are
+large, and most cannot be redistributed, so they are never committed. Until
+2026-11-01 they existed only in a few old lane worktrees, so in every other
+checkout these tests printed `skipping: missing ...` and passed. Every slow-tier
+comparison since excluded external aero without saying so.
+
+### Regenerating and finding them
+
+One command writes all of them into the runs root: `--runs`, else `$KUTTA_RUNS`,
+else `<checkout>/runs` (gitignored).
+
+```sh
+uv run tools/generate_fixtures.py                  # generate missing ones, verify all
+uv run tools/generate_fixtures.py --runs <dir>     # another root, e.g. one checkout shared by every worktree
+uv run tools/generate_fixtures.py --check          # verify only; writes nothing
+KUTTA_RUNS=<dir> KUTTA_FLUENT_EXAMPLES=<checkout>/validation/fluent_examples ./build/kutta-tests -ts=slow
+```
+
+`uv` installs the pinned interpreter and packages from the script's header
+(Python 3.14, gmsh 4.15.2, numpy 2.5.4, scipy 1.18.1, h5py 3.16.0). The
+restricted inputs come from `validation/data`. A worktree symlinks those
+directories from the checkout that has them (`.gitignore` covers the links),
+and each directory's `SOURCE.md` says where to fetch them.
+
+| Fixture (under the runs root) | Generator | Inputs | Read by |
+| --- | --- | --- | --- |
+| `fsae_aero/mesh/ahmed35_L1.msh` | `fsae_aero/ahmed.py` | geometry only | Ahmed 35 deg level 1 |
+| `fsae_aero/mesh/ahmed35_L1_first15um.msh` | `fsae_aero/ahmed.py --first 1.5e-05` | geometry only | Ahmed y+ ~ 1, SIMPLEC and Coupled |
+| `fsae_aero/mesh/s1223_a4.76_L2.msh` | `fsae_aero/wing2d.py s1223` | `uiuc_lsat_s1223` | S1223 SST and transition |
+| `fsae_aero/mesh/zerihan_h{free,0.224,0.090}_L2.msh` | `fsae_aero/wing2d.py zerihan` | `zerihan_tyrrell026_ground_effect` | Tyrrell 026 |
+| `transition/flatplate/t3a_L1.msh` | `transition/flatplate.py mesh` | `ercoftac_t3_flat_plate/raw` | T3A |
+| `wing/naca4412_ground.cas` | `fsae_aero/naca_ground_case.py` | the Fluent mixing elbow | `app/scripts/capture_fixtures.py --wing` |
+
+Each fixture's arguments are the ones `tools/fsae_aero/run.py` and
+`tools/transition/flatplate.py` pass, so their run directories use the same
+meshes. The TMR fine grids are separate: `tools/prepare_tmr.py` expands them
+in the checkout from checksum-verified gzip files, and a missing one is an
+error, not a skip.
+
+Tests reach the fixtures only through `tests/generated_fixtures.hpp`, and
+`tools/lint_portability.py` rejects a `runs/` path or a mesh environment
+variable anywhere else under `tests/`. A missing fixture still skips, with the
+command that makes it. A fixture whose SHA-256 differs from
+`validation/generated_fixtures.tsv` fails a CHECK and the case skips, because
+it is not the mesh the gates were measured on. The script verifies the same
+ledger. It moves a generated file into place only when the file matches, and
+leaves a mismatch in a scratch directory under the root. `--record` rewrites
+the ledger after a deliberate generator change.
+
+### Determinism
+
+- Two regenerations into empty roots gave byte-identical files for all eight.
+- The six 2D meshes (wing sections and T3A) are byte-identical to the copies
+  that lane worktrees generated on 2026-10-31.
+- `ahmed.py` was not deterministic: with `General.NumThreads` 8, two runs gave
+  71,932,454 and 71,952,273 bytes. With one thread, three runs were identical,
+  and meshing took 5 s instead of 11 s.
+- So the recorded Ahmed meshes are new instances (403,560 cells; the
+  2026-10-31 level-1 mesh had 403,604). The Ahmed regression guards were
+  measured on meshes that cannot be reproduced. The slow tier below checks them
+  on the recorded meshes.
+
+### Iteration budgets instead of wall time
+
+Four slow tests stopped on wall time. On a loaded machine, the asserted values
+of an unconverged run then depended on how many steps fit in the budget. Each
+now stops on convergence or an iteration count, and still reports its solve
+time. `max_seconds` stays available to the benches, off by default.
+
+| Test | Was | Now |
+| --- | --- | --- |
+| V5 SST and V7 SA TMR, CPU level-2 bump | 3,000 steps or 600 s: 2,000-2,700 steps reached, by load | 2,200 steps (`tmr::test_iterations`) |
+| V5/V7, every other grid and backend | 3,000 steps or 600 s (3,000 always reached) | 3,000 steps |
+| V8 k-epsilon channel | 10,000 steps or 180 s (Metal 80 cells: 5,700 steps in 78-181 s) | 10,000 steps |
+| FSAE aero and transition | 6,000 steps or 3,600 s (recorded runs: 166-715 s) | 6,000 steps |
+
+The CPU level-2 bump is the only run the wall budget cut short on a quiet
+machine. Its errors fall steadily with steps. Probes to 3,000 steps (each gate's
+expression, every 100 steps; gates cf 0.1, cp 0.03, SA cd 0.1):
+
+| Steps | SST cf 0.632 / 0.75 / 0.868 | SA cf 0.632 / 0.75 / 0.868 | SA cd |
+| ---: | --- | --- | ---: |
+| 2,000 | **0.0992** / 0.152 / 0.353 | 0.105 / 0.129 / 0.355 | 0.175 |
+| 2,100 | 0.0904 / 0.142 / 0.324 | **0.0969** / 0.120 / 0.327 | 0.162 |
+| **2,200** | 0.0825 / 0.132 / 0.297 | 0.0892 / 0.112 / 0.301 | 0.151 |
+| 2,300 | 0.0752 / 0.124 / 0.273 | 0.0822 / 0.105 / 0.276 | 0.140 |
+| 2,400 | 0.0689 / 0.116 / 0.250 | 0.0757 / *0.0985* / 0.254 | 0.130 |
+| 3,000 | 0.0415 / *0.0834* / 0.145 | 0.0466 / *0.0691* / 0.150 | *0.0859* |
+
+Every cp error stays under 0.0083. Main's last slow tier
+(`fluent_face_velocity/slow-main-12-22.xml.gz`) matches these rows at 2,000
+steps for SST and 2,100 for SA. Those runs passed station 0.632 and failed
+0.75 and 0.868 (and SA cd). 2,200 keeps exactly those outcomes, with the
+widest margins in the range the budget used to reach: 0.0175 and 0.011 below
+the bound at 0.632, 0.012 above it for SA at 0.75. Italic values would pass.
+A 3,000-step budget, which Metal already gets, would turn three of these
+failures into passes. That is a change of acceptance budget, not made here.
+
+The affected level-2 CPU assertions, from three slow tiers. The first is main
+at `1bb54a9`, from `fluent_face_velocity/slow-main-12-22.xml.gz`. The second is
+main at `530d3be` today, whose wall budget happened to stop at 2,200 steps. The
+third is this change.
+
+| Assertion (CPU, bump level 2) | main `1bb54a9`, wall | main `530d3be`, wall | this change, 2,200 steps |
+| --- | --- | --- | --- |
+| V5 SST steps | 2,000 | 2,200 | 2,200 |
+| V5 cf 0.632 / 0.75 / 0.868 | 0.0991 / **0.152** / **0.353** | 0.0825 / **0.132** / **0.297** | 0.0825 / **0.132** / **0.297** |
+| V5 cp 0.632 / 0.75 / 0.868 | 0.0044 / 0.0023 / 0.0144 | 0.0039 / 0.0039 / 0.0136 | 0.0039 / 0.0039 / 0.0136 |
+| V7 SA steps | 2,100 | 2,200 | 2,200 |
+| V7 cd | **0.162** | **0.151** | **0.151** |
+| V7 cf 0.632 / 0.75 / 0.868 | 0.0969 / **0.120** / **0.327** | 0.0892 / **0.112** / **0.301** | 0.0892 / **0.112** / **0.301** |
+| V7 cp 0.632 / 0.75 / 0.868 | 0.0030 / 0.0035 / 0.0107 | 0.0028 / 0.0042 / 0.0103 | 0.0028 / 0.0042 / 0.0103 |
+
+Bold values fail their gate. The V8 Metal 80-cell channel converged at 5,700
+steps in 107 s here (it used to fail when load pushed it past 180 s).
+
+### Slow-tier baseline with external aero (2026-11-01)
+
+Main `530d3be` and this change ran on one Apple M4 Pro, sequentially, in four
+parts (doctest `--first/--last` 1-7, 8-11, 12-20, 21-33; `-r=xml --success`).
+Both used the fixtures generated above in another checkout's `runs/`: main
+through its old `KUTTA_FSAE_AERO_MESHES` and `KUTTA_TRANSITION_MESHES`, this
+change through `KUTTA_RUNS`. This worktree had no `runs/` of its own.
+`tools/forensics/compare_slow_assertions.py` compared each part
+(`validation/results/generated_fixtures/slow-comparison-*.json`; parts 8-11
+and 21-33 of this change were rerun after the ledger check's context dropped
+the absolute path, with identical values).
+
+| Build | Cases run | Skip messages | Assertions passed | Failed |
+| --- | ---: | ---: | ---: | ---: |
+| main `530d3be` | 33 | 0 | 201,014 | 65 |
+| this change | 33 | 0 | 201,022 | 65 |
+
+Against main: 0 regressions, 0 recoveries, 0 changed values, 0 missing. The 8
+new assertions are the passing ledger checks, one per fixture use. The 65
+failures are the known ones: V6 25, V2 tet 8, V5 plate 6 (unconverged), V5
+bump 9, V7 SA 16 and V12 1 (no native fan case). Parts took 13, 22, 51 and 16
+minutes on each build. The XML is not committed: its messages and expanded
+values carry restricted reference data (T3A measurements, UIUC and CFL3D
+coefficients).
+
+The six external-aero and transition cases now run, on Metal, and pass:
+
+| Case | Steps | Gate or guard | Kutta |
+| --- | ---: | --- | --- |
+| Tyrrell 026, freestream | 1,800 | Cl within 5% of CFL3D k-omega | 1.24% |
+| Tyrrell 026, h/c 0.224 | 2,400 | Cl within 5% | 3.66% |
+| Tyrrell 026, h/c 0.090 | 2,300 | guard: Cl within 1% of 1.4107 | 1.41058 |
+| Ahmed 35 deg, level 1 | 2,000 | guard: Cd within 2% of 0.3531 | 0.35317 |
+| S1223 Re 2e5, 4.76 deg, SST | 2,150 | CL within 0.10, CD within 25% of UIUC | +0.075, +22.7% |
+| Ahmed y+ ~ 1, SIMPLEC | 2,000 | y+ mean < 1.5; guard: Cd within 2% of 0.3545 | 0.88; 0.354488 |
+| Ahmed y+ ~ 1, Coupled | 2,000 | guard: Cd within 1%, Cl within 3% of SIMPLEC | 0.043%, 1.50% |
+| T3A vs experiment | 6,000 | guards: onset 13%, laminar 13%, turbulent 7.5% | 11.8%, 12.1%, 6.94% |
+| T3A vs independent solution | 6,000 | onset 5%, Cf laminar 3%, turbulent 3% | 2.47%, 1.70%, 1.35% |
+| S1223, transition | 6,000 | CL within 0.10, CD within 25% of UIUC | +0.0989, +16.2% |
+
+Every case also met its convergence checks. The Ahmed guards hold on the new
+deterministic meshes to within 0.02%. The S1223 transition CL is 0.0011 inside
+its bound, as `transition/REPORT.md` records. The FSAE solves took 139-234 s,
+and both transition cases ran in one 16-minute part, so the former 3,600 s
+wall budget never applied.
+
 ## V6 mixing-elbow SST
 
 Historical baseline below: hybrid initialization is implemented in the

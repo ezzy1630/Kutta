@@ -50,8 +50,11 @@ inline std::filesystem::path generated_fixture(const std::string& relative) {
                                  << generated_fixtures().string() << ")");
     return {};
   }
+  // The context names the fixture, not the root, so the assertion has one
+  // identity in every checkout (tools/forensics/compare_slow_assertions.py).
   const auto found = kutta::sha256_file(path);
-  CHECK_MESSAGE(found == expected->second, path.string() << " differs from validation/generated_fixtures.tsv (sha256 " << found
-                                                         << "); regenerate it with uv run tools/generate_fixtures.py --force");
-  return found == expected->second ? path : std::filesystem::path{};
+  CHECK_MESSAGE(found == expected->second, relative << " matches validation/generated_fixtures.tsv");
+  if (found == expected->second) return path;
+  MESSAGE("skipping: " << path.string() << " is not the recorded mesh; regenerate it with uv run tools/generate_fixtures.py --force");
+  return {};
 }

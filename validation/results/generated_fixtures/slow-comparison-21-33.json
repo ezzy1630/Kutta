@@ -1,0 +1,134 @@
+{
+  "cases": [
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "baseline_assertions": 161469,
+      "final_assertions": 161470,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 10,
+      "final_assertions": 11,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.1 translating-wall Couette hex and poly",
+      "baseline_assertions": 104,
+      "final_assertions": 104,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.2 rotating-wall Taylor Couette hex and poly",
+      "baseline_assertions": 6668,
+      "final_assertions": 6668,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V8 Darcy Forchheimer pressure drop and oblique directions",
+      "baseline_assertions": 24,
+      "final_assertions": 24,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10 incompressible pressure and mass-flow inlets",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V11 internal fan polynomial and porous jump pressure discontinuity",
+      "baseline_assertions": 312,
+      "final_assertions": 312,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.3 rotation and translation preserve Taylor Couette pressure",
+      "baseline_assertions": 6,
+      "final_assertions": 6,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent research downloads retain published byte identities",
+      "baseline_assertions": 264,
+      "final_assertions": 264,
+      "baseline_failed": 0,
+      "final_failed": 0
+    }
+  ],
+  "regressions": [],
+  "recoveries": [],
+  "changed_values": [],
+  "missing_assertions": [],
+  "new_assertions": [
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "assertion": [
+        "tests/fv/../generated_fixtures.hpp",
+        "56",
+        "CHECK",
+        "found == expected->second",
+        [
+          "transition/flatplate/t3a_L1.msh matches validation/generated_fixtures.tsv"
+        ],
+        0
+      ],
+      "passed": true,
+      "expanded": "ee19378ebf31b910e2aa515ee30df1404dc1060526b920ff4809a8aed92e7b74 == ee19378ebf31b910e2aa515ee30df1404dc1060526b920ff4809a8aed92e7b74"
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "assertion": [
+        "tests/fv/../generated_fixtures.hpp",
+        "56",
+        "CHECK",
+        "found == expected->second",
+        [
+          "fsae_aero/mesh/s1223_a4.76_L2.msh matches validation/generated_fixtures.tsv"
+        ],
+        0
+      ],
+      "passed": true,
+      "expanded": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034 == d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034"
+    }
+  ],
+  "missing_cases": [],
+  "new_cases": [],
+  "no_new_failures": true
+}

@@ -43,6 +43,10 @@ The build command above runs **all** tests, including the V1/V2 refinement
 studies and V3/V4 cavity validation. Slow gates can intentionally remain red
 when a measured accuracy target is unmet; see the current
 [verification results](src/kutta/fv/VERIFICATION.md).
+The external-aero and transition slow tests skip unless their generated
+meshes exist: `uv run tools/generate_fixtures.py` writes them under
+`$KUTTA_RUNS` (default `<checkout>/runs`). See
+[Generated fixtures](src/kutta/fv/VERIFICATION.md#generated-fixtures-and-iteration-budgets).
 
 The SST defaults include a switchable signed
 cross-diffusion cap at `1e6*rho*beta*omega^2`, inferred from Fluent's rpvar name,
