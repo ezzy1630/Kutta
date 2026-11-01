@@ -256,6 +256,15 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   auto& limit=b.add("methods/gradient-limiting","Gradient limiting","Methods",c.numerics.limiting?Json(*c.numerics.limiting):Json(nullptr),"","bool");
   if(c.numerics.limiting)b.editable(limit,[target=&c.numerics.limiting](const Json& j){*target=std::get<bool>(j.value);});
   b.consume(c.variables,"recon/limit?");
+  {
+    // Fluent's limiter type (SolverSettings::limiter).
+    auto& target=c.numerics.limiter;
+    auto& s=b.add("methods/limiter","Limiter type","Methods",target?Json(*target==Limiter::differentiable?"differentiable":"standard"):Json(nullptr),"","enum");
+    s.options={"standard","differentiable"};s.option_labels={"Standard","Differentiable"};label_value(s);
+    b.depends(s,"methods/gradient-limiting",{Json(true)});
+    if(target)b.editable(s,[target=&target](const Json& j){*target=std::get<std::string>(j.value)=="differentiable"?Limiter::differentiable:Limiter::standard;});
+    b.consume(c.variables,"recon/lim/type");
+  }
   // Fluent's flow/scheme: SIMPLE, SIMPLEC and Coupled each run natively and may
   // be switched to one another; PISO is rejected by the solve adapter. Kutta's
   // Coupled solver is pseudo-transient, so a case without pseudo time offers

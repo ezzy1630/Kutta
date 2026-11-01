@@ -112,6 +112,13 @@ struct SteadySolver::Impl {
   // allocated only when there are any.
   Buffer<Index> poor;Index poor_count=0;
   DeviceVec3 grad_p,limited_gradient[3];
+  // SolverSettings::Limiter::Differentiable: per velocity component, the
+  // limiter's squared threshold (-1 is Barth-Jespersen), the shift bound of
+  // refresh_time_step_and_thresholds, and two range scratch buffers,
+  // allocated only for that limiter.
+  float limiter_epsilon2[3]{-1,-1,-1},limiter_bound[3]{};
+  bool limiter_pending=true;
+  std::vector<Buffer<float>> limiter_scratch;
   std::unique_ptr<TransportEquation> momentum[3];
   std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction;
   std::shared_ptr<const WalkFaceReconstruction> turbulent_faces;
@@ -158,7 +165,8 @@ struct SteadySolver::Impl {
       std::isfinite(settings.viscosity) && settings.momentum_relaxation>0 && settings.momentum_relaxation<=1 &&
       settings.pressure_relaxation>0 && settings.pressure_relaxation<=1 &&
       settings.pseudo_time_scale>0 && settings.pseudo_time_step>=0 && settings.monitor_interval>0 &&
-      std::isfinite(settings.coupled_courant) && settings.coupled_courant>0,
+      std::isfinite(settings.coupled_courant) && settings.coupled_courant>0 &&
+      (settings.limiter==Limiter::Standard || (std::isfinite(settings.limiter_coefficient) && settings.limiter_coefficient>0)),
       "FV invalid steady solver settings");
     for(auto& bc:conditions)
       KUTTA_REQUIRE(boundaries.emplace(bc.patch,std::move(bc.condition)).second,"FV duplicate patch condition");
@@ -195,6 +203,7 @@ struct SteadySolver::Impl {
     velocity=vector_field(dev,n);face_velocity=vector_field(dev,nf);body=vector_field(dev,n);source=vector_field(dev,n);
     boundary_velocity=vector_field(dev,nb);prescribed_velocity=vector_field(dev,nb);
     for(auto& g:limited_gradient) g=vector_field(dev,n);
+    if(settings.limit && settings.limiter==Limiter::Differentiable) for(int k=0;k<6;++k) limiter_scratch.push_back(dev.alloc<float>(n));
     grad_p=vector_field(dev,n);grad_correction=vector_field(dev,n);absolute_residual=vector_field(dev,n);
     fluent_scale=vector_field(dev,n);
     pressure=dev.alloc<float>(n);dev.fill(pressure,0);
@@ -604,7 +613,11 @@ struct SteadySolver::Impl {
   // monitor() both refresh it from the same state, so monitoring never changes
   // the step a run takes; it used to be refreshed only in monitor(), which
   // made the solution depend on the monitor interval.
-  void refresh_time_step() {
+  // With limiter_thresholds (step() and coupled_step() only, never monitor())
+  // the differentiable limiter's velocity ranges join the same reduction, so
+  // that limiter adds no host wait to a step.
+  void refresh_time_step(bool limiter_thresholds=false) {
+    if(limiter_thresholds && !limiter_scratch.empty()) {refresh_time_step_and_thresholds();return;}
     if(settings.pseudo_time_step>0 || !settings.pseudo_transient) return;
     kern::fv_speed(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,speed);
     if(!coupled) {const auto maximum=dev.max_abs(speed,mesh.n_cells);update_time(maximum,maximum);return;}
@@ -682,12 +695,14 @@ struct SteadySolver::Impl {
   }
   // The momentum limiter of component k sees the pair (fv_paired_limiter).
   TransportSettings with_low(TransportSettings t,int k) const {
+    t.limiter_epsilon2=limiter_epsilon2[k];
     const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
     if(paired) t.limiter_low=lo[k];
     return t;
   }
-  // Every initialization writes hi alone.
+  // Every initialization writes hi alone, and needs fresh limiter thresholds.
   void reset_paired() {
+    limiter_pending=true;
     if(!paired) return;
     for(auto* b:{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z,&pressure_gradient_lo.x,&pressure_gradient_lo.y,
         &pressure_gradient_lo.z,&pressure_lo,&mass_lo}) dev.fill(*b,0);
@@ -710,8 +725,51 @@ struct SteadySolver::Impl {
     kern::fv_paired_momentum_residual(dev,mesh.n_cells,m.row_ptr,m.col,m.val,m.diag,eq.diagonal,
       *hi[k],*lo[k],*g[k],mesh.volume,eq.rhs,r);
   }
+  // The differentiable limiter's thresholds (coefficient * velocity component
+  // range)^2. Each step refreshes them first, inside refresh_time_step's
+  // reduction: with the component shifted by a bound B >= max|u|, the range
+  // is max|u + B| + max|B - u| - 2B. A component that outgrew its bound, and
+  // the first flux after an initialization, take the exact path, which also
+  // sets B = 2 max|u|. monitor() never refreshes them, so the monitor
+  // interval does not change the path.
+  void set_limiter_thresholds(const double (&range)[3]) {
+    for(int k=0;k<3;++k) limiter_epsilon2[k]=float(std::pow(settings.limiter_coefficient*range[k],2));
+  }
+  void refresh_limiter_thresholds() {
+    const Buffer<float>* fields[]{&velocity.x,&velocity.y,&velocity.z};
+    const auto r=field_ranges(dev,fields,mesh.n_cells,limiter_scratch);
+    double range[3];
+    for(int k=0;k<3;++k) {range[k]=r[k].range;limiter_bound[k]=2*r[k].bound;}
+    set_limiter_thresholds(range);limiter_pending=false;
+  }
+  void refresh_time_step_and_thresholds() {
+    const bool automatic=settings.pseudo_time_step<=0 && settings.pseudo_transient;
+    std::vector<Device::HostReduction> r;
+    if(automatic) {
+      kern::fv_speed(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,speed);
+      r.push_back(Device::HostReduction::max_abs(speed,mesh.n_cells));
+      if(coupled) r.push_back(Device::HostReduction::sum(speed,mesh.n_cells));
+    }
+    const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+    for(int k=0;k<3;++k) {
+      auto& above=limiter_scratch[2*k];auto& below=limiter_scratch[2*k+1];
+      kern::fv_range_shift(dev,mesh.n_cells,*q[k],above,below,limiter_bound[k]);
+      r.push_back(Device::HostReduction::max_abs(*q[k],mesh.n_cells));
+      r.push_back(Device::HostReduction::max_abs(above,mesh.n_cells));r.push_back(Device::HostReduction::max_abs(below,mesh.n_cells));
+    }
+    const auto v=dev.reduce_many(r);
+    std::size_t j=0;
+    if(automatic) {update_time(v[0],coupled?v[1]/double(mesh.n_cells):v[0]);j=coupled?2:1;}
+    double range[3];bool bounded=!limiter_pending;
+    for(int k=0;k<3;++k,j+=3) {
+      bounded=bounded && v[j]<=double(limiter_bound[k]);
+      range[k]=std::max(0.0,v[j+1]+v[j+2]-2.0*double(limiter_bound[k]));
+    }
+    if(bounded) set_limiter_thresholds(range);else refresh_limiter_thresholds();
+  }
   void update_flux() {
     if(paired) dev.copy(previous_mass,mass);
+    if(limiter_pending && !limiter_scratch.empty()) refresh_limiter_thresholds();
     reconstruct_velocity();
     const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
     const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
@@ -720,10 +778,10 @@ struct SteadySolver::Impl {
       auto& eq=*momentum[k];auto& g=limited_gradient[k];
       if(settings.limit && paired) kern::fv_paired_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
         stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*lo[k],*bc[k],scalar_kind,
-        eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
+        eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z,limiter_epsilon2[k]);
       else if(settings.limit) kern::fv_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
         stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*bc[k],
-        eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
+        eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z,limiter_epsilon2[k]);
       else {
         dev.fill(eq.limiter,1);
         kern::fv_scale_gradient(dev,mesh.n_cells,eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
@@ -778,7 +836,7 @@ struct SteadySolver::Impl {
   // current state: momentum b - A u with the explicit reconstructed face
   // pressure, and the Rhie-Chow mass imbalance. Turbulence follows segregated.
   void coupled_step() {
-    refresh_time_step();
+    refresh_time_step(true);
     update_boundaries();update_pressure();update_turbulence();momentum_sources();
     const auto transport=momentum_transport();
     Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
@@ -815,7 +873,7 @@ struct SteadySolver::Impl {
 
   void step() {
     if(coupled) {coupled_step();return;}
-    refresh_time_step();
+    refresh_time_step(true);
     update_boundaries();update_pressure();
     update_turbulence();
     kern::fv_momentum_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,

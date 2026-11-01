@@ -263,16 +263,40 @@ void gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
     s.boundary_lsq_delta.x,s.boundary_lsq_delta.y,s.boundary_lsq_delta.z,
     s.lsq_inverse,cell,boundary,out.x,out.y,out.z,m.n_cells);
 }
+// With M = max|phi|: max(phi) = max|phi + M| - M and min(phi) = M - max|M - phi|.
+std::vector<FieldRange> field_ranges(Device& dev, std::span<const Buffer<float>* const> fields, std::size_t n,
+                                     std::span<Buffer<float>> scratch) {
+  KUTTA_REQUIRE(scratch.size()>=2*fields.size(),"FV field range scratch mismatch");
+  std::vector<FieldRange> out(fields.size());
+  if(n==0 || fields.empty()) return out;
+  std::vector<Device::HostReduction> r;
+  for(std::size_t k=0;k<fields.size();++k) {
+    KUTTA_REQUIRE(n<=fields[k]->size() && n<=scratch[2*k].size() && n<=scratch[2*k+1].size(),"FV field range size mismatch");
+    r.push_back(Device::HostReduction::max_abs(*fields[k],n));
+  }
+  const auto bound=dev.reduce_many(r);
+  r.clear();
+  for(std::size_t k=0;k<fields.size();++k) {
+    kern::fv_range_shift(dev,n,*fields[k],scratch[2*k],scratch[2*k+1],float(bound[k]));
+    r.push_back(Device::HostReduction::max_abs(scratch[2*k],n));r.push_back(Device::HostReduction::max_abs(scratch[2*k+1],n));
+  }
+  const auto m=dev.reduce_many(r);
+  for(std::size_t k=0;k<fields.size();++k) {
+    const auto b=float(bound[k]);out[k]={std::max(0.0,m[2*k]+m[2*k+1]-2.0*double(b)),b};
+  }
+  return out;
+}
+
 void limit_gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
                     const Buffer<float>& cell, const Buffer<float>& boundary,
                     const DeviceVec3& g, Buffer<float>& limiter,
-                    const Buffer<float>* low, const Buffer<Index>* boundary_kind) {
+                    const Buffer<float>* low, const Buffer<Index>* boundary_kind, float epsilon2) {
   KUTTA_REQUIRE(limiter.size()==cell.size() && (!low || (low->size()==cell.size() && boundary_kind &&
     boundary_kind->size()==boundary.size())),"FV limiter size mismatch");
   if(low) kern::fv_paired_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,
-    s.face_delta.z,cell,*low,boundary,*boundary_kind,g.x,g.y,g.z,limiter);
+    s.face_delta.z,cell,*low,boundary,*boundary_kind,g.x,g.y,g.z,limiter,epsilon2);
   else kern::fv_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,s.face_delta.z,
-    cell,boundary,g.x,g.y,g.z,limiter);
+    cell,boundary,g.x,g.y,g.z,limiter,epsilon2);
 }
 
 void vector_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,

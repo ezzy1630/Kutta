@@ -1,0 +1,95 @@
+faces 91581, interior 86782; saved sum|div| 7.66e-08 kg/s; Fluent final continuity L1 2.476e-06 kg/s; stored global pseudo dt 0.04265362362279325
+
+1. Boundary faces: SV_FLUX vs rho U_face . S
+  wall-elbow         n= 2168 max|F - rho Ub.S| / max|F| = 0.0e+00 (max|F| 0.00e+00)
+  wall-inlet         n=  268 max|F - rho Ub.S| / max|F| = 0.0e+00 (max|F| 0.00e+00)
+  outlet             n=  155 max|F - rho Ub.S| / max|F| = 8.5e-16 (max|F| 9.54e-05)
+  cold-inlet         n=  152 max|F - rho Ub.S| / max|F| = 3.8e-15 (max|F| 8.36e-05)
+  hot-inlet          n=   55 max|F - rho Ub.S| / max|F| = 2.7e-16 (max|F| 2.47e-05)
+  symmetry-xyplane   n= 2001 max|F - rho Ub.S| / max|F| = 0.0e+00 (max|F| 0.00e+00)
+
+2. Interior regressions. deep faces 26748, deep faces with both cells unlimited 15324
+  |F - mean(unlimited LSQ2 side recon)| / |F| median on quiet faces 6.19e-04
+ 2a. velocity interpolant (no RC), quiet faces, median |err|/|F|:
+    mean of side reconstructions u_c + G_c r_c           6.19e-04
+    mean values + mean gradient . (x_f - x_mid)          3.50e-03
+    dist-weighted values + weighted grad . (x_f - x_ip)  3.48e-03
+    mean cell values only                                4.61e-03
+ 2b. reconstruction-gradient weight, quiet faces, after the RC term below (median |err|/|F|):
+    LSQ 1/d^1   5.44e-04
+    LSQ 1/d^1.5 4.10e-04
+    LSQ 1/d^2   3.31e-04
+    LSQ 1/d^2.5 4.87e-04
+    LSQ 1/d^3   6.58e-04
+ 2c. single-term coefficients (1.0 = the term is present at full strength):
+  all deep faces: limited minus unlimited recon + RC         limited-recon +1.032, RC +0.684                              R2 0.652
+  RC jump, momentum gradient GG(2nd-order p_f)               RC +0.998, a_P-weighted recon +1.070                         R2 0.605
+  RC jump, LSQ 1/d^2 gradient                                RC +0.703, a_P-weighted recon +1.041                         R2 0.551
+  RC jump, Green-Gauss cell gradient                         RC +0.331, a_P-weighted recon +0.945                         R2 0.295
+  RC averaged-gradient form, momentum grad                   RC +0.931, a_P-weighted recon +0.940                         R2 0.544
+  RC averaged-gradient form, LSQ grad                        RC +0.732, a_P-weighted recon +0.970                         R2 0.553
+  does the S-derived jump correction enter the flux?         RC +1.001, a_P +1.082, jump-fit (WFGC cand.) +0.030          R2 0.610
+  a_P proxy: convection only                                 RC +0.931, a_P-weighted recon +1.023                         R2 0.601
+  a_P proxy: convection + diffusion                          RC +0.998, a_P-weighted recon +1.070                         R2 0.605
+  a_P proxy: + pseudo-time rho V/dtau                        RC +1.078, a_P-weighted recon +1.064                         R2 0.605
+
+3. Assembled formulas on every interior face (saved boundary fluxes kept for the divergence):
+  Fluent candidate: a_P-wtd limited recon + RC(momentum grad)    |err|/|F| median 6.188785e-04 p90 1.482818e-02 quiet 3.306023e-04 | sum|div| 8.789587e-04 kg/s (L1:2.9e-04 L2:2.6e-04 L3:6.5e-05 L99:1.7e-05)
+    same, wall faces dropped from wall-cell LSQ                  |err|/|F| median 5.943937e-04 p90 1.172193e-02 quiet 3.306023e-04 | sum|div| 7.443932e-04 kg/s (L1:2.0e-04 L2:2.1e-04 L3:6.5e-05 L99:1.7e-05)
+    same, unlimited velocity gradient                            |err|/|F| median 9.468671e-04 p90 2.040009e-02 quiet 3.306023e-04 | sum|div| 1.284643e-03 kg/s (L1:3.1e-04 L2:3.6e-04 L3:1.4e-04 L99:2.1e-05)
+    same, RC jump with LSQ pressure gradient                     |err|/|F| median 7.932042e-04 p90 2.033410e-02 quiet 4.371629e-04 | sum|div| 1.065006e-03 kg/s (L1:3.0e-04 L2:2.8e-04 L3:1.2e-04 L99:2.0e-05)
+  Historical pre-round-1 point/unlimited + RC(LSQ)               |err|/|F| median 8.101502e-03 p90 1.297415e-01 quiet 3.535306e-03 | sum|div| 2.040494e-03 kg/s (L1:4.4e-04 L2:4.3e-04 L3:2.5e-04 L99:4.6e-05)
+  Round-1 side/limited + mean(V/a) RC(momentum)                  |err|/|F| median 6.195582e-04 p90 1.499989e-02 quiet 3.305136e-04 | sum|div| 8.982680e-04 kg/s (L1:2.9e-04 L2:2.7e-04 L3:6.5e-05 L99:1.7e-05)
+  Point/limited + round-1 pressure operators                     |err|/|F| median 7.667992e-03 p90 1.196710e-01 quiet 3.515610e-03 | sum|div| 2.008083e-03 kg/s (L1:4.7e-04 L2:4.8e-04 L3:2.6e-04 L99:4.4e-05)
+  Point/unlimited + round-1 pressure operators                   |err|/|F| median 8.148466e-03 p90 1.273046e-01 quiet 3.515610e-03 | sum|div| 1.831731e-03 kg/s (L1:3.8e-04 L2:3.8e-04 L3:2.5e-04 L99:4.4e-05)
+  Point/differentiable K=0.01 + round-1 pressure operators       |err|/|F| median 7.075770e-03 p90 1.122359e-01 quiet 3.325389e-03 | sum|div| 1.897456e-03 kg/s (L1:4.2e-04 L2:4.5e-04 L3:2.5e-04 L99:4.5e-05)
+  Point/differentiable K=0.05 + round-1 pressure operators       |err|/|F| median 7.403341e-03 p90 1.128899e-01 quiet 3.384496e-03 | sum|div| 1.870327e-03 kg/s (L1:4.1e-04 L2:4.3e-04 L3:2.4e-04 L99:4.4e-05)
+  Side/differentiable K=0.01 + mean(V/a) RC(momentum)            |err|/|F| median 6.541304e-04 p90 1.250781e-02 quiet 3.588698e-04 | sum|div| 8.021250e-04 kg/s (L1:2.6e-04 L2:2.5e-04 L3:5.4e-05 L99:1.7e-05)
+  Side/differentiable K=0.05 + mean(V/a) RC(momentum)            |err|/|F| median 6.984767e-04 p90 1.379555e-02 quiet 2.566558e-04 | sum|div| 8.841224e-04 kg/s (L1:2.3e-04 L2:2.4e-04 L3:8.7e-05 L99:1.7e-05)
+  Side/unlimited + mean(V/a) RC(momentum)                        |err|/|F| median 9.475620e-04 p90 2.057591e-02 quiet 3.305136e-04 | sum|div| 1.299719e-03 kg/s (L1:3.2e-04 L2:3.7e-04 L3:1.4e-04 L99:2.1e-05)
+  Point/unlimited + limited side increments                      |err|/|F| median 8.197806e-03 p90 1.274016e-01 quiet 3.515610e-03 | sum|div| 1.965991e-03 kg/s (L1:4.7e-04 L2:4.5e-04 L3:2.3e-04 L99:4.3e-05)
+  Side/limited + volume-weighted consistent RC                   |err|/|F| median 7.187568e-04 p90 1.607276e-02 quiet 4.040219e-04 | sum|div| 9.323011e-04 kg/s (L1:2.9e-04 L2:2.7e-04 L3:6.8e-05 L99:2.1e-05)
+  Face-Peclet curvature correction + branch RC                   |err|/|F| median 8.487105e-04 p90 3.222557e-02 quiet 4.572062e-04 | sum|div| 1.211530e-03 kg/s (L1:3.1e-04 L2:3.5e-04 L3:1.5e-04 L99:2.1e-05)
+  Momentum-Peclet curvature correction + branch RC               |err|/|F| median 1.022769e-03 p90 3.187817e-02 quiet 4.448235e-04 | sum|div| 7.689704e-04 kg/s (L1:2.2e-04 L2:2.1e-04 L3:7.2e-05 L99:1.7e-05)
+  Product-Peclet curvature correction + branch RC                |err|/|F| median 1.422250e-03 p90 4.603178e-02 quiet 5.959977e-04 | sum|div| 8.047558e-04 kg/s (L1:2.2e-04 L2:2.2e-04 L3:8.8e-05 L99:1.8e-05)
+  Cell-velocity face-Peclet correction + branch RC               |err|/|F| median 8.484049e-04 p90 3.250137e-02 quiet 4.579489e-04 | sum|div| 1.164038e-03 kg/s (L1:2.9e-04 L2:3.3e-04 L3:1.5e-04 L99:2.1e-05)
+
+4. Pressure outlet: F = rho S.u_b + d_b [(p_c + G r_b) - p_b], d_b = rho V/a_P |A|^2/(A.r_b)
+  u_b = cell velocity                   J with momentum grad : |err|/|F| median no RC 1.53e-03, RC x1 1.39e-04, fitted RC coef 1.244
+  u_b = cell velocity                   J with LSQ grad      : |err|/|F| median no RC 1.53e-03, RC x1 2.80e-04, fitted RC coef 1.009
+  u_b = reconstructed velocity (Kutta)  J with momentum grad : |err|/|F| median no RC 3.79e-03, RC x1 4.28e-03, fitted RC coef -0.443
+  u_b = reconstructed velocity (Kutta)  J with LSQ grad      : |err|/|F| median no RC 3.79e-03, RC x1 4.34e-03, fitted RC coef -0.360
+
+5. Affine boundary observations and curvature correction (same physical a_P proxy; saved boundary fluxes):
+  Original branch boundary rows; momentum GG RC; side: median 6.049879e-04 quiet 3.305136e-04 p90 1.439854e-02 sum|div| 7.951466e-04
+  Original branch boundary rows; momentum GG RC; point-only: median 7.651763e-03 quiet 3.515610e-03 p90 1.191746e-01 sum|div| 1.951701e-03
+  stored zero-difference pressure rows; LSQ RC; point: median 7.624408e-03 quiet 3.535306e-03 p90 1.221014e-01 sum|div| 2.197177e-03
+  stored zero-difference pressure rows; LSQ RC; point, unlimited: median 8.058893e-03 quiet 3.535306e-03 p90 1.301842e-01 sum|div| 2.039311e-03
+  stored zero-difference pressure rows; LSQ RC; momentum-Peclet: median 1.143445e-03 quiet 4.940696e-04 p90 3.938545e-02 sum|div| 1.000536e-03
+  stored zero-difference pressure rows; LSQ RC; product-Peclet: median 1.527064e-03 quiet 6.541258e-04 p90 5.370945e-02 sum|div| 1.055461e-03
+  stored zero-difference pressure rows; LSQ RC; face-Peclet: median 9.569819e-04 quiet 5.143498e-04 p90 3.604709e-02 sum|div| 1.362291e-03
+  stored zero-difference pressure rows; momentum GG RC; point: median 7.617252e-03 quiet 3.515610e-03 p90 1.196523e-01 sum|div| 1.953133e-03
+  stored zero-difference pressure rows; momentum GG RC; point, unlimited: median 8.070520e-03 quiet 3.515610e-03 p90 1.265990e-01 sum|div| 1.757646e-03
+  stored zero-difference pressure rows; momentum GG RC; momentum-Peclet: median 9.821156e-04 quiet 4.448235e-04 p90 2.970439e-02 sum|div| 6.620787e-04
+  stored zero-difference pressure rows; momentum GG RC; product-Peclet: median 1.381598e-03 quiet 5.959977e-04 p90 4.428165e-02 sum|div| 7.174828e-04
+  stored zero-difference pressure rows; momentum GG RC; face-Peclet: median 8.091849e-04 quiet 4.579489e-04 p90 3.193307e-02 sum|div| 1.090503e-03
+  stored zero-difference pressure rows; volume-consistent LSQ RC; point: median 7.612697e-03 quiet 3.531197e-03 p90 1.216893e-01 sum|div| 2.181268e-03
+  stored zero-difference pressure rows; volume-consistent LSQ RC; point, unlimited: median 8.052722e-03 quiet 3.531197e-03 p90 1.292867e-01 sum|div| 2.017437e-03
+  stored zero-difference pressure rows; volume-consistent LSQ RC; momentum-Peclet: median 1.174835e-03 quiet 5.087932e-04 p90 3.859002e-02 sum|div| 9.865783e-04
+  stored zero-difference pressure rows; volume-consistent LSQ RC; product-Peclet: median 1.549918e-03 quiet 6.500665e-04 p90 5.358874e-02 sum|div| 1.040393e-03
+  stored zero-difference pressure rows; volume-consistent LSQ RC; face-Peclet: median 9.725756e-04 quiet 5.365783e-04 p90 3.571101e-02 sum|div| 1.345287e-03
+  extrapolated pressure fixed point; LSQ RC; point: median 7.621661e-03 quiet 3.535306e-03 p90 1.220404e-01 sum|div| 2.193444e-03
+  extrapolated pressure fixed point; LSQ RC; point, unlimited: median 8.048290e-03 quiet 3.535306e-03 p90 1.304225e-01 sum|div| 2.012156e-03
+  extrapolated pressure fixed point; LSQ RC; momentum-Peclet: median 1.137200e-03 quiet 4.940696e-04 p90 3.918268e-02 sum|div| 1.010083e-03
+  extrapolated pressure fixed point; LSQ RC; product-Peclet: median 1.520552e-03 quiet 6.541258e-04 p90 5.346603e-02 sum|div| 1.071592e-03
+  extrapolated pressure fixed point; LSQ RC; face-Peclet: median 9.492376e-04 quiet 5.143498e-04 p90 3.617074e-02 sum|div| 1.376756e-03
+  extrapolated pressure fixed point; momentum GG RC; point: median 7.628968e-03 quiet 3.515610e-03 p90 1.192802e-01 sum|div| 1.965920e-03
+  extrapolated pressure fixed point; momentum GG RC; point, unlimited: median 8.070686e-03 quiet 3.515610e-03 p90 1.259513e-01 sum|div| 1.760766e-03
+  extrapolated pressure fixed point; momentum GG RC; momentum-Peclet: median 9.849756e-04 quiet 4.448235e-04 p90 3.188082e-02 sum|div| 7.692193e-04
+  extrapolated pressure fixed point; momentum GG RC; product-Peclet: median 1.385105e-03 quiet 5.959977e-04 p90 4.615245e-02 sum|div| 8.262190e-04
+  extrapolated pressure fixed point; momentum GG RC; face-Peclet: median 8.099388e-04 quiet 4.579489e-04 p90 3.260126e-02 sum|div| 1.146776e-03
+  extrapolated pressure fixed point; volume-consistent LSQ RC; point: median 7.602997e-03 quiet 3.531197e-03 p90 1.216729e-01 sum|div| 2.172812e-03
+  extrapolated pressure fixed point; volume-consistent LSQ RC; point, unlimited: median 8.036061e-03 quiet 3.531197e-03 p90 1.293617e-01 sum|div| 1.989212e-03
+  extrapolated pressure fixed point; volume-consistent LSQ RC; momentum-Peclet: median 1.167145e-03 quiet 5.087932e-04 p90 3.848416e-02 sum|div| 9.943449e-04
+  extrapolated pressure fixed point; volume-consistent LSQ RC; product-Peclet: median 1.538883e-03 quiet 6.500665e-04 p90 5.307724e-02 sum|div| 1.057555e-03
+  extrapolated pressure fixed point; volume-consistent LSQ RC; face-Peclet: median 9.631608e-04 quiet 5.365783e-04 p90 3.564865e-02 sum|div| 1.356360e-03

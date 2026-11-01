@@ -30,6 +30,10 @@ int main(int argc, char** argv) {
     };
     Options o;
     o.mesh = text("--mesh");
+    const auto limiter = text("--limiter", "standard");
+    KUTTA_REQUIRE(limiter == "standard" || limiter == "differentiable", "--limiter is standard or differentiable");
+    o.limiter = limiter == "standard" ? fv::Limiter::Standard : fv::Limiter::Differentiable;
+    o.limiter_coefficient = number("--limiter-coefficient", o.limiter_coefficient);
     o.output = text("--out");
     o.reynolds = number("--re", 0);
     o.length = number("--length", 1);

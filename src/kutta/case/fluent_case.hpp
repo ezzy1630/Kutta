@@ -51,8 +51,10 @@ enum class Scheme {
 };
 enum class Coupling { simple = 20, simplec = 21, piso = 22, coupled = 24 };
 enum class Gradient { least_squares_cell, green_gauss_node, green_gauss_cell };
-// Only code 0 is verified; other codes remain raw and issue-marked.
-enum class Limiter { standard = 0 };
+// recon/lim/type. Only code 0 is observed in the corpus; 2 follows Fluent
+// 12's slope-limiter-set numbering (0 standard, 1 multidimensional,
+// 2 differentiable). Other codes remain raw and issue-marked.
+enum class Limiter { standard = 0, differentiable = 2 };
 enum class WallOmega { correlation, tabulated };
 enum class ZoneType {
   fluid,

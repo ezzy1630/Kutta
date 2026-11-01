@@ -51,7 +51,8 @@ void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const 
     settings.relaxation<=1,"FV invalid transport relaxation");
   for(const auto* term:{terms.sink,terms.diagonal,terms.rhs})
     KUTTA_REQUIRE(!term || term->size()==field.size(),"FV transport term size mismatch");
-  if(settings.limit) limit_gradient(dev,m,s,field,bc,grad,limiter,settings.limiter_low,&kind); else dev.fill(limiter,1);
+  if(settings.limit) limit_gradient(dev,m,s,field,bc,grad,limiter,settings.limiter_low,&kind,
+    settings.limiter_epsilon2); else dev.fill(limiter,1);
   // Keep the legacy dispatch (including its shader signature) for models
   // that have not enabled the projected reconstruction.
   if(diffusion_reconstruction_) {

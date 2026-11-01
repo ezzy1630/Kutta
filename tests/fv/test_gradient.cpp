@@ -218,10 +218,64 @@ TEST_CASE("fused limiter and scaling preserve staged reconstruction") {
     fv::limit_gradient(*dev,m,s,q,bc,g,psi);
     kern::fv_scale_gradient(*dev,m.n_cells,g.x,g.y,g.z,psi,staged.x,staged.y,staged.z);
     kern::fv_limiter_scale(*dev,m.n_cells,m.cell_face_offsets,s.adjacent,
-      s.face_delta.x,s.face_delta.y,s.face_delta.z,q,bc,g.x,g.y,g.z,fused_psi,fused.x,fused.y,fused.z);
+      s.face_delta.x,s.face_delta.y,s.face_delta.z,q,bc,g.x,g.y,g.z,fused_psi,fused.x,fused.y,fused.z,-1.f);
     CHECK(dev->download(psi)==dev->download(fused_psi));
     CHECK(dev->download(staged.x)==dev->download(fused.x));
     CHECK(dev->download(staged.y)==dev->download(fused.y));
     CHECK(dev->download(staged.z)==dev->download(fused.z));
+  }
+}
+
+// SolverSettings::Limiter::Differentiable. Venkatakrishnan's function never
+// exceeds delta/d, so with a zero threshold it still bounds face values; a
+// threshold far above the field's variation leaves the gradient unlimited.
+TEST_CASE("differentiable limiter bounds at zero threshold and passes small variations") {
+  const auto host=make_box_tet(4,3,2,{0,0,0},{1,.5,.25});
+  const auto geom=compute_geometry(host);
+  std::vector<float> cell,boundary;
+  const auto value=[](Vec3d p) {return float(std::sin(11*p.x)+.7*p.y*p.z);};
+  for(auto p:geom.cell_centroid) cell.push_back(value(p));
+  for(Index f=host.n_internal_faces();f<host.n_faces();++f) boundary.push_back(value(geom.face_centroid[f]));
+  const auto [lo_it,hi_it]=std::minmax_element(cell.begin(),cell.end());
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=upload_mesh(*dev,host,geom);auto s=fv::make_stencil(*dev,host,geom);
+    auto q=dev->upload<float>(cell),bc=dev->upload<float>(boundary);
+    auto g=fv::vector_field(*dev,m.n_cells),fused=fv::vector_field(*dev,m.n_cells);
+    auto psi=dev->alloc<float>(m.n_cells),fused_psi=dev->alloc<float>(m.n_cells);
+    std::vector<Buffer<float>> scratch;for(int k=0;k<4;++k) scratch.push_back(dev->alloc<float>(m.n_cells));
+    auto shifted=dev->upload<float>([&]{auto v=cell;for(auto& x:v) x=3*x-2;return v;}());
+    const Buffer<float>* fields[]{&q,&shifted};
+    const auto range=fv::field_ranges(*dev,fields,m.n_cells,scratch);
+    CHECK(range[0].range==doctest::Approx(*hi_it-*lo_it).epsilon(1e-6));CHECK(range[1].range==doctest::Approx(3*(*hi_it-*lo_it)).epsilon(1e-6));
+    fv::gradient(*dev,m,s,q,bc,g);
+    fv::limit_gradient(*dev,m,s,q,bc,g,psi,nullptr,nullptr,0.f);
+    const auto limiter=dev->download(psi);
+    const auto x=dev->download(g.x),y=dev->download(g.y),z=dev->download(g.z);
+    const auto rx=dev->download(s.face_delta.x),ry=dev->download(s.face_delta.y),rz=dev->download(s.face_delta.z);
+    const auto adj=dev->download(s.adjacent),offsets=dev->download(m.cell_face_offsets);
+    int limited=0;
+    for(Index c=0;c<m.n_cells;++c) {
+      float lo=cell[c],hi=cell[c];
+      for(Index j=offsets[c];j<offsets[c+1];++j) {
+        const float v=adj[j]<0?boundary[-adj[j]-1]:cell[adj[j]];lo=std::min(lo,v);hi=std::max(hi,v);
+      }
+      for(Index j=offsets[c];j<offsets[c+1];++j) {
+        const float reconstructed=cell[c]+limiter[c]*(x[c]*rx[j]+y[c]*ry[j]+z[c]*rz[j]);
+        CHECK(reconstructed>=lo-2e-6f);CHECK(reconstructed<=hi+2e-6f);
+      }
+      limited+=limiter[c]<.99f;
+    }
+    CHECK(limited>0);
+    // The fused kernel and the float-pair limiter with zero low words agree.
+    const float eps2=std::pow(10.f*(*hi_it-*lo_it),2.f);
+    fv::limit_gradient(*dev,m,s,q,bc,g,psi,nullptr,nullptr,eps2);
+    kern::fv_limiter_scale(*dev,m.n_cells,m.cell_face_offsets,s.adjacent,
+      s.face_delta.x,s.face_delta.y,s.face_delta.z,q,bc,g.x,g.y,g.z,fused_psi,fused.x,fused.y,fused.z,eps2);
+    CHECK(dev->download(psi)==dev->download(fused_psi));
+    auto low=dev->alloc<float>(m.n_cells);dev->fill(low,0);
+    auto kind=dev->alloc<Index>(boundary.size());dev->fill(kind,0);
+    fv::limit_gradient(*dev,m,s,q,bc,g,fused_psi,&low,&kind,eps2);
+    CHECK(dev->download(psi)==dev->download(fused_psi));
+    for(float v:dev->download(psi)) CHECK(v>.97f);
   }
 }

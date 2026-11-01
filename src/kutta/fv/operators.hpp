@@ -81,11 +81,18 @@ void gradient(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
 void vector_gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
                      const DeviceVec3& cell,const DeviceVec3& boundary,
                      DeviceVec3& u,DeviceVec3& v,DeviceVec3& w);
+// Global max - min of the first n values of each field, with the bound
+// max|field| it shifted by, from max_abs reductions alone: two host waits for
+// any number of fields. scratch holds two buffers of at least n per field.
+struct FieldRange {double range=0;float bound=0;};
+std::vector<FieldRange> field_ranges(Device& dev, std::span<const Buffer<float>* const> fields, std::size_t n,
+                                     std::span<Buffer<float>> scratch);
 // low: the low words of a float-pair cell field (fv_paired_limiter), with
 // boundary_kind 2 marking boundary values that follow the cell.
 void limit_gradient(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
                     const Buffer<float>& cell, const Buffer<float>& boundary,
                     const DeviceVec3& gradient, Buffer<float>& limiter,
-                    const Buffer<float>* low=nullptr, const Buffer<Index>* boundary_kind=nullptr);
+                    const Buffer<float>* low=nullptr, const Buffer<Index>* boundary_kind=nullptr,
+                    float epsilon2=-1);
 
 }  // namespace kutta::fv

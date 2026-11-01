@@ -198,6 +198,12 @@ def main():
         "Historical pre-round-1 point/unlimited + RC(LSQ)": rr * np.einsum("ij,ij->i", uk, S[I]) + d_kutta * jump_rec(gp_lsq),
         "Round-1 side/limited + mean(V/a) RC(momentum)": side + rc,
         "Point/limited + round-1 pressure operators": point + rc,
+        "Point/unlimited + round-1 pressure operators": point_flux(g2) + rc,
+        "Point/differentiable K=0.01 + round-1 pressure operators": point_flux(fvops.barth_jespersen(ctx, U, Ub, g2, .01)) + rc,
+        "Point/differentiable K=0.05 + round-1 pressure operators": point_flux(fvops.barth_jespersen(ctx, U, Ub, g2, .05)) + rc,
+        "Side/differentiable K=0.01 + mean(V/a) RC(momentum)": (lambda s0, s1: w * s0 + (1 - w) * s1)(*side_fluxes(fvops.barth_jespersen(ctx, U, Ub, g2, .01))) + rc,
+        "Side/differentiable K=0.05 + mean(V/a) RC(momentum)": (lambda s0, s1: w * s0 + (1 - w) * s1)(*side_fluxes(fvops.barth_jespersen(ctx, U, Ub, g2, .05))) + rc,
+        "Side/unlimited + mean(V/a) RC(momentum)": w * v0 + (1 - w) * v1 + rc,
         "Point/unlimited + limited side increments": point_flux(g2) + side - (w * v0 + (1 - w) * v1) + rc,
         "Side/limited + volume-weighted consistent RC": side + volume_rc,
         "Face-Peclet curvature correction + branch RC": side - viscous_fraction * curvature + rc,
@@ -235,6 +241,7 @@ def main():
     q0, q1 = side_fluxes(gu)
     side_bc = w * q0 + (1 - w) * q1
     point_bc = point_flux(gu)
+    point_bc_unlimited = point_flux(ctx.apply(fvops.lsq(ctx, 2, normal_types=(7,), omit_types=(5,)), U, Ub))
     for label, gp in (("stored zero-difference pressure rows", gp_lsq),
                       ("extrapolated pressure fixed point", ctx.apply(fvops.lsq(ctx, 2, omit_types=(3, 7, 10)), p, pb))):
         pf = pface.copy()
@@ -264,7 +271,7 @@ def main():
         corrections = (("LSQ RC", d_kutta * jump_rec(gp)), ("momentum GG RC", d_kutta * jump_rec(gm)),
                        ("volume-consistent LSQ RC", d_f * jvolume))
         for jlabel, correction in corrections:
-            variants = (("point", point_bc),
+            variants = (("point", point_bc), ("point, unlimited", point_bc_unlimited),
                         ("momentum-Peclet", point_bc + cell_advective * (side_bc - point_bc)),
                         ("product-Peclet", point_bc + product_advective * (side_bc - point_bc)),
                         ("face-Peclet", point_bc + face_advective * (side_bc - point_bc)))

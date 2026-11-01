@@ -134,12 +134,27 @@ enum class PressureInterpolation { SecondOrder, Standard };
 // based, or Green-Gauss cell based (operators.hpp, green_gauss_cell). It
 // changes the fixed point. Green-Gauss serves laminar and k-epsilon flows.
 enum class GradientScheme { LeastSquares, GreenGaussCell };
+// Fluent's gradient limiter type (Theory Guide 23.3.4). Standard is
+// Barth-Jespersen. Differentiable is Venkatakrishnan's smooth function with
+// Wang's threshold, limiter_coefficient times the component's global range;
+// the Theory Guide cites those two sources (23.3.4.3) but gives neither the
+// formula nor the coefficient. 0.05 converges SIMPLEC and Coupled on the wing
+// and the Ahmed body; 0.01 left Coupled unconverged on the Ahmed body. It
+// applies to the velocity reconstructions, in momentum convection and in the
+// mass-flux face velocity, where the Standard limiter's switching stalls
+// continuity on external aero. Turbulence keeps Standard: under this limiter
+// the k and omega residuals stall at 2e-4 to 1e-3 on the wing, apparently at
+// their floors. It changes the fixed point, so it is not the default. See
+// validation/results/flux_limiter/REPORT.md.
+enum class Limiter { Standard, Differentiable };
 
 struct SolverSettings {
   double density=1, viscosity=.01;
   PressureVelocityCoupling coupling=PressureVelocityCoupling::Simplec;
   ConvectionScheme convection=ConvectionScheme::SecondOrderUpwind;
   bool limit=true;
+  Limiter limiter=Limiter::Standard;
+  double limiter_coefficient=.05;
   // SIMPLEC: implicit momentum and pressure-correction relaxation. Coupled:
   // Fluent's pseudo-time explicit relaxation of the block update.
   double momentum_relaxation=.7, pressure_relaxation=1;

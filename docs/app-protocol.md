@@ -194,6 +194,19 @@ or `second-order`; other saved schemes keep their Fluent name and are
 unsupported) and `methods/pseudo-transient` (bool, whether the steady case
 uses the pseudo-transient formulation).
 
+`methods/limiter` (v1 additive) is Fluent's limiter type (`recon/lim/type`),
+`standard` or `differentiable`, labelled "Standard" and "Differentiable". It is
+editable and depends on `methods/gradient-limiting` (`active_when` `[true]`).
+Standard is Barth-Jespersen, Fluent's default and the type every corpus case
+saves. Differentiable is a Venkatakrishnan limiter with Wang's threshold, 0.05
+times each velocity component's range. It acts on momentum only (turbulence
+keeps Standard) and adds a convergence note. It changes the fixed point: choose
+it to converge a run that stalls on the Standard limiter's switching (Fluent
+Theory Guide 23.3.4.3), not to reproduce a Standard-limiter Fluent run. Fluent
+documents neither its formula nor its coefficient, and a case that saves type 2
+is read with Fluent 12's numbering; validation/results/flux_limiter/REPORT.md
+records the evidence.
+
 `controls/courant-number` (v1 additive; editable since the Coupled
 convergence change) is Fluent's Flow Courant Number as saved
 (`pressure-coupled/courant-number`, null when absent). Kutta's Coupled solver
@@ -282,9 +295,9 @@ active inlet speed/components/direction, inlet/outlet turbulence values and
 turbulence specification (k-omega models), outlet gauge pressure, active
 constant material density/viscosity, reference area/density/speed/pressure and
 length (length scales moment coefficients in `kutta aero`),
-implemented momentum/k/omega/epsilon upwind schemes, gradient limiting, the
-pressure interpolation (`methods/pressure-scheme`, options `standard` and
-`second-order`), the pressure-velocity coupling (`methods/pressure-velocity-coupling`, below), pseudo-time
+implemented momentum/k/omega/epsilon upwind schemes, gradient limiting and its
+limiter type (`methods/limiter`), the pressure interpolation
+(`methods/pressure-scheme`, options `standard` and `second-order`), the pressure-velocity coupling (`methods/pressure-velocity-coupling`, below), pseudo-time
 scale and active equation relaxation, standard numeric initialization values
 when not seeded, force-report directions, and run iteration and monitor
 intervals, and the convergence controls under `monitors/` (below). Changing the

@@ -209,6 +209,19 @@ TEST_CASE("Mixing elbow runs Fluent's Coupled scheme natively and can switch to 
     const auto courant=kutta::setup::fluent_setup(edited,mesh,wfgc);
     CHECK(courant.settings.coupled_courant==50);CHECK(courant.settings.momentum_relaxation==.5);
   }
+  {
+    // The case saves Fluent's Standard limiter; Differentiable is opt-in.
+    CHECK(by.at("methods/limiter")->value==Json("standard"));CHECK(by.at("methods/limiter")->editable);
+    CHECK(by.at("methods/limiter")->active);CHECK(saved.settings.limiter==kutta::fv::Limiter::Standard);
+    auto edited=kutta::fluent::read_case(path);kutta::setup::RunControls edited_run;
+    const auto inventory=kutta::setup::settings_inventory(edited,edited_run);
+    mesh_text(t.path("limiter.json"),"{\"v\":1,\"overrides\":{\"methods/limiter\":\"differentiable\"}}");
+    CHECK(kutta::setup::apply_setup(t.path("limiter.json"),inventory).size()==1);
+    const auto smooth=kutta::setup::fluent_setup(edited,mesh,wfgc);
+    CHECK(smooth.settings.limiter==kutta::fv::Limiter::Differentiable);CHECK(smooth.settings.limiter_coefficient==.05);
+    CHECK(notes(smooth).find("recon/lim/type 2: Kutta's differentiable limiter")!=std::string::npos);
+    CHECK(notes(saved).find("recon/lim/type")==std::string::npos);
+  }
   mesh_text(t.path("simplec.json"),"{\"v\":1,\"overrides\":{\"methods/pressure-velocity-coupling\":\"simplec\"}}");
   CHECK(kutta::setup::apply_setup(t.path("simplec.json"),settings).size()==1);
   const auto switched=kutta::setup::fluent_setup(c,mesh,wfgc);

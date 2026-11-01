@@ -22,10 +22,28 @@ KUTTA_KERNEL void fv_gradient(int i, KIn(int) offsets, KIn(int) adjacent,
   gz[i]=inverse[i+2*n]*bx+inverse[i+4*n]*by+inverse[i+5*n]*bz;
 }
 
+// Limiter factor that face increment d (= grad . r, nonzero) allows, given
+// the room delta (same sign as d) to the neighbour extremum. eps2 < 0 is
+// Barth-Jespersen, delta/d. Otherwise Venkatakrishnan's smooth function of
+// delta/d (Fluent's differentiable limiter is a modified Venkatakrishnan
+// limiter, Theory Guide 23.3.4.3): increments small against sqrt(eps2) pass
+// unlimited, so cells near a flat extremum stop switching between 0 and 1.
+KUTTA_FN float klimit_face(float d,float delta,float eps2) {
+  if(eps2<0.0f) return delta/d;
+  float a=delta*delta+eps2,b=d*delta;
+  return (a+2.0f*b)/(a+2.0f*d*d+b);
+}
+
+// Shifted copies whose max_abs give a field's extremes (operators.cpp
+// field_ranges), for any bound >= max|field|.
+KUTTA_KERNEL void fv_range_shift(int i, KIn(float) field, KOut(float) above, KOut(float) below, float bound) {
+  above[i]=field[i]+bound; below[i]=bound-field[i];
+}
+
 KUTTA_KERNEL void fv_limiter(int i, KIn(int) offsets, KIn(int) adjacent,
     KIn(float) rx, KIn(float) ry, KIn(float) rz,
     KIn(float) cell, KIn(float) boundary,
-    KIn(float) gx, KIn(float) gy, KIn(float) gz, KOut(float) limiter) {
+    KIn(float) gx, KIn(float) gy, KIn(float) gz, KOut(float) limiter, float eps2) {
   float lo=cell[i],hi=cell[i];
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int other=adjacent[j];
@@ -35,8 +53,8 @@ KUTTA_KERNEL void fv_limiter(int i, KIn(int) offsets, KIn(int) adjacent,
   float psi=1.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
     float d=gx[i]*rx[j]+gy[i]*ry[j]+gz[i]*rz[j];
-    if(d>0.0f) psi=kmin(psi,(hi-cell[i])/d);
-    if(d<0.0f) psi=kmin(psi,(lo-cell[i])/d);
+    if(d>0.0f) psi=kmin(psi,klimit_face(d,hi-cell[i],eps2));
+    if(d<0.0f) psi=kmin(psi,klimit_face(d,lo-cell[i],eps2));
   }
   limiter[i]=kmax(0.0f,kmin(1.0f,psi));
 }
@@ -51,7 +69,7 @@ KUTTA_KERNEL void fv_limiter(int i, KIn(int) offsets, KIn(int) adjacent,
 KUTTA_KERNEL void fv_paired_limiter(int i, KIn(int) offsets, KIn(int) adjacent,
     KIn(float) rx, KIn(float) ry, KIn(float) rz,
     KIn(float) cell, KIn(float) low, KIn(float) boundary, KIn(int) kind,
-    KIn(float) gx, KIn(float) gy, KIn(float) gz, KOut(float) limiter) {
+    KIn(float) gx, KIn(float) gy, KIn(float) gz, KOut(float) limiter, float eps2) {
   float lo=0.0f,hi=0.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int other=adjacent[j];
@@ -63,8 +81,8 @@ KUTTA_KERNEL void fv_paired_limiter(int i, KIn(int) offsets, KIn(int) adjacent,
   float psi=1.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
     float d=gx[i]*rx[j]+gy[i]*ry[j]+gz[i]*rz[j];
-    if(d>0.0f) psi=kmin(psi,hi/d);
-    if(d<0.0f) psi=kmin(psi,lo/d);
+    if(d>0.0f) psi=kmin(psi,klimit_face(d,hi,eps2));
+    if(d<0.0f) psi=kmin(psi,klimit_face(d,lo,eps2));
   }
   limiter[i]=kmax(0.0f,kmin(1.0f,psi));
 }
@@ -100,8 +118,8 @@ KUTTA_KERNEL void fv_limiter_scale(int i,KIn(int) offsets,KIn(int) adjacent,
     KIn(float) rx,KIn(float) ry,KIn(float) rz,
     KIn(float) cell,KIn(float) boundary,
     KIn(float) gx,KIn(float) gy,KIn(float) gz,KOut(float) limiter,
-    KOut(float) x,KOut(float) y,KOut(float) z) {
-  fv_limiter(i,offsets,adjacent,rx,ry,rz,cell,boundary,gx,gy,gz,limiter);
+    KOut(float) x,KOut(float) y,KOut(float) z,float eps2) {
+  fv_limiter(i,offsets,adjacent,rx,ry,rz,cell,boundary,gx,gy,gz,limiter,eps2);
   fv_scale_gradient(i,gx,gy,gz,limiter,x,y,z);
 }
 
@@ -109,8 +127,8 @@ KUTTA_KERNEL void fv_paired_limiter_scale(int i,KIn(int) offsets,KIn(int) adjace
     KIn(float) rx,KIn(float) ry,KIn(float) rz,
     KIn(float) cell,KIn(float) low,KIn(float) boundary,KIn(int) kind,
     KIn(float) gx,KIn(float) gy,KIn(float) gz,KOut(float) limiter,
-    KOut(float) x,KOut(float) y,KOut(float) z) {
-  fv_paired_limiter(i,offsets,adjacent,rx,ry,rz,cell,low,boundary,kind,gx,gy,gz,limiter);
+    KOut(float) x,KOut(float) y,KOut(float) z,float eps2) {
+  fv_paired_limiter(i,offsets,adjacent,rx,ry,rz,cell,low,boundary,kind,gx,gy,gz,limiter,eps2);
   fv_scale_gradient(i,gx,gy,gz,limiter,x,y,z);
 }
 

@@ -144,11 +144,13 @@ def jump_correction(ctx, G, power=2.0):
     return (Cm @ Jm).tocsr()
 
 
-def barth_jespersen(ctx, phi, phib, g):
+def barth_jespersen(ctx, phi, phib, g, coefficient=None):
     """Standard (Barth-Jespersen) limiter, cell-to-face, scalar per component.
 
     min/max over the cell and its face neighbours (boundary faces contribute their face value).
     g: [n, 3] or [n, 3, m]; returns the limited gradient with the same shape.
+    coefficient: Kutta's differentiable limiter instead (fv_gradient.kern.h klimit_face):
+    Venkatakrishnan's function with threshold coefficient * (global range of each component).
     """
     phi = np.asarray(phi)
     scalar = phi.ndim == 1
@@ -165,6 +167,11 @@ def barth_jespersen(ctx, phi, phib, g):
     dd = np.einsum("ri,rim->rm", ctx.fc[faces] - ctx.cen[cell], g[cell])
     with np.errstate(divide="ignore", invalid="ignore"):
         ratio = np.where(dd > 0, (hi[cell] - phi[cell]) / dd, np.where(dd < 0, (lo[cell] - phi[cell]) / dd, np.inf))
+        if coefficient is not None:
+            eps2 = (coefficient * (phi.max(0) - phi.min(0))) ** 2
+            room = np.where(dd > 0, hi[cell] - phi[cell], lo[cell] - phi[cell])
+            a, b = room**2 + eps2, dd * room
+            ratio = np.where(dd != 0, (a + 2 * b) / (a + 2 * dd**2 + b), np.inf)
     psi = np.ones_like(phi)
     np.minimum.at(psi, cell, np.minimum(ratio, 1.0))
     out = g * np.clip(psi, 0, 1)[:, None, :]

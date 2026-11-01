@@ -8,10 +8,14 @@ using namespace kutta::fv;
 
 // Monitoring only measures. With the automatic pseudo time step, the step used
 // to be refreshed in monitor(), so runs at different monitor intervals diverged.
+// The differentiable limiter's thresholds are refreshed with the flux, never by
+// monitor(); SST covers them under SIMPLEC and Coupled.
 TEST_CASE("Monitor interval does not change the solution for any turbulence model") {
   enum class Model {sst,sa,realizable_ke};
+  struct Case {Model model;Limiter limiter=Limiter::Standard;PressureVelocityCoupling coupling=PressureVelocityCoupling::Simplec;};
   const auto mesh=make_box_hex(6,4,1,{0,0,0},{1,.4,.1});
-  for(auto model:{Model::sst,Model::sa,Model::realizable_ke}) {
+  for(auto [model,limiter,coupling]:{Case{Model::sst},Case{Model::sa},Case{Model::realizable_ke},
+      Case{Model::sst,Limiter::Differentiable},Case{Model::sst,Limiter::Differentiable,PressureVelocityCoupling::Coupled}}) {
     const TurbulenceCondition inflow=model==Model::sst?TurbulenceCondition{TurbulenceValues{.01,4}}:
       model==Model::sa?TurbulenceCondition{ModifiedViscosity{.003}}:TurbulenceCondition{KeValues{.01,.01}};
     std::vector<PatchCondition> bc;
@@ -23,7 +27,7 @@ TEST_CASE("Monitor interval does not change the solution for any turbulence mode
     }
     KUTTA_FOR_EACH_BACKEND(dev) {
       const auto run=[&](int interval) {
-        SolverSettings s;s.viscosity=.001;s.monitor_interval=interval;
+        SolverSettings s;s.viscosity=.001;s.monitor_interval=interval;s.limiter=limiter;s.coupling=coupling;
         if(model==Model::sst) s.sst=SstSettings{};
         else if(model==Model::sa) s.sa=SaSettings{};
         else s.realizable_ke=RealizableKeSettings{};

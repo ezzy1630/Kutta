@@ -639,7 +639,7 @@ void numerics(FluentCase &c) {
   if (n.gradient == Gradient::green_gauss_node)
     c.issues.push_back({"rp/recon/node-lsq?",
         "unverified mapping: recon/node-lsq? to Green-Gauss node-based"});
-  n.limiter = x.enumeration("recon/lim/type", {Limiter::standard});
+  n.limiter = x.enumeration("recon/lim/type", {Limiter::standard, Limiter::differentiable});
   n.limiting = x.flag("recon/limit?");
   n.limit_to_face = x.flag("recon/lim/dx-to-face?");
   n.limiter_filter = x.flag("recon/lim/filter/on?");

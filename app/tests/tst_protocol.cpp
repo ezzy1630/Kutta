@@ -19,10 +19,12 @@ private slots:
         QCOMPARE(int(cs.settings.size()), 9857);  // with controls/courant-number
         // Includes each inlet's and outlet's turbulence method and the values
         // of the methods it does not use, so switching method is possible,
-        // the editable pressure scheme and the Coupled flow Courant number.
-        QCOMPARE(int(std::count_if(cs.settings.begin(), cs.settings.end(), [](const Setting& s) { return s.editable; })), 59);
-        QVERIFY(std::any_of(cs.settings.begin(), cs.settings.end(),
-                            [](const Setting& s) { return s.path == "controls/courant-number" && s.editable; }));
+        // the editable pressure scheme, the Coupled flow Courant number and
+        // the limiter type.
+        QCOMPARE(int(std::count_if(cs.settings.begin(), cs.settings.end(), [](const Setting& s) { return s.editable; })), 60);
+        for (const char* path : {"controls/courant-number", "methods/limiter"})
+            QVERIFY2(std::any_of(cs.settings.begin(), cs.settings.end(),
+                                 [&](const Setting& s) { return s.path == path && s.editable; }), path);
         QVERIFY(cs.zone("cold-inlet"));
         QCOMPARE(cs.zone("cold-inlet")->type, QString("velocity-inlet"));
 

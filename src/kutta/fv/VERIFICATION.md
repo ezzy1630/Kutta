@@ -2779,3 +2779,23 @@ base on CPU and Metal. Coupled cases and the TMR bump grids (2,068 cells at
 quality 0.036 on level 2) move. Across the slow tier, 73 asserted values
 changed by at most 1e-3 absolute, with 0 regressions, 0 recoveries and the
 same known failures. No acceptance threshold or model constant was changed.
+
+## The limiter in the Rhie-Chow face velocity, and the differentiable limiter (2026-11-01)
+
+The [flux-limiter report](../../../validation/results/flux_limiter/REPORT.md)
+records the Fluent Theory Guide reading, the saved-flux regression, the
+arbitration against Fluent's converged fields, the external-aero runs and
+the full slow-tier assertion comparison.
+
+Fluent's saved mixing-elbow `SV_FLUX` carries the limited reconstruction
+(limited-minus-unlimited coefficient 1.03), as Kutta's mass flux does.
+An unlimited face velocity and a forced differentiable limiter both fail
+Fluent-reference gates, so the default stays Barth-Jespersen and is
+bit-identical to the base. `SolverSettings::limiter` adds Fluent's
+documented differentiable limiter as an opt-in: Venkatakrishnan's function
+with Wang's threshold at 0.05 times each velocity component's global range,
+on momentum only. A case selects it with `recon/lim/type 2`; the app
+selects it with `methods/limiter`. It removes the Coupled external-aero
+continuity plateau (wing, Ahmed 35 L1, all 7 FSAE 2D sweep cases). It also
+changes the fixed point, by up to 11% in Ahmed lift. No acceptance threshold
+or model constant was changed.

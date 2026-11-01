@@ -174,8 +174,15 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   if(n.pressure==Scheme::standard_pressure) s.pressure_interpolation=PressureInterpolation::Standard;
   else require(n.pressure==Scheme::second_pressure,"pressure/scheme","requires second-order or standard pressure interpolation");
   s.convection=convection(n.momentum,"mom/scheme");
-  require(n.limiter==Limiter::standard,"recon/lim/type","only the standard limiter (0) is supported");
+  require(n.limiter==fluent::Limiter::standard || n.limiter==fluent::Limiter::differentiable,"recon/lim/type",
+    "only the standard (0) and differentiable (2) limiters are supported");
   s.limit=required(n.limiting,"recon/limit?");
+  if(n.limiter==fluent::Limiter::differentiable) {
+    s.limiter=fv::Limiter::Differentiable;
+    out.convergence_notes.push_back("recon/lim/type 2: Kutta's differentiable limiter, Venkatakrishnan's function with Wang's threshold "
+      "0.05 times the velocity component's range, on momentum only; turbulence keeps the standard limiter. Fluent documents neither "
+      "its formula nor its coefficient, so this is not Fluent's exact limiter");
+  }
   require(n.limit_to_face==true,"recon/lim/dx-to-face?","requires face-based limiting");require(n.limiter_filter==false,"recon/lim/filter/on?","limiter filtering is not implemented");
   const auto& wfgc=approximation_info(Approximation::wfgc);
   if(n.warped_face_correction==true) {
