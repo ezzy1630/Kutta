@@ -173,6 +173,11 @@ the pseudo-transient formulation, and a saved Coupled case without it runs
 SIMPLEC with a convergence-path note. Its `options` therefore omit `coupled`
 for a case without pseudo time unless the case was saved with Coupled.
 
+`summary.json` carries `poor_quality_cells` (v1 additive): the number of cells
+at or below orthogonal quality 0.05 whose second-order face pressures use the
+cell value, following Fluent's poor mesh numerics (User's Guide 36.22.5).
+Zero on a well-conditioned mesh and with the standard pressure scheme.
+
 The Methods group (v1 additive) follows Fluent's Methods panel. Every case
 lists `methods/momentum-scheme`, `k-scheme`, `omega-scheme` and
 `epsilon-scheme`; a scheme is `active` only when the case's viscous model
