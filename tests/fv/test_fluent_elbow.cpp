@@ -148,6 +148,16 @@ TEST_CASE("FV V6 Fluent mixing elbow fixed point and cold start" * doctest::test
         print_error("initial_mu_t",mut_error);
         CHECK(mut_error.l2<.011); // round-1 derivative-gradient ratchet
         CHECK(r0.continuity.raw<8e-4); // round-1 flux ratchet; original gates below remain strict
+        // Kutta's SST terms at Fluent's saved fields, for tools/forensics/k_budget.py.
+        if(const auto* directory=std::getenv("KUTTA_V6_WALL_DIR")) {
+          std::filesystem::create_directories(directory);
+          const auto& t=solver.turbulence();
+          const auto S=original(*dev,solver,t.strain),f1=original(*dev,solver,t.f1),f2=original(*dev,solver,t.f2);
+          const auto mt=original(*dev,solver,t.mu_t),pk=original(*dev,solver,t.production_k);
+          std::ofstream out(std::filesystem::path(directory)/(std::string(backend_name(dev->backend()))+"-saved-sst.csv"));
+          REQUIRE(out);out<<std::setprecision(17)<<"strain,mu_t,f1,f2,production_k\n";
+          for(std::size_t i=0;i<S.size();++i) out<<S[i]<<','<<mt[i]<<','<<f1[i]<<','<<f2[i]<<','<<pk[i]<<'\n';
+        }
       }
       std::cout<<"V6_INITIAL backend="<<backend_name(dev->backend())<<" mode="<<mode<<" u="<<r0.u.scaled<<" v="<<r0.v.scaled
         <<" w="<<r0.w.scaled<<" pseudo_time_step="<<r0.pseudo_time_step<<" continuity_raw="<<r0.continuity.raw<<" k="<<r0.k.scaled<<" omega="<<r0.omega.scaled<<std::endl;
