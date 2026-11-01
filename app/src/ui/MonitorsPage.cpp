@@ -71,8 +71,12 @@ QWidget* convergenceStatus(const InspectorContext& c)
     grid->setHorizontalSpacing(12);
     grid->setVerticalSpacing(2);
     v->addLayout(grid);
+    // Run quality beside the verdict: cells the solver treated as poor mesh.
+    auto* mesh = label({}, "muted");
+    mesh->hide();
+    v->addWidget(mesh);
 
-    auto refresh = [s, box, title, grid, note] {
+    auto refresh = [s, box, title, grid, note, mesh] {
         while (QLayoutItem* it = grid->takeAt(0)) {
             delete it->widget();
             delete it;
@@ -97,8 +101,8 @@ QWidget* convergenceStatus(const InspectorContext& c)
                     for (const QString& eq : residualOrder(cs.equations.keys())) {
                         if (!residualShown(eq, planar)) continue;
                         const auto& e = cs.equations[eq];
-                        row(r++, residualLabel(eq), QString::number(e.value, 'e', 2),
-                            QObject::tr("≤ %1").arg(QString::number(e.criterion, 'g', 3)), e.met);
+                        row(r++, residualLabel(eq), formatScientific(e.value),
+                            QObject::tr("≤ %1").arg(formatScientific(e.criterion)), e.met);
                     }
                 } else {
                     row(r++, cs.report, cs.value ? pct(*cs.value) : QObject::tr("too few values"),
@@ -120,6 +124,7 @@ QWidget* convergenceStatus(const InspectorContext& c)
                 note->setText(setup.condition == "any" ? QObject::tr("Stops when any condition is met.") : QObject::tr("Stops when all conditions are met at the same sample."));
             }
             if (state) conditions(*state);
+            mesh->hide();
             box->setVisible(true);
             return;
         }
@@ -157,6 +162,9 @@ QWidget* convergenceStatus(const InspectorContext& c)
             note->setText(QObject::tr("Not converged."));
         }
         if (progress.convergence) conditions(*progress.convergence);
+        const QString poor = summary ? poorMeshNumericsText(*summary) : QString();
+        mesh->setText(poor + '.');
+        mesh->setVisible(!poor.isEmpty());
     };
     refresh();
     QObject::connect(s, &Session::iteration, box, refresh);

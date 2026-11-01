@@ -227,6 +227,10 @@ struct RunSummary {
     QJsonObject overrides;
     QString caseFile, caseSha, dataFile, dataSha, kuttaVersion, kuttaCommit, backend, device, stopReason;
     qint64 cells = 0;
+    // Cells at or below orthogonal quality poorCellQuality whose face
+    // pressures fell back to the cell value (Fluent's poor mesh numerics).
+    qint64 poorQualityCells = 0;
+    std::optional<double> poorCellQuality;
     int iterations = 0;
     double wallSeconds = 0, setupSeconds = 0;
     bool synthetic = false;

@@ -309,6 +309,11 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(aero.has_value(), 20000);
         QVERIFY(aero->total()->downforce > 30);
         QVERIFY(aero->total()->total.drag > 0);
+        // The replay stopped at 300 of the recording's 600: aero says 300.
+        QCOMPARE(aero->iterations, r->iterationsDone);
+        // A zone named wing is suggested into a wing group, not body.
+        QCOMPARE(int(s->aeroSpec().groups.size()), 1);
+        QCOMPARE(s->aeroSpec().groups[0].name, QString("Wing"));
     }
 
     // A run that fails says why and what to do: disk full and a crash.

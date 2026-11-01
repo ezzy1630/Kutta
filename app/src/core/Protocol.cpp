@@ -506,6 +506,8 @@ Result<RunSummary> parseRunSummary(const QJsonObject& o)
     s.device = o.value("device").toString();
     s.stopReason = o.value("stop_reason").toString();
     s.cells = qint64(o.value("cells").toDouble());
+    s.poorQualityCells = qint64(o.value("poor_quality_cells").toDouble());
+    s.poorCellQuality = num(o.value("poor_cell_quality"));
     s.iterations = o.value("iterations").toInt();
     s.wallSeconds = o.value("wall_time_seconds").toDouble();
     s.setupSeconds = o.value("setup_time_seconds").toDouble();
@@ -609,9 +611,12 @@ std::vector<AeroSpec::Group> suggestAeroGroups(const QStringList& zones)
 {
     struct Rule { QString name; QRegularExpression pattern; };
     // First match wins: "front-wing-endplate" is front wing, "rear-tyre" a wheel.
+    // A wing, flap or element with no front or rear in its name (a 2D section,
+    // a lone wing) is a wing of its own, not body.
     static const std::vector<Rule> rules{
         {"Front wing", QRegularExpression(R"((^|[^a-z])(fw|front[-_ ]?wing|nose[-_ ]?wing))", QRegularExpression::CaseInsensitiveOption)},
         {"Rear wing", QRegularExpression(R"((^|[^a-z])(rw|rear[-_ ]?wing|drs))", QRegularExpression::CaseInsensitiveOption)},
+        {"Wing", QRegularExpression(R"(wing|flap|element|main[-_ ]?plane|foil|slat|gurney|endplate)", QRegularExpression::CaseInsensitiveOption)},
         {"Undertray / diffuser", QRegularExpression(R"(undertray|under[-_ ]?tray|diffuser|floor|underbody|splitter)", QRegularExpression::CaseInsensitiveOption)},
         {"Wheels", QRegularExpression(R"(wheel|tyre|tire|rim)", QRegularExpression::CaseInsensitiveOption)},
     };

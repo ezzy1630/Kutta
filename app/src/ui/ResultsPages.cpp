@@ -1270,6 +1270,7 @@ QWidget* runHistory(const InspectorContext& c)
             const auto summary = c.session->history().summary(r->id);
             const QString why = stopReasonText(r->stopReason, r->convergedBy, summary ? summary->convergence : ConvergenceSetup{});
             if (!why.isEmpty()) add(QObject::tr("Stopped"), why);
+            if (const QString poor = summary ? poorMeshNumericsText(*summary) : QString(); !poor.isEmpty()) add(QObject::tr("Mesh numerics"), poor);
         }
         if (!r->coupling.isEmpty()) add(QObject::tr("Coupling"), couplingLabel(r->coupling));
         add(QObject::tr("Settings"), r->overrides.isEmpty() ? QObject::tr("as in the case") : QObject::tr("%n changed", nullptr, int(r->overrides.size())));

@@ -1,7 +1,7 @@
 # APPROXIMATE RESULT: not a faithful Fluent reproduction; reverse-flow: prevent-reverse-flow? Fluent absent (Fluent 18.0 or earlier writer) -> Kutta run pressure outlets without reverse-flow suppression; suppression acts only on outlet faces with inflow; for the Fluent 18.0 Re 40 cylinder, none of the outlet's 30 faces has inflow in Fluent's saved converged fields or in Kutta's converged CPU and Metal solutions, so the effect there is zero; other cases need their own check; evidence: validation/results/cylinder_2d/REPORT.md#reverse-flow
 name,zone_id,mass_flow_outward
 "wall",3,0
-"pressure_outlet.6",4,1199.9999160766602
+"pressure_outlet.6",4,1199.9999198913574
 "inlet",5,-1200
 "bottom",6,0
 "top",7,0

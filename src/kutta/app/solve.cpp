@@ -209,7 +209,10 @@ int solve(int argc,char** argv) {
     residuals<<"iteration";for(auto name:residual_names)residuals<<','<<name;residuals<<",seconds_per_iteration\n";
     if(!jsonl) {
       human<<"Backend: "<<backend_name(dev->backend())<<"; device: "<<dev->name()<<"\n";
-      if(solver.poor_cells())human<<"Poor mesh numerics: "<<solver.poor_cells()<<" cells at orthogonal quality <= "<<setup->settings.poor_cell_quality<<" use low-order face pressures\n";
+      if(solver.poor_cells()){
+        std::ostringstream q;q.imbue(std::locale::classic());q<<setup->settings.poor_cell_quality;  // 0.05, not 17 digits
+        human<<"Poor mesh numerics: "<<solver.poor_cells()<<" cells at orthogonal quality <= "<<q.str()<<" use low-order face pressures\n";
+      }
       human<<"  iter";
       for(auto name:residual_names)human<<std::setw(14)<<name;
       human<<"       sec/iter\n";
@@ -385,7 +388,7 @@ int solve(int argc,char** argv) {
       <<",\n  \"data_file\": "<<(o.data.empty()?"null":json_string(o.data.string()))<<",\n  \"data_sha256\": "<<(o.data.empty()?"null":json_string(data_hash))
       <<",\n  \"kutta_version\": "<<json_string(KUTTA_VERSION)<<",\n  \"kutta_commit\": "<<json_string(KUTTA_COMMIT)
       <<",\n  \"backend\": "<<json_string(backend_name(dev->backend()))<<",\n  \"device\": "<<json_string(dev->name())
-      <<",\n  \"cells\": "<<solver.mesh().n_cells<<",\n  \"poor_quality_cells\": "<<solver.poor_cells()<<",\n  \"pressure_velocity_coupling\": "<<json_string(coupling)
+      <<",\n  \"cells\": "<<solver.mesh().n_cells<<",\n  \"poor_quality_cells\": "<<solver.poor_cells()<<",\n  \"poor_cell_quality\": "<<setup->settings.poor_cell_quality<<",\n  \"pressure_velocity_coupling\": "<<json_string(coupling)
       <<",\n  \"iterations\": "<<solver.report().iteration
       <<",\n  \"wall_time_seconds\": "<<wall_time<<",\n  \"setup_time_seconds\": "<<setup_time;
     if(live)summary<<",\n  \"live_view\": "<<dump_json(live_statistics(wall_time));

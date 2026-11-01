@@ -15,14 +15,47 @@ ChartLayout chartLayout(const ChartLayoutInput& in)
     const double lineH = fm.height();
     const double left0 = r.left() + 10, right0 = r.right() - 10;
 
+    // Header: the title, then its badges on the same row when all of them fit
+    // beside it, else wrapped onto rows below it. The legend starts below
+    // whichever ends lower, and never above in.header.
+    const QFontMetricsF tfm(in.titleFont), bfm(in.badgeFont);
+    const double avail = std::max(1.0, right0 - left0), top0 = r.top() + 8;
+    const double badgeH = bfm.height() + 3;
+    double headerBottom = top0;
+    if (!in.title.isEmpty()) {
+        l.titleText = tfm.elidedText(in.title, Qt::ElideRight, avail);
+        l.title = QRectF(left0, top0, tfm.horizontalAdvance(l.titleText), tfm.height());
+        headerBottom = l.title.bottom();
+    }
+    std::vector<double> widths;
+    double badgesW = 0;
+    for (const QString& b : in.badges) {
+        widths.push_back(std::min(bfm.horizontalAdvance(b) + 12, avail));
+        badgesW += widths.back() + (widths.size() > 1 ? 6 : 0);
+    }
+    const bool besideTitle = l.title.isEmpty() || l.title.width() + 10 + badgesW <= avail;
+    double bx = l.title.isEmpty() ? left0 : besideTitle ? l.title.right() + 10 : left0;
+    double by = besideTitle ? top0 : l.title.bottom() + 4;
+    for (qsizetype i = 0; i < in.badges.size(); ++i) {
+        const double w = widths[std::size_t(i)];
+        if (bx + w > right0 + 0.5 && bx > left0) {
+            bx = left0;
+            by += badgeH + 4;
+        }
+        l.badges.push_back({QRectF(bx, by, w, badgeH), bfm.elidedText(in.badges[i], Qt::ElideRight, w - 12)});
+        headerBottom = std::max(headerBottom, by + badgeH);
+        bx += w + 6;
+    }
+    const double header = std::max(in.header, headerBottom + 2 - r.top());
+
     // Legend chips wrap below the header. Long names are elided, and rows that
     // would squeeze the plot below a readable height fold into "+N more".
     const double chipH = lineH + 6;
     const double maxChipText = std::max(60.0, (right0 - left0) * 0.6 - 26);
     const double xAxisBlock = lineH + 6 + (in.xLabel.isEmpty() ? 2 : lineH + 4);
     const double minPlotH = 48;
-    const int maxRows = std::max(1, int((r.height() - in.header - xAxisBlock - minPlotH) / chipH));
-    double x = left0, y = r.top() + in.header;
+    const int maxRows = std::max(1, int((r.height() - header - xAxisBlock - minPlotH) / chipH));
+    double x = left0, y = r.top() + header;
     int row = 0;
     const auto more = [&](qsizetype n) { return QCoreApplication::translate("kapp::PlotWidget", "+%1 more").arg(n); };
     for (qsizetype k = 0; k < in.legend.size(); ++k) {
@@ -52,7 +85,7 @@ ChartLayout chartLayout(const ChartLayoutInput& in)
         l.legend.push_back({QRectF(x, y, std::min(w, right0 - x), chipH), int(k), text});
         x += w + 6;
     }
-    const double legendBottom = l.legend.empty() ? r.top() + in.header : y + chipH;
+    const double legendBottom = l.legend.empty() ? r.top() + header : y + chipH;
     double top = legendBottom + 6;
     const double bottom = r.bottom() - xAxisBlock;
 

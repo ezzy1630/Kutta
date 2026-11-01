@@ -210,6 +210,14 @@ private slots:
         QCOMPARE(by.value("Undertray / diffuser"), (QStringList{"undertray", "diffuser"}));
         QCOMPARE(by.value("Wheels"), (QStringList{"tyre-fl", "wheel_rr"}));
         QCOMPARE(by.value("Body"), (QStringList{"monocoque", "driver"}));
+        QVERIFY(!by.contains("Wing"));
+        // Wings named without front or rear (a 2D section, a multi-element
+        // wing) are their own group.
+        const auto single = suggestAeroGroups({"wing", "flap1", "main-element", "Mainplane", "airfoil", "sidepod", "nose"});
+        by.clear();
+        for (const auto& g : single) by[g.name] = g.zones;
+        QCOMPARE(by.value("Wing"), (QStringList{"wing", "flap1", "main-element", "Mainplane", "airfoil"}));
+        QCOMPARE(by.value("Body"), (QStringList{"sidepod", "nose"}));
     }
 
     void convergenceEventsParse()

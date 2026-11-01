@@ -43,6 +43,8 @@ private:
 double niceStep(double rough);
 // Compact engineering formatting: "0.0012", "1.2e-05", "1500".
 QString formatNumber(double v, int significant = 4);
+// Residuals and criteria, written as the log axis labels them: "7.71e-6", "1e-5".
+QString formatScientific(double v, int significant = 3);
 QString formatTick(double v, double step);
 
 } // namespace kapp

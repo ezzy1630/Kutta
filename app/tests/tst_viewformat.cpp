@@ -103,6 +103,52 @@ private slots:
         QCOMPARE(defaultMeshItems(*s), QStringList{"zone:back"});
     }
 
+    // A 2D body in a far field of inlets, outlets and symmetry (the Ansys
+    // cylinder) opens framed on the body, as a wing over a ground does; a
+    // channel, whose walls are its edges, opens on the whole domain.
+    void planarExternalFlowFramesTheBody()
+    {
+        auto cylinder = scene({
+            zone("wall", "wall", quad({9, -0.5f, 0}, {10, -0.5f, 0}, {10, 0.5f, 1}, {9, 0.5f, 1})),
+            zone("inlet", "velocity-inlet", quad({0, -10, 0}, {0, 10, 0}, {0, 10, 1}, {0, -10, 1})),
+            zone("outlet", "pressure-outlet", quad({30, -10, 0}, {30, 10, 0}, {30, 10, 1}, {30, -10, 1})),
+            zone("top", "symmetry", quad({0, 10, 0}, {30, 10, 0}, {30, 10, 1}, {0, 10, 1})),
+            zone("front", "symmetry", quad({0, -10, 0}, {30, -10, 0}, {30, 10, 0}, {0, 10, 0})),
+            zone("back", "symmetry", quad({0, -10, 1}, {30, -10, 1}, {30, 10, 1}, {0, 10, 1})),
+        });
+        QVERIFY(!isExternalFlow(*cylinder));  // no ground or tunnel wall
+        makePlanar(*cylinder);
+        const auto focus = planarFocus(*cylinder);
+        QVERIFY(focus);
+        QCOMPARE(focus->min, QVector3D(8, -1.5f, 0));
+        QCOMPARE(focus->max, QVector3D(13, 1.5f, 1));  // three diameters of wake: 20 behind against 9 ahead
+
+        // A wing just above its ground: the room above is not a wake, so the
+        // frame keeps one chord all round (clipped at the ground).
+        auto wing = scene({
+            zone("wing", "wall", quad({0, 0.05f, 0}, {1, 0.05f, 0}, {1, 0.15f, 1}, {0, 0.15f, 1})),
+            zone("ground", "wall", quad({-4, 0, 0}, {5, 0, 0}, {5, 0, 1}, {-4, 0, 1})),
+            zone("top", "symmetry", quad({-4, 4, 0}, {5, 4, 0}, {5, 4, 1}, {-4, 4, 1})),
+            zone("front", "symmetry", quad({-4, 0, 0}, {5, 0, 0}, {5, 4, 0}, {-4, 4, 0})),
+            zone("back", "symmetry", quad({-4, 0, 1}, {5, 0, 1}, {5, 4, 1}, {-4, 4, 1})),
+        });
+        makePlanar(*wing);
+        const auto wingFocus = planarFocus(*wing);
+        QVERIFY(wingFocus);
+        QCOMPARE(wingFocus->min, QVector3D(-1, 0, 0));
+        QCOMPARE(wingFocus->max, QVector3D(2, 1.15f, 1));
+
+        auto channel = scene({
+            zone("floor", "wall", quad({0, 0, 0}, {10, 0, 0}, {10, 0, 1}, {0, 0, 1})),
+            zone("roof", "wall", quad({0, 1, 0}, {10, 1, 0}, {10, 1, 1}, {0, 1, 1})),
+            zone("inlet", "velocity-inlet", quad({0, 0, 0}, {0, 1, 0}, {0, 1, 1}, {0, 0, 1})),
+            zone("front", "symmetry", quad({0, 0, 0}, {10, 0, 0}, {10, 1, 0}, {0, 1, 0})),
+            zone("back", "symmetry", quad({0, 0, 1}, {10, 0, 1}, {10, 1, 1}, {0, 1, 1})),
+        });
+        makePlanar(*channel);
+        QVERIFY(!planarFocus(*channel));
+    }
+
     void roundTrip()
     {
         ViewPart part;

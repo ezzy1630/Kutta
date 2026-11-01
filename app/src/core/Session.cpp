@@ -387,6 +387,9 @@ void Session::finishRun(int exitCode, bool crashed)
         r.status = r.stopReason == "stopped" ? RunStatus::Stopped : RunStatus::Completed;
     }
     m_history.save(r);
+    if (r.status != RunStatus::Failed)
+        if (const auto summary = m_history.summary(r.id))
+            if (const QString poor = poorMeshNumericsText(*summary); !poor.isEmpty()) emit consoleLine(ConsoleLevel::Info, poor + '.');
     const QString id = r.id;
     const RunStatus status = r.status;
     m_current.reset();

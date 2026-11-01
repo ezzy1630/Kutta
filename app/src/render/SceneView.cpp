@@ -397,6 +397,20 @@ void haloText(QPainter& p, const QRect& rect, int flags, const QString& text, co
     p.setPen(fg);
     p.drawText(rect, flags, text);
 }
+
+// A label block's backing: the viewport colour, mostly opaque. Over empty
+// background it is invisible; over a field it keeps the labels legible.
+void plate(QPainter& p, const QRectF& rect, const OverlayState& s)
+{
+    if (!s.backdrop.isValid() || rect.isEmpty()) return;
+    QColor c = s.backdrop;
+    c.setAlphaF(0.84f);
+    p.save();
+    p.setPen(Qt::NoPen);
+    p.setBrush(c);
+    p.drawRoundedRect(rect, 6, 6);
+    p.restore();
+}
 } // namespace
 
 void paintOverlay(QPainter& p, const QRect& r, const OverlayState& s, QColor accent, bool forExport)
@@ -440,12 +454,14 @@ void paintOverlay(QPainter& p, const QRect& r, const OverlayState& s, QColor acc
     const qreal titleRight = x;
     // Title and dataset.
     if (!s.title.isEmpty()) {
+        const QString title = QFontMetrics(strong).elidedText(s.title, Qt::ElideRight, int(titleRight) - r.left() - pad - 10);
+        const QString subtitle = QFontMetrics(small).elidedText(s.subtitle, Qt::ElideRight, r.width() - 2 * pad - 200);
+        const int w = std::max(QFontMetrics(strong).horizontalAdvance(title), QFontMetrics(small).horizontalAdvance(subtitle));
+        plate(p, QRectF(r.left() + pad - 7, r.top() + 5, w + 14, subtitle.isEmpty() ? 24 : 40), s);
         p.setFont(strong);
-        haloText(p, QRect(r.left() + pad, r.top() + 8, r.width() - 2 * pad, 18), Qt::AlignLeft | Qt::AlignVCenter,
-                 p.fontMetrics().elidedText(s.title, Qt::ElideRight, int(titleRight) - r.left() - pad - 10), fg, s.dark);
+        haloText(p, QRect(r.left() + pad, r.top() + 8, r.width() - 2 * pad, 18), Qt::AlignLeft | Qt::AlignVCenter, title, fg, s.dark);
         p.setFont(small);
-        haloText(p, QRect(r.left() + pad, r.top() + 26, r.width() - 2 * pad, 16), Qt::AlignLeft | Qt::AlignVCenter,
-                 p.fontMetrics().elidedText(s.subtitle, Qt::ElideRight, r.width() - 2 * pad - 200), muted, s.dark);
+        haloText(p, QRect(r.left() + pad, r.top() + 26, r.width() - 2 * pad, 16), Qt::AlignLeft | Qt::AlignVCenter, subtitle, muted, s.dark);
     }
 
     // Colour legend: vertical bar on the left, as in Fluent.
@@ -453,6 +469,16 @@ void paintOverlay(QPainter& p, const QRect& r, const OverlayState& s, QColor acc
         const int top = r.top() + 56, barW = 12;
         const int h = std::clamp(int(r.height() * 0.42), 90, 320);
         const QRect bar(r.left() + pad, top, barW, h);
+        {
+            // The plate spans the bar, its widest label and the unit.
+            Axis ax;
+            ax.setRange(s.range.min, s.range.max);
+            const QFontMetrics tfm(tabular);
+            int labelW = std::max(tfm.horizontalAdvance(formatNumber(s.range.max, 4)), tfm.horizontalAdvance(formatNumber(s.range.min, 4)));
+            for (const Tick& t : ax.ticks(std::max(3, h / 36))) labelW = std::max(labelW, tfm.horizontalAdvance(t.label));
+            if (!s.unit.isEmpty()) labelW = std::max(labelW, QFontMetrics(small).horizontalAdvance(s.unit) - barW - 7);
+            plate(p, QRectF(bar.left() - 7, bar.top() - 10, barW + 7 + labelW + 15, h + (s.unit.isEmpty() ? 20 : 38)), s);
+        }
         const Colormap& cm = colormap(s.colormap);
         if (s.bands > 0) {
             for (int b = 0; b < s.bands; ++b) {
@@ -501,6 +527,13 @@ void paintOverlay(QPainter& p, const QRect& r, const OverlayState& s, QColor acc
         const int rowH = 17, top = r.top() + 54;
         const int rows = std::max(1, (r.height() - 54 - 60) / rowH);
         const int shown = int(std::min<std::size_t>(s.zoneKey.size(), std::size_t(rows)));
+        int keyW = 0;
+        for (int i = 0; i < shown; ++i) {
+            const bool last = i == shown - 1 && shown < int(s.zoneKey.size());
+            const QString text = last ? QObject::tr("+%1 more").arg(int(s.zoneKey.size()) - i) : s.zoneKey[std::size_t(i)].first;
+            keyW = std::max(keyW, fm.horizontalAdvance(fm.elidedText(text, Qt::ElideMiddle, 170)) + 17);
+        }
+        plate(p, QRectF(r.left() + pad - 7, top - 4, keyW + 14, shown * rowH + 8), s);
         for (int i = 0; i < shown; ++i) {
             const bool last = i == shown - 1 && shown < int(s.zoneKey.size());
             const int y = top + i * rowH;

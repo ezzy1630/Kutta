@@ -1,10 +1,13 @@
 #include "core/RunHistory.h"
 
+#include "core/ChartScale.h"
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QLocale>
 #include <QRegularExpression>
 #include <QSaveFile>
 
@@ -53,6 +56,15 @@ QString stopReasonText(const QString& stopReason, const QStringList& metBy, cons
         return conv.enabled ? QStringLiteral("Iteration limit; convergence criteria not met")
                             : QStringLiteral("Iteration limit; convergence checking was off");
     return {};
+}
+
+QString poorMeshNumericsText(const RunSummary& s)
+{
+    if (s.poorQualityCells <= 0) return {};
+    const QString cells = s.poorQualityCells == 1 ? QStringLiteral("1 poor-quality cell")
+                                                  : QStringLiteral("%1 poor-quality cells").arg(QLocale().toString(s.poorQualityCells));
+    const QString quality = s.poorCellQuality ? QStringLiteral(" (orthogonal quality ≤ %1)").arg(QLocale().toString(*s.poorCellQuality, 'g', 3)) : QString();
+    return QStringLiteral("%1%2 used low-order face pressures, as Fluent's poor mesh numerics does").arg(cells, quality);
 }
 
 QString runOutcomeAdvice(const RunRecord& r)
@@ -226,7 +238,7 @@ std::vector<ConvergenceMark> convergenceMarks(const RunProgress& p, bool planar)
         for (auto it = res.begin(); it != res.end(); ++it)
             if (residualShown(it.key(), planar)) byValue[it.value()] << it.key();
         for (auto it = byValue.begin(); it != byValue.end(); ++it) {
-            const QString v = QString::number(it.key(), 'g', 3);
+            const QString v = formatScientific(it.key());
             out.push_back({ConvergenceMark::Kind::Criterion, it.key(),
                            byValue.size() == 1 ? QStringLiteral("criterion %1").arg(v)
                                                : QStringLiteral("criterion %1 · %2").arg(v, residualOrder(it.value()).join(", "))});

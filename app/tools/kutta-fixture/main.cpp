@@ -652,6 +652,9 @@ int solve(const Args& a)
         if (!loads.isEmpty()) {
             loads["provenance"] = (QStringLiteral("FIXTURE REPLAY: recorded wall loads of a %1-iteration Kutta run; ").arg(recordedIterations) + loads.value("provenance").toString()).trimmed();
             loads["modified"] = caseModified(r.overrides);
+            // The run is the replay: it stopped at lastIter, as summary.json and
+            // the done event say. The provenance names the recording's length.
+            loads["iterations"] = lastIter;
             writeJson(QDir(r.outDir).filePath("loads.json"), loads);
         }
     } else {

@@ -57,11 +57,19 @@ std::vector<Tick> Axis::ticks(int target) const
     if (m_scale == Scale::Log) {
         const int d0 = int(std::floor(std::log10(m_lo))), d1 = int(std::ceil(std::log10(m_hi)));
         const int decades = std::max(1, d1 - d0);
-        const int every = std::max(1, int(std::ceil(double(decades) / std::max(target, 1))));
+        // Label every few decades, counted down from the top. Prefer a step
+        // that divides the span, so a residual history from 1e0 to 1e-10 is
+        // labelled at both ends (1e0, 1e-5, 1e-10), not left unlabelled at
+        // the floor where it ends.
+        const int fewest = std::max(1, int(std::ceil(double(decades) / std::max(target, 1))));
+        int every = fewest;
+        for (int e = fewest; e <= std::min(decades, 2 * fewest); ++e)
+            if (decades % e == 0) { every = e; break; }
         for (int d = d0; d <= d1; ++d) {
             const double v = std::pow(10.0, d);
+            const bool major = (d1 - d) % every == 0;
             if (v >= m_lo * (1 - 1e-9) && v <= m_hi * (1 + 1e-9))
-                out.push_back({v, (d % every) == 0, (d % every) == 0 ? QStringLiteral("1e%1").arg(d) : QString()});
+                out.push_back({v, major, major ? QStringLiteral("1e%1").arg(d) : QString()});
             if (decades <= 6)
                 for (int m = 2; m <= 9; ++m) {
                     const double mv = m * v;
@@ -136,6 +144,20 @@ QString formatNumber(double v, int sig)
         if (mant.endsWith('.')) mant.chop(1);
     }
     return mant + exp;
+}
+
+QString formatScientific(double v, int sig)
+{
+    if (!std::isfinite(v)) return QStringLiteral("—");
+    if (v == 0) return QStringLiteral("0");
+    const QString s = QLocale::c().toString(v, 'e', std::max(0, sig - 1));
+    const qsizetype e = s.indexOf('e');
+    QString mant = s.left(e);
+    if (mant.contains('.')) {
+        while (mant.endsWith('0')) mant.chop(1);
+        if (mant.endsWith('.')) mant.chop(1);
+    }
+    return mant + 'e' + QString::number(s.mid(e + 1).toInt());
 }
 
 QString formatTick(double v, double step)

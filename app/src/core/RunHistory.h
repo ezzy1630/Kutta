@@ -64,6 +64,10 @@ struct RunRecord {
 // `stopReason` is the CLI's; `conv` the run's convergence setup.
 QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv);
 
+// The run's poor-mesh-numerics cells in a sentence; empty when there were
+// none (or the CLI predates the count).
+QString poorMeshNumericsText(const RunSummary& s);
+
 // What happened to a run that did not complete and what to do next, in
 // plain words (disk full, out of memory, crash, stopped); empty when it completed.
 QString runOutcomeAdvice(const RunRecord& r);

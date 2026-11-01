@@ -177,6 +177,9 @@ for a case without pseudo time unless the case was saved with Coupled.
 at or below orthogonal quality 0.05 whose second-order face pressures use the
 cell value, following Fluent's poor mesh numerics (User's Guide 36.22.5).
 Zero on a well-conditioned mesh and with the standard pressure scheme.
+`poor_cell_quality` (v1 additive) is that threshold as the run used it (0.05;
+negative when the treatment is off). The app names the count beside the run's
+convergence and in Run History only when it is not zero.
 
 The Methods group (v1 additive) follows Fluent's Methods panel. Every case
 lists `methods/momentum-scheme`, `k-scheme`, `omega-scheme` and

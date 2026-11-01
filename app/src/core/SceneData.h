@@ -114,8 +114,11 @@ void makePlanar(SceneData& s);
 // Top view); empty when the scene is not planar or has no such cap.
 QString planarFace(const SceneData& s);
 // Where a 2D external-flow case is first framed: the body (walls that do not
-// enclose the domain) with a body length of flow around it, clipped to the
-// domain. A far field 30 chords out would otherwise leave the wing a speck.
+// enclose the domain) with a body length of flow around it, three on a side
+// with clearly more room (the wake), clipped to the domain. A far field 30
+// chords out would otherwise leave the wing a speck.
+// External means a body beside a ground or tunnel wall, or a body wall with
+// flow on every side of it (a cylinder in a far field without walls).
 std::optional<Bounds> planarFocus(const SceneData& s);
 // What a results view shows first, and the field it is coloured by.
 QStringList defaultVisibleItems(const SceneData& s);

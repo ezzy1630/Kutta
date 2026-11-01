@@ -321,7 +321,7 @@ QWidget* aero(const InspectorContext& c)
     v->addWidget(section(QObject::tr("Groups")));
     const QStringList car = s->carZones();
     QStringList groupNames;
-    for (const auto& g : suggestAeroGroups({"front-wing", "rear-wing", "undertray", "wheel", "body"})) groupNames << g.name;
+    for (const auto& g : suggestAeroGroups({"front-wing", "rear-wing", "wing", "undertray", "wheel", "body"})) groupNames << g.name;
     for (const auto& g : spec.groups)
         if (!groupNames.contains(g.name)) groupNames << g.name;
     auto* groups = table(2, {QObject::tr("Zone"), QObject::tr("Group")}, QObject::tr("Aero groups"));

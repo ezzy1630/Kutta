@@ -3,6 +3,7 @@
 #include "TestSupport.h"
 #include "core/RunHistory.h"
 
+#include <QJsonDocument>
 #include <QTemporaryDir>
 #include <QtTest>
 
@@ -103,6 +104,18 @@ private slots:
         QVERIFY(stopReasonText("", {}, conv).isEmpty());  // an older CLI: no reason given
     }
 
+    // Poor mesh numerics is named only when it touched cells, and an older
+    // CLI's summary without the count says nothing.
+    void poorMeshNumericsOnlyWhenUsed()
+    {
+        auto parse = [](const char* json) { return parseRunSummary(QJsonDocument::fromJson(json).object()).value(); };
+        QVERIFY(poorMeshNumericsText(parse(R"({"v":1,"cells":10})")).isEmpty());
+        QVERIFY(poorMeshNumericsText(parse(R"({"v":1,"cells":10,"poor_quality_cells":0,"poor_cell_quality":0.05})")).isEmpty());
+        QCOMPARE(poorMeshNumericsText(parse(R"({"v":1,"cells":10,"poor_quality_cells":4,"poor_cell_quality":0.050000000000000003})")),
+                 QString("4 poor-quality cells (orthogonal quality ≤ 0.05) used low-order face pressures, as Fluent's poor mesh numerics does"));
+        QVERIFY(poorMeshNumericsText(parse(R"({"v":1,"cells":10,"poor_quality_cells":1})")).startsWith("1 poor-quality cell used"));
+    }
+
     // Run History's Status column names how a completed run ended.
     void statusSaysHowARunEnded()
     {
@@ -135,13 +148,13 @@ private slots:
         auto marks = convergenceMarks(p, true);
         QCOMPARE(int(marks.size()), 2);
         QCOMPARE(marks[0].kind, ConvergenceMark::Kind::Criterion);
-        QCOMPARE(marks[0].label, QString("criterion 1e-05"));
+        QCOMPARE(marks[0].label, QString("criterion 1e-5"));
         QCOMPARE(marks[1].kind, ConvergenceMark::Kind::Stopped);
         QCOMPARE(marks[1].value, 20.0);
         marks = convergenceMarks(p, false);  // 3D: two distinct criteria, each named
         QCOMPARE(int(marks.size()), 3);
-        QCOMPARE(marks[0].label, QString("criterion 1e-05 · continuity, x-velocity, y-velocity"));
-        QCOMPARE(marks[1].label, QString("criterion 0.001 · z-velocity"));
+        QCOMPARE(marks[0].label, QString("criterion 1e-5 · continuity, x-velocity, y-velocity"));
+        QCOMPARE(marks[1].label, QString("criterion 1e-3 · z-velocity"));
     }
 
     void couplingPersistsWithTheRun()

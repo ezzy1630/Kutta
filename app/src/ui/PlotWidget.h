@@ -3,6 +3,7 @@
 // A 2D line chart for residuals, report histories and XY plots. Painted with
 // QPainter on demand: nothing repaints unless data, size or the cursor changes.
 
+#include "core/ChartLayout.h"
 #include "core/ChartScale.h"
 
 #include <QColor>
@@ -90,6 +91,9 @@ private:
     // beside the axis when it fits, else on one line above the plot), tick
     // labels and the x title. Nothing is drawn where another element is.
     struct Layout {
+        QRectF title;
+        QString titleText;
+        std::vector<ChartLayout::Badge> badges;
         QRectF plot;
         std::vector<Chip> legend;
         QStringList hiddenLegend;  // keys folded into the "+N more" chip
@@ -100,6 +104,8 @@ private:
     };
     Layout layout(const QRectF& r) const;
     QFont chartFont() const;
+    QFont titleFont() const;
+    QFont badgeFont() const;
     void paintTo(QPainter& p, const QRectF& r, bool forExport) const;
     void fitData();
     void configureAxes(const QRectF& plot) const;

@@ -33,6 +33,9 @@ struct OverlayState {
     QMatrix4x4 view;      // for the axis triad
     bool triad = true;
     bool dark = true;
+    // The viewport's clear colour. Labels sit on translucent plates of it, so
+    // they read on a full-bleed 2D field and vanish into empty background.
+    QColor backdrop;
 };
 
 class SceneView : public QRhiWidget {

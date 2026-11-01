@@ -420,16 +420,47 @@ std::optional<int> commonPlaneAxis(const SceneData& s, const QStringList& ids)
 
 std::optional<Bounds> planarFocus(const SceneData& s)
 {
-    if (!s.planar || !s.bounds.valid || !isExternalFlow(s)) return std::nullopt;
+    if (!s.planar || !s.bounds.valid) return std::nullopt;
     Bounds body;
-    for (const auto& it : s.items)
-        if (it.kind == ItemKind::Zone && it.zoneType == "wall" && it.mesh && !isEnclosingWall(it, s)) body.expand(it.mesh->bounds());
-    if (!body.valid) return std::nullopt;
+    // A body wall clear of the domain's edges in the plane has flow all round
+    // it (a cylinder or aerofoil in a far field of inlets, outlets and
+    // symmetry), which makes the case external without a ground or tunnel.
+    bool freeStanding = false;
+    const QVector3D e0 = s.bounds.max - s.bounds.min;
+    for (const auto& it : s.items) {
+        if (it.kind != ItemKind::Zone || it.zoneType != "wall" || !it.mesh || isEnclosingWall(it, s)) continue;
+        const Bounds b = it.mesh->bounds();
+        body.expand(b);
+        bool clear = true;
+        for (int a = 0; a < 2; ++a)
+            clear = clear && b.min[a] - s.bounds.min[a] > 1e-3f * e0[a] && s.bounds.max[a] - b.max[a] > 1e-3f * e0[a];
+        freeStanding = freeStanding || clear;
+    }
+    if (!body.valid || !(freeStanding || isExternalFlow(s))) return std::nullopt;
     const QVector3D e = body.max - body.min;
     const float grow = std::max(e.x(), e.y());
+    // Far fields reach further downstream than upstream. The side with the
+    // most room, when it has clearly more than the side opposite, is the wake:
+    // three body lengths of it show (a cylinder's wake; a wing's far field
+    // that is nearly even keeps one length all round). An axis with less than
+    // a body length on one side (a wing just above its ground) is not the
+    // flow direction.
+    float lo[2] = {grow, grow}, hi[2] = {grow, grow};
+    int wakeAxis = -1;
+    bool wakeHi = false;
+    float most = 0;
+    for (int a = 0; a < 2; ++a) {
+        const float roomLo = body.min[a] - s.bounds.min[a], roomHi = s.bounds.max[a] - body.max[a];
+        if (std::min(roomLo, roomHi) > grow && std::max(roomLo, roomHi) > most && std::max(roomLo, roomHi) > 1.5f * std::min(roomLo, roomHi)) {
+            most = std::max(roomLo, roomHi);
+            wakeAxis = a;
+            wakeHi = roomHi > roomLo;
+        }
+    }
+    if (wakeAxis >= 0) (wakeHi ? hi : lo)[wakeAxis] = 3 * grow;
     Bounds out;
-    out.min = QVector3D(std::max(body.min.x() - grow, s.bounds.min.x()), std::max(body.min.y() - grow, s.bounds.min.y()), s.bounds.min.z());
-    out.max = QVector3D(std::min(body.max.x() + grow, s.bounds.max.x()), std::min(body.max.y() + grow, s.bounds.max.y()), s.bounds.max.z());
+    out.min = QVector3D(std::max(body.min.x() - lo[0], s.bounds.min.x()), std::max(body.min.y() - lo[1], s.bounds.min.y()), s.bounds.min.z());
+    out.max = QVector3D(std::min(body.max.x() + hi[0], s.bounds.max.x()), std::min(body.max.y() + hi[1], s.bounds.max.y()), s.bounds.max.z());
     out.valid = true;
     return out;
 }

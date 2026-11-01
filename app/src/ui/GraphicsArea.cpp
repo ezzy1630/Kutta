@@ -349,6 +349,7 @@ void ViewportPanel::updateOverlay()
 {
     OverlayState o;
     o.dark = tokens().dark;
+    o.backdrop = tokens().viewport;
     o.active = m_active;
     const auto s = m_view->scene();
     const ViewDisplay& d = m_view->display();

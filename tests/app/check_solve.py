@@ -27,6 +27,7 @@ def check_outputs(directory, data=False, iterations=21, case_name="tiny.cas.h5",
     assert summary["case_sha256"] == hashlib.sha256((root / case_name).read_bytes()).hexdigest()
     assert summary["backend"] == "cpu" and summary["device"]
     assert summary["cells"] == 4 and summary["iterations"] == iterations
+    assert summary["poor_quality_cells"] == 0 and summary["poor_cell_quality"] == 0.05
     assert summary["wall_time_seconds"] > 0 and summary["setup_time_seconds"] > 0
     assert summary["converged"] is False and summary["stop_reason"] == "iteration_limit"
     assert summary["convergence_criteria_available"] is True

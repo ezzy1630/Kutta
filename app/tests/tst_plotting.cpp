@@ -57,6 +57,46 @@ private slots:
                     }
     }
 
+    // Long approximation badges wrap below the title instead of cutting it
+    // short ("Scaled Resid…"); nothing in the header overlaps the legend or plot.
+    void chartHeaderKeepsTitleAndBadges()
+    {
+        Axis x, y;
+        x.setRange(0, 300);
+        y.setScale(Axis::Scale::Log);
+        y.setRange(1e-9, 1);
+        QFont font, titleFont, badgeFont;
+        font.setPointSizeF(11);
+        titleFont.setPointSizeF(12);
+        titleFont.setWeight(QFont::DemiBold);
+        badgeFont.setPointSizeF(9.4);
+        badgeFont.setWeight(QFont::Bold);
+        const QFontMetricsF tfm(titleFont);
+        const QString title = "Scaled Residuals · Run 1";
+        const QStringList keys{"continuity", "x-velocity", "y-velocity", "z-velocity", "k", "epsilon"};
+        for (const QStringList& badges : {QStringList{}, QStringList{"FIXTURE REPLAY"},
+                                          QStringList{"APPROXIMATE · No compressibility correction, Documented k-epsilon only", "MODIFIED"}})
+            for (int w : {220, 300, 480, 760, 1400})
+                for (int h : {140, 200, 320}) {
+                    ChartLayoutInput in{QRectF(0, 0, w, h), font, 26, keys, "Iteration", {}, &x, &y, title, titleFont, badges, badgeFont};
+                    const ChartLayout l = chartLayout(in);
+                    const QString where = QStringLiteral("%1x%2, %3 badges").arg(w).arg(h).arg(badges.size());
+                    QVERIFY2(in.rect.contains(l.title), qPrintable(where));
+                    if (tfm.horizontalAdvance(title) <= w - 20) QVERIFY2(l.titleText == title, qPrintable(where + ": title elided"));
+                    QCOMPARE(int(l.badges.size()), int(badges.size()));
+                    for (std::size_t i = 0; i < l.badges.size(); ++i) {
+                        const QRectF b = l.badges[i].rect;
+                        QVERIFY2(b.left() >= in.rect.left() && b.right() <= in.rect.right(), qPrintable(where));
+                        QVERIFY2(!b.intersects(l.title), qPrintable(where + ": badge on title"));
+                        QVERIFY2(!b.intersects(l.plot), qPrintable(where + ": badge on plot"));
+                        for (const auto& c : l.legend) QVERIFY2(!b.intersects(c.rect), qPrintable(where + ": badge on legend"));
+                        for (std::size_t j = i + 1; j < l.badges.size(); ++j) QVERIFY2(!b.intersects(l.badges[j].rect), qPrintable(where));
+                    }
+                    for (const auto& c : l.legend) QVERIFY2(!c.rect.intersects(l.title), qPrintable(where + ": legend on title"));
+                    QVERIFY2(l.plot.height() > 0 && in.rect.contains(l.plot), qPrintable(where));
+                }
+    }
+
     void colormapEndpointsMatchMatplotlib()
     {
         QCOMPARE(colormap(ColormapId::Viridis).sample(0).rgb(), qRgb(68, 1, 84));
@@ -99,6 +139,24 @@ private slots:
         QVERIFY(majors.contains("1e0"));
         QCOMPARE(a.toPixel(1e-3), 150.0);
         QVERIFY(qAbs(a.fromPixel(a.toPixel(3e-4)) - 3e-4) < 1e-12);
+
+        // SIMPLE's paired state takes residuals to 1e-10: a short chart labels
+        // both ends of the span, and every decade keeps a grid line.
+        a.setRange(1e-10, 1);
+        for (int target : {3, 4, 5}) {
+            majors.clear();
+            int lines = 0;
+            for (const Tick& t : a.ticks(target)) {
+                if (t.major) majors << t.label;
+                lines += t.value == std::pow(10.0, std::round(std::log10(t.value)));
+            }
+            QVERIFY2(majors.contains("1e0") && majors.contains("1e-10"), qPrintable(majors.join(' ')));
+            QVERIFY(majors.size() <= target + 1);
+            QCOMPARE(lines, 11);
+        }
+        QCOMPARE(formatScientific(7.7148e-6), QString("7.71e-6"));
+        QCOMPARE(formatScientific(1e-5), QString("1e-5"));
+        QCOMPARE(formatScientific(5.1848e-10), QString("5.18e-10"));
     }
 
     void linearAxisNiceRangeAndZoom()

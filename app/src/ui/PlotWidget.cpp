@@ -129,12 +129,32 @@ QFont PlotWidget::chartFont() const
     return small;
 }
 
+QFont PlotWidget::titleFont() const
+{
+    QFont f = tabular(font());
+    f.setWeight(QFont::DemiBold);
+    return f;
+}
+
+QFont PlotWidget::badgeFont() const
+{
+    QFont f = tabular(font());
+    f.setPointSizeF(f.pointSizeF() * 0.78);
+    f.setWeight(QFont::Bold);
+    f.setLetterSpacing(QFont::AbsoluteSpacing, 0.6);
+    return f;
+}
+
 PlotWidget::Layout PlotWidget::layout(const QRectF& r) const
 {
     ChartLayoutInput in;
     in.rect = r;
     in.font = chartFont();
     in.header = kHeader;
+    in.title = m_title;
+    in.titleFont = titleFont();
+    in.badges = m_badges;
+    in.badgeFont = badgeFont();
     std::vector<std::size_t> firstOf;
     for (std::size_t i = 0; i < m_series.size(); ++i)
         if (!in.legend.contains(m_series[i].legendKey())) {
@@ -147,6 +167,9 @@ PlotWidget::Layout PlotWidget::layout(const QRectF& r) const
     in.y = &m_y;
     const ChartLayout c = chartLayout(in);
     Layout l;
+    l.title = c.title;
+    l.titleText = c.titleText;
+    l.badges = c.badges;
     l.plot = c.plot;
     for (const auto& chip : c.legend) l.legend.push_back({chip.rect, chip.key < 0 ? std::size_t(-1) : firstOf[std::size_t(chip.key)], chip.text});
     l.hiddenLegend = c.hiddenLegend;
@@ -185,26 +208,12 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
     const Layout l = layout(r);
     configureAxes(l.plot);
 
-    // Header: title and badges.
-    QFont titleFont = base;
-    titleFont.setWeight(QFont::DemiBold);
-    p.setFont(titleFont);
+    // Header: title and badges, placed by the layout so neither is cut short.
+    p.setFont(titleFont());
     p.setPen(t.text);
-    const QFontMetricsF tfm(titleFont);
-    QFont badgeFont = base;
-    badgeFont.setPointSizeF(base.pointSizeF() * 0.78);
-    badgeFont.setWeight(QFont::Bold);
-    badgeFont.setLetterSpacing(QFont::AbsoluteSpacing, 0.6);
-    const QFontMetricsF bfm(badgeFont);
-    // Badges (APPROXIMATE, MODIFIED) are never pushed out: the title elides.
-    double badgesW = 0;
-    for (const QString& b : m_badges) badgesW += bfm.horizontalAdvance(b) + 12 + 6;
-    const QString title = tfm.elidedText(m_title, Qt::ElideRight, std::max(40.0, r.width() - 20 - badgesW - (badgesW > 0 ? 4 : 0)));
-    p.drawText(QPointF(r.left() + 10, r.top() + 8 + tfm.ascent()), title);
-    double bx = r.left() + 10 + tfm.horizontalAdvance(title) + 10;
-    p.setFont(badgeFont);
-    for (const QString& b : m_badges) {
-        const QRectF br(bx, r.top() + 8, bfm.horizontalAdvance(b) + 12, bfm.height() + 3);
+    if (!l.title.isEmpty()) p.drawText(l.title, Qt::AlignLeft | Qt::AlignTop, l.titleText);
+    p.setFont(badgeFont());
+    for (const auto& [br, b] : l.badges) {
         const bool amber = b.startsWith("APPROX") || b.startsWith("MODIFIED") || b.startsWith("SYNTHETIC") || b.startsWith("FIXTURE");
         const bool live = b.startsWith("LIVE");
         const bool failed = b.startsWith("FAILED") || b.startsWith("ERROR");
@@ -218,7 +227,6 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
         p.drawRoundedRect(br.adjusted(0.5, 0.5, -0.5, -0.5), 3, 3);
         p.setPen(ink);
         p.drawText(br, Qt::AlignCenter, b);
-        bx += br.width() + 6;
     }
 
     // Legend chips (click to hide a series).
