@@ -2753,3 +2753,29 @@ flux. V6 CPU hybrid versus Fluent: velocity 3.601459% -> 3.366748%, pressure
 2.961922% -> 2.665514%, k 15.478919% -> 14.722368%, omega 8.474918% ->
 2.805466%; pressure-drop error 1.185077% -> 1.973008%. The laminar path is
 unchanged. No acceptance threshold was changed.
+
+## Thin wall layers at sharp edges and Coupled on external aero (2026-10-31)
+
+The [external 3D robustness report](../../../validation/results/external_3d_robustness/REPORT.md)
+records the reproductions, cell-level diagnosis, ablations, Jacobian check,
+Fluent comparison, the y+ ~ 1 Ahmed mesh study and the full slow-tier
+assertion comparison.
+
+A 15 um first layer (y+ ~ 1) on the Ahmed body diverged under SIMPLEC because
+second-order face pressures in the first-layer hexes sheared across sharp
+edges (Fluent orthogonal quality down to 0.014) amplified gradient noise by
+about 20. Cells at or below quality 0.05, Fluent's documented
+poor-mesh-numerics cell-quality threshold, now take their own side of each
+face pressure from the cell value; the Rhie-Chow jump is unchanged. Coupled
+diverged on every Ahmed mesh because sink cells (assembled `a_P` near zero,
+since it carries the net outflow) gave a Rhie-Chow coefficient about 850
+times normal in the residual, which the Jacobian, floored at the off-diagonal
+sum, did not see. Under Coupled the residual's physical `a_P` now has the same
+floor, and the Coupled Jacobian drops the own-cell extrapolation term in
+flagged cells.
+
+SIMPLE and SIMPLEC on meshes without flagged cells are byte-identical to the
+base on CPU and Metal. Coupled cases and the TMR bump grids (2,068 cells at
+quality 0.036 on level 2) move. Across the slow tier, 73 asserted values
+changed by at most 1e-3 absolute, with 0 regressions, 0 recoveries and the
+same known failures. No acceptance threshold or model constant was changed.

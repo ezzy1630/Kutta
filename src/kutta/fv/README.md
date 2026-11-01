@@ -82,6 +82,18 @@ preserving all resolved directions. No previous gradient feeds itself through
 an extrapolated boundary observation. Standalone operators still accept the
 caller's independent boundary face data.
 
+Cells whose Fluent orthogonal quality (`orthogonal_quality()`, User's Guide
+6.2.2) is at or below `SolverSettings::poor_cell_quality` (0.05, Fluent's
+poor-mesh-numerics cell-quality-based threshold) take their own side of every
+second-order face pressure, boundary faces included, from the cell pressure
+rather than `p+G·r`. The Rhie–Chow jump keeps the full reconstruction, and the
+Coupled Jacobian drops the matching own-cell extrapolation term. In a 15 um
+first wall-layer hex sheared across a sharp convex edge, the centroid sits
+0.33 mm sideways of both large faces' centroids. The extrapolated difference
+across those faces drove its own pressure force until the Ahmed body diverged at
+y+ ~ 1 ([external 3D robustness](../../../validation/results/external_3d_robustness/REPORT.md)).
+Meshes with no such cell launch nothing new and are unchanged bit for bit.
+
 SST strain and production use one derivative gradient: plain LSQ `1/d²` without
 wall rows plus half a face-jump fit. The fit uses centroid-to-face rows weighted
 by `1/|r_f|²`, and jumps between the two unlimited side reconstructions (boundary
@@ -146,6 +158,11 @@ relaxation or pseudo-time, and momentum-diagonal-weighted face velocities.
 The pressure update is capped at `0.7*aP_physical*consistent_inverse` when
 pseudo time makes the correction coefficient smaller than the Rhie–Chow
 coefficient. This damps pressure overshoot without changing the steady equations.
+Under Coupled, whose iterates satisfy continuity only approximately, that
+physical `aP` is floored at its off-diagonal sum, as in the Coupled Jacobian:
+cells the current flux only feeds had `aP` near zero and a Rhie–Chow
+coefficient about 10^3 times normal. At a fixed point the floor adds at most
+the cell's continuity residual. SIMPLE and SIMPLEC keep the raw `aP`.
 Pressure face values use the second-order reconstruction in the design spec.
 Momentum-weighted face velocities use a shared limited gradient to correct the
 weighted cell point to the face centroid. The independently reconstructed side

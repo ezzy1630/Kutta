@@ -346,6 +346,11 @@ the doc requires an identical Fluent case for a 25 deg gate and none exists.
 
 ## Solver defects found (reported, not fixed)
 
+Update (2026-10-31): defect 2, and Coupled on the Ahmed and h/c 0.224 wing
+meshes, are diagnosed and fixed in the
+[external 3D robustness report](../external_3d_robustness/REPORT.md), which
+also reruns the Ahmed study at 15 um.
+
 Both sit in the gradient / Rhie-Chow / pressure path that another lane is
 changing (tetrahedral robustness), so they are reproduced here and not
 touched. CPU and Metal behave the same in both.
