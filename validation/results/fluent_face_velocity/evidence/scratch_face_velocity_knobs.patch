@@ -1,0 +1,202 @@
+diff --git a/src/kutta/fv/steady_solver.cpp b/src/kutta/fv/steady_solver.cpp
+index 7593e33..1022ca7 100644
+--- a/src/kutta/fv/steady_solver.cpp
++++ b/src/kutta/fv/steady_solver.cpp
+@@ -5,6 +5,9 @@
+ #include "kutta/fv/coupled_solver.hpp"
+ 
+ #include <algorithm>
++#include <cstdlib>
++#include <iostream>
++#include <string>
+ #include <cmath>
+ #include <limits>
+ #include <map>
+@@ -124,6 +127,8 @@ struct SteadySolver::Impl {
+   std::shared_ptr<const WalkFaceReconstruction> turbulent_faces;
+   std::shared_ptr<const FaceReconstruction> velocity_faces;
+   DeviceVec3 projected_gradient[3];
++  Buffer<float> exp_alpha;bool exp_side=false,exp_keep_projected=true,exp_unlimited=false,exp_quad=false;int exp_peclet=0;Buffer<float> exp_mask,exp_out;
++  DeviceVec3 exp_grad[3];Buffer<Index> exp_nb[2],exp_bf[2];DeviceVec3 exp_n[2];Buffer<float> exp_delta[2],exp_span[2];
+   std::shared_ptr<CsrMatrix> pressure_matrix;
+   // Momentum, turbulence and pressure solves never interleave, so their
+   // Krylov vectors are one set instead of one per equation.
+@@ -158,6 +163,9 @@ struct SteadySolver::Impl {
+ 
+   Impl(Device& device,PolyMesh input,std::vector<PatchCondition> conditions,SolverSettings options)
+       :dev(device),host(std::move(input)),settings(options) {
++    if(std::getenv("KUTTA_EXP_SIMPLEC")) settings.coupling=PressureVelocityCoupling::Simplec;
++    if(std::getenv("KUTTA_EXP_DIFF") || std::getenv("KUTTA_EXP_FLUXDIFF")) settings.limiter=Limiter::Differentiable;
++    if(const char* e=std::getenv("KUTTA_EXP_BJEPS")) {settings.limiter=Limiter::Differentiable;settings.limiter_coefficient=std::atof(e);}
+     KUTTA_REQUIRE(settings.pseudo_transient || settings.coupling!=PressureVelocityCoupling::Coupled,
+       "FV: the Coupled solver requires pseudo-transient stepping");
+     KUTTA_REQUIRE(int(settings.sa.has_value())+int(settings.sst.has_value())+int(settings.realizable_ke.has_value())<=1,"FV: select exactly one turbulence model");
+@@ -289,6 +297,55 @@ struct SteadySolver::Impl {
+       // END FSAE physics
+     }
+     dev.upload<Index>(boundary_kind,kinds);dev.upload<float>(prescribed_pressure,pressures);
++    if(const char* e=std::getenv("KUTTA_EXP_FACE")) {
++      const std::string mode=e;exp_side=true;
++      if(const char* k=std::getenv("KUTTA_EXP_PROJ")) exp_keep_projected=std::string(k)!="0";
++      // wall layer per cell: 1 = touches a wall face, 2 = neighbour of layer 1...
++      std::vector<int> layer(n,99),any_boundary(n,0);
++      for(Index b=0;b<nb;++b) {const auto c=host.owner[b+mesh.n_internal_faces];any_boundary[c]=1;if(kinds[b]==0) layer[c]=1;}
++      for(int L=2;L<=4;++L) for(Index f=0;f<mesh.n_internal_faces;++f) {
++        const auto a=host.owner[f],c=host.neighbour[f];
++        if(layer[a]==L-1 && layer[c]>L) layer[c]=L;
++        if(layer[c]==L-1 && layer[a]>L) layer[a]=L;
++      }
++      std::vector<float> alpha(nf,0.f);
++      for(Index f=0;f<mesh.n_internal_faces;++f) {
++        const auto a=host.owner[f],c=host.neighbour[f];const int lmin=std::min(layer[a],layer[c]);
++        float x=1;
++        if(mode=="nowall1") x=lmin<=1?0.f:1.f;
++        else if(mode=="nowall2") x=lmin<=2?0.f:1.f;
++        else if(mode=="nowallface") x=(layer[a]==1 && layer[c]==1)?1.f:(lmin<=1?0.f:1.f);
++        else if(mode=="noboundary") x=(any_boundary[a] || any_boundary[c])?0.f:1.f;
++        else if(mode=="half") x=.5f;
++        else KUTTA_REQUIRE(mode=="side","unknown KUTTA_EXP_FACE");
++        alpha[f]=x;
++      }
++      exp_alpha=dev.upload<float>(alpha);
++      if(const char* pe=std::getenv("KUTTA_EXP_PECLET")) {exp_peclet=std::atoi(pe);exp_mask=dev.upload<float>(alpha);exp_out=dev.alloc<float>(n);}
++      exp_unlimited=std::getenv("KUTTA_EXP_UNLIM")!=nullptr;exp_quad=std::getenv("KUTTA_EXP_QUAD")!=nullptr;
++      for(auto& g:exp_grad) g=vector_field(dev,n);
++      if(exp_quad) {
++        std::vector<Index> nbv[2]{std::vector<Index>(n,-1),std::vector<Index>(n,-1)},bfv[2]{std::vector<Index>(n,0),std::vector<Index>(n,0)};
++        std::vector<Vec3d> nv[2]{std::vector<Vec3d>(n),std::vector<Vec3d>(n)};std::vector<float> dv[2]{std::vector<float>(n,1),std::vector<float>(n,1)},Dv[2]{std::vector<float>(n,1),std::vector<float>(n,1)};
++        const auto cn=build_cell_neighbours(host);
++        for(Index b=0;b<nb;++b) if(kinds[b]==0) {
++          const auto f=b+mesh.n_internal_faces;const auto c=host.owner[f];
++          const int slot=nbv[0][c]<0?0:(nbv[1][c]<0?1:-1);if(slot<0) continue;
++          const auto a=geom.face_area[f];const auto un=a/norm(a); // outward from c
++          const double dl=dot(geom.face_centroid[f]-geom.cell_centroid[c],un);
++          Index best=-1;double score=-2,span=0;
++          for(Index j=cn.offsets[c];j<cn.offsets[c+1];++j) {
++            const auto m=cn.cells[j];const auto r=geom.cell_centroid[m]-geom.cell_centroid[c];
++            const double cosv=-dot(r,un)/norm(r);if(cosv>score) {score=cosv;best=m;span=-dot(r,un);}
++          }
++          if(best<0 || score<.7) continue;
++          nbv[slot][c]=best;bfv[slot][c]=b;nv[slot][c]=un;dv[slot][c]=float(dl);Dv[slot][c]=float(span);
++        }
++        for(int s=0;s<2;++s) {exp_nb[s]=dev.upload<Index>(nbv[s]);exp_bf[s]=dev.upload<Index>(bfv[s]);exp_n[s]=vector_field(dev,n);upload_vectors(dev,exp_n[s],nv[s]);
++          exp_delta[s]=dev.upload<float>(dv[s]);exp_span[s]=dev.upload<float>(Dv[s]);}
++      }
++      std::cerr<<"EXP face mode="<<mode<<" keep_projected="<<exp_keep_projected<<"\n";
++    }
+     upload_vectors(dev,prescribed_velocity,velocities);
+     memory::phase("fields");
+     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
+@@ -695,7 +752,7 @@ struct SteadySolver::Impl {
+   }
+   // The momentum limiter of component k sees the pair (fv_paired_limiter).
+   TransportSettings with_low(TransportSettings t,int k) const {
+-    t.limiter_epsilon2=limiter_epsilon2[k];
++    t.limiter_epsilon2=std::getenv("KUTTA_EXP_FLUXDIFF")?-1.f:limiter_epsilon2[k];
+     const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
+     if(paired) t.limiter_low=lo[k];
+     return t;
+@@ -734,6 +791,7 @@ struct SteadySolver::Impl {
+   // interval does not change the path.
+   void set_limiter_thresholds(const double (&range)[3]) {
+     for(int k=0;k<3;++k) limiter_epsilon2[k]=float(std::pow(settings.limiter_coefficient*range[k],2));
++    if(std::getenv("KUTTA_EXP_BJEPS")) for(int k=0;k<3;++k) limiter_epsilon2[k]=-2.f-limiter_epsilon2[k];
+   }
+   void refresh_limiter_thresholds() {
+     const Buffer<float>* fields[]{&velocity.x,&velocity.y,&velocity.z};
+@@ -794,11 +852,30 @@ struct SteadySolver::Impl {
+       velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+       face_velocity_weights(),boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
+       face_velocity.x,face_velocity.y,face_velocity.z,mesh.n_internal_faces);
+-    if(velocity_faces) {
++    if(velocity_faces && (!exp_side || exp_keep_projected)) {
+       velocity_faces->momentum_values(velocity.x,boundary_velocity.x,face_velocity_weights(),face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
+       velocity_faces->momentum_values(velocity.y,boundary_velocity.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
+       velocity_faces->momentum_values(velocity.z,boundary_velocity.z,face_velocity_weights(),face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
+     }
++    if(exp_side && exp_peclet) {
++      kern::fv_exp_outflow(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,exp_out);
++      kern::fv_exp_peclet_alpha(dev,mesh.n_internal_faces,mesh.owner,mesh.neighbour,exp_out,physical_diagonal,exp_mask,exp_alpha,exp_peclet);
++    }
++    if(exp_side) {
++      const Buffer<float>* qq[]{&velocity.x,&velocity.y,&velocity.z};const Buffer<float>* bb[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
++      for(int k=0;k<3;++k) {
++        const auto& src=exp_unlimited?momentum[k]->grad:limited_gradient[k];
++        dev.copy(exp_grad[k].x,src.x);dev.copy(exp_grad[k].y,src.y);dev.copy(exp_grad[k].z,src.z);
++        if(exp_quad) for(int s=0;s<2;++s) kern::fv_exp_wall_gradient(dev,mesh.n_cells,exp_nb[s],exp_bf[s],exp_n[s].x,exp_n[s].y,exp_n[s].z,
++          exp_delta[s],exp_span[s],*qq[k],*bb[k],exp_grad[k].x,exp_grad[k].y,exp_grad[k].z);
++      }
++    }
++    const auto& eu=exp_grad[0];const auto& ev=exp_grad[1];const auto& ew=exp_grad[2];
++    if(exp_side) kern::fv_exp_side_blend(dev,mesh.n_internal_faces,mesh.owner,mesh.neighbour,
++      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
++      mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
++      velocity.x,velocity.y,velocity.z,eu.x,eu.y,eu.z,ev.x,ev.y,ev.z,ew.x,ew.y,ew.z,
++      face_velocity_weights(),exp_alpha,face_velocity.x,face_velocity.y,face_velocity.z);
+     kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
+       mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,
+       physical_diagonal,consistent_inverse,face_velocity.x,face_velocity.y,face_velocity.z,
+diff --git a/src/kutta/kernels/fv_flow.kern.h b/src/kutta/kernels/fv_flow.kern.h
+index b279057..6ac9e04 100644
+--- a/src/kutta/kernels/fv_flow.kern.h
++++ b/src/kutta/kernels/fv_flow.kern.h
+@@ -239,3 +239,47 @@ KUTTA_KERNEL void fv_fluent_momentum_scale(int i,KIn(float) ax,KIn(float) ay,KIn
+   float time=dt>0.0f?rho*volume[i]/dt:0.0f;
+   x[i]=2.0f*(ax[i]+time)*speed[i];y[i]=2.0f*(ay[i]+time)*speed[i];z[i]=2.0f*(az[i]+time)*speed[i];
+ }
++
++// EXPERIMENT: face += alpha*(side - face), side = a_P-weighted mean of the
++// two limited side reconstructions.
++KUTTA_KERNEL void fv_exp_side_blend(int i,KIn(int) owner,KIn(int) neighbour,
++    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
++    KIn(float) u,KIn(float) v,KIn(float) w,
++    KIn(float) ux,KIn(float) uy,KIn(float) uz,KIn(float) vx,KIn(float) vy,KIn(float) vz,
++    KIn(float) wx,KIn(float) wy,KIn(float) wz,KIn(float) diagonal,KIn(float) alpha,
++    KOut(float) fu,KOut(float) fv,KOut(float) fw) {
++  float a=alpha[i];if(a==0.0f) return;
++  int p=owner[i],n=neighbour[i];float weight=diagonal[p]/(diagonal[p]+diagonal[n]);
++  float su=weight*(u[p]+ux[p]*px[i]+uy[p]*py[i]+uz[p]*pz[i])+(1.0f-weight)*(u[n]+ux[n]*nx[i]+uy[n]*ny[i]+uz[n]*nz[i]);
++  float sv=weight*(v[p]+vx[p]*px[i]+vy[p]*py[i]+vz[p]*pz[i])+(1.0f-weight)*(v[n]+vx[n]*nx[i]+vy[n]*ny[i]+vz[n]*nz[i]);
++  float sw=weight*(w[p]+wx[p]*px[i]+wy[p]*py[i]+wz[p]*pz[i])+(1.0f-weight)*(w[n]+wx[n]*nx[i]+wy[n]*ny[i]+wz[n]*nz[i]);
++  fu[i]+=a*(su-fu[i]);fv[i]+=a*(sv-fv[i]);fw[i]+=a*(sw-fw[i]);
++}
++
++// EXPERIMENT: replace the wall-normal component of a wall cell's gradient by
++// the quadratic through the wall value, the cell and its opposite neighbour.
++KUTTA_KERNEL void fv_exp_wall_gradient(int i,KIn(int) nb,KIn(int) bf,KIn(float) nx,KIn(float) ny,KIn(float) nz,
++    KIn(float) delta,KIn(float) span,KIn(float) cell,KIn(float) boundary,
++    KOut(float) gx,KOut(float) gy,KOut(float) gz) {
++  int m=nb[i];if(m<0) return;
++  float d=delta[i],D=span[i],uc=cell[i];
++  float gs=((cell[m]-uc)*d*d-(boundary[bf[i]]-uc)*D*D)/(d*D*(d+D));
++  float cur=-(gx[i]*nx[i]+gy[i]*ny[i]+gz[i]*nz[i]);
++  float c=gs-cur;
++  gx[i]-=c*nx[i];gy[i]-=c*ny[i];gz[i]-=c*nz[i];
++}
++
++// EXPERIMENT: per-cell convective outflow sum(max(F_out,0)).
++KUTTA_KERNEL void fv_exp_outflow(int i,KIn(int) offsets,KIn(int) faces,KIn(float) sign,KIn(float) flux,KOut(float) out) {
++  float s=0.0f;
++  for(int j=offsets[i];j<offsets[i+1];++j) s+=kmax(0.0f,sign[j]*flux[faces[j]]);
++  out[i]=s;
++}
++// EXPERIMENT: mode 1 = (outP+outN)/(aP+aN); 2 = (outP/aP)(outN/aN); times the static mask.
++KUTTA_KERNEL void fv_exp_peclet_alpha(int i,KIn(int) owner,KIn(int) neighbour,KIn(float) out,KIn(float) diagonal,
++    KIn(float) mask,KOut(float) alpha,int mode) {
++  int p=owner[i],n=neighbour[i];
++  float ap=kmax(diagonal[p],1.0e-30f),an=kmax(diagonal[n],1.0e-30f);
++  float a=mode==1?(out[p]+out[n])/(ap+an):(out[p]/ap)*(out[n]/an);
++  alpha[i]=mask[i]*kmax(0.0f,kmin(1.0f,a));
++}
+diff --git a/src/kutta/kernels/fv_gradient.kern.h b/src/kutta/kernels/fv_gradient.kern.h
+index 59167f3..a4ae827 100644
+--- a/src/kutta/kernels/fv_gradient.kern.h
++++ b/src/kutta/kernels/fv_gradient.kern.h
+@@ -29,6 +29,7 @@ KUTTA_KERNEL void fv_gradient(int i, KIn(int) offsets, KIn(int) adjacent,
+ // limiter, Theory Guide 23.3.4.3): increments small against sqrt(eps2) pass
+ // unlimited, so cells near a flat extremum stop switching between 0 and 1.
+ KUTTA_FN float klimit_face(float d,float delta,float eps2) {
++  if(eps2<=-2.0f) {float e=ksqrt(-eps2-2.0f);return (delta+(d>0.0f?e:-e))/d;} // EXPERIMENT: BJ with an epsilon floor
+   if(eps2<0.0f) return delta/d;
+   float a=delta*delta+eps2,b=d*delta;
+   return (a+2.0f*b)/(a+2.0f*d*d+b);

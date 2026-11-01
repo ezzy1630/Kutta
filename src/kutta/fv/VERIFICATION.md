@@ -2799,3 +2799,31 @@ selects it with `methods/limiter`. It removes the Coupled external-aero
 continuity plateau (wing, Ahmed 35 L1, all 7 FSAE 2D sweep cases). It also
 changes the fixed point, by up to 11% in Ahmed lift. No acceptance threshold
 or model constant was changed.
+
+## Péclet-weighted side face velocity and the V6 limiter (2026-11-01)
+
+The [face-velocity report](../../../validation/results/fluent_face_velocity/REPORT.md)
+records the V2, V6 and Fluent-reference measurements, the face-by-face
+wall-shear split and the corpus rpvar scan. The default is unchanged.
+
+The side reconstruction's V2 order loss is confined to the hex wall layers
+in the viscous limit. On tets it passes the velocity-order gate that main
+fails. A quadratic wall-normal gradient in wall cells does not restore hex
+order, and switching formulas by wall layer makes it worse. Weighting the
+side correction by the cells' advective share of the momentum diagonal,
+`point + beta (side - point)` with `beta = (outP+outN)/(aP+aN)`, passes every
+hex gate (pressure order 1.881 against main's 1.821) and stays within 0.004
+of main on tets: beta is O(cell Reynolds number), so the correction is O(h^3).
+
+With Barth-Jespersen this face velocity stalls V6 under Coupled and fails
+the wall-inlet shear gate. With Fluent's differentiable limiter on momentum
+it converges in 150 iterations at velocity 1.39%, pressure 0.94%, k 8.40%,
+omega 2.34% and pressure drop 0.105%. That passes the drop and both
+wall-total gates, which fail on main. Face by face it halves every wall
+error; main's 0.12% wall-inlet shear is a cancellation of -2% to +4.5%
+band errors. It is not the default, because it moves every k-epsilon elbow
+field and the cylinder's drop away from Fluent (all inside their gates).
+`pressure/ho-rc-scheme` is 2 in V6 and 1 in the k-epsilon elbow and the SST
+nozzle. It is undocumented, and it is the only case setting found that
+could select the face velocity. No acceptance threshold or model constant
+was changed.
