@@ -21,6 +21,7 @@ class InteriorJumps {
  public:
   InteriorJumps(Device& dev,const PolyMesh& mesh,const MeshGeometry& geometry,
                 std::span<const InteriorCondition> conditions,double density,double viscosity);
+  bool active() const {return active_;}
   void update(const Buffer<float>& mass);
   void gradient(const DeviceMesh& mesh,const BoundaryLeastSquares& lsq,DeviceVec3& gradient) const;
   void momentum(const DeviceMesh& mesh,DeviceVec3& source) const;

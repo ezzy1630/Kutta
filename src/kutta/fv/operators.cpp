@@ -265,9 +265,13 @@ void gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
 }
 void limit_gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
                     const Buffer<float>& cell, const Buffer<float>& boundary,
-                    const DeviceVec3& g, Buffer<float>& limiter) {
-  KUTTA_REQUIRE(limiter.size()==cell.size(),"FV limiter size mismatch");
-  kern::fv_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,s.face_delta.z,
+                    const DeviceVec3& g, Buffer<float>& limiter,
+                    const Buffer<float>* low, const Buffer<Index>* boundary_kind) {
+  KUTTA_REQUIRE(limiter.size()==cell.size() && (!low || (low->size()==cell.size() && boundary_kind &&
+    boundary_kind->size()==boundary.size())),"FV limiter size mismatch");
+  if(low) kern::fv_paired_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,
+    s.face_delta.z,cell,*low,boundary,*boundary_kind,g.x,g.y,g.z,limiter);
+  else kern::fv_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,s.face_delta.z,
     cell,boundary,g.x,g.y,g.z,limiter);
 }
 

@@ -127,6 +127,13 @@ struct SteadySolver::Impl {
   DeviceVec3 grad_correction;
   Buffer<float> residual_u,residual_v,residual_w,continuity,provisional_continuity,scale,speed;
   DeviceVec3 absolute_residual,fluent_scale;
+  // SolverSettings::paired_state: the low words of velocity and pressure, the
+  // linearized flux of those low words, and their scratch. Allocated only
+  // when paired.
+  bool paired=false;
+  DeviceVec3 velocity_lo,pressure_gradient_lo;
+  Buffer<float> pressure_lo,mass_lo,previous_mass,pressure_boundary_lo,imbalance,momentum_delta;
+  double paired_pressure_magnitude=0; // max |p| at the last monitor
   IterationReport report;
   std::map<std::string,BoundaryCondition> boundaries;
   // BEGIN FSAE physics: isolated volume sources and open-boundary overrides.
@@ -199,6 +206,12 @@ struct SteadySolver::Impl {
     residual_u=dev.alloc<float>(n);residual_v=dev.alloc<float>(n);residual_w=dev.alloc<float>(n);
     continuity=dev.alloc<float>(n);provisional_continuity=dev.alloc<float>(n);dev.fill(provisional_continuity,0);scale=dev.alloc<float>(n);speed=dev.alloc<float>(n);
     wall_diagonal=dev.alloc<float>(n);wall_rhs=dev.alloc<float>(n);
+    paired=settings.paired_state && settings.coupling!=PressureVelocityCoupling::Coupled && !interior_jumps->active();
+    if(paired) {
+      velocity_lo=vector_field(dev,n);pressure_gradient_lo=vector_field(dev,n);
+      pressure_lo=dev.alloc<float>(n);mass_lo=dev.alloc<float>(nf);previous_mass=dev.alloc<float>(nf);pressure_boundary_lo=dev.alloc<float>(nb);
+      imbalance=dev.alloc<float>(n);momentum_delta=dev.alloc<float>(n);reset_paired();
+    }
     total_pressure=dev.alloc<Index>(nb);
     std::vector<Index> totals(nb,0);
     physical_diagonal=dev.alloc<float>(n);consistent_inverse=dev.alloc<float>(n);
@@ -654,13 +667,58 @@ struct SteadySolver::Impl {
     auto& eq=*momentum[component];
     kern::fv_simple_inverse(dev,mesh.n_cells,eq.matrix.diag,eq.matrix.val,eq.consistent_inverse);
   }
+  // kpair_add's slack: one ulp of the scales hi feeds, taken from the last
+  // monitor so it holds still between monitors. 16 ulps froze hi sooner but
+  // slowed the middle of the run, while hi still has to move.
+  struct PairedSlack {float velocity,pressure,flux_per_area;};
+  PairedSlack paired_slack() const {
+    const double ulps=double(std::numeric_limits<float>::epsilon());
+    const double speed=std::max(bc_speed,report.maximum_velocity);
+    const double pressure=std::max(settings.density*speed*speed,paired_pressure_magnitude);
+    return {float(ulps*speed),float(ulps*pressure),float(ulps*settings.density*speed)};
+  }
+  // The momentum limiter of component k sees the pair (fv_paired_limiter).
+  TransportSettings with_low(TransportSettings t,int k) const {
+    const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
+    if(paired) t.limiter_low=lo[k];
+    return t;
+  }
+  // Every initialization writes hi alone.
+  void reset_paired() {
+    if(!paired) return;
+    for(auto* b:{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z,&pressure_gradient_lo.x,&pressure_gradient_lo.y,
+        &pressure_gradient_lo.z,&pressure_lo,&mass_lo}) dev.fill(*b,0);
+  }
+  // grad(p_lo), with the pressure correction's boundary rows: p_lo is zero
+  // where hi is prescribed and has a zero normal derivative elsewhere.
+  void update_pressure_gradient_lo() {
+    auto& g=pressure_gradient_lo;dev.fill(g.x,0);dev.fill(g.y,0);dev.fill(g.z,0);
+    kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure_lo,g.x,g.y,g.z,
+      correction_boundary,pressure_boundary_lo,mesh.n_internal_faces);
+    reconstruct_pressure(pressure_lo,pressure_boundary_lo,g);
+  }
+  // Momentum residual of the pair for the assembled component k.
+  void paired_momentum_residual(int k,Buffer<float>& r) {
+    auto& eq=*momentum[k];const auto& m=eq.matrix;
+    const Buffer<float>* hi[]{&velocity.x,&velocity.y,&velocity.z};
+    const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
+    const Buffer<float>* g[]{&pressure_gradient_lo.x,&pressure_gradient_lo.y,&pressure_gradient_lo.z};
+    kern::fv_paired_momentum_residual(dev,mesh.n_cells,m.row_ptr,m.col,m.val,m.diag,eq.diagonal,
+      *hi[k],*lo[k],*g[k],mesh.volume,eq.rhs,r);
+  }
   void update_flux() {
+    if(paired) dev.copy(previous_mass,mass);
     reconstruct_velocity();
     const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
     const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+    const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
     for(int k=0;k<3;++k) {
       auto& eq=*momentum[k];auto& g=limited_gradient[k];
-      if(settings.limit) kern::fv_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
+      if(settings.limit && paired) kern::fv_paired_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
+        stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*lo[k],*bc[k],scalar_kind,
+        eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
+      else if(settings.limit) kern::fv_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
         stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*bc[k],
         eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
       else {
@@ -689,6 +747,13 @@ struct SteadySolver::Impl {
     zone_physics->relative_flux(boundary_kind,mesh.n_internal_faces, mass);
     interior_jumps->flux(mesh,stencil,physical_diagonal,mass,coefficient);
     // END FSAE physics
+    if(paired) kern::fv_paired_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
+      mesh.area.x,mesh.area.y,mesh.area.z,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+      mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+      face_velocity_weights(),physical_diagonal,mesh.volume,stencil.diffusion,
+      velocity_lo.x,velocity_lo.y,velocity_lo.z,pressure_lo,
+      pressure_gradient_lo.x,pressure_gradient_lo.y,pressure_gradient_lo.z,previous_mass,mass,mass_lo,
+      mesh.n_internal_faces,float(settings.density),paired_slack().flux_per_area);
   }
 
   // Coupled has no implicit momentum relaxation: its relaxation is explicit.
@@ -750,20 +815,31 @@ struct SteadySolver::Impl {
     Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
     const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
     const Buffer<float>* src[]{&source.x,&source.y,&source.z};
+    Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
     for(int k=0;k<3;++k) {
-      momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport,wall_terms(k));
+      momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],with_low(transport,k),wall_terms(k));
       momentum_correction_coefficient(k);
-      report.momentum[k]=momentum[k]->solve(*q[k],settings.momentum_linear);
+      if(!paired) {report.momentum[k]=momentum[k]->solve(*q[k],settings.momentum_linear);continue;}
+      // Delta form: the same Krylov iterates, with the pair's residual.
+      paired_momentum_residual(k,residual_u);dev.copy(momentum[k]->rhs,residual_u);dev.fill(momentum_delta,0);
+      report.momentum[k]=momentum[k]->solve(momentum_delta,settings.momentum_linear);
+      kern::fv_paired_accumulate(dev,mesh.n_cells,momentum_delta,*q[k],*lo[k],paired_slack().velocity);
     }
     update_momentum_diagonal();
     update_boundaries();update_flux();
-    kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
+    if(paired) kern::fv_paired_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
+      mass,mass_lo,imbalance,provisional_continuity);
+    else kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
     kern::fv_pressure_assemble(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
       stencil.adjacent,stencil.matrix_entry,pressure_matrix->row_ptr,pressure_matrix->diag,coefficient,mass,
       pressure_matrix->val,pressure_rhs,reference);
+    if(paired) kern::fv_paired_pressure_rhs(dev,mesh.n_cells,imbalance,pressure_rhs,reference);
     pressure_solver->refresh(dev,*pressure_matrix);dev.fill(correction,0);
     report.pressure=pressure_solver->solve(dev,*pressure_matrix,correction,pressure_rhs,settings.pressure_linear);
-    kern::fv_correct_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,correction,coefficient,mass,mesh.n_internal_faces);
+    if(paired) kern::fv_paired_correct_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+      mesh.area.x,mesh.area.y,mesh.area.z,correction,coefficient,mass,mass_lo,mesh.n_internal_faces,
+      paired_slack().flux_per_area);
+    else kern::fv_correct_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,correction,coefficient,mass,mesh.n_internal_faces);
     // Pressure correction has homogeneous Neumann on fixed-velocity boundaries
     // and homogeneous Dirichlet at pressure outlets.
     dev.fill(grad_correction.x,0);dev.fill(grad_correction.y,0);dev.fill(grad_correction.z,0);
@@ -772,7 +848,13 @@ struct SteadySolver::Impl {
       grad_correction.x,grad_correction.y,grad_correction.z,correction_boundary,
       boundary_pressure,mesh.n_internal_faces);
     reconstruct_pressure(correction,boundary_pressure,grad_correction);
-    kern::fv_correct_velocity(dev,mesh.n_cells,mesh.volume,consistent_inverse,physical_diagonal,
+    if(paired) {
+      kern::fv_paired_correct_velocity(dev,mesh.n_cells,mesh.volume,consistent_inverse,physical_diagonal,
+        grad_correction.x,grad_correction.y,grad_correction.z,correction,
+        velocity.x,velocity.y,velocity.z,pressure,velocity_lo.x,velocity_lo.y,velocity_lo.z,pressure_lo,
+        float(settings.pressure_relaxation),paired_slack().velocity,paired_slack().pressure);
+      update_pressure_gradient_lo();
+    } else kern::fv_correct_velocity(dev,mesh.n_cells,mesh.volume,consistent_inverse,physical_diagonal,
       grad_correction.x,grad_correction.y,grad_correction.z,correction,
       velocity.x,velocity.y,velocity.z,pressure,float(settings.pressure_relaxation));
     solve_turbulence();
@@ -834,19 +916,21 @@ struct SteadySolver::Impl {
     const auto transport=momentum_transport();
     // The components share one CSR value buffer, so each residual must follow
     // its own assembly.
-    momentum[0]->assemble_reconstructed(velocity.x,boundary_velocity.x,scalar_kind,mass,viscosity,source.x,transport,wall_terms(0));
+    momentum[0]->assemble_reconstructed(velocity.x,boundary_velocity.x,scalar_kind,mass,viscosity,source.x,with_low(transport,0),wall_terms(0));
     momentum_correction_coefficient(0);
-    residual(dev,momentum[0]->matrix,velocity.x,momentum[0]->rhs,residual_u);
-    momentum[1]->assemble_reconstructed(velocity.y,boundary_velocity.y,scalar_kind,mass,viscosity,source.y,transport,wall_terms(1));
+    if(paired) paired_momentum_residual(0,residual_u);else residual(dev,momentum[0]->matrix,velocity.x,momentum[0]->rhs,residual_u);
+    momentum[1]->assemble_reconstructed(velocity.y,boundary_velocity.y,scalar_kind,mass,viscosity,source.y,with_low(transport,1),wall_terms(1));
     momentum_correction_coefficient(1);
-    residual(dev,momentum[1]->matrix,velocity.y,momentum[1]->rhs,residual_v);
-    momentum[2]->assemble_reconstructed(velocity.z,boundary_velocity.z,scalar_kind,mass,viscosity,source.z,transport,wall_terms(2));
+    if(paired) paired_momentum_residual(1,residual_v);else residual(dev,momentum[1]->matrix,velocity.y,momentum[1]->rhs,residual_v);
+    momentum[2]->assemble_reconstructed(velocity.z,boundary_velocity.z,scalar_kind,mass,viscosity,source.z,with_low(transport,2),wall_terms(2));
     momentum_correction_coefficient(2);
-    residual(dev,momentum[2]->matrix,velocity.z,momentum[2]->rhs,residual_w);
+    if(paired) paired_momentum_residual(2,residual_w);else residual(dev,momentum[2]->matrix,velocity.z,momentum[2]->rhs,residual_w);
     update_momentum_diagonal();
     kern::fv_monitor_cell(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
       mass,velocity.x,velocity.y,velocity.z,physical_diagonal,residual_u,residual_v,residual_w,
       continuity,scale,speed,absolute_residual.x,absolute_residual.y,absolute_residual.z);
+    if(paired) kern::fv_paired_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
+      mass,mass_lo,imbalance,continuity);
     kern::fv_fluent_momentum_scale(dev,mesh.n_cells,momentum[0]->diagonal,momentum[1]->diagonal,momentum[2]->diagonal,
       mesh.volume,speed,fluent_scale.x,fluent_scale.y,fluent_scale.z,float(settings.density),time_step);
     const double denominator=dev.sum(scale,mesh.n_cells);
@@ -866,6 +950,7 @@ struct SteadySolver::Impl {
     }
     report.continuity={raw,scaled(raw,continuity_scale),scaled(raw,continuity_scale),continuity_scale};
     report.maximum_velocity=dev.max_abs(speed,mesh.n_cells);
+    if(paired) paired_pressure_magnitude=dev.max_abs(pressure,mesh.n_cells);
     report.pseudo_time_step=time_step;
     monitor_turbulence();
     report.residual_iteration=report.iteration;
@@ -878,6 +963,7 @@ SteadySolver::SteadySolver(Device& dev,PolyMesh mesh,std::vector<PatchCondition>
 SteadySolver::~SteadySolver()=default;
 void SteadySolver::initialize(const std::function<Vec3d(Vec3d)>& velocity,const std::function<double(Vec3d)>& pressure) {
   auto& s=*impl_;KUTTA_REQUIRE(!s.sst,"FV SST initialization requires initialize_fields with k and omega");
+  s.reset_paired();
   std::vector<Vec3d> u;std::vector<float> p;
   const double ref=s.reference>=0?pressure(s.geom.cell_centroid[s.reference]):0;
   for(auto x:s.geom.cell_centroid) {u.push_back(velocity(x));const double value=pressure(x)-ref;
@@ -891,6 +977,7 @@ void SteadySolver::initialize(const std::function<Vec3d(Vec3d)>& velocity,const 
 void SteadySolver::initialize_fields(std::span<const Vec3d> velocity,std::span<const double> pressure,
     std::span<const double> k,std::span<const double> omega,std::span<const double> intermittency) {
   auto& s=*impl_;const auto n=std::size_t(s.mesh.n_cells);
+  s.reset_paired();
   KUTTA_REQUIRE(intermittency.empty() || s.transition,"FV intermittency initialization requires the transition model");
   if(!intermittency.empty()) s.transition->initialize(intermittency,s.permutation);
   KUTTA_REQUIRE(velocity.size()==n && pressure.size()==n,"FV initialization field size mismatch");
@@ -923,6 +1010,7 @@ void SteadySolver::initialize_fields(std::span<const Vec3d> velocity,std::span<c
 void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
   KUTTA_REQUIRE(!impl_->sa,"SA: hybrid turbulence initialization is not implemented");
   auto& s=*impl_;auto& dev=s.dev;
+  s.reset_paired();
   KUTTA_REQUIRE(h.iterations>0,"FV hybrid initialization needs positive iteration count");
   const auto n=s.mesh.n_cells,nb=s.mesh.n_boundary_faces();
   const auto volume=std::accumulate(s.geom.cell_volume.begin(),s.geom.cell_volume.end(),0.);

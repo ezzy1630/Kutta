@@ -15,6 +15,8 @@ struct TransportSettings {
   float density=1;
   float pseudo_time_step=0;  // zero disables pseudo time
   float relaxation=1;
+  // The low words of a float-pair field (fv_paired_limiter); null for float.
+  const Buffer<float>* limiter_low=nullptr;
   SolveControl linear{1e-4,1e-12,200};
 };
 

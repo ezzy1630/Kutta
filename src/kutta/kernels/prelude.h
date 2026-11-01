@@ -99,6 +99,33 @@ KUTTA_FN kupper_sum kupper_add(kupper_sum a, float b) {
 }
 KUTTA_FN float kupper_value(kupper_sum a) { return kadd_up(a.sum, a.error); }
 
+// A value carried as the unevaluated float pair hi + lo, about 48 bits.
+struct kpair { float hi, lo; };
+// Knuth's TwoSum: a + b == s.hi + s.lo exactly, for any finite a and b.
+KUTTA_FN kpair ktwo_sum(float a, float b) {
+  float sum = a + b;
+  float part = sum - a;
+  kpair s = {sum, (a - (sum - part)) + (b - part)};
+  return s;
+}
+// Adds d to the pair. hi moves only once lo exceeds slack, one ulp of the
+// scale of what hi feeds (a cell value alone is not that scale: a tiny
+// flux or velocity component still re-rounds the sums it enters). Near
+// convergence every float quantity derived from hi (coefficients, fluxes,
+// gradients) is then fixed, so lo converges against a fixed operator. A
+// rounding-to-nearest hi keeps flipping at rounding midpoints, and each
+// flip kicks the solution by about one ulp
+// (validation/results/paired_state/REPORT.md).
+KUTTA_FN kpair kpair_add(float hi, float lo, float d, float slack) {
+  float low = lo + d;
+  if (kabs(low) <= slack) {
+    kpair kept = {hi, low};
+    return kept;
+  }
+  kpair s = ktwo_sum(hi, d);
+  return ktwo_sum(s.hi, s.lo + lo);
+}
+
 struct kvec3 {
   float x, y, z;
 };

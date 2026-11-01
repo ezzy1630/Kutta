@@ -1,5 +1,7 @@
 # Continuity residual floor: diagnosis
 
+> **Superseded for SIMPLE and SIMPLEC.** Velocity, pressure and face mass flux are now stored as float pairs, and the cylinder reaches its 1e-5 criterion at iteration 1700. Its plateau is about 200× lower: 1.5e-6 to 1.9e-6 scaled. See [the float-pair state report](../paired_state/REPORT.md). The diagnosis below still describes float32 storage, which Coupled uses.
+
 Branch based on main `f545f26`. Apple M4 Pro, CPU reference backend and Metal. CUDA was not run; it compiles in CI only. The Fluent corpus is read from `KUTTA_FLUENT_EXAMPLES` and is not committed.
 
 ## Result

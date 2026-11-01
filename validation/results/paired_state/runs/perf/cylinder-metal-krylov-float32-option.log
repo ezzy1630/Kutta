@@ -1,0 +1,31 @@
+FLUENT_PRECISION cells field=SV_U values=25740 float32_exact=0
+FLUENT_PRECISION cells field=SV_V values=25740 float32_exact=0
+FLUENT_PRECISION cells field=SV_P values=25740 float32_exact=0
+FLUENT_RESIDUAL continuity iteration=1 raw=448.29427 scale=448.29427 scaled=1
+FLUENT_RESIDUAL continuity iteration=66 raw=0.0041779813 scale=448.29427 scaled=9.3197294e-06
+FLUENT_RESIDUAL x-velocity iteration=1 raw=88569.163 scale=13388133 scaled=0.0066154976
+FLUENT_RESIDUAL x-velocity iteration=66 raw=0.15089277 scale=12712404 scaled=1.1869728e-08
+KUTTA_INIT continuity_raw=0.02146729
+KUTTA_HISTORY iteration=1 continuity_raw=23.738229 scale=23.738229 scaled=1 corrected_f32=0.0588591 corrected_f64=0.05896694 sum_abs_flux=389384.19 x_velocity_raw=18642.828 x_velocity_scaled=0.0014016792 max_velocity_change=44.298046 max_pressure_change=1662.9517 u_krylov=4 p_krylov=27
+KUTTA_HISTORY iteration=2 continuity_raw=26.010898 scale=26.010898 scaled=1 corrected_f32=0.076631959 corrected_f64=0.07676525 sum_abs_flux=389254.83 x_velocity_raw=11535.242 x_velocity_scaled=0.00086899564 max_velocity_change=15.512962 max_pressure_change=531.59314 u_krylov=4 p_krylov=20
+KUTTA_HISTORY iteration=3 continuity_raw=21.065367 scale=26.010898 scaled=0.80986696 corrected_f32=0.057423778 corrected_f64=0.057542968 sum_abs_flux=389145.43 x_velocity_raw=8746.2267 x_velocity_scaled=0.00065979343 max_velocity_change=9.6459122 max_pressure_change=195.28918 u_krylov=4 p_krylov=19
+KUTTA_HISTORY iteration=4 continuity_raw=16.073032 scale=26.010898 scaled=0.61793452 corrected_f32=0.039765346 corrected_f64=0.039952276 sum_abs_flux=389047.66 x_velocity_raw=7137.028 x_velocity_scaled=0.00053897792 max_velocity_change=6.7758904 max_pressure_change=125.17859 u_krylov=5 p_krylov=20
+KUTTA_HISTORY iteration=5 continuity_raw=11.771711 scale=26.010898 scaled=0.4525684 corrected_f32=0.026890985 corrected_f64=0.027082318 sum_abs_flux=388959.3 x_velocity_raw=6157.6043 x_velocity_scaled=0.000465428 max_velocity_change=5.2304688 max_pressure_change=110.18457 u_krylov=5 p_krylov=20
+KUTTA_HISTORY iteration=100 continuity_raw=1.5898047 scale=26.010898 scaled=0.061120715 corrected_f32=0.0062831504 corrected_f64=0.0066258828 sum_abs_flux=385043.1 x_velocity_raw=2007.9478 x_velocity_scaled=0.00015526142 max_velocity_change=7.6991744 max_pressure_change=124.70702 u_krylov=3 p_krylov=21
+KUTTA_HISTORY iteration=200 continuity_raw=1.2769909 scale=26.010898 scaled=0.049094456 corrected_f32=0.0061399159 corrected_f64=0.0064490226 sum_abs_flux=382325.11 x_velocity_raw=1022.9672 x_velocity_scaled=7.9850633e-05 max_velocity_change=3.317318 max_pressure_change=45.400635 u_krylov=6 p_krylov=19
+KUTTA_HISTORY iteration=300 continuity_raw=0.82630449 scale=26.010898 scaled=0.031767627 corrected_f32=0.0056475301 corrected_f64=0.0060040172 sum_abs_flux=380585.11 x_velocity_raw=468.6036 x_velocity_scaled=3.6794796e-05 max_velocity_change=1.2180653 max_pressure_change=11.833302 u_krylov=5 p_krylov=17
+KUTTA_HISTORY iteration=400 continuity_raw=0.28999555 scale=26.010898 scaled=0.011149002 corrected_f32=0.0051545949 corrected_f64=0.005530272 sum_abs_flux=379902.9 x_velocity_raw=130.13987 x_velocity_scaled=1.0243406e-05 max_velocity_change=0.31529617 max_pressure_change=2.0185986 u_krylov=5 p_krylov=17
+KUTTA_HISTORY iteration=500 continuity_raw=0.075633852 scale=26.010898 scaled=0.0029077755 corrected_f32=0.0050458781 corrected_f64=0.0054730823 sum_abs_flux=379740.56 x_velocity_raw=26.280221 x_velocity_scaled=2.0697929e-06 max_velocity_change=0.067230225 max_pressure_change=0.43603516 u_krylov=8 p_krylov=16
+KUTTA_HISTORY iteration=600 continuity_raw=0.021357743 scale=26.010898 scaled=0.00082110748 corrected_f32=0.0051111995 corrected_f64=0.005494159 sum_abs_flux=379713.15 x_velocity_raw=4.8465396 x_velocity_scaled=3.8174812e-07 max_velocity_change=0.010616302 max_pressure_change=0.091918945 u_krylov=31 p_krylov=17
+KUTTA_HISTORY iteration=700 continuity_raw=0.012442315 scale=26.010898 scaled=0.00047835008 corrected_f32=0.0050793991 corrected_f64=0.0054566102 sum_abs_flux=379710.7 x_velocity_raw=1.7922523 x_velocity_scaled=1.4117226e-07 max_velocity_change=0.002374649 max_pressure_change=0.032653809 u_krylov=50 p_krylov=18
+KUTTA_HISTORY iteration=800 continuity_raw=0.013635269 scale=26.010898 scaled=0.00052421371 corrected_f32=0.0050899869 corrected_f64=0.0054776165 sum_abs_flux=379710.92 x_velocity_raw=1.2806159 x_velocity_scaled=1.008716e-07 max_velocity_change=0.0019855499 max_pressure_change=0.014953613 u_krylov=69 p_krylov=21
+KUTTA_HISTORY iteration=900 continuity_raw=0.012524653 scale=26.010898 scaled=0.00048151558 corrected_f32=0.0051554185 corrected_f64=0.0055050233 sum_abs_flux=379711.15 x_velocity_raw=1.0080483 x_velocity_scaled=7.9401937e-08 max_velocity_change=0.0015392303 max_pressure_change=0.0093841553 u_krylov=58 p_krylov=20
+KUTTA_HISTORY iteration=1000 continuity_raw=0.011906284 scale=26.010898 scaled=0.00045774212 corrected_f32=0.0050529999 corrected_f64=0.0054458244 sum_abs_flux=379711.21 x_velocity_raw=0.90099368 x_velocity_scaled=7.0969436e-08 max_velocity_change=0.00089645386 max_pressure_change=0.0073242188 u_krylov=86 p_krylov=21
+KUTTA_FLOOR area_closure_l1=0.00023596621 m^2 (rho*U*this bounds a uniform flow's imbalance)
+KUTTA_FLOOR perturbation_ulp=none continuity_raw=0.011185324 x_velocity_raw=1.0523448
+KUTTA_FLOOR perturbation_ulp=velocity continuity_raw=0.01515705 x_velocity_raw=1.7856211
+KUTTA_FLOOR perturbation_ulp=pressure continuity_raw=0.01129599 x_velocity_raw=1.0522438
+KUTTA_FLOOR perturbation_ulp=both continuity_raw=0.014921647 x_velocity_raw=1.750337
+KUTTA_FLOOR perturbation_ulp=both continuity_raw=0.015065471 x_velocity_raw=1.7751824
+KUTTA_FLOOR perturbation_ulp=both continuity_raw=0.015117901 x_velocity_raw=1.7736093
+KUTTA_FINAL iteration=1000 continuity_raw=0.011906284 scale=26.010898 scaled=0.00045774212 raw_over_eps_sum_abs_flux=0.2630345 scale_over_sum_abs_flux=6.8501791e-05

@@ -1,0 +1,30 @@
+--- a/src/kutta/fv/steady_solver.cpp	2026-10-31 18:35:06
++++ b/src/kutta/fv/steady_solver.cpp	2026-10-31 19:32:11
+@@ -1,3 +1,4 @@
++#include <cstdlib>
+ #include "kutta/fv/steady_solver.hpp"
+ #include "kutta/fv/turbulence/sa_transport.hpp"
+ #include "kutta/fv/turbulence/realizable_ke_transport.hpp"
+@@ -1012,7 +1013,7 @@
+     auto bk=dev.upload<Index>(kinds);auto bv=dev.upload<float>(values),bd=dev.upload<float>(deltas),rhs=dev.upload<float>(sources);
+     std::vector<BoundaryObservation> observations(nb);
+     for(Index b=0;b<nb;++b) observations[b]=kinds[b]==0?BoundaryObservation::FaceValue:BoundaryObservation::NormalFootValue;
+-    const auto lsq=boundary_least_squares(dev,s.host,s.geom,observations);
++    const auto lsq=std::getenv("KUTTA_HYBRID_GG")?green_gauss_cell(dev,s.host,s.geom):boundary_least_squares(dev,s.host,s.geom,observations);
+     TransportSettings t;t.convection=ConvectionScheme::FirstOrderUpwind;t.limit=false;t.relaxation=float(h.implicit_relaxation[scalar]);
+     for(int i=0;i<h.iterations && h.solve[scalar];++i) {
+       dev.copy(old,field);
+--- a/bench/bench_residual_floor.cpp	2026-10-31 18:35:06
++++ b/bench/bench_residual_floor.cpp	2026-10-31 19:34:05
+@@ -69,7 +69,10 @@
+     fv::SteadySolver solver(*dev,mesh,problem.boundaries,settings);
+     setup::initialize(solver,setup::initial_fields(c,mesh));
+     const auto& m=solver.mesh();const auto n=std::size_t(m.n_cells);
+-    std::cout<<"KUTTA_INIT continuity_raw="<<solver.monitor().continuity.raw<<'\n';
++    {const auto r0=solver.monitor();std::cout<<"KUTTA_INIT continuity_raw="<<r0.continuity.raw<<" x_velocity_raw="<<r0.u.raw<<" y_velocity_raw="<<r0.v.raw<<" x_fluent_norm="<<r0.u.fluent_normalization<<'\n';}
++    if(!std::getenv("KUTTA_NO_PROBE")) {const auto x0=download(*dev,solver,settings);double umax=0;for(std::size_t i=0;i<x0.u.size();++i) umax=std::max(umax,std::hypot(double(x0.u[i]),double(x0.v[i])));
++     const auto re=evaluate(solver,settings,x0);std::cout<<"KUTTA_INIT_RC rhie_chow_imbalance="<<re.continuity.raw<<" x_velocity_raw="<<re.u.raw<<" max_speed="<<umax<<'\n';
++     setup::initialize(solver,setup::initial_fields(c,mesh));}
+     State previous=download(*dev,solver,settings);
+     double flux_sum=0;
+     // The monitor's own schedule: iterations 1-5 and every monitor interval.

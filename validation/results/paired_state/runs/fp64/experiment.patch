@@ -1,0 +1,219 @@
+diff --git a/src/kutta/fv/steady_solver.cpp b/src/kutta/fv/steady_solver.cpp
+index ec56aed..cae708d 100644
+--- a/src/kutta/fv/steady_solver.cpp
++++ b/src/kutta/fv/steady_solver.cpp
+@@ -1,3 +1,5 @@
++#include <cstring>
++#include <cstdlib>
+ #include "kutta/fv/steady_solver.hpp"
+ #include "kutta/fv/turbulence/sa_transport.hpp"
+ #include "kutta/fv/turbulence/realizable_ke_transport.hpp"
+@@ -675,6 +677,7 @@ struct SteadySolver::Impl {
+       velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+       face_velocity_weights(),boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
+       face_velocity.x,face_velocity.y,face_velocity.z,mesh.n_internal_faces);
++    if(exp_has("face")) {exp_round(face_velocity.x);exp_round(face_velocity.y);exp_round(face_velocity.z);}
+     if(velocity_faces) {
+       velocity_faces->momentum_values(velocity.x,boundary_velocity.x,face_velocity_weights(),face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
+       velocity_faces->momentum_values(velocity.y,boundary_velocity.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
+@@ -734,6 +737,11 @@ struct SteadySolver::Impl {
+     if(report.iteration<=5 || report.iteration%settings.monitor_interval==0) monitor();
+   }
+ 
++  // EXPERIMENT (not for commit): round chosen states to float in an fp64 CPU build.
++  bool exp_has(const char* name) const {
++    const char* e=std::getenv("KUTTA_EXP_ROUND");return e && std::strstr(e,name);
++  }
++  void exp_round(Buffer<float>& b) {auto h=dev.download(b);dev.upload(b,std::span<const float>(h));}
+   void step() {
+     if(coupled) {coupled_step();return;}
+     refresh_time_step();
+@@ -753,17 +761,23 @@ struct SteadySolver::Impl {
+     for(int k=0;k<3;++k) {
+       momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport,wall_terms(k));
+       momentum_correction_coefficient(k);
++      if(exp_has("matrix") || exp_has("val")) exp_round(momentum[k]->matrix.val);
++      if(exp_has("matrix") || exp_has("rhs")) exp_round(momentum[k]->rhs);
+       report.momentum[k]=momentum[k]->solve(*q[k],settings.momentum_linear);
++      if(exp_has("velocity")) exp_round(*q[k]);
+     }
+     update_momentum_diagonal();
+     update_boundaries();update_flux();
++    if(exp_has("flux")) exp_round(mass);
+     kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
+     kern::fv_pressure_assemble(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
+       stencil.adjacent,stencil.matrix_entry,pressure_matrix->row_ptr,pressure_matrix->diag,coefficient,mass,
+       pressure_matrix->val,pressure_rhs,reference);
+     pressure_solver->refresh(dev,*pressure_matrix);dev.fill(correction,0);
+     report.pressure=pressure_solver->solve(dev,*pressure_matrix,correction,pressure_rhs,settings.pressure_linear);
++    if(exp_has("correction")) exp_round(correction);
+     kern::fv_correct_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,correction,coefficient,mass,mesh.n_internal_faces);
++    if(exp_has("flux")) exp_round(mass);
+     // Pressure correction has homogeneous Neumann on fixed-velocity boundaries
+     // and homogeneous Dirichlet at pressure outlets.
+     dev.fill(grad_correction.x,0);dev.fill(grad_correction.y,0);dev.fill(grad_correction.z,0);
+@@ -775,6 +789,8 @@ struct SteadySolver::Impl {
+     kern::fv_correct_velocity(dev,mesh.n_cells,mesh.volume,consistent_inverse,physical_diagonal,
+       grad_correction.x,grad_correction.y,grad_correction.z,correction,
+       velocity.x,velocity.y,velocity.z,pressure,float(settings.pressure_relaxation));
++    if(exp_has("velocity")) {exp_round(velocity.x);exp_round(velocity.y);exp_round(velocity.z);}
++    if(exp_has("pressure")) exp_round(pressure);
+     solve_turbulence();
+     ++report.iteration;
+     if(report.iteration<=5 || report.iteration%settings.monitor_interval==0) monitor();
+diff --git a/src/kutta/runtime/cpu/cpu_device.cpp b/src/kutta/runtime/cpu/cpu_device.cpp
+index 031e670..a586a92 100644
+--- a/src/kutta/runtime/cpu/cpu_device.cpp
++++ b/src/kutta/runtime/cpu/cpu_device.cpp
+@@ -25,8 +25,13 @@ class CpuBuffer final : public BufferHandle {
+ };
+ 
+ CpuBuffer& cpu(BufferHandle& h) { return static_cast<CpuBuffer&>(h); }
+-const float* floats(const Buffer<float>& b) {
+-  return static_cast<const float*>(cpu(*b.handle()).data());
++#ifdef KUTTA_EXPERIMENT_CPU_FP64
++using real = double;
++#else
++using real = float;
++#endif
++const real* floats(const Buffer<float>& b) {
++  return static_cast<const real*>(cpu(*b.handle()).data());
+ }
+ 
+ class CpuDevice final : public Device {
+@@ -36,22 +41,22 @@ class CpuDevice final : public Device {
+ 
+   double sum(const Buffer<float>& x, std::size_t n) override {
+     KUTTA_REQUIRE(n <= x.size(), "sum: n out of range");
+-    const float* p = floats(x);
++    const real* p = floats(x);
+     double s = 0;
+     for (std::size_t i = 0; i < n; ++i) s += p[i];
+     return s;
+   }
+   double dot(const Buffer<float>& x, const Buffer<float>& y, std::size_t n) override {
+     KUTTA_REQUIRE(n <= x.size() && n <= y.size(), "dot: n out of range");
+-    const float* a = floats(x);
+-    const float* b = floats(y);
++    const real* a = floats(x);
++    const real* b = floats(y);
+     double s = 0;
+     for (std::size_t i = 0; i < n; ++i) s += double(a[i]) * double(b[i]);
+     return s;
+   }
+   double max_abs(const Buffer<float>& x, std::size_t n) override {
+     KUTTA_REQUIRE(n <= x.size(), "max_abs: n out of range");
+-    const float* p = floats(x);
++    const real* p = floats(x);
+     double m = 0;
+     // NaN-propagating, unlike std::max, so a diverged field never reports a finite norm.
+     for (std::size_t i = 0; i < n; ++i) {
+@@ -79,10 +84,10 @@ class CpuDevice final : public Device {
+           double(floats(x)[i]) * double(floats(y)[i]);
+       if (mode == Reduction::Dot2) b += double(floats(u)[i]) * double(floats(v)[i]);
+     }
+-    auto* out = static_cast<float*>(cpu(*dst.handle()).data()) + offset;
+-    auto store = [](float* p, double value) {
+-      p[0] = static_cast<float>(value);
+-      p[1] = std::isfinite(p[0]) ? static_cast<float>(value - double(p[0])) : 0;
++    auto* out = static_cast<real*>(cpu(*dst.handle()).data()) + offset;
++    auto store = [](real* p, double value) {
++      p[0] = static_cast<real>(value);
++      p[1] = std::isfinite(p[0]) ? static_cast<real>(value - double(p[0])) : 0;
+     };
+     store(out, a);
+     if (mode == Reduction::Dot2) store(out + 2, b);
+diff --git a/src/kutta/runtime/device.hpp b/src/kutta/runtime/device.hpp
+index 503a683..dd6acf3 100644
+--- a/src/kutta/runtime/device.hpp
++++ b/src/kutta/runtime/device.hpp
+@@ -114,18 +114,38 @@ class Device {
+   virtual Backend backend() const = 0;
+   virtual std::string name() const = 0;  // e.g. "Apple M4 Pro"
+ 
++#ifdef KUTTA_EXPERIMENT_CPU_FP64
++  template <class T> static constexpr std::size_t element_bytes = std::is_same_v<T, float> ? 8 : sizeof(T);
++#else
++  template <class T> static constexpr std::size_t element_bytes = sizeof(T);
++#endif
+   template <class T>
+   Buffer<T> alloc(std::size_t n) {
+-    return Buffer<T>(alloc_bytes(n * sizeof(T)), n);
++    return Buffer<T>(alloc_bytes(n * element_bytes<T>), n);
+   }
+   template <class T>
+   void upload(Buffer<T>& dst, std::span<const T> src) {
+     KUTTA_REQUIRE(src.size() == dst.size(), "upload size mismatch");
++#ifdef KUTTA_EXPERIMENT_CPU_FP64
++    if constexpr (std::is_same_v<T, float>) {
++      std::vector<double> wide(src.begin(), src.end());
++      upload_bytes(*dst.handle(), wide.data(), wide.size() * 8);
++      return;
++    }
++#endif
+     upload_bytes(*dst.handle(), src.data(), src.size_bytes());
+   }
+   template <class T>
+   void download(const Buffer<T>& src, std::span<T> dst) {
+     KUTTA_REQUIRE(src.size() == dst.size(), "download size mismatch");
++#ifdef KUTTA_EXPERIMENT_CPU_FP64
++    if constexpr (std::is_same_v<T, float>) {
++      std::vector<double> wide(dst.size());
++      download_bytes(*src.handle(), wide.data(), wide.size() * 8);
++      for (std::size_t i = 0; i < wide.size(); ++i) dst[i] = float(wide[i]);
++      return;
++    }
++#endif
+     download_bytes(*src.handle(), dst.data(), dst.size_bytes());
+   }
+   template <class T>
+@@ -143,9 +163,13 @@ class Device {
+   template <class T>
+   void copy(Buffer<T>& dst, const Buffer<T>& src) {
+     KUTTA_REQUIRE(src.size() == dst.size(), "copy size mismatch");
+-    copy_bytes(*dst.handle(), *src.handle(), src.size() * sizeof(T));
++    copy_bytes(*dst.handle(), *src.handle(), src.size() * element_bytes<T>);
+   }
++#ifdef KUTTA_EXPERIMENT_CPU_FP64
++  void fill(Buffer<float>& b, float v) { const double d = v; fill_bytes(*b.handle(), &d, sizeof d, b.size()); }
++#else
+   void fill(Buffer<float>& b, float v) { fill_bytes(*b.handle(), &v, sizeof v, b.size()); }
++#endif
+   void fill(Buffer<std::int32_t>& b, std::int32_t v) { fill_bytes(*b.handle(), &v, sizeof v, b.size()); }
+ 
+   // Reductions accumulate in double (CPU, CUDA) or compensated float pairs
+diff --git a/tools/kernelgen.py b/tools/kernelgen.py
+index 5af1bfb..d7522c9 100644
+--- a/tools/kernelgen.py
++++ b/tools/kernelgen.py
+@@ -170,20 +170,28 @@ def cpu_arg(p: Param, idx: int) -> str:
+         return f"kutta_args[{idx}].get<{HOST_TYPE[p.ctype]}>()"
+     const = "const " if p.kind == "in" else ""
+     ctype = "unsigned int" if p.ctype == "uint" else p.ctype
++    ctype = "kutta_cpu_real" if ctype == "float" else ctype
+     return f"static_cast<{const}{ctype}*>(cpu_ptr(kutta_args[{idx}].buffer))"
+ 
+ 
+ def gen_cpu(kernels: list[Kernel], files: list[str]) -> str:
+     out = [
+         "// Generated by tools/kernelgen.py. Do not edit.",
+-        '#include "kutta/kernels/prelude.h"',
++        "#include <cmath>",
+         '#include "kutta/runtime/cpu/cpu_kernel_table.hpp"',
+         '#include "kernels.hpp"',
++        "#ifdef KUTTA_EXPERIMENT_CPU_FP64",
++        "using kutta_cpu_real = double;",
++        "#define float double",
++        "#else",
++        "using kutta_cpu_real = float;",
++        "#endif",
++        '#include "kutta/kernels/prelude.h"',
+         "",
+         "namespace kutta::ksrc {",
+     ]
+     out += [f'#include "{f}"' for f in files]
+-    out += ["}  // namespace kutta::ksrc", "", "namespace kutta {", "namespace {"]
++    out += ["}  // namespace kutta::ksrc", "#undef float", "", "namespace kutta {", "namespace {"]
+     for k in kernels:
+         out.append(f"void cpu_{k.name}(std::size_t kutta_begin, std::size_t kutta_end, const KernelArg* kutta_args) {{")
+         for idx, p in enumerate(k.params):

@@ -41,6 +41,34 @@ KUTTA_KERNEL void fv_limiter(int i, KIn(int) offsets, KIn(int) adjacent,
   limiter[i]=kmax(0.0f,kmin(1.0f,psi));
 }
 
+// fv_limiter of the float pair cell + low (SolverSettings::paired_state).
+// Near a local extremum the limited face value is pinned to the neighbour
+// extremum, so a limiter of hi alone jumps whenever hi is rebased, and the
+// iteration can settle on a two-cycle across that kink. The neighbour
+// differences of the pair are accurate in float; with zero low words this
+// is fv_limiter bit for bit. A boundary value of kind 2 is the cell value
+// and carries its low word; other boundary values are prescribed.
+KUTTA_KERNEL void fv_paired_limiter(int i, KIn(int) offsets, KIn(int) adjacent,
+    KIn(float) rx, KIn(float) ry, KIn(float) rz,
+    KIn(float) cell, KIn(float) low, KIn(float) boundary, KIn(int) kind,
+    KIn(float) gx, KIn(float) gy, KIn(float) gz, KOut(float) limiter) {
+  float lo=0.0f,hi=0.0f;
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int other=adjacent[j];
+    float v=other<0 ? boundary[-other-1] : cell[other];
+    float l=other<0 ? (kind[-other-1]==2 ? low[i] : 0.0f) : low[other];
+    float d=(v-cell[i])+(l-low[i]);
+    lo=kmin(lo,d); hi=kmax(hi,d);
+  }
+  float psi=1.0f;
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    float d=gx[i]*rx[j]+gy[i]*ry[j]+gz[i]*rz[j];
+    if(d>0.0f) psi=kmin(psi,hi/d);
+    if(d<0.0f) psi=kmin(psi,lo/d);
+  }
+  limiter[i]=kmax(0.0f,kmin(1.0f,psi));
+}
+
 KUTTA_KERNEL void fv_vector_gradient(int i,KIn(int) offsets,KIn(int) adjacent,
     KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) fx,KIn(float) fy,KIn(float) fz,KIn(float) inverse,
     KIn(float) u,KIn(float) v,KIn(float) w,KIn(float) bu,KIn(float) bv,KIn(float) bw,
@@ -74,6 +102,15 @@ KUTTA_KERNEL void fv_limiter_scale(int i,KIn(int) offsets,KIn(int) adjacent,
     KIn(float) gx,KIn(float) gy,KIn(float) gz,KOut(float) limiter,
     KOut(float) x,KOut(float) y,KOut(float) z) {
   fv_limiter(i,offsets,adjacent,rx,ry,rz,cell,boundary,gx,gy,gz,limiter);
+  fv_scale_gradient(i,gx,gy,gz,limiter,x,y,z);
+}
+
+KUTTA_KERNEL void fv_paired_limiter_scale(int i,KIn(int) offsets,KIn(int) adjacent,
+    KIn(float) rx,KIn(float) ry,KIn(float) rz,
+    KIn(float) cell,KIn(float) low,KIn(float) boundary,KIn(int) kind,
+    KIn(float) gx,KIn(float) gy,KIn(float) gz,KOut(float) limiter,
+    KOut(float) x,KOut(float) y,KOut(float) z) {
+  fv_paired_limiter(i,offsets,adjacent,rx,ry,rz,cell,low,boundary,kind,gx,gy,gz,limiter);
   fv_scale_gradient(i,gx,gy,gz,limiter,x,y,z);
 }
 

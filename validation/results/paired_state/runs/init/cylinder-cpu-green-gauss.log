@@ -1,0 +1,22 @@
+FLUENT_PRECISION cells field=SV_U values=25740 float32_exact=0
+FLUENT_PRECISION cells field=SV_V values=25740 float32_exact=0
+FLUENT_PRECISION cells field=SV_P values=25740 float32_exact=0
+FLUENT_RESIDUAL continuity iteration=1 raw=448.29427 scale=448.29427 scaled=1
+FLUENT_RESIDUAL continuity iteration=66 raw=0.0041779813 scale=448.29427 scaled=9.3197294e-06
+FLUENT_RESIDUAL x-velocity iteration=1 raw=88569.163 scale=13388133 scaled=0.0066154976
+FLUENT_RESIDUAL x-velocity iteration=66 raw=0.15089277 scale=12712404 scaled=1.1869728e-08
+KUTTA_INIT continuity_raw=0.021482509 x_velocity_raw=54540.113 y_velocity_raw=43470.553 x_fluent_norm=26591541
+KUTTA_INIT_RC rhie_chow_imbalance=131.13082 x_velocity_raw=55439.564 max_speed=79.266253
+KUTTA_HISTORY iteration=1 continuity_raw=48.898978 scale=48.898978 scaled=1 corrected_f32=0.070785904 corrected_f64=0.070874851 sum_abs_flux=389397.68 x_velocity_raw=19922.174 x_velocity_scaled=0.0014977393 max_velocity_change=44.216553 max_pressure_change=1606.8219
+KUTTA_HISTORY iteration=2 continuity_raw=27.230315 scale=48.898978 scaled=0.55686878 corrected_f32=0.064526704 corrected_f64=0.064613652 sum_abs_flux=389264.65 x_velocity_raw=11880.761 x_velocity_scaled=0.00089495876 max_velocity_change=15.532724 max_pressure_change=566.84375
+KUTTA_HISTORY iteration=3 continuity_raw=25.218905 scale=48.898978 scaled=0.5157348 corrected_f32=0.065462598 corrected_f64=0.065583473 sum_abs_flux=389154.73 x_velocity_raw=8828.3685 x_velocity_scaled=0.00066594399 max_velocity_change=9.6990852 max_pressure_change=202.24048
+KUTTA_HISTORY iteration=4 continuity_raw=19.720055 scale=48.898978 scaled=0.40328153 corrected_f32=0.04005774 corrected_f64=0.040223499 sum_abs_flux=389056.64 x_velocity_raw=7173.3055 x_velocity_scaled=0.00054168226 max_velocity_change=6.8281631 max_pressure_change=120.24829
+KUTTA_HISTORY iteration=5 continuity_raw=14.429538 scale=48.898978 scaled=0.29508874 corrected_f32=0.034595042 corrected_f64=0.034793513 sum_abs_flux=388968.17 x_velocity_raw=6177.4215 x_velocity_scaled=0.00046689676 max_velocity_change=5.2635193 max_pressure_change=108.85535
+KUTTA_FLOOR area_closure_l1=0.00023596621 m^2 (rho*U*this bounds a uniform flow's imbalance)
+KUTTA_FLOOR perturbation_ulp=none continuity_raw=7.4577242 x_velocity_raw=6241.7423
+KUTTA_FLOOR perturbation_ulp=velocity continuity_raw=7.4577808 x_velocity_raw=6241.742
+KUTTA_FLOOR perturbation_ulp=pressure continuity_raw=7.4576871 x_velocity_raw=6241.7416
+KUTTA_FLOOR perturbation_ulp=both continuity_raw=7.4576402 x_velocity_raw=6241.741
+KUTTA_FLOOR perturbation_ulp=both continuity_raw=7.4577283 x_velocity_raw=6241.7482
+KUTTA_FLOOR perturbation_ulp=both continuity_raw=7.4575339 x_velocity_raw=6241.7526
+KUTTA_FINAL iteration=5 continuity_raw=14.429538 scale=48.898978 scaled=0.29508874 raw_over_eps_sum_abs_flux=311.19189 scale_over_sum_abs_flux=0.0001257146

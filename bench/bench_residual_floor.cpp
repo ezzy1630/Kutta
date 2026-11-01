@@ -4,12 +4,15 @@
 //    whether the saved cell fields are float32 values, i.e. how Fluent ran;
 //  - KUTTA_HISTORY: Kutta's raw continuity, its first-five scale, the
 //    corrected imbalance summed in float on the device and recomputed in
-//    double from the stored face fluxes, sum |F| and the per-sample field change;
+//    double from the stored face fluxes, sum |F|, the per-sample field change
+//    and the last step's x-momentum and pressure Krylov iterations;
 //  - KUTTA_FLOOR: the residuals re-evaluated at the final state and at that state
 //    moved by one float32 ulp (velocity, pressure, both), and the closure of
 //    the stored float area vectors.
 // It never changes the solver; it only reads it. The legacy cylinder .dat must be
-// the CR-restored copy (bench_restore_stripped_cr).
+// the CR-restored copy (bench_restore_stripped_cr). A trailing float32 argument
+// turns SolverSettings::paired_state off, reproducing the float32 floor. The
+// probes re-seed hi alone, so with the pair they measure hi's own residual.
 #include "kutta/io/mesh_io.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/setup/fluent.hpp"
@@ -57,11 +60,13 @@ fv::IterationReport evaluate(fv::SteadySolver& s,const fv::SolverSettings& setti
 
 int main(int argc,char** argv) {
   try {
-    KUTTA_REQUIRE(argc==6,"Usage: bench_residual_floor case data|- cpu|metal approximations iterations");
+    KUTTA_REQUIRE(argc==6 || (argc==7 && std::string_view(argv[6])=="float32"),
+      "Usage: bench_residual_floor case data|- cpu|metal approximations iterations [float32]");
     const auto c=fluent::read_case(argv[1]);const auto mesh=read_mesh(argv[1]);
     std::cout<<std::setprecision(8);
     if(std::string_view(argv[2])!="-") fluent_reference(c,argv[2]);
-    const auto problem=setup::fluent_setup(c,mesh,setup::parse_approximations(argv[4]));
+    auto problem=setup::fluent_setup(c,mesh,setup::parse_approximations(argv[4]));
+    problem.settings.paired_state=argc==6;
     const auto& settings=problem.settings;
     KUTTA_REQUIRE(std::string_view(argv[3])=="cpu" || std::string_view(argv[3])=="metal","expected cpu|metal");
     auto dev=Device::create(std::string_view(argv[3])=="cpu"?Backend::Cpu:Backend::Metal);
@@ -95,7 +100,8 @@ int main(int argc,char** argv) {
         std::cout<<"KUTTA_HISTORY iteration="<<it<<" continuity_raw="<<r.continuity.raw<<" scale="<<r.continuity.fluent_normalization
           <<" scaled="<<r.continuity.scaled<<" corrected_f32="<<r.corrected_mass_imbalance<<" corrected_f64="<<corrected
           <<" sum_abs_flux="<<flux_sum<<" x_velocity_raw="<<r.u.raw<<" x_velocity_scaled="<<r.u.scaled
-          <<" max_velocity_change="<<du<<" max_pressure_change="<<dp<<'\n';
+          <<" max_velocity_change="<<du<<" max_pressure_change="<<dp
+          <<" u_krylov="<<r.momentum[0].iterations<<" p_krylov="<<r.pressure.iterations<<'\n';
     }
     const auto final_report=solver.report();
     const auto x=download(*dev,solver,settings);
