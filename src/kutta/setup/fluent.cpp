@@ -122,9 +122,9 @@ std::vector<std::uint64_t> cell_ids(const FluentCase& c,const PolyMesh& mesh) {
   return ids;
 }
 }
-RejectedSettings::RejectedSettings(std::vector<SettingIssue> issues)
+RejectedSettings::RejectedSettings(std::vector<SettingIssue> issues,std::string_view heading)
   : Error([&] {
-      std::string message="Fluent setup rejected:";
+      std::string message(heading);
       for(const auto& i:issues) message+="\n  "+i.path+": "+i.reason;
       return message;
     }()), issues_(std::move(issues)) {}

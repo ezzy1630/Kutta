@@ -10,7 +10,7 @@ namespace kutta::setup {
 // diagnostic strings to infer support or broadens the approximation allowlist.
 class RejectedSettings : public Error {
  public:
-  explicit RejectedSettings(std::vector<fluent::SettingIssue> issues);
+  explicit RejectedSettings(std::vector<fluent::SettingIssue> issues, std::string_view heading = "Fluent setup rejected:");
   const std::vector<fluent::SettingIssue>& issues() const { return issues_; }
  private:
   std::vector<fluent::SettingIssue> issues_;
