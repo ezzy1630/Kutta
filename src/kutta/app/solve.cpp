@@ -13,6 +13,7 @@
 #include "kutta/io/mesh_io.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/setup/fluent.hpp"
+#include "kutta/setup/kutta_case.hpp"
 #include <algorithm>
 #include <charconv>
 #include <chrono>
@@ -37,7 +38,7 @@ struct Options {
   std::vector<setup::Approximation> approximations;
 };
 Options parse(int argc,char** argv) {
-  KUTTA_REQUIRE(argc>=3,"Usage: kutta solve <case.cas.h5> [--data init.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--live-view DIR] [--live-every N] [--approximate SETTING[,SETTING...]]");
+  KUTTA_REQUIRE(argc>=3,"Usage: kutta solve <case.cas.h5|case.kutta.json> [--data init.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--live-view DIR] [--live-every N] [--approximate SETTING[,SETTING...]]");
   Options o;o.input=argv[2];std::set<std::string> seen;
   for(int i=3;i<argc;i+=2) {
     const std::string key=argv[i];
@@ -120,7 +121,13 @@ int solve(int argc,char** argv) {
     const auto start=Clock::now();
     memory::phase("start");
     const auto case_hash=sha256_file(o.input),data_hash=o.data.empty()?std::string{}:sha256_file(o.data);
-    auto c=fluent::read_case(o.input);
+    // A Kutta case (mesh + setup JSON) is lowered to the FluentCase a .cas
+    // would give; its mesh is read once, here.
+    const bool kutta_case=setup::is_kutta_case(o.input);
+    KUTTA_REQUIRE(!kutta_case || o.data.empty(),"--data seeds from a Fluent data file, which belongs to a Fluent case; a Kutta case initializes from its own setup");
+    std::optional<PolyMesh> preloaded;std::filesystem::path mesh_file;
+    auto c=kutta_case?[&]{auto k=setup::load_kutta_case(o.input);preloaded=std::move(k.mesh);mesh_file=k.mesh_path;return std::move(k.settings);}():fluent::read_case(o.input);
+    const auto mesh_hash=kutta_case?sha256_file(mesh_file):std::string{};
     memory::phase("read-case");
     setup::RunControls controls{o.iterations,20};
     auto inventory=setup::settings_inventory(c,controls,!o.data.empty());
@@ -135,7 +142,7 @@ int solve(int argc,char** argv) {
     else if(!convergence.has_conditions())convergence_warning="Convergence checking is on but no residual is checked and no report condition is active; stopping at the requested iteration limit.";
     const bool report_conditions=convergence.check && std::any_of(convergence.reports.begin(),convergence.reports.end(),[](const auto& r){return r.active;});
     o.iterations=controls.iterations;
-    auto mesh=read_mesh(o.input);
+    auto mesh=preloaded?std::move(*preloaded):read_mesh(o.input);
     memory::phase("read-mesh");
     std::optional<setup::FluentSetup> setup;std::optional<setup::Initialization> fields;
     std::vector<setup::ForceDefinition> reports;std::string errors;std::optional<fluent::FluentData> reference;
@@ -384,7 +391,10 @@ int solve(int argc,char** argv) {
         <<", \"fluent_value\": "<<json_string(info.fluent_value)<<", \"kutta_action\": "<<json_string(info.kutta_action)
         <<", \"effect_documentation\": "<<json_string(info.effect_documentation)<<", \"measured_effect\": "<<json_string(info.measured_effect)<<", \"short\": "<<json_string(info.short_label)<<'}';
     }
-    summary<<"],\n  \"case_file\": "<<json_string(o.input.string())<<",\n  \"case_sha256\": "<<json_string(case_hash)
+    // A Kutta case's identity covers its setup and its mesh (kutta inspect's file.sha256).
+    summary<<"],\n  \"case_file\": "<<json_string(o.input.string())<<",\n  \"case_sha256\": "<<json_string(kutta_case?setup::kutta_case_identity(case_hash,mesh_hash):case_hash)
+      <<",\n  \"case_format\": "<<(kutta_case?"\"kutta\"":"\"fluent\"")<<",\n  \"setup_sha256\": "<<(kutta_case?json_string(case_hash):"null")
+      <<",\n  \"mesh_file\": "<<(kutta_case?json_string(mesh_file.string()):"null")<<",\n  \"mesh_sha256\": "<<(kutta_case?json_string(mesh_hash):"null")
       <<",\n  \"data_file\": "<<(o.data.empty()?"null":json_string(o.data.string()))<<",\n  \"data_sha256\": "<<(o.data.empty()?"null":json_string(data_hash))
       <<",\n  \"kutta_version\": "<<json_string(KUTTA_VERSION)<<",\n  \"kutta_commit\": "<<json_string(KUTTA_COMMIT)
       <<",\n  \"backend\": "<<json_string(backend_name(dev->backend()))<<",\n  \"device\": "<<json_string(dev->name())

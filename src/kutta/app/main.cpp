@@ -3,6 +3,8 @@
 #include "solve.hpp"
 #include "protocol.hpp"
 #include "export.hpp"
+#include "case_commands.hpp"
+#include "kutta/setup/kutta_case.hpp"
 #include <algorithm>
 #include <iostream>
 #if defined(__APPLE__)
@@ -46,8 +48,12 @@ void vector(const ScalarVector &v) {
   std::cout << ')';
 }
 void mesh_summary(const FluentCase &c) {
-  std::cout << "Fluent ";
-  value(c.solver_version);
+  if (c.origin && c.origin->starts_with("Kutta case"))
+    std::cout << *c.origin;
+  else {
+    std::cout << "Fluent ";
+    value(c.solver_version);
+  }
   std::cout << "; dimension=";
   value(c.dimension);
   std::cout << "; cells=";
@@ -425,15 +431,23 @@ int main(int argc, char **argv) {
   if(argc>=2 && std::string_view(argv[1])=="export-geometry") return kutta::app::export_geometry(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="aero") return kutta::app::aero(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="devices") return kutta::app::devices(argc,argv);
+  if(argc>=2 && std::string_view(argv[1])=="new-case") return kutta::app::new_case(argc,argv);
+  if(argc>=2 && std::string_view(argv[1])=="convert") return kutta::app::convert(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="inspect")
     for(int i=2;i<argc;++i) if(std::string_view(argv[i])=="--json") return kutta::app::inspect_json(argc,argv);
   if ((argc != 3 && argc != 5) || std::string_view(argv[1]) != "inspect" ||
       (argc == 5 && std::string_view(argv[3]) != "--data")) {
-    std::cerr << "Usage: kutta solve <file.cas.h5> [--data file.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--approximate SETTING[,SETTING...]]\n       kutta inspect <file.cas.h5|file.cas> [--data file.dat.h5]\n";
+    std::cerr << "Usage: kutta solve <file.cas.h5|case.kutta.json> [--data file.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--approximate SETTING[,SETTING...]]\n"
+                 "       kutta inspect <file.cas.h5|file.cas|case.kutta.json> [--data file.dat.h5] [--json]\n"
+                 "       kutta new-case MESH [--template fsae-external] [--speed M/S] [--role ZONE=ROLE]... [--out CASE.kutta.json] [--json]\n"
+                 "       kutta convert CASE [--setup overrides.json] --out CASE.kutta.json [--json]\n";
     return 2;
   }
   try {
-    auto c = read_case(argv[2]);
+    const bool kutta = kutta::setup::is_kutta_case(argv[2]);
+    if (kutta && argc == 5)
+      throw std::runtime_error("--data belongs to a Fluent case; a Kutta case has no Fluent data file");
+    auto c = kutta ? kutta::setup::load_kutta_case(argv[2]).settings : read_case(argv[2]);
     summary(c);
     if (argc == 5) {
       auto d = read_data(argv[4], c);

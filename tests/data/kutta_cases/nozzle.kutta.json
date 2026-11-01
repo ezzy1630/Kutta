@@ -1,0 +1,11 @@
+{
+  "kutta_case": 1,
+  "mesh": "flprj_3891/nozzle_para_named_1.cffdb/nozzle_para_named_1-Solve/Base DP/nozzle_para_named_1.cas.h5",
+  "models": {"viscous": "k-omega-sst"},
+  "boundaries": {
+    "inlet": {"type": "velocity-inlet", "speed": 1},
+    "outlet": {"type": "pressure-outlet"},
+    "wall": {"type": "wall"}
+  },
+  "methods": {"flux_type": "rhie-chow-distance"}
+}

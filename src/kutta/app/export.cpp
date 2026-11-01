@@ -5,6 +5,7 @@
 #include "kutta/core/path.hpp"
 #include "kutta/core/sha256.hpp"
 #include "kutta/mesh/detail.hpp"
+#include "kutta/setup/kutta_case.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -176,12 +177,17 @@ int export_geometry(int argc,char** argv) {
     const auto start=std::chrono::steady_clock::now();
     // Hash concurrently with the mesh read; both are bounded by file I/O.
     auto hash=std::async(std::launch::async,[&]{return sha256_file(input);});
-    const auto mesh=read_mesh(input);
+    // A Kutta case's zones show the case's boundary types, not the mesh file's
+    // hints, and its identity covers the setup and the mesh (kutta inspect).
+    std::optional<setup::LoadedKuttaCase> loaded;
+    if(setup::is_kutta_case(input))loaded=setup::load_kutta_case(input);
+    const auto mesh=loaded?std::move(loaded->mesh):read_mesh(input);
+    const auto case_sha=loaded?setup::kutta_case_identity(hash.get(),sha256_file(loaded->mesh_path)):hash.get();
     std::filesystem::create_directories(out);
     const auto stage=out/(".geometry-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::uint64_t triangles=0;const auto target=out/"geometry",old=out/(".geometry-old-"+stage.filename().string().substr(10));
     try {
-      const auto written=view::write_surface_view(stage,mesh,view::Fields{},true,{{"geometry_only",true},{"case",Json::Object{{"sha256",hash.get()}}}});
+      const auto written=view::write_surface_view(stage,mesh,view::Fields{},true,{{"geometry_only",true},{"case",Json::Object{{"sha256",case_sha}}}});
       for(const auto& z:std::get<Json::Array>(written.at("zones").value))triangles+=std::uint64_t(std::get<double>(std::get<Json::Object>(z.value).at("indices").value))/3;
       if(std::filesystem::exists(target))std::filesystem::rename(target,old);
       try {std::filesystem::rename(stage,target);}catch(...){if(std::filesystem::exists(old))std::filesystem::rename(old,target);throw;}

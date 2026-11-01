@@ -1,5 +1,6 @@
 #include "protocol.hpp"
 #include "kutta/setup/settings.hpp"
+#include "kutta/setup/kutta_case.hpp"
 #include "kutta/core/json.hpp"
 #include "kutta/core/path.hpp"
 #include "kutta/core/sha256.hpp"
@@ -145,7 +146,12 @@ int inspect_json(int argc,char** argv) {
     else {std::cerr<<"Usage: kutta inspect CASE [--data DAT] --json\n";return 2;}
   }
   try {
-    auto c=read_case(input);const auto mesh=read_mesh(input);
+    const bool kutta=setup::is_kutta_case(input);
+    KUTTA_REQUIRE(!kutta || data.empty(),"--data belongs to a Fluent case; a Kutta case has no Fluent data file");
+    std::optional<setup::LoadedKuttaCase> loaded;
+    if(kutta)loaded=setup::load_kutta_case(input);
+    auto c=kutta?std::move(loaded->settings):read_case(input);const auto mesh=kutta?std::move(loaded->mesh):read_mesh(input);
+    const auto setup_sha=sha256_file(input),mesh_sha=kutta?sha256_file(loaded->mesh_path):std::string{};
     const auto d=data.empty()?std::optional<FluentData>{}:read_data(data,c);
     auto issues=support_issues(c,mesh,d.has_value());
     if(d) try {(void)setup::fluent_fields(c,*d,mesh);}catch(const std::exception& e){issues.push_back(describe({"data/seed",e.what()}));}
@@ -160,8 +166,11 @@ int inspect_json(int argc,char** argv) {
     Vec3d lo=mesh.points.front(),hi=lo;
     for(auto p:mesh.points){lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
     auto& s=std::cout;s.imbue(std::locale::classic());s<<std::setprecision(17);
-    s<<"{\"v\":1,\"file\":{\"path\":"<<json_string(utf8_path(std::filesystem::absolute(input)))<<",\"sha256\":"<<json_string(sha256_file(input))<<",\"fluent_version\":"<<(c.solver_version?json_string(*c.solver_version):"null")
-      <<"},\"mesh\":{\"cells\":"<<mesh.n_cells<<",\"faces\":"<<mesh.n_faces()<<",\"nodes\":"<<mesh.n_points()<<",\"cell_types\":{\"tet\":"<<tet<<",\"hex\":"<<hex<<",\"poly\":"<<mesh.n_cells-tet-hex<<"},\"bounds\":[["<<lo.x<<','<<lo.y<<','<<lo.z<<"],["<<hi.x<<','<<hi.y<<','<<hi.z<<"]]},\"zones\":[";
+    s<<"{\"v\":1,\"file\":{\"path\":"<<json_string(utf8_path(std::filesystem::absolute(input)))<<",\"sha256\":"<<json_string(kutta?setup::kutta_case_identity(setup_sha,mesh_sha):setup_sha)<<",\"fluent_version\":"<<(c.solver_version?json_string(*c.solver_version):"null")
+      <<",\"format\":"<<(kutta?"\"kutta\"":"\"fluent\"");
+    // v1-additive: a Kutta case names its mesh; its sha256 above covers both files.
+    if(kutta)s<<",\"setup_sha256\":"<<json_string(setup_sha)<<",\"mesh_file\":{\"path\":"<<json_string(utf8_path(loaded->mesh_path))<<",\"sha256\":"<<json_string(mesh_sha)<<'}';
+    s<<"},\"mesh\":{\"cells\":"<<mesh.n_cells<<",\"faces\":"<<mesh.n_faces()<<",\"nodes\":"<<mesh.n_points()<<",\"cell_types\":{\"tet\":"<<tet<<",\"hex\":"<<hex<<",\"poly\":"<<mesh.n_cells-tet-hex<<"},\"bounds\":[["<<lo.x<<','<<lo.y<<','<<lo.z<<"],["<<hi.x<<','<<hi.y<<','<<hi.z<<"]]},\"zones\":[";
     bool first=true;
     for(const auto& z:c.boundaries) {
       if(!first)s<<',';first=false;

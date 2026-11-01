@@ -1,0 +1,25 @@
+{
+  "kutta_case": 1,
+  "mesh": "mixing_elbow/mixing_elbow.cas.h5",
+  "models": {"viscous": "k-omega-sst"},
+  "boundaries": {
+    "cold-inlet": {
+      "type": "velocity-inlet",
+      "speed": 1,
+      "turbulence": {"method": "intensity-hydraulic-diameter", "hydraulic_diameter": 0.1016}
+    },
+    "hot-inlet": {
+      "type": "velocity-inlet",
+      "speed": 1.2,
+      "turbulence": {"method": "intensity-hydraulic-diameter", "hydraulic_diameter": 0.0254}
+    },
+    "outlet": {
+      "type": "pressure-outlet",
+      "turbulence": {"viscosity_ratio": 4}
+    },
+    "symmetry-xyplane": {"type": "symmetry"},
+    "wall-elbow": {"type": "wall"},
+    "wall-inlet": {"type": "wall"}
+  },
+  "methods": {"turbulent_kinetic_energy": "second-order-upwind", "specific_dissipation_rate": "second-order-upwind"}
+}

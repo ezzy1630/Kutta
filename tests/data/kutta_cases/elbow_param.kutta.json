@@ -1,0 +1,26 @@
+{
+  "kutta_case": 1,
+  "mesh": "mixing_elbow/elbow_param.cas.h5",
+  "models": {
+    "viscous": "k-epsilon-standard",
+    "k_epsilon_standard": {"compressibility_effects": true}
+  },
+  "boundaries": {
+    "inlet1": {
+      "type": "velocity-inlet",
+      "speed": 10,
+      "turbulence": {"method": "intensity-hydraulic-diameter", "intensity": 0.099999994, "hydraulic_diameter": 0.16}
+    },
+    "inlet2": {
+      "type": "velocity-inlet",
+      "speed": 25,
+      "turbulence": {"method": "intensity-hydraulic-diameter", "intensity": 0.099999994, "hydraulic_diameter": 0.039999999}
+    },
+    "outlet": {
+      "type": "pressure-outlet",
+      "turbulence": {"method": "intensity-hydraulic-diameter", "intensity": 0.099999994, "hydraulic_diameter": 0.16}
+    },
+    "wall": {"type": "wall"}
+  },
+  "methods": {"pressure_velocity_coupling": "simple", "pressure": "standard", "momentum": "first-order-upwind", "flux_type": "rhie-chow-distance"}
+}

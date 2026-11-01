@@ -15,6 +15,8 @@ the app only presents it. Every message carries `"v": 1`.
 | `kutta export-view DIR [--slice origin,normal]... [--post spec.json]` | writes `DIR/view/` (below) from a finished run |
 | `kutta export-geometry CASE --out DIR [--json]` | writes `DIR/geometry/` (case surfaces without a run); with `--json` one `geometry` event line |
 | `kutta aero DIR [--aero spec.json] [--json]` | aero coefficients, groups, balance and centre of pressure of a finished run from its `loads.json`; writes `DIR/aero.json`, with `--json` one `aero` event line |
+| `kutta new-case MESH [--template fsae-external] [--speed M/S] [--role ZONE=ROLE]... [--out CASE.kutta.json [--force]] [--json]` | a starter Kutta case for a bare mesh (v1 additive, below); without `--out` the case is printed |
+| `kutta convert CASE [--setup overrides.json] --out CASE.kutta.json [--force] [--json]` | a case's settings, with overrides applied, written as a Kutta case (v1 additive, below) |
 
 Human-readable output without `--json` / `--progress` is unchanged.
 
@@ -46,6 +48,57 @@ for result badges: `wfgc` "WFGC off", `compressibility` "No compressibility
 correction", `ke-options` "Documented k-epsilon only", `reverse-flow` "No
 reverse-flow suppression". Each entry of `summary.json`'s `approximations`
 carries the same `short`.
+
+Every command that takes a case also takes a Kutta case, `*.kutta.json` (a
+mesh plus a JSON setup, [docs/kutta-case.md](kutta-case.md)). For a Kutta case
+`file` gains (v1 additive) `"format":"kutta"` (`"fluent"` otherwise),
+`setup_sha256` and `"mesh_file":{"path":...,"sha256":...}`; `file.sha256` is
+the case identity, the SHA-256 of the setup's and the mesh's digests, and
+`fluent_version` is null. `--data` is rejected: a Kutta case has no Fluent
+data file. `summary.json` likewise gains `case_format`, `setup_sha256`,
+`mesh_file` and `mesh_sha256` (null for a Fluent case), and its `case_sha256`
+is the same identity.
+
+## Kutta cases from a mesh (v1 additive)
+
+`kutta new-case MESH --json` reads the mesh and prints one object; with
+`--out` it also writes the case there (refusing to replace a file without
+`--force`) and stores the mesh path relative to it:
+
+```json
+{"v":1,"template":"fsae-external","speed":15,
+ "mesh":{"path":"/abs/car.msh","dimension":3,"cells":70,"faces":269,"nodes":140,"polyhedral":false},
+ "zones":[{"id":6,"name":"ground","mesh_type":"wall","kind":"boundary","faces":24,
+           "role":"moving-ground","suggested_role":"moving-ground",
+           "reason":"name contains \"ground\"; the road moves with the freestream","group":null},
+          {"id":10,"name":"front_wing","mesh_type":"wall","kind":"boundary","faces":10,
+           "role":"wall","suggested_role":"wall","reason":"a wall of the car","group":"Front wing"}],
+ "roles":["velocity-inlet","pressure-outlet","moving-ground","wall","symmetry","interior"],
+ "notes":["Reference area is Fluent's default, 1 m^2; ..."],
+ "case":{...the Kutta case...},
+ "out":"/abs/car.kutta.json"}
+```
+
+`suggested_role` comes from the zone's name (inlet, outlet, ground/road/belt,
+symmetry/top/side/farfield words), else from the mesh's zone type, else wall;
+`role` is the suggestion unless `--role ZONE=ROLE` overrides it. Wall zones
+carry an aero `group` (Front wing, Rear wing, Wing, Undertray / diffuser,
+Wheels, Body), the app's grouping. The `fsae-external` template: flow along
++x at `--speed` (default 15 m/s), up +z (+y in 2D), k-ω SST, air, velocity
+inlet and pressure outlet with 1 % intensity and viscosity ratio 10, a
+moving ground at the freestream speed, symmetry planes, stationary car walls,
+second-order k and ω, reference velocity and density of the freestream, and
+drag (+x) and downforce (lift along −z, −y in 2D) coefficient reports on
+every car wall.
+
+`kutta convert CASE --out OUT --json` (CASE a Fluent or Kutta case;
+`--setup` applies a setup-overrides file first, as `solve --setup` does)
+prints `{"v":1,"out":"/abs/OUT","replaced_input":false,"omitted":[{"path":...,"reason":...,"class":"informational"}],"run_controls_not_saved":[...]}`.
+It exits non-zero, writing nothing, when an `unsupported` setting cannot be
+expressed; `informational` omissions do not change the solution. Failures of
+either command with `--json` print one `error` event, as `solve` does, whose
+`issues` name each rejected setting. The app
+saves an edited case with it.
 
 ## Progress events (`solve --progress jsonl`)
 

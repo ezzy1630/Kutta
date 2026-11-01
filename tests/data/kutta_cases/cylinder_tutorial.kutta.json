@@ -1,0 +1,29 @@
+{
+  "kutta_case": 1,
+  "mesh": "adjoint_cylinder_tutorial/cylinder_tutorial.cas",
+  "models": {"viscous": "laminar"},
+  "material": {"density": 1, "viscosity": 1},
+  "boundaries": {
+    "bottom": {"type": "symmetry"},
+    "inlet": {"type": "velocity-inlet", "speed": 40},
+    "pressure_outlet.6": {"type": "pressure-outlet"},
+    "top": {"type": "symmetry"},
+    "wall": {"type": "wall"}
+  },
+  "reference_values": {"density": 2, "viscosity": 1.7894001e-05},
+  "methods": {"pseudo_transient": false, "gradient": "green-gauss-cell-based", "pressure": "standard"},
+  "controls": {
+    "explicit_relaxation": {"pressure": 0.75, "momentum": 0.75}
+  },
+  "reports": {
+    "cd-1": {"type": "drag", "zones": ["wall"]},
+    "cl-1": {"type": "lift", "zones": ["wall"]}
+  },
+  "monitors": {
+    "residuals": {
+      "continuity": {"absolute_criterion": 1e-05},
+      "x-velocity": {"absolute_criterion": 1e-05},
+      "y-velocity": {"absolute_criterion": 1e-05}
+    }
+  }
+}
