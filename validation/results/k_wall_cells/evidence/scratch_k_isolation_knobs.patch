@@ -1,0 +1,59 @@
+diff --git a/src/kutta/fv/steady_solver.cpp b/src/kutta/fv/steady_solver.cpp
+index 490f17b..67951d6 100644
+--- a/src/kutta/fv/steady_solver.cpp
++++ b/src/kutta/fv/steady_solver.cpp
+@@ -291,6 +291,8 @@ struct SteadySolver::Impl {
+       // left V6's wall-symmetry corner cells with omega 10-22% low and k up to
+       // twice Fluent's (validation/results/k_wall_cells/REPORT.md).
+       if(kinds[b]==3) {independent_k[b]=NormalFootValue;independent_omega[b]=NormalFootValue;}
++      if(std::getenv("KUTTA_EXP_NO_SYM_SCALAR") && kinds[b]==3) {independent_k[b]=Omitted;independent_omega[b]=Omitted;}
++      if(std::getenv("KUTTA_EXP_WALL_K") && kinds[b]==0) independent_k[b]=NormalFootValue;
+       // BEGIN FSAE physics: pressure inlets prescribe transported inflow data.
+       if(open_kinds[b]==1) {independent_velocity[b]=FaceValue;independent_k[b]=FaceValue;independent_omega[b]=FaceValue;}
+       // END FSAE physics
+@@ -365,7 +367,7 @@ struct SteadySolver::Impl {
+     memory::phase("lsq");
+     if(settings.sst) {
+       std::vector<BoundaryObservation> strain_rows(nb);
+-      for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;
++      for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?((kinds[b]==3 && std::getenv("KUTTA_EXP_SYM_STRAIN"))?NormalFootValue:FaceValue):Omitted;
+       strain_lsq=boundary_least_squares(dev,host,geom,strain_rows,&stencil);
+       jump_fit=face_jump_least_squares(dev,host,geom);
+       for(int k=0;k<3;++k) {strain_base[k]=vector_field(dev,n);strain_gradient[k]=vector_field(dev,n);}
+@@ -579,6 +581,7 @@ struct SteadySolver::Impl {
+     kern::fv_floor(dev,mesh.n_cells,kinetic,settings.sst->model.k_floor);
+     // k changed; velocity and its boundary values did not. Keep the derivative
+     // gradients used for strain/production, while refreshing both scalar fits.
++    if(std::getenv("KUTTA_EXP_FREEZE_OMEGA")) return;
+     update_turbulence(false);assemble_turbulence(true);
+     report.turbulence[1]=omega_equation->solve(omega,settings.sst->linear);
+     kern::fv_floor(dev,mesh.n_cells,omega,settings.sst->model.omega_floor);
+@@ -861,6 +864,7 @@ struct SteadySolver::Impl {
+   // pressure, and the Rhie-Chow mass imbalance. Turbulence follows segregated.
+   void coupled_step() {
+     refresh_time_step(true);
++    if(std::getenv("KUTTA_EXP_FREEZE_FLOW")) {solve_turbulence();finish_step();return;}
+     update_boundaries();update_pressure();update_turbulence();momentum_sources();
+     const auto transport=momentum_transport();
+     Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+diff --git a/src/kutta/fv/turbulence/sst.cpp b/src/kutta/fv/turbulence/sst.cpp
+index 194421a..7667ff3 100644
+--- a/src/kutta/fv/turbulence/sst.cpp
++++ b/src/kutta/fv/turbulence/sst.cpp
+@@ -1,3 +1,4 @@
++#include <cstdlib>
+ #include "kutta/fv/turbulence/sst.hpp"
+ 
+ #include <cmath>
+@@ -137,6 +138,11 @@ void SstModel::update(const SstInputs& in) {
+       o.low_re, o.gamma_set == SstGammaSet::Menter2003, production_mode,
+       o.production_limiter, o.limit_omega_production, o.wall_production,
+       o.production_clip, o.limit_cross_diffusion, o.cross_diffusion_clip, o.k_floor, o.omega_floor);
++  if (const char* e = std::getenv("KUTTA_EXP_PK_SCALE")) {
++    auto h = d.download(f.k_source); const float a = std::strtof(e, nullptr);
++    for (auto& x : h) x *= a;
++    d.upload<float>(f.k_source, h);
++  }
+   if (o.intermittency)
+     kern::sst_transition_k(d, nc, *in.intermittency, in.density, in.viscosity, mesh_.wall_distance,
+         f.strain, f.vorticity, f.mu_t, f.k_source, f.k_sink, f.production_limit,

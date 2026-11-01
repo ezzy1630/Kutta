@@ -1,0 +1,35 @@
+== main-full
+metal-seeded
+  wall-elbow   faces  2168: integrated force error 1.63% | per face L2 8.80% L1 5.88% | wall-cell |U_t| L2 8.00% | wall-cell k L2 12.6%
+    Kutta/Fluent by y band: [-0.200,-0.161] |tau| 0.991 |U_t| 0.981 k 0.951 | [-0.161,-0.115] |tau| 0.997 |U_t| 0.991 k 0.976 | [-0.115,-0.056] |tau| 0.986 |U_t| 0.986 k 0.987 | [-0.056,+0.073] |tau| 0.986 |U_t| 0.992 k 1.011 | [+0.073,+0.199] |tau| 1.041 |U_t| 1.036 k 1.094
+  wall-inlet   faces   268: integrated force error 0.12% | per face L2 4.49% L1 3.92% | wall-cell |U_t| L2 4.18% | wall-cell k L2 8.0%
+    Kutta/Fluent by y band: [-0.224,-0.210] |tau| 0.985 |U_t| 0.990 k 0.992 | [-0.210,-0.193] |tau| 0.979 |U_t| 0.978 k 0.898 | [-0.193,-0.175] |tau| 1.030 |U_t| 1.032 k 1.313 | [-0.175,-0.158] |tau| 1.045 |U_t| 1.049 k 1.357 | [-0.158,-0.133] |tau| 0.986 |U_t| 0.987 k 1.511
+  k: L2 14.71% (by wall layer, L4 = deeper: L1:5.5 L2:6.5 L3:4.4 L4:11.2), volume-weighted bias +8.7%
+== fix-full
+metal-seeded
+  wall-elbow   faces  2168: integrated force error 1.64% | per face L2 8.79% L1 5.87% | wall-cell |U_t| L2 7.99% | wall-cell k L2 12.5%
+    Kutta/Fluent by y band: [-0.200,-0.161] |tau| 0.991 |U_t| 0.981 k 0.950 | [-0.161,-0.115] |tau| 0.997 |U_t| 0.991 k 0.976 | [-0.115,-0.056] |tau| 0.986 |U_t| 0.986 k 0.987 | [-0.056,+0.073] |tau| 0.986 |U_t| 0.991 k 1.011 | [+0.073,+0.199] |tau| 1.041 |U_t| 1.036 k 1.093
+  wall-inlet   faces   268: integrated force error 0.15% | per face L2 4.44% L1 3.88% | wall-cell |U_t| L2 4.10% | wall-cell k L2 6.7%
+    Kutta/Fluent by y band: [-0.224,-0.210] |tau| 0.985 |U_t| 0.990 k 0.992 | [-0.210,-0.193] |tau| 0.979 |U_t| 0.978 k 0.893 | [-0.193,-0.175] |tau| 1.030 |U_t| 1.032 k 1.275 | [-0.175,-0.158] |tau| 1.044 |U_t| 1.048 k 1.299 | [-0.158,-0.133] |tau| 0.985 |U_t| 0.986 k 1.366
+  k: L2 14.48% (by wall layer, L4 = deeper: L1:5.5 L2:6.3 L3:4.4 L4:11.0), volume-weighted bias +8.6%
+== main-frozen-velocity
+metal-seeded
+  wall-elbow   faces  2168: integrated force error 0.01% | per face L2 0.04% L1 0.03% | wall-cell |U_t| L2 0.00% | wall-cell k L2 3.4%
+    Kutta/Fluent by y band: [-0.200,-0.161] |tau| 1.000 |U_t| 1.000 k 1.009 | [-0.161,-0.115] |tau| 1.000 |U_t| 1.000 k 1.014 | [-0.115,-0.056] |tau| 1.000 |U_t| 1.000 k 0.994 | [-0.056,+0.073] |tau| 1.000 |U_t| 1.000 k 1.013 | [+0.073,+0.199] |tau| 1.000 |U_t| 1.000 k 1.014
+  wall-inlet   faces   268: integrated force error 0.00% | per face L2 0.01% L1 0.01% | wall-cell |U_t| L2 0.00% | wall-cell k L2 4.9%
+    Kutta/Fluent by y band: [-0.224,-0.210] |tau| 1.000 |U_t| 1.000 k 1.036 | [-0.210,-0.193] |tau| 1.000 |U_t| 1.000 k 1.014 | [-0.193,-0.175] |tau| 1.000 |U_t| 1.000 k 1.122 | [-0.175,-0.158] |tau| 1.000 |U_t| 1.000 k 1.135 | [-0.158,-0.133] |tau| 1.000 |U_t| 1.000 k 1.212
+  k: L2 6.88% (by wall layer, L4 = deeper: L1:1.6 L2:4.3 L3:2.5 L4:4.5), volume-weighted bias +2.6%
+== fix-frozen-velocity
+metal-seeded
+  wall-elbow   faces  2168: integrated force error 0.01% | per face L2 0.04% L1 0.03% | wall-cell |U_t| L2 0.00% | wall-cell k L2 3.4%
+    Kutta/Fluent by y band: [-0.200,-0.161] |tau| 1.000 |U_t| 1.000 k 1.009 | [-0.161,-0.115] |tau| 1.000 |U_t| 1.000 k 1.014 | [-0.115,-0.056] |tau| 1.000 |U_t| 1.000 k 0.994 | [-0.056,+0.073] |tau| 1.000 |U_t| 1.000 k 1.013 | [+0.073,+0.199] |tau| 1.000 |U_t| 1.000 k 1.014
+  wall-inlet   faces   268: integrated force error 0.00% | per face L2 0.01% L1 0.01% | wall-cell |U_t| L2 0.00% | wall-cell k L2 4.3%
+    Kutta/Fluent by y band: [-0.224,-0.210] |tau| 1.000 |U_t| 1.000 k 1.036 | [-0.210,-0.193] |tau| 1.000 |U_t| 1.000 k 1.011 | [-0.193,-0.175] |tau| 1.000 |U_t| 1.000 k 1.100 | [-0.175,-0.158] |tau| 1.000 |U_t| 1.000 k 1.100 | [-0.158,-0.133] |tau| 1.000 |U_t| 1.000 k 1.123
+  k: L2 6.50% (by wall layer, L4 = deeper: L1:1.6 L2:4.1 L3:2.3 L4:4.2), volume-weighted bias +2.6%
+== main-frozen-velocity-omega
+metal-seeded
+  wall-elbow   faces  2168: integrated force error 0.01% | per face L2 0.05% L1 0.03% | wall-cell |U_t| L2 0.00% | wall-cell k L2 4.2%
+    Kutta/Fluent by y band: [-0.200,-0.161] |tau| 1.000 |U_t| 1.000 k 1.018 | [-0.161,-0.115] |tau| 1.000 |U_t| 1.000 k 1.021 | [-0.115,-0.056] |tau| 1.000 |U_t| 1.000 k 0.996 | [-0.056,+0.073] |tau| 1.000 |U_t| 1.000 k 1.016 | [+0.073,+0.199] |tau| 1.000 |U_t| 1.000 k 1.049
+  wall-inlet   faces   268: integrated force error 0.01% | per face L2 0.02% L1 0.01% | wall-cell |U_t| L2 0.00% | wall-cell k L2 5.5%
+    Kutta/Fluent by y band: [-0.224,-0.210] |tau| 1.000 |U_t| 1.000 k 1.040 | [-0.210,-0.193] |tau| 1.000 |U_t| 1.000 k 1.077 | [-0.193,-0.175] |tau| 1.000 |U_t| 1.000 k 1.395 | [-0.175,-0.158] |tau| 1.000 |U_t| 1.000 k 1.402 | [-0.158,-0.133] |tau| 1.000 |U_t| 1.000 k 1.419
+  k: L2 11.35% (by wall layer, L4 = deeper: L1:1.9 L2:8.6 L3:5.0 L4:5.1), volume-weighted bias +4.7%

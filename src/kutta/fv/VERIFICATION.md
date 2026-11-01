@@ -851,6 +851,11 @@ wall budget never applied.
 Historical baseline below: hybrid initialization is implemented in the
 2026-10-30 section at the end of this file. The WFGC limitation remains.
 
+2026-11-01: k and omega now take a zero-normal-gradient row at symmetry planes,
+as velocity does. V6 moves toward Fluent on every field (k L2 14.71% to
+14.48%); no gate changes outcome. Evidence, and the term-by-term k budget at
+Fluent's saved state: `validation/results/k_wall_cells/REPORT.md`.
+
 **The requested same-settings accuracy gate is not achieved.** SST transport and
 momentum are coupled, but the strict adapter rejects the original elbow's
 `recon/cell-lsf?` (warped-face gradient correction, WFGC). Its hybrid initializer

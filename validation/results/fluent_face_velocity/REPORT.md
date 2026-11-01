@@ -449,7 +449,10 @@ python3 -I tools/forensics/face_flux.py "$KUTTA_FLUENT_EXAMPLES/flprj_3891/nozzl
 3. Why every side-type face velocity moves the k-epsilon elbow (tet,
    first-order momentum, standard pressure) away from Fluent.
 4. The k excess in the inlet-pipe wall cells (17-51% in the downstream
-   bands, in every run).
+   bands, in every run). Partly resolved in `../k_wall_cells/REPORT.md`:
+   the k and omega gradients lacked the symmetry plane's zero-normal-gradient
+   row (now the default). The rest is flow-driven away from the symmetry plane
+   and unexplained at the wall-symmetry corner.
 5. The SST nozzle's saved-flux floor: 2.7e-3 |F| on quiet faces, which no
    tested formula explains.
 6. The V6 wall-elbow shear: pd leaves it at 0.56% against a 0.5% gate.

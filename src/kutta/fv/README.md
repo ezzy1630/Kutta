@@ -76,7 +76,8 @@ carrying a real pressure gradient (a Darcy inlet, a rotating wall) were biased
 The extrapolated value never feeds the fit. Momentum separately uses
 `p_c+G·r_b` on those boundaries for second-order pressure, including at symmetry. Velocity includes wall, inlet and projected
 symmetry data, and omits outlet rows. k includes inlet rows; omega additionally
-includes independent wall reconstruction values. Excluded rows have zero
+includes independent wall reconstruction values. At symmetry both take the
+cell value at the normal foot: the plane's zero normal gradient. Excluded rows have zero
 weighted deltas. A symmetric eigensolve constrains only deficient directions,
 preserving all resolved directions. No previous gradient feeds itself through
 an extrapolated boundary observation. Standalone operators still accept the

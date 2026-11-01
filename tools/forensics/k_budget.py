@@ -13,7 +13,8 @@ and checks that inference on the limited cells first.
 
 Sections: 1 S against S_F; 2 R by wall layer and pipe band; 3 implied S; 4 standard k-omega's f_beta*
 (TG 4.4.2) as a test of TG 4.4.3's "f_beta* = 1 for SST"; 5 optional Kutta k / Fluent k (volume-weighted) from solved runs,
-also by distance from the symmetry plane.
+also by distance from the symmetry plane; 6 the omega equation by distance from the symmetry plane,
+with and without symmetry rows in the k and omega gradients.
 Usage: python -I k_budget.py <case_dir> <stem> <cache_dir> <wall_dir> <backend> [zone] [run_dir/run ...]
   run_dir/run names a <run>-cells.csv written by the V6 test (Fluent cell order).
 """
@@ -75,9 +76,10 @@ def main():
           f" deep {np.median((SK / SF)[limited & (layer == 99)]):.3f}")
     print(f"  {zone} pipe, layers 2-6: {np.median((SK / SF)[limited & pipe & (layer >= 2)]):.3f} (n={(limited & pipe & (layer >= 2)).sum()})")
 
-    # k equation at Fluent's state with Kutta's operators: LSQ 1/d^2 without wall rows (zero-flux k), BJ-limited SOU.
-    G = fvops.lsq(ctx, 2, wall_rows=False)
-    gk, gw = ctx.apply(G, k, kb), ctx.apply(fvops.lsq(ctx, 2), w, st.wb)
+    # k equation at Fluent's state with Kutta's operators: LSQ 1/d^2 rows as in steady_solver.cpp (k: no wall or
+    # outlet rows; omega: wall-face value; both: symmetry at the normal foot), BJ-limited SOU.
+    gk = ctx.apply(fvops.lsq(ctx, 2, wall_rows=False, omit_types=(5,), normal_types=(7,)), k, kb)
+    gw = ctx.apply(fvops.lsq(ctx, 2, omit_types=(5,), normal_types=(7,)), w, st.wb)
     cd = np.maximum(2 * rho * np.einsum("ij,ij->i", gk, gw) / (1.168 * w), 1e-10)
     arg1 = np.minimum(np.maximum(np.sqrt(k) / (BS * w * y), 500 * mu / (rho * y * y * w)), 4 * rho * k / (1.168 * cd * y * y))
     F1 = np.tanh(arg1**4)
@@ -147,6 +149,25 @@ def main():
         reached[c1[I][front[c0[I]]]] = True
         reached[c0[I][front[c1[I]]]] = True
         symmetry_hop[reached & (symmetry_hop == 99)] = h
+    print("\n6. omega equation at Fluent's state, R / (rho beta omega^2 V) by symmetry hop, pipe bands 2-5 (R > 0: excess sink;"
+          " wall cells are fixed)")
+    for lab, sym in (("symmetry rows omitted (Kutta before)", dict(omit_types=(5, 7))), ("symmetry rows at the normal foot (Kutta)", dict(omit_types=(5,), normal_types=(7,)))):
+        gk_, gw_ = ctx.apply(fvops.lsq(ctx, 2, wall_rows=False, **sym), k, kb), ctx.apply(fvops.lsq(ctx, 2, **sym), w, st.wb)
+        cd_ = 2 * rho * np.einsum("ij,ij->i", gk_, gw_) / (1.168 * w)
+        a1_ = np.minimum(np.maximum(np.sqrt(k) / (BS * w * y), 500 * mu / (rho * y * y * w)), 4 * rho * k / (1.168 * np.maximum(cd_, 1e-10) * y * y))
+        f1 = np.tanh(np.minimum(a1_, 10) ** 4)
+        beta = 0.075 * f1 + 0.0828 * (1 - f1)
+        gamma = f1 * (0.075 / BS - 0.41**2 / (2 * 0.3)) + (1 - f1) * (0.0828 / BS - 0.41**2 / (1.168 * 0.3))
+        Yw = rho * beta * w * w * ctx.vol
+        Rw = mo.scalar_convection(st, w, st.wb, mo.bj_limit(ctx, w, st.wb, gw_)[0]) \
+            + mo.scalar_diffusion(st, w, st.wb, gw_, mu + mut * (f1 / 2 + (1 - f1) / 1.168)) \
+            - (gamma * rho * np.minimum(mut * SK**2, 10 * rho * BS * k * w) / mut + (1 - f1) * cd_) * ctx.vol + Yw
+        print(f"  {lab}:")
+        for L in (2, 3, 4):
+            print(f"    L{L}: " + " ".join(f"hop {'>3' if h == 99 else h} {ratio_sum(Rw, Yw, pipe & (band >= 1) & (layer == L) & (symmetry_hop == h)):+.3f}" for h in (1, 2, 3, 99)))
+        sel = (layer >= 2) & (layer <= 4) & (symmetry_hop == 1)
+        print(f"    every symmetry-face cell in layers 2-4: {ratio_sum(Rw, Yw, sel):+.4f} (sum |R| / Y {np.abs(Rw[sel]).sum() / Yw[sel].sum():.3f})")
+
     for run in runs:
         c = np.genfromtxt(run + "-cells.csv", delimiter=",", names=True)
         kv, fv = c["k"] * ctx.vol, k * ctx.vol
