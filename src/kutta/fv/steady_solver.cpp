@@ -140,7 +140,8 @@ struct SteadySolver::Impl {
   bool paired=false;
   DeviceVec3 velocity_lo,pressure_gradient_lo;
   Buffer<float> pressure_lo,mass_lo,previous_mass,pressure_boundary_lo,imbalance,momentum_delta;
-  double paired_pressure_magnitude=0; // max |p| at the last monitor
+  // max |u| and max |p| at the last refresh_paired_scales (paired_slack).
+  double paired_speed=0,paired_pressure_magnitude=0;
   IterationReport report;
   std::map<std::string,BoundaryCondition> boundaries;
   // BEGIN FSAE physics: isolated volume sources and open-boundary overrides.
@@ -683,13 +684,30 @@ struct SteadySolver::Impl {
     auto& eq=*momentum[component];
     kern::fv_simple_inverse(dev,mesh.n_cells,eq.matrix.diag,eq.matrix.val,eq.consistent_inverse);
   }
-  // kpair_add's slack: one ulp of the scales hi feeds, taken from the last
-  // monitor so it holds still between monitors. 16 ulps froze hi sooner but
-  // slowed the middle of the run, while hi still has to move.
+  // kpair_add's slack: one ulp of the scales hi feeds, held still between
+  // refreshes. 16 ulps froze hi sooner but slowed the middle of the run, while
+  // hi still has to move. The scales used to be taken at each monitor, which
+  // made the solution depend on the monitor interval (Coupled diverged in
+  // test_monitor_cadence); they are now refreshed on the step's own schedule,
+  // iterations 1-5 and every paired_scale_interval, the default monitor
+  // cadence, so default-interval runs are unchanged.
+  static constexpr int paired_scale_interval=20;
+  void refresh_paired_scales() {
+    if(!paired) return;
+    kern::fv_speed(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,speed);
+    const auto m=dev.reduce_many({Device::HostReduction::max_abs(speed,mesh.n_cells),
+      Device::HostReduction::max_abs(pressure,mesh.n_cells)});
+    paired_speed=m[0];paired_pressure_magnitude=m[1];
+  }
+  void finish_step() {
+    ++report.iteration;
+    if(report.iteration<=5 || report.iteration%paired_scale_interval==0) refresh_paired_scales();
+    if(report.iteration<=5 || report.iteration%settings.monitor_interval==0) monitor();
+  }
   struct PairedSlack {float velocity,pressure,flux_per_area;};
   PairedSlack paired_slack() const {
     const double ulps=double(std::numeric_limits<float>::epsilon());
-    const double speed=std::max(bc_speed,report.maximum_velocity);
+    const double speed=std::max(bc_speed,paired_speed);
     const double pressure=std::max(settings.density*speed*speed,paired_pressure_magnitude);
     return {float(ulps*speed),float(ulps*pressure),float(ulps*settings.density*speed)};
   }
@@ -867,8 +885,7 @@ struct SteadySolver::Impl {
       mass,mass_lo,imbalance,provisional_continuity);
     else kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
     solve_turbulence();
-    ++report.iteration;
-    if(report.iteration<=5 || report.iteration%settings.monitor_interval==0) monitor();
+    finish_step();
   }
 
   void step() {
@@ -930,8 +947,7 @@ struct SteadySolver::Impl {
       grad_correction.x,grad_correction.y,grad_correction.z,correction,
       velocity.x,velocity.y,velocity.z,pressure,float(settings.pressure_relaxation));
     solve_turbulence();
-    ++report.iteration;
-    if(report.iteration<=5 || report.iteration%settings.monitor_interval==0) monitor();
+    finish_step();
   }
 
   // Viscous force on each masked wall face for the active closure. Callers
@@ -1022,7 +1038,6 @@ struct SteadySolver::Impl {
     }
     report.continuity={raw,scaled(raw,continuity_scale),scaled(raw,continuity_scale),continuity_scale};
     report.maximum_velocity=dev.max_abs(speed,mesh.n_cells);
-    if(paired) paired_pressure_magnitude=dev.max_abs(pressure,mesh.n_cells);
     report.pseudo_time_step=time_step;
     monitor_turbulence();
     report.residual_iteration=report.iteration;
@@ -1073,7 +1088,7 @@ void SteadySolver::initialize_fields(std::span<const Vec3d> velocity,std::span<c
   // the supplied fields without taking a nonlinear step. In particular a
   // saved-field residual must not use the placeholder unit diagonal.
   for(int pass=0;pass<3;++pass) {
-    s.monitor();s.update_flux();
+    s.monitor();s.refresh_paired_scales();s.update_flux();
     kern::fv_continuity(s.dev,s.mesh.n_cells,s.mesh.cell_face_offsets,s.mesh.cell_faces,
       s.mesh.cell_face_sign,s.mass,s.provisional_continuity);
     s.update_boundaries();s.update_pressure();
@@ -1223,7 +1238,7 @@ void SteadySolver::initialize_hybrid(const HybridInitialization& h) {
   }
   s.dev.fill(s.physical_diagonal,1);s.dev.fill(s.consistent_inverse,0);
   s.update_boundaries();s.update_pressure();s.update_flux();s.update_turbulence();
-  for(int pass=0;pass<3;++pass) {s.monitor();s.update_flux();s.update_boundaries();s.update_pressure();}
+  for(int pass=0;pass<3;++pass) {s.monitor();s.refresh_paired_scales();s.update_flux();s.update_boundaries();s.update_pressure();}
   if(!h.constant_speed && h.solve[0]) {
     dev.copy(s.mass,potential_flux);
     // BEGIN FSAE physics: the potential field is expressed in absolute velocity.

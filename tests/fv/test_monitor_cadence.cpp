@@ -12,10 +12,12 @@ using namespace kutta::fv;
 // monitor(); SST covers them under SIMPLEC and Coupled.
 TEST_CASE("Monitor interval does not change the solution for any turbulence model") {
   enum class Model {sst,sa,realizable_ke};
-  struct Case {Model model;Limiter limiter=Limiter::Standard;PressureVelocityCoupling coupling=PressureVelocityCoupling::Simplec;};
+  struct Case {Model model;Limiter limiter=Limiter::Standard;PressureVelocityCoupling coupling=PressureVelocityCoupling::Simplec;bool paired=true;};
+  constexpr auto coupled=PressureVelocityCoupling::Coupled;
   const auto mesh=make_box_hex(6,4,1,{0,0,0},{1,.4,.1});
-  for(auto [model,limiter,coupling]:{Case{Model::sst},Case{Model::sa},Case{Model::realizable_ke},
-      Case{Model::sst,Limiter::Differentiable},Case{Model::sst,Limiter::Differentiable,PressureVelocityCoupling::Coupled}}) {
+  for(auto [model,limiter,coupling,paired]:{Case{Model::sst},Case{Model::sa},Case{Model::realizable_ke},
+      Case{Model::sst,Limiter::Differentiable},Case{Model::sst,Limiter::Standard,coupled},
+      Case{Model::sst,Limiter::Differentiable,coupled},Case{Model::sst,Limiter::Differentiable,coupled,false}}) {
     const TurbulenceCondition inflow=model==Model::sst?TurbulenceCondition{TurbulenceValues{.01,4}}:
       model==Model::sa?TurbulenceCondition{ModifiedViscosity{.003}}:TurbulenceCondition{KeValues{.01,.01}};
     std::vector<PatchCondition> bc;
@@ -27,7 +29,7 @@ TEST_CASE("Monitor interval does not change the solution for any turbulence mode
     }
     KUTTA_FOR_EACH_BACKEND(dev) {
       const auto run=[&](int interval) {
-        SolverSettings s;s.viscosity=.001;s.monitor_interval=interval;s.limiter=limiter;s.coupling=coupling;
+        SolverSettings s;s.viscosity=.001;s.monitor_interval=interval;s.limiter=limiter;s.coupling=coupling;s.paired_state=paired;
         if(model==Model::sst) s.sst=SstSettings{};
         else if(model==Model::sa) s.sa=SaSettings{};
         else s.realizable_ke=RealizableKeSettings{};
@@ -47,7 +49,7 @@ TEST_CASE("Monitor interval does not change the solution for any turbulence mode
         return fields;
       };
       // Name the case and field, so a platform-only failure says where it is.
-      INFO("model ",int(model)," limiter ",int(limiter)," coupling ",int(coupling)," backend ",dev->name());
+      INFO("model ",int(model)," limiter ",int(limiter)," coupling ",int(coupling)," paired ",paired," backend ",dev->name());
       const auto every=run(1),fifth=run(5);
       REQUIRE(every.size()==fifth.size());
       for(std::size_t f=0;f<every.size();++f) {
