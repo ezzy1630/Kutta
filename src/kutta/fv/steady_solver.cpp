@@ -285,6 +285,12 @@ struct SteadySolver::Impl {
       const bool zero_normal=settings.pressure_interpolation==PressureInterpolation::Standard;
       independent_pressure[b]=(kinds[b]==2 || kinds[b]==4)?FaceValue:(zero_normal?NormalFootValue:Omitted);
       independent_k[b]=kinds[b]==1?FaceValue:Omitted;independent_omega[b]=(kinds[b]==0 || kinds[b]==1)?FaceValue:Omitted;
+      // A symmetry plane has zero normal gradient of every scalar (Fluent UG,
+      // symmetry boundaries), and its face holds the cell value: at the normal
+      // foot that row is the condition itself, as for velocity. Omitting it
+      // left V6's wall-symmetry corner cells with omega 10-22% low and k up to
+      // twice Fluent's (validation/results/k_wall_cells/REPORT.md).
+      if(kinds[b]==3) {independent_k[b]=NormalFootValue;independent_omega[b]=NormalFootValue;}
       // BEGIN FSAE physics: pressure inlets prescribe transported inflow data.
       if(open_kinds[b]==1) {independent_velocity[b]=FaceValue;independent_k[b]=FaceValue;independent_omega[b]=FaceValue;}
       // END FSAE physics
