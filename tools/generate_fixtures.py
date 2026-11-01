@@ -60,6 +60,9 @@ FIXTURES = {
     # The kutta CLI's 2D transition case (app/scripts/capture_fixtures.py --wing).
     "wing/naca4412_ground.cas":
         (["tools/fsae_aero/naca_ground_case.py", "--elbow", "{elbow}", "--out", "{out}"], ["{elbow}"]),
+    # The same wing as a mesh and a Kutta case, with no Fluent case behind it.
+    "wing/naca4412_ground.msh": (["tools/fsae_aero/naca_ground_case.py", "--write", "msh", "--out", "{out}"], []),
+    "wing/naca4412_ground.kutta.json": (["tools/fsae_aero/naca_ground_case.py", "--write", "kutta", "--out", "{out}"], []),
 }
 
 
