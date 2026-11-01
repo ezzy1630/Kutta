@@ -1,3 +1,4 @@
+#include "../fluent_examples.hpp"
 #include "kutta/core/path.hpp"
 #include <doctest/doctest.h>
 
@@ -258,8 +259,7 @@ TEST_CASE("CFF legacy deflate partial chunks preserve numeric conversion and rej
 }
 TEST_CASE("CFF reads a file whose name is not ASCII") {
   // Windows passes HDF5 the UTF-8 bytes, not the ANSI code page conversion.
-  const std::filesystem::path source =
-      KUTTA_SOURCE_DIR "/validation/fluent_examples/simple_duct/simple-duct.msh.h5";
+  const auto source = fluent_examples() / "simple_duct/simple-duct.msh.h5";
   const auto dir = std::filesystem::temp_directory_path() / std::filesystem::path(u8"kutta-ü-网格");
   std::filesystem::create_directories(dir);
   const auto copy = dir / std::filesystem::path(u8"düct-网格.msh.h5");

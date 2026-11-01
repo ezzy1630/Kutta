@@ -1,3 +1,4 @@
+#include "../fluent_examples.hpp"
 #include <doctest/doctest.h>
 #include <algorithm>
 #include <iterator>
@@ -95,8 +96,7 @@ void same_mesh(const PolyMesh& a, const PolyMesh& b) {
 }  // namespace
 
 TEST_CASE("real Fluent external mesh acceptance") {
-  const std::filesystem::path root =
-      KUTTA_SOURCE_DIR "/validation/fluent_examples";
+  const auto root = fluent_examples();
   if (!std::filesystem::exists(root)) {
     MESSAGE("SKIP: external Fluent examples directory is absent");
     return;

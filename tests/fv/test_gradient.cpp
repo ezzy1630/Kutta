@@ -1,3 +1,4 @@
+#include "../fluent_examples.hpp"
 #include <iostream>
 #include <limits>
 #include "kernels.hpp"
@@ -74,7 +75,7 @@ TEST_CASE("FV least squares is linear exact and limiter bounds face reconstructi
   linear_exactness(make_box_tet(4,3,2,{0,0,0},{1,1,1}));
 }
 TEST_CASE("FV least squares is linear exact on real Fluent polyhedra") {
-  const std::filesystem::path path=KUTTA_SOURCE_DIR "/validation/fluent_examples/box/poly.msh.h5";
+  const auto path=fluent_examples()/"box/poly.msh.h5";
 #if KUTTA_HAS_HDF5
   if(std::filesystem::exists(path)) linear_exactness(read_fluent_cff(path));
   else MESSAGE("SKIP: external Fluent poly box absent");

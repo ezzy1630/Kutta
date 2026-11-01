@@ -1,3 +1,4 @@
+#include "../fluent_examples.hpp"
 #include <array>
 #include <iomanip>
 #include "../backend_helpers.hpp"
@@ -85,7 +86,7 @@ TEST_CASE("FV V3 Re100 and Re400 cavity reported deviations" * doctest::test_sui
 }
 
 TEST_CASE("FV V4 Fluent cavity matches its actual grid" * doctest::test_suite("slow")) {
-  const auto file=std::filesystem::path(KUTTA_SOURCE_DIR)/"validation/fluent_examples/lid_driven_cavity/lid_driven_cavity.msh";
+  const auto file=fluent_examples()/"lid_driven_cavity/lid_driven_cavity.msh";
   if(!std::filesystem::exists(file)) {MESSAGE("SKIP: external Fluent cavity fixture absent");return;}
   auto mesh=read_fluent_msh(file);
   std::map<long long,double> x,y;

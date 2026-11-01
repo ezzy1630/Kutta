@@ -1,3 +1,4 @@
+#include "../fluent_examples.hpp"
 #include "kutta/case/fluent_data.hpp"
 #include <cstdlib>
 #include <algorithm>
@@ -5,10 +6,7 @@
 using namespace kutta::fluent;
 #if KUTTA_HAS_HDF5
 namespace {
-std::filesystem::path examples() {
-  auto env = std::getenv("KUTTA_FLUENT_EXAMPLES");
-  return env ? env : KUTTA_SOURCE_DIR "/validation/fluent_examples";
-}
+std::filesystem::path examples() { return fluent_examples(); }
 bool available(const std::filesystem::path &path) {
   if (std::filesystem::exists(path))
     return true;

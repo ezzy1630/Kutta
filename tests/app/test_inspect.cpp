@@ -1,3 +1,4 @@
+#include "../fluent_examples.hpp"
 #include <chrono>
 #include <cstdlib>
 #include <doctest/doctest.h>
@@ -78,8 +79,7 @@ TEST_CASE("Inspect labels active relaxation equations and issue classes") {
   CHECK(coupled.find("epsilon=0.75") != std::string::npos);
 }
 TEST_CASE("Inspect real static mixer displays resolved expressions instead of saved snapshots") {
-  auto root = std::getenv("KUTTA_FLUENT_EXAMPLES");
-  auto path = std::filesystem::path(root ? root : KUTTA_SOURCE_DIR "/validation/fluent_examples") /
+  auto path = fluent_examples() /
       "static_mixer/Static_Mixer_Parameters_legacy_text.cas";
   if (!std::filesystem::exists(path)) {
     MESSAGE("optional real-file inspect fixture absent: ", path.string());

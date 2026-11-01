@@ -12,6 +12,10 @@ from this public repository; write <checkout> instead.
 
 std::jthread is likewise missing from that libc++; use std::thread and join.
 
+Tests reach the Fluent corpus only through tests/fluent_examples.hpp, which
+honours KUTTA_FLUENT_EXAMPLES; a hard-coded corpus path silently skips in any
+checkout (worktree, CI) that keeps the corpus elsewhere.
+
 HDF5 takes char* file names and expects UTF-8; path::c_str() is wchar_t on
 Windows and path::string() uses the ANSI code page there. Use kutta::utf8_path.
 """
@@ -27,6 +31,7 @@ SUFFIXES = {".cpp", ".hpp", ".h", ".cu", ".mm"}
 # Third argument of from_chars(first, last, value[, base_or_format]).
 CALL = re.compile(r"from_chars\s*\([^;]*?,[^;]*?,\s*(\w+)\s*[,)]")
 JTHREAD = re.compile(r"\bstd::jthread\b")
+CORPUS = re.compile(r"validation/fluent_examples\b")
 H5_FILE = re.compile(r"\bH5F(?:open|create|is_accessible)\s*\(\s*(?!kutta::utf8_path\()")
 # Generic placeholder accounts (upstream docs, CI runners) reveal nothing.
 ANY_HOME = re.compile(r"(?:/Users|/home)/(?!(?:user|username|runner)/)[A-Za-z0-9._-]+/"
@@ -67,6 +72,11 @@ def main() -> int:
             for m in JTHREAD.finditer(text) if path.suffix != ".py" else ():
                 line = text.count("\n", 0, m.start()) + 1
                 bad.append(f"{path.relative_to(ROOT)}:{line}: std::jthread is missing from macOS CI libc++; use std::thread")
+            if d == "tests" and path.suffix != ".py" and path.name != "fluent_examples.hpp":
+                for m in CORPUS.finditer(text):
+                    line = text.count("\n", 0, m.start()) + 1
+                    bad.append(f"{path.relative_to(ROOT)}:{line}: Fluent corpus path; use fluent_examples() "
+                               f"from tests/fluent_examples.hpp")
             if path.suffix == ".py" or path.name == "parse.cpp":
                 continue
             for m in CALL.finditer(text):
