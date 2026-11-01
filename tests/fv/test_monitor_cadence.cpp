@@ -46,7 +46,15 @@ TEST_CASE("Monitor interval does not change the solution for any turbulence mode
         else {fields.push_back(dev->download(solver.kinetic_energy()));fields.push_back(dev->download(solver.dissipation()));}
         return fields;
       };
-      CHECK(run(1)==run(5));
+      // Name the case and field, so a platform-only failure says where it is.
+      INFO("model ",int(model)," limiter ",int(limiter)," coupling ",int(coupling)," backend ",dev->name());
+      const auto every=run(1),fifth=run(5);
+      REQUIRE(every.size()==fifth.size());
+      for(std::size_t f=0;f<every.size();++f) {
+        std::size_t differ=0;
+        for(std::size_t i=0;i<every[f].size();++i) differ+=every[f][i]!=fifth[f][i];
+        CAPTURE(f);CHECK(differ==0);
+      }
     }
   }
 }
