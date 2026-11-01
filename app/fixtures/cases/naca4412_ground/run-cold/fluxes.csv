@@ -1,7 +1,7 @@
 name,zone_id,mass_flow_outward
 "wing",4,0
-"inlet",5,-70.260684490203857
-"outlet",6,70.260683536529541
+"inlet",5,-70.260683536529541
+"outlet",6,70.260682106018066
 "top",7,0
 "ground",8,0
 "front",-1,0

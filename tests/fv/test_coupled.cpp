@@ -85,3 +85,30 @@ TEST_CASE("FV Coupled converges on a tetrahedral channel") {
     else CHECK(relative(u,first)<1e-5);
   }
 }
+
+// The flow Courant number (SolverSettings::coupled_courant) relaxes the
+// momentum Jacobian only: it changes the path, never the fixed point.
+TEST_CASE("FV Coupled flow Courant number changes the path, not the fixed point") {
+  auto mesh=make_box_hex(12,6,1,{0,0,0},{1,.5,.1});
+  std::vector<PatchCondition> bc;
+  for(const auto& p:mesh.patches) {
+    if(p.name=="zmin" || p.name=="zmax" || p.name=="ymax") bc.push_back({p.name,Symmetry{}});
+    else if(p.name=="xmin") bc.push_back({p.name,VelocityInlet{Vec3d{1,0,0}}});
+    else if(p.name=="xmax") bc.push_back({p.name,PressureOutlet{0}});
+    else bc.push_back({p.name,Wall{}});
+  }
+  SolverSettings s;s.viscosity=.01;s.coupling=PressureVelocityCoupling::Coupled;
+  s.momentum_relaxation=s.pressure_relaxation=.75;
+  auto low=s;low.coupled_courant=5;
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    const auto a=converge(*dev,mesh,bc,s,{1,0,0}),b=converge(*dev,mesh,bc,low,{1,0,0});
+    CHECK(relative(b.u,a.u)<2e-5);CHECK(relative(b.v,a.v)<2e-4);
+    std::vector<float> early[2];
+    for(int k=0;k<2;++k) {
+      SteadySolver solver(*dev,mesh,bc,k?low:s);
+      solver.initialize([](Vec3d){return Vec3d{1,0,0};},[](Vec3d){return 0.;});
+      solver.iterate(5);early[k]=dev->download(solver.velocity().x);
+    }
+    CHECK(relative(early[1],early[0])>1e-3);
+  }
+}

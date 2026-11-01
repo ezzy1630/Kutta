@@ -220,7 +220,15 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   s.pseudo_transient=pseudo;
   // Kutta's Coupled solver is pseudo-transient. A saved Coupled case without
   // pseudo time falls back to SIMPLEC below; an override cannot ask for it.
-  if(run==Coupling::coupled && pseudo) s.coupling=fv::PressureVelocityCoupling::Coupled;
+  if(run==Coupling::coupled && pseudo) {
+    s.coupling=fv::PressureVelocityCoupling::Coupled;
+    // The saved Flow Courant Number sets the Coupled implicit relaxation;
+    // absent, Fluent's default 200 stays (fv::SolverSettings::coupled_courant).
+    if(n.courant) {
+      require(std::isfinite(*n.courant) && *n.courant>0,"pressure-coupled/courant-number","requires a finite positive Courant number");
+      if(std::isfinite(*n.courant) && *n.courant>0) s.coupled_courant=*n.courant;
+    }
+  }
   else if(run==Coupling::coupled && run!=coupling)
     require(false,"flow/scheme","the Coupled override requires the pseudo-transient formulation");
   if(pseudo) {

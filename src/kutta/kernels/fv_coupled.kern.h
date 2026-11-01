@@ -115,9 +115,11 @@ KUTTA_KERNEL void coupled_face_coefficient(int i, KIn(int) owner, KIn(int) neigh
 
 // Pressure diagonal and RHS. A closed domain doubles the reference cell's
 // pressure diagonal: an anchor that lifts the constant pressure null space.
+// given != 0 takes the net outflow from net (the float-pair continuity,
+// fv_paired_continuity) instead of summing mass.
 KUTTA_KERNEL void coupled_rhs(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
-    KIn(float) coefficient, KIn(float) mass, KIn(float) ru, KIn(float) rv, KIn(float) rw,
-    KOut(float) cell, KOut(float) b, int n, int reference, float continuity_scale) {
+    KIn(float) coefficient, KIn(float) mass, KIn(float) net, KIn(float) ru, KIn(float) rv, KIn(float) rw,
+    KOut(float) cell, KOut(float) b, int n, int reference, float continuity_scale, int given) {
   ksum c = ksum0();
   float imbalance = 0.0f;
   for (int j = offsets[i]; j < offsets[i + 1]; ++j) {
@@ -125,6 +127,7 @@ KUTTA_KERNEL void coupled_rhs(int i, KIn(int) offsets, KIn(int) faces, KIn(float
     c = ksum_add(c, coefficient[f]);
     imbalance += sign[j] * mass[f];
   }
+  if (given != 0) imbalance = net[i];
   float value = ksum_value(c);
   cell[3 * n + i] = i == reference ? 2.0f * value : value;
   b[i] = ru[i]; b[n + i] = rv[i]; b[2 * n + i] = rw[i];
@@ -479,6 +482,27 @@ KUTTA_KERNEL void coupled_update(int i, KIn(float) delta, KOut(float) u, KOut(fl
   v[i] += velocity_relaxation * delta[n + i];
   w[i] += velocity_relaxation * delta[2 * n + i];
   p[i] += pressure_relaxation * delta[3 * n + i];
+}
+
+// coupled_update on float pairs (SolverSettings::paired_state, kpair_add's
+// slack in the solver's velocity and pressure scales).
+KUTTA_KERNEL void coupled_paired_update(int i, KIn(float) delta, KOut(float) u, KOut(float) v,
+    KOut(float) w, KOut(float) p, KOut(float) u_lo, KOut(float) v_lo, KOut(float) w_lo, KOut(float) p_lo,
+    int n, float velocity_relaxation, float pressure_relaxation, float velocity_slack, float pressure_slack) {
+  kpair x = kpair_add(u[i], u_lo[i], velocity_relaxation * delta[i], velocity_slack); u[i] = x.hi; u_lo[i] = x.lo;
+  x = kpair_add(v[i], v_lo[i], velocity_relaxation * delta[n + i], velocity_slack); v[i] = x.hi; v_lo[i] = x.lo;
+  x = kpair_add(w[i], w_lo[i], velocity_relaxation * delta[2 * n + i], velocity_slack); w[i] = x.hi; w_lo[i] = x.lo;
+  x = kpair_add(p[i], p_lo[i], pressure_relaxation * delta[3 * n + i], pressure_slack); p[i] = x.hi; p_lo[i] = x.lo;
+}
+// The closed-domain gauge of a pair: reference_value holds the reference
+// cell's hi and lo.
+KUTTA_KERNEL void coupled_paired_gauge(int i, KIn(float) reference_value, KOut(float) p, KOut(float) p_lo,
+    float pressure_slack) {
+  kpair x = kpair_add(p[i], p_lo[i], -(reference_value[0] + reference_value[1]), pressure_slack);
+  p[i] = x.hi; p_lo[i] = x.lo;
+}
+KUTTA_KERNEL void coupled_paired_pick(int i, KIn(float) p, KIn(float) p_lo, KOut(float) out, int index) {
+  if (i == 0) { out[0] = p[index]; out[1] = p_lo[index]; }
 }
 
 KUTTA_KERNEL void coupled_gauge(int i, KIn(float) reference_value, KOut(float) p) {

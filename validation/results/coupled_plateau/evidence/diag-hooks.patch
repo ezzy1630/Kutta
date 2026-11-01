@@ -1,0 +1,320 @@
+diff -ru base-src/src/kutta/fv/coupled_solver.cpp diag-src/src/kutta/fv/coupled_solver.cpp
+--- base-src/src/kutta/fv/coupled_solver.cpp	2026-10-31 22:39:14
++++ diag-src/src/kutta/fv/coupled_solver.cpp	2026-10-31 22:59:43
+@@ -480,6 +480,13 @@
+   }
+ }
+ 
++const Buffer<float>& CoupledSolver::diag_update() const {return impl_->x;}
++const Buffer<float>& CoupledSolver::diag_rhs() const {return impl_->b;}
++void CoupledSolver::diag_apply(Buffer<float>& out, bool keep_u, bool keep_p) {
++  auto& s=*impl_;auto h=s.dev.download(s.x);auto m=h;const auto n=std::size_t(s.n);
++  for(std::size_t i=0;i<3*n;++i) if(!keep_u) m[i]=0;
++  for(std::size_t i=3*n;i<4*n;++i) if(!keep_p) m[i]=0;
++  s.dev.upload<float>(s.x,m);s.fine_spmv(s.x,out);s.dev.upload<float>(s.x,h);}
+ std::size_t CoupledSolver::bytes() const { return impl_->owned_bytes; }
+ 
+ std::string CoupledSolver::describe() const {
+diff -ru base-src/src/kutta/fv/coupled_solver.hpp diag-src/src/kutta/fv/coupled_solver.hpp
+--- base-src/src/kutta/fv/coupled_solver.hpp	2026-10-31 22:39:14
++++ diag-src/src/kutta/fv/coupled_solver.hpp	2026-10-31 22:59:43
+@@ -79,6 +79,9 @@
+   void update(DeviceVec3& velocity, Buffer<float>& pressure, double alpha_u, double alpha_p);
+   // Bytes of device memory this solver owns (excludes shared mesh/flow data).
+   std::size_t bytes() const;
++  const Buffer<float>& diag_update() const;
++  const Buffer<float>& diag_rhs() const;
++  void diag_apply(Buffer<float>& out, bool keep_u=true, bool keep_p=true);
+   std::string describe() const;
+ 
+  private:
+diff -ru base-src/src/kutta/fv/face_projection.cpp diag-src/src/kutta/fv/face_projection.cpp
+--- base-src/src/kutta/fv/face_projection.cpp	2026-10-31 22:39:14
++++ diag-src/src/kutta/fv/face_projection.cpp	2026-10-31 23:14:57
+@@ -1,3 +1,4 @@
++#include <cstdlib>
+ #include "kutta/fv/face_projection.hpp"
+ #include <algorithm>
+ #include <array>
+@@ -355,6 +356,6 @@
+   const auto& m=mesh_;moments(field,boundary);
+   kern::fv_moment_momentum(dev_,m.n_internal_faces,m.owner,m.neighbour,slot_,m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
+     m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,field,geometry_[hops],moment_[1],coefficients_,
+-    diagonal,cell_limiter?*cell_limiter:diagonal,out,m.n_internal_faces,cell_limiter?1:0);
++    diagonal,cell_limiter?*cell_limiter:diagonal,out,m.n_internal_faces,cell_limiter?(std::getenv("KUTTA_DIAG_WALKMODE")?std::atoi(std::getenv("KUTTA_DIAG_WALKMODE")):1):0);
+ }
+ } // namespace kutta::fv
+diff -ru base-src/src/kutta/fv/steady_solver.cpp diag-src/src/kutta/fv/steady_solver.cpp
+--- base-src/src/kutta/fv/steady_solver.cpp	2026-10-31 22:39:14
++++ diag-src/src/kutta/fv/steady_solver.cpp	2026-10-31 23:36:52
+@@ -3,6 +3,9 @@
+ #include "kutta/fv/turbulence/realizable_ke_transport.hpp"
+ #include "kutta/fv/turbulence/intermittency.hpp"
+ #include "kutta/fv/coupled_solver.hpp"
++#include <cstdlib>
++#include <cstdio>
++#include <fstream>
+ 
+ #include <algorithm>
+ #include <cmath>
+@@ -150,7 +153,7 @@
+   double velocity_scale=1; // the automatic time step's velocity scale
+ 
+   Impl(Device& device,PolyMesh input,std::vector<PatchCondition> conditions,SolverSettings options)
+-      :dev(device),host(std::move(input)),settings(options) {
++      :dev(device),host(std::move(input)),settings(diag_settings(options)) {
+     KUTTA_REQUIRE(settings.pseudo_transient || settings.coupling!=PressureVelocityCoupling::Coupled,
+       "FV: the Coupled solver requires pseudo-transient stepping");
+     KUTTA_REQUIRE(int(settings.sa.has_value())+int(settings.sst.has_value())+int(settings.realizable_ke.has_value())<=1,"FV: select exactly one turbulence model");
+@@ -448,7 +451,10 @@
+     // Fluent's conservative length scale: min(domain volume^(1/3), largest extent).
+     length=std::min(std::cbrt(volume),std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z}));
+     if(settings.coupling==PressureVelocityCoupling::Coupled)
+-      coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference,low_order);
++      {CoupledOptions co;if(const char* e=std::getenv("KUTTA_DIAG_CFL")) co.courant=std::atof(e);
++      coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference,low_order,co);}
++      if(const char* e=std::getenv("KUTTA_DIAG_LINTOL")) settings.coupled_linear.rel_tol=std::atof(e);
++      if(const char* e=std::getenv("KUTTA_DIAG_LINMAX")) settings.coupled_linear.max_iter=std::atoi(e);
+     memory::phase("coupled-solver");
+     update_time(bc_speed,bc_speed);
+     dev.fill(momentum[0]->diagonal,1);dev.fill(momentum[0]->consistent_inverse,0);
+@@ -471,6 +477,9 @@
+     // The momentum rows share one CSR value buffer and their off-diagonals.
+     if(coupled) kern::coupled_floor_physical(dev,mesh.n_cells,momentum[0]->matrix.row_ptr,momentum[0]->matrix.diag,
+       momentum[0]->matrix.val,physical_diagonal);
++    if(coupled){const int f=diag_int("KUTTA_DIAG_FREEZE_APHYS");if(f>=0&&report.iteration>=f){
++      if(!diag_have_physical){diag_saved_physical=dev.alloc<float>(mesh.n_cells);dev.copy(diag_saved_physical,physical_diagonal);diag_have_physical=true;}
++      else dev.copy(physical_diagonal,diag_saved_physical);}}
+   }
+   void turbulence_boundaries() {
+     kern::fv_turbulence_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,turbulence_spec,
+@@ -681,6 +690,7 @@
+   TransportSettings with_low(TransportSettings t,int k) const {
+     const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
+     if(paired) t.limiter_low=lo[k];
++    if(diag_frozen_on) t.frozen_limiter=&diag_frozen[k];
+     return t;
+   }
+   // Every initialization writes hi alone.
+@@ -715,7 +725,18 @@
+     const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
+     for(int k=0;k<3;++k) {
+       auto& eq=*momentum[k];auto& g=limited_gradient[k];
+-      if(settings.limit && paired) kern::fv_paired_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
++      if(diag_frozen_on && std::getenv("KUTTA_DIAG_LIMRELAX")) {
++        const float beta=float(std::atof(std::getenv("KUTTA_DIAG_LIMRELAX")));
++        kern::fv_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
++          stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*bc[k],
++          eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
++        auto t=dev.download(eq.limiter);auto f=dev.download(diag_frozen[k]);
++        const bool asym=std::getenv("KUTTA_DIAG_LIMASYM")!=nullptr;
++        for(std::size_t c=0;c<t.size();++c) f[c]=asym&&t[c]<f[c]?t[c]:f[c]+beta*(t[c]-f[c]);
++        dev.upload<float>(diag_frozen[k],f);
++        dev.copy(eq.limiter,diag_frozen[k]);kern::fv_scale_gradient(dev,mesh.n_cells,eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);}
++      else if(diag_frozen_on) {dev.copy(eq.limiter,diag_frozen[k]);kern::fv_scale_gradient(dev,mesh.n_cells,eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);}
++      else if(settings.limit && paired) kern::fv_paired_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
+         stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*lo[k],*bc[k],scalar_kind,
+         eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
+       else if(settings.limit) kern::fv_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
+@@ -726,17 +747,19 @@
+         kern::fv_scale_gradient(dev,mesh.n_cells,eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z);
+       }
+     }
+-    const auto& gu=limited_gradient[0];const auto& gv=limited_gradient[1];const auto& gw=limited_gradient[2];
++    static DeviceVec3* diag_zero=nullptr;
++    if(std::getenv("KUTTA_DIAG_NOFACEGRAD") && !diag_zero){diag_zero=new DeviceVec3(vector_field(dev,mesh.n_cells));dev.fill(diag_zero->x,0);dev.fill(diag_zero->y,0);dev.fill(diag_zero->z,0);}
++    const auto& gu=diag_zero?*diag_zero:limited_gradient[0];const auto& gv=diag_zero?*diag_zero:limited_gradient[1];const auto& gw=diag_zero?*diag_zero:limited_gradient[2];
+     kern::fv_momentum_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
+       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+       velocity.x,velocity.y,velocity.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
+       face_velocity_weights(),boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
+       face_velocity.x,face_velocity.y,face_velocity.z,mesh.n_internal_faces);
+-    if(velocity_faces) {
+-      velocity_faces->momentum_values(velocity.x,boundary_velocity.x,face_velocity_weights(),face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
+-      velocity_faces->momentum_values(velocity.y,boundary_velocity.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
+-      velocity_faces->momentum_values(velocity.z,boundary_velocity.z,face_velocity_weights(),face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
++    if(velocity_faces && !std::getenv("KUTTA_DIAG_NOVELFACES")) {
++      velocity_faces->momentum_values(velocity.x,boundary_velocity.x,face_velocity_weights(),face_velocity.x,settings.limit&&!std::getenv("KUTTA_DIAG_WALKNOLIM")?&momentum[0]->limiter:nullptr);
++      velocity_faces->momentum_values(velocity.y,boundary_velocity.y,face_velocity_weights(),face_velocity.y,settings.limit&&!std::getenv("KUTTA_DIAG_WALKNOLIM")?&momentum[1]->limiter:nullptr);
++      velocity_faces->momentum_values(velocity.z,boundary_velocity.z,face_velocity_weights(),face_velocity.z,settings.limit&&!std::getenv("KUTTA_DIAG_WALKNOLIM")?&momentum[2]->limiter:nullptr);
+     }
+     kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
+       mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,
+@@ -783,7 +806,7 @@
+     const Buffer<float>* src[]{&source.x,&source.y,&source.z};
+     Buffer<float>* res[]{&residual_u,&residual_v,&residual_w};
+     for(int k=0;k<3;++k) {
+-      momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport,wall_terms(k));
++      momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],with_low(transport,k),wall_terms(k));
+       residual(dev,momentum[k]->matrix,*q[k],momentum[k]->rhs,*res[k]);
+       coupled->capture_diagonal(k,momentum[k]->matrix,momentum[k]->diagonal);
+       report.momentum[k]={};
+@@ -791,15 +814,103 @@
+     update_momentum_diagonal();
+     report.pressure=coupled->solve({residual_u,residual_v,residual_w,mass,viscosity,physical_diagonal,
+       face_velocity_weights(),settings.density,velocity_scale},settings.coupled_linear);
++    if(diag_int("KUTTA_DIAG_JCHECK")==report.iteration) diag_jcheck();
+     coupled->update(velocity,pressure,settings.momentum_relaxation,settings.pressure_relaxation);
+     update_boundaries();update_pressure();update_flux();
+     kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
+-    solve_turbulence();
++    {const int f=diag_int("KUTTA_DIAG_FREEZE_LIM");if(f>=0&&report.iteration==f&&!diag_frozen_on){for(int k=0;k<3;++k){diag_frozen[k]=dev.alloc<float>(mesh.n_cells);dev.copy(diag_frozen[k],momentum[k]->limiter);}diag_frozen_on=true;std::fprintf(stderr,"limiters frozen at %d\n",report.iteration);}}
++    {const int f=diag_int("KUTTA_DIAG_FREEZE_TURB");if(!(f>=0&&report.iteration>=f)) solve_turbulence();}
++    {const int a=diag_int("KUTTA_DIAG_DUMP_FROM"),b=diag_int("KUTTA_DIAG_DUMP_TO");if(a>=0&&report.iteration>=a&&report.iteration<=b) diag_dump("c");}
+     ++report.iteration;
+     if(report.iteration<=5 || report.iteration%settings.monitor_interval==0) monitor();
+   }
+ 
++  void diag_true_residual(std::vector<float>& out){
++    // The next iteration's block RHS: flux with the current physical diagonal, then momentum with that flux.
++    const auto n=std::size_t(mesh.n_cells);out.assign(4*n,0);
++    update_boundaries();update_pressure();update_flux();
++    auto m=dev.download(mass);auto own=dev.download(mesh.owner),nb=dev.download(mesh.neighbour);
++    const double wc=settings.density*velocity_scale;
++    std::vector<double> imb(n,0);
++    for(Index f=0;f<mesh.n_faces;++f){imb[own[f]]+=m[f];if(f<mesh.n_internal_faces) imb[nb[f]]-=m[f];}
++    for(std::size_t c=0;c<n;++c) out[3*n+c]=float(-wc/settings.density*imb[c]);
++    update_boundaries();update_pressure();update_turbulence();momentum_sources();
++    const auto transport=momentum_transport();
++    Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
++    const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
++    const Buffer<float>* src[]{&source.x,&source.y,&source.z};
++    for(int k=0;k<3;++k){momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport,wall_terms(k));
++      residual(dev,momentum[k]->matrix,*q[k],momentum[k]->rhs,residual_u);auto h=dev.download(residual_u);std::copy(h.begin(),h.end(),out.begin()+k*n);}
++  }
++  void diag_jcheck(){
++    const char* dir=std::getenv("KUTTA_DIAG_DIR");const auto n=std::size_t(mesh.n_cells);
++    auto u0=dev.download(velocity.x),v0=dev.download(velocity.y),w0=dev.download(velocity.z),p0=dev.download(pressure);
++    auto m0=dev.download(mass);auto ph0=dev.download(physical_diagonal);
++    auto jx=dev.alloc<float>(4*n);coupled->diag_apply(jx);
++    {double sf=0;auto own=dev.download(mesh.owner);for(Index f=0;f<mesh.n_faces;++f) sf+=(f<mesh.n_internal_faces?2:1)*std::abs(double(m0[f]));
++     std::fprintf(stderr,"sum over cells of sum_f |F| = %.6g  eps*that = %.4g  raw continuity now = %.4g\n",sf,sf*std::ldexp(1.,-23),dev.sum(provisional_continuity,mesh.n_cells));}
++    std::ofstream out(std::string(dir)+"/jcheck.bin",std::ios::binary);
++    auto put=[&](const std::vector<float>& h){out.write((const char*)h.data(),h.size()*4);};
++    put(dev.download(coupled->diag_rhs()));put(dev.download(jx));put(dev.download(coupled->diag_update()));
++    coupled->diag_apply(jx,true,false);put(dev.download(jx));coupled->diag_apply(jx,false,true);put(dev.download(jx));
++    if(const char* list=std::getenv("KUTTA_DIAG_PROBE")){
++      auto offs=dev.download(mesh.cell_face_offsets);auto cf=dev.download(mesh.cell_faces);auto own=dev.download(mesh.owner),nb=dev.download(mesh.neighbour);
++      auto mask=velocity_faces?dev.download(velocity_faces->mask()):std::vector<Index>(mesh.n_faces,0);
++      auto base=[&](){dev.upload<float>(velocity.x,u0);dev.upload<float>(velocity.y,v0);dev.upload<float>(pressure,p0);dev.upload<float>(mass,m0);dev.upload<float>(physical_diagonal,ph0);update_boundaries();update_pressure();update_flux();return dev.download(face_velocity.x);};
++      auto f0=base();
++      std::string ls(list);std::size_t pos=0;
++      while(pos<ls.size()){auto e=ls.find(',',pos);if(e==std::string::npos)e=ls.size();const Index c=std::stoi(ls.substr(pos,e-pos));pos=e+1;
++        auto u=u0;const float d=1e-3f;u[c]+=d;
++        dev.upload<float>(velocity.x,u);dev.upload<float>(velocity.y,v0);dev.upload<float>(pressure,p0);dev.upload<float>(mass,m0);dev.upload<float>(physical_diagonal,ph0);
++        update_boundaries();update_pressure();update_flux();auto f1=dev.download(face_velocity.x);
++        std::fprintf(stderr,"cell %d a=%g\n",c,ph0[c]);
++        for(Index j=offs[c];j<offs[c+1];++j){const Index f=cf[j];if(f>=mesh.n_internal_faces) continue;const Index o=own[f]==c?nb[f]:own[f];
++          std::fprintf(stderr,"  face %d other %d masked %d du_f/du_c %.4f  H weight %.4f\n",f,o,mask[f],(f1[f]-f0[f])/d,ph0[c]/(ph0[c]+ph0[o]));}
++        // also faces of other cells that moved
++        int moved=0;double total=0;for(Index f=0;f<mesh.n_internal_faces;++f){const double df=(f1[f]-f0[f])/d;if(std::abs(df)>1e-3){bool own_face=false;for(Index j=offs[c];j<offs[c+1];++j) own_face|=cf[j]==f;if(!own_face){++moved;total+=std::abs(df);}}}
++        std::fprintf(stderr,"  non-adjacent faces moved: %d, sum |du_f/du_c| %.3f\n",moved,total);
++      }
++      base();
++    }
++    const double steps[][2]{{0,0},{.05,.05},{-.05,-.05},{.05,0},{-.05,0},{0,.05},{0,-.05}};
++    for(const auto& st:steps){
++      dev.upload<float>(velocity.x,u0);dev.upload<float>(velocity.y,v0);dev.upload<float>(velocity.z,w0);dev.upload<float>(pressure,p0);
++      dev.upload<float>(mass,m0);dev.upload<float>(physical_diagonal,ph0);
++      if(st[0]!=0 || st[1]!=0) coupled->update(velocity,pressure,st[0],st[1]);
++      std::vector<float> r;diag_true_residual(r);put(r);
++    }
++    dev.upload<float>(velocity.x,u0);dev.upload<float>(velocity.y,v0);dev.upload<float>(velocity.z,w0);dev.upload<float>(pressure,p0);
++    dev.upload<float>(mass,m0);dev.upload<float>(physical_diagonal,ph0);
++    out.close();std::fprintf(stderr,"jcheck written\n");std::exit(0);
++  }
++  // DIAG (not for commit)
++  static int diag_int(const char* n,int d=-1){const char* e=std::getenv(n);return e?std::atoi(e):d;}
++  static SolverSettings diag_settings(SolverSettings s){
++    if(std::getenv("KUTTA_DIAG_NOLIMIT")) s.limit=false;
++    if(std::getenv("KUTTA_DIAG_NOPAIR")) s.paired_state=false;
++    if(std::getenv("KUTTA_DIAG_FOU")) {s.convection=ConvectionScheme::FirstOrderUpwind;if(s.sst){s.sst->k_convection=s.sst->omega_convection=ConvectionScheme::FirstOrderUpwind;}}
++    if(std::getenv("KUTTA_DIAG_STDP")) s.pressure_interpolation=PressureInterpolation::Standard;
++    if(std::getenv("KUTTA_DIAG_DISTW")) s.face_velocity=FaceVelocityWeights::Distance;
++    return s;}
++  Buffer<float> diag_saved_physical;bool diag_have_physical=false;
++  Buffer<float> diag_frozen[3];bool diag_frozen_on=false;
++  void diag_dump(const char* tag){
++    const char* dir=std::getenv("KUTTA_DIAG_DIR");if(!dir) return;
++    char name[512];std::snprintf(name,sizeof name,"%s/%s_%05d.bin",dir,tag,report.iteration);
++    std::ofstream out(name,std::ios::binary);
++    auto put=[&](const Buffer<float>& b){auto h=dev.download(b);out.write((const char*)h.data(),h.size()*4);};
++    put(velocity.x);put(velocity.y);put(pressure);put(physical_diagonal);put(provisional_continuity);put(viscosity_cell_diag());
++    put(coupled->diag_update());put(coupled->diag_rhs());
++    {static bool once=false;if(!once){once=true;char n2[512];std::snprintf(n2,sizeof n2,"%s/geom.bin",dir);std::ofstream g(n2,std::ios::binary);
++      for(auto c:geom.cell_centroid){float v[4]{float(c.x),float(c.y),float(c.z),0};g.write((const char*)v,16);}
++      for(auto v:geom.cell_volume){float f=float(v);g.write((const char*)&f,4);}}}
++  }
++  const Buffer<float>& viscosity_cell_diag(){return momentum[0]->limiter;}
+   void step() {
++    if(!coupled && diag_int("KUTTA_DIAG_SWITCH")==report.iteration) {
++      coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference,std::span<const Index>{});
++      paired=false;settings.momentum_relaxation=.5;settings.pressure_relaxation=.5;
++      std::fprintf(stderr,"switched to Coupled at %d\n",report.iteration);}
+     if(coupled) {coupled_step();return;}
+     refresh_time_step();
+     update_boundaries();update_pressure();
+@@ -905,7 +1016,23 @@
+       }
+     }
+   }
++  void diag_true_monitor(){
++    if(!diag_frozen_on || !std::getenv("KUTTA_DIAG_TRUE_MONITOR")) return;
++    auto m0=dev.download(mass);diag_frozen_on=false;
++    update_boundaries();update_pressure();update_flux();
++    kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,continuity);
++    const double cont=dev.sum(continuity,mesh.n_cells);
++    update_turbulence();momentum_sources();
++    const auto transport=momentum_transport();double mom=0;
++    momentum[0]->assemble_reconstructed(velocity.x,boundary_velocity.x,scalar_kind,mass,viscosity,source.x,transport,wall_terms(0));
++    residual(dev,momentum[0]->matrix,velocity.x,momentum[0]->rhs,residual_u);
++    {auto h=dev.download(residual_u);for(float v:h) mom+=std::abs(v);}
++    double dl=0;for(int k=0;k<2;++k){auto a=dev.download(momentum[k]->limiter),b=dev.download(diag_frozen[k]);for(std::size_t c=0;c<a.size();++c) dl=std::max(dl,double(std::abs(a[c]-b[c])));}
++    std::fprintf(stderr,"TRUE it=%d continuity_raw=%.4g umom_raw=%.4g max|theta-theta_relaxed|=%.3g\n",report.iteration,cont,mom,dl);
++    dev.upload<float>(mass,m0);diag_frozen_on=true;
++  }
+   IterationReport monitor() {
++    diag_true_monitor();
+     refresh_time_step();
+     update_boundaries();update_pressure();
+     update_turbulence();
+diff -ru base-src/src/kutta/fv/transport.cpp diag-src/src/kutta/fv/transport.cpp
+--- base-src/src/kutta/fv/transport.cpp	2026-10-31 22:39:14
++++ diag-src/src/kutta/fv/transport.cpp	2026-10-31 23:22:23
+@@ -51,7 +51,8 @@
+     settings.relaxation<=1,"FV invalid transport relaxation");
+   for(const auto* term:{terms.sink,terms.diagonal,terms.rhs})
+     KUTTA_REQUIRE(!term || term->size()==field.size(),"FV transport term size mismatch");
+-  if(settings.limit) limit_gradient(dev,m,s,field,bc,grad,limiter,settings.limiter_low,&kind); else dev.fill(limiter,1);
++  if(settings.frozen_limiter) dev.copy(limiter,*settings.frozen_limiter);
++  else if(settings.limit) limit_gradient(dev,m,s,field,bc,grad,limiter,settings.limiter_low,&kind); else dev.fill(limiter,1);
+   // Keep the legacy dispatch (including its shader signature) for models
+   // that have not enabled the projected reconstruction.
+   if(diffusion_reconstruction_) {
+diff -ru base-src/src/kutta/fv/transport.hpp diag-src/src/kutta/fv/transport.hpp
+--- base-src/src/kutta/fv/transport.hpp	2026-10-31 22:39:14
++++ diag-src/src/kutta/fv/transport.hpp	2026-10-31 23:22:23
+@@ -17,6 +17,7 @@
+   float relaxation=1;
+   // The low words of a float-pair field (fv_paired_limiter); null for float.
+   const Buffer<float>* limiter_low=nullptr;
++  const Buffer<float>* frozen_limiter=nullptr; // DIAG
+   SolveControl linear{1e-4,1e-12,200};
+ };
+ 
+diff -ru base-src/src/kutta/kernels/fv_face_moments.kern.h diag-src/src/kutta/kernels/fv_face_moments.kern.h
+--- base-src/src/kutta/kernels/fv_face_moments.kern.h	2026-10-31 22:39:14
++++ diag-src/src/kutta/kernels/fv_face_moments.kern.h	2026-10-31 23:14:57
+@@ -103,6 +103,11 @@
+   float cp=field[p],anchor=0.5f*(cp+field[n]);
+   kmoment m=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,field,geometry,moment,internal,anchor);
+   float value=w*cp+(1.0f-w)*field[n]+kmoment_apply(coefficients,s,1,m)-(1.0f-w)*kmoment_apply(coefficients,s,2,m);
++  if(limit==2) {face[i]+=kmin(cell_limiter[p],cell_limiter[n])*(value-face[i]);return;}
++  if(limit==3) {
++    float low=kmin(moment[p*KMOMENT_ROW+10],moment[n*KMOMENT_ROW+10]);
++    float high=kmax(moment[p*KMOMENT_ROW+11],moment[n*KMOMENT_ROW+11]);
++    face[i]=kmin(high,kmax(low,value));return;}
+   if(limit!=0) {
+     float theta=kmin(cell_limiter[p],cell_limiter[n]);
+     float low=kmin(moment[p*KMOMENT_ROW+10],moment[n*KMOMENT_ROW+10]);

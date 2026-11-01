@@ -157,7 +157,8 @@ struct SteadySolver::Impl {
     KUTTA_REQUIRE(settings.density>0 && std::isfinite(settings.density) && settings.viscosity>0 &&
       std::isfinite(settings.viscosity) && settings.momentum_relaxation>0 && settings.momentum_relaxation<=1 &&
       settings.pressure_relaxation>0 && settings.pressure_relaxation<=1 &&
-      settings.pseudo_time_scale>0 && settings.pseudo_time_step>=0 && settings.monitor_interval>0,
+      settings.pseudo_time_scale>0 && settings.pseudo_time_step>=0 && settings.monitor_interval>0 &&
+      std::isfinite(settings.coupled_courant) && settings.coupled_courant>0,
       "FV invalid steady solver settings");
     for(auto& bc:conditions)
       KUTTA_REQUIRE(boundaries.emplace(bc.patch,std::move(bc.condition)).second,"FV duplicate patch condition");
@@ -206,7 +207,7 @@ struct SteadySolver::Impl {
     residual_u=dev.alloc<float>(n);residual_v=dev.alloc<float>(n);residual_w=dev.alloc<float>(n);
     continuity=dev.alloc<float>(n);provisional_continuity=dev.alloc<float>(n);dev.fill(provisional_continuity,0);scale=dev.alloc<float>(n);speed=dev.alloc<float>(n);
     wall_diagonal=dev.alloc<float>(n);wall_rhs=dev.alloc<float>(n);
-    paired=settings.paired_state && settings.coupling!=PressureVelocityCoupling::Coupled && !interior_jumps->active();
+    paired=settings.paired_state && !interior_jumps->active();
     if(paired) {
       velocity_lo=vector_field(dev,n);pressure_gradient_lo=vector_field(dev,n);
       pressure_lo=dev.alloc<float>(n);mass_lo=dev.alloc<float>(nf);previous_mass=dev.alloc<float>(nf);pressure_boundary_lo=dev.alloc<float>(nb);
@@ -447,8 +448,10 @@ struct SteadySolver::Impl {
     for(auto p:host.points) {lo={std::min(lo.x,p.x),std::min(lo.y,p.y),std::min(lo.z,p.z)};hi={std::max(hi.x,p.x),std::max(hi.y,p.y),std::max(hi.z,p.z)};}
     // Fluent's conservative length scale: min(domain volume^(1/3), largest extent).
     length=std::min(std::cbrt(volume),std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z}));
-    if(settings.coupling==PressureVelocityCoupling::Coupled)
-      coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference,low_order);
+    if(settings.coupling==PressureVelocityCoupling::Coupled) {
+      CoupledOptions coupled_options;coupled_options.courant=settings.coupled_courant;
+      coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference,low_order,coupled_options);
+    }
     memory::phase("coupled-solver");
     update_time(bc_speed,bc_speed);
     dev.fill(momentum[0]->diagonal,1);dev.fill(momentum[0]->consistent_inverse,0);
@@ -783,17 +786,28 @@ struct SteadySolver::Impl {
     const Buffer<float>* src[]{&source.x,&source.y,&source.z};
     Buffer<float>* res[]{&residual_u,&residual_v,&residual_w};
     for(int k=0;k<3;++k) {
-      momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],transport,wall_terms(k));
-      residual(dev,momentum[k]->matrix,*q[k],momentum[k]->rhs,*res[k]);
+      momentum[k]->assemble_reconstructed(*q[k],*bc[k],scalar_kind,mass,viscosity,*src[k],with_low(transport,k),wall_terms(k));
+      if(paired) paired_momentum_residual(k,*res[k]);else residual(dev,momentum[k]->matrix,*q[k],momentum[k]->rhs,*res[k]);
       coupled->capture_diagonal(k,momentum[k]->matrix,momentum[k]->diagonal);
       report.momentum[k]={};
     }
     update_momentum_diagonal();
+    // The pair's net outflow of the current flux (the previous step's end
+    // computed the same; an initialization may not have).
+    if(paired) kern::fv_paired_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
+      mass,mass_lo,imbalance,provisional_continuity);
     report.pressure=coupled->solve({residual_u,residual_v,residual_w,mass,viscosity,physical_diagonal,
-      face_velocity_weights(),settings.density,velocity_scale},settings.coupled_linear);
-    coupled->update(velocity,pressure,settings.momentum_relaxation,settings.pressure_relaxation);
+      face_velocity_weights(),settings.density,velocity_scale,paired?&imbalance:nullptr},settings.coupled_linear);
+    if(paired) {
+      const auto slack=paired_slack();
+      coupled->update(velocity,pressure,{velocity_lo,pressure_lo,slack.velocity,slack.pressure},
+        settings.momentum_relaxation,settings.pressure_relaxation);
+      update_pressure_gradient_lo();
+    } else coupled->update(velocity,pressure,settings.momentum_relaxation,settings.pressure_relaxation);
     update_boundaries();update_pressure();update_flux();
-    kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
+    if(paired) kern::fv_paired_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
+      mass,mass_lo,imbalance,provisional_continuity);
+    else kern::fv_continuity(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,provisional_continuity);
     solve_turbulence();
     ++report.iteration;
     if(report.iteration<=5 || report.iteration%settings.monitor_interval==0) monitor();

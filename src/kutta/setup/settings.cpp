@@ -274,12 +274,14 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   }
   {
     // Fluent's Flow Courant Number (Solution Controls with Coupled). Kutta's
-    // Coupled solver adds Fluent's default 200 as implicit relaxation on top of
-    // its pseudo time step (CoupledOptions::courant), whatever the case saved.
+    // Coupled solver applies it as implicit relaxation on top of its pseudo
+    // time step (SolverSettings::coupled_courant); absent, Fluent's default 200.
     auto& s=b.add("controls/courant-number","Flow Courant number","Controls",c.numerics.courant?Json(*c.numerics.courant):Json(nullptr),"1","number");
-    s.reason="Kutta's Coupled solver always uses Fluent's default flow Courant number, 200, as implicit relaxation on top of the pseudo time step (Fluent Theory Guide 18.4.4); the saved value is not yet configurable in Kutta";
     // Without pseudo time Kutta never runs Coupled, so the value is unused.
-    if(uses_pseudo_time(c))b.depends(s,"methods/pressure-velocity-coupling",{Json(std::string("coupled"))});else s.active=false;
+    if(uses_pseudo_time(c)) {
+      b.depends(s,"methods/pressure-velocity-coupling",{Json(std::string("coupled"))});
+      b.editable(s,[target=&c.numerics.courant](const Json& j){*target=std::get<double>(j.value);},positive,1e15);
+    } else {s.active=false;s.reason="Kutta runs Coupled only with the pseudo-transient formulation; this case runs SIMPLEC";}
     b.consume(c.variables,"pressure-coupled/courant-number");
   }
   b.number("controls/pseudo-time-scale-factor","Pseudo-time scale factor","Controls",c.numerics.pseudo.scale_factor,"1",true,positive,1e15);b.consume(c.variables,"pseudo-auto-time-step-scale-factor");

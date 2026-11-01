@@ -194,13 +194,20 @@ or `second-order`; other saved schemes keep their Fluent name and are
 unsupported) and `methods/pseudo-transient` (bool, whether the steady case
 uses the pseudo-transient formulation).
 
-`controls/courant-number` (v1 additive, read-only) is Fluent's Flow Courant
-Number as saved (`pressure-coupled/courant-number`, null when absent). Kutta's
-Coupled solver always applies Fluent's default, 200, as implicit relaxation on
-top of the pseudo time step (Theory Guide 18.4.4); its `reason` says so. With
-pseudo time it depends on `methods/pressure-velocity-coupling`
-(`active_when` `["coupled"]`); without pseudo time Kutta never runs Coupled,
-so it is inactive.
+`controls/courant-number` (v1 additive; editable since the Coupled
+convergence change) is Fluent's Flow Courant Number as saved
+(`pressure-coupled/courant-number`, null when absent). Kutta's Coupled solver
+applies it as implicit relaxation, a_P(1 + 1/CFL), on top of the pseudo time
+step (Theory Guide 18.4.4); a case that saves none runs Fluent's default, 200.
+It is a convergence control: the fixed point does not depend on it. With
+pseudo time it is editable (`min` the smallest positive float, `max` 1e15) and
+depends on `methods/pressure-velocity-coupling` (`active_when`
+`["coupled"]`). Without pseudo time Kutta never runs Coupled, so it is
+inactive and read-only, and its `reason` says the case runs SIMPLEC. Fluent
+itself documents the Flow Courant Number only for Coupled with the pseudo time
+method off; with Fluent's global pseudo time step it uses the pseudo-time
+explicit relaxation factors instead (User's Guide 36.3), which Kutta also
+honours (`controls/mom-relaxation`, `controls/pressure-relaxation`).
 
 On valid runs `setup` is the first event, followed by warnings and iterations;
 `done` is last and means outputs are closed. Rejected/setup-failed runs may emit

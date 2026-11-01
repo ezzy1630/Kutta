@@ -170,6 +170,10 @@ struct SolverSettings {
   bool paired_state=true;
   SolveControl momentum_linear{1e-2,1e-10,100};
   SolveControl pressure_linear{1e-3,1e-12,300};
+  // Fluent's flow Courant number (Solution Controls, Coupled): the Coupled
+  // block Jacobian's implicit relaxation a_P/CFL (CoupledOptions::courant).
+  // Convergence path only.
+  double coupled_courant=200;
   // Coupled block solve: one order of residual reduction per outer
   // iteration, Fluent's default AMG termination criterion.
   SolveControl coupled_linear{.1,1e-12,20};

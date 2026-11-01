@@ -290,11 +290,13 @@ for report in ("drag", "lift", "force"):
 assert tiny_settings["monitors/residual/continuity/check"]["value"] is False
 assert tiny_settings["monitors/residual/continuity/absolute-criterion"]["value"] is None
 assert tiny_settings["monitors/residual/continuity/absolute-criterion"]["editable"]
-# The saved flow Courant number is shown read-only: Kutta's Coupled uses Fluent's default.
+# The saved flow Courant number is Kutta's Coupled implicit relaxation, and editable.
 courant = tiny_settings["controls/courant-number"]
-assert courant["value"] == 5 and not courant["editable"] and "200" in courant["reason"], courant
+assert courant["value"] == 5 and courant["editable"] and courant["min"] > 0, courant
 assert courant["depends_on"] == "methods/pressure-velocity-coupling" and courant["active_when"] == ["coupled"]
 assert courant["active"] is (tiny_settings["methods/pressure-velocity-coupling"]["value"] == "coupled")
+solve_setup({"controls/courant-number": 50}, "courant", case="tiny")
+solve_setup({"controls/courant-number": 0}, "bad-courant", reject=True, case="tiny")
 converged_out, events = solve_setup({"run/iterations": 10, "run/monitor-interval": 1, "monitors/check-convergence": True,
                                      "monitors/report/drag/active": True, "monitors/report/drag/stop-criterion": 1e30,
                                      "monitors/report/drag/previous-values": 1, "monitors/report/drag/ignore-before": 0}, "report-converged", case="tiny")

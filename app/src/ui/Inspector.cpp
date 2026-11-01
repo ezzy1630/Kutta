@@ -806,8 +806,8 @@ static QString couplingNote(const SettingsModel& m)
         return QObject::tr("Saved with Coupled but without the pseudo-transient formulation, which Kutta's Coupled solver needs: "
                            "this case runs SIMPLEC. Same discrete equations; only the convergence path differs.");
     if (v == "coupled")
-        return QObject::tr("Pressure and momentum are solved together, with pseudo-transient steps and Fluent's default flow Courant "
-                           "number (200) as implicit relaxation (Kutta's native Coupled solver; see Controls).");
+        return QObject::tr("Pressure and momentum are solved together, with pseudo-transient steps and the flow Courant number "
+                           "as implicit relaxation (Kutta's native Coupled solver; see Controls).");
     QString note = v == "simplec" ? QObject::tr("Segregated, with SIMPLEC's consistent pressure correction.")
                                   : QObject::tr("Segregated, with SIMPLE's pressure correction.");
     if (!offered) note += ' ' + QObject::tr("Coupled is not offered: Kutta's Coupled solver needs the pseudo-transient formulation, which this case does not use.");
@@ -872,11 +872,11 @@ QWidget* controls(const InspectorContext& c)
     f->addSetting("controls/intermit-relaxation");
     f->addSection(QObject::tr("Pseudo time"));
     f->addSetting("controls/pseudo-time-scale-factor");
-    // Fluent's Flow Courant Number, which Kutta's Coupled solver fixes at Fluent's default.
+    // Fluent's Flow Courant Number, the Coupled solver's implicit relaxation.
     SettingsModel* m = c.session->settings();
     if (f->addSetting("controls/courant-number")) {
-        auto* note = new QLabel(QObject::tr("Kutta's Coupled solver always uses Fluent's default flow Courant number, 200, as implicit "
-                                            "relaxation on top of the pseudo time step. The case's saved value is shown for reference."));
+        auto* note = new QLabel(QObject::tr("The Coupled solver applies the flow Courant number as implicit relaxation on top of the "
+                                            "pseudo time step. Lower values are more robust and slower; Fluent's default is 200."));
         note->setProperty("role", "note");
         note->setWordWrap(true);
         f->addWidget(note);

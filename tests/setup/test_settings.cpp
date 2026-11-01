@@ -197,7 +197,18 @@ TEST_CASE("Mixing elbow runs Fluent's Coupled scheme natively and can switch to 
   // SST solves k and omega; the epsilon scheme is listed but unused.
   CHECK(by.at("methods/omega-scheme")->active);CHECK(by.at("methods/omega-scheme")->editable);
   CHECK_FALSE(by.at("methods/epsilon-scheme")->active);CHECK_FALSE(by.at("methods/epsilon-scheme")->editable);
+  // The saved Flow Courant Number is the Coupled implicit relaxation, and editable.
+  CHECK(by.at("controls/courant-number")->value==Json(200.));CHECK(by.at("controls/courant-number")->editable);
+  CHECK(saved.settings.coupled_courant==200);
   MeshTemp t;
+  {
+    auto edited=kutta::fluent::read_case(path);kutta::setup::RunControls edited_run;
+    const auto inventory=kutta::setup::settings_inventory(edited,edited_run);
+    mesh_text(t.path("courant.json"),"{\"v\":1,\"overrides\":{\"controls/courant-number\":50}}");
+    CHECK(kutta::setup::apply_setup(t.path("courant.json"),inventory).size()==1);
+    const auto courant=kutta::setup::fluent_setup(edited,mesh,wfgc);
+    CHECK(courant.settings.coupled_courant==50);CHECK(courant.settings.momentum_relaxation==.5);
+  }
   mesh_text(t.path("simplec.json"),"{\"v\":1,\"overrides\":{\"methods/pressure-velocity-coupling\":\"simplec\"}}");
   CHECK(kutta::setup::apply_setup(t.path("simplec.json"),settings).size()==1);
   const auto switched=kutta::setup::fluent_setup(c,mesh,wfgc);

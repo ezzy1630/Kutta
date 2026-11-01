@@ -152,3 +152,31 @@ TEST_CASE("FV SIMPLEC float-pair state falls below the float32 continuity floor"
     if(baseline.empty()) baseline=u[1];else CHECK(u[1]==baseline);
   }
 }
+
+// Coupled carries the same pairs: its block RHS is the pair's residual.
+TEST_CASE("FV Coupled float-pair state falls below the float32 continuity floor") {
+  auto mesh=make_box_hex(24,8,1,{0,0,0},{3,1,.1});
+  std::vector<PatchCondition> bc;
+  for(const auto& p:mesh.patches) {
+    if(p.name=="xmin") bc.push_back({p.name,VelocityInlet{Vec3d{1,0,0}}});
+    else if(p.name=="xmax") bc.push_back({p.name,PressureOutlet{0,Vec3d{1,0,0}}});
+    else if(p.name=="zmin" || p.name=="zmax") bc.push_back({p.name,Symmetry{}});
+    else bc.push_back({p.name,Wall{}});
+  }
+  std::vector<float> baseline;
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    std::vector<float> u[2];double continuity[2];
+    for(bool paired:{false,true}) {
+      SolverSettings settings;settings.viscosity=.02;settings.paired_state=paired;
+      settings.coupling=PressureVelocityCoupling::Coupled;settings.momentum_relaxation=settings.pressure_relaxation=.5;
+      SteadySolver solver(*dev,mesh,bc,settings);
+      solver.initialize([](Vec3d){return Vec3d{1,0,0};},[](Vec3d){return 0.;});
+      solver.iterate(1400);
+      continuity[paired]=solver.monitor().continuity.scaled;u[paired]=dev->download(solver.velocity().x);
+    }
+    // Float32 stalls near 1e-5 from iteration 800; the pair reaches 1.9e-8.
+    CHECK(continuity[0]>5e-6);CHECK(continuity[1]<1e-7);
+    for(std::size_t i=0;i<u[0].size();++i) CHECK(u[1][i]==doctest::Approx(u[0][i]).epsilon(1e-5));
+    if(baseline.empty()) baseline=u[1];else CHECK(u[1]==baseline);
+  }
+}

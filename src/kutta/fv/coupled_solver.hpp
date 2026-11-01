@@ -48,6 +48,17 @@ struct CoupledResiduals {
   // a_N u_N)/(a_P + a_N)); the continuity-velocity block follows them.
   const Buffer<float>& face_weights;
   double density = 1, velocity_scale = 1;
+  // Signed net outflow per cell to use instead of summing mass (the
+  // float-pair continuity); null sums mass.
+  const Buffer<float>* net_outflow = nullptr;
+};
+
+// The low words of the float-pair state (SolverSettings::paired_state) and
+// kpair_add's slacks.
+struct CoupledPairs {
+  DeviceVec3& velocity_lo;
+  Buffer<float>& pressure_lo;
+  float velocity_slack = 0, pressure_slack = 0;
 };
 
 class CoupledSolver {
@@ -77,6 +88,8 @@ class CoupledSolver {
   // u += alpha_u du, p += alpha_p dp (Fluent's explicit relaxation), then
   // re-gauges p at the reference cell of a closed domain.
   void update(DeviceVec3& velocity, Buffer<float>& pressure, double alpha_u, double alpha_p);
+  // The same on the float pairs hi + lo.
+  void update(DeviceVec3& velocity, Buffer<float>& pressure, const CoupledPairs& pairs, double alpha_u, double alpha_p);
   // Bytes of device memory this solver owns (excludes shared mesh/flow data).
   std::size_t bytes() const;
   std::string describe() const;

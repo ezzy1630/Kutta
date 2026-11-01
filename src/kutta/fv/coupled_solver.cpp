@@ -194,7 +194,7 @@ struct CoupledSolver::Impl {
     coefficient = alloc<float>(nf);
     fine_r = alloc<float>(4 * std::size_t(n)); fine_tmp = alloc<float>(4 * std::size_t(n));
     for (auto* v : {&x, &b, &r, &shadow, &p, &q, &s, &t, &z, &zs}) *v = alloc<float>(4 * std::size_t(n));
-    scalars = alloc<float>(24); gauge = alloc<float>(1); status = alloc<Index>(3);
+    scalars = alloc<float>(24); gauge = alloc<float>(2); status = alloc<Index>(3);
     dev.fill(x, 0);
 
     // Aggregates follow the geometric pressure Laplacian |S|^2/|S.d|, the
@@ -460,7 +460,8 @@ SolveStats CoupledSolver::solve(const CoupledResiduals& in, const SolveControl& 
   kern::coupled_velocity_block(s.dev, s.n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, s.stencil.adjacent,
       s.boundary_kind, m.area.x, m.area.y, m.area.z, in.face_weights, s.cell, s.n, m.n_internal_faces);
   kern::coupled_rhs(s.dev, s.n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, s.coefficient, in.mass,
-      in.u, in.v, in.w, s.cell, s.b, s.n, s.reference, float(wc / in.density));
+      in.net_outflow ? *in.net_outflow : in.mass, in.u, in.v, in.w, s.cell, s.b, s.n, s.reference,
+      float(wc / in.density), in.net_outflow ? 1 : 0);
   // Smoother Schur bound; fine_tmp is free until the first sweep.
   kern::coupled_fine_gsum(s.dev, s.n, m.cell_face_offsets, s.stencil.adjacent, m.cell_faces, m.cell_face_sign,
       m.area.x, m.area.y, m.area.z, s.lsq.rows().x, s.lsq.rows().y, s.lsq.rows().z, s.cell, s.fine_tmp, s.n, float(wc));
@@ -477,6 +478,19 @@ void CoupledSolver::update(DeviceVec3& velocity, Buffer<float>& pressure, double
   if (s.reference >= 0) {
     kern::coupled_pick(s.dev, 1, pressure, s.gauge, s.reference);
     kern::coupled_gauge(s.dev, s.n, s.gauge, pressure);
+  }
+}
+
+void CoupledSolver::update(DeviceVec3& velocity, Buffer<float>& pressure, const CoupledPairs& pairs,
+                           double alpha_u, double alpha_p) {
+  auto& s = *impl_;
+  auto& lo = pairs.velocity_lo;
+  kern::coupled_paired_update(s.dev, s.n, s.x, velocity.x, velocity.y, velocity.z, pressure, lo.x, lo.y, lo.z,
+                              pairs.pressure_lo, s.n, float(alpha_u), float(alpha_p * s.wc), pairs.velocity_slack,
+                              pairs.pressure_slack);
+  if (s.reference >= 0) {
+    kern::coupled_paired_pick(s.dev, 1, pressure, pairs.pressure_lo, s.gauge, s.reference);
+    kern::coupled_paired_gauge(s.dev, s.n, s.gauge, pressure, pairs.pressure_lo, pairs.pressure_slack);
   }
 }
 
