@@ -42,5 +42,11 @@ TEST_CASE("Normal-foot symmetry pressure gradients recover uniform flow on nativ
     CHECK(report.continuity.raw<1e-6);
     CHECK(error<1e-5);
     CHECK(dev->max_abs(solver.pressure(),mesh.n_cells)<1e-5);
+
+    auto unsupported=settings;
+    unsupported.sst.reset();
+    unsupported.gradient=GradientScheme::GreenGaussCell;
+    CHECK_THROWS_WITH(SteadySolver(*dev,mesh,bc,unsupported),
+      doctest::Contains("normal-foot symmetry pressure gradients require least-squares gradients"));
   }
 }

@@ -303,6 +303,8 @@ struct SteadySolver::Impl {
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
     krylov_workspace=std::make_shared<KrylovWorkspace>(n);
     const bool green_gauss=settings.gradient==GradientScheme::GreenGaussCell;
+    KUTTA_REQUIRE(!green_gauss || settings.symmetry_pressure_gradient==SymmetryPressureGradient::Extrapolated,
+      "FV: normal-foot symmetry pressure gradients require least-squares gradients");
     // SST's strain and SA's gradients have only been verified with LSQ fits.
     KUTTA_REQUIRE(!green_gauss || (!settings.sst && !settings.sa),"FV: Green-Gauss gradients serve laminar and k-epsilon flows only");
     const auto fit=[&](std::span<const BoundaryObservation> observations) {
