@@ -275,9 +275,14 @@ def regions(w, slant_deg=35):
 def ahmed_breakdown(r):
     w = walls(r["dir"])
     area = 0.389 * 0.288
+    command = r.get("command", [])
+    for i, option in enumerate(command[:-1]):
+        if option == "--area":
+            area = float(command[i + 1])
+    slant = float(r["point"])
     # Area vectors point into the body, the direction pressure pushes it.
     fx = w["cp"] * 0.5 * w["nx"] * w["area"]
-    return {k: float(fx[m].sum() / (0.5 * area)) for k, m in regions(w).items()}, w
+    return {k: float(fx[m].sum() / (0.5 * area)) for k, m in regions(w, slant).items()}, w
 
 
 def lienhart(path):
@@ -302,10 +307,26 @@ def cp_compare(w, slant):
         xyz, cp = lienhart(DATA / "ercoftac_ahmed_body" / path)
         dist, idx = tree.query(xyz)
         kutta = w["cp"][idx]
-        groups = {"slant": (xyz[:, 0] < -1e-3) & (xyz[:, 2] < ROOF - 1e-3) & (xyz[:, 2] > slant_bottom(slant)),
-                  "base": xyz[:, 0] > -1e-3}
+        groups = pressure_regions(xyz, slant)
         out.append((name, xyz, cp, kutta, dist, groups))
     return out
+
+
+def pressure_regions(xyz, slant):
+    """Tap regions on the CAD planes, excluding side-wall taps at slant height.
+
+    CFX's exported surface is displaced by up to 0.3 mm from the nominal CAD;
+    the 0.5 mm tolerance admits it and rounded experimental coordinates.
+    """
+    x, y, z = xyz.T
+    angle = np.radians(slant)
+    start = -SLANT_LEN * np.cos(angle)
+    bottom = ROOF - SLANT_LEN * np.sin(angle)
+    tolerance = 0.0005
+    width = np.abs(y) <= 0.389 / 2 + tolerance
+    return {"slant": width & (x > start) & (x < -tolerance) &
+            (np.abs(z - (ROOF - (x - start) * np.tan(angle))) < tolerance),
+            "base": width & (np.abs(x) < tolerance) & (z >= 0.05 - tolerance) & (z <= bottom + tolerance)}
 
 
 def slant_bottom(slant):
