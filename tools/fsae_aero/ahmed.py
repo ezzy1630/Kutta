@@ -102,7 +102,7 @@ def layers(points, tris, top_size, first):
     return np.array(shells), total
 
 
-def build(slant, level, out, first=FIRST):
+def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0):
     import gmsh
     r = 2.0 ** ((level - 2) / 2)  # surface spacing /sqrt(2), cells ~x2 per level
     size = 0.028 / r
@@ -164,11 +164,11 @@ def build(slant, level, out, first=FIRST):
     f.setNumber(thr, "SizeMin", size)
     f.setNumber(thr, "SizeMax", 0.4)
     f.setNumber(thr, "DistMin", 0.0)
-    f.setNumber(thr, "DistMax", 3.0)
+    f.setNumber(thr, "DistMax", refinement_reach)
     wake = f.add("Box")
     f.setNumber(wake, "VIn", 1.6 * size)
     f.setNumber(wake, "VOut", 0.4)
-    for k, v in {"XMin": -L - 0.1, "XMax": 1.0, "YMin": -0.4, "YMax": 0.4, "ZMin": 0, "ZMax": 0.5, "Thickness": 2.0}.items():
+    for k, v in {"XMin": -L - 0.1, "XMax": 1.0, "YMin": -0.4, "YMax": 0.4, "ZMin": 0, "ZMax": 0.5, "Thickness": wake_padding}.items():
         f.setNumber(wake, k, v)
     fmin = f.add("Min")
     f.setNumbers(fmin, "FieldsList", [thr, wake])
@@ -215,6 +215,7 @@ def build(slant, level, out, first=FIRST):
     meta = dict(stats, case="ahmed", slant_deg=slant, level=level, surface_size=size, body_triangles=int(len(tris)),
                 prism_layers=int(nl - 1), layer_thickness=thickness, first_height=first, growth=GROWTH,
                 tets=int(len(tets)), prisms=int(len(prisms)), hexes=int(len(hexes)),
+                refinement_reach=refinement_reach, wake_padding=wake_padding,
                 domain={"x": [x0, x1], "y": [-ymax, ymax], "z": [0, zmax], "ground_wall_from_x": xg})
     pathlib.Path(str(out) + ".json").write_text(json.dumps(meta, indent=1))
     return meta
@@ -226,9 +227,16 @@ def main():
     ap.add_argument("--level", type=float, default=2, help="refinement level; 3.5 is half a level above 3")
     ap.add_argument("--out", required=True)
     ap.add_argument("--first", type=float, default=FIRST, help="first prism height, m")
+    ap.add_argument("--refinement-reach", type=float, default=3.0,
+                    help="distance over which body refinement grows to the 0.4 m far-field size, m")
+    ap.add_argument("--wake-padding", type=float, default=2.0,
+                    help="transition thickness outside the fixed wake refinement box, m")
     a = ap.parse_args()
+    if not (all(math.isfinite(v) for v in (a.first, a.refinement_reach, a.wake_padding)) and
+            0 < a.first < 0.4 * CLEAR and a.refinement_reach > 0 and a.wake_padding > 0):
+        ap.error("first height, refinement reach and wake padding must be positive; first height must fit the wall layer")
     pathlib.Path(a.out).parent.mkdir(parents=True, exist_ok=True)
-    print(json.dumps(build(a.slant, a.level, a.out, a.first)))
+    print(json.dumps(build(a.slant, a.level, a.out, a.first, a.refinement_reach, a.wake_padding)))
 
 
 if __name__ == "__main__":
