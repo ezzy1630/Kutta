@@ -1,0 +1,33 @@
+{
+  "baseline": {
+    "numerical_source": "85c489bbbcd685933f30188272315f9a61702474",
+    "sha256": "ce90d0d8a5d2def46b5fecc3fa8fc333628604442769fee6b3a91fef0fb06688",
+    "build_directory": "build-profile-baseline"
+  },
+  "candidate": {
+    "numerical_source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+    "sha256": "e26b7979a6d14f514577a21a3b4ca72de555507cf1cd968437b3edb58a2cd9d3",
+    "build_directory": "build-profile-candidate"
+  },
+  "checkout_head": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+  "count_only": "KUTTA_PROFILE_COUNTS_ONLY=1 retains native batching; counts nonempty sync calls and backpressure waits; wait_s is host steady_clock time in buffer waits.",
+  "warmup_iterations": 50,
+  "method": "Scratch family-boundary command-buffer GPUStartTime/GPUEndTime. Native count-only mode is separate. Probes active after warmup, disabled before final wall export; no instrumentation retained in source.",
+  "profiled_iterations": 50,
+  "monitor_interval": 50,
+  "pairs": 3,
+  "pair_orders": [
+    [
+      "baseline",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "baseline"
+    ],
+    [
+      "baseline",
+      "candidate"
+    ]
+  ]
+}

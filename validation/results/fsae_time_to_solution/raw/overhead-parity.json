@@ -1,0 +1,94 @@
+[
+  {
+    "backend": "cpu",
+    "all_four_hashes_identical": true,
+    "baseline": {
+      "binary_sha256": "646bfd4fea462509f957791e947035028ba631d24e4f752eaaba6164e52d226d",
+      "cases": {
+        "ke-channel-20": {
+          "source": "85c489bbbcd685933f30188272315f9a61702474",
+          "hash": "4263a6c55de206aa"
+        },
+        "sst-tet-channel": {
+          "source": "85c489bbbcd685933f30188272315f9a61702474",
+          "hash": "c544c1466c38fd81"
+        },
+        "laminar-lid-box": {
+          "source": "85c489bbbcd685933f30188272315f9a61702474",
+          "hash": "dd1b8311fff5c3c0"
+        },
+        "laminar-lid-box-140k": {
+          "source": "85c489bbbcd685933f30188272315f9a61702474",
+          "hash": "c135de24590eb5b7"
+        }
+      }
+    },
+    "candidate": {
+      "binary_sha256": "5ae2427bb737d3838f685b78551613b9fcf30fbcdef6fe404e462d88c0fc1f83",
+      "cases": {
+        "ke-channel-20": {
+          "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+          "hash": "4263a6c55de206aa"
+        },
+        "sst-tet-channel": {
+          "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+          "hash": "c544c1466c38fd81"
+        },
+        "laminar-lid-box": {
+          "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+          "hash": "dd1b8311fff5c3c0"
+        },
+        "laminar-lid-box-140k": {
+          "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+          "hash": "c135de24590eb5b7"
+        }
+      }
+    }
+  },
+  {
+    "backend": "metal",
+    "all_four_hashes_identical": true,
+    "baseline": {
+      "binary_sha256": "646bfd4fea462509f957791e947035028ba631d24e4f752eaaba6164e52d226d",
+      "cases": {
+        "ke-channel-20": {
+          "source": "85c489bbbcd685933f30188272315f9a61702474",
+          "hash": "72586688e49e9606"
+        },
+        "sst-tet-channel": {
+          "source": "85c489bbbcd685933f30188272315f9a61702474",
+          "hash": "807fdc56770f6c8c"
+        },
+        "laminar-lid-box": {
+          "source": "85c489bbbcd685933f30188272315f9a61702474",
+          "hash": "402b35d8cb2080eb"
+        },
+        "laminar-lid-box-140k": {
+          "source": "85c489bbbcd685933f30188272315f9a61702474",
+          "hash": "87d9d373a73c82f4"
+        }
+      }
+    },
+    "candidate": {
+      "binary_sha256": "5ae2427bb737d3838f685b78551613b9fcf30fbcdef6fe404e462d88c0fc1f83",
+      "cases": {
+        "ke-channel-20": {
+          "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+          "hash": "72586688e49e9606"
+        },
+        "sst-tet-channel": {
+          "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+          "hash": "807fdc56770f6c8c"
+        },
+        "laminar-lid-box": {
+          "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+          "hash": "402b35d8cb2080eb"
+        },
+        "laminar-lid-box-140k": {
+          "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+          "hash": "87d9d373a73c82f4"
+        }
+      }
+    }
+  }
+]

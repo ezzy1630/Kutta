@@ -1,0 +1,3 @@
+fsae_aero it=50 lift=0.10678262 drag=0.32771802 residual=0.074398445 settle=inf
+fsae_aero it=100 lift=0.20005897 drag=0.35677288 residual=0.036431076 settle=inf
+RESULT {"source":"cc7366ca13698f32e39265fb5bacb2fac91e7fba","device":"Apple M4 Pro","backend":"metal","result":{"cells":403560,"poor_cells":10,"iterations":100,"setup_s":9.819572875,"solve_s":12.65548483,"lift":0.2000589708,"drag":0.3567728751,"drag_pressure":0.3096957381,"max_residual":0.03643107646,"settle_lift":null,"settle_drag":null,"residuals_met":false,"settled":false,"budget":false,"yplus_max":7.098527908,"yplus_mean":3.19761161,"failure":""}}

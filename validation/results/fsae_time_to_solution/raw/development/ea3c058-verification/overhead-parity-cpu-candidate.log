@@ -1,0 +1,10 @@
+KE channel progress backend=cpu n=20 steps=100 defect=0.000376486 change=0.0456685
+KE channel progress backend=cpu n=20 steps=200 defect=9.89351e-05 change=0.021302
+KE channel progress backend=cpu n=20 steps=300 defect=2.25204e-05 change=0.00482436
+KE channel progress backend=cpu n=20 steps=400 defect=5.20094e-06 change=0.00110974
+KE channel progress backend=cpu n=20 steps=500 defect=1.16578e-06 change=0.000256337
+KE channel progress backend=cpu n=20 steps=600 defect=2.84526e-07 change=5.97591e-05
+PARITY backend=cpu source=ea3c058f60f952190eb50c2c472b78b44d089500 case=ke-channel-20 hash=4263a6c55de206aa seconds=0.0518066
+PARITY backend=cpu source=ea3c058f60f952190eb50c2c472b78b44d089500 case=sst-tet-channel hash=c544c1466c38fd81 seconds=0.655553
+PARITY backend=cpu source=ea3c058f60f952190eb50c2c472b78b44d089500 case=laminar-lid-box hash=dd1b8311fff5c3c0 seconds=0.0738635
+PARITY backend=cpu source=ea3c058f60f952190eb50c2c472b78b44d089500 case=laminar-lid-box-140k hash=c135de24590eb5b7 seconds=2.97327

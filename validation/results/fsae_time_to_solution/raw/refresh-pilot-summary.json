@@ -1,0 +1,16 @@
+[
+  {
+    "case": "wing-L2",
+    "paired_speedup_median": 1.0169000782455377,
+    "min": 0.9940048376241615,
+    "max": 1.0317077044722602,
+    "retained": false
+  },
+  {
+    "case": "ahmed-L1",
+    "paired_speedup_median": 1.0444630863295852,
+    "min": 0.8237410856240535,
+    "max": 1.1096371193274677,
+    "retained": false
+  }
+]

@@ -1,0 +1,41 @@
+fsae_aero it=50 lift=0.51118362 drag=0.44239101 residual=0.037007533 settle=inf
+fsae_aero it=100 lift=0.48955319 drag=0.42340835 residual=0.012764247 settle=inf
+fsae_aero it=150 lift=0.37938968 drag=0.40756745 residual=0.0058709973 settle=inf
+fsae_aero it=200 lift=0.25861922 drag=0.38158092 residual=0.0043504494 settle=inf
+fsae_aero it=250 lift=0.20753065 drag=0.35881535 residual=0.002088796 settle=inf
+fsae_aero it=300 lift=0.21262423 drag=0.35100945 residual=0.0012306586 settle=inf
+fsae_aero it=350 lift=0.21690338 drag=0.35456066 residual=0.00049661133 settle=inf
+fsae_aero it=400 lift=0.21139651 drag=0.35545013 residual=0.00025098623 settle=inf
+fsae_aero it=450 lift=0.20826789 drag=0.35349224 residual=0.00015020181 settle=inf
+fsae_aero it=500 lift=0.2092766 drag=0.35284517 residual=0.00010691341 settle=inf
+fsae_aero it=550 lift=0.2099784 drag=0.3534123 residual=5.3206727e-05 settle=1.4344581
+fsae_aero it=600 lift=0.2093893 drag=0.35344289 residual=3.9610509e-05 settle=1.3380048
+fsae_aero it=650 lift=0.20934988 drag=0.35327583 residual=2.3373116e-05 settle=0.81222782
+fsae_aero it=700 lift=0.2094533 drag=0.35334206 residual=1.7347176e-05 settle=0.23473456
+fsae_aero it=750 lift=0.20939797 drag=0.35329965 residual=1.0746157e-05 settle=0.035842767
+fsae_aero it=800 lift=0.20948647 drag=0.35328638 residual=1.04466e-05 settle=0.035405155
+fsae_aero it=850 lift=0.20947876 drag=0.35337983 residual=1.2220887e-05 settle=0.035443305
+fsae_aero it=900 lift=0.20936989 drag=0.35333705 residual=1.0240695e-05 settle=0.0096796231
+fsae_aero it=950 lift=0.20941255 drag=0.35327423 residual=1.0201856e-05 settle=0.0054660532
+fsae_aero it=1000 lift=0.20944755 drag=0.35331249 residual=1.049681e-05 settle=0.0025344973
+fsae_aero it=1050 lift=0.20935978 drag=0.35330963 residual=1.0616227e-05 settle=0.0029547923
+fsae_aero it=1100 lift=0.20944623 drag=0.35332704 residual=1.2230603e-05 settle=0.00046004194
+RESULT {"source":"85c489bbbcd685933f30188272315f9a61702474","device":"Apple M4 Pro","backend":"metal","result":{"cells":403560,"poor_cells":10,"iterations":1100,"setup_s":8.504828459,"solve_s":233.1607372,"lift":0.209446234,"drag":0.353327036,"drag_pressure":0.3063673212,"max_residual":1.223060313e-05,"settle_lift":0.0004600419359,"settle_drag":0.0003278837624,"residuals_met":true,"settled":true,"budget":false,"yplus_max":7.101936817,"yplus_mean":3.202572428,"failure":""}}
+      241.75 real        70.32 user         3.22 sys
+           992608256  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              240641  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   6  voluntary context switches
+              185185  involuntary context switches
+        427192255693  instructions retired
+        257829288063  cycles elapsed
+          1236436408  peak memory footprint

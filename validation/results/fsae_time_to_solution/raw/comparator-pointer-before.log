@@ -1,0 +1,14 @@
+.F..
+======================================================================
+FAIL: test_cli_file_label_pointer_addresses_are_process_local (__main__.CliIdentityTests.test_cli_file_label_pointer_addresses_are_process_local)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<checkout>/tools/forensics/test_compare_slow_assertions.py", line 56, in test_cli_file_label_pointer_addresses_are_process_local
+    self.assertTrue(result['no_new_failures'])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+FAILED (failures=1)

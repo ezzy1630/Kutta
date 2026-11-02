@@ -1,0 +1,15 @@
+{
+  "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+  "binary_sha256": "9909faba0312d22d765ef9764fe510b0a36143b2aedb313af45ec5afed3096b2",
+  "command": [
+    "build/final-frozen/kutta-tests",
+    "--test-suite-exclude=slow"
+  ],
+  "exit_code": 0,
+  "cases": 278,
+  "assertions": 7989882,
+  "failed_cases": 0,
+  "failed_assertions": 0,
+  "original_log_sha256": "b6621dfae23e167cbf6734f0622bf2f1848f46cf7eb1b91a5bc49b58f6c5d890",
+  "sanitized_log_sha256": "d6121653a8f8a6531e492a248ce9acfd28659c30958ad60c3aed8286d1c811d6"
+}

@@ -1,0 +1,8 @@
+{
+  "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+  "command": [
+    "python3",
+    "tools/lint_portability.py"
+  ],
+  "exit_code": 0
+}

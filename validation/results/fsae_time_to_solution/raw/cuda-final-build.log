@@ -1,0 +1,88 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.0.2
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+WARNING: The NVIDIA Driver was not detected.  GPU functionality will not be available.
+   Use the NVIDIA Container Toolkit to start this container with GPU support; see
+   https://docs.nvidia.com/datacenter/cloud-native/ .
+
+W: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+-- Kutta HDF5 mesh reader: ON
+-- Configuring done (1.9s)
+-- Generating done (0.0s)
+-- Build files have been written to: /build
+[0/2] Re-checking globbed directories...
+[1/56] Generating kernel entry points
+[2/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/boundary_physics.cpp.o
+[3/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/interior_jump.cpp.o
+[4/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/coupled_solver.cpp.o
+[5/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/face_projection.cpp.o
+/src/src/kutta/fv/face_projection.cpp: In constructor 'kutta::fv::ProjectedFaceReconstruction::ProjectedFaceReconstruction(kutta::Device&, const kutta::PolyMesh&, const kutta::MeshGeometry&, std::span<const kutta::fv::BoundaryObservation>, std::span<const int>)':
+/src/src/kutta/fv/face_projection.cpp:92:7: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
+   92 |       if(scale.x<length*1e-10) scale.x=length;if(scale.y<length*1e-10) scale.y=length;if(scale.z<length*1e-10) scale.z=length;
+      |       ^~
+/src/src/kutta/fv/face_projection.cpp:92:47: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+   92 |       if(scale.x<length*1e-10) scale.x=length;if(scale.y<length*1e-10) scale.y=length;if(scale.z<length*1e-10) scale.z=length;
+      |                                               ^~
+[6/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/operators.cpp.o
+[7/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/transport.cpp.o
+[8/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/turbulence/intermittency.cpp.o
+[9/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/turbulence/realizable_ke.cpp.o
+[10/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/turbulence/sa.cpp.o
+[11/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/turbulence/realizable_ke_transport.cpp.o
+[12/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/turbulence/sst.cpp.o
+[13/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/turbulence/sa_transport.cpp.o
+[14/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/steady_solver.cpp.o
+[15/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/fv/zone_physics.cpp.o
+[16/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/csr.cpp.o
+[17/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/runtime/cpu/cpu_device.cpp.o
+[18/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/amg.cpp.o
+[19/56] Building CXX object CMakeFiles/kutta.dir/src/kutta/linalg/solver.cpp.o
+[20/56] Building CXX object CMakeFiles/kutta.dir/generated/kernels_host.cpp.o
+[21/56] Building CXX object CMakeFiles/bench_bandwidth.dir/bench/bench_bandwidth.cpp.o
+[22/56] Building CXX object CMakeFiles/kutta.dir/generated/kernels_cpu.cpp.o
+[23/56] Building CXX object CMakeFiles/bench_fsae_aero.dir/bench/bench_fsae_aero.cpp.o
+[24/56] Building CXX object CMakeFiles/bench_fv.dir/bench/bench_fv.cpp.o
+[25/56] Building CUDA object CMakeFiles/kutta.dir/src/kutta/runtime/cuda/cuda_device.cu.o
+[26/56] Building CXX object CMakeFiles/bench_galerkin.dir/bench/bench_galerkin.cpp.o
+[27/56] Building CXX object CMakeFiles/bench_linalg.dir/bench/bench_linalg.cpp.o
+[28/56] Building CXX object CMakeFiles/bench_memory.dir/bench/bench_memory.cpp.o
+[29/56] Building CXX object CMakeFiles/bench_overhead.dir/bench/bench_overhead.cpp.o
+[30/56] Building CXX object CMakeFiles/bench_poly_momentum.dir/bench/bench_poly_momentum.cpp.o
+[31/56] Building CXX object CMakeFiles/bench_pressure.dir/bench/bench_pressure.cpp.o
+[32/56] Building CXX object CMakeFiles/bench_startup.dir/bench/bench_startup.cpp.o
+[33/56] Building CUDA object CMakeFiles/kutta.dir/generated/kernels_cuda.cu.o
+[34/56] Building CXX object CMakeFiles/bench_taylor_couette_operators.dir/bench/bench_taylor_couette_operators.cpp.o
+[35/56] Linking CXX static library libkutta.a
+[36/56] Linking CXX executable bench_bandwidth
+[37/56] Linking CXX executable bench_export
+[38/56] Linking CXX executable bench_convergence
+[39/56] Linking CXX executable kutta
+[40/56] Linking CXX executable bench_fsae_aero
+[41/56] Linking CXX executable bench_fluent_reference
+[42/56] Linking CXX executable bench_galerkin
+[43/56] Linking CXX executable bench_fv
+[44/56] Linking CXX executable bench_linalg
+[45/56] Linking CXX executable bench_poly_momentum
+[46/56] Linking CXX executable bench_overhead
+[47/56] Linking CXX executable bench_poly_pressure
+[48/56] Linking CXX executable bench_memory
+[49/56] Linking CXX executable bench_quadratic_viscous
+[50/56] Linking CXX executable bench_restore_stripped_cr
+[51/56] Linking CXX executable bench_pressure
+[52/56] Linking CXX executable bench_residual_floor
+[53/56] Linking CXX executable bench_taylor_couette_operators
+[54/56] Linking CXX executable bench_startup
+[55/56] Linking CXX executable bench_tmr
+[56/56] Linking CXX executable bench_v6_operators

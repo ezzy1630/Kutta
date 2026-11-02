@@ -1,0 +1,26 @@
+{
+  "source_basis": "cd798e9d062fe7a9772f606aaba26771eda78598",
+  "patch_sha256": "260e0fa927e7b1d65661ba50b2ef3f21253919d74961d767232e03e7122fe75b",
+  "binary_sha256": "8498ae1be0871a56655f55a2c4053416b703744b6200bcd021f207a1d5b48c06",
+  "temporary_toggle": "KUTTA_TEST_PREDICT_EXIT=1; removed before any retained commit",
+  "iterations": 200,
+  "pairs": 3,
+  "prototype_artifacts": {
+    "kutta": {
+      "path": "build-refresh/frozen-predict/kutta",
+      "sha256": "c2cbc8949f9970f3724fd402b8bacb43774cf223cec7861a81cf00cd8336248d"
+    },
+    "kutta-tests": {
+      "path": "build-refresh/frozen-predict/kutta-tests",
+      "sha256": "4db539ae48159a03a27f4ddd688e591fed8206b348b82bcbb75ad4779afc462a"
+    },
+    "bench_fsae_aero": {
+      "path": "build-refresh/frozen-predict/bench_fsae_aero",
+      "sha256": "8498ae1be0871a56655f55a2c4053416b703744b6200bcd021f207a1d5b48c06"
+    },
+    "bench_overhead": {
+      "path": "build-refresh/frozen-predict/bench_overhead",
+      "sha256": "790304f0e50eee8b23fff1d9ebf2d162c0481bcd1255c0e12bc641dd1166eb7b"
+    }
+  }
+}

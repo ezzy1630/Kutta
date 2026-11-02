@@ -1,0 +1,32 @@
+[
+  {
+    "case": "wing-L2",
+    "pairs": 3,
+    "paired_speedup": {
+      "median": 1.1164242490426926,
+      "min": 1.0439144232985673,
+      "max": 1.1613509295778934
+    },
+    "all_final_numeric_metrics_identical": true
+  },
+  {
+    "case": "ahmed-L1",
+    "pairs": 3,
+    "paired_speedup": {
+      "median": 1.0105370802366551,
+      "min": 0.9223976902575293,
+      "max": 1.270960467130325
+    },
+    "all_final_numeric_metrics_identical": true
+  },
+  {
+    "case": "ahmed-L3",
+    "pairs": 3,
+    "paired_speedup": {
+      "median": 1.0749069369779507,
+      "min": 0.841843885430812,
+      "max": 1.2852894987894872
+    },
+    "all_final_numeric_metrics_identical": true
+  }
+]

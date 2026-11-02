@@ -1,0 +1,64 @@
+{
+  "case": "wing-L2",
+  "scheme": "simplec",
+  "backend": "metal",
+  "iterations": 40,
+  "byte_identical": true,
+  "field_change": 0,
+  "baseline": {
+    "binary_sha256": "3317bc65fa0b0dc6756eac2c13bab71fb8d952e5c74ff2b12f28cef32b0edc90",
+    "source": "85c489bbbcd685933f30188272315f9a61702474",
+    "command": [
+      "build-baseline/frozen/bench_fsae_aero",
+      "--mesh",
+      "runs/fsae-time/zerihan_h0.224_L2.msh",
+      "--re",
+      "4.62e5",
+      "--downforce",
+      "--moving-ground",
+      "--tu",
+      "0.001",
+      "--ratio",
+      "1",
+      "--iterations",
+      "40",
+      "--check",
+      "40",
+      "--cells",
+      "--out",
+      "runs/fsae-time/final-7b817f3-fields/baseline"
+    ],
+    "files": {
+      "cells.csv": "565ab351709700f14ab4017f9f0c356cef1b19d44a6f8cd422b30e433c9be4a7",
+      "walls.csv": "97f584948fed163f503dc09c183c84e6e8c1bc3654e79c9e2c69ff77ab6f9bce"
+    }
+  },
+  "candidate": {
+    "binary_sha256": "fb18f0be2f3ea3ebccf3bf581c2389bebe484e4531205074d47bbea44ef37613",
+    "source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+    "command": [
+      "build/final-frozen/bench_fsae_aero",
+      "--mesh",
+      "runs/fsae-time/zerihan_h0.224_L2.msh",
+      "--re",
+      "4.62e5",
+      "--downforce",
+      "--moving-ground",
+      "--tu",
+      "0.001",
+      "--ratio",
+      "1",
+      "--iterations",
+      "40",
+      "--check",
+      "40",
+      "--cells",
+      "--out",
+      "runs/fsae-time/final-7b817f3-fields/candidate"
+    ],
+    "files": {
+      "cells.csv": "565ab351709700f14ab4017f9f0c356cef1b19d44a6f8cd422b30e433c9be4a7",
+      "walls.csv": "97f584948fed163f503dc09c183c84e6e8c1bc3654e79c9e2c69ff77ab6f9bce"
+    }
+  }
+}

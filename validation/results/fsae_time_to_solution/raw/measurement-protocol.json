@@ -1,0 +1,41 @@
+{
+  "baseline": "85c489bbbcd685933f30188272315f9a61702474",
+  "candidate": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+  "fixed_iterations": 200,
+  "convergence_limit": 6000,
+  "report_interval": 50,
+  "pairs": 4,
+  "pair_orders": [
+    [
+      "baseline",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "baseline"
+    ],
+    [
+      "baseline",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "baseline"
+    ]
+  ],
+  "profiles": {
+    "pairs": 3,
+    "warmup": 50,
+    "measured": 50,
+    "separate_native_counts": true
+  },
+  "no_other_own_gpu_jobs_during_measurement": true,
+  "external_solver_process_count_recorded": true,
+  "scripts": {
+    "measure-final.py": "c04dc56f9951149aa8a5b2e38d01c82ba983b390ce792208a4dec01170dda75a",
+    "convergence-final.py": "a3660edd94fc57c1f6d1c6fc8e0586eac08152a953794e36cf65e8c2c73a3133",
+    "quiet-profiles.py": "b80a52a9e599816c4fd08925e1ef7cf820e3996c48ca02bc31239bb257b53634"
+  },
+  "process_count_scope": "ps comm names bench_fsae_aero and kutta-tests prefixes; context only, not GPU utilization",
+  "convergence_logs": "streamed to disk during each run; all cases retain check/report interval50"
+}

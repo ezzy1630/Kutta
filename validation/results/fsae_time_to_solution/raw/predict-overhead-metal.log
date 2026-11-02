@@ -1,0 +1,10 @@
+KE channel progress backend=metal n=20 steps=100 defect=0.000376531 change=0.0456687
+KE channel progress backend=metal n=20 steps=200 defect=9.89376e-05 change=0.0213022
+KE channel progress backend=metal n=20 steps=300 defect=2.2492e-05 change=0.00482422
+KE channel progress backend=metal n=20 steps=400 defect=5.20172e-06 change=0.00110939
+KE channel progress backend=metal n=20 steps=500 defect=1.21809e-06 change=0.000256478
+KE channel progress backend=metal n=20 steps=600 defect=3.24642e-07 change=5.95474e-05
+PARITY backend=metal source=cd798e9d062fe7a9772f606aaba26771eda78598 case=ke-channel-20 hash=72586688e49e9606 seconds=44.8788
+PARITY backend=metal source=cd798e9d062fe7a9772f606aaba26771eda78598 case=sst-tet-channel hash=807fdc56770f6c8c seconds=3.39193
+PARITY backend=metal source=cd798e9d062fe7a9772f606aaba26771eda78598 case=laminar-lid-box hash=402b35d8cb2080eb seconds=1.4175
+PARITY backend=metal source=cd798e9d062fe7a9772f606aaba26771eda78598 case=laminar-lid-box-140k hash=87d9d373a73c82f4 seconds=1.16261

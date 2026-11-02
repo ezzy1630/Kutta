@@ -1,0 +1,114 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "baseline_source": "85c489bbbcd685933f30188272315f9a61702474",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+  "cmake": "cmake version 4.4.5",
+  "build": "Release, C++20, HDF5, Metal",
+  "hardware": "Apple M4 Pro, 24 GB unified memory",
+  "artifacts": {
+    "baseline_cli": {
+      "path": "build-baseline/kutta",
+      "sha256": "1a8ae8b4a8cae484c3648952ad208013101b9ea353096ad7375c9ec2a137ac9e"
+    },
+    "baseline_bench": {
+      "path": "build-baseline/bench_fsae_aero",
+      "sha256": "3317bc65fa0b0dc6756eac2c13bab71fb8d952e5c74ff2b12f28cef32b0edc90"
+    },
+    "candidate_cli": {
+      "path": "build/kutta",
+      "sha256": "9ffd3844ae9e2222b869b9ac65d0883893cd63acee448b46cd792b8e97c2f4a4"
+    },
+    "candidate_bench": {
+      "path": "build/bench_fsae_aero",
+      "sha256": "fb18f0be2f3ea3ebccf3bf581c2389bebe484e4531205074d47bbea44ef37613"
+    },
+    "candidate_tests": {
+      "path": "build/kutta-tests",
+      "sha256": "9909faba0312d22d765ef9764fe510b0a36143b2aedb313af45ec5afed3096b2"
+    },
+    "baseline_tests": {
+      "path": "build-baseline/kutta-tests",
+      "sha256": "d46364d676c545463abede0e27318b6762aab20c148db08978d4d9f866919031"
+    }
+  },
+  "edge_only_source": "1a89f69357b528fba52d5babcd4b5d851ea3baa1",
+  "candidate_source": "7b817f3b0e463a582593f2cba6427c9d29adf940",
+  "edge_only_artifacts": {
+    "candidate_cli": {
+      "path": "build-cache/kutta",
+      "sha256": "6a468f9dc1334ad0f57348beb0be41b65d27e3e705c14bffb1347adbe62c1872"
+    },
+    "candidate_bench": {
+      "path": "build-cache/bench_fsae_aero",
+      "sha256": "5e95c9f94b617cee1c809efe71a8e25de9f068e162726bbbeac3935880d0ed2d"
+    }
+  },
+  "prior_candidate_source": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+  "frozen_artifacts": {
+    "baseline_kutta": {
+      "path": "build-baseline/frozen/kutta",
+      "sha256": "1a8ae8b4a8cae484c3648952ad208013101b9ea353096ad7375c9ec2a137ac9e"
+    },
+    "candidate_kutta": {
+      "path": "build/final-frozen/kutta",
+      "sha256": "9ffd3844ae9e2222b869b9ac65d0883893cd63acee448b46cd792b8e97c2f4a4"
+    },
+    "baseline_bench_fsae_aero": {
+      "path": "build-baseline/frozen/bench_fsae_aero",
+      "sha256": "3317bc65fa0b0dc6756eac2c13bab71fb8d952e5c74ff2b12f28cef32b0edc90"
+    },
+    "candidate_bench_fsae_aero": {
+      "path": "build/final-frozen/bench_fsae_aero",
+      "sha256": "fb18f0be2f3ea3ebccf3bf581c2389bebe484e4531205074d47bbea44ef37613"
+    },
+    "baseline_bench_overhead": {
+      "path": "build-baseline/frozen/bench_overhead",
+      "sha256": "646bfd4fea462509f957791e947035028ba631d24e4f752eaaba6164e52d226d"
+    },
+    "candidate_bench_overhead": {
+      "path": "build/final-frozen/bench_overhead",
+      "sha256": "5ae2427bb737d3838f685b78551613b9fcf30fbcdef6fe404e462d88c0fc1f83"
+    },
+    "baseline_kutta-tests": {
+      "path": "build-baseline/frozen/kutta-tests",
+      "sha256": "d46364d676c545463abede0e27318b6762aab20c148db08978d4d9f866919031"
+    },
+    "candidate_kutta-tests": {
+      "path": "build/final-frozen/kutta-tests",
+      "sha256": "9909faba0312d22d765ef9764fe510b0a36143b2aedb313af45ec5afed3096b2"
+    }
+  },
+  "source_trees": {
+    "baseline": {
+      "solver": "a9bf6557d448201886eaed38100aacb296d122d9",
+      "benchmark": "cd1b6beb0318826b6c4211603fdc65e63935c008",
+      "fsae_settings": "80e5c95298f78bf857aab1fdaa17acfcab182580"
+    },
+    "candidate": {
+      "solver": "45dcd9661776747f46e44bbca09d0230d1eb7156",
+      "benchmark": "cd1b6beb0318826b6c4211603fdc65e63935c008",
+      "fsae_settings": "80e5c95298f78bf857aab1fdaa17acfcab182580"
+    }
+  },
+  "pre_predict_source": "ea3c058f60f952190eb50c2c472b78b44d089500",
+  "cmake_configuration": {
+    "CMAKE_BUILD_TYPE": "Release",
+    "KUTTA_BUILD_APP": "OFF",
+    "KUTTA_BUILD_TESTS": "ON",
+    "KUTTA_ENABLE_CUDA": "OFF",
+    "KUTTA_ENABLE_HDF5": "ON",
+    "KUTTA_ENABLE_METAL": "ON",
+    "KUTTA_REQUIRE_HDF5": "ON"
+  },
+  "metal_runtime_binding": {
+    "kernel_source": "embedded generated source arrays linked into executable",
+    "runtime_compile": "newLibraryWithSource; MTLMathModeSafe; MTLMathFloatingPointFunctionsPrecise",
+    "external_kutta_library_or_metallib": false,
+    "verified_in": [
+      "src/kutta/runtime/metal/metal_device.mm",
+      "tools/kernelgen.py",
+      "otool -L build/final-frozen/bench_fsae_aero"
+    ]
+  }
+}

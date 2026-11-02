@@ -1,0 +1,278 @@
+[
+  {
+    "trial": "tiled",
+    "case": "wing",
+    "iterations": 200,
+    "seconds": {
+      "csr": {
+        "n": 3,
+        "median": 16.498202,
+        "min": 13.53187333,
+        "max": 17.46930637
+      },
+      "tiled": {
+        "n": 3,
+        "median": 15.91547996,
+        "min": 13.22359775,
+        "max": 18.54390842
+      }
+    },
+    "paired_speedup": {
+      "n": 3,
+      "median": 1.0233125345936964,
+      "min": 0.8896831038167949,
+      "max": 1.0976298807139462
+    },
+    "observations": [
+      {
+        "rep": 0,
+        "variant": "csr",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 13.53187333,
+        "log": "tiled-pilot-0-wing-csr.log"
+      },
+      {
+        "rep": 0,
+        "variant": "tiled",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 13.22359775,
+        "log": "tiled-pilot-0-wing-tiled.log"
+      },
+      {
+        "rep": 1,
+        "variant": "csr",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 16.498202,
+        "log": "tiled-pilot-1-wing-csr.log"
+      },
+      {
+        "rep": 1,
+        "variant": "tiled",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 18.54390842,
+        "log": "tiled-pilot-1-wing-tiled.log"
+      },
+      {
+        "rep": 2,
+        "variant": "csr",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 17.46930637,
+        "log": "tiled-pilot-2-wing-csr.log"
+      },
+      {
+        "rep": 2,
+        "variant": "tiled",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 15.91547996,
+        "log": "tiled-pilot-2-wing-tiled.log"
+      }
+    ]
+  },
+  {
+    "trial": "tiled",
+    "case": "ahmed",
+    "iterations": 200,
+    "seconds": {
+      "csr": {
+        "n": 3,
+        "median": 31.25896804,
+        "min": 25.68040721,
+        "max": 32.12924042
+      },
+      "tiled": {
+        "n": 3,
+        "median": 30.44582646,
+        "min": 28.31956788,
+        "max": 34.445039
+      }
+    },
+    "paired_speedup": {
+      "n": 3,
+      "median": 0.9327682985059184,
+      "min": 0.8434787357058331,
+      "max": 1.103793962268608
+    },
+    "observations": [
+      {
+        "rep": 0,
+        "variant": "csr",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 25.68040721,
+        "log": "tiled-pilot-0-ahmed-csr.log"
+      },
+      {
+        "rep": 0,
+        "variant": "tiled",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 30.44582646,
+        "log": "tiled-pilot-0-ahmed-tiled.log"
+      },
+      {
+        "rep": 1,
+        "variant": "csr",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 32.12924042,
+        "log": "tiled-pilot-1-ahmed-csr.log"
+      },
+      {
+        "rep": 1,
+        "variant": "tiled",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 34.445039,
+        "log": "tiled-pilot-1-ahmed-tiled.log"
+      },
+      {
+        "rep": 2,
+        "variant": "csr",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 31.25896804,
+        "log": "tiled-pilot-2-ahmed-csr.log"
+      },
+      {
+        "rep": 2,
+        "variant": "tiled",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 28.31956788,
+        "log": "tiled-pilot-2-ahmed-tiled.log"
+      }
+    ]
+  },
+  {
+    "trial": "sequence",
+    "case": "wing",
+    "iterations": 100,
+    "seconds": {
+      "2048": {
+        "n": 3,
+        "median": 8.532286125,
+        "min": 7.757353375,
+        "max": 9.666117666
+      },
+      "8192": {
+        "n": 3,
+        "median": 9.331257542,
+        "min": 9.171971083,
+        "max": 11.11584737
+      }
+    },
+    "paired_speedup": {
+      "n": 3,
+      "median": 0.8695799199337154,
+      "min": 0.8457673170577308,
+      "max": 0.9143768764923883
+    },
+    "observations": [
+      {
+        "rep": 0,
+        "variant": "2048",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 7.757353375,
+        "log": "sequence-pilot-0-wing-2048.log"
+      },
+      {
+        "rep": 0,
+        "variant": "8192",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 9.171971083,
+        "log": "sequence-pilot-0-wing-8192.log"
+      },
+      {
+        "rep": 1,
+        "variant": "2048",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 8.532286125,
+        "log": "sequence-pilot-1-wing-2048.log"
+      },
+      {
+        "rep": 1,
+        "variant": "8192",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 9.331257542,
+        "log": "sequence-pilot-1-wing-8192.log"
+      },
+      {
+        "rep": 2,
+        "variant": "2048",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 9.666117666,
+        "log": "sequence-pilot-2-wing-2048.log"
+      },
+      {
+        "rep": 2,
+        "variant": "8192",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 11.11584737,
+        "log": "sequence-pilot-2-wing-8192.log"
+      }
+    ]
+  },
+  {
+    "trial": "sequence",
+    "case": "ahmed",
+    "iterations": 100,
+    "seconds": {
+      "2048": {
+        "n": 3,
+        "median": 12.65548483,
+        "min": 12.47994796,
+        "max": 14.66607438
+      },
+      "8192": {
+        "n": 3,
+        "median": 19.30118883,
+        "min": 18.80041279,
+        "max": 20.41904158
+      }
+    },
+    "paired_speedup": {
+      "n": 3,
+      "median": 0.673149306420096,
+      "min": 0.6465895997350335,
+      "max": 0.7182547879409333
+    },
+    "observations": [
+      {
+        "rep": 0,
+        "variant": "2048",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 12.47994796,
+        "log": "sequence-pilot-0-ahmed-2048.log"
+      },
+      {
+        "rep": 0,
+        "variant": "8192",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 19.30118883,
+        "log": "sequence-pilot-0-ahmed-8192.log"
+      },
+      {
+        "rep": 1,
+        "variant": "2048",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 12.65548483,
+        "log": "sequence-pilot-1-ahmed-2048.log"
+      },
+      {
+        "rep": 1,
+        "variant": "8192",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 18.80041279,
+        "log": "sequence-pilot-1-ahmed-8192.log"
+      },
+      {
+        "rep": 2,
+        "variant": "2048",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 14.66607438,
+        "log": "sequence-pilot-2-ahmed-2048.log"
+      },
+      {
+        "rep": 2,
+        "variant": "8192",
+        "source_basis": "cc7366ca13698f32e39265fb5bacb2fac91e7fba",
+        "seconds": 20.41904158,
+        "log": "sequence-pilot-2-ahmed-8192.log"
+      }
+    ]
+  }
+]

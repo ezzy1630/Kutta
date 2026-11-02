@@ -1,0 +1,22 @@
+{
+  "source": "85c489bbbcd685933f30188272315f9a61702474",
+  "cases": 37,
+  "assertions": 201633,
+  "failed_assertions": 62,
+  "failed_cases": {
+    "FV V6 Fluent mixing elbow fixed point and cold start": 25,
+    "FSAE V12 native Fluent polynomial fan import acceptance": 1,
+    "FV V2 manufactured Navier Stokes tet refinement": 8,
+    "V5 TMR flat plate SST accuracy and three-grid trend": 6,
+    "V5 TMR bump SST station accuracy and three-grid trend": 8,
+    "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend": 14
+  },
+  "full_xml_sha256": "d1720b8ba958ae373a8be6928d69f1cacf05a1f8aa41e95c991702b145f029d0",
+  "command": [
+    "build-baseline/frozen/kutta-tests",
+    "-ts=slow",
+    "-r=xml",
+    "--success"
+  ],
+  "binary_sha256": "d46364d676c545463abede0e27318b6762aab20c148db08978d4d9f866919031"
+}

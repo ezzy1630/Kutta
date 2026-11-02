@@ -1,0 +1,4 @@
+fsae_aero it=100 lift=1.2989686 drag=0.032214254 residual=0.041994251 settle=inf
+RESULT {"source":"85c489bbbcd685933f30188272315f9a61702474","device":"Apple M4 Pro","backend":"metal","result":{"cells":195581,"poor_cells":0,"iterations":100,"setup_s":1.526208208,"solve_s":11.16773742,"lift":1.298968606,"drag":0.03221425424,"drag_pressure":0.02092123133,"max_residual":0.04199425091,"settle_lift":null,"settle_drag":null,"residuals_met":false,"settled":false,"budget":false,"yplus_max":0.6092770696,"yplus_mean":0.2326760186,"failure":""}}
+GPU_PROFILE sequence 1290 4.86465
+HOST_PROFILE syncs=1341 roundtrips=1290 pressure_waits=0 waits=1290 wait_s=5.1909 allocs=7 bytes=10985884 uploads=51 downloads=793

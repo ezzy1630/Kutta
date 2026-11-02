@@ -1,0 +1,20 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+<checkout>/tests/linalg/test_predicted_exit.cpp:12:
+TEST CASE:  A predicted exit removes a large Metal readback without changing solve bits
+
+<checkout>/tests/linalg/test_predicted_exit.cpp:33: ERROR: CHECK( dev.host_waits - middle + (dev.backend() == Backend::Metal ? 1 : 0) == baseline_waits ) is NOT correct!
+  values: CHECK( 4 == 3 )
+  logged: backend: metal
+          3
+
+<checkout>/tests/linalg/test_predicted_exit.cpp:33: ERROR: CHECK( dev.host_waits - middle + (dev.backend() == Backend::Metal ? 1 : 0) == baseline_waits ) is NOT correct!
+  values: CHECK( 4 == 3 )
+  logged: backend: metal
+          4
+
+===============================================================================
+[doctest] test cases:      1 |      0 passed | 1 failed | 314 skipped
+[doctest] assertions: 524316 | 524314 passed | 2 failed |
+[doctest] Status: FAILURE!

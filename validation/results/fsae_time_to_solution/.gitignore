@@ -1,0 +1,5 @@
+# Full --success XML contains generated meshes inside passing Expanded values.
+# Retain it locally; publish only compact assertion receipts.
+/raw/slow-baseline.xml
+/raw/slow-candidate.xml
+/raw/*.stderr

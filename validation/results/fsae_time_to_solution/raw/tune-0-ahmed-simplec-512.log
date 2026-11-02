@@ -1,0 +1,21 @@
+fsae_aero it=50 lift=0.51118362 drag=0.44239101 residual=0.037007533 settle=inf
+fsae_aero it=100 lift=0.48955319 drag=0.42340835 residual=0.012764247 settle=inf
+RESULT {"source":"85c489bbbcd685933f30188272315f9a61702474","device":"Apple M4 Pro","backend":"metal","result":{"cells":403560,"poor_cells":10,"iterations":100,"setup_s":9.051225292,"solve_s":9.356548416,"lift":0.4895531889,"drag":0.4234083451,"drag_pressure":0.3744180534,"max_residual":0.01276424703,"settle_lift":null,"settle_drag":null,"residuals_met":false,"settled":false,"budget":false,"yplus_max":7.821180344,"yplus_mean":3.242294684,"failure":""}}
+       18.49 real        69.64 user         0.76 sys
+           992509952  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              240486  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+               49803  involuntary context switches
+        405883352094  instructions retired
+        241097053346  cycles elapsed
+          1234060800  peak memory footprint

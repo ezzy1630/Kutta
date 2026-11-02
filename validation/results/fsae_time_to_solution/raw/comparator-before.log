@@ -1,0 +1,14 @@
+..F
+======================================================================
+FAIL: test_timing_and_temporary_names_do_not_change_identity (__main__.CliIdentityTests.test_timing_and_temporary_names_do_not_change_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<checkout>/tools/forensics/test_compare_slow_assertions.py", line 45, in test_timing_and_temporary_names_do_not_change_identity
+    self.assertTrue(result['no_new_failures'])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.005s
+
+FAILED (failures=1)
