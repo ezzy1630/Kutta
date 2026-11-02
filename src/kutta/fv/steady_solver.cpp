@@ -303,8 +303,9 @@ struct SteadySolver::Impl {
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
     krylov_workspace=std::make_shared<KrylovWorkspace>(n);
     const bool green_gauss=settings.gradient==GradientScheme::GreenGaussCell;
-    KUTTA_REQUIRE(!green_gauss || settings.symmetry_pressure_gradient==SymmetryPressureGradient::Extrapolated,
-      "FV: normal-foot symmetry pressure gradients require least-squares gradients");
+    const bool normal_foot_pressure=settings.pressure_boundary_gradient==PressureBoundaryGradient::NormalFoot;
+    KUTTA_REQUIRE(!green_gauss || settings.pressure_boundary_gradient==PressureBoundaryGradient::Extrapolated,
+      "FV: normal-foot pressure boundary gradients require least-squares gradients");
     // SST's strain and SA's gradients have only been verified with LSQ fits.
     KUTTA_REQUIRE(!green_gauss || (!settings.sst && !settings.sa),"FV: Green-Gauss gradients serve laminar and k-epsilon flows only");
     const auto fit=[&](std::span<const BoundaryObservation> observations) {
@@ -355,13 +356,16 @@ struct SteadySolver::Impl {
       // gradient (FSAE V8), a rotating wall (FSAE V7.2)
       // (validation/results/tet_robustness/REPORT.md).
       const auto gain=boundary_extrapolation_gain(host,geom,independent_pressure);
-      for(Index b=0;b<nb;++b) if(independent_pressure[b]==Omitted && gain[b]>1) independent_pressure[b]=FaceValue;
+      // The opt-in fit interprets the stored value as a zero normal
+      // difference, retaining tangential variation on skew faces.
+      const auto observation=normal_foot_pressure?NormalFootValue:FaceValue;
+      for(Index b=0;b<nb;++b) if(independent_pressure[b]==Omitted && gain[b]>1) independent_pressure[b]=observation;
     }
     // A symmetry face has zero normal pressure derivative (Fluent User's
     // Guide 7.4.17.2). Its owner pressure is therefore an observation at the
     // normal foot, not at a face centroid displaced along the symmetry plane.
     // The latter suppresses the tangential gradient on skew boundary tets.
-    if(settings.symmetry_pressure_gradient==SymmetryPressureGradient::NormalFoot)
+    if(normal_foot_pressure)
       for(Index b=0;b<nb;++b) if(kinds[b]==3) independent_pressure[b]=NormalFootValue;
     pressure_lsq=fit(independent_pressure);
     // Empty unless some cell has low-order pressure faces.

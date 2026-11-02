@@ -2,6 +2,7 @@
 // prints a RESULT line; tools/fsae_aero/run.py drives the sweeps.
 #include <iostream>
 #include <map>
+#include <set>
 #include <sstream>
 
 #include "../validation/cases/fsae_aero.hpp"
@@ -14,13 +15,19 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; ++i) {
       std::string key = argv[i];
       KUTTA_REQUIRE(key.starts_with("--"), "expected --option, got " + key);
-      const bool flag = key == "--moving-ground" || key == "--coupled" || key == "--downforce" || key == "--cells" || key == "--lift-z" || key == "--hybrid" || key == "--transition" || key == "--laminar";
-      KUTTA_REQUIRE(flag || i + 1 < argc, "missing value for " + key);
-      args[key] = flag ? "1" : argv[++i];
+      const bool is_flag = key == "--moving-ground" || key == "--coupled" || key == "--downforce" || key == "--cells" || key == "--lift-z" || key == "--hybrid" || key == "--transition" || key == "--laminar";
+      KUTTA_REQUIRE(is_flag || i + 1 < argc, "missing value for " + key);
+      args[key] = is_flag ? "1" : argv[++i];
     }
-    const auto text = [&](const std::string& k, std::string d = {}) { return args.contains(k) ? args.at(k) : d; };
+    std::set<std::string> used;
+    const auto text = [&](const std::string& k, std::string d = {}) {
+      if(!args.contains(k)) return d;
+      used.insert(k);return args.at(k);
+    };
+    const auto flag = [&](const std::string& k) {used.insert(k);return args.contains(k);};
     const auto number = [&](const std::string& k, double d) {
       if (!args.contains(k)) return d;
+      used.insert(k);
       std::istringstream in(args.at(k));
       in.imbue(std::locale::classic());
       double v = 0;
@@ -37,11 +44,11 @@ int main(int argc, char** argv) {
     const auto pressure_scheme = text("--pressure-scheme", "second-order");
     KUTTA_REQUIRE(pressure_scheme == "standard" || pressure_scheme == "second-order", "--pressure-scheme is standard or second-order");
     o.pressure_interpolation = pressure_scheme == "standard" ? fv::PressureInterpolation::Standard : fv::PressureInterpolation::SecondOrder;
-    const auto symmetry_gradient = text("--symmetry-pressure-gradient", "extrapolated");
-    KUTTA_REQUIRE(symmetry_gradient == "extrapolated" || symmetry_gradient == "normal-foot",
-                  "--symmetry-pressure-gradient is extrapolated or normal-foot");
-    o.symmetry_pressure_gradient = symmetry_gradient == "normal-foot"
-      ? fv::SymmetryPressureGradient::NormalFoot : fv::SymmetryPressureGradient::Extrapolated;
+    const auto boundary_gradient = text("--pressure-boundary-gradient", "extrapolated");
+    KUTTA_REQUIRE(boundary_gradient == "extrapolated" || boundary_gradient == "normal-foot",
+                  "--pressure-boundary-gradient is extrapolated or normal-foot");
+    o.pressure_boundary_gradient = boundary_gradient == "normal-foot"
+      ? fv::PressureBoundaryGradient::NormalFoot : fv::PressureBoundaryGradient::Extrapolated;
     const auto transport = text("--sst-transport", "fluent");
     KUTTA_REQUIRE(transport == "fluent" || transport == "cfl3d", "--sst-transport is fluent or cfl3d");
     if (transport == "cfl3d") {
@@ -68,17 +75,17 @@ int main(int argc, char** argv) {
     o.reynolds = number("--re", 0);
     o.length = number("--length", 1);
     o.reference_area = number("--area", 1);
-    o.moving_ground = args.contains("--moving-ground");
+    o.moving_ground = flag("--moving-ground");
     const auto ground = text("--ground", "wall");
     KUTTA_REQUIRE(ground == "wall" || ground == "prescribed-zero", "--ground is wall or prescribed-zero");
     o.ground_condition = ground == "wall" ? GroundCondition::Wall : GroundCondition::PrescribedZeroTurbulence;
-    o.coupled = args.contains("--coupled");
-    o.hybrid = args.contains("--hybrid");
-    o.transition = args.contains("--transition");
-    o.laminar = args.contains("--laminar");
-    o.write_cells = args.contains("--cells");
-    if (args.contains("--downforce")) o.lift_direction = {0, -1, 0};
-    if (args.contains("--lift-z")) o.lift_direction = {0, 0, 1};
+    o.coupled = flag("--coupled");
+    o.hybrid = flag("--hybrid");
+    o.transition = flag("--transition");
+    o.laminar = flag("--laminar");
+    o.write_cells = flag("--cells");
+    if (flag("--downforce")) o.lift_direction = {0, -1, 0};
+    if (flag("--lift-z")) o.lift_direction = {0, 0, 1};
     o.intensity = number("--tu", o.intensity);
     o.viscosity_ratio = number("--ratio", o.viscosity_ratio);
     o.max_iterations = int(number("--iterations", o.max_iterations));
@@ -92,15 +99,16 @@ int main(int argc, char** argv) {
     o.pressure_relaxation = number("--urf-p", o.pressure_relaxation);
     if (args.contains("--walls")) {
       o.force_walls.clear();
-      std::istringstream in(args.at("--walls"));
+      std::istringstream in(text("--walls"));
       for (std::string w; std::getline(in, w, ',');) o.force_walls.push_back(w);
     }
     const auto backend = text("--backend", "metal");
     KUTTA_REQUIRE(backend == "cpu" || backend == "metal" || backend == "cuda", "unknown backend");
+    for(const auto& argument:args) KUTTA_REQUIRE(used.contains(argument.first), "unknown option: " + argument.first);
     auto dev = Device::create(backend == "cpu" ? Backend::Cpu : backend == "metal" ? Backend::Metal : Backend::Cuda);
     const auto r = run(*dev, o);
     std::cout << "RESULT {\"source\":\"" << KUTTA_BENCH_COMMIT << "\",\"device\":\"" << dev->name() << "\",\"backend\":\"" << backend
-              << "\",\"pressure_scheme\":\"" << pressure_scheme << "\",\"symmetry_pressure_gradient\":\"" << symmetry_gradient << "\",\"result\":";
+              << "\",\"pressure_scheme\":\"" << pressure_scheme << "\",\"pressure_boundary_gradient\":\"" << boundary_gradient << "\",\"result\":";
     print(std::cout, r);
     std::cout << "}\n";
     return r.failure.empty() ? 0 : 2;
