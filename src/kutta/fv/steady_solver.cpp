@@ -363,12 +363,18 @@ struct SteadySolver::Impl {
       if(poor_count) {poor=dev.upload<Index>(flags);low_order=std::move(flags);}
     }
     memory::phase("lsq");
-    if(settings.sst) {
+    // Standard k-epsilon production needs the derivative reconstruction too:
+    // plain cell LSQ underproduces k and epsilon at the saved elbow state.
+    // Keep the independently validated realizable model on its existing fit.
+    if(settings.sst || (settings.realizable_ke && settings.realizable_ke->model.variant==KeVariant::Standard
+                        && settings.gradient==GradientScheme::LeastSquares)) {
       std::vector<BoundaryObservation> strain_rows(nb);
       for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;
       strain_lsq=boundary_least_squares(dev,host,geom,strain_rows,&stencil);
       jump_fit=face_jump_least_squares(dev,host,geom);
       for(int k=0;k<3;++k) {strain_base[k]=vector_field(dev,n);strain_gradient[k]=vector_field(dev,n);}
+    }
+    if(settings.sst) {
       const auto& t=*settings.sst;
       KUTTA_REQUIRE(t.k_relaxation>0 && t.k_relaxation<=1 && t.omega_relaxation>0 && t.omega_relaxation<=1,"FV invalid SST relaxation");
       k_lsq=boundary_least_squares(dev,host,geom,independent_k,&stencil);
@@ -502,10 +508,23 @@ struct SteadySolver::Impl {
       kinetic,omega,k_equation->grad,omega_equation->grad,boundary_velocity,
       transition?&transition->gamma():nullptr});
   }
+  void reconstruct_strain() {
+    vector_gradient(dev,mesh,stencil,strain_lsq,velocity,boundary_velocity,
+      strain_base[0],strain_base[1],strain_base[2]);
+    const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+    const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+    for(int k=0;k<3;++k)
+      jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],strain_base[k],strain_gradient[k]);
+  }
   void update_turbulence(bool velocity_changed=true) {
     if(rke) {
-      reconstruct_velocity();
-      rke->update(velocity,boundary_velocity,{momentum[0]->grad,momentum[1]->grad,momentum[2]->grad},boundary_kind,mass,viscosity);
+      if(settings.realizable_ke->model.variant==KeVariant::Standard && settings.gradient==GradientScheme::LeastSquares) {
+        reconstruct_strain();
+        rke->update(velocity,boundary_velocity,{strain_gradient[0],strain_gradient[1],strain_gradient[2]},boundary_kind,mass,viscosity);
+      } else {
+        reconstruct_velocity();
+        rke->update(velocity,boundary_velocity,{momentum[0]->grad,momentum[1]->grad,momentum[2]->grad},boundary_kind,mass,viscosity);
+      }
       return;
     }
     if(sa) {
@@ -514,14 +533,7 @@ struct SteadySolver::Impl {
       return;
     }
     if(!sst) return;
-    if(velocity_changed) {
-      vector_gradient(dev,mesh,stencil,strain_lsq,velocity,boundary_velocity,
-        strain_base[0],strain_base[1],strain_base[2]);
-      const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
-      const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
-      for(int k=0;k<3;++k)
-        jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],strain_base[k],strain_gradient[k]);
-    }
+    if(velocity_changed) reconstruct_strain();
     evaluate_turbulence(); // bootstrap gradient-independent wall-face omega
     turbulence_boundaries();
     gradient(dev,mesh,stencil,k_lsq,kinetic,boundary_k,k_equation->grad);

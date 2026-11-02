@@ -1,10 +1,12 @@
 # Experimental SA and realizable k-epsilon
 
-These models are **not accepted Fluent case models**. The case allowlist still
-rejects SA and every k-epsilon model. See the frozen [V7/V8 protocol](../../../../validation/results/car_turbulence/PROTOCOL.md)
-and [measurements](../../../../validation/results/car_turbulence/README.md).
-Standard/RNG have not been added because SA and realizable acceptance is a
-prerequisite. No Fluent executable or converged same-mesh reference was used.
+SA and realizable k-epsilon remain rejected by the Fluent case adapter.
+Standard k-epsilon is accepted separately with named approximations; see
+[case coverage](../../../../validation/results/case_coverage/REPORT.md) and
+[the elbow turbulence study](../../../../validation/results/elbow_turbulence/REPORT.md).
+The original [V7/V8 protocol](../../../../validation/results/car_turbulence/PROTOCOL.md)
+and [measurements](../../../../validation/results/car_turbulence/README.md)
+cover the experimental models below.
 
 ## Caller contract
 
@@ -109,8 +111,16 @@ established that interpretation. Fixed epsilon targets honor the configured
 epsilon floor, so the row constraint and post-solve field limit agree.
 Wall shear replaces wall-face momentum diffusion, using the existing implicit
 tangential tensor hook and force integrator. k/epsilon use unlimited LSQ scalar
-gradients with independent inlet observations. Velocity rates currently use the
-existing plain LSQ momentum gradient, not an exact Fluent WFGC reconstruction.
+gradients with independent inlet observations. Realizable velocity rates use the existing plain LSQ momentum gradient.
+Standard k-epsilon with LSQ gradients instead uses the same derivative fit as
+SST: wall rows omitted from the base fit, then half the face-jump LSQ correction.
+At Fluent's saved standard-k-epsilon elbow state this removes the interior
+production deficit; the cold solve reduces k L2 from 9.10% to 4.15% and epsilon
+from 17.61% to 10.37%. This reconstruction is an empirical discretization
+choice, not a documented decoding of `ke-source-mod`, `ke-time-marching?`, or
+WFGC (which is off in that case). Green-Gauss keeps its selected gradient.
+See `validation/results/elbow_turbulence/REPORT.md` for the saved-state budgets
+and cross-case gates.
 As in the existing SSTm path, isotropic turbulent stress is omitted. Consequently
 no claim about matching Fluent's physical static pressure follows from these tests.
 
