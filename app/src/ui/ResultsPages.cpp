@@ -2,6 +2,7 @@
 
 #include "core/ChartScale.h"
 #include "ui/ChartsPanel.h"
+#include "ui/FlowLayout.h"
 #include "ui/GraphicsArea.h"
 #include "ui/Inspector.h"
 #include "ui/PageKit.h"
@@ -923,8 +924,8 @@ QWidget* forces(const InspectorContext& c)
         return page;
     }
     auto ft = c.session->history().forces(run);
-    auto* top = new QHBoxLayout;
-    top->addWidget(label(QObject::tr("From %1 (forces.csv)").arg(r->title()), "muted"), 1);
+    v->addWidget(label(QObject::tr("From %1 (forces.csv)").arg(r->title()), "muted"));
+    auto* top = new FlowLayout;
     if (r->approximate()) top->addWidget(badge(r->approximateBadge(), "approximate"));
     if (r->modified()) top->addWidget(badge("MODIFIED", "modified"));
     if (r->synthetic) top->addWidget(badge("SYNTHETIC", "modified"));
@@ -1044,7 +1045,9 @@ QWidget* integrals(const InspectorContext& c)
         const QString r = report->currentData().toString();
         field->setEnabled(r != "area" && r != "mass_flow");
     });
-    auto* withFluent = new QCheckBox(QObject::tr("Also compute on Fluent's field (needs a data file)"));
+    // A check box does not wrap: its text stays short enough for a 320 px panel.
+    auto* withFluent = new QCheckBox(QObject::tr("Also compute on Fluent's field"));
+    withFluent->setToolTip(QObject::tr("Needs the case's Fluent data file (.dat.h5), opened with the case."));
     withFluent->setEnabled(c.session->hasCase() && !c.session->dataPath().isEmpty());
     auto* zones = new QListWidget;
     zones->setAccessibleName(QObject::tr("Surfaces"));
@@ -1221,23 +1224,21 @@ QWidget* runHistory(const InspectorContext& c)
     dv->setContentsMargins(0, 4, 0, 0);
     dv->setSpacing(6);
     v->addWidget(detail);
-    auto* row1 = new QHBoxLayout;
+    auto* row1 = new FlowLayout;
     auto* show = button(QObject::tr("Show"), "eye");
     auto* plot = button(QObject::tr("Residuals"), "chart-line");
     auto* comp = button(QObject::tr("Compare"), "git-compare-arrows");
     row1->addWidget(show);
     row1->addWidget(plot);
     row1->addWidget(comp);
-    row1->addStretch(1);
     v->addLayout(row1);
-    auto* row2 = new QHBoxLayout;
+    auto* row2 = new FlowLayout;
     auto* restore = button(QObject::tr("Restore settings"), "undo-2");
     auto* rename = button(QObject::tr("Label…"), "pencil");
     auto* del = button(QObject::tr("Delete…"), "trash-2");
     del->setProperty("flat", true);
     row2->addWidget(restore);
     row2->addWidget(rename);
-    row2->addStretch(1);
     row2->addWidget(del);
     v->addLayout(row2);
 
@@ -1462,7 +1463,7 @@ QWidget* compare(const InspectorContext& c)
         }
 
         cv->addWidget(section(QObject::tr("Fields")));
-        auto* row = new QHBoxLayout;
+        auto* row = new FlowLayout;
         auto* diff = button(QObject::tr("Show A − B"), "blend", "primary");
         auto* side = button(QObject::tr("Side by side"), "columns-2");
         auto* res = button(QObject::tr("Residuals"), "chart-line");
@@ -1470,7 +1471,6 @@ QWidget* compare(const InspectorContext& c)
         row->addWidget(diff);
         row->addWidget(side);
         row->addWidget(res);
-        row->addStretch(1);
         cv->addLayout(row);
         cv->addWidget(label(QObject::tr("A − B is computed on surfaces with identical geometry; others are listed in the console and left out. Differences use a diverging map: white means agreement."), "faint"));
         cv->addStretch(1);

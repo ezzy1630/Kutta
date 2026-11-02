@@ -4,6 +4,7 @@
 // `kutta aero` on the run's loads.json; nothing here re-derives the physics.
 
 #include "ui/ChartsPanel.h"
+#include "ui/FlowLayout.h"
 #include "ui/GraphicsArea.h"
 #include "ui/Inspector.h"
 #include "ui/PageKit.h"
@@ -79,7 +80,7 @@ QString defaultRun(const InspectorContext& c)
     return {};
 }
 
-void addBadges(QHBoxLayout* row, const RunRecord& r)
+void addBadges(QLayout* row, const RunRecord& r)
 {
     if (r.approximate()) row->addWidget(badge(r.approximateBadge(), "approximate"));
     if (r.modified()) row->addWidget(badge("MODIFIED", "modified"));
@@ -221,11 +222,12 @@ QWidget* aero(const InspectorContext& c)
     picker->setAccessibleName(QObject::tr("Run"));
     for (const RunRecord* r : runs) picker->addItem(r->title(), r->id);
     picker->setCurrentIndex(std::max(0, picker->findData(defaultRun(c))));
-    auto* top = new QHBoxLayout;
-    top->addWidget(picker, 1);
-    auto* badges = new QHBoxLayout;
-    top->addLayout(badges);
-    if (!runs.empty()) v->addLayout(top);
+    // The run's badges wrap under the picker: beside it they would not fit a narrow panel.
+    auto* badges = new FlowLayout;
+    if (!runs.empty()) {
+        v->addWidget(picker);
+        v->addLayout(badges);
+    }
     auto* status = label({}, "muted");
     v->addWidget(status);
     auto* headline = new QGridLayout;
@@ -767,7 +769,7 @@ QWidget* studies(const InspectorContext& c)
         dv->addWidget(t);
 
         auto* plotRow = new QHBoxLayout;
-        plotRow->addWidget(label(QObject::tr("Plot"), "muted"));
+        plotRow->addWidget(label(QObject::tr("Plot"), "muted"), 0);
         auto* what = new QComboBox;
         what->setAccessibleName(QObject::tr("Quantity to plot"));
         for (const Quantity& x : quantities()) what->addItem(x.unit.isEmpty() ? x.label : QStringLiteral("%1 [%2]").arg(x.label, x.unit), x.key);
@@ -776,9 +778,11 @@ QWidget* studies(const InspectorContext& c)
         auto* compare = button(QObject::tr("Compare"), "git-compare-arrows");
         compare->setToolTip(QObject::tr("Select two rows to compare their settings, forces and fields"));
         auto* exportCsv = button(QObject::tr("Export CSV…"), "file-down");
-        plotRow->addWidget(compare);
-        plotRow->addWidget(exportCsv);
         dv->addLayout(plotRow);
+        auto* actions = new FlowLayout;
+        actions->addWidget(compare);
+        actions->addWidget(exportCsv);
+        dv->addLayout(actions);
         auto* foot = new QHBoxLayout;
         auto* del = button(QObject::tr("Delete study…"), "trash-2");
         del->setProperty("flat", true);

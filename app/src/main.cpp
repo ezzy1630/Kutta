@@ -444,7 +444,7 @@ int main(int argc, char** argv)
         sc->add(go("results/integrals"));
         // Through the page itself: Fluent column on, Compute.
         sc->add([&w, sc, inspectorButton](auto next) {
-            auto* fluent = inspectorButton(QObject::tr("Also compute on Fluent's field (needs a data file)"));
+            auto* fluent = inspectorButton(QObject::tr("Also compute on Fluent's field"));
             auto* go = inspectorButton(QObject::tr("Compute"));
             if (!fluent || !go) return sc->fail("surface integrals page controls not found");
             fluent->setChecked(true);
@@ -866,6 +866,10 @@ int main(int argc, char** argv)
         session->stop();
         QTimer::singleShot(100, [] { QCoreApplication::exit(0); });
     });
+    // Scripted windows appear without taking focus: on a machine in use, keys
+    // typed elsewhere would otherwise land in the window (the command palette
+    // opens on typing) and end up in the screenshot.
+    w.setAttribute(Qt::WA_ShowWithoutActivating);
     w.show();
     sc->start();
     return app.exec();
