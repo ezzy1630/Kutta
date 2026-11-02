@@ -6,7 +6,8 @@ A repeated assertion is identified by its occurrence within the same case,
 source location, original expression and INFO context. Changed expanded values
 are recorded even when the assertion outcome is unchanged; timings are not compared.
 Pointer addresses in INFO are numbered by first appearance within each case;
-their process-specific addresses are not stable assertion identities.
+their process-specific addresses are not stable assertion identities. CLI INFO
+logs omit only the sec/iter column, total solve time and unique scratch id.
 Missing assertions and newly failed assertions return a nonzero exit status.
 """
 import argparse
@@ -15,6 +16,26 @@ import gzip
 import json
 import re
 import xml.etree.ElementTree as ET
+
+
+def cli_context(text):
+    """Keep physical CLI output while removing its run-specific metadata."""
+    number = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
+    lines, columns = [], None
+    for line in text.splitlines():
+        words = line.split()
+        if words[:2] == ["iter", "continuity"] and words[-1:] == ["sec/iter"]:
+            columns = len(words)
+        elif (columns and len(words) == columns and words[0].isdigit()
+              and all(re.fullmatch(number, word) for word in words[1:])):
+            line = " ".join([*words[:-1], "<sec/iter>"])
+        elif words:
+            columns = None
+        lines.append(line)
+    value = "\n".join(lines)
+    value = re.sub(r"(?<=[/\\])kutta-mesh-\d+-\d+", "kutta-mesh-<scratch>", value)
+    value = re.sub(r"(\(\d+ iterations, )" + number + r"( s solve\))", r"\1<seconds>\2", value)
+    return " ".join(value.split())
 
 
 def read_assertions(path):
@@ -31,10 +52,12 @@ def read_assertions(path):
         occurrences = collections.Counter()
         pointers = {}
         def context_text(info):
-            value = " ".join(" ".join(info.itertext()).split())
+            value = cli_context(" ".join(info.itertext()))
             def address(match):
                 return pointers.setdefault(match.group(), f"<pointer-{len(pointers)+1}>")
-            if case.get("name", "").startswith("V7 SA TMR") and re.fullmatch(r"case 0x[0-9a-fA-F]{9,16} level [0-9]+", value):
+            if re.fullmatch(r"0x[0-9a-fA-F]{9,16}", value) or (
+                    case.get("name", "").startswith("V7 SA TMR")
+                    and re.fullmatch(r"case 0x[0-9a-fA-F]{9,16} level [0-9]+", value)):
                 return re.sub(r"0x[0-9a-fA-F]{9,16}", address, value)
             return value
 
