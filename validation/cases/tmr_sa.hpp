@@ -40,6 +40,11 @@ inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level
   settings.sa->model.formulation=SaFormulation::TmrStandard;
   settings.sa->convection=ConvectionScheme::FirstOrderUpwind;settings.monitor_interval=100;
   if(c==Case::Bump) {settings.pseudo_time_step=.01;settings.momentum_relaxation=.5;settings.pressure_relaxation=.3;}
+  // Keep the TMR spatial/model protocol and outer budget. Assembly remainders
+  // and low absolute solve tolerances let the paired state resolve small
+  // defects; wider high-word hysteresis settles coefficient roundoff cycles.
+  settings.compensated_momentum=true;settings.paired_state_slack_ulps=16;
+  settings.momentum_linear.abs_tol=1e-20;settings.pressure_linear.abs_tol=1e-20;
   SteadySolver solver(dev,std::move(mesh),std::move(bc),settings);const auto n=solver.mesh().n_cells;
   solver.initialize_sa_fields(std::vector<Vec3d>(n,{1,0,0}),std::vector<double>(n,0),std::vector<double>(n,3*nu));
   dev.synchronize();Result result;result.cells=n;result.setup_seconds=std::chrono::duration<double>(Clock::now()-start).count();
