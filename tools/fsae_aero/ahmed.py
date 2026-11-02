@@ -14,6 +14,8 @@ Mesh: gmsh surface triangles on the body, prism layers marched outward from
 them (first height `FIRST`), gmsh tetrahedra outside the
 layer shell, then every cell split into hexahedra (subdivide.py), because the
 solver diverged on tetrahedra when this was written (fsae_aero/REPORT.md).
+`--cell-type tet-prism` retains the native cells for robustness diagnostics;
+it is not the regression-fixture mesh and needs independent solve validation.
 
 Zones: body (wall), ground (wall), ground_slip, side, top (symmetry),
 inlet (velocity), outlet (pressure).
@@ -102,8 +104,10 @@ def layers(points, tris, top_size, first):
     return np.array(shells), total
 
 
-def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0):
+def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0, cell_type="hex"):
     import gmsh
+    if cell_type not in ("hex", "tet-prism"):
+        raise ValueError("cell type must be hex or tet-prism")
     r = 2.0 ** ((level - 2) / 2)  # surface spacing /sqrt(2), cells ~x2 per level
     size = 0.028 / r
     points, tris = surface(slant, size)
@@ -210,12 +214,18 @@ def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0
              "inlet": "velocity-inlet", "outlet": "pressure-outlet"}
     pad = lambda f: np.concatenate([f, -np.ones((len(f), 1), dtype=np.int64)], axis=1)
     boundary = [("body", "wall", pad(ids[0][tris]))] + [(k, kinds[k], pad(v)) for k, v in bnd.items()]
-    hpts, hexes, hbnd = subdivide.subdivide(allpts, tets, prisms, boundary)
-    stats = fluent_msh.write(out, hpts, [(5, hexes)], hbnd, comment=f"fsae_aero ahmed {slant}")
+    if cell_type == "hex":
+        hpts, hexes, hbnd = subdivide.subdivide(allpts, tets, prisms, boundary)
+        stats = fluent_msh.write(out, hpts, [(5, hexes)], hbnd, comment=f"fsae_aero ahmed {slant}")
+        nhex = len(hexes)
+    else:
+        stats = fluent_msh.write(out, allpts, [(4, tets), (6, prisms)], boundary,
+                                 comment=f"fsae_aero ahmed {slant} native tet/prism")
+        nhex = 0
     meta = dict(stats, case="ahmed", slant_deg=slant, level=level, surface_size=size, body_triangles=int(len(tris)),
                 prism_layers=int(nl - 1), layer_thickness=thickness, first_height=first, growth=GROWTH,
-                tets=int(len(tets)), prisms=int(len(prisms)), hexes=int(len(hexes)),
-                refinement_reach=refinement_reach, wake_padding=wake_padding,
+                tets=int(len(tets)), prisms=int(len(prisms)), hexes=int(nhex),
+                refinement_reach=refinement_reach, wake_padding=wake_padding, cell_type=cell_type,
                 domain={"x": [x0, x1], "y": [-ymax, ymax], "z": [0, zmax], "ground_wall_from_x": xg})
     pathlib.Path(str(out) + ".json").write_text(json.dumps(meta, indent=1))
     return meta
@@ -231,12 +241,14 @@ def main():
                     help="distance over which body refinement grows to the 0.4 m far-field size, m")
     ap.add_argument("--wake-padding", type=float, default=2.0,
                     help="transition thickness outside the fixed wake refinement box, m")
+    ap.add_argument("--cell-type", choices=["hex", "tet-prism"], default="hex",
+                    help="hex is the regression mesh; tet-prism is a native-cell diagnostic")
     a = ap.parse_args()
     if not (all(math.isfinite(v) for v in (a.first, a.refinement_reach, a.wake_padding)) and
             0 < a.first < 0.4 * CLEAR and a.refinement_reach > 0 and a.wake_padding > 0):
         ap.error("first height, refinement reach and wake padding must be positive; first height must fit the wall layer")
     pathlib.Path(a.out).parent.mkdir(parents=True, exist_ok=True)
-    print(json.dumps(build(a.slant, a.level, a.out, a.first, a.refinement_reach, a.wake_padding)))
+    print(json.dumps(build(a.slant, a.level, a.out, a.first, a.refinement_reach, a.wake_padding, a.cell_type)))
 
 
 if __name__ == "__main__":
