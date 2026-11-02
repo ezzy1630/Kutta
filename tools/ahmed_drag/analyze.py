@@ -102,7 +102,10 @@ def summarize(path):
     w = report.walls(path)
     command = r['command']
     area = float(command[command.index('--area') + 1])
-    slant = int(float(r['point']))
+    angle = float(r['mesh']['slant_deg'])
+    if angle not in (25, 35) or float(r['point']) != angle:
+        raise ValueError('reference comparisons require matching 25 or 35 degree mesh/run metadata')
+    slant = int(angle)
     regions = report.regions(w, slant)
     regions['other'] = ~np.logical_or.reduce(list(regions.values()))
     # Fluid-outward normals and stress on the fluid: pressure n A, shear -tau A.
@@ -175,12 +178,33 @@ def summarize(path):
     return row
 
 
+def common_pressure_comparisons(rows, paths):
+    """Use the same spatially supported taps across runs of each slant angle."""
+    angles = {r['mesh']['slant_deg'] for r in rows if 'cp' in r}
+    for angle in angles:
+        population = [(r, p) for r, p in zip(rows, paths) if 'cp' in r and r['mesh']['slant_deg'] == angle]
+        comparisons = [report.cp_compare(report.walls(p), int(angle)) for _, p in population]
+        for source in range(2):
+            for region in ('slant', 'base'):
+                common = np.logical_and.reduce([c[source][5][region] & (c[source][4] < .006) for c in comparisons])
+                for (row, _), comparison in zip(population, comparisons):
+                    name, _, reference, kutta, _, _ = comparison[source]
+                    row.setdefault('cp_common', {})[f'{name} {region}'] = {
+                        'points': int(common.sum()),
+                        'reference_mean': float(reference[common].mean()) if common.any() else None,
+                        'kutta_mean': float(kutta[common].mean()) if common.any() else None,
+                        'rms': float(np.sqrt(np.mean((kutta[common] - reference[common])**2))) if common.any() else None}
+                    row['cp_common_runs'] = [r['run'] for r, _ in population]
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('runs', nargs='+', type=pathlib.Path)
     ap.add_argument('--out', required=True, type=pathlib.Path)
     args = ap.parse_args()
-    args.out.write_text(json.dumps([summarize(p) for p in args.runs], indent=2, allow_nan=False) + '\n')
+    rows = [summarize(p) for p in args.runs]
+    common_pressure_comparisons(rows, args.runs)
+    args.out.write_text(json.dumps(rows, indent=2, allow_nan=False) + '\n')
 
 
 if __name__ == '__main__':
