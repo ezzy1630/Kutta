@@ -4,6 +4,7 @@
 #include <array>
 #include <cmath>
 #include <iomanip>
+#include <limits>
 #include <numeric>
 #include <sstream>
 
@@ -102,7 +103,9 @@ struct CoupledSolver::Impl {
   const BoundaryLeastSquares& lsq;
   CoupledOptions options;
   Index n = 0, reference = -1;
-  // Fine level (matrix-free).
+  // Fine cell blocks and directed-edge coefficients, refreshed once per solve.
+  Buffer<float> fine_coefficients;
+  Index fine_entries = 0;
   Buffer<float> cell, coefficient, fine_r, fine_tmp;  // cell: [du|dv|dw|cd|G|H|Q|cs], 20n
   std::vector<Transfer> transfers;  // transfers[k]: level k -> k+1
   std::vector<Level> levels;        // coarse levels 1..L, stored at [0..L-1]
@@ -192,6 +195,10 @@ struct CoupledSolver::Impl {
       put(4, c, g.x); put(5, c, g.y); put(6, c, g.z);
       for (int k = 0; k < 9; ++k) put(10 + k, c, q[k]);
     }
+    KUTTA_REQUIRE(m.cell_faces.size() <= std::size_t(std::numeric_limits<Index>::max() / 5),
+                  "coupled: fine coefficient cache exceeds signed kernel index range");
+    fine_entries = Index(m.cell_faces.size());
+    fine_coefficients = alloc<float>(5 * std::size_t(fine_entries));
     cell = upload(packed);
     coefficient = alloc<float>(nf);
     fine_r = alloc<float>(4 * std::size_t(n)); fine_tmp = alloc<float>(4 * std::size_t(n));
@@ -275,23 +282,20 @@ struct CoupledSolver::Impl {
   // ---- operators -------------------------------------------------------
   void fine_spmv(const Buffer<float>& in, Buffer<float>& out) {
     const auto& m = mesh;
-    kern::coupled_fine_spmv(dev, n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent,
-        m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient, *weight,
-        lsq.rows().x, lsq.rows().y, lsq.rows().z, cell, in, out, n, wc);
+    kern::coupled_fine_spmv(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent,
+        m.area.x, m.area.y, m.area.z, coefficient, cell, fine_coefficients, in, out, n, fine_entries, wc);
   }
   void fine_residual(const Buffer<float>& in, const Buffer<float>& rhs, Buffer<float>& out) {
     const auto& m = mesh;
-    kern::coupled_fine_residual(dev, n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent,
-        m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient, *weight,
-        lsq.rows().x, lsq.rows().y, lsq.rows().z, cell, in, rhs, out, n, wc);
+    kern::coupled_fine_residual(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent,
+        m.area.x, m.area.y, m.area.z, coefficient, cell, fine_coefficients, in, rhs, out, n, fine_entries, wc);
   }
   void fine_smooth(Buffer<float>& out, const Buffer<float>& rhs, int sweeps, bool first) {
     const auto& m = mesh;
     for (int k = 0; k < sweeps; ++k) {
-      kern::coupled_fine_smooth(dev, n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign, stencil.adjacent,
-          m.area.x, m.area.y, m.area.z, stencil.diffusion, *viscosity, *mass, coefficient, *weight,
-          lsq.rows().x, lsq.rows().y, lsq.rows().z, cell, out, rhs, fine_tmp, n, wc, options.smoother_damping,
-          first && k == 0 ? 1 : 0);
+      kern::coupled_fine_smooth(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent,
+          m.area.x, m.area.y, m.area.z, coefficient, cell, fine_coefficients, out, rhs, fine_tmp,
+          n, fine_entries, wc, options.smoother_damping, first && k == 0 ? 1 : 0);
       std::swap(out, fine_tmp);
     }
   }
@@ -374,7 +378,9 @@ struct CoupledSolver::Impl {
     };
     pair(20, target * target);
     pair(22, 1e6 * stats.initial_residual * stats.initial_residual);
-    dev.upload<float>(scalars, values);
+    // Same 24 floats, queued behind prior readers instead of a shared-memory
+    // host upload that waits for all preceding Metal work.
+    kern::solver_limits(dev, values.size(), scalars, values[20], values[21], values[22], values[23]);
     const auto restart = [&] {
       kern::solver_reset(dev, 1, scalars, status, stats.iterations);
       dev.copy(shadow, r);
@@ -470,6 +476,10 @@ SolveStats CoupledSolver::solve(const CoupledResiduals& in, const SolveControl& 
   kern::coupled_fine_schur(s.dev, s.n, m.cell_face_offsets, s.stencil.adjacent, m.cell_faces,
       m.area.x, m.area.y, m.area.z, in.face_weights, s.fine_tmp, s.cell, s.n, float(wc));
   s.galerkin();
+  kern::coupled_fine_coefficients(s.dev, s.n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign,
+      s.stencil.adjacent, m.area.x, m.area.y, m.area.z, s.stencil.diffusion, in.viscosity, in.mass,
+      in.face_weights, s.lsq.rows().x, s.lsq.rows().y, s.lsq.rows().z, s.cell,
+      s.fine_coefficients, s.n, s.fine_entries, s.wc);
   return s.bicgstab(control);
 }
 

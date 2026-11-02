@@ -212,15 +212,13 @@ KUTTA_KERNEL void coupled_fine_schur(int i, KIn(int) offsets, KIn(int) adjacent,
 
 // Matrix-free fine-level row: (J x)_i from the face data the momentum and
 // Rhie-Chow assemblies already hold, plus the least-squares deltas.
-KUTTA_FN kblock4 coupled_fine_row(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
+// The fine Jacobian is fixed throughout one outer solve. Cache its five
+// directed-edge coefficients once; the row applications retain their original
+// accumulation order and parenthesization. Planes are [a | Gx | Gy | Gz | h].
+KUTTA_KERNEL void coupled_fine_coefficients(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
     KIn(int) adjacent, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion,
-    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) weight, KIn(float) dx, KIn(float) dy,
-    KIn(float) dz, KIn(float) cell, KIn(float) x, int n, float wc) {
-  float xu = x[i], xv = x[n + i], xw = x[2 * n + i], xp = x[3 * n + i];
-  float ex = wc * cell[4 * n + i], ey = wc * cell[5 * n + i], ez = wc * cell[6 * n + i];
-  float hx = wc * cell[7 * n + i], hy = wc * cell[8 * n + i], hz = wc * cell[9 * n + i];
-  kblock4 y = kb4(cell[i] * xu + ex * xp, cell[n + i] * xv + ey * xp, cell[2 * n + i] * xw + ez * xp,
-                  cell[3 * n + i] * xp + hx * xu + hy * xv + hz * xw);
+    KIn(float) mu, KIn(float) mass, KIn(float) weight, KIn(float) dx, KIn(float) dy,
+    KIn(float) dz, KIn(float) cell, KOut(float) edge, int n, int entries, float wc) {
   float q00 = wc * cell[10 * n + i], q01 = wc * cell[11 * n + i], q02 = wc * cell[12 * n + i];
   float q10 = wc * cell[13 * n + i], q11 = wc * cell[14 * n + i], q12 = wc * cell[15 * n + i];
   float q20 = wc * cell[16 * n + i], q21 = wc * cell[17 * n + i], q22 = wc * cell[18 * n + i];
@@ -236,6 +234,25 @@ KUTTA_FN kblock4 coupled_fine_row(int i, KIn(int) offsets, KIn(int) faces, KIn(f
     float gy = by + q10 * dx[j] + q11 * dy[j] + q12 * dz[j];
     float gz = bz + q20 * dx[j] + q21 * dy[j] + q22 * dz[j];
     float h = wc * s * coupled_share(weight, i, c);
+    edge[j] = a; edge[entries + j] = gx; edge[2 * entries + j] = gy;
+    edge[3 * entries + j] = gz; edge[4 * entries + j] = h;
+  }
+}
+
+KUTTA_FN kblock4 coupled_fine_row(int i, KIn(int) offsets, KIn(int) faces, KIn(int) adjacent,
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) coefficient,
+    KIn(float) cell, KIn(float) edge, KIn(float) x, int n, int entries, float wc) {
+  float xu = x[i], xv = x[n + i], xw = x[2 * n + i], xp = x[3 * n + i];
+  float ex = wc * cell[4 * n + i], ey = wc * cell[5 * n + i], ez = wc * cell[6 * n + i];
+  float hx = wc * cell[7 * n + i], hy = wc * cell[8 * n + i], hz = wc * cell[9 * n + i];
+  kblock4 y = kb4(cell[i] * xu + ex * xp, cell[n + i] * xv + ey * xp, cell[2 * n + i] * xw + ez * xp,
+                  cell[3 * n + i] * xp + hx * xu + hy * xv + hz * xw);
+  for (int j = offsets[i]; j < offsets[i + 1]; ++j) {
+    int c = adjacent[j];
+    if (c < 0) continue;
+    int f = faces[j];
+    float a = edge[j], gx = edge[entries + j], gy = edge[2 * entries + j];
+    float gz = edge[3 * entries + j], h = edge[4 * entries + j];
     float pu = x[c], pv = x[n + c], pw = x[2 * n + c], pp = x[3 * n + c];
     y.u += a * pu + gx * pp; y.v += a * pv + gy * pp; y.w += a * pw + gz * pp;
     y.p += h * (sx[f] * pu + sy[f] * pv + sz[f] * pw) - coefficient[f] * pp;
@@ -243,36 +260,30 @@ KUTTA_FN kblock4 coupled_fine_row(int i, KIn(int) offsets, KIn(int) faces, KIn(f
   return y;
 }
 
-KUTTA_KERNEL void coupled_fine_spmv(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
-    KIn(int) adjacent, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion,
-    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) weight, KIn(float) dx, KIn(float) dy,
-    KIn(float) dz, KIn(float) cell, KIn(float) x, KOut(float) y, int n, float wc) {
-  kblock4 r = coupled_fine_row(i, offsets, faces, sign, adjacent, sx, sy, sz, diffusion, mu, mass,
-                               coefficient, weight, dx, dy, dz, cell, x, n, wc);
+KUTTA_KERNEL void coupled_fine_spmv(int i, KIn(int) offsets, KIn(int) faces, KIn(int) adjacent,
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) coefficient,
+    KIn(float) cell, KIn(float) edge, KIn(float) x, KOut(float) y, int n, int entries, float wc) {
+  kblock4 r = coupled_fine_row(i, offsets, faces, adjacent, sx, sy, sz, coefficient, cell, edge, x, n, entries, wc);
   y[i] = r.u; y[n + i] = r.v; y[2 * n + i] = r.w; y[3 * n + i] = r.p;
 }
 
-KUTTA_KERNEL void coupled_fine_residual(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
-    KIn(int) adjacent, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion,
-    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) weight, KIn(float) dx, KIn(float) dy,
-    KIn(float) dz, KIn(float) cell, KIn(float) x, KIn(float) b, KOut(float) r, int n, float wc) {
-  kblock4 y = coupled_fine_row(i, offsets, faces, sign, adjacent, sx, sy, sz, diffusion, mu, mass,
-                               coefficient, weight, dx, dy, dz, cell, x, n, wc);
+KUTTA_KERNEL void coupled_fine_residual(int i, KIn(int) offsets, KIn(int) faces, KIn(int) adjacent,
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) coefficient,
+    KIn(float) cell, KIn(float) edge, KIn(float) x, KIn(float) b, KOut(float) r, int n, int entries, float wc) {
+  kblock4 y = coupled_fine_row(i, offsets, faces, adjacent, sx, sy, sz, coefficient, cell, edge, x, n, entries, wc);
   r[i] = b[i] - y.u; r[n + i] = b[n + i] - y.v; r[2 * n + i] = b[2 * n + i] - y.w;
   r[3 * n + i] = b[3 * n + i] - y.p;
 }
 
 // Damped block Jacobi, double buffered: next = x + omega * B^-1 (b - J x).
 // first != 0 means x == 0, so the residual is b and x is not read.
-KUTTA_KERNEL void coupled_fine_smooth(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
-    KIn(int) adjacent, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion,
-    KIn(float) mu, KIn(float) mass, KIn(float) coefficient, KIn(float) weight, KIn(float) dx, KIn(float) dy,
-    KIn(float) dz, KIn(float) cell, KIn(float) x, KIn(float) b, KOut(float) next,
-    int n, float wc, float omega, int first) {
+KUTTA_KERNEL void coupled_fine_smooth(int i, KIn(int) offsets, KIn(int) faces, KIn(int) adjacent,
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) coefficient,
+    KIn(float) cell, KIn(float) edge, KIn(float) x, KIn(float) b, KOut(float) next,
+    int n, int entries, float wc, float omega, int first) {
   kblock4 r = kb4(b[i], b[n + i], b[2 * n + i], b[3 * n + i]);
   if (first == 0) {
-    kblock4 y = coupled_fine_row(i, offsets, faces, sign, adjacent, sx, sy, sz, diffusion, mu, mass,
-                                 coefficient, weight, dx, dy, dz, cell, x, n, wc);
+    kblock4 y = coupled_fine_row(i, offsets, faces, adjacent, sx, sy, sz, coefficient, cell, edge, x, n, entries, wc);
     r = kb4(r.u - y.u, r.v - y.v, r.w - y.w, r.p - y.p);
   }
   kblock4 d = coupled_block_solve(r, cell[i], cell[n + i], cell[2 * n + i],
