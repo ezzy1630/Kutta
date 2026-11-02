@@ -177,8 +177,8 @@ struct SolverSettings {
   PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
   // Fluent's poor-mesh-numerics quality threshold (solve/set/poor-mesh-numerics/
   // set-quality-threshold; the cell-quality-based value 0.05). Second-order
-  // pressure faces of cells whose orthogonal quality is at or below it use
-  // the cell pressure instead of the gradient extrapolation. Negative
+  // pressure faces incident to cells whose orthogonal quality is at or below
+  // it use cell pressures on both sides instead of gradient extrapolation. Negative
   // disables it. See validation/results/external_3d_robustness/REPORT.md.
   double poor_cell_quality=.05;
   GradientScheme gradient=GradientScheme::LeastSquares;

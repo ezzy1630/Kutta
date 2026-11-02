@@ -696,6 +696,8 @@ struct SteadySolver::Impl {
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       pressure,grad_p.x,grad_p.y,grad_p.z,face_pressure,boundary_pressure,mesh.n_internal_faces);
+    if(poor_count) kern::fv_poor_pressure_interfaces(dev,mesh.n_internal_faces,mesh.owner,mesh.neighbour,poor,
+      pressure,face_pressure);
     if(settings.pressure_interpolation==PressureInterpolation::Standard)
       kern::fv_standard_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
         pressure,physical_diagonal,face_pressure,boundary_pressure,mesh.n_internal_faces);

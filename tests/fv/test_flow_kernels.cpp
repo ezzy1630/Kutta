@@ -3,9 +3,72 @@
 #include "kutta/fv/operators.hpp"
 #include "kutta/io/mesh_io.hpp"
 #include "kutta/mesh/detail.hpp"
+#include "kutta/mesh/topology.hpp"
 
 using namespace kutta;
 using namespace kutta::detail;
+
+TEST_CASE("Poor prism pressure interfaces exclude amplified neighbour gradient noise") {
+  // Varying vertex normals make a layer's thickness nonuniform. Its volume
+  // centroid then shifts sideways even though both triangular faces are
+  // almost parallel. This is the native Ahmed underside-layer geometry.
+  std::vector<Vec3d> points;
+  for(double h:{0.,3e-5,2e-4}) {
+    points.push_back({0,0,h});points.push_back({.03,0,h});
+    points.push_back({0,.03+.7*h,.7*h});
+  }
+  std::vector<detail::CellFaces> cells;
+  for(Index c=0;c<2;++c) {
+    const Index a=3*c,b=a+1,d=a+2,A=a+3,B=b+3,D=d+3;
+    cells.push_back({{a,d,b},{A,B,D},{a,b,B,A},{b,d,D,B},{d,a,A,D}});
+  }
+  const auto mesh=from_cells(std::move(points),cells,{{"wall",PatchKind::Wall}},
+    [](const std::vector<Index>&){return Index{0};});
+  validate(mesh);const auto geometry=compute_geometry(mesh);
+  const auto quality=orthogonal_quality(mesh,geometry);
+  REQUIRE(mesh.n_internal_faces()==1);
+  REQUIRE(quality[0]<.05);REQUIRE(quality[1]>.05);
+  const auto cf=build_cell_faces(mesh);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=upload_mesh(*dev,mesh,geometry);
+    auto poor=dev->upload<Index>(std::vector<Index>{1,0});
+    auto kind=dev->alloc<Index>(m.n_boundary_faces());dev->fill(kind,0);
+    auto p=dev->alloc<float>(m.n_cells);dev->fill(p,0);
+    auto g=fv::vector_field(*dev,m.n_cells);
+    dev->upload<float>(g.y,std::vector<float>{0,1});
+    auto boundary=dev->alloc<float>(m.n_boundary_faces());dev->fill(boundary,0);
+    auto face=dev->alloc<float>(m.n_faces),jump=dev->alloc<float>(m.n_faces);
+    kern::fv_pressure_faces(*dev,m.n_faces,m.owner,m.neighbour,
+      m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
+      m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
+      p,g.x,g.y,g.z,boundary,face,jump,m.n_internal_faces);
+    kern::fv_poor_cell_pressure_faces(*dev,m.n_faces,m.owner,m.neighbour,kind,poor,
+      m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
+      m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
+      p,g.x,g.y,g.z,face,boundary,m.n_internal_faces);
+    const auto partial=dev->download(face),original_jump=dev->download(jump);
+    const auto pressure_force=[&](const std::vector<float>& values) {
+      Vec3d force;
+      for(Index j=cf.offsets[0];j<cf.offsets[1];++j)
+        force=force-geometry.face_area[cf.faces[j]]*(cf.signs[j]*values[cf.faces[j]]/geometry.cell_volume[0]);
+      return force;
+    };
+    // The old side-only correction amplifies a unit neighbour-gradient error
+    // into a normal pressure-force error greater than eight in the poor cell.
+    CHECK(std::abs(pressure_force(partial).z)>8);
+    kern::fv_poor_pressure_interfaces(*dev,m.n_internal_faces,m.owner,m.neighbour,poor,p,face);
+    const auto corrected=dev->download(face);
+    CHECK(norm(pressure_force(corrected))==0);
+    CHECK(dev->download(jump)==original_jump);
+    for(Index f=m.n_internal_faces;f<m.n_faces;++f) CHECK(corrected[f]==partial[f]);
+    // Matching orders do not change this kernel's input, including its bits.
+    for(Index flag:{0,1}) {
+      dev->fill(poor,flag);dev->upload<float>(face,partial);
+      kern::fv_poor_pressure_interfaces(*dev,m.n_internal_faces,m.owner,m.neighbour,poor,p,face);
+      CHECK(dev->download(face)==partial);
+    }
+  }
+}
 
 TEST_CASE("FV momentum face interpolation is affine exact with unequal diagonals") {
   auto mesh=make_box_tet(3,3,3,{0,0,0},{1,1,1});

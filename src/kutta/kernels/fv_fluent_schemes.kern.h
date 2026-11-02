@@ -83,3 +83,16 @@ KUTTA_KERNEL void fv_poor_cell_pressure_faces(int i,KIn(int) owner,KIn(int) neig
   float pn=poor[n]!=0?p[n]:p[n]+gx[n]*nx[i]+gy[n]*ny[i]+gz[n]*nz[i];
   face[i]=0.5f*(pp+pn);
 }
+
+// A low-order cell must also be shielded from its neighbour's extrapolation.
+// On a graded prism, a face centroid can lie many layer heights sideways
+// from the centroid link. Keeping the good side's gradient on that interface
+// feeds its amplified pressure noise straight into the poor cell's Gauss
+// force. Both sides therefore use cell pressures on a mixed-order face.
+// Faces with matching orders keep fv_poor_cell_pressure_faces bit for bit;
+// prescribed boundary pressures and the Rhie-Chow jump are untouched.
+KUTTA_KERNEL void fv_poor_pressure_interfaces(int i,KIn(int) owner,KIn(int) neighbour,
+    KIn(int) poor,KIn(float) p,KOut(float) face) {
+  int c=owner[i],n=neighbour[i];
+  if(poor[c]!=poor[n]) face[i]=0.5f*(p[c]+p[n]);
+}
