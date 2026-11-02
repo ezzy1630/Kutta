@@ -1,7 +1,7 @@
 # Desktop app screens
 
 Captured with `app/scripts/capture_screens.sh` from the real `kutta` CLI
-(app round 3, based on `e308968`, Metal on an M4 Pro) and the Ansys mixing elbow
+(app round 4, based on `1e5d5ae`, Metal on an M4 Pro) and the Ansys mixing elbow
 (`validation/fluent_examples/mixing_elbow`, with its `.dat.h5` as the Fluent
 reference where noted). Each run uses the approved warped-face gradient
 approximation, so results are marked APPROXIMATE. The `car-*` screens are the
@@ -12,7 +12,8 @@ real car case is on hand. Their numbers show the pages, not CFD results. The
 cylinder tutorial. Window 1500×940, downscaled to 1500 px wide and reduced to
 256-colour palettes with libimagequant (Floyd-Steinberg dithering) by
 `app/scripts/shrink_screens.py` to keep the set small. Every screen exists as
-`-dark.png` and `-light.png`.
+`-dark.png` and `-light.png`. Paths show from `~` and compact, never the home
+folder; the app refuses to save a shot whose visible text contains it.
 
 | Screen | File | What it shows |
 | --- | --- | --- |
