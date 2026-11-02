@@ -1,0 +1,44 @@
+{
+  "retained_sha256": "95bc6d879ce9d6e25b56d499a327bd2710cd9778cc983697767dceb4fd624829",
+  "regenerated_sha256": "35cee20eaef0052a00b09b2dbabd199b19d26c58a22cb2a6d1d33c97d9f9424e",
+  "same_bytes": false,
+  "same_after_comment": true,
+  "retained_comment": "(0 \"fsae_aero ahmed 35 native tet/prism\")",
+  "regenerated_comment": "(0 \"fsae_aero ahmed 35.0 native tet/prism\")",
+  "gmsh_version": "4.15.2",
+  "mesh_metadata": {
+    "cells": 130331,
+    "faces": 302636,
+    "nodes": 48676,
+    "case": "ahmed",
+    "slant_deg": 35.0,
+    "level": 1.0,
+    "surface_size": 0.03959797974644666,
+    "body_triangles": 3748,
+    "prism_layers": 20,
+    "layer_thickness": 0.017283153809908292,
+    "first_height": 1.5e-05,
+    "growth": 1.35,
+    "tets": 55371,
+    "prisms": 74960,
+    "hexes": 0,
+    "refinement_reach": 3.0,
+    "wake_padding": 2.0,
+    "cell_type": "tet-prism",
+    "domain": {
+      "x": [
+        -4.176,
+        5.220000000000001
+      ],
+      "y": [
+        -0.9396000000000001,
+        0.9396000000000001
+      ],
+      "z": [
+        0,
+        1.2006
+      ],
+      "ground_wall_from_x": -3.132
+    }
+  }
+}

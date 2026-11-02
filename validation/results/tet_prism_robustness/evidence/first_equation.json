@@ -1,0 +1,18 @@
+[
+  {
+    "backend": "cpu",
+    "prior_history": "baseline_cpu_exact",
+    "labelled_history": "baseline_cpu_equation",
+    "histories_equal_excluding_time": true,
+    "monitor_rows": 6,
+    "failure": "diagnostic SST omega at iteration 309: solver.cpp:117: solve: nonfinite input vector"
+  },
+  {
+    "backend": "metal",
+    "prior_history": "baseline_metal",
+    "labelled_history": "baseline_metal_equation",
+    "histories_equal_excluding_time": true,
+    "monitor_rows": 5,
+    "failure": "diagnostic SST omega at iteration 294: solver.cpp:117: solve: nonfinite input vector"
+  }
+]

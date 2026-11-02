@@ -1,0 +1,12 @@
+{
+  "cpu": "Apple M4 Pro",
+  "memory_bytes": 25769803776,
+  "macos": "26.6.2",
+  "architecture": "arm64",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+  "build_type": "Release",
+  "cxx_standard": 20,
+  "active_heavy_solves_in_lane_limit": 1,
+  "run_footprint_limit_bytes": 3000000000,
+  "cuda_runtime_verified": false
+}
