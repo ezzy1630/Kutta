@@ -246,6 +246,14 @@ void gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
   kern::fv_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,rows.x,rows.y,rows.z,
     lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse,cell,bc,out.x,out.y,out.z,m.n_cells);
 }
+void paired_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
+    const BoundaryLeastSquares& lsq,const Buffer<float>& cell,const Buffer<float>& low,
+    const Buffer<float>& bc,const Buffer<float>& bc_low,DeviceVec3& high,DeviceVec3& low_result) {
+  const auto& rows=lsq.rows();
+  kern::fv_paired_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,rows.x,rows.y,rows.z,
+    lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse,
+    cell,low,bc,bc_low,high.x,high.y,high.z,low_result.x,low_result.y,low_result.z,m.n_cells);
+}
 void vector_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
     const BoundaryLeastSquares& lsq,const DeviceVec3& cell,const DeviceVec3& bc,
     DeviceVec3& u,DeviceVec3& v,DeviceVec3& w) {

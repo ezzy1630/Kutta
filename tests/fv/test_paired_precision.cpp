@@ -314,3 +314,92 @@ TEST_CASE("FV paired pressure force faces retain curvature below the common pres
     CHECK(dev->download(face_low)[0]==.5f*tiny_curvature);
   }
 }
+
+TEST_CASE("FV compensated flux retains the physical upwind sign through hysteresis") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    const float high=std::ldexp(1.f,-20),value=-std::ldexp(1.f,-40);
+    auto previous=dev->upload<float>(std::vector<float>{high}),flux=dev->upload<float>(std::vector<float>{value});
+    auto low=dev->alloc<float>(1),one=dev->alloc<float>(1),zero=dev->alloc<float>(1);
+    dev->fill(low,0);dev->fill(one,1);dev->fill(zero,0);
+    kern::fv_paired_flux_offset(*dev,1,one,zero,zero,previous,flux,low,std::ldexp(1.f,-16));
+    CHECK(dev->download(flux)[0]==value);
+    CHECK(double(dev->download(flux)[0])+dev->download(low)[0]==value);
+    auto owner=dev->upload<Index>(std::vector<Index>{0}),neighbor=dev->upload<Index>(std::vector<Index>{1});
+    auto correction=dev->upload<float>(std::vector<float>{-2*high,0});dev->fill(flux,high);dev->fill(low,0);
+    kern::fv_compensated_correct_flux(*dev,1,owner,neighbor,one,zero,zero,correction,one,flux,low,1,std::ldexp(1.f,-16));
+    CHECK(dev->download(flux)[0]==-high);
+  }
+}
+
+TEST_CASE("FV paired pressure gradient carries cancellation and is invariant to rebasing") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    const float small=std::ldexp(1.f,-25),curvature=std::ldexp(1.f,-40),shift=std::ldexp(1.f,-20);
+    auto offsets=dev->upload<Index>(std::vector<Index>{0,4});
+    auto adjacent=dev->upload<Index>(std::vector<Index>{-1,-2,-3,-4});
+    auto zero=dev->alloc<float>(4),one=dev->alloc<float>(4),cell=dev->alloc<float>(1);
+    dev->fill(zero,0);dev->fill(one,1);dev->fill(cell,0);
+    auto inverse=dev->upload<float>(std::vector<float>{1,0,0,1,0,1});
+    auto boundary=dev->upload<float>(std::vector<float>{1,small,-1,-small});
+    auto low=dev->upload<float>(std::vector<float>{curvature,0,0,0});
+    auto high=vector_field(*dev,1),carry=vector_field(*dev,1);
+    for(int partition=0;partition<2;++partition) {
+      kern::fv_paired_gradient(*dev,1,offsets,adjacent,zero,zero,zero,one,zero,zero,inverse,
+        cell,cell,boundary,low,high.x,high.y,high.z,carry.x,carry.y,carry.z,1);
+      CHECK(double(dev->download(high.x)[0])+dev->download(carry.x)[0]==double(curvature));
+      CHECK(dev->download(high.y)[0]==0);CHECK(dev->download(high.z)[0]==0);
+      dev->upload<float>(boundary,std::vector<float>{1+shift,small+shift,-1+shift,-small+shift});
+      dev->upload<float>(low,std::vector<float>{curvature-shift,-shift,-shift,-shift});
+    }
+  }
+}
+
+TEST_CASE("FV paired Neumann pressure trace cancels its Rhie Chow jump") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto owner=dev->upload<Index>(std::vector<Index>{0}),neighbor=dev->upload<Index>(std::vector<Index>{-1});
+    auto kind=dev->upload<Index>(std::vector<Index>{1});
+    auto p=dev->upload<float>(std::vector<float>{.125f}),low=dev->upload<float>(std::vector<float>{std::ldexp(1.f,-30)});
+    auto g=dev->upload<float>(std::vector<float>{std::ldexp(1.f,-26)}),gl=dev->upload<float>(std::vector<float>{std::ldexp(1.f,-40)});
+    auto r=dev->upload<float>(std::vector<float>{.5f}),zero=dev->alloc<float>(1);
+    auto bc=dev->alloc<float>(1),bl=dev->alloc<float>(1),jh=dev->alloc<float>(1),jl=dev->alloc<float>(1);
+    dev->fill(zero,0);
+    kern::fv_pressure_boundary(*dev,1,owner,kind,r,zero,zero,p,g,zero,zero,zero,bc,0);
+    kern::fv_paired_pressure_boundary_low(*dev,1,owner,kind,r,zero,zero,p,low,g,zero,zero,gl,zero,zero,bc,bl,0);
+    kern::fv_compensated_pressure_jump(*dev,1,owner,neighbor,r,zero,zero,zero,zero,zero,p,g,zero,zero,bc,jh,0);
+    kern::fv_compensated_pressure_jump(*dev,1,owner,neighbor,r,zero,zero,zero,zero,zero,low,gl,zero,zero,bl,jl,0);
+    CHECK(std::abs(double(dev->download(jh)[0])+dev->download(jl)[0])<1e-16);
+  }
+}
+
+TEST_CASE("FV compensated Rhie Chow retains velocity dot products below a cancelling high flux") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto owner=dev->upload<Index>(std::vector<Index>{0}),neighbor=dev->upload<Index>(std::vector<Index>{1});
+    auto kind=dev->upload<Index>(std::vector<Index>{1});
+    auto one=dev->alloc<float>(2),zero=dev->alloc<float>(2),small=dev->alloc<float>(1),negative=dev->alloc<float>(1);
+    dev->fill(one,1);dev->fill(zero,0);dev->fill(small,std::ldexp(1.f,-25));dev->fill(negative,-1);
+    auto high=dev->alloc<float>(1),low=dev->alloc<float>(1);
+    kern::fv_compensated_rhie_chow(*dev,1,owner,neighbor,kind,one,one,one,zero,one,one,
+      one,small,negative,zero,zero,zero,zero,high,low,1,1);
+    CHECK(double(dev->download(high)[0])+dev->download(low)[0]==std::ldexp(1.,-25));
+    // The physical pressure curvature lives entirely in the carried state.
+    const float slope=std::ldexp(1.f,-20),curve=std::ldexp(1.f,-30);
+    auto p=dev->upload<float>(std::vector<float>{1,1+slope}),pl=dev->upload<float>(std::vector<float>{0,-slope});
+    auto g=dev->upload<float>(std::vector<float>{slope+curve,slope-curve});
+    auto gl=dev->upload<float>(std::vector<float>{-slope,-slope});
+    auto px=dev->upload<float>(std::vector<float>{.25f}),nx=dev->upload<float>(std::vector<float>{-.75f});
+    kern::fv_paired_pressure_jump(*dev,1,owner,neighbor,px,zero,zero,nx,zero,zero,p,pl,g,zero,zero,gl,zero,zero,
+      zero,zero,high,1);
+    CHECK(std::abs(double(dev->download(high)[0])+std::ldexp(1.,-31))<1e-14);
+  }
+}
+
+TEST_CASE("FV compensated SIMPLEC pressure update preserves a local correction") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    const float high=std::ldexp(1.f,-20),low=-high+std::ldexp(1.f,-43),delta=std::ldexp(1.f,-60);
+    auto p=dev->upload<float>(std::vector<float>{high}),pl=dev->upload<float>(std::vector<float>{low});
+    auto correction=dev->upload<float>(std::vector<float>{2*delta}),one=dev->alloc<float>(1),zero=dev->alloc<float>(1);
+    auto u=vector_field(*dev,1),ul=vector_field(*dev,1);dev->fill(one,1);dev->fill(zero,0);
+    kern::fv_compensated_correct_velocity(*dev,1,one,one,one,zero,zero,zero,correction,
+      u.x,u.y,u.z,p,ul.x,ul.y,ul.z,pl,.5f,1e-6f,16*std::numeric_limits<float>::epsilon());
+    CHECK(double(dev->download(p)[0])+dev->download(pl)[0]==std::ldexp(1.,-43)+double(delta));
+  }
+}

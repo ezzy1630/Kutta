@@ -108,6 +108,13 @@ KUTTA_FN kpair ktwo_sum(float a, float b) {
   kpair s = {sum, (a - (sum - part)) + (b - part)};
   return s;
 }
+// FMA retains the product error; TwoSum carries the reduction error.
+KUTTA_FN kpair kpair_product_add(kpair a,float x,float y) {
+  float product=x*y;
+  kpair sum=ktwo_sum(a.hi,product);
+  return ktwo_sum(sum.hi,(a.lo+sum.lo)+kfma(x,y,-product));
+}
+
 // Difference without first rounding either carried value to one float.
 KUTTA_FN float kpair_delta(kpair a,kpair b) {
   kpair d=ktwo_sum(a.hi,-b.hi);
@@ -129,6 +136,30 @@ KUTTA_FN kpair kpair_add(float hi, float lo, float d, float slack) {
   }
   kpair s = ktwo_sum(hi, d);
   return ktwo_sum(s.hi, s.lo + lo);
+}
+
+// Normalize overlapping words before adding a correction at the local
+// pressure scale; global velocity-based slack can erase such corrections.
+KUTTA_FN kpair kpair_add_relative(float hi,float lo,float d,float relative_slack) {
+  kpair base=ktwo_sum(hi,lo),increment=ktwo_sum(base.lo,d);
+  kpair value=ktwo_sum(base.hi,increment.hi);
+  value=ktwo_sum(value.hi,value.lo+increment.lo);
+  float slack=relative_slack*kmax(kabs(base.hi),kabs(value.hi));
+  kpair difference=ktwo_sum(value.hi,-hi);
+  float offset=difference.hi+(difference.lo+value.lo);
+  if(kabs(offset)<=slack) {kpair kept={hi,offset};return kept;}
+  return value;
+}
+// A held flux high word must retain the upwind sign of the physical flux.
+KUTTA_FN kpair kpair_add_flux(float hi,float lo,float d,float slack) {
+  kpair base=ktwo_sum(hi,lo),increment=ktwo_sum(base.lo,d);
+  kpair value=ktwo_sum(base.hi,increment.hi);
+  value=ktwo_sum(value.hi,value.lo+increment.lo);
+  kpair difference=ktwo_sum(value.hi,-hi);
+  float offset=difference.hi+(difference.lo+value.lo);
+  int same=(hi>0.0f && value.hi>0.0f) || (hi<0.0f && value.hi<0.0f) || (hi==0.0f && value.hi==0.0f);
+  if(same && kabs(offset)<=slack) {kpair kept={hi,offset};return kept;}
+  return value;
 }
 
 struct kvec3 {

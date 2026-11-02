@@ -60,6 +60,10 @@ BoundaryLeastSquares green_gauss_cell(Device& dev,const PolyMesh& mesh,const Mes
 void gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
     const BoundaryLeastSquares& lsq,const Buffer<float>& cell,
     const Buffer<float>& boundary,DeviceVec3& result);
+// Canonical gradient pair of cell + low, using the same boundary observations.
+void paired_gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
+    const BoundaryLeastSquares& lsq,const Buffer<float>& cell,const Buffer<float>& low,
+    const Buffer<float>& boundary,const Buffer<float>& boundary_low,DeviceVec3& high,DeviceVec3& low_result);
 void vector_gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
     const BoundaryLeastSquares& lsq,const DeviceVec3& cell,const DeviceVec3& boundary,
     DeviceVec3& u,DeviceVec3& v,DeviceVec3& w);

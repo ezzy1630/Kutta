@@ -212,8 +212,9 @@ struct SolverSettings {
   // float pairs hi + lo, so the continuity residual can fall below the
   // float32 rounding floor to criteria set for Fluent's double-precision runs
   // (validation/results/paired_state/REPORT.md). The discrete equations are
-  // unchanged; hi, which every other kernel and every output reads, stays
-  // within the configured slack of the feeding velocity, pressure and flux scales.
+  // unchanged; the held high word stays within the configured slack of the
+  // feeding velocity, pressure and flux scales. Compensated momentum also
+  // evaluates constitutive rates and forces from the physical pair.
   // Off, or with interior jumps, the state is float32.
   bool paired_state=true;
   // High-word hysteresis in float epsilons of the feeding state scales.

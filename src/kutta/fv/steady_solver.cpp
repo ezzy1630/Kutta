@@ -142,6 +142,8 @@ struct SteadySolver::Impl {
   DeviceVec3 velocity_lo,pressure_gradient_lo;
   Buffer<float> pressure_lo,mass_lo,previous_mass,pressure_boundary_lo,imbalance,momentum_delta;
   DeviceVec3 pressure_force_lo,boundary_velocity_lo;
+  DeviceVec3 canonical_velocity,canonical_boundary_velocity,canonical_gradient[3],high_face_velocity;
+  Buffer<float> canonical_mass;
   Buffer<float> face_pressure_lo;
   Buffer<float> paired_diffusion_work,paired_advection_work;
   Buffer<Index> scalar_kind_lo;
@@ -175,6 +177,8 @@ struct SteadySolver::Impl {
       std::isfinite(settings.coupled_courant) && settings.coupled_courant>0 &&
       (settings.limiter==Limiter::Standard || (std::isfinite(settings.limiter_coefficient) && settings.limiter_coefficient>0)),
       "FV invalid steady solver settings");
+    KUTTA_REQUIRE(!settings.compensated_momentum || settings.paired_state_slack_ulps*double(std::numeric_limits<float>::epsilon())<1,
+      "FV compensated pressure relative slack must be below one");
     for(auto& bc:conditions)
       KUTTA_REQUIRE(boundaries.emplace(bc.patch,std::move(bc.condition)).second,"FV duplicate patch condition");
     KUTTA_REQUIRE(boundaries.size()==host.patches.size(),"FV supply exactly one condition per patch");
@@ -232,6 +236,9 @@ struct SteadySolver::Impl {
         pressure_force_lo=vector_field(dev,n);face_pressure_lo=dev.alloc<float>(nf);boundary_velocity_lo=vector_field(dev,nb);
         paired_diffusion_work=dev.alloc<float>(nf);paired_advection_work=dev.alloc<float>(nf);scalar_kind_lo=dev.alloc<Index>(nb);
         if(!settings.sst) {zero_mask=dev.alloc<Index>(n);dev.fill(zero_mask,0);}
+        canonical_velocity=vector_field(dev,n);canonical_boundary_velocity=vector_field(dev,nb);
+        canonical_mass=dev.alloc<float>(nf);high_face_velocity=vector_field(dev,nf);
+        for(auto& gradient:canonical_gradient) gradient=vector_field(dev,n);
       }
       reset_paired();
     }
@@ -529,41 +536,64 @@ struct SteadySolver::Impl {
     if(coupled) kern::coupled_floor_physical(dev,mesh.n_cells,momentum[0]->matrix.row_ptr,momentum[0]->matrix.diag,
       momentum[0]->matrix.val,physical_diagonal);
   }
+  bool compensated_state() const {return paired && settings.compensated_momentum;}
+  const DeviceVec3& model_velocity() const {return compensated_state()?canonical_velocity:velocity;}
+  const DeviceVec3& model_boundary_velocity() const {return compensated_state()?canonical_boundary_velocity:boundary_velocity;}
+  const Buffer<float>& model_mass() const {return compensated_state()?canonical_mass:mass;}
+  const DeviceVec3& model_gradient(int k) const {return compensated_state()?canonical_gradient[k]:momentum[k]->grad;}
+  // Nonlinear rates and scalar transport see the physical pair rounded once,
+  // independently of the frozen high word used by linear momentum operators.
+  void prepare_model_state() {
+    if(!compensated_state()) return;
+    auto& u=canonical_velocity;auto& b=canonical_boundary_velocity;
+    kern::fv_paired_vector_values(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,
+      velocity_lo.x,velocity_lo.y,velocity_lo.z,u.x,u.y,u.z);
+    kern::fv_paired_value(dev,mesh.n_faces,mass,mass_lo,canonical_mass);
+    kern::fv_velocity_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
+      mesh.area.x,mesh.area.y,mesh.area.z,u.x,u.y,u.z,prescribed_velocity.x,prescribed_velocity.y,prescribed_velocity.z,
+      canonical_mass,b.x,b.y,b.z,scalar_kind_lo,mesh.n_internal_faces,float(settings.density));
+    if(pressure_inlets) pressure_inlet_velocity(dev,mesh,open_boundary_kind,inlet_direction,canonical_mass,b,settings.density);
+    if(zone_physics->has_frame_motion()) kern::fv_frame_wall_velocity(dev,mesh.n_boundary_faces(),boundary_kind,
+      zone_physics->frame_normal_flux(),mesh.area.x,mesh.area.y,mesh.area.z,b.x,b.y,b.z,
+      mesh.n_internal_faces,float(settings.density));
+    vector_gradient(dev,mesh,stencil,velocity_lsq,u,b,canonical_gradient[0],canonical_gradient[1],canonical_gradient[2]);
+  }
   void turbulence_boundaries() {
     kern::fv_turbulence_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,turbulence_spec,
-      turbulence_a,turbulence_b,mass,boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,
+      turbulence_a,turbulence_b,model_mass(),model_boundary_velocity().x,model_boundary_velocity().y,model_boundary_velocity().z,
       kinetic,omega,sst->fields().wall_face_omega,boundary_k,boundary_omega,turbulence_kind,
       mesh.n_internal_faces,float(settings.density),float(settings.viscosity));
   }
   void evaluate_turbulence() {
-    sst->update({velocity,{strain_gradient[0],strain_gradient[1],strain_gradient[2]},rho_cell,mu_cell,
-      kinetic,omega,k_equation->grad,omega_equation->grad,boundary_velocity,
+    sst->update({model_velocity(),{strain_gradient[0],strain_gradient[1],strain_gradient[2]},rho_cell,mu_cell,
+      kinetic,omega,k_equation->grad,omega_equation->grad,model_boundary_velocity(),
       transition?&transition->gamma():nullptr});
   }
   void reconstruct_strain() {
-    vector_gradient(dev,mesh,stencil,strain_lsq,velocity,boundary_velocity,
-      strain_base[0],strain_base[1],strain_base[2]);
-    const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
-    const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+    const auto& u=model_velocity();const auto& b=model_boundary_velocity();
+    vector_gradient(dev,mesh,stencil,strain_lsq,u,b,strain_base[0],strain_base[1],strain_base[2]);
+    const Buffer<float>* q[]{&u.x,&u.y,&u.z};
+    const Buffer<float>* bc[]{&b.x,&b.y,&b.z};
     for(int k=0;k<3;++k)
       jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],strain_base[k],strain_gradient[k]);
   }
   void update_turbulence(bool velocity_changed=true) {
+    if(velocity_changed) prepare_model_state();
     if(rke) {
       if(settings.realizable_ke->model.variant==KeVariant::Standard
          && settings.realizable_ke->standard_strain_reconstruction==KeStrainReconstruction::JumpCorrected
          && settings.gradient==GradientScheme::LeastSquares) {
         reconstruct_strain();
-        rke->update(velocity,boundary_velocity,{strain_gradient[0],strain_gradient[1],strain_gradient[2]},boundary_kind,mass,viscosity);
+        rke->update(model_velocity(),model_boundary_velocity(),{strain_gradient[0],strain_gradient[1],strain_gradient[2]},boundary_kind,model_mass(),viscosity);
       } else {
         reconstruct_velocity();
-        rke->update(velocity,boundary_velocity,{momentum[0]->grad,momentum[1]->grad,momentum[2]->grad},boundary_kind,mass,viscosity);
+        rke->update(model_velocity(),model_boundary_velocity(),{model_gradient(0),model_gradient(1),model_gradient(2)},boundary_kind,model_mass(),viscosity);
       }
       return;
     }
     if(sa) {
       reconstruct_velocity();
-      sa->update(velocity,boundary_velocity,momentum[0]->grad,momentum[1]->grad,momentum[2]->grad,boundary_kind,mass,viscosity);
+      sa->update(model_velocity(),model_boundary_velocity(),model_gradient(0),model_gradient(1),model_gradient(2),boundary_kind,model_mass(),viscosity);
       return;
     }
     if(!sst) return;
@@ -573,7 +603,7 @@ struct SteadySolver::Impl {
     gradient(dev,mesh,stencil,k_lsq,kinetic,boundary_k,k_equation->grad);
     gradient(dev,mesh,stencil,omega_lsq,omega,boundary_omega,omega_equation->grad);
     evaluate_turbulence();
-    if(transition) transition->update(sst->fields(),rho_cell,mu_cell,kinetic,omega,strain_gradient,boundary_kind,mass);
+    if(transition) transition->update(sst->fields(),rho_cell,mu_cell,kinetic,omega,strain_gradient,boundary_kind,model_mass());
     kern::fv_effective_viscosity(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.weight,sst->fields().mu_t,viscosity,mesh.n_internal_faces,float(settings.viscosity));
   }
@@ -608,7 +638,7 @@ struct SteadySolver::Impl {
     t.convection=is_omega?opt.omega_convection:opt.k_convection;
     t.relaxation=float(is_omega?opt.omega_relaxation:opt.k_relaxation);
     eq.assemble_reconstructed(is_omega?omega:kinetic,is_omega?boundary_omega:boundary_k,
-      turbulence_kind,mass,is_omega?f.face_diffusivity_omega:f.face_diffusivity_k,
+      turbulence_kind,model_mass(),is_omega?f.face_diffusivity_omega:f.face_diffusivity_k,
       is_omega?f.omega_source:f.k_source,t,{is_omega?&f.omega_sink:&f.k_sink});
     if(is_omega) kern::fv_fixed_rows(dev,mesh.n_cells,eq.matrix.row_ptr,eq.matrix.diag,f.fixed_omega_mask,
       f.fixed_omega,eq.matrix.val,eq.rhs);
@@ -709,6 +739,7 @@ struct SteadySolver::Impl {
     // BEGIN FSAE physics
     interior_jumps->update(mass);
     // END FSAE physics
+    if(compensated_state()) {update_paired_pressure();return;}
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
       prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
@@ -724,11 +755,6 @@ struct SteadySolver::Impl {
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,face_pressure,pressure_jump,mesh.n_internal_faces);
-    if(paired && settings.compensated_momentum)
-      kern::fv_compensated_pressure_jump(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
-        mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
-        mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
-        pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,pressure_jump,mesh.n_internal_faces);
     if(poor_count) kern::fv_poor_cell_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,poor,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
@@ -738,7 +764,6 @@ struct SteadySolver::Impl {
     if(settings.pressure_interpolation==PressureInterpolation::Standard)
       kern::fv_standard_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
         pressure,physical_diagonal,face_pressure,boundary_pressure,mesh.n_internal_faces);
-    if(paired && settings.compensated_momentum) update_pressure_gradient_lo();
   }
   const Buffer<float>& face_velocity_weights() const {
     return settings.face_velocity==FaceVelocityWeights::Distance?unit_diagonal:physical_diagonal;
@@ -798,30 +823,50 @@ struct SteadySolver::Impl {
         &pressure_gradient_lo.z,&pressure_lo,&mass_lo}) dev.fill(*b,0);
     if(settings.compensated_momentum) for(auto* b:{&pressure_force_lo.x,&pressure_force_lo.y,&pressure_force_lo.z,&face_pressure_lo,&pressure_boundary_lo}) dev.fill(*b,0);
   }
-  // grad(p_lo), with the pressure correction's boundary rows: p_lo is zero
-  // where hi is prescribed and has a zero normal derivative elsewhere.
-  // Compensated mode stores canonical total face pressures. Source assembly
-  // uses their high words; pressure_force_lo completes the same face force.
+  // The pressure fit observes cell pressure at Neumann boundaries, then
+  // reconstructs momentum face traces. Both reductions carry the full pair.
+  void update_paired_pressure() {
+    auto& g=pressure_gradient_lo;
+    kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
+      prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
+    kern::fv_cell_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,pressure,
+      boundary_pressure,mesh.n_internal_faces);
+    apply_backflow_pressure();
+    dev.fill(g.x,0);dev.fill(g.y,0);dev.fill(g.z,0);
+    kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure_lo,g.x,g.y,g.z,
+      correction_boundary,pressure_boundary_lo,mesh.n_internal_faces);
+    paired_gradient(dev,mesh,stencil,pressure_lsq,pressure,pressure_lo,boundary_pressure,pressure_boundary_lo,grad_p,g);
+    kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,grad_p.x,grad_p.y,grad_p.z,
+      prescribed_pressure,boundary_pressure,mesh.n_internal_faces);
+    apply_backflow_pressure();
+    kern::fv_paired_pressure_boundary_low(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure,pressure_lo,
+      grad_p.x,grad_p.y,grad_p.z,g.x,g.y,g.z,boundary_pressure,pressure_boundary_lo,mesh.n_internal_faces);
+    kern::fv_compensated_pressure_jump(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+      mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+      pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,pressure_jump,mesh.n_internal_faces);
+    kern::fv_paired_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,poor_count?poor:zero_mask,
+      mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+      mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+      pressure,pressure_lo,grad_p.x,grad_p.y,grad_p.z,g.x,g.y,g.z,boundary_pressure,pressure_boundary_lo,
+      physical_diagonal,face_pressure,face_pressure_lo,mesh.n_internal_faces,
+      settings.pressure_interpolation==PressureInterpolation::Standard?1:0);
+    kern::fv_compensated_pressure_force(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
+      mesh.area.x,mesh.area.y,mesh.area.z,mesh.volume,face_pressure,face_pressure_lo,
+      pressure_force_lo.x,pressure_force_lo.y,pressure_force_lo.z);
+  }
+  // Legacy paired mode keeps its original independent low-word fit.
   void update_pressure_gradient_lo() {
+    if(compensated_state()) {update_paired_pressure();return;}
     auto& g=pressure_gradient_lo;dev.fill(g.x,0);dev.fill(g.y,0);dev.fill(g.z,0);
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure_lo,g.x,g.y,g.z,
       correction_boundary,pressure_boundary_lo,mesh.n_internal_faces);
     reconstruct_pressure(pressure_lo,pressure_boundary_lo,g);
-    if(settings.compensated_momentum) {
-      kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
-        mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure_lo,g.x,g.y,g.z,
-        correction_boundary,pressure_boundary_lo,mesh.n_internal_faces);
-      kern::fv_paired_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,poor_count?poor:zero_mask,
-        mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
-        mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
-        pressure,pressure_lo,grad_p.x,grad_p.y,grad_p.z,g.x,g.y,g.z,boundary_pressure,pressure_boundary_lo,
-        physical_diagonal,face_pressure,face_pressure_lo,mesh.n_internal_faces,
-        settings.pressure_interpolation==PressureInterpolation::Standard?1:0);
-      kern::fv_compensated_pressure_force(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
-        mesh.area.x,mesh.area.y,mesh.area.z,mesh.volume,face_pressure,face_pressure_lo,
-        pressure_force_lo.x,pressure_force_lo.y,pressure_force_lo.z);
-    }
   }
   // Same boundary observations and gradients as the high word. Inlets and
   // prescribed walls have zero low data; symmetry projects the low velocity.
@@ -987,6 +1032,7 @@ struct SteadySolver::Impl {
     interior_jumps->flux(mesh,stencil,physical_diagonal,mass,coefficient);
     // END FSAE physics
     if(paired && settings.compensated_momentum) {
+      dev.copy(high_face_velocity.x,face_velocity.x);dev.copy(high_face_velocity.y,face_velocity.y);dev.copy(high_face_velocity.z,face_velocity.z);
       auto& b=boundary_velocity_lo;
       reconstruct_velocity_lo();
       for(int k=0;k<3;++k) {
@@ -1003,20 +1049,16 @@ struct SteadySolver::Impl {
         velocity_faces->momentum_increment(velocity.y,velocity_lo.y,boundary_velocity.y,b.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
         velocity_faces->momentum_increment(velocity.z,velocity_lo.z,boundary_velocity.z,b.z,face_velocity_weights(),face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
       }
-      kern::fv_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+      kern::fv_paired_pressure_jump(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
         mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
-        mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,pressure_lo,
-        pressure_gradient_lo.x,pressure_gradient_lo.y,pressure_gradient_lo.z,pressure_boundary_lo,
-        face_pressure_lo,pressure_jump,mesh.n_internal_faces);
-      if(settings.compensated_momentum)
-        kern::fv_compensated_pressure_jump(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
-          mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
-          mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
-          pressure_lo,pressure_gradient_lo.x,pressure_gradient_lo.y,pressure_gradient_lo.z,
-          pressure_boundary_lo,pressure_jump,mesh.n_internal_faces);
-      kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
-        mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,physical_diagonal,consistent_inverse,
-        face_velocity.x,face_velocity.y,face_velocity.z,pressure_jump,mass_lo,coefficient,mesh.n_internal_faces,float(settings.density));
+        mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+        pressure,pressure_lo,grad_p.x,grad_p.y,grad_p.z,pressure_gradient_lo.x,pressure_gradient_lo.y,pressure_gradient_lo.z,
+        boundary_pressure,pressure_boundary_lo,pressure_jump,mesh.n_internal_faces);
+      kern::fv_compensated_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
+        mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,physical_diagonal,
+        high_face_velocity.x,high_face_velocity.y,high_face_velocity.z,face_velocity.x,face_velocity.y,face_velocity.z,
+        pressure_jump,mass,mass_lo,mesh.n_internal_faces,float(settings.density));
+      zone_physics->relative_flux(boundary_kind,mesh.n_internal_faces,mass);
       kern::fv_paired_flux_offset(dev,mesh.n_faces,mesh.area.x,mesh.area.y,mesh.area.z,
         previous_mass,mass,mass_lo,paired_slack().flux_per_area);
     } else if(paired) kern::fv_paired_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
@@ -1118,7 +1160,9 @@ struct SteadySolver::Impl {
     if(paired) kern::fv_paired_pressure_rhs(dev,mesh.n_cells,imbalance,pressure_rhs,reference);
     pressure_solver->refresh(dev,*pressure_matrix);dev.fill(correction,0);
     report.pressure=pressure_solver->solve(dev,*pressure_matrix,correction,pressure_rhs,settings.pressure_linear);
-    if(paired) kern::fv_paired_correct_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+    if(paired && settings.compensated_momentum) kern::fv_compensated_correct_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+      mesh.area.x,mesh.area.y,mesh.area.z,correction,coefficient,mass,mass_lo,mesh.n_internal_faces,paired_slack().flux_per_area);
+    else if(paired) kern::fv_paired_correct_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
       mesh.area.x,mesh.area.y,mesh.area.z,correction,coefficient,mass,mass_lo,mesh.n_internal_faces,
       paired_slack().flux_per_area);
     else kern::fv_correct_flux(dev,mesh.n_faces,mesh.owner,mesh.neighbour,correction,coefficient,mass,mesh.n_internal_faces);
@@ -1131,7 +1175,11 @@ struct SteadySolver::Impl {
       boundary_pressure,mesh.n_internal_faces);
     reconstruct_pressure(correction,boundary_pressure,grad_correction);
     if(paired) {
-      kern::fv_paired_correct_velocity(dev,mesh.n_cells,mesh.volume,consistent_inverse,physical_diagonal,
+      if(settings.compensated_momentum) kern::fv_compensated_correct_velocity(dev,mesh.n_cells,mesh.volume,consistent_inverse,physical_diagonal,
+        grad_correction.x,grad_correction.y,grad_correction.z,correction,
+        velocity.x,velocity.y,velocity.z,pressure,velocity_lo.x,velocity_lo.y,velocity_lo.z,pressure_lo,
+        float(settings.pressure_relaxation),paired_slack().velocity,float(settings.paired_state_slack_ulps*double(std::numeric_limits<float>::epsilon())));
+      else kern::fv_paired_correct_velocity(dev,mesh.n_cells,mesh.volume,consistent_inverse,physical_diagonal,
         grad_correction.x,grad_correction.y,grad_correction.z,correction,
         velocity.x,velocity.y,velocity.z,pressure,velocity_lo.x,velocity_lo.y,velocity_lo.z,pressure_lo,
         float(settings.pressure_relaxation),paired_slack().velocity,paired_slack().pressure);
@@ -1146,35 +1194,38 @@ struct SteadySolver::Impl {
   // Viscous force on each masked wall face for the active closure. Callers
   // refresh boundaries, pressure and the velocity gradients first.
   void viscous_face_forces(const Buffer<float>& mask,DeviceVec3& viscous) {
-    const auto n=mask.size();const auto& m=mesh;const auto& gu=momentum[0]->grad;const auto& gv=momentum[1]->grad;const auto& gw=momentum[2]->grad;
+    if(!sst && !rke) prepare_model_state();
+    const auto n=mask.size();const auto& m=mesh;
+    const auto& flow=model_velocity();const auto& boundary=model_boundary_velocity();
+    const auto& gu=model_gradient(0);const auto& gv=model_gradient(1);const auto& gw=model_gradient(2);
     if(sst || rke) {
       update_turbulence();const auto& shear=sst?sst->fields().wall_shear:rke->fields().wall_shear;
       kern::fv_sst_force(dev,n,mask,m.area.x,m.area.y,m.area.z,
         shear.x,shear.y,shear.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces);
     } else if(diffusion_reconstruction) {
       kern::fv_wall_viscous_force(dev,n,m.owner,mask,m.area.x,m.area.y,m.area.z,
-        m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,velocity.x,velocity.y,velocity.z,
+        m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,flow.x,flow.y,flow.z,
         gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
-        boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,viscous.x,viscous.y,viscous.z,
+        boundary.x,boundary.y,boundary.z,viscous.x,viscous.y,viscous.z,
         m.n_internal_faces,float(settings.viscosity));
-      diffusion_reconstruction->flux_gradient(velocity.x,boundary_velocity.x,m,stencil,projected_gradient[0]);
-      diffusion_reconstruction->flux_gradient(velocity.y,boundary_velocity.y,m,stencil,projected_gradient[1]);
-      diffusion_reconstruction->flux_gradient(velocity.z,boundary_velocity.z,m,stencil,projected_gradient[2]);
+      diffusion_reconstruction->flux_gradient(flow.x,boundary.x,m,stencil,projected_gradient[0]);
+      diffusion_reconstruction->flux_gradient(flow.y,boundary.y,m,stencil,projected_gradient[1]);
+      diffusion_reconstruction->flux_gradient(flow.z,boundary.z,m,stencil,projected_gradient[2]);
       const auto& u=projected_gradient[0];const auto& v=projected_gradient[1];const auto& w=projected_gradient[2];
       kern::fv_wall_projected_viscous_force(dev,n,mask,diffusion_reconstruction->mask(),m.area.x,m.area.y,m.area.z,
         u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,viscous.x,viscous.y,viscous.z,m.n_internal_faces,float(settings.viscosity));
     } else {
       kern::fv_wall_viscous_force(dev,n,m.owner,mask,m.area.x,m.area.y,m.area.z,
-        m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,velocity.x,velocity.y,velocity.z,
+        m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,flow.x,flow.y,flow.z,
         gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
-        boundary_velocity.x,boundary_velocity.y,boundary_velocity.z,viscous.x,viscous.y,viscous.z,
+        boundary.x,boundary.y,boundary.z,viscous.x,viscous.y,viscous.z,
         m.n_internal_faces,float(settings.viscosity));
       // Resolved SA walls carry the projected momentum flux; keep the
       // traction's normal derivative equal to it.
       if(sa && turbulent_faces) {
         auto correction=dev.alloc<float>(m.n_faces);auto shift=vector_field(dev,n);
-        const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
-        const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+        const Buffer<float>* q[]{&flow.x,&flow.y,&flow.z};
+        const Buffer<float>* bc[]{&boundary.x,&boundary.y,&boundary.z};
         const DeviceVec3* g[]{&gu,&gv,&gw};Buffer<float>* out[]{&shift.x,&shift.y,&shift.z};
         for(int k=0;k<3;++k) {
           turbulent_faces->diffusion_correction(*q[k],*bc[k],correction);

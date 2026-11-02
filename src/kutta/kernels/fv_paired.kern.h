@@ -1,11 +1,5 @@
 #include "kutta/kernels/prelude.h"
 
-KUTTA_FN kpair fv_pair_product_add(kpair a,float x,float y) {
-  float product=x*y;
-  kpair sum=ktwo_sum(a.hi,product);
-  return ktwo_sum(sum.hi,(a.lo+sum.lo)+kfma(x,y,-product));
-}
-
 // Same bounded side reconstruction as fv_pressure_faces, without first
 // rounding two O(p) traces and then subtracting away their small difference.
 KUTTA_KERNEL void fv_compensated_pressure_jump(int i,KIn(int) owner,KIn(int) neighbour,
@@ -14,14 +8,14 @@ KUTTA_KERNEL void fv_compensated_pressure_jump(int i,KIn(int) owner,KIn(int) nei
     KOut(float) jump,int internal) {
   int c=owner[i];
   kpair full=ktwo_sum(p[c],i<internal?-p[neighbour[i]]:-boundary[i-internal]);
-  full=fv_pair_product_add(full,gx[c],px[i]);
-  full=fv_pair_product_add(full,gy[c],py[i]);
-  full=fv_pair_product_add(full,gz[c],pz[i]);
+  full=kpair_product_add(full,gx[c],px[i]);
+  full=kpair_product_add(full,gy[c],py[i]);
+  full=kpair_product_add(full,gz[c],pz[i]);
   if(i>=internal) {jump[i]=full.hi+full.lo;return;}
   int n=neighbour[i];
-  full=fv_pair_product_add(full,-gx[n],nx[i]);
-  full=fv_pair_product_add(full,-gy[n],ny[i]);
-  full=fv_pair_product_add(full,-gz[n],nz[i]);
+  full=kpair_product_add(full,-gx[n],nx[i]);
+  full=kpair_product_add(full,-gy[n],ny[i]);
+  full=kpair_product_add(full,-gz[n],nz[i]);
   float side=full.hi+full.lo;
   float dx=px[i]-nx[i],dy=py[i]-ny[i],dz=pz[i]-nz[i];
   float sx=0.5f*(px[i]+nx[i]),sy=0.5f*(py[i]+ny[i]),sz=0.5f*(pz[i]+nz[i]);
@@ -29,12 +23,12 @@ KUTTA_KERNEL void fv_compensated_pressure_jump(int i,KIn(int) owner,KIn(int) nei
   float trust=kmax(0.0f,kmin(1.0f,(4.0f*d2-s2)/(3.0f*d2)));
   if(trust==1.0f) {jump[i]=side;return;}
   kpair shared=ktwo_sum(p[c],-p[n]);
-  shared=fv_pair_product_add(shared,gx[c],0.5f*px[i]);shared=fv_pair_product_add(shared,gx[n],0.5f*px[i]);
-  shared=fv_pair_product_add(shared,gx[c],-0.5f*nx[i]);shared=fv_pair_product_add(shared,gx[n],-0.5f*nx[i]);
-  shared=fv_pair_product_add(shared,gy[c],0.5f*py[i]);shared=fv_pair_product_add(shared,gy[n],0.5f*py[i]);
-  shared=fv_pair_product_add(shared,gy[c],-0.5f*ny[i]);shared=fv_pair_product_add(shared,gy[n],-0.5f*ny[i]);
-  shared=fv_pair_product_add(shared,gz[c],0.5f*pz[i]);shared=fv_pair_product_add(shared,gz[n],0.5f*pz[i]);
-  shared=fv_pair_product_add(shared,gz[c],-0.5f*nz[i]);shared=fv_pair_product_add(shared,gz[n],-0.5f*nz[i]);
+  shared=kpair_product_add(shared,gx[c],0.5f*px[i]);shared=kpair_product_add(shared,gx[n],0.5f*px[i]);
+  shared=kpair_product_add(shared,gx[c],-0.5f*nx[i]);shared=kpair_product_add(shared,gx[n],-0.5f*nx[i]);
+  shared=kpair_product_add(shared,gy[c],0.5f*py[i]);shared=kpair_product_add(shared,gy[n],0.5f*py[i]);
+  shared=kpair_product_add(shared,gy[c],-0.5f*ny[i]);shared=kpair_product_add(shared,gy[n],-0.5f*ny[i]);
+  shared=kpair_product_add(shared,gz[c],0.5f*pz[i]);shared=kpair_product_add(shared,gz[n],0.5f*pz[i]);
+  shared=kpair_product_add(shared,gz[c],-0.5f*nz[i]);shared=kpair_product_add(shared,gz[n],-0.5f*nz[i]);
   float link=shared.hi+shared.lo;
   jump[i]=link+trust*(side-link);
 }
@@ -46,10 +40,66 @@ KUTTA_KERNEL void fv_compensated_pressure_jump(int i,KIn(int) owner,KIn(int) nei
 KUTTA_FN kpair fv_pressure_trace(float p,float low,float gx,float gy,float gz,
     float lx,float ly,float lz,float x,float y,float z) {
   kpair value=ktwo_sum(p,low);
-  value=fv_pair_product_add(value,gx,x);value=fv_pair_product_add(value,lx,x);
-  value=fv_pair_product_add(value,gy,y);value=fv_pair_product_add(value,ly,y);
-  value=fv_pair_product_add(value,gz,z);value=fv_pair_product_add(value,lz,z);
+  value=kpair_product_add(value,gx,x);value=kpair_product_add(value,lx,x);
+  value=kpair_product_add(value,gy,y);value=kpair_product_add(value,ly,y);
+  value=kpair_product_add(value,gz,z);value=kpair_product_add(value,lz,z);
   return value;
+}
+KUTTA_FN float fv_pressure_trace_difference(kpair a,kpair b) {
+  kpair d=ktwo_sum(a.hi,-b.hi);
+  d=kpair_product_add(d,a.lo,1.0f);d=kpair_product_add(d,-b.lo,1.0f);
+  return d.hi+d.lo;
+}
+// Cancel full pressure pairs before rounding a small Rhie-Chow curvature.
+KUTTA_KERNEL void fv_paired_pressure_jump(int i,KIn(int) owner,KIn(int) neighbour,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) p,KIn(float) low,KIn(float) gx,KIn(float) gy,KIn(float) gz,
+    KIn(float) lx,KIn(float) ly,KIn(float) lz,KIn(float) boundary,KIn(float) boundary_low,
+    KOut(float) jump,int internal) {
+  int c=owner[i];
+  kpair own=fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
+  if(i>=internal) {kpair b={boundary[i-internal],boundary_low[i-internal]};jump[i]=fv_pressure_trace_difference(own,b);return;}
+  int n=neighbour[i];
+  kpair next=fv_pressure_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],nx[i],ny[i],nz[i]);
+  float side=fv_pressure_trace_difference(own,next);
+  float dx=px[i]-nx[i],dy=py[i]-ny[i],dz=pz[i]-nz[i];
+  float sx=0.5f*(px[i]+nx[i]),sy=0.5f*(py[i]+ny[i]),sz=0.5f*(pz[i]+nz[i]);
+  float d2=dx*dx+dy*dy+dz*dz,s2=sx*sx+sy*sy+sz*sz;
+  float trust=kmax(0.0f,kmin(1.0f,(4.0f*d2-s2)/(3.0f*d2)));
+  if(trust==1.0f) {jump[i]=side;return;}
+  own=fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],.5f*dx,.5f*dy,.5f*dz);
+  next=fv_pressure_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],-.5f*dx,-.5f*dy,-.5f*dz);
+  float shared=fv_pressure_trace_difference(own,next);jump[i]=shared+trust*(side-shared);
+}
+
+// Retain high-word dot/product errors as well as the low face increment.
+// Adding F(hi) and F'(lo) after each has rounded loses a moving mass defect.
+KUTTA_KERNEL void fv_compensated_rhie_chow(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) kind,
+    KIn(float) sx,KIn(float) sy,KIn(float) sz,KIn(float) diffusion,KIn(float) volume,KIn(float) diagonal,
+    KIn(float) u,KIn(float) v,KIn(float) w,KIn(float) lu,KIn(float) lv,KIn(float) lw,
+    KIn(float) jump,KOut(float) flux,KOut(float) low,int internal,float rho) {
+  if(i>=internal && (kind[i-internal]==0 || kind[i-internal]==3)) {flux[i]=0.0f;low[i]=0.0f;return;}
+  int c=owner[i];float rc=volume[c]/kmax(diagonal[c],1.0e-20f);
+  if(i<internal) {int n=neighbour[i];rc=.5f*(rc+volume[n]/kmax(diagonal[n],1.0e-20f));}
+  kpair value={0.0f,0.0f};
+  value=kpair_product_add(value,u[i],sx[i]);value=kpair_product_add(value,lu[i],sx[i]);
+  value=kpair_product_add(value,v[i],sy[i]);value=kpair_product_add(value,lv[i],sy[i]);
+  value=kpair_product_add(value,w[i],sz[i]);value=kpair_product_add(value,lw[i],sz[i]);
+  if(i<internal || kind[i-internal]!=1) value=kpair_product_add(value,rc*diffusion[i],jump[i]);
+  kpair scaled={0.0f,0.0f};scaled=kpair_product_add(scaled,rho,value.hi);scaled=kpair_product_add(scaled,rho,value.lo);
+  flux[i]=scaled.hi;low[i]=scaled.lo;
+}
+
+// Complete the already rounded high boundary trace. Neumann Rhie-Chow
+// jumps must cancel the same full owner trace, including its rounding error.
+KUTTA_KERNEL void fv_paired_pressure_boundary_low(int i,KIn(int) owner,KIn(int) kind,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) p,KIn(float) low,
+    KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) lx,KIn(float) ly,KIn(float) lz,
+    KIn(float) boundary,KOut(float) boundary_low,int internal) {
+  if(kind[i]==2 || kind[i]==4) {boundary_low[i]=0.0f;return;}
+  int f=i+internal,c=owner[f];
+  kpair value=fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[f],py[f],pz[f]);
+  value=kpair_product_add(value,-boundary[i],1.0f);boundary_low[i]=value.hi+value.lo;
 }
 KUTTA_KERNEL void fv_paired_pressure_faces(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) kind,KIn(int) poor,
     KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
@@ -61,11 +111,11 @@ KUTTA_KERNEL void fv_paired_pressure_faces(int i,KIn(int) owner,KIn(int) neighbo
     if(standard) {
       float wc=1.0f/kmax(diagonal[c],1.0e-20f),wn=1.0f/kmax(diagonal[n],1.0e-20f);
       kpair numerator={0.0f,0.0f};
-      numerator=fv_pair_product_add(numerator,wc,p[c]);numerator=fv_pair_product_add(numerator,wc,low[c]);
-      numerator=fv_pair_product_add(numerator,wn,p[n]);numerator=fv_pair_product_add(numerator,wn,low[n]);
+      numerator=kpair_product_add(numerator,wc,p[c]);numerator=kpair_product_add(numerator,wc,low[c]);
+      numerator=kpair_product_add(numerator,wn,p[n]);numerator=kpair_product_add(numerator,wn,low[n]);
       kpair denominator=ktwo_sum(wc,wn);float q=numerator.hi/denominator.hi;
-      numerator=fv_pair_product_add(numerator,-q,denominator.hi);
-      numerator=fv_pair_product_add(numerator,-q,denominator.lo);
+      numerator=kpair_product_add(numerator,-q,denominator.hi);
+      numerator=kpair_product_add(numerator,-q,denominator.lo);
       value=ktwo_sum(q,(numerator.hi+numerator.lo)/denominator.hi);
     } else {
       kpair own=poor[c]?ktwo_sum(p[c],low[c]):fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
@@ -113,13 +163,13 @@ KUTTA_KERNEL void fv_compensated_momentum_residual(int i,KIn(int) rows,KIn(int) 
     KIn(float) pressure_gradient_lo,KIn(float) volume,KIn(float) rhs,KIn(float) rhs_low,KOut(float) r) {
   kpair value=ktwo_sum(rhs[i],rhs_low[i]);
   for(int j=rows[i];j<rows[i+1];++j) {
-    value=fv_pair_product_add(value,-values[j],hi[cols[j]]);
+    value=kpair_product_add(value,-values[j],hi[cols[j]]);
     float low_coefficient=j==diag[i]?physical[i]:values[j];
-    value=fv_pair_product_add(value,-low_coefficient,lo[cols[j]]);
+    value=kpair_product_add(value,-low_coefficient,lo[cols[j]]);
   }
-  value=fv_pair_product_add(value,-physical_low[i],hi[i]);
-  value=fv_pair_product_add(value,-physical_low[i],lo[i]);
-  value=fv_pair_product_add(value,-volume[i],pressure_gradient_lo[i]);
+  value=kpair_product_add(value,-physical_low[i],hi[i]);
+  value=kpair_product_add(value,-physical_low[i],lo[i]);
+  value=kpair_product_add(value,-volume[i],pressure_gradient_lo[i]);
   r[i]=value.hi+value.lo;
 }
 
@@ -138,13 +188,13 @@ KUTTA_KERNEL void fv_compensated_pressure_force(int i,KIn(int) offsets,KIn(int) 
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int f=faces[j];float p=sign[j]*pressure[f],q=sign[j]*low[f];
     a+=p*sx[f];b+=p*sy[f];c+=p*sz[f];
-    ax=fv_pair_product_add(ax,p,sx[f]);ax=fv_pair_product_add(ax,q,sx[f]);
-    ay=fv_pair_product_add(ay,p,sy[f]);ay=fv_pair_product_add(ay,q,sy[f]);
-    az=fv_pair_product_add(az,p,sz[f]);az=fv_pair_product_add(az,q,sz[f]);
+    ax=kpair_product_add(ax,p,sx[f]);ax=kpair_product_add(ax,q,sx[f]);
+    ay=kpair_product_add(ay,p,sy[f]);ay=kpair_product_add(ay,q,sy[f]);
+    az=kpair_product_add(az,p,sz[f]);az=kpair_product_add(az,q,sz[f]);
   }
-  ax=fv_pair_product_add(ax,-a/volume[i],volume[i]);
-  ay=fv_pair_product_add(ay,-b/volume[i],volume[i]);
-  az=fv_pair_product_add(az,-c/volume[i],volume[i]);
+  ax=kpair_product_add(ax,-a/volume[i],volume[i]);
+  ay=kpair_product_add(ay,-b/volume[i],volume[i]);
+  az=kpair_product_add(az,-c/volume[i],volume[i]);
   x[i]=(ax.hi+ax.lo)/volume[i];y[i]=(ay.hi+ay.lo)/volume[i];z[i]=(az.hi+az.lo)/volume[i];
 }
 
@@ -247,7 +297,8 @@ KUTTA_KERNEL void fv_paired_flux_offset(int i,KIn(float) sx,KIn(float) sy,KIn(fl
   kpair total=ktwo_sum(flux[i],low[i]);
   kpair x=ktwo_sum(total.hi,-previous[i]);
   float offset=x.hi+(x.lo+total.lo);
-  if(kabs(offset)<=slack) {flux[i]=previous[i];low[i]=offset;}
+  int same=(previous[i]>0.0f && total.hi>0.0f) || (previous[i]<0.0f && total.hi<0.0f) || (previous[i]==0.0f && total.hi==0.0f);
+  if(same && kabs(offset)<=slack) {flux[i]=previous[i];low[i]=offset;}
   else {flux[i]=total.hi;low[i]=total.lo;}
 }
 
@@ -292,4 +343,33 @@ KUTTA_KERNEL void fv_paired_correct_velocity(int i,KIn(float) volume,KIn(float) 
   x=kpair_add(w[i],w_lo[i],-d*gz[i],velocity_slack);w[i]=x.hi;w_lo[i]=x.lo;
   float pressure_alpha=kmin(alpha,0.7f*diagonal[i]*inverse[i]);
   x=kpair_add(p[i],p_lo[i],pressure_alpha*correction[i],pressure_slack);p[i]=x.hi;p_lo[i]=x.lo;
+}
+
+KUTTA_KERNEL void fv_paired_value(int i,KIn(float) hi,KIn(float) lo,KOut(float) value) {
+  value[i]=hi[i]+lo[i];
+}
+KUTTA_KERNEL void fv_paired_vector_values(int i,KIn(float) x,KIn(float) y,KIn(float) z,
+    KIn(float) lx,KIn(float) ly,KIn(float) lz,KOut(float) u,KOut(float) v,KOut(float) w) {
+  u[i]=x[i]+lx[i];v[i]=y[i]+ly[i];w[i]=z[i]+lz[i];
+}
+KUTTA_KERNEL void fv_compensated_correct_flux(int i,KIn(int) owner,KIn(int) neighbour,
+    KIn(float) sx,KIn(float) sy,KIn(float) sz,KIn(float) correction,KIn(float) coefficient,
+    KOut(float) flux,KOut(float) flux_lo,int internal,float slack_per_area) {
+  int c=owner[i];float pn=i<internal?correction[neighbour[i]]:0.0f;
+  float slack=slack_per_area*ksqrt(sx[i]*sx[i]+sy[i]*sy[i]+sz[i]*sz[i]);
+  kpair x=kpair_add_flux(flux[i],flux_lo[i],coefficient[i]*(correction[c]-pn),slack);
+  flux[i]=x.hi;flux_lo[i]=x.lo;
+}
+
+KUTTA_KERNEL void fv_compensated_correct_velocity(int i,KIn(float) volume,KIn(float) inverse,KIn(float) diagonal,
+    KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) correction,
+    KOut(float) u,KOut(float) v,KOut(float) w,KOut(float) p,
+    KOut(float) u_lo,KOut(float) v_lo,KOut(float) w_lo,KOut(float) p_lo,float alpha,
+    float velocity_slack,float pressure_slack) {
+  float d=volume[i]*inverse[i];
+  kpair x=kpair_add(u[i],u_lo[i],-d*gx[i],velocity_slack);u[i]=x.hi;u_lo[i]=x.lo;
+  x=kpair_add(v[i],v_lo[i],-d*gy[i],velocity_slack);v[i]=x.hi;v_lo[i]=x.lo;
+  x=kpair_add(w[i],w_lo[i],-d*gz[i],velocity_slack);w[i]=x.hi;w_lo[i]=x.lo;
+  float pressure_alpha=kmin(alpha,0.7f*diagonal[i]*inverse[i]);
+  x=kpair_add_relative(p[i],p_lo[i],pressure_alpha*correction[i],pressure_slack);p[i]=x.hi;p_lo[i]=x.lo;
 }

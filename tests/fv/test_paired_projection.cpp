@@ -104,3 +104,21 @@ TEST_CASE("FV paired limiter sees an extremum carried by the low gradient") {
     CHECK(dev->download(limiter)[0]==1);
   }
 }
+
+TEST_CASE("FV canonical constitutive fields are invariant under pair rebasing") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    const std::vector<float> high{.001f,1},low{std::ldexp(1.f,-20),-std::ldexp(1.f,-25)};
+    std::vector<float> expected,rebased_high,rebased_low;
+    for(std::size_t i=0;i<high.size();++i) {
+      const double physical=double(high[i])+double(low[i]);expected.push_back(float(physical));
+      rebased_high.push_back(high[i]+std::ldexp(1.f,-23));rebased_low.push_back(float(physical-double(rebased_high.back())));
+    }
+    auto h=dev->upload<float>(high),l=dev->upload<float>(low);
+    auto u=dev->alloc<float>(2),v=dev->alloc<float>(2),w=dev->alloc<float>(2);
+    kern::fv_paired_vector_values(*dev,2,h,h,h,l,l,l,u,v,w);
+    CHECK(dev->download(u)==expected);CHECK(dev->download(v)==expected);CHECK(dev->download(w)==expected);
+    dev->upload<float>(h,rebased_high);dev->upload<float>(l,rebased_low);
+    kern::fv_paired_vector_values(*dev,2,h,h,h,l,l,l,u,v,w);
+    CHECK(dev->download(u)==expected);
+  }
+}

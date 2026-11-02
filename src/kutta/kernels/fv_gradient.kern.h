@@ -22,6 +22,39 @@ KUTTA_KERNEL void fv_gradient(int i, KIn(int) offsets, KIn(int) adjacent,
   gz[i]=inverse[i+2*n]*bx+inverse[i+4*n]*by+inverse[i+5*n]*bz;
 }
 
+// Apply the same least-squares rows to the physical pair in one reduction.
+// Independent float gradients of hi and lo lose the high reduction error,
+// making pressure forces depend on arbitrary rebasing of the pressure pair.
+KUTTA_KERNEL void fv_paired_gradient(int i,KIn(int) offsets,KIn(int) adjacent,
+    KIn(float) dx,KIn(float) dy,KIn(float) dz,
+    KIn(float) fx,KIn(float) fy,KIn(float) fz,KIn(float) inverse,
+    KIn(float) cell,KIn(float) low,KIn(float) boundary,KIn(float) boundary_low,
+    KOut(float) gx,KOut(float) gy,KOut(float) gz,KOut(float) lx,KOut(float) ly,KOut(float) lz,int n) {
+  kpair bx={0.0f,0.0f},by={0.0f,0.0f},bz={0.0f,0.0f};
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int other=adjacent[j];
+    float hi=other<0?boundary[-other-1]:cell[other];
+    float lo=other<0?boundary_low[-other-1]:low[other];
+    kpair d=ktwo_sum(hi,-cell[i]);
+    d=kpair_product_add(d,lo,1.0f);d=kpair_product_add(d,-low[i],1.0f);
+    float wx=other<0?fx[-other-1]:dx[j],wy=other<0?fy[-other-1]:dy[j],wz=other<0?fz[-other-1]:dz[j];
+    bx=kpair_product_add(bx,wx,d.hi);bx=kpair_product_add(bx,wx,d.lo);
+    by=kpair_product_add(by,wy,d.hi);by=kpair_product_add(by,wy,d.lo);
+    bz=kpair_product_add(bz,wz,d.hi);bz=kpair_product_add(bz,wz,d.lo);
+  }
+  kpair x={0.0f,0.0f},y={0.0f,0.0f},z={0.0f,0.0f};
+  x=kpair_product_add(x,inverse[i],bx.hi);x=kpair_product_add(x,inverse[i],bx.lo);
+  x=kpair_product_add(x,inverse[i+n],by.hi);x=kpair_product_add(x,inverse[i+n],by.lo);
+  x=kpair_product_add(x,inverse[i+2*n],bz.hi);x=kpair_product_add(x,inverse[i+2*n],bz.lo);
+  y=kpair_product_add(y,inverse[i+n],bx.hi);y=kpair_product_add(y,inverse[i+n],bx.lo);
+  y=kpair_product_add(y,inverse[i+3*n],by.hi);y=kpair_product_add(y,inverse[i+3*n],by.lo);
+  y=kpair_product_add(y,inverse[i+4*n],bz.hi);y=kpair_product_add(y,inverse[i+4*n],bz.lo);
+  z=kpair_product_add(z,inverse[i+2*n],bx.hi);z=kpair_product_add(z,inverse[i+2*n],bx.lo);
+  z=kpair_product_add(z,inverse[i+4*n],by.hi);z=kpair_product_add(z,inverse[i+4*n],by.lo);
+  z=kpair_product_add(z,inverse[i+5*n],bz.hi);z=kpair_product_add(z,inverse[i+5*n],bz.lo);
+  gx[i]=x.hi;gy[i]=y.hi;gz[i]=z.hi;lx[i]=x.lo;ly[i]=y.lo;lz[i]=z.lo;
+}
+
 // Limiter factor that face increment d (= grad . r, nonzero) allows, given
 // the room delta (same sign as d) to the neighbour extremum. eps2 < 0 is
 // Barth-Jespersen, delta/d. Otherwise Venkatakrishnan's smooth function of
