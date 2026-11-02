@@ -263,12 +263,13 @@ TurbulenceInput read_turbulence(Reader& parent, std::string_view key) {
 
 BoundaryInput read_boundary(const Json& value, const std::string& path, Errors& errors) {
   Reader r(value, path, errors);
-  enum class Type { wall, velocity_inlet, pressure_outlet, symmetry, interior };
+  enum class Type { wall, velocity_inlet, pressure_outlet, pressure_inlet, mass_flow_inlet, porous_jump, symmetry, interior };
   const auto type = r.choice<Type>("type", {{"wall", Type::wall}, {"velocity-inlet", Type::velocity_inlet},
-                                            {"pressure-outlet", Type::pressure_outlet}, {"symmetry", Type::symmetry},
+                                            {"pressure-inlet", Type::pressure_inlet}, {"mass-flow-inlet", Type::mass_flow_inlet},
+                                            {"porous-jump", Type::porous_jump}, {"pressure-outlet", Type::pressure_outlet}, {"symmetry", Type::symmetry},
                                             {"interior", Type::interior}});
   if (!type) {
-    if (r.ok() && !r.has("type")) errors.add(r.at("type"), "required: wall, velocity-inlet, pressure-outlet, symmetry or interior");
+    if (r.ok() && !r.has("type")) errors.add(r.at("type"), "required: wall, velocity-inlet, pressure-inlet, mass-flow-inlet, pressure-outlet, porous-jump, symmetry or interior");
     return SymmetryInput{};
   }
   BoundaryInput out;
@@ -327,6 +328,39 @@ BoundaryInput read_boundary(const Json& value, const std::string& path, Errors& 
       out = p;
       break;
     }
+    case Type::pressure_inlet:
+    case Type::mass_flow_inlet: {
+      const auto read = [&](auto& b) {
+        b.direction = r.vector("direction", true);
+        b.gauge_pressure = r.number("gauge_pressure");
+        b.intermittency = r.number("intermittency", 0.0, 1.0);
+        b.turbulence = read_turbulence(r, "turbulence");
+        if (!r.has("turbulence")) b.turbulence.reset();
+      };
+      if (*type == Type::pressure_inlet) {
+        PressureInletInput b;
+        read(b);
+        b.total_pressure = r.number("total_pressure");
+        out = b;
+      } else {
+        MassFlowInletInput b;
+        read(b);
+        const auto rate = r.number("mass_flow_rate", 0.0), flux = r.number("mass_flux", 0.0);
+        if (rate && flux) errors.add(r.at("mass_flux"), "give either mass_flow_rate or mass_flux, not both");
+        if (rate) b.flow = MassFlowInletInput::Rate{*rate};
+        if (flux) b.flow = MassFlowInletInput::Flux{*flux};
+        out = b;
+      }
+      break;
+    }
+    case Type::porous_jump: {
+      PorousJumpInput b;
+      b.permeability = r.positive("permeability");
+      b.thickness = r.number("thickness", 0.0);
+      b.inertial_resistance = r.number("inertial_resistance", 0.0);
+      out = b;
+      break;
+    }
     case Type::symmetry: out = SymmetryInput{}; break;
     case Type::interior: out = InteriorInput{}; break;
   }
@@ -352,6 +386,26 @@ RelaxationInput read_relaxation(Reader& parent, std::string_view key) {
   r.finish();
   return out;
 }
+struct TransitionConstant {
+  std::string_view json, fluent;
+  std::optional<double> KuttaCase::Models::Intermittency::*member;
+  double fallback;
+};
+constexpr TransitionConstant transition_constants[] = {
+  {"ctu1", "trans-one-eqn-ctu1", &KuttaCase::Models::Intermittency::ctu1, 100},
+  {"ctu2", "trans-one-eqn-ctu2", &KuttaCase::Models::Intermittency::ctu2, 1000},
+  {"ctu3", "trans-one-eqn-ctu3", &KuttaCase::Models::Intermittency::ctu3, 1},
+  {"cpg1", "trans-one-eqn-cpg1", &KuttaCase::Models::Intermittency::cpg1, 1},
+  {"cpg2", "trans-one-eqn-cpg2", &KuttaCase::Models::Intermittency::cpg2, -0.5},
+  {"cpg3", "trans-one-eqn-cpg3", &KuttaCase::Models::Intermittency::cpg3, 0},
+  {"cpg1_limit", "trans-one-eqn-lim-cpg1", &KuttaCase::Models::Intermittency::cpg1_limit, 1.5},
+  {"cpg2_limit", "trans-one-eqn-lim-cpg2", &KuttaCase::Models::Intermittency::cpg2_limit, 3},
+  {"csep", "trans-one-eqn-csep", &KuttaCase::Models::Intermittency::csep, 1},
+  {"tke_term_coefficient", "trans-one-eqn-tke-term-coef", &KuttaCase::Models::Intermittency::tke_term_coefficient, 1},
+  {"sigma", "intermit-sig", &KuttaCase::Models::Intermittency::sigma, 1},
+  {"minimum", "trans-intermit/min-limit", &KuttaCase::Models::Intermittency::minimum, 1e-7},
+  {"maximum", "trans-intermit/max-limit", &KuttaCase::Models::Intermittency::maximum, 1}
+};
 } // namespace
 
 bool is_kutta_case(const std::filesystem::path& p) {
@@ -392,6 +446,7 @@ KuttaCase parse_kutta_case(std::string_view text) {
       auto& o = c.models.k_omega_sst;
       o.production_limiter = s.boolean("production_limiter");
       o.production_limiter_clip_factor = s.positive("production_limiter_clip_factor");
+      o.cross_diffusion_clip = s.positive("cross_diffusion_clip");
       o.low_re_corrections = s.boolean("low_re_corrections");
       o.curvature_correction = s.boolean("curvature_correction");
       o.compressibility_effects = s.boolean("compressibility_effects");
@@ -403,8 +458,22 @@ KuttaCase parse_kutta_case(std::string_view text) {
     if (const auto* ke = models.raw("k_epsilon_standard")) {
       Reader s(*ke, "models/k_epsilon_standard", errors);
       c.models.k_epsilon.compressibility_effects = s.boolean("compressibility_effects");
+      c.models.k_epsilon.source_modification = s.boolean("source_modification");
+      c.models.k_epsilon.time_marching = s.boolean("time_marching");
       s.finish();
       if (c.models.viscous != ViscousModel::k_epsilon_standard) errors.add("models/k_epsilon_standard", "applies only to viscous k-epsilon-standard");
+    }
+    if (const auto* v = models.raw("intermittency")) {
+      Reader t(*v, "models/intermittency", errors);
+      for (const auto& field : transition_constants) c.models.intermittency.*(field.member) = t.number(field.json);
+      const auto& o = c.models.intermittency;
+      if (o.csep && *o.csep < 0) errors.add(t.at("csep"), "must be at least 0");
+      if (o.tke_term_coefficient && *o.tke_term_coefficient < 0) errors.add(t.at("tke_term_coefficient"), "must be at least 0");
+      if (o.sigma && *o.sigma <= 0) errors.add(t.at("sigma"), "must be greater than 0");
+      if (!(o.minimum.value_or(1e-7) > 0 && o.minimum.value_or(1e-7) < o.maximum.value_or(1) && o.maximum.value_or(1) <= 1))
+        errors.add("models/intermittency/minimum", "requires 0 < minimum < maximum <= 1");
+      t.finish();
+      if (c.models.intermittency_transition != true) errors.add("models/intermittency", "requires transition intermittency");
     }
     models.finish();
     if (c.models.intermittency_transition == true && c.models.viscous != ViscousModel::k_omega_sst)
@@ -419,7 +488,65 @@ KuttaCase parse_kutta_case(std::string_view text) {
     c.material.viscosity = s.positive("viscosity");
     s.finish();
   }
+  if (const auto* v = r.raw("materials")) {
+    if (const auto* materials = std::get_if<Object>(&v->value)) {
+      for (const auto& [name, value] : *materials) {
+        Reader m(value, "materials/" + name, errors);
+        KuttaCase::Material material;
+        material.density = m.positive("density");
+        material.viscosity = m.positive("viscosity");
+        if (!m.has("density")) errors.add(m.at("density"), "required: constant density in kg/m^3");
+        if (!m.has("viscosity")) errors.add(m.at("viscosity"), "required: constant viscosity in Pa s");
+        m.finish();
+        c.materials.emplace(name, material);
+      }
+    } else errors.add("materials", "expected an object keyed by material name");
+  }
   c.operating_pressure = r.number("operating_pressure", 0.0);
+  c.pressure_reference_point = r.vector("pressure_reference_point");
+  c.relative_frame_origins_absolute = r.boolean("relative_frame_origins_absolute");
+  if (const auto* v = r.raw("cell_zones")) {
+    if (const auto* zones = std::get_if<Object>(&v->value)) {
+      for (const auto& [name, input] : *zones) {
+        Reader z(input, "cell_zones/" + name, errors);
+        CellZoneInput zone;
+        zone.material = z.string("material");
+        if (const auto* v = z.raw("frame_motion")) {
+          Reader f(*v, z.at("frame_motion"), errors);
+          FrameInput b;
+          b.velocity = f.vector("velocity");
+          b.angular_speed = f.number("angular_speed");
+          b.axis_origin = f.vector("axis_origin");
+          b.axis_direction = f.vector("axis_direction", true);
+          b.relative_to = f.string("relative_to");
+          f.finish();
+          zone.frame_motion = b;
+        }
+        if (const auto* v = z.raw("porous")) {
+          Reader f(*v, z.at("porous"), errors);
+          PorousInput b;
+          const auto viscous = f.vector("viscous_resistance");
+          if (viscous) b.viscous_resistance = *viscous;
+          else if (!f.has("viscous_resistance")) errors.add(f.at("viscous_resistance"), "required: three principal viscous resistances (1/m^2); Fluent writer defaults differ");
+          b.inertial_resistance = f.vector("inertial_resistance");
+          for (const auto& [key, values] : {std::pair{"viscous_resistance", viscous}, {"inertial_resistance", b.inertial_resistance}})
+            if (values && std::any_of(values->begin(), values->end(), [](double x) { return x < 0; })) errors.add(f.at(key), "components must be at least 0");
+          b.direction_1 = f.vector("direction_1", true);
+          b.direction_2 = f.vector("direction_2", true);
+          const auto a = b.direction_1.value_or(Vec3{1, 0, 0}), d = b.direction_2.value_or(Vec3{0, 1, 0});
+          const Vec3 cross{a[1]*d[2]-a[2]*d[1], a[2]*d[0]-a[0]*d[2], a[0]*d[1]-a[1]*d[0]};
+          const auto norm = [](Vec3 v) { return std::hypot(v[0], v[1], v[2]); };
+          if (norm(cross) <= 1e-12 * norm(a) * norm(d)) errors.add(f.at("direction_2"), "must not be parallel to direction_1");
+          b.porosity = f.number("porosity", 0.0, 1.0);
+          b.relative_velocity = f.boolean("relative_velocity");
+          f.finish();
+          zone.porous = b;
+        }
+        z.finish();
+        c.cell_zones.emplace(name, zone);
+      }
+    } else errors.add("cell_zones", "expected an object keyed by mesh cell zone name");
+  }
 
   if (const auto* b = r.raw("boundaries")) {
     if (const auto* zones = std::get_if<Object>(&b->value))
@@ -694,6 +821,7 @@ std::string kutta_case_text(const KuttaCase& c) {
     const auto& s = c.models.k_omega_sst;
     sst.opt("production_limiter", s.production_limiter);
     sst.opt("production_limiter_clip_factor", s.production_limiter_clip_factor);
+    sst.opt("cross_diffusion_clip", s.cross_diffusion_clip);
     sst.opt("low_re_corrections", s.low_re_corrections);
     sst.opt("curvature_correction", s.curvature_correction);
     sst.opt("compressibility_effects", s.compressibility_effects);
@@ -702,7 +830,12 @@ std::string kutta_case_text(const KuttaCase& c) {
     if (!sst.empty()) m.add("k_omega_sst", std::move(sst));
     auto ke = Out::object();
     ke.opt("compressibility_effects", c.models.k_epsilon.compressibility_effects);
+    ke.opt("source_modification", c.models.k_epsilon.source_modification);
+    ke.opt("time_marching", c.models.k_epsilon.time_marching);
     if (!ke.empty()) m.add("k_epsilon_standard", std::move(ke));
+    auto tr = Out::object();
+    for (const auto& field : transition_constants) tr.opt(std::string(field.json), c.models.intermittency.*(field.member));
+    if (!tr.empty()) m.add("intermittency", std::move(tr));
   }
   {
     auto m = Out::object();
@@ -711,7 +844,45 @@ std::string kutta_case_text(const KuttaCase& c) {
     m.opt("viscosity", c.material.viscosity);
     if (!m.empty()) root.add("material", std::move(m));
   }
+  auto materials = Out::object();
+  for (const auto& [name, input] : c.materials) {
+    auto m = Out::object();
+    m.opt("density", input.density);
+    m.opt("viscosity", input.viscosity);
+    materials.add(name, std::move(m));
+  }
+  if (!materials.empty()) root.add("materials", std::move(materials));
   root.opt("operating_pressure", c.operating_pressure);
+  root.opt("pressure_reference_point", c.pressure_reference_point);
+  root.opt("relative_frame_origins_absolute", c.relative_frame_origins_absolute);
+  auto cells = Out::object();
+  for (const auto& [name, input] : c.cell_zones) {
+    auto z = Out::object();
+    z.opt("material", input.material);
+    if (input.frame_motion) {
+      const auto& b = *input.frame_motion;
+      auto f = Out::object();
+      f.opt("velocity", b.velocity);
+      f.opt("angular_speed", b.angular_speed);
+      f.opt("axis_origin", b.axis_origin);
+      f.opt("axis_direction", b.axis_direction);
+      f.opt("relative_to", b.relative_to);
+      z.add("frame_motion", std::move(f));
+    }
+    if (input.porous) {
+      const auto& b = *input.porous;
+      auto f = Out::object();
+      f.add("viscous_resistance", Out::vec(b.viscous_resistance));
+      f.opt("inertial_resistance", b.inertial_resistance);
+      f.opt("direction_1", b.direction_1);
+      f.opt("direction_2", b.direction_2);
+      f.opt("porosity", b.porosity);
+      f.opt("relative_velocity", b.relative_velocity);
+      z.add("porous", std::move(f));
+    }
+    cells.add(name, std::move(z));
+  }
+  if (!cells.empty()) root.add("cell_zones", std::move(cells));
   {
     auto& b = root.add("boundaries", Out::object());
     for (const auto& [name, condition] : c.boundaries) {
@@ -746,6 +917,24 @@ std::string kutta_case_text(const KuttaCase& c) {
           z.opt("prevent_reverse_flow", v.prevent_reverse_flow);
           if (v.turbulence) z.add("turbulence", turbulence_out(*v.turbulence));
           z.opt("intermittency", v.intermittency);
+        } else if constexpr (std::is_same_v<T, PressureInletInput> || std::is_same_v<T, MassFlowInletInput>) {
+          if constexpr (std::is_same_v<T, PressureInletInput>) {
+            z.add("type", Out::str("pressure-inlet"));
+            z.opt("total_pressure", v.total_pressure);
+          } else {
+            z.add("type", Out::str("mass-flow-inlet"));
+            if (const auto* rate = std::get_if<MassFlowInletInput::Rate>(&v.flow)) z.add("mass_flow_rate", Out::num(rate->value));
+            else z.add("mass_flux", Out::num(std::get<MassFlowInletInput::Flux>(v.flow).value));
+          }
+          z.opt("direction", v.direction);
+          z.opt("gauge_pressure", v.gauge_pressure);
+          z.opt("intermittency", v.intermittency);
+          if (v.turbulence) z.add("turbulence", turbulence_out(*v.turbulence));
+        } else if constexpr (std::is_same_v<T, PorousJumpInput>) {
+          z.add("type", Out::str("porous-jump"));
+          z.opt("permeability", v.permeability);
+          z.opt("thickness", v.thickness);
+          z.opt("inertial_resistance", v.inertial_resistance);
         } else if constexpr (std::is_same_v<T, SymmetryInput>) z.add("type", Out::str("symmetry"));
         else z.add("type", Out::str("interior"));
       }, condition);
@@ -949,7 +1138,7 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
   const bool pseudo = c.methods.pseudo_transient.value_or(coupling == CouplingScheme::coupled);
 
   // Zones: every boundary zone of the mesh needs a condition; interior zones
-  // are interior; every cell zone is fluid with the case's material.
+  // are interior unless assigned a jump; cell zones have constant fluid materials.
   std::map<std::string, const MeshZoneInfo*> by_name;
   for (const auto& z : mesh.zones) by_name.emplace(z.name, &z);
   std::string known;
@@ -965,10 +1154,10 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
     }
     const auto kind = it->second->kind;
     if (kind == MeshZoneInfo::Kind::cell) errors.add("boundaries/" + name, "is a cell zone; cell zones are fluid and take no boundary condition");
-    else if (kind == MeshZoneInfo::Kind::interior && !std::holds_alternative<InteriorInput>(b))
-      errors.add("boundaries/" + name, "is an interior face zone of the mesh; only \"interior\" applies");
-    else if (kind == MeshZoneInfo::Kind::boundary && std::holds_alternative<InteriorInput>(b))
-      errors.add("boundaries/" + name, "is a boundary of the mesh; interior applies only to interior face zones");
+    else if (kind == MeshZoneInfo::Kind::interior && !std::holds_alternative<InteriorInput>(b) && !std::holds_alternative<PorousJumpInput>(b))
+      errors.add("boundaries/" + name, "is an interior face zone of the mesh; only \"interior\" or \"porous-jump\" applies");
+    else if (kind == MeshZoneInfo::Kind::boundary && (std::holds_alternative<InteriorInput>(b) || std::holds_alternative<PorousJumpInput>(b)))
+      errors.add("boundaries/" + name, "is a boundary of the mesh; interior and porous-jump apply only to interior face zones");
   }
   for (const auto& z : mesh.zones) {
     if (z.kind == MeshZoneInfo::Kind::boundary && !c.boundaries.contains(z.name))
@@ -987,6 +1176,48 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
     if (t->method == TurbulenceInput::Method::k_epsilon && !ke) errors.add(path + "/method", "k-epsilon applies only to viscous k-epsilon-standard");
   };
 
+  for (const auto& [name, input] : c.cell_zones) {
+    const auto it = by_name.find(name);
+    const auto path = "cell_zones/" + name;
+    if (it == by_name.end() || it->second->kind != MeshZoneInfo::Kind::cell) {
+      std::vector<std::string_view> names;
+      for (const auto& z : mesh.zones) if (z.kind == MeshZoneInfo::Kind::cell) names.push_back(z.name);
+      errors.add(path, "the mesh has no cell zone named \"" + name + "\"" + suggestion(name, names));
+    }
+    if (input.material && *input.material != c.material.name.value_or("air") && !c.materials.contains(*input.material))
+      errors.add(path + "/material", "must name the default material or an entry in materials");
+    if (input.frame_motion) {
+      const auto& f = *input.frame_motion;
+      z_zero(f.velocity, path + "/frame_motion/velocity");
+      if (planar && f.axis_direction && ((*f.axis_direction)[0] != 0 || (*f.axis_direction)[1] != 0))
+        errors.add(path + "/frame_motion/axis_direction", "a 2D mesh rotates about the z axis only");
+      if (f.relative_to) {
+        const auto parent = by_name.find(*f.relative_to);
+        if (parent == by_name.end() || parent->second->kind != MeshZoneInfo::Kind::cell)
+          errors.add(path + "/frame_motion/relative_to", "must name a mesh cell zone");
+      }
+      std::set<std::string> visited{name};
+      auto next = f.relative_to;
+      while (next && c.cell_zones.contains(*next)) {
+        if (!visited.insert(*next).second) { errors.add(path + "/frame_motion/relative_to", "cycle in relative frame references"); break; }
+        const auto& p = c.cell_zones.at(*next).frame_motion;
+        next = p ? p->relative_to : std::nullopt;
+      }
+    }
+  }
+  std::optional<std::pair<double, double>> fluid_properties;
+  for (const auto& z : mesh.zones) if (z.kind == MeshZoneInfo::Kind::cell) {
+    const auto input = c.cell_zones.find(z.name);
+    const auto name = input != c.cell_zones.end() ? input->second.material.value_or(c.material.name.value_or("air")) : c.material.name.value_or("air");
+    const auto named = c.materials.find(name);
+    if (name != c.material.name.value_or("air") && named == c.materials.end()) continue;
+    const auto& m = name == c.material.name.value_or("air") ? c.material : named->second;
+    const std::pair values{m.density.value_or(defaults::air_density), m.viscosity.value_or(defaults::air_viscosity)};
+    if (fluid_properties && *fluid_properties != values)
+      errors.add("cell_zones/" + z.name + "/material", "the solver requires constant uniform density/viscosity across all fluid zones");
+    fluid_properties = values;
+  }
+  z_zero(c.pressure_reference_point, "pressure_reference_point");
   // ---- Rampant variables (section 37) ----
   Alist rp, config;
   config.flag("rp-seg?", true);
@@ -1008,11 +1239,21 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
   rp.list("case-config", config.text());
   rp.real("operating-pressure", c.operating_pressure.value_or(defaults::operating_pressure));
   rp.flag("gravity?", false);
+  rp.flag("solve-absolute-velocities?", true);
+  rp.flag("reference-frame/relative/origin-absolute?", c.relative_frame_origins_absolute.value_or(false));
+  rp.flag("porous/physical-velocity-form?", false);
   {
     const auto material = c.material.name.value_or("air");
     if (!plain_symbol(material)) errors.add("material/name", "use letters, digits and -_. only");
-    rp.list("materials", "((" + material + " fluid (density . " + real_text(c.material.density.value_or(defaults::air_density)) +
-                             ") (viscosity . " + real_text(c.material.viscosity.value_or(defaults::air_viscosity)) + ")))");
+    std::string entries = "(" + material + " fluid (density . " + real_text(c.material.density.value_or(defaults::air_density)) +
+                          ") (viscosity . " + real_text(c.material.viscosity.value_or(defaults::air_viscosity)) + "))";
+    for (const auto& [name, m] : c.materials) {
+      if (!plain_symbol(name)) errors.add("materials/" + name, "use letters, digits and -_. only");
+      if (name == material) errors.add("materials/" + name, "duplicates the default material; edit material instead");
+      entries += "(" + symbol_text(name) + " fluid (density . " + real_text(m.density.value_or(defaults::air_density)) +
+                 ") (viscosity . " + real_text(m.viscosity.value_or(defaults::air_viscosity)) + "))";
+    }
+    rp.list("materials", "(" + entries + ")");
   }
   // Model selection and options.
   if (sst) {
@@ -1044,7 +1285,7 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
     rp.real("turb-viscosity/max-limit", c.controls.max_turbulent_viscosity_ratio.value_or(defaults::max_viscosity_ratio));
   }
   if (sst) {
-    rp.real("sst-limit-cross-diff-to-n-times-w-destruct", 1e6);  // [O]
+    rp.real("sst-limit-cross-diff-to-n-times-w-destruct", c.models.k_omega_sst.cross_diffusion_clip.value_or(1e6));  // [O]
     rp.flag("sst-linearize-neg-cross-diff?", true);              // [O]
   }
   if (ke) {
@@ -1055,8 +1296,8 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
     for (auto [key, value] : {std::pair{"kecmu", 0.09}, {"kec1", 1.44}, {"kec2", 1.92}, {"kesigk", 1.0}, {"kesige", 1.3}}) rp.real(key, value);
     rp.flag("ke-std-wall?", true);
     for (auto key : {"ke-enh-wall?", "ke-scalable-wall?", "ke-non-eqm", "ke-nwt-ml?", "ke-udf-wall?"}) rp.flag(key, false);
-    rp.flag("ke-source-mod", true);
-    rp.flag("ke-time-marching?", true);
+    rp.flag("ke-source-mod", c.models.k_epsilon.source_modification.value_or(true));
+    rp.flag("ke-time-marching?", c.models.k_epsilon.time_marching.value_or(true));
     rp.real("epsilon/min-limit", c.controls.min_turbulent_dissipation_rate.value_or(defaults::min_epsilon));
   }
   if (laminar && (c.controls.min_turbulent_kinetic_energy || c.controls.min_specific_dissipation_rate ||
@@ -1066,12 +1307,8 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
   if (c.controls.min_turbulent_dissipation_rate && !ke) errors.add("controls/limits/min_turbulent_dissipation_rate", "applies only to k-epsilon-standard");
   if (transition) {
     // TG 4.8 model constants as Fluent 22.2 writes them [O].
-    for (auto [key, value] : {std::pair{"trans-one-eqn-ctu1", 100.0}, {"trans-one-eqn-ctu2", 1000.0}, {"trans-one-eqn-ctu3", 1.0},
-                              {"trans-one-eqn-cpg1", 1.0}, {"trans-one-eqn-cpg2", -0.5}, {"trans-one-eqn-cpg3", 0.0},
-                              {"trans-one-eqn-lim-cpg1", 1.5}, {"trans-one-eqn-lim-cpg2", 3.0}, {"trans-one-eqn-csep", 1.0},
-                              {"trans-one-eqn-tke-term-coef", 1.0}, {"trans-one-eqn-crossflow-crsf", 1.0}, {"intermit-sig", 1.0},
-                              {"trans-intermit/min-limit", 1e-7}, {"trans-intermit/max-limit", 1.0}})
-      rp.real(key, value);
+    for (const auto& field : transition_constants) rp.real(std::string(field.fluent), (c.models.intermittency.*(field.member)).value_or(field.fallback));
+    rp.real("trans-one-eqn-crossflow-crsf", 1);
     rp.flag("trans-one-eqn-crossflow?", false);
     rp.flag("trans-intermit-smoothing?", false);
     rp.integer("trans-one-eqn-dudn-method", 1);
@@ -1158,7 +1395,7 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
   rp.real("reference-depth", ref.depth.value_or(defaults::reference_depth));
   if (planar && ref.depth && *ref.depth != 1)
     errors.add("reference_values/depth", "a 2D mesh is read as a one-cell extrusion 1 m deep; the reference depth must be 1");
-  for (auto axis : {"x", "y", "z"}) rp.real(std::string("pressure-reference/") + axis, 0);
+  rp.vector({"pressure-reference/x", "pressure-reference/y", "pressure-reference/z"}, c.pressure_reference_point.value_or(Vec3{}));
   // Initialization.
   using Init = KuttaCase::Initialization::Method;
   const auto& init = c.initialization;
@@ -1238,23 +1475,39 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
   for (const auto& z : mesh.zones) {
     if (z.kind == MeshZoneInfo::Kind::cell) {
       Alist a;
-      a.atom("material", c.material.name.value_or("air"));
-      a.flag("mrf-motion?", false);
-      a.real("mrf-omega", 0);
-      a.integer("mrf-relative-to-thread", -1);
+      const auto input = c.cell_zones.find(z.name);
+      const CellZoneInput empty;
+      const auto& cell = input == c.cell_zones.end() ? empty : input->second;
+      a.atom("material", cell.material.value_or(c.material.name.value_or("air")));
+      const auto f = cell.frame_motion.value_or(FrameInput{});
+      a.flag("mrf-motion?", cell.frame_motion.has_value());
+      a.real("mrf-omega", f.angular_speed.value_or(0));
+      const auto parent = f.relative_to ? by_name.find(*f.relative_to) : by_name.end();
+      a.integer("mrf-relative-to-thread", parent == by_name.end() ? -1 : parent->second->id);
       a.integer("motion-spec", 0);
-      a.vector({"mrf-grid-x-vel", "mrf-grid-y-vel", "mrf-grid-z-vel"}, {0, 0, 0});
-      a.vector({"mrf-x-origin", "mrf-y-origin", "mrf-z-origin"}, {0, 0, 0});
-      a.vector({"mrf-ai", "mrf-aj", "mrf-ak"}, {0, 0, 1});
-      a.flag("porous?", false);
+      a.vector({"mrf-grid-x-vel", "mrf-grid-y-vel", "mrf-grid-z-vel"}, f.velocity.value_or(Vec3{}));
+      a.vector({"mrf-x-origin", "mrf-y-origin", "mrf-z-origin"}, f.axis_origin.value_or(Vec3{}));
+      a.vector({"mrf-ai", "mrf-aj", "mrf-ak"}, f.axis_direction.value_or(Vec3{0, 0, 1}));
+      a.flag("porous?", cell.porous.has_value());
       a.flag("laminar?", false);
-      a.real("porosity", 1);
-      a.flag("rel-vel-resistance?", true);
+      const auto p = cell.porous.value_or(PorousInput{});
+      a.real("porosity", p.porosity.value_or(1));
+      a.flag("rel-vel-resistance?", p.relative_velocity.value_or(true));
+      if (cell.porous) {
+        a.vector({"porous-r/1", "porous-r/2", "porous-r/3"}, p.viscous_resistance);
+        a.vector({"porous-c/1", "porous-c/2", "porous-c/3"}, p.inertial_resistance.value_or(Vec3{}));
+        a.vector({"direction-1/x", "direction-1/y", "direction-1/z"}, p.direction_1.value_or(Vec3{1, 0, 0}));
+        a.vector({"direction-2/x", "direction-2/y", "direction-2/z"}, p.direction_2.value_or(Vec3{0, 1, 0}));
+        a.flag("alt-inertial-form?", false);
+        a.integer("dir-spec-cond", 0);
+        a.real("c0", 0);
+        a.real("c1", 0);
+      }
       thread(z, "fluid", a);
       continue;
     }
     const auto it = c.boundaries.find(z.name);
-    if (z.kind == MeshZoneInfo::Kind::interior || it == c.boundaries.end()) {
+    if (it == c.boundaries.end()) {
       if (z.kind == MeshZoneInfo::Kind::interior) thread(z, "interior", Alist{});
       continue;
     }
@@ -1317,7 +1570,33 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
         if (transition) a.real("intermit", b.intermittency.value_or(defaults::intermittency));
         else if (b.intermittency) errors.add(path + "/intermittency", "applies only with the intermittency transition model");
         thread(z, "pressure-outlet", a);
-      } else if constexpr (std::is_same_v<T, SymmetryInput>) thread(z, "symmetry", a);
+      } else if constexpr (std::is_same_v<T, PressureInletInput> || std::is_same_v<T, MassFlowInletInput>) {
+        a.integer("frame-of-reference", 0);
+        a.integer("direction-spec", b.direction ? 0 : 1);
+        if (b.direction) a.vector({"ni", "nj", "nk"}, *b.direction);
+        a.flag("prevent-reverse-flow?", false);
+        a.real("p", b.gauge_pressure.value_or(0));
+        turbulence_entries(a, b.turbulence, solved);
+        check_turbulence(b.turbulence, path + "/turbulence");
+        if (transition) a.real("intermit", b.intermittency.value_or(defaults::intermittency));
+        else if (b.intermittency) errors.add(path + "/intermittency", "applies only with the intermittency transition model");
+        z_zero(b.direction, path + "/direction");
+        if constexpr (std::is_same_v<T, PressureInletInput>) {
+          a.real("p0", b.total_pressure.value_or(0));
+          thread(z, "pressure-inlet", a);
+        } else {
+          const auto* rate = std::get_if<MassFlowInletInput::Rate>(&b.flow);
+          a.integer("flow-spec", rate ? 0 : 1);
+          a.real(rate ? "mass-flow" : "mass-flux", rate ? rate->value : std::get<MassFlowInletInput::Flux>(b.flow).value);
+          thread(z, "mass-flow-inlet", a);
+        }
+      } else if constexpr (std::is_same_v<T, PorousJumpInput>) {
+        a.real("alpha", b.permeability.value_or(1e10));
+        a.real("dm", b.thickness.value_or(0));
+        a.real("c2", b.inertial_resistance.value_or(0));
+        thread(z, "porous-jump", a);
+      } else if constexpr (std::is_same_v<T, InteriorInput>) thread(z, "interior", a);
+      else if constexpr (std::is_same_v<T, SymmetryInput>) thread(z, "symmetry", a);
     }, it->second);
   }
   errors.finish();
@@ -1355,6 +1634,8 @@ void apply_boundary_kinds(const KuttaCase& c, PolyMesh& mesh) {
       if constexpr (std::is_same_v<T, WallInput>) p.kind = PatchKind::Wall, p.source_type = "wall";
       else if constexpr (std::is_same_v<T, VelocityInletInput>) p.kind = PatchKind::VelocityInlet, p.source_type = "velocity-inlet";
       else if constexpr (std::is_same_v<T, PressureOutletInput>) p.kind = PatchKind::PressureOutlet, p.source_type = "pressure-outlet";
+      else if constexpr (std::is_same_v<T, PressureInletInput>) p.kind = PatchKind::PressureInlet, p.source_type = "pressure-inlet";
+      else if constexpr (std::is_same_v<T, MassFlowInletInput>) p.kind = PatchKind::Other, p.source_type = "mass-flow-inlet";
       else if constexpr (std::is_same_v<T, SymmetryInput>) p.kind = PatchKind::Symmetry, p.source_type = "symmetry";
     }, it->second);
   }
@@ -1405,6 +1686,10 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
     omit(path, "profile or unresolved expression " + v->binding + " cannot be written");
     return {};
   };
+  const auto required_value = [&](const std::optional<ScalarValue>& v, const std::string& path) -> std::optional<double> {
+    if (!v) { omit(path, "required active setting absent; no native value assumed"); return {}; }
+    return value(v, path);
+  };
   const auto set = [](std::optional<double>& target, std::optional<double> v, double fallback) {
     if (v && *v != fallback) target = v;
   };
@@ -1429,7 +1714,10 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
     Vec3 out3{};
     for (int i = 0; i < 3; ++i) {
       const auto x = value(v[std::size_t(i)], path + "/" + "xyz"[i]);
-      if (!x) return {};
+      if (!x) {
+        if (!v[std::size_t(i)]) omit(path + "/" + "xyz"[i], "required active vector component absent; no native value assumed");
+        return {};
+      }
       out3[std::size_t(i)] = *x;
     }
     return out3;
@@ -1452,7 +1740,9 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
         {"trans-one-eqn-lim-cpg2", 3}, {"trans-one-eqn-csep", 1}, {"trans-one-eqn-tke-term-coef", 1}, {"trans-one-eqn-crossflow-crsf", 1},
         {"intermit-sig", 1}, {"trans-intermit/min-limit", 1e-7}, {"trans-intermit/max-limit", 1}, {"intermit/default", 1}};
     for (const auto& [key, v] : t.transition_coefficients)
-      if (const auto it = constants.find(key); it != constants.end() && key != "intermit/default") expect(v, it->second, "rp/" + key);
+      if (const auto field = std::find_if(std::begin(transition_constants), std::end(transition_constants), [&](const auto& f) { return f.fluent == key; }); field != std::end(transition_constants))
+        set(k.models.intermittency.*(field->member), v, field->fallback);
+      else if (const auto it = constants.find(key); it != constants.end() && key != "intermit/default") expect(v, it->second, "rp/" + key);
     expect_flag(t.transition_crossflow, false, "rp/trans-one-eqn-crossflow?");
     expect_flag(t.transition_smoothing, false, "rp/trans-intermit-smoothing?");
     if (t.transition_normal_derivative && *t.transition_normal_derivative != 1) omit("rp/trans-one-eqn-dudn-method", "only method 1 is expressible");
@@ -1467,7 +1757,7 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
     set_flag(o.kato_launder, t.kato_launder, defaults::kato_launder);
     set_flag(o.vorticity_based_production, t.vorticity_production, defaults::vorticity_production);
     if (t.curvature_correction == true) expect(t.curvature_factor, 1, "rp/curvature-correction-ccurv");
-    expect(raw_number(c.variables, "sst-limit-cross-diff-to-n-times-w-destruct"), 1e6, "rp/sst-limit-cross-diff-to-n-times-w-destruct");
+    set(o.cross_diffusion_clip, raw_number(c.variables, "sst-limit-cross-diff-to-n-times-w-destruct"), 1e6);
     expect_flag(raw_flag(c.variables, "sst-linearize-neg-cross-diff?"), true, "rp/sst-linearize-neg-cross-diff?");
     if (c.numerics.wall_distance_method) expect(double(*c.numerics.wall_distance_method), 2, "rp/wall-distance/method");
     expect_flag(c.numerics.wall_distance_quad_correction, true, "rp/wall-distance/quad-correction?");
@@ -1481,11 +1771,13 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
   }
   if (ke) {
     set_flag(k.models.k_epsilon.compressibility_effects, t.compressibility, defaults::compressibility);
+    set_flag(k.models.k_epsilon.source_modification, raw_flag(c.variables, "ke-source-mod"), true);
+    set_flag(k.models.k_epsilon.time_marching, raw_flag(c.variables, "ke-time-marching?"), true);
     expect_flag(t.production_limiter, false, "rp/ke-production-limiter?");
     expect_flag(t.low_re, false, "rp/ke-low-re?");
     expect_flag(t.kato_launder, false, "rp/ke-kato-launder?");
     expect_flag(t.curvature_correction, false, "rp/curvature-correction?");
-    for (auto [key, fallback] : {std::pair{"ke-source-mod", true}, {"ke-time-marching?", true}, {"ke-std-wall?", true}, {"ke-enh-wall?", false},
+    for (auto [key, fallback] : {std::pair{"ke-std-wall?", true}, {"ke-enh-wall?", false},
                                  {"ke-scalable-wall?", false}, {"ke-non-eqm", false}, {"ke-nwt-ml?", false}, {"ke-udf-wall?", false}})
       expect_flag(raw_flag(c.variables, key), fallback, std::string("rp/") + key);
     for (auto [key, fallback] : {std::pair{"kecmu", 0.09}, {"kec1", 1.44}, {"kec2", 1.92}, {"kesigk", 1.0}, {"kesige", 1.3}})
@@ -1509,12 +1801,52 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
   for (const auto& z : c.cell_zones) {
     const auto prefix = "zone/" + z.name + "/";
     if (z.type != ZoneType::fluid) omit(prefix + "type", "only fluid cell zones are expressible");
-    if (z.frame_motion == true) omit(prefix + "mrf-motion?", "moving reference frames are not expressible in a version 1 Kutta case");
-    if (z.porous == true) omit(prefix + "porous?", "porous zones are not expressible in a version 1 Kutta case");
-    if (z.laminar == true) omit(prefix + "laminar?", "laminar zones are not expressible");
+    CellZoneInput input;
+    if (z.frame_motion == true) {
+      FrameInput f;
+      f.velocity = vec(z.frame_velocity, prefix + "frame-velocity");
+      f.axis_origin = vec(z.axis_origin, prefix + "axis-origin");
+      f.axis_direction = vec(z.axis_direction, prefix + "axis-direction");
+      f.angular_speed = required_value(z.angular_velocity, prefix + "mrf-omega");
+      if (!z.relative_to_zone) omit(prefix + "mrf-relative-to-thread", "required active frame parent absent");
+      if (!z.motion_spec) omit(prefix + "motion-spec", "required active frame motion specification absent");
+      if (z.relative_to_zone && *z.relative_to_zone != -1) {
+        const auto parent = std::find_if(c.cell_zones.begin(), c.cell_zones.end(), [&](const auto& p) { return p.id == *z.relative_to_zone; });
+        if (parent == c.cell_zones.end()) omit(prefix + "mrf-relative-to-thread", "relative frame refers to an absent cell zone");
+        else f.relative_to = parent->name;
+        const auto origin = raw_flag(c.variables, "reference-frame/relative/origin-absolute?");
+        if (!origin) omit("rp/reference-frame/relative/origin-absolute?", "required active frame origin convention absent");
+        set_flag(k.relative_frame_origins_absolute, origin, false);
+      }
+      expect(z.motion_spec ? std::optional<double>(*z.motion_spec) : std::nullopt, 0, prefix + "motion-spec");
+      if (raw_flag(c.variables, "solve-absolute-velocities?") != true) omit("rp/solve-absolute-velocities?", "requires explicit absolute-velocity formulation");
+      if (const auto* udf = z.raw.value("mrf-udf-zmotion-name"); udf && udf->atom_text() != "none") omit(prefix + "mrf-udf-zmotion-name", "UDF frame motion is unsupported");
+      input.frame_motion = f;
+    }
+    if (z.porous == true) {
+      PorousInput p;
+      if (const auto v = vec(z.viscous_resistance, prefix + "viscous-resistance")) p.viscous_resistance = *v;
+      p.inertial_resistance = vec(z.inertial_resistance, prefix + "inertial-resistance");
+      p.direction_1 = vec(z.porous_directions[0], prefix + "direction-1");
+      p.direction_2 = vec(z.porous_directions[1], prefix + "direction-2");
+      set(p.porosity, required_value(z.porosity, prefix + "porosity"), 1);
+      if (!z.relative_resistance) omit(prefix + "rel-vel-resistance?", "required active porous velocity convention absent");
+      set_flag(p.relative_velocity, z.relative_resistance, true);
+      input.porous = p;
+      if (raw_flag(c.variables, "porous/physical-velocity-form?") != false) omit("rp/porous/physical-velocity-form?", "requires explicit superficial-velocity formulation");
+      if (raw_flag(z.raw, "alt-inertial-form?") != false) omit(prefix + "alt-inertial-form?", "requires explicit standard inertial formulation");
+      expect(raw_number(z.raw, "dir-spec-cond"), 0, prefix + "dir-spec-cond");
+      for (const auto* key : {"c0", "c1"}) if (raw_number(z.raw, key) != 0) omit(prefix + key, "requires explicit zero power-law coefficient");
+      if (const auto* entry = z.raw.entry("viscosity-ratio")) {
+        auto v = entry_value(*entry);
+        if (v && v->kind == SExpr::Kind::list) v = entry_value(*v);
+        if (!v || v->number() != 1) omit(prefix + "viscosity-ratio", "relative viscosity models are unsupported");
+      }
+    }
+    if (input != CellZoneInput{}) k.cell_zones.emplace(z.name, input);
+    if (z.laminar == true && !laminar) omit(prefix + "laminar?", "laminar zones in turbulent flow are unsupported by the solver");
     if (z.type == ZoneType::fluid && z.material) {
-      if (material && *material != *z.material) omit(prefix + "material", "a Kutta case has one fluid material");
-      material = z.material;
+      if (!material) material = z.material;
     }
   }
   if (material) {
@@ -1523,6 +1855,20 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
       if (m->name != "air") k.material.name = m->name;
       set(k.material.density, value(m->density, "material/" + m->name + "/density"), defaults::air_density);
       set(k.material.viscosity, value(m->viscosity, "material/" + m->name + "/viscosity"), defaults::air_viscosity);
+    }
+  }
+
+  for (const auto& z : c.cell_zones) if (z.type == ZoneType::fluid && z.material && material && *z.material != *material) {
+    k.cell_zones[z.name].material = *z.material;
+    if (!k.materials.contains(*z.material)) {
+      const auto m = std::find_if(c.materials.begin(), c.materials.end(), [&](const auto& x) { return x.name == *z.material; });
+      if (m == c.materials.end()) omit("zone/" + z.name + "/material", "material is absent");
+      else {
+        KuttaCase::Material input;
+        input.density = value(m->density, "material/" + m->name + "/density");
+        input.viscosity = value(m->viscosity, "material/" + m->name + "/viscosity");
+        k.materials.emplace(*z.material, input);
+      }
     }
   }
 
@@ -1617,6 +1963,42 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
         k.boundaries.emplace(z.name, p);
         break;
       }
+      case ZoneType::pressure_inlet:
+      case ZoneType::mass_flow_inlet: {
+        const auto fill = [&](auto& b) {
+          if (z.direction_spec == 0) b.direction = vec(z.direction, prefix + "direction");
+          else if (z.direction_spec != 1) omit(prefix + "direction-spec", "only Cartesian direction or inward normal is implemented");
+          if (z.frame_of_reference != 0) omit(prefix + "frame-of-reference", "only absolute inlet data is implemented");
+          if (z.prevent_reverse_flow == true) omit(prefix + "prevent-reverse-flow?", "reverse-flow suppression is unsupported");
+          set(b.gauge_pressure, value(z.gauge_pressure, prefix + "p"), 0);
+          b.turbulence = turbulence(z, prefix);
+          if (transition) set(b.intermittency, value(z.intermittency, prefix + "intermit"), defaults::intermittency);
+        };
+        if (z.type == ZoneType::pressure_inlet) {
+          PressureInletInput b;
+          fill(b);
+          set(b.total_pressure, required_value(z.total_pressure, prefix + "p0"), 0);
+          k.boundaries.emplace(z.name, b);
+        } else {
+          MassFlowInletInput b;
+          fill(b);
+          if (z.mass_flow_spec == 0) {
+            if (const auto v = required_value(z.mass_flow, prefix + "mass-flow")) b.flow = MassFlowInletInput::Rate{*v};
+          } else if (z.mass_flow_spec == 1) {
+            if (const auto v = required_value(z.mass_flux, prefix + "mass-flux")) b.flow = MassFlowInletInput::Flux{*v};
+          } else omit(prefix + "flow-spec", "only uniform mass-flow rate or uniform mass flux are implemented");
+          k.boundaries.emplace(z.name, b);
+        }
+        break;
+      }
+      case ZoneType::porous_jump: {
+        PorousJumpInput b;
+        set(b.permeability, required_value(z.jump_permeability, prefix + "alpha"), 1e10);
+        set(b.thickness, required_value(z.jump_thickness, prefix + "dm"), 0);
+        set(b.inertial_resistance, required_value(z.jump_inertial, prefix + "c2"), 0);
+        k.boundaries.emplace(z.name, b);
+        break;
+      }
       default: omit(prefix + "type", "boundary type " + z.fluent_type + " is not expressible in a version 1 Kutta case");
     }
   }
@@ -1706,7 +2088,8 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
   set(k.reference.pressure, c.reference.pressure, defaults::reference_pressure);
   set(k.reference.viscosity, c.reference.viscosity, defaults::reference_viscosity);
   set(k.reference.depth, raw_number(c.variables, "reference-depth"), defaults::reference_depth);
-  for (auto axis : {"x", "y", "z"}) expect(raw_number(c.variables, std::string("pressure-reference/") + axis), 0, std::string("rp/pressure-reference/") + axis);
+  const auto px = raw_number(c.variables, "pressure-reference/x"), py = raw_number(c.variables, "pressure-reference/y"), pz = raw_number(c.variables, "pressure-reference/z");
+  if (px && py && pz && Vec3{*px, *py, *pz} != Vec3{}) k.pressure_reference_point = Vec3{*px, *py, *pz};
 
   // Initialization.
   using Init = KuttaCase::Initialization::Method;
@@ -1849,6 +2232,18 @@ KuttaCase fsae_starter(const MeshInfo& mesh, std::filesystem::path mesh_path, co
   for (const auto& [name, role] : o.roles)
     if (std::none_of(mesh.zones.begin(), mesh.zones.end(), [&](const auto& z) { return z.name == name && z.kind != MeshZoneInfo::Kind::cell; }))
       errors.add("role/" + name, "the mesh has no face zone named \"" + name + "\"");
+  for (const auto& [name, w] : o.wheels) {
+    const auto zone = std::find_if(mesh.zones.begin(), mesh.zones.end(), [&](const auto& z) { return z.name == name; });
+    const auto role = o.roles.find(name);
+    if (zone == mesh.zones.end() || zone->kind != MeshZoneInfo::Kind::boundary ||
+        (role != o.roles.end() ? role->second : suggest_role(*zone).role) != ZoneRole::wall)
+      errors.add("wheel/" + name, "must name a wall boundary zone");
+    if (!(w.radius > 0) || !std::isfinite(w.radius) || !std::isfinite(o.speed / w.radius)) errors.add("wheel/" + name + "/radius", "must give a finite positive radius and angular speed");
+    if (!std::all_of(w.axis_origin.begin(), w.axis_origin.end(), [](double x) { return std::isfinite(x); }) ||
+        !std::all_of(w.axis_direction.begin(), w.axis_direction.end(), [](double x) { return std::isfinite(x); }) ||
+        std::hypot(w.axis_direction[0], w.axis_direction[1], w.axis_direction[2]) == 0)
+      errors.add("wheel/" + name, "requires a finite origin and a nonzero finite axis");
+  }
   KuttaCase c;
   c.mesh = std::move(mesh_path);
   c.models.viscous = ViscousModel::k_omega_sst;
@@ -1893,10 +2288,19 @@ KuttaCase fsae_starter(const MeshInfo& mesh, std::filesystem::path mesh_path, co
         c.boundaries.emplace(z.name, w);
         break;
       }
-      case ZoneRole::wall:
-        c.boundaries.emplace(z.name, WallInput{});
+      case ZoneRole::wall: {
+        WallInput w;
+        if (const auto it = o.wheels.find(z.name); it != o.wheels.end()) {
+          w.motion = WallInput::Motion::rotating;
+          w.relative = false;
+          w.angular_speed = o.speed / it->second.radius;
+          w.axis_origin = it->second.axis_origin;
+          w.axis_direction = it->second.axis_direction;
+        }
+        c.boundaries.emplace(z.name, w);
         car.push_back(z.name);
         break;
+      }
       case ZoneRole::symmetry: c.boundaries.emplace(z.name, SymmetryInput{}); break;
       case ZoneRole::interior: break;  // the default for interior zones
     }

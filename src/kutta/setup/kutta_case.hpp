@@ -64,9 +64,49 @@ struct PressureOutletInput {
   std::optional<TurbulenceInput> turbulence;  // backflow turbulence
   bool operator==(const PressureOutletInput&) const = default;
 };
+struct PressureInletInput {
+  std::optional<double> total_pressure, gauge_pressure, intermittency;
+  std::optional<Vec3> direction;  // absent: inward normal
+  std::optional<TurbulenceInput> turbulence;
+  bool operator==(const PressureInletInput&) const = default;
+};
+struct MassFlowInletInput {
+  struct Rate { double value = 1; bool operator==(const Rate&) const = default; };
+  struct Flux { double value; bool operator==(const Flux&) const = default; };
+  std::variant<Rate, Flux> flow = Rate{};
+  std::optional<double> gauge_pressure, intermittency;
+  std::optional<Vec3> direction;
+  std::optional<TurbulenceInput> turbulence;
+  bool operator==(const MassFlowInletInput&) const = default;
+};
+struct PorousJumpInput {
+  // No-resistance default: zero thickness (UG 8.4.22).
+  std::optional<double> permeability, thickness, inertial_resistance;
+  bool operator==(const PorousJumpInput&) const = default;
+};
+struct FrameInput {
+  std::optional<Vec3> velocity, axis_origin, axis_direction;
+  std::optional<double> angular_speed;
+  std::optional<std::string> relative_to;  // absent: absolute frame
+  bool operator==(const FrameInput&) const = default;
+};
+struct PorousInput {
+  Vec3 viscous_resistance{};  // required in JSON: saved Fluent defaults vary by writer
+  std::optional<Vec3> inertial_resistance, direction_1, direction_2;
+  std::optional<double> porosity;
+  std::optional<bool> relative_velocity;
+  bool operator==(const PorousInput&) const = default;
+};
+struct CellZoneInput {
+  std::optional<std::string> material;
+  std::optional<FrameInput> frame_motion;
+  std::optional<PorousInput> porous;
+  bool operator==(const CellZoneInput&) const = default;
+};
 struct SymmetryInput { bool operator==(const SymmetryInput&) const = default; };
 struct InteriorInput { bool operator==(const InteriorInput&) const = default; };
-using BoundaryInput = std::variant<WallInput, VelocityInletInput, PressureOutletInput, SymmetryInput, InteriorInput>;
+using BoundaryInput = std::variant<WallInput, VelocityInletInput, PressureOutletInput, PressureInletInput,
+                                   MassFlowInletInput, PorousJumpInput, SymmetryInput, InteriorInput>;
 
 struct ForceReportInput {
   enum class Kind { force, drag, lift };
@@ -96,13 +136,18 @@ struct KuttaCase {
     struct KOmegaSst {
       std::optional<bool> production_limiter, low_re_corrections, curvature_correction, compressibility_effects,
           kato_launder, vorticity_based_production;
-      std::optional<double> production_limiter_clip_factor;
+      std::optional<double> production_limiter_clip_factor, cross_diffusion_clip;
       bool operator==(const KOmegaSst&) const = default;
     } k_omega_sst;
     struct KEpsilon {
-      std::optional<bool> compressibility_effects;
+      std::optional<bool> compressibility_effects, source_modification, time_marching;
       bool operator==(const KEpsilon&) const = default;
     } k_epsilon;
+    struct Intermittency {
+      std::optional<double> ctu1, ctu2, ctu3, cpg1, cpg2, cpg3, cpg1_limit, cpg2_limit,
+          csep, tke_term_coefficient, sigma, minimum, maximum;
+      bool operator==(const Intermittency&) const = default;
+    } intermittency;
     bool operator==(const Models&) const = default;
   } models;
   struct Material {
@@ -110,7 +155,12 @@ struct KuttaCase {
     std::optional<double> density, viscosity;
     bool operator==(const Material&) const = default;
   } material;
+  std::map<std::string, Material> materials;  // additional named constant-property fluids
   std::optional<double> operating_pressure;
+  std::optional<Vec3> pressure_reference_point;
+  std::map<std::string, CellZoneInput> cell_zones;
+  // Fluent's case-wide interpretation of child-frame origins.
+  std::optional<bool> relative_frame_origins_absolute;
   std::map<std::string, BoundaryInput> boundaries;  // by mesh zone name
   struct Reference {
     std::optional<double> area, length, density, velocity, pressure, viscosity, depth;
@@ -211,10 +261,15 @@ struct RoleSuggestion {
 RoleSuggestion suggest_role(const MeshZoneInfo&);
 struct StarterOptions {
   double speed = 15;  // m/s, freestream and ground speed
+  struct Wheel {
+    double radius;
+    Vec3 axis_origin, axis_direction;
+  };
+  std::map<std::string, Wheel> wheels;  // rolling speed/radius about the supplied signed axis
   std::map<std::string, ZoneRole> roles;  // overrides of the suggestions, by zone name
 };
 // The FSAE external-aero template: flow along +x, up +z (+y in 2D), SST, air,
 // velocity inlet, pressure outlet, moving ground, symmetry, stationary car
-// walls, drag and downforce on every car wall.
+// walls (rotating where wheel geometry is given), drag and downforce on every car wall.
 KuttaCase fsae_starter(const MeshInfo&, std::filesystem::path mesh, const StarterOptions&);
 } // namespace kutta::setup

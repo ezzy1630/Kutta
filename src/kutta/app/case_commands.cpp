@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 namespace kutta::app {
 namespace {
@@ -94,10 +95,10 @@ int fail(bool json, const std::string& command, const std::exception& e) {
 int new_case(int argc, char** argv) {
   bool json = false;
   for (int i = 2; i < argc; ++i) json = json || std::string_view(argv[i]) == "--json";
-  constexpr auto usage = "Usage: kutta new-case MESH [--template fsae-external] [--speed M/S] [--role ZONE=ROLE]... [--out CASE.kutta.json [--force]] [--json]";
+  constexpr auto usage = "Usage: kutta new-case MESH [--template fsae-external] [--speed M/S] [--role ZONE=ROLE]... [--wheel ZONE=R,X,Y,Z,AX,AY,AZ]... [--out CASE.kutta.json [--force]] [--json]";
   Args a;
   try {
-    a = parse_args(argc, argv, {"--template", "--speed", "--role", "--out"}, {"--json", "--force"}, {"--role"});
+    a = parse_args(argc, argv, {"--template", "--speed", "--role", "--wheel", "--out"}, {"--json", "--force"}, {"--role", "--wheel"});
     KUTTA_REQUIRE(a.positional.size() == 1, usage);
   } catch (const std::exception& e) {
     if (json) error_event(e.what());
@@ -126,6 +127,25 @@ int new_case(int argc, char** argv) {
                                  "Invalid options:");
         options.roles[r.substr(0, eq)] = *role;
       }
+    if (a.options.contains("--wheel"))
+      for (const auto& text : a.options.at("--wheel")) {
+        const auto eq = text.rfind('=');
+        std::array<double, 7> values{};
+        std::istringstream in(eq == std::string::npos ? "" : text.substr(eq + 1));
+        bool valid = eq != std::string::npos && eq > 0;
+        for (auto& value : values) {
+          std::string part;
+          if (!std::getline(in, part, ',')) { valid = false; break; }
+          const auto parsed = parse_double(part);
+          if (!parsed || !std::isfinite(*parsed)) { valid = false; break; }
+          value = *parsed;
+        }
+        if (!valid || !in.eof())
+          throw RejectedSettings({{"wheel", "--wheel " + text + ": expected ZONE=RADIUS,X,Y,Z,AX,AY,AZ (metres, signed rotation axis)"}}, "Invalid options:");
+        const auto name = text.substr(0, eq);
+        if (!options.wheels.emplace(name, setup::StarterOptions::Wheel{values[0], {values[1], values[2], values[3]}, {values[4], values[5], values[6]}}).second)
+          throw RejectedSettings({{"wheel/" + name, "duplicate wheel"}}, "Invalid options:");
+      }
     const std::filesystem::path out = option(a, "--out");
     if (!out.empty()) {
       KUTTA_REQUIRE(setup::is_kutta_case(out), "--out must name a .json file (conventionally CASE.kutta.json)");
@@ -151,7 +171,7 @@ int new_case(int argc, char** argv) {
       const auto role = it != options.roles.end() ? it->second : s.role;
       inlet = inlet || role == setup::ZoneRole::velocity_inlet;
       outlet = outlet || role == setup::ZoneRole::pressure_outlet;
-      wheels = wheels || (role == setup::ZoneRole::wall && s.group == "Wheels");
+      wheels = wheels || (role == setup::ZoneRole::wall && s.group == "Wheels" && !options.wheels.contains(z.name));
       Json::Object row{{"id", double(z.id)}, {"name", z.name}, {"mesh_type", z.type},
                        {"kind", z.kind == setup::MeshZoneInfo::Kind::interior ? "interior" : "boundary"}, {"faces", double(z.count)},
                        {"role", std::string(setup::role_name(role))}, {"suggested_role", std::string(setup::role_name(s.role))},
@@ -160,7 +180,7 @@ int new_case(int argc, char** argv) {
     }
     if (!inlet) notes.push_back("No zone is a velocity inlet; assign the inflow boundary its role.");
     if (!outlet) notes.push_back("No zone is a pressure outlet; assign the outflow boundary its role.");
-    if (wheels) notes.push_back("Wheels are stationary walls in this starter; make them rotating walls (axis, origin, angular speed) if the car's wheels turn.");
+    if (wheels) notes.push_back("Wheels without --wheel geometry remain stationary; pass --wheel ZONE=RADIUS,X,Y,Z,AX,AY,AZ to set angular speed to freestream speed / radius.");
     if (!out.empty()) write_text(out, text);
     if (json) {
       Json::Array roles;

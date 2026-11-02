@@ -31,8 +31,9 @@ which only the mesh is used. A relative mesh path is relative to the setup
 file. Zone types in the mesh file are hints only: a mesher that exports every
 zone as a wall is fine, because each boundary zone's condition comes from the
 setup. Every boundary zone of the mesh needs an entry under `boundaries`;
-interior face zones are interior, and every cell zone is fluid with the case's
-one material.
+interior face zones are interior unless assigned a porous jump. Cell zones
+are fluid with the case's default or named material; optional `cell_zones` entries select
+constant frame motion and porous resistance by exact mesh zone name.
 
 A Kutta case's identity (`inspect`'s `file.sha256`, `summary.json`'s
 `case_sha256`, the app's history) is the SHA-256 of the setup file's and the
@@ -69,10 +70,15 @@ are SI. Vectors are `[x, y, z]`; on a 2D mesh the z component must be 0.
 | --- | --- |
 | `models.viscous` | `laminar`, `k-omega-sst`, `k-epsilon-standard` |
 | `models.transition` | `none`, `intermittency` (SST only) |
-| `models.k_omega_sst` | `production_limiter`, `production_limiter_clip_factor`, `low_re_corrections`, `curvature_correction`, `compressibility_effects`, `kato_launder`, `vorticity_based_production` |
-| `models.k_epsilon_standard` | `compressibility_effects` |
-| `material` | `name`, `density` (kg/m³), `viscosity` (Pa s) |
+| `models.k_omega_sst` | `production_limiter`, `production_limiter_clip_factor`, `low_re_corrections`, `curvature_correction`, `compressibility_effects`, `kato_launder`, `vorticity_based_production`, `cross_diffusion_clip` |
+| `models.k_epsilon_standard` | `compressibility_effects`, `source_modification`, `time_marching` |
+| `models.intermittency` | configurable transition constants: `ctu1`, `ctu2`, `ctu3`, `cpg1`, `cpg2`, `cpg3`, `cpg1_limit`, `cpg2_limit`, `csep`, `tke_term_coefficient`, `sigma`, `minimum`, `maximum` (requires `transition:"intermittency"`) |
+| `material` | default fluid: `name`, `density` (kg/m³), `viscosity` (Pa s) |
+| `materials.<name>` | additional constant fluids; `density` and `viscosity` both required |
 | `operating_pressure` | Pa |
+| `pressure_reference_point` | `[x,y,z]`, Fluent's pressure-reference location (m) |
+| `cell_zones.<zone>` | optional `material` name, `frame_motion` and `porous` objects (below) |
+| `relative_frame_origins_absolute` | boolean, case-wide interpretation of child-frame origins; default `false` |
 | `boundaries.<zone>` | `{"type": ...}` with the type's properties below |
 | `reference_values` | `area`, `length`, `density`, `velocity`, `pressure`, `viscosity`, `depth` |
 | `methods` | `pressure_velocity_coupling` (`simple`, `simplec`, `coupled`), `pseudo_transient`, `gradient` (`least-squares-cell-based`, `green-gauss-cell-based`), `pressure` (`standard`, `second-order`), `momentum` / `turbulent_kinetic_energy` / `specific_dissipation_rate` / `turbulent_dissipation_rate` / `intermittency` (`first-order-upwind`, `second-order-upwind`), `flux_type` (`auto`, `rhie-chow-momentum`, `rhie-chow-distance`), `gradient_limiter` (`standard`, `differentiable`, `none`), `warped_face_gradient_correction`, `high_order_term_relaxation` |
@@ -88,6 +94,9 @@ Boundary types:
 | `wall` | `motion` (`stationary`, `moving`, `rotating`); moving: `speed` and `direction`, or `velocity`; rotating: `angular_speed` (rad/s, right-handed), `axis_origin`, `axis_direction`; both: `relative` (to the adjacent cell zone) |
 | `velocity-inlet` | `speed` (normal to the boundary), `speed` + `direction`, or `velocity`; `gauge_pressure`, `intermittency`, `turbulence` |
 | `pressure-outlet` | `gauge_pressure`, `backflow_pressure` (`total`, `static`), `prevent_reverse_flow`, `intermittency`, `turbulence` (backflow) |
+| `pressure-inlet` | `total_pressure` (gauge total pressure, Pa), `gauge_pressure` (supersonic/initial static gauge pressure), optional inward `direction`, `intermittency`, `turbulence` |
+| `mass-flow-inlet` | `mass_flow_rate` (kg/s) **or** `mass_flux` (kg/(m² s)), optional inward `direction`, `gauge_pressure`, `intermittency`, `turbulence` |
+| `porous-jump` | `permeability` (m², > 0), `thickness` (m, ≥ 0), `inertial_resistance` (1/m, ≥ 0); retained **internal** face zone only |
 | `symmetry` | none |
 | `interior` | none (interior face zones only) |
 
@@ -96,9 +105,90 @@ default; `intensity`, `viscosity_ratio`), `intensity-length-scale`,
 `intensity-hydraulic-diameter`, `k-omega` (`k`, `omega`) or `k-epsilon`
 (`k`, `epsilon`). The method may be omitted when the values name it.
 
+### Wheels, ground and fluid zones
+
+```sh
+kutta new-case car.msh --speed 20 \
+  --wheel front-left=0.23,0.8,0.6,0.23,0,-1,0 \
+  --wheel front-right=0.23,0.8,-0.6,0.23,0,-1,0 --out car.kutta.json
+```
+
+Each repeatable `--wheel` is `ZONE=RADIUS,X,Y,Z,AX,AY,AZ`: radius and axis
+origin in metres, followed by the signed rotation axis. It targets an exact
+wall name (including a `--role ZONE=wall` override). Angular speed is
+`freestream speed / radius` in rad/s and motion is absolute (`relative:false`).
+For +x flow and +z up, axis −y makes the wheel's bottom move along +x,
+consistent with the moving ground. In 2D, use +z for +x motion at the bottom.
+The starter requires wheel geometry from the user; names alone do not imply
+centres or radii. Wheels without geometry remain stationary with a note.
+
+```json
+"cell_zones": {
+  "radiator": {
+    "porous": {"viscous_resistance": [100, 10000, 10000],
+               "inertial_resistance": [5, 100, 100], "porosity": 0.8,
+               "direction_1": [1, 0, 0], "direction_2": [0, 1, 0],
+               "relative_velocity": true}
+  },
+  "rotor": {
+    "frame_motion": {"angular_speed": 80, "axis_origin": [0.8, 0.6, 0.23],
+                     "axis_direction": [0, -1, 0], "velocity": [0, 0, 0]}
+  }
+}
+```
+
+`material` defines the default fluid. Additional `materials` are keyed by name
+and require explicit constant `density` and `viscosity`; a cell zone's
+`material` selects one. Multiple names are supported only when every active
+fluid zone has identical density and viscosity, as the Fluent adapter requires.
+Missing names and duplicate definitions of the default material are errors.
+
+Omitting a cell-zone entry leaves it stationary and nonporous. An empty
+`frame_motion` object enables zero frame motion; `porous`
+requires explicit principal viscous resistances. Viscous and inertial resistance
+vectors must be nonnegative. Direction 1 and Direction 2 must be nonzero and
+nonparallel; Fluent orthogonalizes Direction 2 against Direction 1. Porosity
+is in [0,1]. The implemented formulation transports superficial velocity;
+`relative_velocity` chooses resistance relative to the zone frame or absolute
+velocity. Both objects may appear on the same zone.
+
+`frame_motion.relative_to` names another cell zone; omitted means the
+absolute frame. Missing names and cycles are rejected. Origins of relative
+frames are relative to the parent by default; `relative_frame_origins_absolute:true`
+uses their absolute positions instead. Translational and angular
+velocities compose through the same Fluent adapter as native cases. Only
+constant Cartesian frame motion in the absolute-velocity formulation is
+supported. A moving zone cannot touch a pressure outlet; at a symmetry plane
+its frame velocity must be tangential. These existing solver gates still
+apply. On 2D meshes motion stays in x-y and the rotation axis must be along z.
+
+Pressure and mass-flow inlet directions are inward, normalized Cartesian
+vectors; omit `direction` for the local inward normal. Mass-flow rate and
+mass flux are mutually exclusive and nonnegative. Frame-relative inlet data,
+reverse-flow suppression, averaged or spatially varying mass flux remain
+unsupported. `gauge_pressure` is preserved as Fluent's initial/static input;
+this incompressible solver uses total pressure at a pressure inlet.
+
+Porous jumps use `alpha`, `dm`, `c2` in the native Fluent thread and
+`mu/alpha * thickness * velocity + rho/2 * C2 * thickness * |velocity| * velocity`
+for the pressure loss. The mesh must retain that internal face-zone identity
+and orientation (for example a mesher-exported `porous-jump`/fan zone).
+An ordinary `interior` zone whose identity the mesh reader discards cannot be
+selected as a jump by inventing a name. No internal faces are inferred from
+boundary surfaces.
+
+The exposed non-default model controls are those the strict Fluent adapter
+already uses: SST's positive `cross_diffusion_clip`, the intermittency
+constants listed above, and k-ε's two solver switches. Other SST/k-ε model
+constants remain unsupported. Transition `sigma` must be positive, `csep`
+and `tke_term_coefficient` nonnegative, and `0 < minimum < maximum <= 1`.
+Turning both k-ε switches off removes the need for `--approximate ke-options`;
+leaving either on still requires it. No approximation is silently enabled.
+
 ## Defaults
 
-Sources: **UG**/**TG** the Ansys Fluent 2026 R1 User's/Theory Guide section;
+Sources: **UG**/**TG** the Ansys Fluent User's/Theory Guide section
+(2026 R1 unless the linked edition says otherwise);
 **UG fig** a value shown in a UG dialog figure, recorded in
 `docs/research/fluent-numerics-and-files.md`; **O** the value Fluent writes
 into new cases where the guides state none, observed identically in the
@@ -133,10 +223,34 @@ Fluent 22.2 mixing elbow, the 23.1 `elbow_param` and the 22.2 nozzle examples.
 | Intermittency at inlets/outlets | 1 | O |
 | Velocity inlet | magnitude normal to the boundary | UG 8.4 |
 | Pressure outlet | gauge 0 Pa, total backflow pressure, normal backflow, reverse flow not prevented | UG 8.4, O |
-| Wall | stationary, no slip; moving walls relative to the adjacent zone, direction +x | UG 8.4, O |
+| Wall | stationary, no slip; moving walls relative to the adjacent zone, direction +x | UG 8.4.15, O |
+| Wall/frame rotation | zero angular speed, origin [0,0,0], axis [0,0,1]; frame translation [0,0,0], parent absolute | UG 8.2.1.1.6, 10.2; O for stored axis/zero values |
+| Pressure inlet | gauge total and initial/static pressures 0 Pa; inward normal, absolute frame | UG 8.4.3.1.1.3, 8.4.3.3 |
+| Mass-flow inlet | mass-flow rate 1 kg/s, inward normal, initial pressure 0 Pa, absolute frame | UG 8.4.5.1, 8.4.5.3 |
+| Porous fluid zone | viscous resistance required; inertial resistance [0,0,0], directions +x/+y, porosity 1, superficial velocity, relative resistance on, relative viscosity 1 | UG 8.2.3.6–8.2.3.8; O for inertial zeros and direction axes |
+| Porous jump | permeability 1e10 m², thickness 0 m, inertial resistance 0 /m (no loss) | UG 8.4.22.2, fig 8.81 |
+| Relative frame origins | relative to parent (`false`) | O (`reference-frame/relative/origin-absolute?`); conversion preserves the saved flag |
+| Pressure reference point | [0,0,0] m | O |
+| SST negative-cross-diffusion clip | 1e6 | O |
+| Intermittency constants | ctu1 100, ctu2 1000, ctu3 1; cpg1 1, cpg2 −0.5, cpg3 0; limits 1.5/3; csep 1, tke coefficient 1, sigma 1; intermittency limits 1e-7/1 | TG 4.8; O for stored limits |
+| k-ε source modification / time marching | both on; require named approximation | O (undocumented Fluent solver switches) |
 | Residual monitors | every solved equation checked, absolute criterion 1e-3 | UG 37.17 |
 | Report coefficients | drag and lift reports are coefficients; force reports are forces | O |
 | Lift direction | +y; drag and force direction +x | O |
+
+There is no universal observed viscous-resistance default: the inactive
+porous settings in Fluent 22.2 mixing elbow/nozzle store 211100000 /m²,
+whereas the 23.1 `elbow_param` stores zero. The guide defines the resistance
+but does not assign a numerical default, so JSON requires
+`porous.viscous_resistance` explicitly rather than choosing one writer's
+value. Conversion always writes the saved three resistances.
+
+The boundary and porous defaults above are documented in the
+[Fluent User's Guide, §8.4.3, §8.4.5, §8.4.15 and §8.4.22](https://ansyshelp.ansys.com/public/Views/Secured/corp/v252/en/flu_ug/flu_ug_bcs_sec_bound_cond.html),
+including the [porous-jump default dialog](https://ansyshelp.ansys.com/public/Views/Secured/corp/v252/en/flu_ug/graphics/g_flu_ug_BCPorousJump.png),
+and [§8.2.1 and §8.2.3](https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/flu_ug/flu_ug_bcs_sec_cell_zones.html).
+Frame equations follow [Theory Guide §2.2.1, absolute-velocity formulation](https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/flu_th/flu_th_sec_rotate_equations.html).
+Angular speeds in JSON are always SI rad/s, regardless of Fluent's display units.
 
 Fluent's explicit relaxation for Coupled without pseudo time is documented as
 0.5 (UG 37.3.1.5), but the writers in the corpus store 0.75; a Kutta case
@@ -148,11 +262,9 @@ case has it.
 `kutta convert` lists every setting it cannot write and refuses when one would
 change the solution. Not expressible, by design of version 1: energy (with
 constant properties it does not change the flow, so convert notes and drops
-it), gravity, moving reference frames, porous and solid zones, more than one
-material, boundary types other than wall, velocity inlet, pressure outlet,
-symmetry and interior (pressure inlets, mass-flow inlets, far fields), wall
-roughness and specified shear, turbulence models other than laminar, SST
-(with or without intermittency) and standard k-ε, non-default model constants,
+it), gravity, solid zones, nonuniform material properties, far fields, native fan
+polynomial input, wall roughness and specified shear, turbulence models other than laminar, SST
+(with or without intermittency) and standard k-ε, non-default SST/k-ε constants other than the exposed controls,
 node-based gradients, PISO, surface reports other than force/drag/lift, and
 profiles. Expressions with a constant value are written as that value.
 Run controls (iteration count, convergence switch) stay command-line options.
@@ -187,3 +299,36 @@ Fluent case, `--write msh` and `--write kutta` write the mesh and a Kutta
 case from the script's options alone. Both are generated fixtures
 (`validation/generated_fixtures.tsv`), and the slow tier checks that the
 Kutta case solves to the same bytes as the Fluent case.
+
+The physics extension adds quick-tier typed/default/error-path tests and a
+slow real-CLI test using eighteen small native Fluent encodings: rotating and
+translating walls (components and direction), pressure inlets (normal and
+direction), mass-flow rate and flux, porous resistance, MRF, relative porous
+MRF, porous jumps, transition constants, k-ε solver options, named materials,
+nested frames with relative and absolute origin coordinates, absolute porous
+MRF, and a nonzero pressure-reference point. Every pair
+compares all four output files byte for byte on each available backend.
+A quick CLI test also writes and solves a starter with a rotating wheel.
+These are input-equivalence tests, not new physical-accuracy claims.
+
+The corpus physics test scans all native cases and attempts the strict Fluent
+setup first. Runnable originals must convert and match outputs. Held originals
+are reported as `KUTTA_CORPUS_HOLD` with their exact existing setup errors;
+conversion cannot establish equivalence to an original that cannot run.
+See [the extension evidence](../validation/results/mesh_to_run/PHYSICS.md)
+for the observed corpus holds and CPU/Metal baseline comparisons.
+
+A small, unrestricted circular-wheel/road mesh is committed at
+`tests/data/meshes/fsae_wheel.msh` (216 quadrilateral cells, 2D). Regenerate it
+with `uv run tools/fsae_aero/wheel_starter_mesh.py --out PATH.msh`. Its wheel
+has radius 0.2 m and centre [0.4,0.25,0]:
+
+```sh
+kutta new-case tests/data/meshes/fsae_wheel.msh --speed 20 \
+  --wheel wheel_front=0.2,0.4,0.25,0,0,0,1 --out wheel.kutta.json
+kutta solve wheel.kutta.json --backend cpu --iterations 40 --out wheel-cpu
+kutta solve wheel.kutta.json --backend metal --iterations 40 --out wheel-metal
+```
+
+This fixture checks setup, rotation direction, ground consistency and solve
+execution; its coarse mesh is not a wheel-aerodynamics accuracy certificate.

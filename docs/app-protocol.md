@@ -15,7 +15,7 @@ the app only presents it. Every message carries `"v": 1`.
 | `kutta export-view DIR [--slice origin,normal]... [--post spec.json]` | writes `DIR/view/` (below) from a finished run |
 | `kutta export-geometry CASE --out DIR [--json]` | writes `DIR/geometry/` (case surfaces without a run); with `--json` one `geometry` event line |
 | `kutta aero DIR [--aero spec.json] [--json]` | aero coefficients, groups, balance and centre of pressure of a finished run from its `loads.json`; writes `DIR/aero.json`, with `--json` one `aero` event line |
-| `kutta new-case MESH [--template fsae-external] [--speed M/S] [--role ZONE=ROLE]... [--out CASE.kutta.json [--force]] [--json]` | a starter Kutta case for a bare mesh (v1 additive, below); without `--out` the case is printed |
+| `kutta new-case MESH [--template fsae-external] [--speed M/S] [--role ZONE=ROLE]... [--wheel ZONE=R,X,Y,Z,AX,AY,AZ]... [--out CASE.kutta.json [--force]] [--json]` | a starter Kutta case for a bare mesh (v1 additive, below); without `--out` the case is printed |
 | `kutta convert CASE [--setup overrides.json] --out CASE.kutta.json [--force] [--json]` | a case's settings, with overrides applied, written as a Kutta case (v1 additive, below) |
 
 Human-readable output without `--json` / `--progress` is unchanged.
@@ -90,6 +90,25 @@ moving ground at the freestream speed, symmetry planes, stationary car walls,
 second-order k and ω, reference velocity and density of the freestream, and
 drag (+x) and downforce (lift along −z, −y in 2D) coefficient reports on
 every car wall.
+
+`--wheel ZONE=RADIUS,X,Y,Z,AX,AY,AZ` is repeatable (v1 additive).
+It requires an exact wall-zone name, a positive wheel radius in metres, its
+axis origin in metres, and a nonzero signed axis. The saved `case` contains a
+rotating wall with `angular_speed = speed / radius` in rad/s, the supplied
+axis/origin, and `relative:false`. For flow +x and up +z, use axis `0,-1,0`
+so the wheel's bottom moves along +x with the ground. Origins are supplied,
+not inferred from names. Unspecified wheels remain stationary and the notes
+say so. Duplicate wheels, invalid geometry and non-wall targets are errors.
+The translating ground keeps the existing speed and direction convention.
+
+The version-1 case object also accepts `pressure-inlet`, `mass-flow-inlet`,
+`porous-jump`, named `cell_zones` with constant `frame_motion` / `porous`, named constant
+`materials` and per-zone material assignments (uniform properties required),
+`pressure_reference_point`, `relative_frame_origins_absolute`, SST
+`cross_diffusion_clip`, configurable `models.intermittency` constants, and
+k-ε `source_modification` / `time_marching`. See the typed properties and
+limits in [the case format](kutta-case.md). These additions use the shared
+Fluent settings and solve protocol; no new progress events are required.
 
 `kutta convert CASE --out OUT --json` (CASE a Fluent or Kutta case;
 `--setup` applies a setup-overrides file first, as `solve --setup` does)

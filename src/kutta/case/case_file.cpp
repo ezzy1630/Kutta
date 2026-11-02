@@ -47,6 +47,9 @@ void check_thread_topology(FluentCase &c) {
         case ZoneType::pressure_outlet: expected = 5; break;
         case ZoneType::symmetry: expected = 7; break;
         case ZoneType::velocity_inlet: expected = 10; break;
+        case ZoneType::pressure_inlet: expected = 4; break;
+        case ZoneType::mass_flow_inlet: expected = 20; break;
+        case ZoneType::porous_jump: expected = 14; break;
         default: break;
         }
       }
