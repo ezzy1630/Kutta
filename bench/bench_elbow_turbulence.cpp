@@ -33,6 +33,8 @@ void compare(const char* name,const std::vector<double>& x,const std::vector<dou
 int main(int argc,char** argv) {
   try {
     KUTTA_REQUIRE((argc==8 || argc==9),"Usage: bench_elbow_turbulence case data out cpu|metal saved|cold iterations approximations [cell|jump]");
+    std::size_t parsed=0;const auto iterations=std::stoi(argv[6],&parsed);
+    KUTTA_REQUIRE(iterations>=0 && parsed==std::string_view(argv[6]).size(),"invalid iteration count");
     const auto c=fluent::read_case(argv[1]);const auto mesh=read_mesh(argv[1]);
     const auto data=fluent::read_data(argv[2],c);const auto saved=setup::fluent_fields(c,data,mesh);
     auto problem=setup::fluent_setup(c,mesh,setup::parse_approximations(argv[7]));
@@ -49,7 +51,6 @@ int main(int argc,char** argv) {
     auto d=Device::create(std::string_view(argv[4])=="cpu"?Backend::Cpu:Backend::Metal);
     SteadySolver s(*d,mesh,problem.boundaries,problem.settings);
     setup::initialize(s,std::string_view(argv[5])=="saved"?setup::Initialization{saved}:setup::initial_fields(c,mesh));
-    const auto iterations=std::stoi(argv[6]);KUTTA_REQUIRE(iterations>=0,"invalid iterations");
     std::filesystem::create_directories(argv[3]);const std::filesystem::path out=argv[3];
     std::cout<<std::setprecision(12)<<"CASE sha256="<<sha256_file(argv[1])<<" data="<<sha256_file(argv[2])
       <<" commit="<<KUTTA_BENCH_COMMIT<<" backend="<<argv[4]<<" start="<<argv[5]<<" iterations="<<iterations
