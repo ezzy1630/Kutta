@@ -39,6 +39,48 @@ KUTTA_KERNEL void fv_compensated_pressure_jump(int i,KIn(int) owner,KIn(int) nei
   jump[i]=link+trust*(side-link);
 }
 
+// Keep the face pressure canonical even when the cell pair uses hysteresis.
+// A rounded O(p) trace can lose curvature that the compensated Rhie-Chow
+// jump retains; carrying only the low cell trace would leave the momentum
+// force and mass-flux pressure operators inconsistent on thin wall cells.
+KUTTA_FN kpair fv_pressure_trace(float p,float low,float gx,float gy,float gz,
+    float lx,float ly,float lz,float x,float y,float z) {
+  kpair value=ktwo_sum(p,low);
+  value=fv_pair_product_add(value,gx,x);value=fv_pair_product_add(value,lx,x);
+  value=fv_pair_product_add(value,gy,y);value=fv_pair_product_add(value,ly,y);
+  value=fv_pair_product_add(value,gz,z);value=fv_pair_product_add(value,lz,z);
+  return value;
+}
+KUTTA_KERNEL void fv_paired_pressure_faces(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) kind,KIn(int) poor,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) p,KIn(float) low,KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) lx,KIn(float) ly,KIn(float) lz,
+    KIn(float) boundary,KIn(float) boundary_low,KIn(float) diagonal,KOut(float) face,KOut(float) face_low,int internal,int standard) {
+  int c=owner[i];kpair value=ktwo_sum(p[c],low[c]);
+  if(i<internal) {
+    int n=neighbour[i];
+    if(standard) {
+      float wc=1.0f/kmax(diagonal[c],1.0e-20f),wn=1.0f/kmax(diagonal[n],1.0e-20f);
+      kpair numerator={0.0f,0.0f};
+      numerator=fv_pair_product_add(numerator,wc,p[c]);numerator=fv_pair_product_add(numerator,wc,low[c]);
+      numerator=fv_pair_product_add(numerator,wn,p[n]);numerator=fv_pair_product_add(numerator,wn,low[n]);
+      kpair denominator=ktwo_sum(wc,wn);float q=numerator.hi/denominator.hi;
+      numerator=fv_pair_product_add(numerator,-q,denominator.hi);
+      numerator=fv_pair_product_add(numerator,-q,denominator.lo);
+      value=ktwo_sum(q,(numerator.hi+numerator.lo)/denominator.hi);
+    } else {
+      kpair own=poor[c]?ktwo_sum(p[c],low[c]):fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
+      kpair next=poor[n]?ktwo_sum(p[n],low[n]):fv_pressure_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],nx[i],ny[i],nz[i]);
+      value=ktwo_sum(0.5f*own.hi,0.5f*next.hi);
+      value=ktwo_sum(value.hi,value.lo+0.5f*own.lo+0.5f*next.lo);
+    }
+  } else {
+    int b=i-internal;
+    if(kind[b]==2 || kind[b]==4) value=ktwo_sum(boundary[b],boundary_low[b]);
+    else if(!standard && !poor[c]) value=fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
+  }
+  face[i]=value.hi;face_low[i]=value.lo;
+}
+
 // SIMPLE/SIMPLEC float-pair state (SolverSettings::paired_state). Velocity and
 // pressure are hi + lo pairs (prelude kpair_add); the face mass flux is
 // F(hi) + F'(lo), with F' the linearized Rhie-Chow flux of the low words.

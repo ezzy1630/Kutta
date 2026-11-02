@@ -258,3 +258,59 @@ TEST_CASE("FV paired normal backflow carries only the low flux speed") {
     CHECK(dev->download(y)[0]==0);CHECK(dev->download(z)[0]==0);CHECK(dev->download(scalar_kind)[0]==0);
   }
 }
+
+TEST_CASE("FV paired pressure force faces retain curvature below the common pressure ulp") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto owner=dev->upload<Index>(std::vector<Index>{0}),neighbor=dev->upload<Index>(std::vector<Index>{1});
+    auto kind=dev->upload<Index>(std::vector<Index>{1}),poor=dev->upload<Index>(std::vector<Index>{0,0});
+    auto px=dev->upload<float>(std::vector<float>{.25f}),nx=dev->upload<float>(std::vector<float>{-.75f});
+    auto face_zero=dev->alloc<float>(1),cell_zero=dev->alloc<float>(2),boundary=dev->upload<float>(std::vector<float>{1.25f});
+    auto diagonal=dev->alloc<float>(2),face=dev->alloc<float>(1),face_low=dev->alloc<float>(1);
+    dev->fill(face_zero,0);dev->fill(cell_zero,0);dev->fill(diagonal,1);
+    const float slope=std::ldexp(1.f,-20),curvature=std::ldexp(1.f,-30);
+    auto pressure=dev->upload<float>(std::vector<float>{1,1+slope});
+    auto gradient=dev->upload<float>(std::vector<float>{slope+curvature,slope-curvature});
+    kern::fv_paired_pressure_faces(*dev,1,owner,neighbor,kind,poor,px,face_zero,face_zero,nx,face_zero,face_zero,
+      pressure,cell_zero,gradient,cell_zero,cell_zero,cell_zero,cell_zero,cell_zero,boundary,boundary,
+      diagonal,face,face_low,1,0);
+    const double expected=1+double(slope)*.25+double(curvature)*.5;
+    CHECK(std::abs(double(dev->download(face)[0])+dev->download(face_low)[0]-expected)<1e-14);
+    CHECK(dev->download(face_low)[0]==curvature*.5f);
+    // Repartition the same physical pressure without changing its face force.
+    auto low=dev->upload<float>(std::vector<float>{-slope,-slope});
+    dev->upload<float>(pressure,std::vector<float>{1+slope,1+2*slope});
+    kern::fv_paired_pressure_faces(*dev,1,owner,neighbor,kind,poor,px,face_zero,face_zero,nx,face_zero,face_zero,
+      pressure,low,gradient,cell_zero,cell_zero,cell_zero,cell_zero,cell_zero,boundary,boundary,
+      diagonal,face,face_low,1,0);
+    CHECK(std::abs(double(dev->download(face)[0])+dev->download(face_low)[0]-expected)<1e-14);
+    dev->fill(pressure,1);dev->fill(low,0);
+    dev->upload<float>(diagonal,std::vector<float>{1000,.001f});
+    kern::fv_paired_pressure_faces(*dev,1,owner,neighbor,kind,poor,px,face_zero,face_zero,nx,face_zero,face_zero,
+      pressure,low,gradient,cell_zero,cell_zero,cell_zero,cell_zero,cell_zero,boundary,boundary,
+      diagonal,face,face_low,1,1);
+    CHECK(double(dev->download(face)[0])+dev->download(face_low)[0]==1);
+    auto boundary_low=dev->upload<float>(std::vector<float>{curvature});
+    dev->fill(kind,2);
+    kern::fv_paired_pressure_faces(*dev,1,owner,neighbor,kind,poor,px,face_zero,face_zero,nx,face_zero,face_zero,
+      pressure,low,gradient,cell_zero,cell_zero,cell_zero,cell_zero,cell_zero,boundary,boundary_low,
+      diagonal,face,face_low,0,0);
+    CHECK(double(dev->download(face)[0])+dev->download(face_low)[0]==1.25+double(curvature));
+    dev->fill(kind,1);
+    kern::fv_paired_pressure_faces(*dev,1,owner,neighbor,kind,poor,px,face_zero,face_zero,nx,face_zero,face_zero,
+      pressure,low,gradient,cell_zero,cell_zero,cell_zero,cell_zero,cell_zero,boundary,boundary_low,
+      diagonal,face,face_low,0,0);
+    CHECK(std::abs(double(dev->download(face)[0])+dev->download(face_low)[0]-(1+.25*(double(slope)+curvature)))<1e-14);
+    dev->upload<Index>(poor,std::vector<Index>{1,0});
+    kern::fv_paired_pressure_faces(*dev,1,owner,neighbor,kind,poor,px,face_zero,face_zero,nx,face_zero,face_zero,
+      pressure,low,gradient,cell_zero,cell_zero,cell_zero,cell_zero,cell_zero,boundary,boundary_low,
+      diagonal,face,face_low,0,0);
+    CHECK(double(dev->download(face)[0])+dev->download(face_low)[0]==1);
+    dev->fill(poor,0);dev->upload<float>(pressure,std::vector<float>{1,1+slope});dev->fill(gradient,slope);
+    const float tiny_curvature=std::ldexp(1.f,-45);
+    auto low_gradient=dev->upload<float>(std::vector<float>{tiny_curvature,-tiny_curvature});
+    kern::fv_paired_pressure_faces(*dev,1,owner,neighbor,kind,poor,px,face_zero,face_zero,nx,face_zero,face_zero,
+      pressure,low,gradient,cell_zero,cell_zero,low_gradient,cell_zero,cell_zero,boundary,boundary_low,
+      diagonal,face,face_low,1,0);
+    CHECK(dev->download(face_low)[0]==.5f*tiny_curvature);
+  }
+}

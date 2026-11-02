@@ -231,6 +231,7 @@ struct SteadySolver::Impl {
       if(settings.compensated_momentum) {
         pressure_force_lo=vector_field(dev,n);face_pressure_lo=dev.alloc<float>(nf);boundary_velocity_lo=vector_field(dev,nb);
         paired_diffusion_work=dev.alloc<float>(nf);paired_advection_work=dev.alloc<float>(nf);scalar_kind_lo=dev.alloc<Index>(nb);
+        if(!settings.sst) {zero_mask=dev.alloc<Index>(n);dev.fill(zero_mask,0);}
       }
       reset_paired();
     }
@@ -799,6 +800,8 @@ struct SteadySolver::Impl {
   }
   // grad(p_lo), with the pressure correction's boundary rows: p_lo is zero
   // where hi is prescribed and has a zero normal derivative elsewhere.
+  // Compensated mode stores canonical total face pressures. Source assembly
+  // uses their high words; pressure_force_lo completes the same face force.
   void update_pressure_gradient_lo() {
     auto& g=pressure_gradient_lo;dev.fill(g.x,0);dev.fill(g.y,0);dev.fill(g.z,0);
     kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
@@ -809,17 +812,12 @@ struct SteadySolver::Impl {
       kern::fv_pressure_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,
         mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,pressure_lo,g.x,g.y,g.z,
         correction_boundary,pressure_boundary_lo,mesh.n_internal_faces);
-      kern::fv_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+      kern::fv_paired_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,poor_count?poor:zero_mask,
         mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
         mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
-        pressure_lo,g.x,g.y,g.z,pressure_boundary_lo,face_pressure_lo,face_velocity.x,mesh.n_internal_faces);
-      if(poor_count) kern::fv_poor_cell_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,poor,
-        mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
-        mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
-        pressure_lo,g.x,g.y,g.z,face_pressure_lo,pressure_boundary_lo,mesh.n_internal_faces);
-      if(settings.pressure_interpolation==PressureInterpolation::Standard)
-        kern::fv_standard_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
-          pressure_lo,physical_diagonal,face_pressure_lo,pressure_boundary_lo,mesh.n_internal_faces);
+        pressure,pressure_lo,grad_p.x,grad_p.y,grad_p.z,g.x,g.y,g.z,boundary_pressure,pressure_boundary_lo,
+        physical_diagonal,face_pressure,face_pressure_lo,mesh.n_internal_faces,
+        settings.pressure_interpolation==PressureInterpolation::Standard?1:0);
       kern::fv_compensated_pressure_force(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
         mesh.area.x,mesh.area.y,mesh.area.z,mesh.volume,face_pressure,face_pressure_lo,
         pressure_force_lo.x,pressure_force_lo.y,pressure_force_lo.z);
