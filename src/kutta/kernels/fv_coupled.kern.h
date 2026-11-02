@@ -38,10 +38,11 @@
 // up to omega 0.9. Only the smoothers use cs; the operator (J x) stays exact.
 //
 // Packed storage (Metal allows 31 buffer arguments per kernel):
-//   fine cell data, 20n floats: [du|dv|dw|cd | Gx|Gy|Gz | Hx|Hy|Hz | Q (9, row major) | cs],
+//   fine cell data, 27n floats: [du|dv|dw|cd | Gx|Gy|Gz | Hx|Hy|Hz | Q (9, row major) | cs | block inverse (7)],
 //   G, H and Q unscaled by wc, cs the Schur addition (scaled);
 //   coarse levels: a, c per entry, G and H as 3*nnz [x | y | z] (scaled),
-//   momentum diagonals and Schur addition as 4n [du | dv | dw | cs].
+//   momentum diagonals, Schur addition and block inverse as 11n
+//   [du | dv | dw | cs | iu | iv | iw | hx*iu | hy*iv | hz*iw | schur].
 
 struct kblock4 { float u, v, w, p; };
 
@@ -52,11 +53,22 @@ KUTTA_FN kblock4 kb4(float u, float v, float w, float p) {
 // Arrow-shaped diagonal block [[D, e], [h^T, c]], D diagonal. The Schur
 // denominator c - h.D^-1.e equals c in interior cells; near boundaries it is
 // kept at least half of c so that one cell's block never amplifies.
-KUTTA_FN kblock4 coupled_block_solve(kblock4 r, float du, float dv, float dw,
-    float ex, float ey, float ez, float hx, float hy, float hz, float c) {
+// The block inverse is fixed alongside the Jacobian. Preserve the original
+// products (including hx*ex*iu in the Schur bound) before storing the floats.
+KUTTA_FN void coupled_block_prepare(int i, KOut(float) cache, int n, int base,
+    float du, float dv, float dw, float ex, float ey, float ez,
+    float hx, float hy, float hz, float c) {
   float iu = 1.0f / du, iv = 1.0f / dv, iw = 1.0f / dw;
   float schur = kmax(c - (hx * ex * iu + hy * ey * iv + hz * ez * iw), 0.5f * c);
-  float p = (r.p - hx * iu * r.u - hy * iv * r.v - hz * iw * r.w) / schur;
+  cache[base * n + i] = iu; cache[(base + 1) * n + i] = iv; cache[(base + 2) * n + i] = iw;
+  cache[(base + 3) * n + i] = hx * iu; cache[(base + 4) * n + i] = hy * iv;
+  cache[(base + 5) * n + i] = hz * iw; cache[(base + 6) * n + i] = schur;
+}
+KUTTA_FN kblock4 coupled_block_solve(kblock4 r, float ex, float ey, float ez,
+    KIn(float) cache, int i, int n, int base) {
+  float iu = cache[base * n + i], iv = cache[(base + 1) * n + i], iw = cache[(base + 2) * n + i];
+  float p = (r.p - cache[(base + 3) * n + i] * r.u - cache[(base + 4) * n + i] * r.v -
+      cache[(base + 5) * n + i] * r.w) / cache[(base + 6) * n + i];
   return kb4(iu * (r.u - ex * p), iv * (r.v - ey * p), iw * (r.w - ez * p), p);
 }
 
@@ -218,7 +230,10 @@ KUTTA_KERNEL void coupled_fine_schur(int i, KIn(int) offsets, KIn(int) adjacent,
 KUTTA_KERNEL void coupled_fine_coefficients(int i, KIn(int) offsets, KIn(int) faces, KIn(float) sign,
     KIn(int) adjacent, KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) diffusion,
     KIn(float) mu, KIn(float) mass, KIn(float) weight, KIn(float) dx, KIn(float) dy,
-    KIn(float) dz, KIn(float) cell, KOut(float) edge, int n, int entries, float wc) {
+    KIn(float) dz, KOut(float) cell, KOut(float) edge, int n, int entries, float wc) {
+  coupled_block_prepare(i, cell, n, 20, cell[i], cell[n + i], cell[2 * n + i],
+      wc * cell[4 * n + i], wc * cell[5 * n + i], wc * cell[6 * n + i],
+      wc * cell[7 * n + i], wc * cell[8 * n + i], wc * cell[9 * n + i], cell[3 * n + i] + cell[19 * n + i]);
   float q00 = wc * cell[10 * n + i], q01 = wc * cell[11 * n + i], q02 = wc * cell[12 * n + i];
   float q10 = wc * cell[13 * n + i], q11 = wc * cell[14 * n + i], q12 = wc * cell[15 * n + i];
   float q20 = wc * cell[16 * n + i], q21 = wc * cell[17 * n + i], q22 = wc * cell[18 * n + i];
@@ -286,9 +301,8 @@ KUTTA_KERNEL void coupled_fine_smooth(int i, KIn(int) offsets, KIn(int) faces, K
     kblock4 y = coupled_fine_row(i, offsets, faces, adjacent, sx, sy, sz, coefficient, cell, edge, x, n, entries, wc);
     r = kb4(r.u - y.u, r.v - y.v, r.w - y.w, r.p - y.p);
   }
-  kblock4 d = coupled_block_solve(r, cell[i], cell[n + i], cell[2 * n + i],
-      wc * cell[4 * n + i], wc * cell[5 * n + i], wc * cell[6 * n + i],
-      wc * cell[7 * n + i], wc * cell[8 * n + i], wc * cell[9 * n + i], cell[3 * n + i] + cell[19 * n + i]);
+  kblock4 d = coupled_block_solve(r, wc * cell[4 * n + i], wc * cell[5 * n + i],
+      wc * cell[6 * n + i], cell, i, n, 20);
   float base_u = first == 0 ? x[i] : 0.0f, base_v = first == 0 ? x[n + i] : 0.0f;
   float base_w = first == 0 ? x[2 * n + i] : 0.0f, base_p = first == 0 ? x[3 * n + i] : 0.0f;
   next[i] = base_u + omega * d.u; next[n + i] = base_v + omega * d.v;
@@ -332,8 +346,7 @@ KUTTA_KERNEL void coupled_coarse_smooth(int i, KIn(int) rows, KIn(int) cols, KIn
     r = kb4(r.u - y.u, r.v - y.v, r.w - y.w, r.p - y.p);
   }
   int k = diag[i];
-  kblock4 s = coupled_block_solve(r, d[i], d[n + i], d[2 * n + i], g[k], g[nnz + k], g[2 * nnz + k],
-                                  h[k], h[nnz + k], h[2 * nnz + k], c[k] + d[3 * n + i]);
+  kblock4 s = coupled_block_solve(r, g[k], g[nnz + k], g[2 * nnz + k], d, i, n, 4);
   float base_u = first == 0 ? x[i] : 0.0f, base_v = first == 0 ? x[n + i] : 0.0f;
   float base_w = first == 0 ? x[2 * n + i] : 0.0f, base_p = first == 0 ? x[3 * n + i] : 0.0f;
   next[i] = base_u + omega * s.u; next[n + i] = base_v + omega * s.v;
@@ -459,7 +472,7 @@ KUTTA_KERNEL void coupled_coarse_gsum(int i, KIn(int) rows, KIn(float) g, KOut(f
 // Coarse-level cs_i from the Galerkin H entries. Aggregated momentum
 // diagonals stay positive (pseudo time); the floor only guards round-off.
 KUTTA_KERNEL void coupled_coarse_schur(int i, KIn(int) rows, KIn(int) cols, KIn(int) diag,
-    KIn(float) h, KIn(float) r, KOut(float) d, int n, int nnz) {
+    KIn(float) h, KIn(float) r, KIn(float) g, KIn(float) c, KOut(float) d, int n, int nnz) {
   float sum = 0.0f;
   for (int j = rows[i]; j < rows[i + 1]; ++j) {
     if (j == diag[i]) continue;
@@ -468,6 +481,9 @@ KUTTA_KERNEL void coupled_coarse_schur(int i, KIn(int) rows, KIn(int) cols, KIn(
            kabs(h[2 * nnz + j]) * r[2 * n + m] / kmax(d[2 * n + m], 1.0e-30f);
   }
   d[3 * n + i] = sum;
+  int k = diag[i];
+  coupled_block_prepare(i, d, n, 4, d[i], d[n + i], d[2 * n + i], g[k], g[nnz + k], g[2 * nnz + k],
+      h[k], h[nnz + k], h[2 * nnz + k], c[k] + d[3 * n + i]);
 }
 
 KUTTA_KERNEL void coupled_restrict(int i, KIn(int) member_offsets, KIn(int) members,

@@ -90,7 +90,7 @@ struct Transfer {
 struct Level {
   Index n = 0, nnz = 0;
   Buffer<Index> rows, cols, diag;
-  Buffer<float> a, c, g, h, d;  // g, h: 3*nnz, d: 4n (see fv_coupled.kern.h)
+  Buffer<float> a, c, g, h, d;  // g, h: 3*nnz, d: 11n (see fv_coupled.kern.h)
   Buffer<float> x, b, r, tmp;
 };
 }  // namespace
@@ -106,7 +106,7 @@ struct CoupledSolver::Impl {
   // Fine cell blocks and directed-edge coefficients, refreshed once per solve.
   Buffer<float> fine_coefficients;
   Index fine_entries = 0;
-  Buffer<float> cell, coefficient, fine_r, fine_tmp;  // cell: [du|dv|dw|cd|G|H|Q|cs], 20n
+  Buffer<float> cell, coefficient, fine_r, fine_tmp;  // cell: [du|dv|dw|cd|G|H|Q|cs|block inverse], 27n
   std::vector<Transfer> transfers;  // transfers[k]: level k -> k+1
   std::vector<Level> levels;        // coarse levels 1..L, stored at [0..L-1]
   // Krylov workspace over 4n.
@@ -160,7 +160,7 @@ struct CoupledSolver::Impl {
       return std::array{dev.download(v.x), dev.download(v.y), dev.download(v.z)};
     };
     const auto owner_r = download3(m.owner_to_face), neighbour_r = download3(m.neighbour_to_face);
-    std::vector<float> packed(20 * std::size_t(n), 0);
+    std::vector<float> packed(27 * std::size_t(n), 0);
     const auto put = [&](int slot, Index c, double value) {packed[std::size_t(slot) * n + c] = float(value);};
     for (Index c = 0; c < n; ++c) {
       Vec3d g, delta;
@@ -195,7 +195,8 @@ struct CoupledSolver::Impl {
       put(4, c, g.x); put(5, c, g.y); put(6, c, g.z);
       for (int k = 0; k < 9; ++k) put(10 + k, c, q[k]);
     }
-    KUTTA_REQUIRE(m.cell_faces.size() <= std::size_t(std::numeric_limits<Index>::max() / 5),
+    KUTTA_REQUIRE(n <= std::numeric_limits<Index>::max() / 27 &&
+                  m.cell_faces.size() <= std::size_t(std::numeric_limits<Index>::max() / 5),
                   "coupled: fine coefficient cache exceeds signed kernel index range");
     fine_entries = Index(m.cell_faces.size());
     fine_coefficients = alloc<float>(5 * std::size_t(fine_entries));
@@ -271,7 +272,7 @@ struct CoupledSolver::Impl {
       level.rows = upload(row_ptr); level.cols = upload(cols); level.diag = upload(diag);
       level.a = alloc<float>(cols.size()); level.c = alloc<float>(cols.size());
       level.g = alloc<float>(3 * cols.size()); level.h = alloc<float>(3 * cols.size());
-      level.d = alloc<float>(4 * std::size_t(count));
+      level.d = alloc<float>(11 * std::size_t(count));
       for (auto* v : {&level.x, &level.b, &level.r, &level.tmp}) *v = alloc<float>(4 * std::size_t(count));
       levels.push_back(std::move(level));
       graph = std::move(coarse);
@@ -354,7 +355,7 @@ struct CoupledSolver::Impl {
     // Smoother Schur bounds; tmp is free until the first sweep.
     for (auto& l : levels) {
       kern::coupled_coarse_gsum(dev, l.n, l.rows, l.g, l.tmp, l.n, l.nnz);
-      kern::coupled_coarse_schur(dev, l.n, l.rows, l.cols, l.diag, l.h, l.tmp, l.d, l.n, l.nnz);
+      kern::coupled_coarse_schur(dev, l.n, l.rows, l.cols, l.diag, l.h, l.tmp, l.g, l.c, l.d, l.n, l.nnz);
     }
   }
 
