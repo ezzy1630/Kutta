@@ -10,7 +10,12 @@ cli, fixture, root = sys.argv[1], pathlib.Path(sys.argv[2]), pathlib.Path(sys.ar
 
 
 def command(*args, code=0):
-    p = subprocess.run([cli, *map(str, args)], capture_output=True, text=True, timeout=120)
+    # A hang guard, not a speed check: CPU solves of the elbow slow down several
+    # times on a machine shared with slow-tier runs.
+    try:
+        p = subprocess.run([cli, *map(str, args)], capture_output=True, text=True, timeout=600)
+    except subprocess.TimeoutExpired as e:
+        raise AssertionError(f"kutta {args[0]} timed out after {e.timeout} s; stdout so far: {e.stdout!r}") from None
     assert p.returncode == code, p.stdout + p.stderr
     return p.stdout
 
