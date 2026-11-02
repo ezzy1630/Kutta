@@ -270,9 +270,11 @@ class Aggregation final : public linalg_detail::Preconditioner {
 
  private:
   void smooth(Device& dev, Level& l, const CsrMatrix& a, const Buffer<float>& b,
-              Buffer<float>& x, int sweeps, const Buffer<Index>& status) {
+              Buffer<float>& x, int sweeps, const Buffer<Index>& status, bool zero_start = false) {
     for (int sweep = 0; sweep < sweeps; ++sweep) {
-      kern::amg_smooth(dev, a.n_rows, a.row_ptr, a.col, a.val, x, b, l.l1, l.r, status);
+      if (zero_start && sweep == 0)
+        kern::amg_smooth_zero(dev, a.n_rows, a.row_ptr, a.col, a.val, x, b, l.l1, l.r, status);
+      else kern::amg_smooth(dev, a.n_rows, a.row_ptr, a.col, a.val, x, b, l.l1, l.r, status);
       // Same-sized, uniquely owned work buffers. Queued kernels retain their
       // original handles; ordered dispatches finish reading before reuse.
       std::swap(x, l.r);
@@ -288,9 +290,9 @@ class Aggregation final : public linalg_detail::Preconditioner {
       if (a.n_rows <= 24)
         kern::amg_coarse_solve(dev, 1, a.row_ptr, a.col, a.val, x, b, l.l1,
                                status, a.n_rows, options_.coarse_sweeps);
-      else smooth(dev, l, a, b, x, options_.coarse_sweeps, status);
+      else smooth(dev, l, a, b, x, options_.coarse_sweeps, status, true);
     } else {
-      smooth(dev, l, a, b, x, options_.pre_sweeps, status);
+      smooth(dev, l, a, b, x, options_.pre_sweeps, status, true);
       kern::csr_residual_guarded(dev, a.n_rows, a.row_ptr, a.col, a.val, x, b, l.r, status);
       auto& c = levels_[index + 1];
       kern::amg_restrict_guarded(dev, c.b.size(), l.transfer.member_offsets,

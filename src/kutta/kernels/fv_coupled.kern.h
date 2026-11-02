@@ -222,8 +222,8 @@ KUTTA_KERNEL void coupled_fine_schur(int i, KIn(int) offsets, KIn(int) adjacent,
   cell[19 * n + i] = sum;
 }
 
-// Matrix-free fine-level row: (J x)_i from the face data the momentum and
-// Rhie-Chow assemblies already hold, plus the least-squares deltas.
+// Fine-level coefficients of (J x)_i, from the momentum and Rhie-Chow face
+// data and the least-squares deltas.
 // The fine Jacobian is fixed throughout one outer solve. Cache its five
 // directed-edge coefficients once; the row applications retain their original
 // accumulation order and parenthesization. Planes are [a | Gx | Gy | Gz | h].

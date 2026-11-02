@@ -154,3 +154,17 @@ KUTTA_KERNEL void amg_smooth(int i, KIn(int) rows, KIn(int) cols, KIn(float) val
   float r = csr_row_residual(i, rows, cols, values, x, b);
   next[i] = x[i] + (2.0f / 3.0f) * inverse[i] * r;
 }
+
+// cycle() has just cleared x. For validated finite matrix entries every
+// product and product correction is zero, so the compensated residual is
+// b + 0 (including signed zero). Keep the ordinary path for nonfinite RHS
+// values so a coarse-grid overflow follows the same breakdown arithmetic.
+KUTTA_KERNEL void amg_smooth_zero(int i, KIn(int) rows, KIn(int) cols, KIn(float) values,
+    KIn(float) x, KIn(float) b, KIn(float) inverse, KOut(float) next, KIn(int) status) {
+  if (status[0] != 0) return;
+  if (b[i] - b[i] != 0.0f) {
+    amg_smooth(i, rows, cols, values, x, b, inverse, next, status);
+    return;
+  }
+  next[i] = 0.0f + (2.0f / 3.0f) * inverse[i] * (b[i] + 0.0f);
+}

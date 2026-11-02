@@ -6,12 +6,11 @@
 // stays segregated. The system is solved in delta form against the steady
 // SIMPLEC residual, so both schemes share one discrete fixed point.
 //
-// Storage: the fine level is matrix-free (momentum off-diagonals come from the
-// face mass flux and viscosity, pressure coupling from face areas and the
-// pressure least-squares deltas); per cell it stores diagonals and a 3x3
-// gradient-sensitivity tensor, plus one Rhie-Chow coefficient per face. Coarse
+// Storage: fine cell blocks carry diagonals, gradient sensitivity and the
+// smoother inverse; directed cell-face entries cache five coefficients for
+// the duration of each solve, plus one Rhie-Chow coefficient per face. Coarse
 // levels are piecewise-constant aggregation Galerkin operators in a compact
-// structured block CSR (8 floats per entry, 3 per row).
+// block CSR (8 floats per entry and 11 per row, including the smoother inverse).
 
 #include <memory>
 #include <span>
