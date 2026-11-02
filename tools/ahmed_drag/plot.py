@@ -14,16 +14,21 @@ def main():
     ap.add_argument('summary', type=pathlib.Path)
     ap.add_argument('--out', required=True, type=pathlib.Path)
     a = ap.parse_args()
-    rows = json.loads(a.summary.read_text())
+    rows = [r for r in json.loads(a.summary.read_text()) if 'failure' not in r]
+    if not rows:
+        ap.error('no valid run summaries to plot')
     family = sorted([r for r in rows if r['run'].startswith('compact_L') and 'diff' not in r['run']],
                     key=lambda r: r['mesh']['surface_size'], reverse=True)
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.4), constrained_layout=True)
     ax = axes[0]
     ax.axhspan(.26 * .92, .26 * 1.08, color='#319476', alpha=.13, label='unchanged 0.26 ±8% gate')
     ax.axhline(.26, color='#319476', linestyle='--', linewidth=1)
-    ax.plot([r['mesh']['surface_size'] * 1000 for r in family],
-            [r['cd_final'] if r['settled'] else r['cd_mean_last2000'] for r in family],
-            'o-', color='#286abb', label='compact full-model family')
+    cd = [r['cd_final'] if r['settled'] else r['cd_mean_last2000'] for r in family]
+    ax.errorbar([r['mesh']['surface_size'] * 1000 for r in family], cd,
+                yerr=[[q - r['cd_range_last2000'][0] for q, r in zip(cd, family)],
+                      [r['cd_range_last2000'][1] - q for q, r in zip(cd, family)]],
+                fmt='o-', capsize=4, color='#286abb',
+                label='compact family; bars: iterative range')
     for r in rows:
         if r in family:
             continue
@@ -31,7 +36,7 @@ def main():
                 r['cd_final'] if r['settled'] else r['cd_mean_last2000'],
                 's' if 'reference' in r['run'] else 'D', label=r['run'].replace('_', ' '))
     ax.set(xlabel='specified surface spacing, mm', ylabel='drag coefficient Cd',
-           title='Fresh runs, at most 5000 iterations')
+           title='Fresh runs: all unconverged at 5000 iterations')
     ax.invert_xaxis()
     ax.legend(fontsize=7.5)
     ax = axes[1]

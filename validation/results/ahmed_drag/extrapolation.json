@@ -1,0 +1,76 @@
+{
+  "runs": [
+    "compact_L1",
+    "compact_L2",
+    "compact_L2.75"
+  ],
+  "surface_spacing_m": [
+    0.03959797974644666,
+    0.028,
+    0.021590951555711172
+  ],
+  "cd": [
+    0.36206945253,
+    0.3427493688975,
+    0.33032072345499996
+  ],
+  "fit": {
+    "accepted": true,
+    "order": 0.5042103188173728,
+    "extrapolated_cd": 0.24156724995795248,
+    "fine_correction": -0.08875347349704749,
+    "asymptotic_verified": false
+  },
+  "range_corner_fits": [
+    {
+      "accepted": true,
+      "order": 0.9288018186058826,
+      "extrapolated_cd": 0.2760801482265173,
+      "fine_correction": -0.04890083357348274,
+      "asymptotic_verified": false
+    },
+    {
+      "accepted": true,
+      "order": 7.140808603616941,
+      "extrapolated_cd": 0.33616091939037274,
+      "fine_correction": -0.0003395844096272804,
+      "asymptotic_verified": false
+    },
+    {
+      "accepted": false,
+      "reason": "no positive order in (0,20)"
+    },
+    {
+      "accepted": true,
+      "order": 0.32829288815882723,
+      "extrapolated_cd": 0.2208770625494078,
+      "fine_correction": -0.11562344125059221,
+      "asymptotic_verified": false
+    },
+    {
+      "accepted": true,
+      "order": 0.9532687985503866,
+      "extrapolated_cd": 0.27749267281914547,
+      "fine_correction": -0.04748830898085454,
+      "asymptotic_verified": false
+    },
+    {
+      "accepted": true,
+      "order": 7.163575378604114,
+      "extrapolated_cd": 0.3361632915745819,
+      "fine_correction": -0.00033721222541810425,
+      "asymptotic_verified": false
+    },
+    {
+      "accepted": false,
+      "reason": "no positive order in (0,20)"
+    },
+    {
+      "accepted": true,
+      "order": 0.366654707099042,
+      "extrapolated_cd": 0.2334969401695074,
+      "fine_correction": -0.10300356363049262,
+      "asymptotic_verified": false
+    }
+  ]
+}

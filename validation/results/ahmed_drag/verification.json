@@ -1,0 +1,37 @@
+{
+  "body_wall_identity": {
+    "runs": [
+      "compact_L1",
+      "reference_L1"
+    ],
+    "face_count_each": 11244,
+    "max_coordinate_or_area_difference": 0.0
+  },
+  "native_default_monitor_parity": {
+    "runs": [
+      "mixed_L1",
+      "mixed_L1_new_default"
+    ],
+    "monitors": 5,
+    "excluded_column": "seconds",
+    "differing_values": 0
+  },
+  "regenerated_default_mesh_sha256": "9f39867109f04f2f0cc2bcc1207e195d7029f68f4d094c3676d67911918cb135",
+  "python_unit_tests_passed": 6,
+  "portability_lint_passed": true,
+  "force_closure_max_abs_cd": 1.2350885314482696e-09,
+  "full_slow_tier_run": false,
+  "solver_arithmetic_changed": false,
+  "quick_tier": {
+    "command": "build/kutta-tests --test-suite-exclude=slow",
+    "test_cases_passed": 277,
+    "assertions_passed": 7457592,
+    "failures": 0,
+    "source": "57b593e9019b6723d0eb0d960ef1100fe7c6e744",
+    "environment": {
+      "MallocSpaceEfficient": "1",
+      "KUTTA_FLUENT_EXAMPLES": "<reference-checkout>/validation/fluent_examples",
+      "KUTTA_RUNS": "<reference-checkout>/runs"
+    }
+  }
+}

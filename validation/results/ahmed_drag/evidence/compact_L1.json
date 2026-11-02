@@ -1,0 +1,88 @@
+{
+  "source": "8866cc0e16df5b0642b2243611099ddccd7f3cd3",
+  "device": "Apple M4 Pro",
+  "backend": "metal",
+  "result": {
+    "cells": 327584,
+    "poor_cells": 2127,
+    "iterations": 5000,
+    "setup_s": 8.036375,
+    "solve_s": 871.7334147,
+    "lift": 0.2313127443,
+    "drag": 0.3620385519,
+    "drag_pressure": 0.3177984579,
+    "max_residual": 9.445566544e-06,
+    "settle_lift": 0.001638006022,
+    "settle_drag": 0.0001932010033,
+    "residuals_met": true,
+    "settled": false,
+    "budget": false,
+    "yplus_max": 1.651187062,
+    "yplus_mean": 0.8836989324,
+    "failure": ""
+  },
+  "command": [
+    "build/bench_fsae_aero",
+    "--mesh",
+    "runs/ahmed_drag/mesh/compact_L1.msh",
+    "--re",
+    "2.78e6",
+    "--length",
+    "1.044",
+    "--area",
+    "0.112032",
+    "--walls",
+    "body",
+    "--lift-z",
+    "--tu",
+    "0.01",
+    "--window",
+    "1000",
+    "--iterations",
+    "5000",
+    "--cells",
+    "--out",
+    "runs/ahmed_drag/compact_L1"
+  ],
+  "mesh": {
+    "cells": 327584,
+    "faces": 991719,
+    "nodes": 345018,
+    "case": "ahmed",
+    "slant_deg": 35,
+    "level": 1.0,
+    "surface_size": 0.03959797974644666,
+    "body_triangles": 3748,
+    "prism_layers": 20,
+    "layer_thickness": 0.017283153809908292,
+    "first_height": 1.5e-05,
+    "growth": 1.35,
+    "tets": 25676,
+    "prisms": 74960,
+    "hexes": 327584,
+    "domain": {
+      "x": [
+        -4.176,
+        5.220000000000001
+      ],
+      "y": [
+        -0.9396000000000001,
+        0.9396000000000001
+      ],
+      "z": [
+        0,
+        1.2006
+      ],
+      "ground_wall_from_x": -3.132
+    },
+    "refinement_reach": 0.6,
+    "wake_padding": 0.3
+  },
+  "mesh_sha256": "2d10f79df43f15bf03319e9b2e8f80d9a47977f2df30d30886bf3776b59ed16e",
+  "case": "ahmed",
+  "point": "35",
+  "level": 1,
+  "limiter": "standard",
+  "exit": 0,
+  "peak_footprint_bytes": 1028785448
+}

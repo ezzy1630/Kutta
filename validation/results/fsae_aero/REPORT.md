@@ -251,6 +251,13 @@ oscillating, separated solution, not agreement.
 
 ## Case 3: Ahmed body
 
+Follow-up: [Ahmed drag diagnosis](../ahmed_drag/REPORT.md) corrects the slant
+pressure-tap mask, which included side-wall taps, and the 25-degree surface
+breakdown. The Cp statistics below are historical; their old wall fields were not
+reprocessed. The new report uses corrected populations on fresh runs.
+The recorded Cd values and physical gate are unchanged. Published SST drag
+values are context, not a matched-mesh solver oracle.
+
 **Reference.** Ahmed et al. (1984), drag balance at 60 m/s (Re_L 4.29e6):
 Cd 0.26 at 35 deg, with front/slant/base pressure components 0.020 / 0.090 /
 0.095 as cited by Liu & Moser (secondary source; SAE 840300 itself is
@@ -304,11 +311,15 @@ base.
 extrapolated value is claimed. Friction (0.048) is close to what the
 reference components imply (0.26 - 0.205 = 0.055). The excess is pressure
 drag, mostly on the slant: 0.151 at L3 against 0.090, then the base at 0.120
-against 0.095. The front nets slightly negative against +0.020, so the
-suction peaks on the 100 mm radii are stronger than in the experiment. The
-most likely causes are mesh resolution (the trend says so) and the y+ ~ 3
-wall spacing. Steady SST at 35 deg typically lands within about 7% of 0.26
-(Liu & Moser: 0.241), so the model is not expected to account for a 21% miss.
+against 0.095. The front nets slightly negative against +0.020, but individual
+open-surface components depend on the pressure datum; that sign alone does not
+establish a nose-pressure defect. Drag remains mesh-dependent. The later
+y+ ~ 1 study changes Cd by less than
+0.4% at matching levels, so wall spacing does not explain this excess.
+Liu & Moser list SST Cd 0.241, but that literature value does not
+establish a same-mesh solver target or isolate SST model error. The follow-up
+diagnosis also discusses a Fluent SST result of 0.28 with incorrect wake
+topology. The 21% miss cannot be apportioned from literature totals alone.
 
 **Rear Cp** at the reference tap locations, from the nearest L3 wall face
 (within 6 mm). Only region means and RMS differences are quoted:

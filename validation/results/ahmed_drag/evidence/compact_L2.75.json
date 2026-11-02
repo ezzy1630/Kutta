@@ -1,0 +1,93 @@
+{
+  "source": "8866cc0e16df5b0642b2243611099ddccd7f3cd3",
+  "device": "Apple M4 Pro",
+  "backend": "metal",
+  "result": {
+    "cells": 919620,
+    "poor_cells": 315,
+    "iterations": 5000,
+    "setup_s": 23.83514262,
+    "solve_s": 3384.440843,
+    "lift": 0.09697191374,
+    "drag": 0.3365005038,
+    "drag_pressure": 0.2914834175,
+    "max_residual": 0.00867068259,
+    "settle_lift": 0.6092908634,
+    "settle_drag": 0.03423329812,
+    "residuals_met": false,
+    "settled": false,
+    "budget": false,
+    "yplus_max": 1.654685259,
+    "yplus_mean": 0.8224382222,
+    "failure": ""
+  },
+  "command": [
+    "build/bench_fsae_aero",
+    "--mesh",
+    "runs/ahmed_drag/mesh/compact_L2.75.msh",
+    "--backend",
+    "metal",
+    "--re",
+    "2.78e6",
+    "--length",
+    "1.044",
+    "--area",
+    "0.112032",
+    "--walls",
+    "body",
+    "--lift-z",
+    "--tu",
+    "0.01",
+    "--window",
+    "1000",
+    "--iterations",
+    "5000",
+    "--cells",
+    "--limiter",
+    "standard",
+    "--out",
+    "runs/ahmed_drag/compact_L2.75"
+  ],
+  "mesh": {
+    "cells": 919620,
+    "faces": 2778228,
+    "nodes": 973084,
+    "case": "ahmed",
+    "slant_deg": 35.0,
+    "level": 2.75,
+    "surface_size": 0.021590951555711172,
+    "body_triangles": 8310,
+    "prism_layers": 20,
+    "layer_thickness": 0.017283153809908292,
+    "first_height": 1.5e-05,
+    "growth": 1.35,
+    "tets": 105255,
+    "prisms": 166200,
+    "hexes": 919620,
+    "refinement_reach": 0.6,
+    "wake_padding": 0.3,
+    "domain": {
+      "x": [
+        -4.176,
+        5.220000000000001
+      ],
+      "y": [
+        -0.9396000000000001,
+        0.9396000000000001
+      ],
+      "z": [
+        0,
+        1.2006
+      ],
+      "ground_wall_from_x": -3.132
+    }
+  },
+  "mesh_sha256": "297f3d806d5e7a2c8ff22f1838cbc4cc4a4f3f2d6780f2ae8135e90b508ebfef",
+  "case": "ahmed",
+  "point": "35.0",
+  "level": 2.75,
+  "limiter": "standard",
+  "coupled": false,
+  "exit": 0,
+  "peak_footprint_bytes": 2664089976
+}

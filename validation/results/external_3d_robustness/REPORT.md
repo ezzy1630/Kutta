@@ -237,6 +237,11 @@ Commit `9a7885b` (tests and tooling in `d405ab4`):
 
 ## Ahmed 35 deg mesh study at y+ ~ 1
 
+Follow-up: [Ahmed drag diagnosis](../ahmed_drag/REPORT.md) corrects the pressure
+tap classification used below. The historical slant Cp means included side-wall
+taps; the 25-degree surface breakdown also used a 35-degree mask. These reporting
+errors do not change the recorded total drag, residuals or robustness results.
+
 Same geometry, domain and conditions as the FSAE aero report. The difference
 is the wall layer: 20 prism layers from a 15 um first height (growth 1.35,
 17.3 mm, about the total thickness of the 50 um meshes' 16 layers), all split
