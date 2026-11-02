@@ -11,6 +11,7 @@
 #include <map>
 
 #include "kutta/io/mesh_io.hpp"
+#include "kutta/core/sha256.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/setup/fluent.hpp"
 
@@ -75,6 +76,8 @@ int main(int argc,char** argv) {
       // Preserve face identity even when a cell pair shares several faces.
       // RCM changes cells/faces and winding, but retains the input point IDs.
       std::ofstream out(flux_output);KUTTA_REQUIRE(out,"Cannot write V6 face flux");
+      out<<"# case_sha256="<<sha256_file(root/"mixing_elbow.cas.h5")
+        <<"\n# data_sha256="<<sha256_file(root/"mixing_elbow.dat.h5")<<'\n';
       out<<std::setprecision(17)<<"owner,neighbour,flux,nodes\n";
       for(Index f=0;f<sm.n_faces();++f) {
         out<<perm[sm.owner[f]]<<','<<(f<sm.n_internal_faces()?perm[sm.neighbour[f]]:-1)<<','<<mass[f]<<',';

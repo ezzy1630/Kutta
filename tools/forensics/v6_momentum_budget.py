@@ -26,7 +26,7 @@ import fvops
 import momentum as mo
 
 
-def flux_by_identity(st, path):
+def flux_by_identity(st, path, hashes):
     """Match input point IDs and both adjacent cells, including duplicate pairs.
 
     V6's CFF node IDs are dense, starting at 1; both readers retain their rank.
@@ -43,6 +43,9 @@ def flux_by_identity(st, path):
         identities[key] = f
     result = np.full(ctx.c0.size, np.nan)
     with open(path, newline='') as stream:
+        for label, suffix in (('case', 'cas.h5'), ('data', 'dat.h5')):
+            if stream.readline().strip() != f'# {label}_sha256={hashes[suffix]}':
+                raise ValueError('Kutta flux dump belongs to different case/data inputs')
         for row in csv.DictReader(stream):
             key = tuple(sorted(int(n) for n in row['nodes'].split()))
             f = identities[key]
@@ -169,7 +172,7 @@ def main():
     continuity['saved_flux'] = mass_l1(st.F)
     if args.kutta_flux:
         saved_flux = st.F
-        st.F = flux_by_identity(st, args.kutta_flux)
+        st.F = flux_by_identity(st, args.kutta_flux, hashes)
         continuity['kutta_flux'] = mass_l1(st.F)
         record('kutta_flux_saved_viscosity_shear', mo.convection(st, gl) + pressure + diffusion)
         st.F = saved_flux
