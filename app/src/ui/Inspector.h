@@ -40,6 +40,10 @@ public:
     QString current() const { return m_id; }
     void showSettingsFiltered(const QString& filter);
     void refresh() { show(m_id); }
+    // The current page laid out at each page width in turn, as the panel would
+    // lay it out, and its ScreenChecks layout problems; the page is then put
+    // back at the panel's width. For scripted sessions and their screenshots.
+    QStringList layoutProblemsAtWidths(const QList<int>& widths);
 
 signals:
     void navigate(const QString& id);

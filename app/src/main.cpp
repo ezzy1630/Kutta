@@ -11,6 +11,7 @@
 #include "ui/Inspector.h"
 #include "ui/MainWindow.h"
 #include "ui/Outline.h"
+#include "ui/ScreenChecks.h"
 #include "ui/Theme.h"
 
 #include <QAbstractButton>
@@ -23,6 +24,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QScrollBar>
 #include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
@@ -104,7 +106,7 @@ QStringList makeSamples(const QString& root, bool fixture)
     QStringList out;
     // Scenarios address the first two by position (elbow, car).
     for (const char* name : {"mixing_elbow.cas.h5", "mixing_elbow.dat.h5", "fsae_car.cas.h5", "fsae_car.dat.h5",
-                             "naca4412_ground.cas", "elbow_param.cas.h5", "cylinder_tutorial.cas", "naca4412_ground.msh"}) {
+                             "naca4412_ground.cas", "elbow_param.cas.h5", "cylinder_tutorial.cas", "naca4412_ground.msh", "fsae_car.msh"}) {
         const QString p = QDir(root).filePath(name);
         if (!QFileInfo::exists(p)) {
             QFile f(p);
@@ -166,12 +168,15 @@ int main(int argc, char** argv)
     // new-case* start from a bare mesh (the positional argument, else the
     // fixture's NACA wing mesh): the New Case page, the created case after a
     // run, and that case saved with a changed setting and reopened.
+    // new-case-car is the New Case page for the fixture's synthetic car mesh
+    // (3D, with wheels). KUTTA_SCENARIO_CASE_NAME names the created case
+    // (default: the mesh's name), e.g. to try a long one.
     const QStringList scenarios = {"start", "open-failed", "elbow-open", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
                                    "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare", "elbow-monitors",
                                    "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "param-run", "cylinder-run",
                                    "wing-models", "wing-aero", "wing-monitors", "bench",
                                    "case-mesh", "case-approvals", "case-methods", "case-run", "case-stop",
-                                   "new-case", "new-case-run", "new-case-save"};
+                                   "new-case", "new-case-car", "new-case-run", "new-case-save"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
         return 0;
@@ -654,7 +659,9 @@ int main(int argc, char** argv)
         }
         sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Reports); next(); });
     } else if (scenario.startsWith("new-case")) {
-        const QString mesh = caseArg.isEmpty() ? QDir(dataRoot).filePath("samples/naca4412_ground.msh") : caseArg;
+        const QString mesh = !caseArg.isEmpty()               ? caseArg
+                             : scenario == "new-case-car" ? QDir(dataRoot).filePath("samples/fsae_car.msh")
+                                                          : QDir(dataRoot).filePath("samples/naca4412_ground.msh");
         sc->add([session, sc, mesh](auto next) {
             session->startNewCase(mesh);
             sc->waitFor([session] { return !session->newCaseBusy(); }, [session, sc, next] {
@@ -662,7 +669,9 @@ int main(int argc, char** argv)
                 next();
             }, "mesh to read");
         });
-        if (scenario == "new-case") {
+        if (scenario == "new-case-car") {
+            sc->add(go("new-case"));
+        } else if (scenario == "new-case") {
             // A role and the speed changed from the template, as a user checking the suggestions would.
             sc->add([session](auto next) {
                 session->setNewCaseSpeed(20);
@@ -675,7 +684,8 @@ int main(int argc, char** argv)
             });
             sc->add(go("new-case"));
         } else {
-            const QString out = QDir(dataRoot).filePath("cases/" + QFileInfo(mesh).completeBaseName() + ".kutta.json");
+            const QString name = qEnvironmentVariable("KUTTA_SCENARIO_CASE_NAME", QFileInfo(mesh).completeBaseName());
+            const QString out = QDir(dataRoot).filePath("cases/" + name + ".kutta.json");
             QDir().mkpath(QFileInfo(out).absolutePath());
             sc->add([session, sc, out](auto next) {
                 bool* done = new bool(false);
@@ -799,6 +809,26 @@ int main(int argc, char** argv)
                 next();
             });
         });
+    });
+    // What a reviewer would catch in the shot: the inspector page laid out
+    // badly at any panel width (text overlapping, clipped or cut short), or
+    // the home folder anywhere on screen (core/PathDisplay.h).
+    sc->add([&](auto next) {
+        if (benchFrames > 0) return next();
+        QList<int> widths;
+        for (int px = 320; px <= 720; px += 20) widths << px;
+        QStringList problems = w.inspector()->layoutProblemsAtWidths(widths);
+        problems += homePathsOnScreen(&w);
+        if (problems.isEmpty()) return next();
+        for (const QString& p : problems) std::fprintf(stderr, "screen check: %s\n", qPrintable(p));
+        std::fprintf(stderr, "scenario failed: %lld screen check problem(s)\n", qlonglong(problems.size()));
+        QCoreApplication::exit(4);
+    });
+    sc->add(settle(100));
+    // KUTTA_SCENARIO_SCROLL=bottom shows the end of a long inspector page.
+    sc->add([&](auto next) {
+        if (qEnvironmentVariable("KUTTA_SCENARIO_SCROLL") == "bottom") w.inspector()->verticalScrollBar()->setValue(w.inspector()->verticalScrollBar()->maximum());
+        next();
     });
     sc->add([&](auto) {
         if (!shot.isEmpty()) {

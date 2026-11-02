@@ -5,9 +5,11 @@
 #include "ui/GraphicsArea.h"
 #include "ui/Outline.h"
 #include "ui/PageKit.h"
+#include "ui/ScreenChecks.h"
 #include "ui/SettingWidgets.h"
 
 #include <QCheckBox>
+#include <QCoreApplication>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -65,6 +67,31 @@ void Inspector::resizeEvent(QResizeEvent* e)
 {
     QScrollArea::resizeEvent(e);
     fitPageWidth();
+}
+
+QStringList Inspector::layoutProblemsAtWidths(const QList<int>& widths)
+{
+    QWidget* page = widget();
+    if (!page) return {};
+    QStringList problems;
+    auto settle = [this, page](int width) {
+        page->setFixedWidth(width);
+        // As the scroll area sizes a resizable page: its height for that width.
+        for (int pass = 0; pass < 2; ++pass) {
+            QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+            const int h = page->hasHeightForWidth() ? page->heightForWidth(width) : page->sizeHint().height();
+            page->resize(width, std::max(h, viewport()->height()));
+        }
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+    };
+    for (int width : widths) {
+        settle(width);
+        for (const QString& p : layoutProblems(page)) problems << QStringLiteral("%1 at %2 px: %3").arg(m_id).arg(width).arg(p);
+    }
+    fitPageWidth();
+    page->updateGeometry();
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+    return problems;
 }
 
 void Inspector::showSettingsFiltered(const QString& filter)
@@ -276,8 +303,13 @@ QWidget* gettingStarted(const InspectorContext& c, bool hideable)
     v->addLayout(grid);
 
     enum class Mark { Done, Current, Blocked, Later };
+    struct Link {
+        QString text, page;
+    };
     int row = 0;
-    auto step = [&](Mark m, const QString& title, const QString& detail, QWidget* action) {
+    // Everything a step offers sits under its text, never beside it, so the
+    // card is as narrow as the panel allows and wraps instead of clipping.
+    auto step = [&](Mark m, const QString& title, const QString& detail, QPushButton* action = nullptr, const QList<Link>& links = {}) {
         const auto& t = tokens();
         auto* glyph = new QLabel;
         const QString icon = m == Mark::Done ? "circle-check" : m == Mark::Blocked ? "circle-alert" : "circle";
@@ -288,7 +320,7 @@ QWidget* gettingStarted(const InspectorContext& c, bool hideable)
         auto* text = new QWidget;
         auto* tv = new QVBoxLayout(text);
         tv->setContentsMargins(0, 0, 0, 0);
-        tv->setSpacing(0);
+        tv->setSpacing(1);
         auto* tl = label(QStringLiteral("%1. %2").arg(row + 1).arg(title), m == Mark::Later ? "faint" : QString());
         if (m == Mark::Current || m == Mark::Blocked) {
             QFont f = tl->font();
@@ -297,13 +329,28 @@ QWidget* gettingStarted(const InspectorContext& c, bool hideable)
         }
         tv->addWidget(tl);
         if (!detail.isEmpty()) tv->addWidget(label(detail, m == Mark::Blocked ? "error" : "muted"));
+        if (!links.isEmpty()) {
+            // One wrapping line of page links rather than a row of buttons.
+            QStringList anchors;
+            for (const Link& l : links)
+                anchors << QStringLiteral("<a href=\"%1\" style=\"text-decoration:none\">%2</a>").arg(l.page.toHtmlEscaped(), l.text.toHtmlEscaped());
+            auto* ll = new QLabel(anchors.join(QStringLiteral(" &nbsp;·&nbsp; ")));
+            ll->setTextFormat(Qt::RichText);
+            ll->setWordWrap(true);
+            ll->setTextInteractionFlags(Qt::TextBrowserInteraction);
+            ll->setAccessibleName(QObject::tr("Go to"));
+            QObject::connect(ll, &QLabel::linkActivated, ll, [c](const QString& page) { c.navigate(page); });
+            tv->addWidget(ll);
+        }
+        if (action) {
+            tv->addSpacing(3);
+            tv->addWidget(action, 0, Qt::AlignLeft);
+        }
         grid->addWidget(text, row, 1);
-        if (action) grid->addWidget(action, row, 2, Qt::AlignTop | Qt::AlignRight);
         ++row;
     };
-    auto link = [&](const QString& text, const QString& icon, std::function<void()> fn, bool primary = false) {
-        auto* b = button(text, icon, primary ? "primary" : nullptr);
-        if (!primary) b->setProperty("flat", true);
+    auto primary = [&](const QString& text, const QString& icon, std::function<void()> fn) {
+        auto* b = button(text, icon, "primary");
         QObject::connect(b, &QPushButton::clicked, b, std::move(fn));
         return b;
     };
@@ -311,17 +358,17 @@ QWidget* gettingStarted(const InspectorContext& c, bool hideable)
     // 1. Open
     if (!s->hasCase()) {
         step(Mark::Current, QObject::tr("Open your Fluent case"), QObject::tr("The .cas.h5; add its .dat.h5 to compare with Fluent."),
-             link(QObject::tr("Open Case…"), "folder-open", [c] { if (c.openDialog) c.openDialog(); }, true));
-        step(Mark::Later, QObject::tr("Review what Kutta needs from you"), {}, nullptr);
-        step(Mark::Later, QObject::tr("Run the calculation"), {}, nullptr);
-        step(Mark::Later, QObject::tr("Read the results"), {}, nullptr);
+             primary(QObject::tr("Open Case…"), "folder-open", [c] { if (c.openDialog) c.openDialog(); }));
+        step(Mark::Later, QObject::tr("Review what Kutta needs from you"), {});
+        step(Mark::Later, QObject::tr("Run the calculation"), {});
+        step(Mark::Later, QObject::tr("Read the results"), {});
         return w;
     }
     const bool kutta = s->caseSummary().kuttaCase();
     step(Mark::Done, kutta ? QObject::tr("Open your case") : QObject::tr("Open your Fluent case"),
-         kutta                    ? QObject::tr("%1, a Kutta case on %2").arg(s->caseName(), QFileInfo(s->caseSummary().meshFile).fileName())
-         : s->dataPath().isEmpty() ? QObject::tr("%1, without Fluent data (no comparison)").arg(s->caseName())
-                                 : QObject::tr("%1 with Fluent's data, for comparison").arg(s->caseName()), nullptr);
+         kutta                    ? QObject::tr("%1, a Kutta case on %2").arg(breakable(s->caseName()), breakable(QFileInfo(s->caseSummary().meshFile).fileName()))
+         : s->dataPath().isEmpty() ? QObject::tr("%1, without Fluent data (no comparison)").arg(breakable(s->caseName()))
+                                 : QObject::tr("%1 with Fluent's data, for comparison").arg(breakable(s->caseName())));
 
     // 2. Approvals
     const CaseSummary& cs = s->caseSummary();
@@ -329,21 +376,21 @@ QWidget* gettingStarted(const InspectorContext& c, bool hideable)
     const auto blocking = cs.blocking(approved);
     const bool unsupported = std::any_of(blocking.begin(), blocking.end(), [](const SupportIssue* i) { return i->cls == IssueClass::Unsupported; });
     const bool onGeneral = c.current && c.current() == "setup/general";
-    QWidget* review = onGeneral ? nullptr : link(QObject::tr("Review"), {}, [c] { c.navigate("setup/general"); });
+    const QList<Link> review = onGeneral ? QList<Link>{} : QList<Link>{{QObject::tr("Review on General"), "setup/general"}};
     if (unsupported) {
         step(Mark::Blocked, QObject::tr("Review what Kutta needs from you"),
              QObject::tr("Kutta cannot solve this case as it stands; the reasons are listed %1.").arg(onGeneral ? QObject::tr("below") : QObject::tr("on General")),
-             review);
+             nullptr, review);
     } else if (!blocking.empty()) {
         step(Mark::Current, QObject::tr("Review what Kutta needs from you"),
              blocking.size() == 1 ? QObject::tr("1 approximation needs your decision%1.").arg(onGeneral ? QObject::tr(" below") : QString())
                                   : QObject::tr("%1 approximations need your decision%2.").arg(blocking.size()).arg(onGeneral ? QObject::tr(" below") : QString()),
-             review);
+             nullptr, review);
     } else {
         step(Mark::Done, QObject::tr("Review what Kutta needs from you"),
              approved.isEmpty() ? (kutta ? QObject::tr("Nothing to approve: Kutta solves this case as its setup defines it.")
                                          : QObject::tr("Nothing to approve: Kutta solves this case as Fluent defines it."))
-                                : QObject::tr("Approved; results will be marked APPROXIMATE."), nullptr);
+                                : QObject::tr("Approved; results will be marked APPROXIMATE."));
     }
 
     // 3. Run
@@ -356,31 +403,25 @@ QWidget* gettingStarted(const InspectorContext& c, bool hideable)
     for (const auto& d : s->devices())
         if (d.backend == s->backend()) device = d.label();
     if (s->running()) {
-        step(Mark::Current, QObject::tr("Run the calculation"), QObject::tr("Running; residuals are in Charts below."), nullptr);
+        step(Mark::Current, QObject::tr("Run the calculation"), QObject::tr("Running; residuals are in Charts below."));
     } else if (!blocking.empty()) {
-        step(Mark::Later, QObject::tr("Run the calculation"), {}, nullptr);
+        step(Mark::Later, QObject::tr("Run the calculation"), {});
     } else {
         step(finished ? Mark::Done : Mark::Current, QObject::tr("Run the calculation"),
              finished ? QObject::tr("%1 finished. Run again after changing settings (%2).").arg(runs.size() == 1 ? QObject::tr("1 run") : QObject::tr("%1 runs").arg(runs.size()), keys)
                       : QObject::tr("%1 iterations on %2 (%3).").arg(s->requestedIterations()).arg(device, keys),
-             finished ? nullptr : link(QObject::tr("Run"), "play", [s] { s->run(); }, true));
+             finished ? nullptr : primary(QObject::tr("Run"), "play", [s] { s->run(); }));
     }
 
     // 4. Results
     if (!finished) {
-        step(Mark::Later, QObject::tr("Read the results"), QObject::tr("Contours, forces and the comparison with Fluent."), nullptr);
+        step(Mark::Later, QObject::tr("Read the results"), QObject::tr("Contours, forces and the comparison with Fluent."));
     } else {
-        auto* links = new QWidget;
-        auto* lh = new QHBoxLayout(links);
-        lh->setContentsMargins(0, 0, 0, 0);
-        lh->setSpacing(2);
-        lh->addWidget(link(QObject::tr("Contours"), {}, [c] { c.navigate("results/contours"); }));
-        lh->addWidget(link(QObject::tr("Forces"), {}, [c] { c.navigate("results/forces"); }));
-        lh->addWidget(link(QObject::tr("Run History"), {}, [c] { c.navigate("runs/history"); }));
         step(Mark::Current, QObject::tr("Read the results"),
              s->dataPath().isEmpty() ? QObject::tr("The viewports show the latest run; Forces lists the report definitions.")
                                      : QObject::tr("The viewports show the latest run; pick a Fluent or Δ field to compare."),
-             links);
+             nullptr,
+             {{QObject::tr("Contours"), "results/contours"}, {QObject::tr("Forces"), "results/forces"}, {QObject::tr("Run History"), "runs/history"}});
     }
     return w;
 }
@@ -539,18 +580,19 @@ QWidget* general(const InspectorContext& c)
     grid->setHorizontalSpacing(12);
     grid->setVerticalSpacing(5);
     int row = 0;
-    auto addRow = [&](const QString& k, const QString& val) {
+    auto addLabel = [&](const QString& k, QLabel* l) {
         grid->addWidget(label(k, "muted"), row, 0, Qt::AlignTop);
-        auto* l = label(val);
         l->setTextInteractionFlags(Qt::TextSelectableByMouse);
         grid->addWidget(l, row++, 1);
     };
+    auto addRow = [&](const QString& k, const QString& val) { addLabel(k, label(val)); };
     grid->setColumnStretch(1, 1);
-    addRow(QObject::tr("File"), QDir::toNativeSeparators(c.session->casePath()));
-    addRow(QObject::tr("Data"), c.session->dataPath().isEmpty() ? QObject::tr("none (initialized by Kutta)") : QDir::toNativeSeparators(c.session->dataPath()));
+    addLabel(QObject::tr("File"), pathLabel(c.session->casePath()));
+    if (c.session->dataPath().isEmpty()) addRow(QObject::tr("Data"), QObject::tr("none (initialized by Kutta)"));
+    else addLabel(QObject::tr("Data"), pathLabel(c.session->dataPath()));
     if (cs.kuttaCase()) {
         addRow(QObject::tr("Format"), QObject::tr("Kutta case (mesh and JSON setup)"));
-        addRow(QObject::tr("Mesh"), QDir::toNativeSeparators(cs.meshFile));
+        addLabel(QObject::tr("Mesh"), pathLabel(cs.meshFile));
     } else {
         addRow(QObject::tr("Written by"), cs.fluentVersion.isEmpty() ? QObject::tr("unknown Fluent version") : "Fluent " + cs.fluentVersion);
     }
@@ -595,10 +637,16 @@ QWidget* general(const InspectorContext& c)
 
     if (!notes.empty()) {
         v->addWidget(section(QObject::tr("Notes")));
-        auto* toggle = button(notes.size() == 1 ? QObject::tr("1 note on a setting that does not affect this case")
-                                                : QObject::tr("%1 notes on settings that do not affect this case").arg(notes.size()), "info");
+        // The count and what the notes are about wrap as text; the button
+        // stays short enough for the narrowest panel.
+        v->addWidget(label(notes.size() == 1 ? QObject::tr("1 note on a setting that does not affect this case.")
+                                             : QObject::tr("%1 notes on settings that do not affect this case.").arg(notes.size()),
+                           "muted"));
+        const QString showText = notes.size() == 1 ? QObject::tr("Show Note") : QObject::tr("Show Notes");
+        auto* toggle = button(showText, "info");
         toggle->setProperty("flat", true);
         toggle->setCheckable(true);
+        QObject::connect(toggle, &QPushButton::toggled, toggle, [toggle, showText](bool on) { toggle->setText(on ? QObject::tr("Hide") : showText); });
         auto* list = new QWidget;
         auto* lv = new QVBoxLayout(list);
         lv->setContentsMargins(0, 0, 0, 0);

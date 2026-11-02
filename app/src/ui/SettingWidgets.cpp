@@ -305,6 +305,7 @@ void SettingsForm::addWidget(QWidget* w)
 void SettingsForm::addRow(const QString& label, QWidget* value, const QString& unit)
 {
     auto* l = new QLabel(label, this);
+    l->setWordWrap(true);  // as setting labels: the form fits the narrowest panel
     l->setBuddy(value);
     m_grid->addWidget(l, m_row, 1);
     value->setParent(this);
@@ -328,13 +329,16 @@ bool SettingsForm::addSetting(const QString& path, const QString& labelOverride)
     r.marker->setAccessibleName(tr("Modified"));
     r.label = new QLabel(labelOverride.isEmpty() ? settingLabel(*s) : labelOverride, this);
     r.label->setToolTip(s->path);
+    // Long labels wrap: label, editor, unit and reset must fit the panel at
+    // its narrowest (320 px), where one line of "Number of iterations" does not.
+    r.label->setWordWrap(true);
     r.editor = new SettingEditor(m_model, *s, this);
     r.label->setBuddy(r.editor->focusTarget());
     // A method choice in Fluent's words ("Intensity and Hydraulic Diameter")
     // is too long beside its label: as in Fluent, it sits under it, full width.
     const bool stacked = !s->optionLabels.isEmpty() || !s->valueLabel.isEmpty();
     if (stacked) {
-        m_grid->addWidget(r.label, m_row++, 1, 1, 3, Qt::AlignVCenter | Qt::AlignLeft);
+        m_grid->addWidget(r.label, m_row++, 1, 1, 3);  // fills the row: a wrapped label's height follows its width
         m_grid->addWidget(r.marker, m_row, 0);
         m_grid->addWidget(r.editor, m_row, 1, 1, 3);
     } else {
