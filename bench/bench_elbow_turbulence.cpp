@@ -52,7 +52,8 @@ int main(int argc,char** argv) {
     const auto iterations=std::stoi(argv[6]);KUTTA_REQUIRE(iterations>=0,"invalid iterations");
     std::filesystem::create_directories(argv[3]);const std::filesystem::path out=argv[3];
     std::cout<<std::setprecision(12)<<"CASE sha256="<<sha256_file(argv[1])<<" data="<<sha256_file(argv[2])
-      <<" commit="<<KUTTA_BENCH_COMMIT<<" backend="<<argv[4]<<" start="<<argv[5]<<" iterations="<<iterations<<'\n';
+      <<" commit="<<KUTTA_BENCH_COMMIT<<" backend="<<argv[4]<<" start="<<argv[5]<<" iterations="<<iterations
+      <<" strain="<<(ke?(problem.settings.realizable_ke->standard_strain_reconstruction==KeStrainReconstruction::JumpCorrected?"jump":"cell"):"sst")<<'\n';
     if(iterations) s.iterate(iterations);
     std::ofstream order(out/"order.csv");for(auto v:s.permutation().cells_new_to_old) order<<v<<'\n';order.close();
     const auto r=s.monitor();
