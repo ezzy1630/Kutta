@@ -38,6 +38,7 @@ inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level
   }
   SolverSettings settings;settings.viscosity=nu;settings.sa=SaSettings{};
   settings.sa->model.formulation=SaFormulation::TmrStandard;
+  settings.sa->model.tmr_clip_production=false;
   settings.sa->convection=ConvectionScheme::FirstOrderUpwind;settings.monitor_interval=100;
   if(c==Case::Bump) {settings.pseudo_time_step=.01;settings.momentum_relaxation=.5;settings.pressure_relaxation=.3;}
   // Keep the TMR spatial/model protocol and outer budget. Assembly remainders

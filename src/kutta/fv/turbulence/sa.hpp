@@ -11,6 +11,9 @@ struct SaOptions {
   // Fluent TG 4-15..29 omits ft2; TMR standard SA includes it.
   SaFormulation formulation=SaFormulation::Fluent;
   SaWallTreatment wall=SaWallTreatment::Resolved;
+  // Compatibility with the previous TMR path. The published SA equation
+  // leaves production raw; its modified-strain safeguard applies only to r.
+  bool tmr_clip_production=true;
   float cb1=.1355f,cb2=.622f,sigma=2.f/3,cv1=7.1f,cw2=.3f,cw3=2,kappa=.41f;
   float max_viscosity_ratio=1e5f;
 };

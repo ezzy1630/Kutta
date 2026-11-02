@@ -34,7 +34,7 @@ void SaModel::update(const SaInputs& in) {
   for(const auto* b:{&in.density,&in.viscosity,&in.modified_viscosity,&in.gradient.x,&in.gradient.y,&in.gradient.z,&in.strain,&in.vorticity}) size(*b,n);
   kern::sa_coefficients(d,n,in.density,in.viscosity,in.modified_viscosity,mesh_.wall_distance,in.strain,in.vorticity,
     f.mu_t,f.diffusivity,f.fv1,f.fv2,f.modified_rate,f.fw,rate_derivative_,fw_derivative_,o.production==SaProduction::StrainVorticity,
-    o.formulation==SaFormulation::TmrStandard,o.sigma,o.cv1,o.cw2,o.cw3,o.kappa,o.max_viscosity_ratio);
+    o.formulation==SaFormulation::TmrStandard,o.tmr_clip_production,o.sigma,o.cv1,o.cw2,o.cw3,o.kappa,o.max_viscosity_ratio);
   kern::sa_sources(d,n,in.density,in.viscosity,in.modified_viscosity,mesh_.wall_distance,
     in.gradient.x,in.gradient.y,in.gradient.z,f.modified_rate,f.fw,rate_derivative_,fw_derivative_,f.source,f.sink,
     o.formulation==SaFormulation::TmrStandard,o.cb1,o.cb2,o.sigma,o.kappa);

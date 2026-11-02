@@ -9,7 +9,7 @@ KUTTA_FN float sa_fv1(float chi,float cv1) {
 KUTTA_KERNEL void sa_coefficients(int i,KIn(float) rho,KIn(float) mu,KIn(float) q,
     KIn(float) distance,KIn(float) strain,KIn(float) rotation,
     KOut(float) mut,KOut(float) gamma,KOut(float) fv1,KOut(float) fv2,
-    KOut(float) rate,KOut(float) fw,KOut(float) rate_derivative,KOut(float) fw_derivative,int alternate,int tmr,
+    KOut(float) rate,KOut(float) fw,KOut(float) rate_derivative,KOut(float) fw_derivative,int alternate,int tmr,int clip_production,
     float sigma,float cv1,float cw2,float cw3,float kappa,float max_ratio) {
   float v=kmax(q[i],0.0f),chi=v/(mu[i]/rho[i]);
   float t=kmin(chi/cv1,1e12f),one_minus_f1=1.0f/(1.0f+t*t*t);
@@ -21,10 +21,12 @@ KUTTA_KERNEL void sa_coefficients(int i,KIn(float) rho,KIn(float) mu,KIn(float) 
   float denom=1.0f+chi*f1,ratio=chi/denom;
   float df2=ratio*ratio*df1-(1.0f/denom)/denom;
   float dwall=invd*invd/(kappa*kappa),ds=dwall*(f2+chi*df2);
-  // TG leaves the sign of modified S intact. A negative production or
-  // destruction is split by sign in sa_sources, never made into a negative sink.
-  // NASA's standard implementation bounds S below by .3*Omega and r above by 10.
+  float production_rate=s,production_derivative=ds;
+  // Note 1(b) safeguards the ratio denominator. It does not change the
+  // production rate in TMR's equation; retain the prior shared clamp only
+  // under the explicit compatibility option.
   if(tmr && s<0.3f*rotation[i]) {s=0.3f*rotation[i];ds=0.0f;}
+  if(tmr && clip_production) {production_rate=s;production_derivative=ds;}
   float r=wall_rate==0.0f?0.0f:(s==0.0f?10.0f:wall_rate/s);
   float dr=s!=0.0f?(dwall-r*ds)/s:0.0f;
   if(r<=-1e4f || r>=(tmr?10.0f:1e4f)) dr=0.0f;
@@ -36,11 +38,11 @@ KUTTA_KERNEL void sa_coefficients(int i,KIn(float) rho,KIn(float) mu,KIn(float) 
   float wall=a*kpow((1.0f+c6)/(a2*a2*a2+b2*b2*b2),1.0f/6.0f);
   float prefactor=g!=0.0f?wall/g:kpow(1.0f+c6,1.0f/6.0f)/cw3;
   float dg=(1.0f-cw2+6.0f*cw2*r*r2*r2)*dr;
-  rate_derivative[i]=ds;
+  rate_derivative[i]=production_derivative;
   fw_derivative[i]=prefactor*(b2*b2*b2/(a2*a2*a2+b2*b2*b2))*dg;
   mut[i]=kmin(rho[i]*v*f1,max_ratio*mu[i]);
   gamma[i]=(mu[i]+rho[i]*v)/sigma;
-  fv1[i]=f1;fv2[i]=f2;rate[i]=s;fw[i]=wall;
+  fv1[i]=f1;fv2[i]=f2;rate[i]=production_rate;fw[i]=wall;
 }
 KUTTA_KERNEL void sa_sources(int i,KIn(float) rho,KIn(float) mu,KIn(float) q,
     KIn(float) distance,KIn(float) gx,KIn(float) gy,KIn(float) gz,
