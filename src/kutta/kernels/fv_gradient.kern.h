@@ -87,6 +87,30 @@ KUTTA_KERNEL void fv_paired_limiter(int i, KIn(int) offsets, KIn(int) adjacent,
   limiter[i]=kmax(0.0f,kmin(1.0f,psi));
 }
 
+// Limit the complete paired gradient against the complete paired extrema.
+// Using only grad(hi) misses an extremum when variation is carried by lo.
+KUTTA_KERNEL void fv_paired_gradient_limiter(int i,KIn(int) offsets,KIn(int) adjacent,
+    KIn(float) rx,KIn(float) ry,KIn(float) rz,
+    KIn(float) cell,KIn(float) low,KIn(float) boundary,KIn(float) boundary_low,
+    KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) lx,KIn(float) ly,KIn(float) lz,
+    KOut(float) limiter,float eps2) {
+  float lo=0.0f,hi=0.0f;
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int other=adjacent[j];
+    float v=other<0?boundary[-other-1]:cell[other];
+    float l=other<0?boundary_low[-other-1]:low[other];
+    kpair a={v,l},b={cell[i],low[i]};float d=kpair_delta(a,b);
+    lo=kmin(lo,d);hi=kmax(hi,d);
+  }
+  float psi=1.0f;
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    float d=(gx[i]+lx[i])*rx[j]+(gy[i]+ly[i])*ry[j]+(gz[i]+lz[i])*rz[j];
+    if(d>0.0f) psi=kmin(psi,klimit_face(d,hi,eps2));
+    if(d<0.0f) psi=kmin(psi,klimit_face(d,lo,eps2));
+  }
+  limiter[i]=kmax(0.0f,kmin(1.0f,psi));
+}
+
 KUTTA_KERNEL void fv_vector_gradient(int i,KIn(int) offsets,KIn(int) adjacent,
     KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) fx,KIn(float) fy,KIn(float) fz,KIn(float) inverse,
     KIn(float) u,KIn(float) v,KIn(float) w,KIn(float) bu,KIn(float) bv,KIn(float) bw,
@@ -129,6 +153,15 @@ KUTTA_KERNEL void fv_paired_limiter_scale(int i,KIn(int) offsets,KIn(int) adjace
     KIn(float) gx,KIn(float) gy,KIn(float) gz,KOut(float) limiter,
     KOut(float) x,KOut(float) y,KOut(float) z,float eps2) {
   fv_paired_limiter(i,offsets,adjacent,rx,ry,rz,cell,low,boundary,kind,gx,gy,gz,limiter,eps2);
+  fv_scale_gradient(i,gx,gy,gz,limiter,x,y,z);
+}
+
+KUTTA_KERNEL void fv_paired_gradient_limiter_scale(int i,KIn(int) offsets,KIn(int) adjacent,
+    KIn(float) rx,KIn(float) ry,KIn(float) rz,
+    KIn(float) cell,KIn(float) low,KIn(float) boundary,KIn(float) boundary_low,
+    KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) lx,KIn(float) ly,KIn(float) lz,
+    KOut(float) limiter,KOut(float) x,KOut(float) y,KOut(float) z,float eps2) {
+  fv_paired_gradient_limiter(i,offsets,adjacent,rx,ry,rz,cell,low,boundary,boundary_low,gx,gy,gz,lx,ly,lz,limiter,eps2);
   fv_scale_gradient(i,gx,gy,gz,limiter,x,y,z);
 }
 

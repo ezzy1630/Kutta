@@ -74,3 +74,33 @@ TEST_CASE("FV paired walk predictor matches reconstruction of a representable to
     CHECK(maximum<3e-6);
   }
 }
+
+TEST_CASE("FV paired limiter sees an extremum carried by the low gradient") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto offsets=dev->upload<Index>(std::vector<Index>{0,2,2,2}),adjacent=dev->upload<Index>(std::vector<Index>{1,2});
+    auto rx=dev->upload<float>(std::vector<float>{.5f,0}),ry=dev->upload<float>(std::vector<float>{0,.5f});
+    auto rz=dev->alloc<float>(2),high=dev->alloc<float>(3),zero=dev->alloc<float>(3),limiter=dev->alloc<float>(3);
+    const float epsilon=std::ldexp(1.f,-20);
+    auto low=dev->upload<float>(std::vector<float>{0,epsilon,0});
+    auto lx=dev->upload<float>(std::vector<float>{epsilon,0,0}),ly=dev->upload<float>(std::vector<float>{-epsilon,0,0});
+    dev->fill(high,1);dev->fill(zero,0);dev->fill(rz,0);
+    kern::fv_paired_gradient_limiter(*dev,1,offsets,adjacent,rx,ry,rz,high,low,high,zero,
+      zero,zero,zero,lx,ly,zero,limiter,-1);
+    // The y face would undershoot the total field's minimum at the owner.
+    // Its high gradient is zero, but the low gradient still needs limiting.
+    CHECK(dev->download(limiter)[0]==0);
+    auto out_z=dev->alloc<float>(3);
+    kern::fv_paired_gradient_limiter_scale(*dev,1,offsets,adjacent,rx,ry,rz,high,low,high,zero,
+      zero,zero,zero,lx,ly,zero,limiter,lx,ly,out_z,-1);
+    CHECK(dev->download(lx)[0]==0);CHECK(dev->download(ly)[0]==0);
+    dev->upload<float>(lx,std::vector<float>{epsilon,0,0});
+    dev->upload<Index>(offsets,std::vector<Index>{0,1,1,1});
+    dev->upload<Index>(adjacent,std::vector<Index>{-1,2});dev->fill(ry,0);
+    auto boundary_low=dev->upload<float>(std::vector<float>{epsilon});
+    kern::fv_paired_gradient_limiter(*dev,1,offsets,adjacent,rx,ry,rz,high,low,high,boundary_low,
+      zero,zero,zero,lx,zero,zero,limiter,-1);
+    // Projected symmetry values need not carry the owner's low component.
+    // The actual low boundary observation permits this outward increment.
+    CHECK(dev->download(limiter)[0]==1);
+  }
+}

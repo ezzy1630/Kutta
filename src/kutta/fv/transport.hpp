@@ -19,6 +19,7 @@ struct TransportSettings {
   float relaxation=1;
   // The low words of a float-pair field (fv_paired_limiter); null for float.
   const Buffer<float>* limiter_low=nullptr;
+  std::optional<PairedGradient> limiter_paired_gradient;
   // fv_limiter's eps2: the differentiable limiter's squared threshold
   // (SolverSettings::limiter); negative is Barth-Jespersen.
   float limiter_epsilon2=-1;

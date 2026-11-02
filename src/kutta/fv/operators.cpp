@@ -290,10 +290,16 @@ std::vector<FieldRange> field_ranges(Device& dev, std::span<const Buffer<float>*
 void limit_gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
                     const Buffer<float>& cell, const Buffer<float>& boundary,
                     const DeviceVec3& g, Buffer<float>& limiter,
-                    const Buffer<float>* low, const Buffer<Index>* boundary_kind, float epsilon2) {
+                    const Buffer<float>* low, const Buffer<Index>* boundary_kind, float epsilon2,std::optional<PairedGradient> paired_gradient) {
   KUTTA_REQUIRE(limiter.size()==cell.size() && (!low || (low->size()==cell.size() && boundary_kind &&
     boundary_kind->size()==boundary.size())),"FV limiter size mismatch");
-  if(low) kern::fv_paired_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,
+  const auto* low_gradient=paired_gradient?&paired_gradient->gradient.get():nullptr;
+  const auto* low_boundary=paired_gradient?&paired_gradient->boundary.get():nullptr;
+  KUTTA_REQUIRE(!low_gradient || (low && low_gradient->x.size()==cell.size() &&
+    low_gradient->y.size()==cell.size() && low_gradient->z.size()==cell.size() && low_boundary->size()==boundary.size()),"FV paired limiter gradient size mismatch");
+  if(low_gradient) kern::fv_paired_gradient_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,
+    s.face_delta.z,cell,*low,boundary,*low_boundary,g.x,g.y,g.z,low_gradient->x,low_gradient->y,low_gradient->z,limiter,epsilon2);
+  else if(low) kern::fv_paired_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,
     s.face_delta.z,cell,*low,boundary,*boundary_kind,g.x,g.y,g.z,limiter,epsilon2);
   else kern::fv_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,s.face_delta.z,
     cell,boundary,g.x,g.y,g.z,limiter,epsilon2);

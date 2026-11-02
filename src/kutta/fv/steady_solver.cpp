@@ -776,10 +776,17 @@ struct SteadySolver::Impl {
     return {float(ulps*speed),float(ulps*pressure),float(ulps*settings.density*speed)};
   }
   // The momentum limiter of component k sees the pair (fv_paired_limiter).
-  TransportSettings with_low(TransportSettings t,int k) const {
+  TransportSettings with_low(TransportSettings t,int k) {
     t.limiter_epsilon2=limiter_epsilon2[k];
     const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
-    if(paired) t.limiter_low=lo[k];
+    if(paired) {
+      t.limiter_low=lo[k];
+      if(settings.compensated_momentum) {
+        reconstruct_velocity_lo();
+        const Buffer<float>* boundary[]{&boundary_velocity_lo.x,&boundary_velocity_lo.y,&boundary_velocity_lo.z};
+        t.limiter_paired_gradient=PairedGradient{limited_gradient[k],*boundary[k]};
+      }
+    }
     return t;
   }
   // Every initialization writes hi alone, and needs fresh limiter thresholds.
@@ -841,8 +848,8 @@ struct SteadySolver::Impl {
     else kern::fv_paired_momentum_residual(dev,mesh.n_cells,m.row_ptr,m.col,m.val,m.diag,eq.diagonal,eq.diagonal_low(),
       *hi[k],*lo[k],*g[k],mesh.volume,eq.rhs,eq.rhs_low(),r);
     if(!settings.compensated_momentum) return;
+    // with_low() refreshed these gradients for this component's assembly.
     auto& b=boundary_velocity_lo;
-    reconstruct_velocity_lo();
     const auto& low_gradient=limited_gradient[k];
     const Buffer<float>* low_boundary[]{&b.x,&b.y,&b.z};
     const Buffer<float>* high_boundary[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
@@ -927,12 +934,18 @@ struct SteadySolver::Impl {
     if(paired) dev.copy(previous_mass,mass);
     if(limiter_pending && !limiter_scratch.empty()) refresh_limiter_thresholds();
     reconstruct_velocity();
+    if(paired && settings.compensated_momentum) reconstruct_velocity_lo();
     const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
     const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
     const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
+    const Buffer<float>* low_boundary[]{&boundary_velocity_lo.x,&boundary_velocity_lo.y,&boundary_velocity_lo.z};
     for(int k=0;k<3;++k) {
       auto& eq=*momentum[k];auto& g=limited_gradient[k];
-      if(settings.limit && paired) kern::fv_paired_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
+      if(settings.limit && paired && settings.compensated_momentum)
+        kern::fv_paired_gradient_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
+          stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*lo[k],*bc[k],*low_boundary[k],
+          eq.grad.x,eq.grad.y,eq.grad.z,g.x,g.y,g.z,eq.limiter,g.x,g.y,g.z,limiter_epsilon2[k]);
+      else if(settings.limit && paired) kern::fv_paired_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
         stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*lo[k],*bc[k],scalar_kind,
         eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z,limiter_epsilon2[k]);
       else if(settings.limit) kern::fv_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
