@@ -8,6 +8,7 @@ Meshes are generated on demand into runs/fsae_aero/mesh (gitignored).
   build-py/bin/python tools/fsae_aero/run.py zerihan --points free,0.224 --level 2
   build-py/bin/python tools/fsae_aero/run.py s1223 --re 2e5 --points 0,4.76 --level 2
   build-py/bin/python tools/fsae_aero/run.py ahmed --points 35 --level 1
+  build-py/bin/python tools/fsae_aero/run.py zerihan --points 0.134,0.090 --level 2.6 --ground-layers
 """
 import argparse
 import json
@@ -25,7 +26,7 @@ MESHES = ROOT / "runs/fsae_aero/mesh"
 AHMED_LENGTH, AHMED_RE, AHMED_AREA = 1.044, 2.78e6, 0.389 * 0.288
 
 
-def mesh_for(case, point, level, far=1.0, first=None):
+def mesh_for(case, point, level, far=1.0, first=None, ground_layers=False):
     if case == "ahmed":
         # point = slant angle; a non-default first prism height is in the name
         suffix = f"_first{first * 1e6:g}um" if first else ""
@@ -34,10 +35,12 @@ def mesh_for(case, point, level, far=1.0, first=None):
         cmd += ["--first", str(first)] if first else []
     else:
         tag = f"h{point}" if case == "zerihan" else f"a{point}"
-        path = MESHES / f"{case}_{tag}_L{level:g}{f'_far{far:g}' if far != 1 else ''}.msh"
+        path = MESHES / f"{case}_{tag}_L{level:g}{f'_far{far:g}' if far != 1 else ''}{'_ground' if ground_layers else ''}.msh"
         flag = "--hc" if case == "zerihan" else "--alpha"
         cmd = [PY, str(ROOT / "tools/fsae_aero/wing2d.py"), case, flag, point, "--level", f"{level:g}", "--out", str(path),
                "--far", str(far)]
+        if ground_layers:
+            cmd += ["--ground-layers"]
     if not path.exists():
         MESHES.mkdir(parents=True, exist_ok=True)
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL)
@@ -45,9 +48,9 @@ def mesh_for(case, point, level, far=1.0, first=None):
 
 
 def solve(case, point, args):
-    mesh = mesh_for(case, point, args.level, args.far, args.first)
+    mesh = mesh_for(case, point, args.level, args.far, args.first, args.ground_layers)
     first = f"_first{args.first * 1e6:g}um" if case == "ahmed" and args.first else ""
-    tag = f"{case}{'_re' + args.re if case == 's1223' else ''}_{point}_L{args.level:g}{first}_{args.backend}{args.tag}"
+    tag = f"{case}{'_re' + args.re if case == 's1223' else ''}_{point}_L{args.level:g}{first}{'_ground' if args.ground_layers else ''}_{args.backend}{args.tag}"
     out = pathlib.Path(args.out) / tag
     out.mkdir(parents=True, exist_ok=True)
     cmd = [str(ROOT / "build/bench_fsae_aero"), "--mesh", str(mesh), "--backend", args.backend, "--out", str(out),
@@ -85,6 +88,7 @@ def solve(case, point, args):
           f"res={r.get('max_residual')} settled={r.get('settled')} t={r.get('solve_s')} "
           f"mem={result.get('peak_footprint_bytes', 0) / 1e9:.2f}GB failure={r.get('failure', result.get('error', ''))[:200]}",
           flush=True)
+    return proc.returncode if proc.returncode else int("result" not in result)
 
 
 def main():
@@ -101,13 +105,18 @@ def main():
     ap.add_argument("--ratio", type=float, default=1.0)
     ap.add_argument("--extra", default="", help="extra bench_fsae_aero options")
     ap.add_argument("--far", type=float, default=1.0, help="2D far-field distance scale (wing2d.py --far)")
+    ap.add_argument("--ground-layers", action="store_true", help="resolve the 2D ground with a conformal quad strip")
     ap.add_argument("--first", type=float, default=None, help="Ahmed first prism height, m (ahmed.py --first)")
     ap.add_argument("--tag", default="", help="suffix for the run directory")
     ap.add_argument("--out", default=str(ROOT / "runs/fsae_aero/results"))
     a = ap.parse_args()
+    if a.ground_layers and (a.case != "zerihan" or "free" in a.points.split(",")):
+        ap.error("--ground-layers requires zerihan with numeric ride heights")
+    failed = False
     for point in a.points.split(","):
-        solve(a.case, point, a)
+        failed = solve(a.case, point, a) != 0 or failed
+    return int(failed)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

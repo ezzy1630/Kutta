@@ -37,11 +37,36 @@ int main(int argc, char** argv) {
     const auto pressure_scheme = text("--pressure-scheme", "second-order");
     KUTTA_REQUIRE(pressure_scheme == "standard" || pressure_scheme == "second-order", "--pressure-scheme is standard or second-order");
     o.pressure_interpolation = pressure_scheme == "standard" ? fv::PressureInterpolation::Standard : fv::PressureInterpolation::SecondOrder;
+    const auto transport = text("--sst-transport", "fluent");
+    KUTTA_REQUIRE(transport == "fluent" || transport == "cfl3d", "--sst-transport is fluent or cfl3d");
+    if (transport == "cfl3d") {
+      // Original SST-V transport (CFL3D Appendix H and NASA TMR). Wall
+      // treatment stays Fluent's; this is not a complete CFL3D wall model.
+      o.sst_model.viscosity_limiter = SstViscosityLimiter::Vorticity;
+      o.sst_model.vorticity_production = true;
+      o.sst_model.production_clip = 20;
+      o.sst_model.limit_omega_production = false;
+      o.sst_model.cdkw_floor = 1e-20f;
+      o.sst_model.limit_cross_diffusion = false;
+      o.sst_model.max_viscosity_ratio = 1e10f;
+    }
+    const auto viscosity = text("--sst-viscosity", o.sst_model.viscosity_limiter == SstViscosityLimiter::Strain ? "strain" : "vorticity");
+    const auto production = text("--sst-production", o.sst_model.vorticity_production ? "vorticity" : "strain");
+    KUTTA_REQUIRE(viscosity == "strain" || viscosity == "vorticity", "--sst-viscosity is strain or vorticity");
+    KUTTA_REQUIRE(production == "strain" || production == "vorticity", "--sst-production is strain or vorticity");
+    o.sst_model.viscosity_limiter = viscosity == "strain" ? SstViscosityLimiter::Strain : SstViscosityLimiter::Vorticity;
+    o.sst_model.vorticity_production = production == "vorticity";
+    const auto turbulence_convection = text("--turbulence-convection", "second-order");
+    KUTTA_REQUIRE(turbulence_convection == "first-order" || turbulence_convection == "second-order", "--turbulence-convection is first-order or second-order");
+    o.turbulence_convection = turbulence_convection == "first-order" ? fv::ConvectionScheme::FirstOrderUpwind : fv::ConvectionScheme::SecondOrderUpwind;
     o.output = text("--out");
     o.reynolds = number("--re", 0);
     o.length = number("--length", 1);
     o.reference_area = number("--area", 1);
     o.moving_ground = args.contains("--moving-ground");
+    const auto ground = text("--ground", "wall");
+    KUTTA_REQUIRE(ground == "wall" || ground == "prescribed-zero", "--ground is wall or prescribed-zero");
+    o.ground_condition = ground == "wall" ? GroundCondition::Wall : GroundCondition::PrescribedZeroTurbulence;
     o.coupled = args.contains("--coupled");
     o.hybrid = args.contains("--hybrid");
     o.transition = args.contains("--transition");

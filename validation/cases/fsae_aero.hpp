@@ -21,6 +21,7 @@
 
 namespace kutta::validation::fsae_aero {
 using namespace fv;
+enum class GroundCondition { Wall, PrescribedZeroTurbulence };
 
 // Nondimensional setup: U = rho = 1 along +x; nu = length/Re.
 struct Options {
@@ -31,6 +32,8 @@ struct Options {
   Vec3d lift_direction{0, 1, 0};     // -y reports downforce as positive
   std::vector<std::string> force_walls{"wing"};
   bool moving_ground = false;        // "ground" wall translates at U
+  // Diagnostic prescribed-velocity boundary, with k/omega at SST's floors.
+  GroundCondition ground_condition = GroundCondition::Wall;
   double intensity = .001, viscosity_ratio = 1;
   bool coupled = false;
   // Fluent's intermittency transition model on top of SST, with Fluent's
@@ -38,6 +41,10 @@ struct Options {
   bool transition = false;
   // Laminar flow (no turbulence model): a mesh check against Blasius.
   bool laminar = false;
+  // Expose existing model choices for controlled code-to-code comparisons.
+  // Defaults remain Fluent's; original CFL3D SST uses vorticity for both.
+  SstOptions sst_model;
+  ConvectionScheme turbulence_convection = SstSettings{}.k_convection;
   // Fluent hybrid initialization (Laplace potential flow) instead of the
   // uniform freestream; turbulence from the inlet intensity and ratio.
   bool hybrid = false;
@@ -88,6 +95,15 @@ inline std::vector<PatchCondition> boundaries(const PolyMesh& mesh, const Option
   std::vector<PatchCondition> bc;
   for (const auto& p : mesh.patches) {
     if (p.kind == PatchKind::Wall) {
+      if (p.name == "ground" && o.ground_condition == GroundCondition::PrescribedZeroTurbulence) {
+        // A tangential velocity boundary has zero normal mass flow. This
+        // isolates prescribed U,k,omega at the ground, consistent with old
+        // CFL3D BC2008. It excludes the ground from turbulence wall treatment;
+        // the thesis supplies no input deck to verify that classification.
+        const SstOptions floors;
+        bc.push_back({p.name, VelocityInlet{Vec3d{1, 0, 0}, TurbulenceValues{floors.k_floor, floors.omega_floor}}});
+        continue;
+      }
       Wall wall;
       if (p.name == "ground" && o.moving_ground) wall.velocity = Vec3d{1, 0, 0};
       bc.push_back({p.name, wall});
@@ -119,10 +135,13 @@ inline void write_walls(Device& dev, SteadySolver& solver, const Options& o, std
   const auto pressure = dev.download(solver.boundary_pressure());
   const auto& shear = solver.wall_shear();
   const auto tx = dev.download(shear.x), ty = dev.download(shear.y), tz = dev.download(shear.z);
+  // Retain the legacy u*-based metric and expose friction-velocity units
+  // separately for comparisons with references that define y+ using u_tau.
   const auto yplus = o.laminar ? std::vector<float>(tx.size(), 0.0f) : dev.download(solver.turbulence().wall_y_plus);
+  const auto yplus_utau = o.laminar ? std::vector<float>{} : dev.download(solver.turbulence().wall_y_plus_utau);
   const auto& mesh = solver.mesh();
   const auto& g = solver.geometry();
-  out << "patch,x,y,z,nx,ny,nz,area,cp,tau_x,tau_y,tau_z,yplus\n" << std::setprecision(9);
+  out << "patch,x,y,z,nx,ny,nz,area,cp,tau_x,tau_y,tau_z,yplus,yplus_utau\n" << std::setprecision(9);
   double sum = 0;
   Index count = 0;
   for (const auto& p : mesh.patches) {
@@ -134,7 +153,9 @@ inline void write_walls(Device& dev, SteadySolver& solver, const Options& o, std
       const double area = std::sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
       const auto c = g.face_centroid[f];
       out << p.name << ',' << c.x << ',' << c.y << ',' << c.z << ',' << a.x / area << ',' << a.y / area << ',' << a.z / area << ','
-          << area << ',' << 2 * pressure[b] << ',' << tx[b] << ',' << ty[b] << ',' << tz[b] << ',' << yplus[b] << '\n';
+          << area << ',' << 2 * pressure[b] << ',' << tx[b] << ',' << ty[b] << ',' << tz[b] << ',' << yplus[b] << ',';
+      if (!o.laminar) out << yplus_utau[b];
+      out << '\n';
       if (force) {
         r.wall_yplus_max = std::max(r.wall_yplus_max, double(yplus[b]));
         sum += yplus[b];
@@ -158,13 +179,24 @@ inline Result run(Device& dev, const Options& o) {
   auto start = Clock::now();
   KUTTA_REQUIRE(std::filesystem::exists(o.mesh), "fsae_aero mesh missing (generate with tools/fsae_aero): " + o.mesh.string());
   KUTTA_REQUIRE(o.reynolds > 0, "fsae_aero: Reynolds number required");
+  KUTTA_REQUIRE(o.ground_condition == GroundCondition::Wall || o.moving_ground,
+                "fsae_aero: prescribed ground requires moving ground");
   auto mesh = read_fluent_msh(o.mesh, o.extrusion);
+  KUTTA_REQUIRE(o.ground_condition == GroundCondition::Wall ||
+                    std::any_of(mesh.patches.begin(), mesh.patches.end(), [](const Patch& p) {
+                      return p.name == "ground" && p.kind == PatchKind::Wall;
+                    }),
+                "fsae_aero: prescribed ground requires a ground wall patch");
   const bool three_d = std::none_of(mesh.patches.begin(), mesh.patches.end(), [](const Patch& p) { return p.name == "front"; });
   auto bc = boundaries(mesh, o);
   SolverSettings s;
   s.viscosity = o.length / o.reynolds;
   KUTTA_REQUIRE(!(o.laminar && o.transition), "fsae_aero: transition requires the turbulence model");
   if (!o.laminar) s.sst = SstSettings{};
+  if (s.sst) {
+    s.sst->model = o.sst_model;
+    s.sst->k_convection = s.sst->omega_convection = o.turbulence_convection;
+  }
   if (o.transition) s.sst->transition = IntermittencySettings{};
   s.monitor_interval = o.check_every;
   if (o.coupled) s.coupling = PressureVelocityCoupling::Coupled;

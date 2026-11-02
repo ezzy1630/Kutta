@@ -8,6 +8,10 @@ derived from them is committed. Run with the venv that has gmsh/numpy/scipy:
 
   build-py/bin/python tools/fsae_aero/wing2d.py zerihan --hc 0.224 --level 2 --out runs/fsae_aero/z.msh
   build-py/bin/python tools/fsae_aero/wing2d.py s1223 --alpha 4 --level 2 --out runs/fsae_aero/s.msh
+
+Fractional levels permit refinement within a memory limit. --ground-layers
+adds a wall-resolving strip; --domain X_IN X_OUT Y_TOP changes the far boundaries
+independently of local spacing. Both are opt-in and preserve the default mesh.
 """
 import argparse
 import csv
@@ -172,7 +176,7 @@ def signed_area(points, cells):
     return 0.5 * np.sum(x * np.roll(y, -1, axis=1) - np.roll(x, -1, axis=1) * y, axis=1)
 
 
-def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0):
+def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0, ground_layers=False, domain=None):
     import gmsh
     pts, blunt = resample(contour, level)
     r = 2.0 ** (level - 2)
@@ -200,13 +204,37 @@ def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0):
     geo = gmsh.model.geo
     tags = [geo.addPoint(x, y, 0) for x, y in hole]
     ring = [geo.addLine(tags[a], tags[(a + 1) % nloop]) for a in range(nloop)]
-    x_in, x_out, y_far = X_IN * far, X_OUT * far, Y_FAR * far
+    x_in, x_out, y_far = domain if domain else (X_IN * far, X_OUT * far, Y_FAR * far)
     corner_out, corner_in = geo.addPoint(x_out, y_far, 0), geo.addPoint(x_in, y_far, 0)
-    # The moving ground is a plain wall line meshed by the gap-refined
-    # triangles. Structured wall layers on it ended in slivers or extreme size
-    # jumps that Kutta's solver did not tolerate (REPORT.md, "Meshes").
-    start, end = geo.addPoint(x_in, ground_y, 0), geo.addPoint(x_out, ground_y, 0)
-    ground = [geo.addLine(start, end)]
+    # Optional ground strip: share every node of its top with gmsh,
+    # avoiding the terminating layers/slivers of a local ground block.
+    ground_offsets = [0.0]
+    if ground_layers and ground_wall:
+        dy = ds_wall
+        while ground_offsets[-1] + dy <= thickness:
+            ground_offsets.append(ground_offsets[-1] + dy)
+            dy = min(dy * ratio, surf)
+    def ground_blend(x):
+        t = np.clip(np.maximum(-1.0 - x, x - 4.0) / 3.0, 0, 1)
+        return t * t * (3 - 2 * t)
+
+    if len(ground_offsets) > 1:
+        # Grow the whole strip in the far field, rather than carrying very
+        # thin cells under metre-long triangles. This is flat through the
+        # wing and near wake, where the ground boundary layer matters.
+        xs = [x_in]
+        while xs[-1] < x_out:
+            distance = max(-0.5 - xs[-1], xs[-1] - 3.0, 0)
+            dx = min(2.0, min(0.01, gap / 12) / r + 0.08 * distance)
+            xs.append(min(x_out, xs[-1] + dx))
+        gx = np.array(xs)
+        height = ground_offsets[-1] + (1.0 - ground_offsets[-1]) * ground_blend(gx)
+        ground_tags = [geo.addPoint(x, ground_y + h, 0) for x, h in zip(gx, height)]
+        ground = [geo.addLine(a, b) for a, b in zip(ground_tags[:-1], ground_tags[1:])]
+        start, end = ground_tags[0], ground_tags[-1]
+    else:
+        start, end = geo.addPoint(x_in, ground_y, 0), geo.addPoint(x_out, ground_y, 0)
+        ground = [geo.addLine(start, end)]
     outlet = geo.addLine(end, corner_out)
     top = geo.addLine(corner_out, corner_in)
     inlet = geo.addLine(corner_in, start)
@@ -217,6 +245,9 @@ def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0):
     m = gmsh.model.mesh
     for c in ring:
         m.setTransfiniteCurve(c, 2)
+    if len(ground_offsets) > 1:
+        for c in ground:
+            m.setTransfiniteCurve(c, 2)
     field = m.field
     # Background sizes: near-body, wake and (in ground effect) the gap.
     dist = field.add("Distance")
@@ -304,6 +335,29 @@ def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0):
     blocks = gblocks + [(3, quads_of(ids, True))]
     a = np.arange(nloop)
     boundaries = [("wing", "wall", np.stack([ids[0, a], ids[0, (a + 1) % nloop]], axis=1))]
+    if len(ground_offsets) > 1:
+        interface = np.unique(gfaces["ground"])
+        interface = interface[np.argsort(gpoints[interface, 0])]
+        strip = np.empty((len(ground_offsets), len(interface), 2))
+        strip[:, :, 0] = gpoints[interface, 0]
+        # Retain the wall resolution through the wing and near wake. Farther
+        # out, smoothly relax to uniform layers in a thicker strip so the
+        # far-field cells do not inherit a 1e-5c height.
+        x = gpoints[interface, 0]
+        blend = ground_blend(x)
+        height = gpoints[interface, 1] - ground_y
+        uniform = np.linspace(0, 1, len(ground_offsets))
+        fractions = np.array(ground_offsets) / ground_offsets[-1]
+        offsets = (fractions[:, None] * (1 - blend) + uniform[:, None] * blend) * height
+        strip[:, :, 1] = ground_y + offsets
+        shared = -np.ones(strip.shape[:2], dtype=np.int64)
+        shared[-1] = interface
+        strip_ids = attach(strip, shared)
+        blocks.append((3, quads_of(strip_ids, False)))
+        gfaces["ground"] = np.stack([strip_ids[0, :-1], strip_ids[0, 1:]], axis=1)
+        for name, column in (("inlet", 0), ("outlet", -1)):
+            edges = np.stack([strip_ids[:-1, column], strip_ids[1:, column]], axis=1)
+            gfaces[name] = np.concatenate([gfaces[name], edges])
     points = np.concatenate(points)
     kinds = {"ground": "wall" if ground_wall else "symmetry", "inlet": "velocity-inlet",
              "outlet": "pressure-outlet", "top": "symmetry"}
@@ -320,6 +374,9 @@ def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0):
                 oblock_thickness=float(np.max(np.linalg.norm(block[-1] - block[0], axis=1))), wing_faces=int(nloop),
                 ground_y=ground_y, gap=gap, cell_types=counts,
                 domain={"x_in": x_in, "x_out": x_out, "y_far": y_far})
+    if len(ground_offsets) > 1:
+        meta.update(ground_layers=len(ground_offsets) - 1, ground_first_height=ds_wall,
+                    ground_layer_thickness=ground_offsets[-1], ground_far_layers="uniform, thickness 1c beyond [-4, 7]")
     pathlib.Path(str(out) + ".json").write_text(json.dumps(meta, indent=1))
     return meta
 
@@ -329,11 +386,21 @@ def main():
     ap.add_argument("case", choices=["zerihan", "s1223"])
     ap.add_argument("--hc", default="free", help="ride height h/c, or 'free'")
     ap.add_argument("--alpha", type=float, default=0.0, help="S1223 angle of attack, deg")
-    ap.add_argument("--level", type=int, default=2)
+    ap.add_argument("--level", type=float, default=2)
     ap.add_argument("--out", required=True)
     ap.add_argument("--png", help="write a mesh preview image")
     ap.add_argument("--far", type=float, default=1.0, help="scale the far-field distances")
+    ap.add_argument("--ground-layers", action="store_true", help="resolve the ground with a conformal quad strip")
+    ap.add_argument("--domain", type=float, nargs=3, metavar=("X_IN", "X_OUT", "Y_TOP"),
+                    help="explicit domain boundaries in chords (overrides --far)")
     a = ap.parse_args()
+    if not math.isfinite(a.level) or a.level <= 0:
+        ap.error("--level must be finite and positive")
+    if a.ground_layers and (a.case != "zerihan" or a.hc == "free"):
+        ap.error("--ground-layers requires zerihan with a numeric ride height")
+    if a.domain and not (all(math.isfinite(v) for v in a.domain) and
+                         a.domain[0] < -1 and a.domain[1] > 2 and a.domain[2] > 1):
+        ap.error("--domain requires finite X_IN < -1, X_OUT > 2 and Y_TOP > 1")
     pivot = np.array([0.25, 0.0])
     if a.case == "zerihan":
         contour = zerihan_contour()
@@ -353,7 +420,7 @@ def main():
         meta = {"case": "s1223", "alpha_deg": a.alpha, "coordinates": "as-tested (dap)"}
         ground_y, wall = -Y_FAR * a.far, False
     pathlib.Path(a.out).parent.mkdir(parents=True, exist_ok=True)
-    print(json.dumps(build(contour, ground_y, a.level, a.out, wall, meta, a.png, a.far)))
+    print(json.dumps(build(contour, ground_y, a.level, a.out, wall, meta, a.png, a.far, a.ground_layers, a.domain)))
 
 
 if __name__ == "__main__":

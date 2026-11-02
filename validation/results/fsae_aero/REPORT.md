@@ -149,19 +149,21 @@ Every point converged: residuals below 1e-3 and forces settled to 5e-4.
 **Reading.** Kutta sits between the two thesis turbulence models at every
 height. Above h/c 0.3 it matches k-omega within 2%. Below that it drifts
 toward SA, and it crosses the 5% gate at h/c 0.134. It reproduces the
-force-reduction trend: Cl peaks near h/c 0.134 and falls at 0.090, where the
-experiment also peaks (1.385 at 0.134). CFL3D k-omega peaks earlier, at h/c
+force-reduction trend: Cl peaks near h/c 0.134 and falls at 0.090. The
+pressure-integrated experimental estimate also peaks at 0.134 (1.385).
+CFL3D k-omega peaks earlier, at h/c
 0.179. Like both thesis models, Kutta runs 12-14% above the
 pressure-integrated experiment at large heights, the bias the thesis
 attributes to the tap spacing.
 
-The likely cause of the low-height misses (inferred, not isolated) is the
-turbulence model. In the force-reduction region, Cl is governed by the
-suction-side boundary layer separating ahead of the trailing edge, and SST,
-Wilcox k-omega and SA differ most there. The thesis's own two models are 19%
-apart at h/c 0.090. A ground-mesh effect is the other candidate, because the
-ground layer is unresolved. The mesh study below moves Cl by about 1.5%,
-well short of the 8.8% miss.
+The low-height cause was not isolated in these runs. This report previously
+misidentified the thesis model as Wilcox k-omega. It is Menter's original
+SST, with different production and near-wall treatments from Kutta's Fluent
+SST defaults. The [low-height investigation](../ground_effect_wing/REPORT.md)
+adds advection-order, resolved-ground and domain controls, with the solver
+defaults unchanged. The thesis's two models are 19% apart at h/c 0.090.
+The historical mesh study below changes Cl by 0.6% from L2 to L3 at that
+height and does not remove the miss.
 
 ### Mesh study, far field, CPU parity
 
