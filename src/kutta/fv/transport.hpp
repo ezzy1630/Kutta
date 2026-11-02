@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "kutta/fv/operators.hpp"
 #include "kutta/fv/face_projection.hpp"
 #include "kutta/linalg/solver.hpp"
@@ -52,10 +54,18 @@ class TransportEquation {
                 const TransportSettings& settings,TransportTerms terms={});
   // Null restores the compact secondary-gradient diffusion.
   void set_reconstruction(std::shared_ptr<const FaceReconstruction> reconstruction);
+  // Call before assembling a paired momentum equation. No iteration-time
+  // allocation; ordinary scalar solves retain their existing float path.
   void enable_compensated_assembly();
+  // Solve a scalar increment from its compensated physical defect.
+  void enable_compensated_solve();
+  void physical_residual(const Buffer<float>& field,Buffer<float>& result,const Buffer<Index>* excluded=nullptr);
+  // An inner equation already below this physical steady defect need not
+  // chase float roundoff. A changed source is checked again at every solve.
+  void set_steady_tolerance(double tolerance);
   const Buffer<float>& rhs_low() const {return rhs_low_.empty()?zero_:rhs_low_;}
   const Buffer<float>& diagonal_low() const {return diagonal_low_.empty()?zero_:diagonal_low_;}
-  SolveStats solve(Buffer<float>& field, const SolveControl& control);
+  SolveStats solve(Buffer<float>& field, const SolveControl& control,const Buffer<Index>* excluded=nullptr);
   CsrMatrix& matrix;
   Buffer<float> rhs, diagonal, consistent_inverse;
   DeviceVec3 grad;
@@ -65,7 +75,10 @@ class TransportEquation {
   const DeviceMesh& mesh_;
   const Stencil& stencil_;
   std::unique_ptr<LinearSolver> solver_;
-  Buffer<float> zero_,rhs_low_,diagonal_low_;
+  Buffer<float> zero_;
+  Buffer<float> rhs_low_,diagonal_low_,scalar_delta_,scalar_residual_;
+  struct SteadyStopping {double tolerance;Buffer<float> residual,absolute,scale;};
+  std::optional<SteadyStopping> steady_stopping_;
   std::shared_ptr<const FaceReconstruction> diffusion_reconstruction_;
   Buffer<float> diffusion_correction_;
 };

@@ -116,6 +116,17 @@ KUTTA_KERNEL void fv_floor(int i,KOut(float) field,float floor) {
   field[i]=kmax(field[i],floor);
 }
 
+KUTTA_KERNEL void fv_scalar_steady_measure(int i,KIn(float) field,KIn(float) diagonal,KIn(float) residual,
+    KIn(int) excluded,KOut(float) absolute,KOut(float) scale,int has_excluded) {
+  int omit=has_excluded && excluded[i]!=0;
+  absolute[i]=omit?0.0f:kabs(residual[i]);
+  scale[i]=omit?0.0f:kabs(diagonal[i]*field[i]);
+}
+
+KUTTA_KERNEL void fv_scalar_set_fixed(int i,KIn(int) fixed,KIn(float) value,KOut(float) field) {
+  if(fixed[i]) field[i]=value[i];
+}
+
 KUTTA_KERNEL void fv_scalar_monitor(int i,KIn(float) field,KIn(float) diagonal,
     KIn(float) residual,KIn(int) excluded,KIn(float) volume,KOut(float) absolute,KOut(float) scale,
     KOut(float) fluent_scale,float rho,float dt) {

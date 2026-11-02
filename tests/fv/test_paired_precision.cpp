@@ -27,7 +27,7 @@ TEST_CASE("FV compensated momentum RHS retains the steady defect under strong ps
       dev->fill(q,value);
       TransportSettings settings;settings.pseudo_time_step=1e-8f;
       equation.assemble(q,boundary,kind,flux,mu,source,settings,{nullptr,&reaction});
-      kern::fv_paired_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
+      kern::fv_compensated_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
         equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,zero,zero,mesh.volume,
         equation.rhs,equation.rhs_low(),defect);
       // d(q)/dt = .125 - q. The steady defect is independent of the
@@ -58,7 +58,7 @@ TEST_CASE("FV paired momentum preserves constant diffusion across disparate face
     equation.enable_compensated_assembly();
     equation.assemble(q,boundary,kind,flux,mu,zero,settings);
     CHECK(dev->download(equation.matrix.val)==linear_operator);
-    kern::fv_paired_momentum_residual(*dev,mesh.n_cells,equation.matrix.row_ptr,equation.matrix.col,
+    kern::fv_compensated_momentum_residual(*dev,mesh.n_cells,equation.matrix.row_ptr,equation.matrix.col,
       equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,zero,zero,mesh.volume,
       equation.rhs,equation.rhs_low(),defect);
     // No gradients, source or boundary flux: the physical steady defect is zero.
@@ -105,7 +105,7 @@ TEST_CASE("FV paired momentum boundary preserves a constant advected diffused fi
       dev->fill(q,constant);dev->fill(boundary,constant);
       TransportSettings settings;settings.pseudo_time_step=1;settings.relaxation=.7f;
       equation.assemble(q,boundary,kind,flux,mu,zero,settings);
-      kern::fv_paired_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
+      kern::fv_compensated_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
         equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,zero,zero,mesh.volume,
         equation.rhs,equation.rhs_low(),defect);
       // Constant scalar, zero source and balanced mass flux: neither diffusion
@@ -127,7 +127,7 @@ TEST_CASE("FV compensated source retains cancellation with an integrated RHS") {
     dev->fill(boundary,0);dev->fill(flux,0);dev->fill(mu,0);dev->fill(kind,1);
     TransportSettings settings;settings.pseudo_time_step=1;
     equation.assemble(q,boundary,kind,flux,mu,source,settings,{nullptr,nullptr,&extra});
-    kern::fv_paired_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
+    kern::fv_compensated_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
       equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,q,q,mesh.volume,
       equation.rhs,equation.rhs_low(),defect);
     const double expected=double(value)*double(dev->download(mesh.volume)[0])-1;
@@ -136,11 +136,125 @@ TEST_CASE("FV compensated source retains cancellation with an integrated RHS") {
     dev->fill(q,1);
     equation.assemble(q,boundary,kind,flux,mu,source,settings,{&source});
     auto zero=dev->alloc<float>(1);dev->fill(zero,0);
-    kern::fv_paired_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
+    kern::fv_compensated_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
       equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,zero,zero,mesh.volume,
       equation.rhs,equation.rhs_low(),defect);
     // Equal production and reaction at q=1 cancel even when their products
     // with cell volume do not fit in a single float.
     CHECK(dev->max_abs(defect,1)<1e-12);
+    equation.enable_compensated_solve();settings.pseudo_time_step=0;
+    auto reaction=dev->alloc<float>(1);dev->fill(reaction,1);dev->fill(q,0);
+    equation.assemble(q,boundary,kind,flux,mu,source,settings,{&reaction,nullptr,&extra});
+    const auto result=equation.solve(q,{1e-4,1e-20,20});
+    CHECK(result.converged);
+    CHECK(std::abs(double(dev->download(q)[0])-expected/double(dev->download(mesh.volume)[0]))<1e-14);
+    equation.assemble(q,boundary,kind,flux,mu,source,settings,{&reaction,nullptr,&extra});
+    equation.physical_residual(q,defect);
+    CHECK(dev->max_abs(defect,1)<1e-13);
+  }
+}
+
+TEST_CASE("FV scalar steady stopping avoids churn and resumes for a changed source") {
+  auto host=make_box_hex(1,1,1,{0,0,0},{1,1,1});const auto geometry=compute_geometry(host);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto mesh=upload_mesh(*dev,host,geometry);auto stencil=make_stencil(*dev,host,geometry);
+    TransportEquation equation(*dev,mesh,stencil,host,geometry);
+    equation.set_steady_tolerance(1e-6);
+    auto q=dev->alloc<float>(1),source=dev->alloc<float>(1),sink=dev->alloc<float>(1);
+    auto boundary=dev->alloc<float>(6),flux=dev->alloc<float>(6),mu=dev->alloc<float>(6);
+    auto kind=dev->alloc<Index>(6);
+    dev->fill(q,1);dev->fill(sink,1);dev->fill(source,1+std::ldexp(1.f,-22));
+    dev->fill(boundary,0);dev->fill(flux,0);dev->fill(mu,0);dev->fill(kind,1);
+    TransportSettings settings;
+    equation.assemble(q,boundary,kind,flux,mu,source,settings,{&sink});
+    const auto settled=equation.solve(q,{1e-3,1e-12,20});
+    CHECK(settled.iterations==0);CHECK(settled.converged);CHECK(dev->download(q)[0]==1);
+    dev->fill(source,1.01f);
+    equation.assemble(q,boundary,kind,flux,mu,source,settings,{&sink});
+    const auto resumed=equation.solve(q,{1e-3,1e-12,20});
+    CHECK(resumed.iterations>0);CHECK(resumed.converged);
+    CHECK(dev->download(q)[0]==doctest::Approx(1.01f).epsilon(1e-6));
+  }
+}
+
+TEST_CASE("FV paired flux normalization retains advection of the low scalar state") {
+  auto host=make_box_hex(1,1,1,{0,0,0},{1,1,1});const auto geometry=compute_geometry(host);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto mesh=upload_mesh(*dev,host,geometry);auto stencil=make_stencil(*dev,host,geometry);
+    const float flux_increment=std::ldexp(1.f,-10),scalar_increment=std::ldexp(1.f,-20);
+    std::vector<float> high_values(6,0),low_values(6,0);
+    high_values[0]=-1;high_values[1]=1;low_values[0]=-flux_increment;low_values[1]=flux_increment;
+    auto flux=dev->upload<float>(high_values),low_flux=dev->upload<float>(low_values),previous=dev->alloc<float>(6);
+    dev->fill(previous,0);
+    kern::fv_paired_flux_offset(*dev,6,mesh.area.x,mesh.area.y,mesh.area.z,previous,flux,low_flux,1e-7f);
+    TransportEquation equation(*dev,mesh,stencil,host,geometry);equation.enable_compensated_assembly();
+    auto q=dev->alloc<float>(1),q_low=dev->alloc<float>(1),zero=dev->alloc<float>(1),defect=dev->alloc<float>(1);
+    auto boundary=dev->alloc<float>(6),mu=dev->alloc<float>(6);auto kind=dev->alloc<Index>(6);
+    dev->fill(q,1);dev->fill(q_low,scalar_increment);dev->fill(zero,0);
+    dev->fill(boundary,1);dev->fill(mu,0);dev->fill(kind,0);
+    TransportSettings settings;settings.convection=ConvectionScheme::FirstOrderUpwind;
+    equation.assemble(q,boundary,kind,flux,mu,zero,settings);
+    kern::fv_compensated_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
+      equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,q_low,zero,mesh.volume,
+      equation.rhs,equation.rhs_low(),defect);
+    // High scalar and inlet data are both one, so low-flux transport of that
+    // high state cancels. The remaining defect is -F_total * scalar_increment,
+    // including the flux_increment * scalar_increment cross term.
+    const double expected=-(1+double(flux_increment))*double(scalar_increment);
+    CHECK(std::abs(double(dev->download(defect)[0])-expected)<1e-13);
+    CHECK(dev->max_abs(low_flux,6)<1e-7);
+  }
+}
+
+TEST_CASE("FV paired physical reaction of low state survives strong pseudo time") {
+  auto host=make_box_hex(1,1,1,{0,0,0},{1,1,1});const auto geometry=compute_geometry(host);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto mesh=upload_mesh(*dev,host,geometry);auto stencil=make_stencil(*dev,host,geometry);
+    TransportEquation equation(*dev,mesh,stencil,host,geometry);equation.enable_compensated_assembly();
+    auto q=dev->alloc<float>(1),low=dev->alloc<float>(1),zero=dev->alloc<float>(1);
+    auto source=dev->alloc<float>(1),sink=dev->alloc<float>(1),defect=dev->alloc<float>(1);
+    auto boundary=dev->alloc<float>(6),flux=dev->alloc<float>(6),mu=dev->alloc<float>(6);auto kind=dev->alloc<Index>(6);
+    dev->fill(q,.125f);dev->fill(source,.125f);dev->fill(sink,1);dev->fill(zero,0);
+    dev->fill(boundary,0);dev->fill(flux,0);dev->fill(mu,0);dev->fill(kind,1);
+    TransportSettings settings;settings.pseudo_time_step=1e-8f;settings.relaxation=.7f;
+    equation.assemble(q,boundary,kind,flux,mu,source,settings,{&sink});
+    for(float correction:{-std::ldexp(1.f,-19),std::ldexp(1.f,-19)}) {
+      dev->fill(low,correction);
+      kern::fv_compensated_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
+        equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,low,zero,mesh.volume,
+        equation.rhs,equation.rhs_low(),defect);
+      // Physical source .125 - (hi+lo) is -lo. A large pseudo diagonal
+      // cannot erase the reaction by subtracting two rounded O(dt^-1 * lo) products.
+      CHECK(std::abs(double(dev->download(defect)[0])+double(correction))<1e-13);
+    }
+  }
+}
+
+TEST_CASE("FV compensated pressure force recovers Green Gauss cancellation") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto offsets=dev->upload<Index>(std::vector<Index>{0,4}),faces=dev->upload<Index>(std::vector<Index>{0,1,2,3});
+    auto sign=dev->upload<float>(std::vector<float>{1,1,1,1});
+    const float small=std::ldexp(1.f,-25);
+    auto area=dev->upload<float>(std::vector<float>{1,small,-1,-small});
+    auto zero=dev->alloc<float>(4),pressure=dev->alloc<float>(4),volume=dev->alloc<float>(1);
+    auto x=dev->alloc<float>(1),y=dev->alloc<float>(1),z=dev->alloc<float>(1);
+    dev->fill(zero,0);dev->fill(pressure,1);dev->fill(volume,1);
+    kern::fv_compensated_pressure_force(*dev,1,offsets,faces,sign,area,zero,zero,volume,pressure,zero,x,y,z);
+    // The closed surface has zero force at uniform pressure. Its rounded
+    // high reduction loses the second face and leaves -small; carry it back.
+    CHECK(std::abs(double(dev->download(x)[0])-double(small))<1e-14);
+    CHECK(dev->download(y)[0]==0);CHECK(dev->download(z)[0]==0);
+  }
+}
+
+TEST_CASE("FV paired normal backflow carries only the low flux speed") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto owner=dev->upload<Index>(std::vector<Index>{0}),kind=dev->upload<Index>(std::vector<Index>{4});
+    auto area=dev->alloc<float>(1),zero=dev->alloc<float>(1),flux=dev->alloc<float>(1),low=dev->alloc<float>(1);
+    auto x=dev->alloc<float>(1),y=dev->alloc<float>(1),z=dev->alloc<float>(1);auto scalar_kind=dev->alloc<Index>(1);
+    dev->fill(area,2);dev->fill(zero,0);dev->fill(flux,-1);dev->fill(low,std::ldexp(1.f,-20));
+    kern::fv_paired_velocity_boundary(*dev,1,owner,kind,area,zero,zero,zero,zero,zero,flux,low,x,y,z,scalar_kind,0,1);
+    CHECK(dev->download(x)[0]==std::ldexp(1.f,-21));
+    CHECK(dev->download(y)[0]==0);CHECK(dev->download(z)[0]==0);CHECK(dev->download(scalar_kind)[0]==0);
   }
 }

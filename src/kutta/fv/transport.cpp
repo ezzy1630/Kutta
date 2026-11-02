@@ -1,5 +1,9 @@
 #include "kutta/fv/transport.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
 #include "kernels.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
@@ -36,6 +40,26 @@ void TransportEquation::set_reconstruction(std::shared_ptr<const FaceReconstruct
 void TransportEquation::enable_compensated_assembly() {
   rhs_low_=dev_.alloc<float>(mesh_.n_cells);dev_.fill(rhs_low_,0);
   diagonal_low_=dev_.alloc<float>(mesh_.n_cells);dev_.fill(diagonal_low_,0);
+}
+
+void TransportEquation::enable_compensated_solve() {
+  enable_compensated_assembly();
+  scalar_delta_=dev_.alloc<float>(mesh_.n_cells);
+  scalar_residual_=dev_.alloc<float>(mesh_.n_cells);
+}
+
+void TransportEquation::physical_residual(const Buffer<float>& field,Buffer<float>& result,const Buffer<Index>* excluded) {
+  if(rhs_low_.empty()) {residual(dev_,matrix,field,rhs,result);return;}
+  kern::fv_compensated_momentum_residual(dev_,mesh_.n_cells,matrix.row_ptr,matrix.col,matrix.val,matrix.diag,
+    diagonal,diagonal_low_,field,zero_,zero_,mesh_.volume,rhs,rhs_low_,result);
+  if(excluded) kern::fv_scalar_set_fixed(dev_,mesh_.n_cells,*excluded,zero_,result);
+}
+
+void TransportEquation::set_steady_tolerance(double tolerance) {
+  KUTTA_REQUIRE(std::isfinite(tolerance) && tolerance>=0,"FV invalid scalar steady tolerance");
+  if(tolerance==0) {steady_stopping_.reset();return;}
+  steady_stopping_.emplace(SteadyStopping{tolerance,dev_.alloc<float>(mesh_.n_cells),
+    dev_.alloc<float>(mesh_.n_cells),dev_.alloc<float>(mesh_.n_cells)});
 }
 
 void TransportEquation::assemble(const Buffer<float>& field,const Buffer<float>& bc,
@@ -85,8 +109,27 @@ void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const 
     settings.density,settings.pseudo_time_step,settings.relaxation,rhs_low_.empty()?0:1);
 }
 
-SolveStats TransportEquation::solve(Buffer<float>& field,const SolveControl& control) {
+SolveStats TransportEquation::solve(Buffer<float>& field,const SolveControl& requested,const Buffer<Index>* excluded) {
+  auto control=requested;
+  if(!scalar_delta_.empty()) physical_residual(field,scalar_residual_,excluded);
+  if(steady_stopping_) {
+    KUTTA_REQUIRE(!excluded || excluded->size()==field.size(),"FV scalar exclusion size mismatch");
+    auto& work=*steady_stopping_;
+    if(scalar_delta_.empty()) residual(dev_,matrix,field,rhs,work.residual);
+    else dev_.copy(work.residual,scalar_residual_);
+    kern::fv_scalar_steady_measure(dev_,mesh_.n_cells,field,diagonal,work.residual,
+      excluded?*excluded:matrix.diag,work.absolute,work.scale,excluded?1:0);
+    const auto values=dev_.reduce_many({Device::HostReduction::sum(work.absolute,mesh_.n_cells),
+      Device::HostReduction::sum(work.scale,mesh_.n_cells),
+      Device::HostReduction::dot(work.residual,work.residual,mesh_.n_cells)});
+    if(values[0]<=work.tolerance*values[1] && std::isfinite(values[2]))
+      control.abs_tol=std::max(control.abs_tol,std::nextafter(std::sqrt(values[2]),std::numeric_limits<double>::infinity()));
+  }
   solver_->refresh(dev_,matrix);
-  return solver_->solve(dev_,matrix,field,rhs,control);
+  if(scalar_delta_.empty()) return solver_->solve(dev_,matrix,field,rhs,control);
+  dev_.fill(scalar_delta_,0);
+  auto result=solver_->solve(dev_,matrix,scalar_delta_,scalar_residual_,control);
+  kern::axpbyz(dev_,mesh_.n_cells,field,field,scalar_delta_,1,1);
+  return result;
 }
 }  // namespace kutta::fv

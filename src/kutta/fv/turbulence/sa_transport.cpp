@@ -10,6 +10,8 @@ SaTransport::SaTransport(Device& d,const DeviceMesh& m,const Stencil& s,const Po
     :dev_(d),mesh_(m),stencil_(s),settings_(*o.sa),rho_(float(o.density)),mu_(float(o.viscosity)),limit_(o.limit),
     model_(d,m,settings_.model),equation_(d,m,s,h,g,std::move(matrix)) {
   KUTTA_REQUIRE(std::isfinite(settings_.relaxation) && settings_.relaxation>0 && settings_.relaxation<=1,"SA: invalid relaxation");
+  if(settings_.compensated_transport) equation_.enable_compensated_solve();
+  equation_.set_steady_tolerance(settings_.steady_tolerance);
   const auto n=m.n_cells,nb=m.n_boundary_faces();
   for(auto* b:{&q_,&rho_cell_,&mu_cell_,&strain_,&rotation_,&residual_,&absolute_,&scale_,&fluent_scale_}) *b=d.alloc<float>(n);
   d.fill(q_,0);d.fill(rho_cell_,rho_);d.fill(mu_cell_,mu_);
@@ -69,7 +71,7 @@ void SaTransport::update(const DeviceVec3& velocity,const DeviceVec3& wall_veloc
 }
 void SaTransport::assemble(float time_step) {
   KUTTA_REQUIRE(mass_,"SA: update before assembly");const auto& f=model_.fields();
-  TransportSettings t;t.density=rho_;t.pseudo_time_step=time_step;t.relaxation=float(settings_.relaxation);
+  TransportSettings t;t.density=rho_;t.pseudo_time_step=settings_.pseudo_transient?time_step:0;t.relaxation=float(settings_.relaxation);
   t.limit=limit_;t.convection=settings_.convection;
   equation_.assemble_reconstructed(q_,boundary_,kind_,*mass_,f.face_diffusivity,f.source,t,{&f.sink});
 }
@@ -78,9 +80,9 @@ SolveStats SaTransport::solve(float time_step) {
   kern::fv_floor(dev_,mesh_.n_cells,q_,0);return result;
 }
 ResidualValue SaTransport::monitor(float time_step) {
-  assemble(time_step);residual(dev_,equation_.matrix,q_,equation_.rhs,residual_);
+  assemble(time_step);equation_.physical_residual(q_,residual_);
   kern::fv_scalar_monitor(dev_,mesh_.n_cells,q_,equation_.diagonal,residual_,zero_,mesh_.volume,
-    absolute_,scale_,fluent_scale_,rho_,time_step);
+    absolute_,scale_,fluent_scale_,rho_,settings_.pseudo_transient?time_step:0);
   auto raw=dev_.sum(absolute_,mesh_.n_cells),den=dev_.sum(scale_,mesh_.n_cells),fd=dev_.sum(fluent_scale_,mesh_.n_cells);
   auto scaled=[&](double d){return d>0?raw/d:(raw==0?0:std::numeric_limits<double>::infinity());};
   return {raw,scaled(den),scaled(fd),fd};

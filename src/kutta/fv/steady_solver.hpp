@@ -107,12 +107,22 @@ struct SstSettings {
   ConvectionScheme omega_convection=ConvectionScheme::SecondOrderUpwind;
   double k_relaxation=.75,omega_relaxation=.75;
   SolveControl linear{1e-3,1e-12,100};
+  // Optional inner stopping on sum|physical defect| / sum|aP q|.
+  // Zero retains the linear solver's ordinary termination.
+  double steady_tolerance=0;
+  bool compensated_transport=false; // Delta solve from the carried assembly defect.
+  bool pseudo_transient=true;       // False omits time damping from scalar transport.
 };
 struct SaSettings {
   SaOptions model;
   ConvectionScheme convection=ConvectionScheme::SecondOrderUpwind;
   double relaxation=.75;
   SolveControl linear{1e-3,1e-12,100};
+  // Optional inner stopping on sum|physical defect| / sum|aP q|.
+  // Zero retains the linear solver's ordinary termination.
+  double steady_tolerance=0;
+  bool compensated_transport=false; // Delta solve from the carried assembly defect.
+  bool pseudo_transient=true;       // False omits time damping from scalar transport.
 };
 enum class KeStrainReconstruction { CellGradient, JumpCorrected };
 struct RealizableKeSettings {
@@ -209,8 +219,8 @@ struct SolverSettings {
   // High-word hysteresis in float epsilons of the feeding state scales.
   // Larger values can settle roundoff cycles but delay nonlinear updates.
   double paired_state_slack_ulps=1;
-  // Preserve assembly rounding remainders and pressure-jump curvature in
-  // paired momentum. Opt-in: its TMR convergence trade-off is not resolved.
+  // Carry assembly remainders and consistent low-word face operators in
+  // paired momentum. Opt-in: the full TMR convergence matrix still fails.
   bool compensated_momentum=false;
   SolveControl momentum_linear{1e-2,1e-10,100};
   SolveControl pressure_linear{1e-3,1e-12,300};

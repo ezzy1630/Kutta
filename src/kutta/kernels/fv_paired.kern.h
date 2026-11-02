@@ -64,14 +64,103 @@ KUTTA_KERNEL void fv_paired_momentum_residual(int i,KIn(int) rows,KIn(int) cols,
   r[i]=sum+error;
 }
 
+// Evaluate the same physical equation without cancelling two large
+// pseudo-time products of lo. Carry every high/low product through TwoSum.
+KUTTA_KERNEL void fv_compensated_momentum_residual(int i,KIn(int) rows,KIn(int) cols,
+    KIn(float) values,KIn(int) diag,KIn(float) physical,KIn(float) physical_low,KIn(float) hi,KIn(float) lo,
+    KIn(float) pressure_gradient_lo,KIn(float) volume,KIn(float) rhs,KIn(float) rhs_low,KOut(float) r) {
+  kpair value=ktwo_sum(rhs[i],rhs_low[i]);
+  for(int j=rows[i];j<rows[i+1];++j) {
+    value=fv_pair_product_add(value,-values[j],hi[cols[j]]);
+    float low_coefficient=j==diag[i]?physical[i]:values[j];
+    value=fv_pair_product_add(value,-low_coefficient,lo[cols[j]]);
+  }
+  value=fv_pair_product_add(value,-physical_low[i],hi[i]);
+  value=fv_pair_product_add(value,-physical_low[i],lo[i]);
+  value=fv_pair_product_add(value,-volume[i],pressure_gradient_lo[i]);
+  r[i]=value.hi+value.lo;
+}
+
 KUTTA_KERNEL void fv_paired_accumulate(int i,KIn(float) delta,KOut(float) hi,KOut(float) lo,float slack) {
   kpair x=kpair_add(hi[i],lo[i],delta[i],slack);hi[i]=x.hi;lo[i]=x.lo;
 }
 
+// Recover the force lost by the high-word Green-Gauss reduction as well
+// as the force of low face pressures. Subtract the same rounded high
+// gradient used by fv_momentum_source, so the residual sees their full sum.
+KUTTA_KERNEL void fv_compensated_pressure_force(int i,KIn(int) offsets,KIn(int) faces,KIn(float) sign,
+    KIn(float) sx,KIn(float) sy,KIn(float) sz,KIn(float) volume,KIn(float) pressure,KIn(float) low,
+    KOut(float) x,KOut(float) y,KOut(float) z) {
+  float a=0.0f,b=0.0f,c=0.0f;
+  kpair ax={0.0f,0.0f},ay={0.0f,0.0f},az={0.0f,0.0f};
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int f=faces[j];float p=sign[j]*pressure[f],q=sign[j]*low[f];
+    a+=p*sx[f];b+=p*sy[f];c+=p*sz[f];
+    ax=fv_pair_product_add(ax,p,sx[f]);ax=fv_pair_product_add(ax,q,sx[f]);
+    ay=fv_pair_product_add(ay,p,sy[f]);ay=fv_pair_product_add(ay,q,sy[f]);
+    az=fv_pair_product_add(az,p,sz[f]);az=fv_pair_product_add(az,q,sz[f]);
+  }
+  ax=fv_pair_product_add(ax,-a/volume[i],volume[i]);
+  ay=fv_pair_product_add(ay,-b/volume[i],volume[i]);
+  az=fv_pair_product_add(az,-c/volume[i],volume[i]);
+  x[i]=(ax.hi+ax.lo)/volume[i];y[i]=(ay.hi+ay.lo)/volume[i];z[i]=(az.hi+az.lo)/volume[i];
+}
+
+// Linear boundary observations of the low velocity. Use the high flux for
+// inflow/outflow selection and only its low word for normal-backflow speed.
+KUTTA_KERNEL void fv_paired_velocity_boundary(int i,KIn(int) owner,KIn(int) kind,
+    KIn(float) sx,KIn(float) sy,KIn(float) sz,KIn(float) u,KIn(float) v,KIn(float) w,
+    KIn(float) flux,KIn(float) flux_low,KOut(float) bu,KOut(float) bv,KOut(float) bw,
+    KOut(int) scalar_kind,int internal,float rho) {
+  int f=i+internal,c=owner[f],type=kind[i];
+  float x=0.0f,y=0.0f,z=0.0f,a2=sx[f]*sx[f]+sy[f]*sy[f]+sz[f]*sz[f];
+  scalar_kind[i]=0;
+  if(((type==2 || type==4) && flux[f]>=0.0f) || type==3) {
+    x=u[c];y=v[c];z=w[c];scalar_kind[i]=2;
+  }
+  if(type==4 && flux[f]<0.0f) {
+    float factor=flux_low[f]/(rho*a2);x=factor*sx[f];y=factor*sy[f];z=factor*sz[f];
+  }
+  if(type==3) {
+    float normal=(x*sx[f]+y*sy[f]+z*sz[f])/a2;
+    x-=normal*sx[f];y-=normal*sy[f];z-=normal*sz[f];
+  }
+  bu[i]=x;bv[i]=y;bw[i]=z;
+}
+
+KUTTA_KERNEL void fv_paired_advection(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) kind,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) field,KIn(float) boundary,KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) limiter,
+    KIn(float) flux,KIn(float) flux_low,KOut(float) correction,int internal,int second_order) {
+  int c=owner[i],up=c;
+  float value=field[c],x=px[i],y=py[i],z=pz[i];
+  int reconstruct=second_order;
+  if(i<internal) {
+    if(flux[i]<0.0f) {up=neighbour[i];x=nx[i];y=ny[i];z=nz[i];}
+    value=field[up];
+  } else {
+    if(flux[i]<0.0f) value=boundary[i-internal];
+    if(flux[i]<=0.0f || kind[i-internal]==2) reconstruct=0;
+  }
+  if(reconstruct) value+=limiter[up]*(gx[up]*x+gy[up]*y+gz[up]*z);
+  correction[i]=flux_low[i]*value;
+}
+
+KUTTA_KERNEL void fv_paired_face_residual(int i,KIn(int) offsets,KIn(int) faces,KIn(float) sign,
+    KIn(float) secondary,KIn(float) advection,KIn(float) stress,KIn(float) boundary_rhs,
+    KOut(float) residual,int turbulent) {
+  float sum=residual[i],error=boundary_rhs[i];
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int f=faces[j];float value=sign[j]*(secondary[f]-advection[f]+(turbulent?stress[f]:0.0f));
+    kpair s=ktwo_sum(sum,value);sum=s.hi;error+=s.lo;
+  }
+  residual[i]=sum+error;
+}
+
 // F'(lo): fv_momentum_faces and fv_rhie_chow applied to the low words. The
-// face velocity omits the skewness gradient term and the pressure jump uses
-// the shared centroid-link form; both are O(lo), so F(hi) + F'(lo) differs
-// from F(hi + lo) by O(ulp^2).
+// legacy face velocity omits low-word gradient terms and the pressure jump
+// uses the shared centroid-link form. Those omissions are O(lo), not an exact
+// linearization; compensated_momentum uses the high-word face operators.
 //
 // flux holds the new F(hi) and returns the pair's hi. Rebuilding hi from
 // scratch every iteration would not settle: the convective flux sets the
@@ -106,6 +195,18 @@ KUTTA_KERNEL void fv_paired_flux(int i,KIn(int) owner,KIn(int) neighbour,KIn(int
   float offset=x.hi+(x.lo+low);
   if(kabs(offset)<=slack) {flux[i]=previous[i];flux_lo[i]=offset;}
   else flux_lo[i]=low;
+}
+
+KUTTA_KERNEL void fv_paired_flux_offset(int i,KIn(float) sx,KIn(float) sy,KIn(float) sz,
+    KIn(float) previous,KOut(float) flux,KOut(float) low,float slack_per_area) {
+  float slack=slack_per_area*ksqrt(sx[i]*sx[i]+sy[i]*sy[i]+sz[i]*sz[i]);
+  // Transport coefficients use the high word. Outside the hysteresis band,
+  // normalize the total flux so products with low velocity retain their cross term.
+  kpair total=ktwo_sum(flux[i],low[i]);
+  kpair x=ktwo_sum(total.hi,-previous[i]);
+  float offset=x.hi+(x.lo+total.lo);
+  if(kabs(offset)<=slack) {flux[i]=previous[i];low[i]=offset;}
+  else {flux[i]=total.hi;low[i]=total.lo;}
 }
 
 // Signed and absolute net outflow of F(hi) + F'(lo). The hi faces are summed
