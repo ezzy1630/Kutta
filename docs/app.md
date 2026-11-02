@@ -67,8 +67,22 @@ error event, or none for a crash); `car-failed` uses it.
 `new-case`, `new-case-run` and `new-case-save` start from a bare mesh (the
 positional argument, else the fixture's NACA wing mesh): the New Case page
 with a role and the speed changed, the created case after a run, and that case
-saved with a changed reference area and reopened (the save needs the real
-CLI; the fixture refuses to drop setting changes).
+saved with a changed reference area and reopened. `new-case-car` is the New
+Case page for the fixture's synthetic car mesh (3D, with wheels).
+`KUTTA_SCENARIO_CASE_NAME` names the created case and
+`KUTTA_SCENARIO_SCROLL=bottom` shows the end of the inspector page.
+
+Before its screenshot, every scenario checks the screen and fails (exit 4)
+with each problem on stderr: the inspector page is laid out again at each
+panel width from 320 to 720 px, and no text may overlap other text, be clipped,
+or be shorter or narrower than it needs; and no visible text (labels,
+buttons, console, tables, tabs) may contain the home folder.
+
+Paths on screen never show the home folder: the app writes it `~`
+(`core/PathDisplay.h`). Narrow fields (the case's file and mesh, the New
+Case mesh, a run's folder, the solver in the status bar) show a compact
+`…/folder/file` with the full path in the tooltip; the console and messages
+keep the whole path from `~`, which still works in a shell.
 
 ## New cases from a mesh, and saving
 
@@ -76,7 +90,11 @@ File ▸ New Case from Mesh reads a mesh (`.msh`, `.msh.h5`, or the mesh of a
 `.cas`) with `kutta new-case --json` and shows its boundary zones, each with
 the role the CLI suggests from its name (inlet, outlet, ground, symmetry
 words, else the mesh's zone type, else a car wall with its aero group) and why.
-Pick a role per zone and the freestream speed; Create Case writes the Kutta
+Pick a role per zone and the freestream speed. The template is stated, not
+picked (FSAE external aero is the only one). The CLI's notes are in a "Before
+you run" box above Create Case; a wheel that stays a wall is marked
+"Stationary wall" in its row, since the template's walls do not move and the
+app does not edit wall motion yet (set `motion` in the case file). Create Case writes the Kutta
 case (`kutta new-case --out`) and opens it, after which the usual Setup and
 Solution pages edit it and Run solves it ([docs/kutta-case.md](kutta-case.md)).
 
@@ -153,8 +171,11 @@ written is refused before kutta starts.
   saved with a change, and the elbow saved as a Kutta case. It skips otherwise.
 - `app-screenshot-smoke` (label `gui`): renders scenarios through Metal or
   D3D11 (WARP on GPU-less Windows) and fails when a viewport showing data
-  draws nothing. Its default set covers the elbow setup, the synthetic car and
-  the recorded k-epsilon, laminar 2D and transition cases.
+  draws nothing, or when a screen check above fails. Its default set covers
+  the elbow setup, the synthetic car, the recorded k-epsilon, laminar 2D and
+  transition cases, and the new-case flow through the fixture (the car's New
+  Case page, the wing's case after a run under a long case name, and that case
+  saved with a change).
 
 ## Performance (M4 Pro, macOS, Metal)
 

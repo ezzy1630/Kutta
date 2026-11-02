@@ -428,13 +428,71 @@ private slots:
         QCOMPARE(s.casePath(), copy);
         QCOMPARE(QFileInfo(s.caseSummary().meshFile).canonicalFilePath(), QFileInfo(mesh).canonicalFilePath());
 
-        // The fixture cannot write changed settings; the session says so and keeps the case.
+        // The starter's values, not the recording's: Fluent's default area, the chosen speed.
+        QCOMPARE(s.settings()->value("reference/area").toDouble(), 1.0);
+        QCOMPARE(s.settings()->value("reference/velocity").toDouble(), 20.0);
+        QCOMPARE(s.settings()->value("boundary/inlet/velocity-magnitude").toDouble(), 20.0);
+
+        // Save with changed settings: written into the case, reopened with them, no longer changes.
         QCOMPARE(s.settings()->setValue("reference/area", 0.5), QString());
+        QCOMPARE(s.settings()->setValue("boundary/inlet/velocity-magnitude", 25.0), QString());
+        s.saveCase(copy);
+        QVERIFY(opened.wait(20000));
+        QCOMPARE(saved.count(), 2);
+        QCOMPARE(s.settings()->caseOverrides(), QJsonObject());
+        QCOMPARE(s.settings()->value("reference/area").toDouble(), 0.5);
+        QCOMPARE(s.settings()->value("boundary/inlet/velocity-magnitude").toDouble(), 25.0);
+        const QJsonObject resaved = QJsonDocument::fromJson([&] { QFile c(copy); c.open(QIODevice::ReadOnly); return c.readAll(); }()).object();
+        QCOMPARE(resaved.value("reference_values").toObject().value("area").toDouble(), 0.5);
+        QCOMPARE(resaved.value("boundaries").toObject().value("inlet").toObject().value("speed").toDouble(), 25.0);
+
+        // A change the fixture cannot write: the session says which, and keeps the case and the change.
+        QCOMPARE(s.settings()->setValue("boundary/outlet/gauge-pressure", 10.0), QString());
         QSignalSpy failed(&s, &Session::saveFailed);
         s.saveCase(copy);
         QVERIFY(failed.wait(20000));
         QVERIFY(failed.first().first().toString().contains("real kutta CLI"));
+        QVERIFY(failed.first().first().toString().contains("boundary/outlet/gauge-pressure"));
         QCOMPARE(s.casePath(), copy);
+        QVERIFY(s.settings()->caseOverrides().contains("boundary/outlet/gauge-pressure"));
+    }
+
+    // A 3D starter with wheels (the fixture's synthetic car mesh): wheels are
+    // grouped, stay walls, and the CLI's note says they will not turn until the
+    // case gives them rotating walls.
+    void newCaseNotesStationaryWheels()
+    {
+        CliInfo cli;
+        cli.program = QStringLiteral(KUTTA_FIXTURE_CLI);
+        cli.fixture = true;
+        Session s(cli, m_dir.filePath("data-car"));
+        const QString mesh = m_dir.filePath("mesh/fsae_car.msh");
+        QDir().mkpath(m_dir.filePath("mesh"));
+        QFile f(mesh);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.close();
+        s.startNewCase(mesh);
+        QTRY_VERIFY_WITH_TIMEOUT(!s.newCaseBusy(), 20000);
+        QVERIFY2(s.newCaseDraft(), qPrintable(s.newCaseError()));
+        QCOMPARE(s.newCaseDraft()->dimension, 3);
+        auto wheelNote = [&s] {
+            for (const QString& n : s.newCaseDraft()->notes)
+                if (n.startsWith("Wheels are stationary walls")) return true;
+            return false;
+        };
+        QStringList wheels;
+        for (const NewCaseZone* z : s.newCaseDraft()->boundaries())
+            if (z->group == "Wheels") wheels << z->name + "=" + z->role;
+        QCOMPARE(wheels, (QStringList{"tyre-front=wall", "tyre-rear=wall"}));
+        QVERIFY(wheelNote());
+
+        // The starter opens as a Kutta case on the synthetic car.
+        QSignalSpy opened(&s, &Session::caseOpened);
+        s.createNewCase(m_dir.filePath("cases/car.kutta.json"));
+        QVERIFY(opened.wait(20000));
+        QVERIFY(s.caseSummary().kuttaCase());
+        QVERIFY(s.caseSummary().synthetic);
+        QCOMPARE(s.caseSummary().zone("tyre-rear")->type, QString("wall"));
     }
 
     void missingMeshSaysSo()

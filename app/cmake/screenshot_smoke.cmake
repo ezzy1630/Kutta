@@ -7,8 +7,12 @@ cmake_minimum_required(VERSION 3.26)
 # The recorded k-epsilon, laminar 2D and transition cases run too: each has
 # its own equations, approximations and views.
 if(NOT SCENARIOS)
-  set(SCENARIOS start elbow-setup car-results param-run cylinder-run wing-aero)
+  set(SCENARIOS start elbow-setup car-results param-run cylinder-run wing-aero new-case-car new-case-run new-case-save)
 endif()
+# Every scenario also checks its inspector page at each panel width and that
+# no visible text shows the home folder (main.cpp); the saved case gets a long
+# name, as users' cases have, which must wrap rather than widen the page.
+set(ENV{KUTTA_SCENARIO_CASE_NAME} "fsae_front_wing_ground_effect_study_rev12_final")
 file(REMOVE_RECURSE "${OUT}")
 file(MAKE_DIRECTORY "${OUT}")
 set(cli_args)

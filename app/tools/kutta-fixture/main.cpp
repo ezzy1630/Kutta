@@ -36,6 +36,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegularExpression>
 #include <QThread>
 
 #include <algorithm>
@@ -197,6 +198,55 @@ QString kuttaMesh(const QString& casePath)
     return QDir::cleanPath(QFileInfo(mesh).isAbsolute() ? mesh : QDir(QFileInfo(casePath).absolutePath()).absoluteFilePath(mesh));
 }
 
+// The settings the fixture carries in a Kutta case, at the JSON path where the
+// real CLI writes them (docs/kutta-case.md); empty for any other setting.
+// Saving writes these, and inspecting a Kutta case reads them back over the
+// recording's inventory, so Save Case round-trips them without a solver.
+QStringList kuttaCasePath(const QString& setting, const QJsonObject& kase)
+{
+    static const QStringList reference{"area", "length", "density", "velocity", "pressure", "viscosity", "depth"};
+    const QStringList p = setting.split('/');
+    if (p.size() == 2 && p[0] == "reference" && reference.contains(p[1])) return {"reference_values", p[1]};
+    if (setting == "general/operating-pressure") return {"operating_pressure"};
+    if (p.size() == 3 && p[0] == "boundary" &&
+        kase.value("boundaries").toObject().value(p[1]).toObject().value("type") == "velocity-inlet") {
+        if (p[2] == "velocity-magnitude") return {"boundaries", p[1], "speed"};
+        if (p[2] == "turb-intensity") return {"boundaries", p[1], "turbulence", "intensity"};
+        if (p[2] == "turb-viscosity-ratio") return {"boundaries", p[1], "turbulence", "viscosity_ratio"};
+    }
+    return {};
+}
+
+// Fluent's defaults for what a Kutta case leaves out (docs/kutta-case.md, Defaults).
+QJsonValue kuttaCaseDefault(const QStringList& path)
+{
+    static const QMap<QString, double> d{{"reference_values/area", 1},     {"reference_values/length", 1},
+                                         {"reference_values/density", 1.225}, {"reference_values/velocity", 1},
+                                         {"reference_values/pressure", 0},  {"reference_values/viscosity", 1.7894e-05},
+                                         {"reference_values/depth", 1},     {"operating_pressure", 101325}};
+    const auto it = d.find(path.join('/'));
+    return it == d.end() ? QJsonValue() : QJsonValue(*it);
+}
+
+QJsonValue jsonAt(const QJsonObject& o, const QStringList& path)
+{
+    QJsonValue v = o;
+    for (const QString& k : path) v = v.toObject().value(k);
+    return v;
+}
+
+void setJsonAt(QJsonObject& o, QStringList path, const QJsonValue& value)
+{
+    const QString key = path.takeFirst();
+    if (path.isEmpty()) {
+        o[key] = value;
+        return;
+    }
+    QJsonObject child = o.value(key).toObject();
+    setJsonAt(child, path, value);
+    o[key] = child;
+}
+
 // "elbow_param.cas.h5" -> "elbow_param": the recording's directory name. A
 // Kutta case replays its mesh's recording.
 QString caseStem(const QString& casePath)
@@ -218,7 +268,7 @@ CaseKind caseKind(const QString& casePath, bool jsonl)
 {
     const QString name = QFileInfo(casePath).fileName();
     if (recordedCases().contains(caseStem(casePath))) return CaseKind::Recorded;
-    if (name.startsWith("fsae_car")) return CaseKind::Car;
+    if (name.startsWith("fsae_car") || caseStem(casePath).startsWith("fsae_car")) return CaseKind::Car;
     fail(QStringLiteral("The fixture CLI has no data for %1. It replays recorded runs of %2 and generates "
                         "fsae_car.cas.h5 (synthetic); point the app at the real kutta CLI for other cases.")
              .arg(name, recordedCases().join(", ")),
@@ -271,6 +321,17 @@ QJsonObject inspectJson(const QString& casePath, const QString& dataPath, const 
             zones.append(z);
         }
         o["zones"] = zones;
+        QJsonArray settings;
+        for (const QJsonValue& sv : o.value("settings").toArray()) {
+            QJsonObject st = sv.toObject();
+            if (const QStringList at = kuttaCasePath(st.value("path").toString(), kutta); !at.isEmpty()) {
+                const QJsonValue v = jsonAt(kutta, at);
+                if (!v.isUndefined()) st["value"] = v;
+                else if (const QJsonValue d = kuttaCaseDefault(at); !d.isUndefined()) st["value"] = d;
+            }
+            settings.append(st);
+        }
+        o["settings"] = settings;
     }
     o["file"] = file;
     if (data) {
@@ -1220,14 +1281,63 @@ QJsonObject starterBoundary(const QString& role, double speed)
     return {{"type", role}};
 }
 
+// The synthetic car's mesh (fsae_car*.msh) as kutta new-case would read it: its
+// zones, roles suggested by the CLI's rules (src/kutta/setup/kutta_case.cpp
+// suggest_role), groups by the app's aero grouping, and the FSAE template. It
+// gives the fixture a 3D starter with wheels, and so the CLI's wheel note.
+QJsonObject carNewCaseReply()
+{
+    const QJsonObject inspect = carInspect(paramsFrom({}), false, {});
+    QStringList names;
+    for (const QJsonValue& zv : inspect.value("zones").toArray()) names << zv.toObject().value("name").toString();
+    QMap<QString, QString> groupOf;
+    for (const auto& g : kapp::suggestAeroGroups(names))
+        for (const QString& z : g.zones) groupOf[z] = g.name;
+    QJsonArray zones;
+    qint64 faces = 0;
+    for (const QJsonValue& zv : inspect.value("zones").toArray()) {
+        const QJsonObject z = zv.toObject();
+        const QString name = z.value("name").toString(), type = z.value("type").toString();
+        const QStringList words = name.toLower().split(QRegularExpression("[^a-z0-9]+"), Qt::SkipEmptyParts);
+        QString role = "wall", reason = "a wall of the car";
+        if (words.contains("inlet")) role = "velocity-inlet", reason = "name contains \"inlet\"";
+        else if (words.contains("outlet")) role = "pressure-outlet", reason = "name contains \"outlet\"";
+        else if (words.contains("ground")) role = "moving-ground", reason = "name contains \"ground\"; the road moves with the freestream";
+        else if (type == "symmetry") role = "symmetry", reason = "mesh zone type symmetry";
+        faces += z.value("faces").toInteger();
+        zones.append(QJsonObject{{"id", z.value("id")}, {"name", name}, {"mesh_type", type}, {"kind", "boundary"},
+                                 {"faces", z.value("faces")}, {"role", role}, {"suggested_role", role}, {"reason", reason},
+                                 {"group", role == "wall" ? QJsonValue(groupOf.value(name, "Body")) : QJsonValue()}});
+    }
+    const QJsonObject m = inspect.value("mesh").toObject();
+    const QJsonArray x{1, 0, 0};
+    const QJsonObject kase{
+        {"kutta_case", 1},
+        {"models", QJsonObject{{"viscous", "k-omega-sst"}}},
+        {"material", QJsonObject{{"name", "air"}, {"density", 1.225}, {"viscosity", 1.7894e-05}}},
+        {"methods", QJsonObject{{"turbulent_kinetic_energy", "second-order-upwind"}, {"specific_dissipation_rate", "second-order-upwind"}}},
+        {"reference_values", QJsonObject{{"area", 1}, {"length", 1}, {"density", 1.225}}},
+        {"reports", QJsonObject{{"drag", QJsonObject{{"type", "drag"}, {"direction", x}, {"coefficient", true}}},
+                                {"downforce", QJsonObject{{"type", "lift"}, {"direction", QJsonArray{0, 0, -1}}, {"coefficient", true}}}}}};
+    return {{"v", 1}, {"template", "fsae-external"}, {"speed", 15},
+            {"mesh", QJsonObject{{"dimension", 3}, {"cells", m.value("cells")}, {"faces", m.value("faces").toInteger(faces)},
+                                 {"nodes", m.value("nodes")}, {"polyhedral", false}}},
+            {"zones", zones},
+            {"roles", QJsonArray{"velocity-inlet", "pressure-outlet", "moving-ground", "wall", "symmetry", "interior"}},
+            {"notes", QJsonArray{"Reference area is Fluent's default, 1 m^2; set your car's frontal area (reference_values/area) for meaningful coefficients."}},
+            {"case", kase}};
+}
+
 int newCase(const Args& a)
 {
     const bool json = a.has("json");
     if (a.positional.size() != 1) usage(false);
     const QString mesh = a.positional[0];
-    QJsonObject o = QJsonDocument::fromJson(readFixture(recorded(caseStem(mesh), "new-case.json"))).object();
+    QJsonObject o = caseStem(mesh).startsWith("fsae_car") ? carNewCaseReply()
+                                                          : QJsonDocument::fromJson(readFixture(recorded(caseStem(mesh), "new-case.json"))).object();
     if (o.isEmpty())
-        fail(QStringLiteral("The fixture CLI has a recorded mesh for naca4412_ground.msh only; point the app at the real kutta CLI to set up %1.")
+        fail(QStringLiteral("The fixture CLI reads naca4412_ground.msh (recorded) and fsae_car.msh (synthetic) only; point the app at the real "
+                            "kutta CLI to set up %1.")
                  .arg(QFileInfo(mesh).fileName()), {}, json);
     if (!QFileInfo(mesh).isFile()) fail(mesh + ": no such file", {}, json);
     double speed = o.value("speed").toDouble();
@@ -1245,15 +1355,28 @@ int newCase(const Args& a)
     }
     QJsonObject kase = o.value("case").toObject(), boundaries;
     QJsonArray zones, walls;
+    bool inlet = false, outlet = false, wheels = false;
     for (const QJsonValue& zv : o.value("zones").toArray()) {
         QJsonObject z = zv.toObject();
         const QString name = z.value("name").toString();
         z["role"] = roles.value(name, z.value("suggested_role").toString());
-        boundaries[name] = starterBoundary(z.value("role").toString(), speed);
-        if (z.value("role") == "wall") walls.append(name);
+        const QString role = z.value("role").toString();
+        boundaries[name] = starterBoundary(role, speed);
+        if (role == "wall") walls.append(name);
+        inlet = inlet || role == "velocity-inlet";
+        outlet = outlet || role == "pressure-outlet";
+        wheels = wheels || (role == "wall" && z.value("group") == "Wheels");
         zones.append(z);
     }
     kase["boundaries"] = boundaries;
+    // The CLI's notes that follow the roles, in its words (case_commands.cpp).
+    QJsonArray notes;
+    for (const QJsonValue& n : o.value("notes").toArray())
+        if (!n.toString().startsWith("No zone is a") && !n.toString().startsWith("Wheels are stationary")) notes.append(n);
+    if (!inlet) notes.append("No zone is a velocity inlet; assign the inflow boundary its role.");
+    if (!outlet) notes.append("No zone is a pressure outlet; assign the outflow boundary its role.");
+    if (wheels) notes.append("Wheels are stationary walls in this starter; make them rotating walls (axis, origin, angular speed) if the car's wheels turn.");
+    o["notes"] = notes;
     QJsonObject reports = kase.value("reports").toObject();
     for (const QString& name : reports.keys()) {
         QJsonObject r = reports.value(name).toObject();
@@ -1282,8 +1405,9 @@ int newCase(const Args& a)
     return 0;
 }
 
-// kutta convert: a Kutta case copied to a new place (its mesh path follows).
-// The fixture applies no setting changes; it refuses rather than drop them.
+// kutta convert: a Kutta case copied to a new place (its mesh path follows),
+// with the setting changes kuttaCasePath knows written in; it refuses other
+// changes rather than drop them.
 int convert(const Args& a)
 {
     const bool json = a.has("json");
@@ -1291,11 +1415,18 @@ int convert(const Args& a)
     const QString input = a.positional[0], target = a.value("out");
     if (!isKuttaCase(input))
         fail("The fixture CLI saves Kutta cases only; point the app at the real kutta CLI to save a Fluent case as a Kutta case.", {}, json);
-    if (a.has("setup") && !caseOverrides(readJson(a.value("setup")).value("overrides").toObject()).isEmpty())
-        fail("The fixture CLI cannot write setting changes into a case; point the app at the real kutta CLI to save them.", {}, json);
     if (QFileInfo::exists(target) && !a.has("force")) fail(target + " exists; pass --force to replace it", {}, json);
     QJsonObject kase = readJson(input);
     if (kase.isEmpty()) fail(input + ": not a Kutta case", {}, json);
+    const QJsonObject changes = a.has("setup") ? caseOverrides(readJson(a.value("setup")).value("overrides").toObject()) : QJsonObject();
+    QStringList unwritable;
+    for (auto it = changes.begin(); it != changes.end(); ++it) {
+        if (const QStringList at = kuttaCasePath(it.key(), kase); !at.isEmpty()) setJsonAt(kase, at, it.value());
+        else unwritable << it.key();
+    }
+    if (!unwritable.isEmpty())
+        fail(QStringLiteral("The fixture CLI saves reference values, the operating pressure and inlet speed and turbulence only; point the app "
+                            "at the real kutta CLI to save %1.").arg(unwritable.join(", ")), {}, json);
     const QString mesh = kuttaMesh(input);
     const bool same = QFileInfo(input).canonicalFilePath() == QFileInfo(target).canonicalFilePath();
     kase["mesh"] = QDir(QFileInfo(target).absolutePath()).relativeFilePath(mesh);

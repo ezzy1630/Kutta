@@ -30,8 +30,17 @@ replaced by file names):
 `cases/naca4412_ground/new-case.json` is `kutta new-case --json` on the
 wing's mesh (`naca_ground_case.py --write msh`). The fixture serves it for any
 `naca4412_ground.msh`, applying `--speed` and `--role` as the FSAE template
-does; a Kutta case replays its mesh's recording, and `convert` copies a Kutta
-case but refuses setting changes, which only the real CLI can write.
+does, with the CLI's notes that follow the roles (no inlet, no outlet,
+stationary wheels). For `fsae_car*.msh` it builds the reply from the
+synthetic car's zones with the CLI's suggestion rules, so a 3D starter with
+wheels exists without a recording. A Kutta case replays its mesh's recording
+(or the synthetic car). `convert` copies a Kutta case and writes the changes
+it knows into it, where the real CLI writes them: reference values, the
+operating pressure, and a velocity inlet's speed, turbulence intensity and
+viscosity ratio. Inspecting a Kutta case reads those back over the
+recording's inventory (Fluent's defaults where the case leaves them out), so
+Save Case round-trips them. Other changes are refused by name; only the real
+CLI writes them.
 
 `mixing_elbow` was recorded at `868f478`; the other three at `e308968`.
 

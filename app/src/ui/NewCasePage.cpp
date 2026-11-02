@@ -85,23 +85,29 @@ QWidget* newCase(const InspectorContext& c)
     mesh->setVerticalSpacing(5);
     mesh->setColumnStretch(1, 1);
     int row = 0;
-    auto fact = [&](const QString& k, const QString& value) {
+    auto factLabel = [&](const QString& k, QLabel* l) {
         mesh->addWidget(label(k, "muted"), row, 0, Qt::AlignTop);
-        auto* l = label(value);
         l->setTextInteractionFlags(Qt::TextSelectableByMouse);
         mesh->addWidget(l, row++, 1);
     };
-    fact(QObject::tr("File"), QDir::toNativeSeparators(d.meshPath));
+    auto fact = [&](const QString& k, const QString& value) { factLabel(k, label(value)); };
+    factLabel(QObject::tr("File"), pathLabel(d.meshPath));
     fact(QObject::tr("Size"), QObject::tr("%1, %2 cells, %3 faces%4")
                                   .arg(d.dimension == 2 ? QObject::tr("2D") : QObject::tr("3D"), QLocale().toString(d.cells),
                                        QLocale().toString(d.faces), d.polyhedral ? QObject::tr(", polyhedral") : QString()));
     v->addLayout(mesh);
+    auto* other = button(QObject::tr("Choose Another Mesh…"), "folder-open");
+    other->setProperty("flat", true);
+    QObject::connect(other, &QPushButton::clicked, other, chooseMesh);
+    v->addWidget(other, 0, Qt::AlignLeft);
 
+    // One template for now: stated as a fact, not a picker with one entry.
     v->addWidget(section(QObject::tr("Template")));
-    auto* templ = new QComboBox;
-    templ->setAccessibleName(QObject::tr("Template"));
-    templ->addItem(QObject::tr("FSAE external aero"), "fsae-external");
-    templ->setEnabled(false);  // the one template; the picker says which it is
+    auto* templ = label(QObject::tr("FSAE external aero"));
+    templ->setAccessibleName(QObject::tr("Template: FSAE external aero"));
+    QFont tf = templ->font();
+    tf.setWeight(QFont::DemiBold);
+    templ->setFont(tf);
     v->addWidget(templ);
     v->addWidget(label(d.dimension == 2
                            ? QObject::tr("Flow along +x, up +y. k-ω SST, air, a moving ground at the freestream speed, drag and downforce coefficients on every car wall.")
@@ -141,6 +147,10 @@ QWidget* newCase(const InspectorContext& c)
         const QString why = overridden ? QObject::tr("Your choice; suggested: %1 (%2)").arg(roleLabel(z->suggestedRole), z->reason)
                                        : z->reason;
         nv->addWidget(label(QObject::tr("%1 faces · %2").arg(QLocale().toString(z->faces), why), "faint"));
+        // The template's walls do not move: a wheel kept as a wall stands
+        // still under a moving road, which changes the car's loads.
+        if (z->role == "wall" && z->group == "Wheels")
+            nv->addWidget(label(QObject::tr("Stationary wall: this wheel will not turn (see Before you run, below)"), "warning"));
         zones->addWidget(name, row, 0);
         auto* role = new QComboBox;
         role->setAccessibleName(QObject::tr("Role of %1").arg(z->name));
@@ -164,7 +174,24 @@ QWidget* newCase(const InspectorContext& c)
         v->addWidget(label(QObject::tr("No zone is a wall: the case will have no car surfaces and no drag or downforce reports."), "error"));
     else
         v->addWidget(label(QObject::tr("Drag and downforce are reported on: %1.").arg(walls.join(", ")), "muted"));
-    for (const QString& note : d.notes) v->addWidget(label(note, "faint"));
+    // What kutta new-case says to check: easy to miss in faint text, and each
+    // one changes the results (reference area, wheels, approximations).
+    if (!d.notes.isEmpty()) {
+        auto* f = callout("neutral");
+        auto* head = label(QObject::tr("Before you run"));
+        QFont hf = head->font();
+        hf.setWeight(QFont::DemiBold);
+        head->setFont(hf);
+        f->layout()->addWidget(head);
+        for (const QString& note : d.notes) f->layout()->addWidget(label(note));
+        // Where the note's rotating walls are set: the app does not edit wall motion yet.
+        const bool wheels = std::any_of(d.zones.begin(), d.zones.end(), [](const NewCaseZone& z) { return z.role == "wall" && z.group == "Wheels"; });
+        if (wheels)
+            f->layout()->addWidget(label(QObject::tr("Wall motion is set in the case file (a boundary's motion, docs/kutta-case.md); "
+                                                     "the app shows it but does not edit it yet."),
+                                         "muted"));
+        v->addWidget(f);
+    }
 
     auto* actions = new QHBoxLayout;
     auto* create = button(QObject::tr("Create Case…"), "plus", "primary");
@@ -172,10 +199,6 @@ QWidget* newCase(const InspectorContext& c)
     create->setToolTip(QObject::tr("Writes a Kutta case (.kutta.json) beside the mesh, or where you choose, and opens it."));
     QObject::connect(create, &QPushButton::clicked, create, [c] { if (c.createCaseDialog) c.createCaseDialog(); });
     actions->addWidget(create);
-    auto* other = button(QObject::tr("Choose Another Mesh…"));
-    other->setProperty("flat", true);
-    QObject::connect(other, &QPushButton::clicked, other, chooseMesh);
-    actions->addWidget(other);
     auto* cancel = button(QObject::tr("Cancel"));
     cancel->setProperty("flat", true);
     QObject::connect(cancel, &QPushButton::clicked, cancel, [c, s] {
