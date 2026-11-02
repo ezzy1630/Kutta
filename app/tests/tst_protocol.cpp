@@ -175,6 +175,26 @@ private slots:
     }
 
     // kutta new-case --json (recorded from the real CLI on the NACA wing mesh).
+    void wheelGeometryValidation()
+    {
+        WheelGeometry w{0.2, {0.4, 0.25, 0}, {0, 0, -2}};
+        QVERIFY(w.error(2).isEmpty());
+        QCOMPARE(w.rollingAxis(2), (std::array<double, 3>{0, 0, 1}));
+        w.axis = {0, 2, 0};
+        QVERIFY(w.error(3).isEmpty());
+        QCOMPARE(w.rollingAxis(3), (std::array<double, 3>{0, -1, 0}));
+        w.axis = {0, -2, 0.1};  // camber does not change rolling sense
+        QVERIFY(w.error(3).isEmpty());
+        QVERIFY(w.rollingAxis(3)[1] < 0);
+        QVERIFY(w.rollingAxis(3)[2] > 0);
+        w.axis = {1, 0, 0};
+        QVERIFY(!w.error(3).isEmpty());
+        w.axis = {0, 0, 0};
+        QVERIFY(w.error(3).contains("cannot be zero"));
+        w.radius = -0.2;
+        QVERIFY(w.error(3).contains("radius greater than zero"));
+    }
+
     void newCaseReply()
     {
         auto d = parseNewCase(fixtureJson("cases/naca4412_ground/new-case.json"));

@@ -24,6 +24,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLineEdit>
+#include <QKeyEvent>
 #include <QScrollBar>
 #include <QSet>
 #include <QSettings>
@@ -176,7 +178,8 @@ int main(int argc, char** argv)
                                    "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "param-run", "cylinder-run",
                                    "wing-models", "wing-aero", "wing-monitors", "bench",
                                    "case-mesh", "case-approvals", "case-methods", "case-run", "case-stop",
-                                   "new-case", "new-case-car", "new-case-run", "new-case-save"};
+                                   "new-case", "new-case-car", "new-case-run", "new-case-save", "new-case-wheel", "new-case-wheel-invalid",
+                                   "new-case-wheel-boundary", "new-case-car-rotating", "new-case-car-boundary"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
         return 0;
@@ -660,7 +663,7 @@ int main(int argc, char** argv)
         sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Reports); next(); });
     } else if (scenario.startsWith("new-case")) {
         const QString mesh = !caseArg.isEmpty()               ? caseArg
-                             : scenario == "new-case-car" ? QDir(dataRoot).filePath("samples/fsae_car.msh")
+                             : scenario.startsWith("new-case-car") ? QDir(dataRoot).filePath("samples/fsae_car.msh")
                                                           : QDir(dataRoot).filePath("samples/naca4412_ground.msh");
         sc->add([session, sc, mesh](auto next) {
             session->startNewCase(mesh);
@@ -669,7 +672,74 @@ int main(int argc, char** argv)
                 next();
             }, "mesh to read");
         });
-        if (scenario == "new-case-car") {
+        const bool wheelScenario = scenario.startsWith("new-case-wheel") || scenario == "new-case-car-rotating" || scenario == "new-case-car-boundary";
+        if (wheelScenario) {
+            sc->add(go("new-case"));
+            sc->add([session](auto next) { session->setNewCaseSpeed(20); next(); });
+            const bool car = scenario.startsWith("new-case-car");
+            const QStringList wheels = car ? QStringList{"tyre-front", "tyre-rear"} : QStringList{"wheel_front"};
+            for (const auto& name : wheels) {
+                sc->add([sc, inspectorButton, name](auto next) {
+                    auto* rotate = inspectorButton(QObject::tr("Rotate %1 as a wheel").arg(name));
+                    if (!rotate) return sc->fail("missing wheel rotation control: " + name);
+                    rotate->click();
+                    QTimer::singleShot(0, sc, next);
+                });
+                sc->add([sc, session, &w, name, car, scenario](auto next) {
+                    // Type through the actual fields: input parsing, validation,
+                    // draft updates and --wheel serialization all participate.
+                    auto type = [sc, &w](const QString& accessible, const QString& value) {
+                        for (auto* field : w.inspector()->findChildren<QLineEdit*>()) {
+                            if (field->accessibleName() != accessible) continue;
+                            field->selectAll();
+                            for (QChar ch : value) {
+                                QKeyEvent key(QEvent::KeyPress, 0, Qt::NoModifier, QString(ch));
+                                QApplication::sendEvent(field, &key);
+                            }
+                            return true;
+                        }
+                        sc->fail("missing wheel field: " + accessible);
+                        return false;
+                    };
+                    if (!type(QObject::tr("Radius of %1 (m)").arg(name), car ? "0.23" : "0.2")) return;
+                    const QStringList centre = car ? QStringList{name == "tyre-front" ? "-0.78" : "0.8", "0", "0.23"} : QStringList{"0.4", "0.25", "0"};
+                    for (int i = 0; i < 3; ++i) {
+                        const auto component = QString("XYZ").mid(i, 1);
+                        if (!type(QObject::tr("Centre %1 of %2 (m)").arg(component, name), centre[i])) return;
+                        const auto axis = scenario.endsWith("invalid") ? "0" : (i == (car ? 1 : 2) ? "1" : "0");
+                        if (!type(QObject::tr("Axis %1 of %2").arg(component, name), axis)) return;
+                    }
+                    if (scenario.endsWith("invalid")) {
+                        if (!session->newCaseDraft()->wheelError().contains("cannot be zero")) return sc->fail("zero wheel axis was accepted");
+                        next();
+                    } else sc->waitFor([session] { return session->newCaseNotesCurrent(); }, next, "current wheel checks");
+                });
+            }
+            if (scenario.endsWith("boundary")) {
+                const auto out = QDir(dataRoot).filePath("cases/rotating-wheels.kutta.json");
+                QDir().mkpath(QFileInfo(out).absolutePath());
+                sc->add([session, sc, out](auto next) {
+                    session->createNewCase(out);
+                    sc->waitFor([session, out] { return session->hasCase() && session->casePath() == out; }, next, "rotating-wheel case to open");
+                });
+                sc->add(go("setup/boundary/" + wheels.first()));
+                sc->add([sc, &w, car](auto next) {
+                    sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, [&w, car, next] {
+                        if (car) {
+                            auto* panel = w.graphics()->panel(0);
+                            auto d = panel->display();
+                            // Inspect the vehicle's wheels without the road
+                            // obscuring them in the mesh preview.
+                            for (const auto& item : panel->scene()->items)
+                                if (item.id == "zone:ground") d.visible.removeAll(item.id);
+                            panel->setDisplay(d);
+                            panel->view()->fitView();
+                        }
+                        next();
+                    }, "created case geometry");
+                });
+            }
+        } else if (scenario == "new-case-car") {
             sc->add(go("new-case"));
         } else if (scenario == "new-case") {
             // A role and the speed changed from the template, as a user checking the suggestions would.
@@ -682,6 +752,7 @@ int main(int argc, char** argv)
                     }
                 next();
             });
+            sc->add([session, sc](auto next) { sc->waitFor([session] { return session->newCaseNotesCurrent(); }, next, "current role checks"); });
             sc->add(go("new-case"));
         } else {
             const QString name = qEnvironmentVariable("KUTTA_SCENARIO_CASE_NAME", QFileInfo(mesh).completeBaseName());

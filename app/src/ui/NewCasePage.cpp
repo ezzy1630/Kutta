@@ -7,15 +7,19 @@
 #include "ui/PageKit.h"
 
 #include <QComboBox>
+#include <QCheckBox>
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QHash>
 #include <QLocale>
+#include <QLineEdit>
 #include <QTimer>
 
 #include <algorithm>
+#include <cmath>
+#include <limits>
 
 namespace kapp {
 
@@ -62,6 +66,7 @@ QWidget* newCase(const InspectorContext& c)
         auto* f = callout("red");
         f->layout()->addWidget(label(draft ? QObject::tr("Could not create the case") : QObject::tr("Could not read the mesh"), "title"));
         f->layout()->addWidget(label(s->newCaseError()));
+        QObject::connect(s, &Session::newCaseValuesChanged, f, [s, f] { f->setVisible(!s->newCaseError().isEmpty()); });
         v->addWidget(f);
     }
     if (s->newCaseBusy() && !draft) {
@@ -122,6 +127,7 @@ QWidget* newCase(const InspectorContext& c)
     speed->setSuffix(QObject::tr(" m/s"));
     speed->setValue(d.speed);
     speed->setKeyboardTracking(false);
+    speed->setEnabled(!s->newCaseBusy());
     QObject::connect(speed, &QDoubleSpinBox::valueChanged, s, [s](double value) { s->setNewCaseSpeed(value); });
     speedRow->addWidget(speed);
     speedRow->addStretch(1);
@@ -147,12 +153,27 @@ QWidget* newCase(const InspectorContext& c)
         const QString why = overridden ? QObject::tr("Your choice; suggested: %1 (%2)").arg(roleLabel(z->suggestedRole), z->reason)
                                        : z->reason;
         nv->addWidget(label(QObject::tr("%1 faces · %2").arg(QLocale().toString(z->faces), why), "faint"));
-        // The template's walls do not move: a wheel kept as a wall stands
-        // still under a moving road, which changes the car's loads.
-        if (z->role == "wall" && z->group == "Wheels")
-            nv->addWidget(label(QObject::tr("Stationary wall: this wheel will not turn (see Before you run, below)"), "warning"));
+        if (z->role == "wall") {
+            auto* rotate = new QCheckBox(QObject::tr("Rotate as a wheel"));
+            rotate->setAccessibleName(QObject::tr("Rotate %1 as a wheel").arg(z->name));
+            rotate->setChecked(z->wheel.has_value());
+            rotate->setEnabled(!s->newCaseBusy());
+            nv->addWidget(rotate);
+            const QString name = z->name;
+            const int dimension = d.dimension;
+            QObject::connect(rotate, &QCheckBox::toggled, rotate, [s, name, dimension](bool on) {
+                QTimer::singleShot(0, s, [s, name, dimension, on] {
+                    WheelGeometry wheel;
+                    wheel.axis = dimension == 2 ? std::array<double, 3>{0, 0, 1} : std::array<double, 3>{0, -1, 0};
+                    s->setNewCaseWheel(name, on ? std::optional(wheel) : std::nullopt);
+                });
+            });
+            if (!z->wheel && z->group == "Wheels")
+                nv->addWidget(label(QObject::tr("Stationary: enable rotation if this wheel turns."), "warning"));
+        }
         zones->addWidget(name, row, 0);
         auto* role = new QComboBox;
+        role->setEnabled(!s->newCaseBusy());
         role->setAccessibleName(QObject::tr("Role of %1").arg(z->name));
         for (const QString& r : d.roles)
             if (r != "interior") role->addItem(roleLabel(r), r);
@@ -166,8 +187,82 @@ QWidget* newCase(const InspectorContext& c)
         zones->addWidget(role, row, 1, Qt::AlignTop);
         if (z->role == "wall") walls << (z->group.isEmpty() ? z->name : QStringLiteral("%1 (%2)").arg(z->name, z->group));
         ++row;
+        if (z->role == "wall" && z->wheel) {
+            auto* editor = new QWidget;
+            editor->setEnabled(!s->newCaseBusy());
+            auto* fields = new QVBoxLayout(editor);
+            fields->setContentsMargins(0, 2, 0, 10);
+            fields->setSpacing(5);
+            auto number = [](double value, const QString& name) {
+                auto* spin = new QLineEdit(QLocale().toString(value, 'g', 10));
+                spin->setAccessibleName(name);
+                spin->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+                return spin;
+            };
+            auto* radiusRow = new QHBoxLayout;
+            radiusRow->addWidget(label(QObject::tr("Radius (m)"), "muted"));
+            auto* radius = number(z->wheel->radius, QObject::tr("Radius of %1 (m)").arg(z->name));
+            radiusRow->addWidget(radius, 1);
+            fields->addLayout(radiusRow);
+            auto vector = [&](const QString& title, const QString& accessible, const std::array<double, 3>& value) {
+                fields->addWidget(label(title, "muted"));
+                auto* grid = new QGridLayout;
+                grid->setHorizontalSpacing(6);
+                grid->setVerticalSpacing(2);
+                std::array<QLineEdit*, 3> spins;
+                for (int i = 0; i < 3; ++i) {
+                    const QString component = QString("XYZ").mid(i, 1);
+                    grid->addWidget(label(component, "faint"), 0, i);
+                    spins[i] = number(value[i], accessible.arg(component, z->name));
+                    grid->addWidget(spins[i], 1, i);
+                    grid->setColumnStretch(i, 1);
+                }
+                fields->addLayout(grid);
+                return spins;
+            };
+            const auto centre = vector(QObject::tr("Wheel centre (m)"), QObject::tr("Centre %1 of %2 (m)"), z->wheel->centre);
+            const auto axis = vector(QObject::tr("Axle direction"), QObject::tr("Axis %1 of %2"), z->wheel->axis);
+            fields->addWidget(label(d.dimension == 2
+                                       ? QObject::tr("Enter geometry from your mesh in metres; check all three centre coordinates. The axle points out of the 2D plane (X = Y = 0).")
+                                       : QObject::tr("Enter geometry from your mesh in metres; check all three centre coordinates. The axle runs across the flow (X = 0)."), "muted"));
+            auto* status = label({});
+            fields->addWidget(status);
+            const QString name = z->name;
+            auto update = [s, name, status] {
+                if (!s->newCaseDraft()) return;
+                const auto* zone = s->newCaseDraft()->zone(name);
+                if (!zone || !zone->wheel) return;
+                const auto& d = *s->newCaseDraft();
+                QString error = zone->wheel->error(d.dimension);
+                if (error.isEmpty() && !std::isfinite(d.speed / zone->wheel->radius)) error = QObject::tr("Radius is too small for a finite angular speed.");
+                const auto axis = zone->wheel->rollingAxis(d.dimension);
+                status->setText(error.isEmpty() ? QObject::tr("Rotating wall · %1 rad/s\nRolling axis: (%2, %3, %4)")
+                                   .arg(QLocale().toString(d.speed / zone->wheel->radius, 'g', 6), QString::number(axis[0]), QString::number(axis[1]), QString::number(axis[2])) : error);
+                status->setProperty("role", error.isEmpty() ? "muted" : "error");
+                status->style()->unpolish(status);
+                status->style()->polish(status);
+            };
+            QObject::connect(s, &Session::newCaseValuesChanged, editor, update);
+            update();
+            auto save = [s, name, radius, centre, axis] {
+                auto value = [](QLineEdit* field) {
+                    bool ok = false;
+                    const double x = QLocale().toDouble(field->text(), &ok);
+                    return ok ? x : std::numeric_limits<double>::quiet_NaN();
+                };
+                WheelGeometry w;
+                w.radius = value(radius);
+                for (int i = 0; i < 3; ++i) { w.centre[i] = value(centre[i]); w.axis[i] = value(axis[i]); }
+                s->setNewCaseWheel(name, w);
+            };
+            QObject::connect(radius, &QLineEdit::textEdited, editor, save);
+            for (auto* spin : centre) QObject::connect(spin, &QLineEdit::textEdited, editor, save);
+            for (auto* spin : axis) QObject::connect(spin, &QLineEdit::textEdited, editor, save);
+            zones->addWidget(editor, row++, 0, 1, 2);
+        }
     }
     v->addLayout(zones);
+    v->addWidget(label(QObject::tr("Wheel angular speed = freestream speed ÷ radius (rad/s). Kutta chooses the axle's sign so the wheel's bottom moves along +x with the moving ground."), "muted"));
     const auto interior = std::count_if(d.zones.begin(), d.zones.end(), [](const NewCaseZone& z) { return z.kind == "interior"; });
     if (interior) v->addWidget(label(QObject::tr("%1 interior face zone(s) need no role; the cells are fluid.").arg(interior), "faint"));
     if (walls.isEmpty())
@@ -176,26 +271,40 @@ QWidget* newCase(const InspectorContext& c)
         v->addWidget(label(QObject::tr("Drag and downforce are reported on: %1.").arg(walls.join(", ")), "muted"));
     // What kutta new-case says to check: easy to miss in faint text, and each
     // one changes the results (reference area, wheels, approximations).
-    if (!d.notes.isEmpty()) {
+    {
         auto* f = callout("neutral");
         auto* head = label(QObject::tr("Before you run"));
         QFont hf = head->font();
         hf.setWeight(QFont::DemiBold);
         head->setFont(hf);
         f->layout()->addWidget(head);
-        for (const QString& note : d.notes) f->layout()->addWidget(label(note));
-        // Where the note's rotating walls are set: the app does not edit wall motion yet.
-        const bool wheels = std::any_of(d.zones.begin(), d.zones.end(), [](const NewCaseZone& z) { return z.role == "wall" && z.group == "Wheels"; });
-        if (wheels)
-            f->layout()->addWidget(label(QObject::tr("Wall motion is set in the case file (a boundary's motion, docs/kutta-case.md); "
-                                                     "the app shows it but does not edit it yet."),
-                                         "muted"));
+        auto* notes = label({});
+        f->layout()->addWidget(notes);
+        auto updateNotes = [s, notes] {
+            if (!s->newCaseDraft()) return;
+            if (!s->newCaseDraft()->wheelError().isEmpty()) notes->setText(QObject::tr("Complete the wheel geometry to check this setup."));
+            else if (!s->newCaseNotesError().isEmpty()) notes->setText(withHomeAsTilde(s->newCaseNotesError()));
+            else if (!s->newCaseNotesCurrent()) notes->setText(QObject::tr("Checking the current choices…"));
+            else {
+                QStringList text;
+                for (const auto& note : s->newCaseDraft()->notes)
+                    text << (note.startsWith("Wheels without --wheel") || note.startsWith("Wheels are stationary walls")
+                                 ? QObject::tr("Some wheel zones are stationary. Enable ‘Rotate as a wheel’ and enter their geometry if they should turn.") : note);
+                notes->setText(withHomeAsTilde(text.join("\n\n")));
+            }
+        };
+        QObject::connect(s, &Session::newCaseNotesChanged, notes, updateNotes);
+        updateNotes();
         v->addWidget(f);
     }
 
     auto* actions = new QHBoxLayout;
     auto* create = button(QObject::tr("Create Case…"), "plus", "primary");
-    create->setEnabled(!s->newCaseBusy() && !s->running());
+    auto updateCreate = [s, create] {
+        create->setEnabled(s->newCaseDraft() && s->newCaseDraft()->wheelError().isEmpty() && !s->newCaseBusy() && !s->running());
+    };
+    QObject::connect(s, &Session::newCaseValuesChanged, create, updateCreate);
+    updateCreate();
     create->setToolTip(QObject::tr("Writes a Kutta case (.kutta.json) beside the mesh, or where you choose, and opens it."));
     QObject::connect(create, &QPushButton::clicked, create, [c] { if (c.createCaseDialog) c.createCaseDialog(); });
     actions->addWidget(create);

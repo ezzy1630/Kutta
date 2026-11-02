@@ -7,6 +7,7 @@
 #include <QUrl>
 
 #include <cmath>
+#include <algorithm>
 
 namespace kapp {
 
@@ -713,6 +714,52 @@ Result<AeroResult> parseAero(const QJsonObject& o)
 }
 
 
+QString WheelGeometry::error(int dimension) const
+{
+    if (!(radius > 0) || !std::isfinite(radius)) return QObject::tr("Enter a wheel radius greater than zero (metres).");
+    for (double x : centre)
+        if (!std::isfinite(x)) return QObject::tr("Enter finite X, Y and Z coordinates for the wheel centre.");
+    double length = 0;
+    for (double x : axis) {
+        if (!std::isfinite(x)) return QObject::tr("Enter a finite axis direction.");
+        length = std::hypot(length, x);
+    }
+    if (!(length > 0)) return QObject::tr("Axis direction cannot be zero; enter the wheel axle direction.");
+    if (dimension == 2 && (axis[0] != 0 || axis[1] != 0 || axis[2] == 0))
+        return QObject::tr("For a 2D mesh, the axle must point out of the plane: X = 0, Y = 0, Z nonzero.");
+    // With +x flow the axle lies across the car. An x component would add
+    // sideways motion at the contact point. Camber (an up component) is OK.
+    if (std::abs(axis[0]) > length * 1e-6 || std::abs(axis[dimension == 2 ? 2 : 1]) <= length * 1e-6)
+        return QObject::tr("The axle must be across the flow: X = 0, with a nonzero %1 component.").arg(dimension == 2 ? "Z" : "Y");
+    return {};
+}
+
+std::array<double, 3> WheelGeometry::rollingAxis(int dimension) const
+{
+    auto out = axis;
+    // Only direction matters. Scale before taking the length, so finite very
+    // large or small components cannot overflow/underflow the CLI's norm.
+    const auto scale = std::max({std::abs(axis[0]), std::abs(axis[1]), std::abs(axis[2])});
+    if (!(scale > 0) || !std::isfinite(scale)) return out;
+    for (auto& x : out) x /= scale;
+    const double length = std::hypot(out[0], out[1], out[2]);
+    for (auto& x : out) x /= length;
+    const double alongGround = dimension == 2 ? out[2] : -out[1];
+    if (alongGround < 0)
+        for (double& x : out) x = -x;
+    return out;
+}
+
+QString NewCaseDraft::wheelError() const
+{
+    for (const auto& z : zones)
+        if (z.role == "wall" && z.wheel) {
+            if (const QString error = z.wheel->error(dimension); !error.isEmpty()) return z.name + ": " + error;
+            if (!std::isfinite(speed / z.wheel->radius)) return z.name + ": " + QObject::tr("Radius is too small for a finite angular speed.");
+        }
+    return {};
+}
+
 std::vector<const NewCaseZone*> NewCaseDraft::boundaries() const
 {
     std::vector<const NewCaseZone*> out;
@@ -746,7 +793,7 @@ Result<NewCaseDraft> parseNewCase(const QJsonObject& json)
         const QJsonObject o = v.toObject();
         NewCaseZone z{o.value("id").toInt(-1), o.value("name").toString(), o.value("mesh_type").toString(), o.value("kind").toString(),
                       qint64(o.value("faces").toDouble()), o.value("role").toString(), o.value("suggested_role").toString(),
-                      o.value("reason").toString(), o.value("group").toString()};
+                      o.value("reason").toString(), o.value("group").toString(), std::nullopt};
         if (z.name.isEmpty()) return R::failure("new-case: zone without a name");
         d.zones.push_back(z);
     }

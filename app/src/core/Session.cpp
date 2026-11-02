@@ -22,6 +22,9 @@ Session::Session(const CliInfo& cli, const QString& dataRoot, QObject* parent)
     : QObject(parent), m_cli(new CliClient(cli, this)), m_dataRoot(dataRoot)
 {
     m_history.setRoot(QDir(dataRoot).filePath("runs"));
+    m_notesTimer.setSingleShot(true);
+    m_notesTimer.setInterval(300);
+    connect(&m_notesTimer, &QTimer::timeout, this, &Session::refreshDraftNotes);
     connect(m_cli, &CliClient::commandStarted, this, [this](const QString& cmd) { emit consoleLine(ConsoleLevel::Command, cmd); });
     connect(m_cli, &CliClient::commandOutput, this, [this](const QString& text) {
         for (const QString& l : text.split('\n', Qt::SkipEmptyParts)) emit consoleLine(ConsoleLevel::Info, l);
@@ -157,6 +160,11 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
 
 void Session::startNewCase(const QString& meshPath)
 {
+    const auto revision = ++m_draftRevision;
+    m_notesTimer.stop();
+    m_notesCurrent = true;
+    m_notesError.clear();
+    m_draftBusy = false;
     m_draft.reset();
     m_draftError.clear();
     if (!QFileInfo(meshPath).isFile()) {
@@ -167,7 +175,8 @@ void Session::startNewCase(const QString& meshPath)
     m_draftBusy = true;
     emit newCaseChanged();
     emit consoleLine(ConsoleLevel::Info, tr("Reading mesh %1").arg(QDir::toNativeSeparators(meshPath)));
-    m_cli->newCase({meshPath, 0, {}, {}}, [this](Result<NewCaseDraft> r) {
+    m_cli->newCase({meshPath, 0, {}, {}, {}}, [this, revision](Result<NewCaseDraft> r) {
+        if (revision != m_draftRevision) return;
         m_draftBusy = false;
         if (!r) {
             m_draftError = r.error();
@@ -184,22 +193,84 @@ void Session::startNewCase(const QString& meshPath)
 
 void Session::setNewCaseRole(const QString& zone, const QString& role)
 {
-    if (!m_draft || !m_draft->roles.contains(role)) return;
-    if (NewCaseZone* z = m_draft->zone(zone); z && z->role != role) {
+    if (!m_draft || m_draftBusy || role == "interior" || !m_draft->roles.contains(role)) return;
+    if (NewCaseZone* z = m_draft->zone(zone); z && z->kind == "boundary" && z->role != role) {
         z->role = role;
-        emit newCaseChanged();
+        if (role != "wall") z->wheel.reset();
+        draftEdited();
     }
 }
 
 void Session::setNewCaseSpeed(double speed)
 {
-    if (!m_draft || !(speed > 0) || speed == m_draft->speed) return;
+    if (!m_draft || m_draftBusy || !(speed > 0) || !std::isfinite(speed) || speed == m_draft->speed) return;
     m_draft->speed = speed;
-    emit newCaseChanged();
+    draftEdited(false);
+}
+
+void Session::setNewCaseWheel(const QString& zone, std::optional<WheelGeometry> wheel)
+{
+    if (!m_draft || m_draftBusy) return;
+    if (auto* z = m_draft->zone(zone); z && z->kind == "boundary" && z->role == "wall") {
+        const bool rebuild = z->wheel.has_value() != wheel.has_value();
+        z->wheel = std::move(wheel);
+        draftEdited(rebuild);
+    }
+}
+
+CliClient::NewCaseRequest Session::draftRequest(const QString& out) const
+{
+    CliClient::NewCaseRequest req{m_draft->meshPath, m_draft->speed, {}, out, {}};
+    for (const auto& z : m_draft->zones) {
+        if (z.role != z.suggestedRole) req.roles[z.name] = z.role;
+        if (z.role == "wall" && z.wheel) {
+            auto wheel = *z.wheel;
+            wheel.axis = wheel.rollingAxis(m_draft->dimension);
+            req.wheels[z.name] = wheel;
+        }
+    }
+    return req;
+}
+
+void Session::draftEdited(bool rebuild)
+{
+    ++m_draftRevision;
+    m_draftError.clear();
+    m_notesCurrent = false;
+    m_notesError.clear();
+    m_draft->notes.clear();  // never present old advice as current
+    m_notesTimer.start();
+    emit newCaseNotesChanged();
+    if (rebuild) emit newCaseChanged();
+    else emit newCaseValuesChanged();
+}
+
+void Session::refreshDraftNotes()
+{
+    if (!m_draft || m_draftBusy || m_notesInFlight || !m_draft->wheelError().isEmpty()) return;
+    const auto revision = m_draftRevision;
+    m_notesInFlight = true;
+    m_cli->newCase(draftRequest(), [this, revision](Result<NewCaseDraft> r) {
+        m_notesInFlight = false;
+        if (!m_draft) return;
+        if (revision != m_draftRevision) {
+            if (!m_draftBusy && !m_notesCurrent) m_notesTimer.start();
+            return;
+        }
+        if (r) {
+            m_draft->notes = r.value().notes;
+            m_notesCurrent = true;
+        } else {
+            m_notesError = tr("Could not refresh the checks: %1").arg(r.error());
+        }
+        emit newCaseNotesChanged();
+    });
 }
 
 void Session::discardNewCase()
 {
+    ++m_draftRevision;
+    m_notesTimer.stop();
     m_draft.reset();
     m_draftError.clear();
     m_draftBusy = false;
@@ -209,18 +280,24 @@ void Session::discardNewCase()
 void Session::createNewCase(const QString& outPath)
 {
     if (!m_draft || m_draftBusy) return;
+    if (const QString error = m_draft->wheelError(); !error.isEmpty()) {
+        m_draftError = error;
+        emit newCaseChanged();
+        return;
+    }
     if (running()) {
         m_draftError = tr("Stop the running calculation before creating a case.");
         emit newCaseChanged();
         return;
     }
-    CliClient::NewCaseRequest req{m_draft->meshPath, m_draft->speed, {}, outPath};
-    for (const auto& z : m_draft->zones)
-        if (z.role != z.suggestedRole) req.roles[z.name] = z.role;
+    const auto req = draftRequest(outPath);
+    const auto revision = ++m_draftRevision;
+    m_notesTimer.stop();
     m_draftBusy = true;
     m_draftError.clear();
     emit newCaseChanged();
-    m_cli->newCase(req, [this, outPath](Result<NewCaseDraft> r) {
+    m_cli->newCase(req, [this, outPath, revision](Result<NewCaseDraft> r) {
+        if (revision != m_draftRevision) return;
         m_draftBusy = false;
         if (!r) {
             m_draftError = r.error();

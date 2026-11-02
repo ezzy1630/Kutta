@@ -180,7 +180,13 @@ int inspect_json(int argc,char** argv) {
       s<<"{\"id\":"<<z.id<<",\"name\":"<<json_string(z.name)<<",\"type\":"<<json_string(z.fluent_type)<<",\"faces\":"<<faces<<",\"condition\":{\"velocity\":";vector(s,z.velocity);
       s<<",\"velocity_magnitude\":";scalar(s,z.velocity_magnitude);s<<",\"direction\":";vector(s,z.direction);
       s<<",\"pressure\":";scalar(s,z.gauge_pressure);s<<",\"roughness_height\":";scalar(s,z.roughness_height);
-      s<<",\"wall_motion\":"<<(z.wall_motion?json_string(*z.wall_motion==WallMotion::stationary?"stationary":*z.wall_motion==WallMotion::rotating?"rotating":"translating"):"null")<<"}}";
+      s<<",\"wall_motion\":"<<(z.wall_motion?json_string(*z.wall_motion==WallMotion::stationary?"stationary":*z.wall_motion==WallMotion::rotating?"rotating":"translating"):"null");
+      if(z.wall_motion==WallMotion::rotating) {
+        s<<",\"angular_speed\":";scalar(s,z.angular_velocity);
+        s<<",\"axis_origin\":";vector(s,z.axis_origin);
+        s<<",\"axis_direction\":";vector(s,z.axis_direction);
+      }
+      s<<"}}";
     }
     s<<"],\"models\":{\"viscous\":"<<(c.viscous.model?json_string(*c.viscous.model==ViscousModel::kw_sst?std::string_view("k-omega-sst"):name(*c.viscous.model)):"null")<<",\"energy\":";boolean(s,c.energy);
     bool constant=!c.cell_zones.empty();for(const auto& z:c.cell_zones){auto m=std::find_if(c.materials.begin(),c.materials.end(),[&](const auto& m){return z.material==m.name;});constant &= z.type==ZoneType::fluid && m!=c.materials.end() && m->nonconstant_density==false && m->nonconstant_viscosity==false;}

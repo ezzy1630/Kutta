@@ -286,6 +286,42 @@ private slots:
         QCOMPARE(written.value("reference_values").toObject().value("area").toDouble(), 0.5);
     }
 
+    void rotatingWheelFromBareMesh()
+    {
+        CliInfo cli;
+        cli.program = m_cli;
+        Session s(cli, m_dir.filePath("data-wheel"));
+        s.startNewCase(QStringLiteral(KUTTA_SOLVER_TEST_DATA) + "/meshes/fsae_wheel.msh");
+        QTRY_VERIFY_WITH_TIMEOUT(!s.newCaseBusy(), 60000);
+        QVERIFY2(s.newCaseDraft(), qPrintable(s.newCaseError()));
+        QCOMPARE(s.newCaseDraft()->dimension, 2);
+        s.setNewCaseSpeed(20);
+        s.setNewCaseWheel("wheel_front", WheelGeometry{0.2, {0.4, 0.25, 0}, {0, 0, -3}});
+        QTRY_VERIFY_WITH_TIMEOUT(s.newCaseNotesCurrent(), 60000);
+        QVERIFY(!s.newCaseDraft()->notes.join(' ').contains("Wheels without"));
+        const auto out = m_dir.filePath("wheel.kutta.json");
+        QSignalSpy opened(&s, &Session::caseOpened);
+        s.createNewCase(out);
+        QVERIFY(opened.wait(60000));
+        const auto condition = s.caseSummary().zone("wheel_front")->condition;
+        QCOMPARE(condition.value("wall_motion").toString(), QString("rotating"));
+        QCOMPARE(condition.value("angular_speed").toDouble(), 100.0);
+        QCOMPARE(condition.value("axis_origin").toArray(), (QJsonArray{0.4, 0.25, 0}));
+        QCOMPARE(condition.value("axis_direction").toArray(), (QJsonArray{0, 0, 1}));
+        QFile f(out);
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const auto boundary = QJsonDocument::fromJson(f.readAll()).object().value("boundaries").toObject().value("wheel_front").toObject();
+        QCOMPARE(boundary.value("motion").toString(), QString("rotating"));
+        QCOMPARE(boundary.value("angular_speed").toDouble(), 100.0);
+        QVERIFY(!boundary.value("relative").toBool(true));
+        QVERIFY(s.canRun());
+        QCOMPARE(s.settings()->setValue("run/iterations", 3), QString());
+        QSignalSpy finished(&s, &Session::runFinished);
+        const auto id = s.run();
+        QVERIFY(finished.wait(60000));
+        QCOMPARE(s.history().find(id)->status, RunStatus::Completed);
+    }
+
     // File ▸ Save as Kutta Case on a Fluent case: the same zones and the
     // same approximation the Fluent case needs.
     void fluentCaseSavesAsKuttaCase()

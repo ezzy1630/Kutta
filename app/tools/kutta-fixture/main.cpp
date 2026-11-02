@@ -316,14 +316,28 @@ QJsonObject inspectJson(const QString& casePath, const QString& dataPath, const 
         QJsonArray zones;
         for (const QJsonValue& zv : o.value("zones").toArray()) {
             QJsonObject z = zv.toObject();
-            const QString type = boundaries.value(z.value("name").toString()).toObject().value("type").toString();
+            const auto boundary = boundaries.value(z.value("name").toString()).toObject();
+            const QString type = boundary.value("type").toString();
             if (!type.isEmpty()) z["type"] = type;
+            if (type == "wall") {
+                auto condition = z.value("condition").toObject();
+                const QString motion = boundary.value("motion").toString("stationary");
+                condition["wall_motion"] = motion == "moving" ? "translating" : motion;
+                for (const auto* key : {"angular_speed", "axis_origin", "axis_direction"}) condition[key] = boundary.value(key);
+                z["condition"] = condition;
+            }
             zones.append(z);
         }
         o["zones"] = zones;
         QJsonArray settings;
         for (const QJsonValue& sv : o.value("settings").toArray()) {
             QJsonObject st = sv.toObject();
+            const auto path = st.value("path").toString().split('/');
+            if (path.size() == 3 && path[0] == "boundary") {
+                const auto b = boundaries.value(path[1]).toObject();
+                if (path[2] == "wall-motion") st["value"] = b.value("motion").toString("stationary");
+                if (path[2] == "rotation-speed") st["value"] = b.value("angular_speed");
+            }
             if (const QStringList at = kuttaCasePath(st.value("path").toString(), kutta); !at.isEmpty()) {
                 const QJsonValue v = jsonAt(kutta, at);
                 if (!v.isUndefined()) st["value"] = v;
@@ -1354,6 +1368,23 @@ int newCase(const Args& a)
         roles[r.left(eq)] = r.mid(eq + 1);
     }
     QJsonObject kase = o.value("case").toObject(), boundaries;
+    QMap<QString, QJsonObject> rotations;
+    for (const auto& spec : a.opts.value("wheel")) {
+        const auto eq = spec.lastIndexOf('=');
+        const auto parts = spec.mid(eq + 1).split(',');
+        if (eq <= 0 || parts.size() != 7) fail("wheel: expected ZONE=RADIUS,X,Y,Z,AX,AY,AZ", {}, json);
+        std::array<double, 7> values;
+        for (int i = 0; i < 7; ++i) {
+            bool ok = false;
+            values[i] = parts[i].toDouble(&ok);
+            if (!ok || !std::isfinite(values[i])) fail("wheel: geometry must be finite", {}, json);
+        }
+        if (!(values[0] > 0) || (values[4] == 0 && values[5] == 0 && values[6] == 0)) fail("wheel: positive radius and nonzero axis required", {}, json);
+        const QString name = spec.left(eq);
+        if (rotations.contains(name)) fail("wheel: duplicate wheel", {}, json);
+        rotations[name] = {{"type", "wall"}, {"motion", "rotating"}, {"angular_speed", speed / values[0]}, {"relative", false},
+                           {"axis_origin", QJsonArray{values[1], values[2], values[3]}}, {"axis_direction", QJsonArray{values[4], values[5], values[6]}}};
+    }
     QJsonArray zones, walls;
     bool inlet = false, outlet = false, wheels = false;
     for (const QJsonValue& zv : o.value("zones").toArray()) {
@@ -1362,12 +1393,18 @@ int newCase(const Args& a)
         z["role"] = roles.value(name, z.value("suggested_role").toString());
         const QString role = z.value("role").toString();
         boundaries[name] = starterBoundary(role, speed);
+        if (rotations.contains(name)) {
+            if (role != "wall") fail("wheel: must name a wall boundary zone", {}, json);
+            boundaries[name] = rotations.value(name);
+            rotations.remove(name);
+        }
         if (role == "wall") walls.append(name);
         inlet = inlet || role == "velocity-inlet";
         outlet = outlet || role == "pressure-outlet";
-        wheels = wheels || (role == "wall" && z.value("group") == "Wheels");
+        wheels = wheels || (role == "wall" && z.value("group") == "Wheels" && boundaries.value(name).toObject().value("motion") != "rotating");
         zones.append(z);
     }
+    if (!rotations.isEmpty()) fail("wheel: unknown wall boundary zone", {}, json);
     kase["boundaries"] = boundaries;
     // The CLI's notes that follow the roles, in its words (case_commands.cpp).
     QJsonArray notes;

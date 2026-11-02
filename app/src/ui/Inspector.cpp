@@ -218,9 +218,9 @@ QPushButton* rawLink(const InspectorContext& c, const QString& prefix, const QSt
 {
     const int n = rawCount(c, prefix);
     if (n == 0) return nullptr;
-    auto* b = button(QObject::tr("%1 retained Fluent settings for %2").arg(QLocale().toString(n), what), "list-filter");
+    auto* b = button(QObject::tr("%1 retained Fluent settings").arg(QLocale().toString(n)), "list-filter");
     b->setProperty("flat", true);
-    b->setToolTip(QObject::tr("Settings saved in the case that Kutta reads but does not expose as controls."));
+    b->setToolTip(QObject::tr("Retained settings for %1: saved in the case and read by Kutta, but not exposed as controls.").arg(what));
     QObject::connect(b, &QPushButton::clicked, b, [c, prefix] { c.showSettings(prefix); });
     return b;
 }
@@ -823,6 +823,18 @@ QWidget* boundary(const InspectorContext& c, const QString& zoneName)
         f->addSection(QObject::tr("Wall"));
         const QString motion = z->condition.value("wall_motion").toString();
         f->addRow(QObject::tr("Wall motion"), label(motion.isEmpty() ? QStringLiteral("—") : motion));
+        placed << prefix + "wall-motion" << prefix + "roughness-height";
+        if (motion == "rotating") {
+            placed << prefix + "rotation-speed";
+            const auto omega = z->condition.value("angular_speed");
+            f->addRow(QObject::tr("Angular speed"), label(omega.isDouble() ? formatNumber(omega.toDouble(), 6) : QStringLiteral("—")), "rad/s");
+            for (const auto& item : {std::pair{"axis_origin", QObject::tr("Axis origin")}, std::pair{"axis_direction", QObject::tr("Axis direction")}}) {
+                const auto a = z->condition.value(item.first).toArray();
+                if (a.size() == 3)
+                    f->addRow(item.second, label(QStringLiteral("(%1, %2, %3)").arg(formatNumber(a[0].toDouble(), 6), formatNumber(a[1].toDouble(), 6), formatNumber(a[2].toDouble(), 6))),
+                              QString(item.first) == "axis_origin" ? "m" : "");
+            }
+        }
         const QJsonValue rough = z->condition.value("roughness_height");
         f->addRow(QObject::tr("Roughness height"), label(rough.isDouble() ? formatNumber(rough.toDouble(), 4) : QStringLiteral("—")), "m");
         const QJsonValue vel = z->condition.value("velocity");

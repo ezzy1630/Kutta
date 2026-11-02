@@ -14,6 +14,7 @@
 #include <QHash>
 #include <QObject>
 #include <QPointer>
+#include <QTimer>
 
 #include <memory>
 #include <optional>
@@ -85,6 +86,9 @@ public:
     QString newCaseError() const { return m_draftError; }
     void setNewCaseRole(const QString& zone, const QString& role);
     void setNewCaseSpeed(double speed);
+    void setNewCaseWheel(const QString& zone, std::optional<WheelGeometry> wheel);
+    bool newCaseNotesCurrent() const { return m_notesCurrent; }
+    QString newCaseNotesError() const { return m_notesError; }
     void discardNewCase();
     // Writes the case at `outPath` (replacing it) and opens it.
     void createNewCase(const QString& outPath);
@@ -176,10 +180,15 @@ signals:
     void approvalsChanged();
     void consoleLine(kapp::ConsoleLevel level, const QString& text);
     void newCaseChanged();
+    void newCaseValuesChanged();
+    void newCaseNotesChanged();
     void caseSaved(const QString& path);
     void saveFailed(const QString& message);
 
 private:
+    CliClient::NewCaseRequest draftRequest(const QString& out = {}) const;
+    void draftEdited(bool rebuild = true);
+    void refreshDraftNotes();
     QString start(const QJsonObject& caseOverrides, const QJsonObject& runControls, const QStringList& approximations,
                   const QString& studyId);
     void startNextVariant();
@@ -224,6 +233,11 @@ private:
     std::optional<NewCaseDraft> m_draft;
     QString m_draftError;
     bool m_draftBusy = false;
+    QTimer m_notesTimer;
+    quint64 m_draftRevision = 0;
+    bool m_notesCurrent = true;
+    bool m_notesInFlight = false;
+    QString m_notesError;
     bool m_saving = false;
     int m_tableRows = 0;
     QStringList m_tableNames;

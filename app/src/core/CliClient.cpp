@@ -292,6 +292,12 @@ void CliClient::newCase(const NewCaseRequest& req, std::function<void(Result<New
     QStringList args{"new-case", req.meshPath, "--json"};
     if (req.speed > 0) args << "--speed" << QString::number(req.speed, 'g', 17);
     for (auto it = req.roles.begin(); it != req.roles.end(); ++it) args << "--role" << it.key() + "=" + it.value();
+    for (auto it = req.wheels.begin(); it != req.wheels.end(); ++it) {
+        QStringList values{QString::number(it->radius, 'g', 17)};
+        for (double x : it->centre) values << QString::number(x, 'g', 17);
+        for (double x : it->axis) values << QString::number(x, 'g', 17);
+        args << "--wheel" << it.key() + "=" + values.join(',');
+    }
     if (!req.out.isEmpty()) args << "--out" << req.out << "--force";
     run(args, [done](int code, const QByteArray& out, const QByteArray& err) {
         // Exit 2 is a usage error: a CLI from before new-case.

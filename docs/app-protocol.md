@@ -49,6 +49,10 @@ correction", `ke-options` "Documented k-epsilon only", `reverse-flow` "No
 reverse-flow suppression". Each entry of `summary.json`'s `approximations`
 carries the same `short`.
 
+Rotating walls additionally carry `condition.angular_speed` (rad/s),
+`condition.axis_origin` (metres) and `condition.axis_direction` (v1 additive).
+Unknown values are null; older CLIs may omit them.
+
 Every command that takes a case also takes a Kutta case, `*.kutta.json` (a
 mesh plus a JSON setup, [docs/kutta-case.md](kutta-case.md)). For a Kutta case
 `file` gains (v1 additive) `"format":"kutta"` (`"fluent"` otherwise),

@@ -99,6 +99,7 @@ public:
         double speed = 0;  // 0: the template's default
         QMap<QString, QString> roles;
         QString out;
+        QMap<QString, WheelGeometry> wheels;
     };
     void newCase(const NewCaseRequest& req, std::function<void(Result<NewCaseDraft>)> done);
     // The case's settings, with the setup file's overrides applied, written as

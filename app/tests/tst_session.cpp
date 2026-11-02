@@ -457,9 +457,7 @@ private slots:
         QVERIFY(s.settings()->caseOverrides().contains("boundary/outlet/gauge-pressure"));
     }
 
-    // A 3D starter with wheels (the fixture's synthetic car mesh): wheels are
-    // grouped, stay walls, and the CLI's note says they will not turn until the
-    // case gives them rotating walls.
+    // Current-role notes and explicit wheel geometry survive the CLI round trip.
     void newCaseNotesStationaryWheels()
     {
         CliInfo cli;
@@ -486,13 +484,59 @@ private slots:
         QCOMPARE(wheels, (QStringList{"tyre-front=wall", "tyre-rear=wall"}));
         QVERIFY(wheelNote());
 
+        s.setNewCaseRole("inlet", "wall");
+        QTRY_VERIFY_WITH_TIMEOUT(s.newCaseDraft()->notes.join(' ').contains("No zone is a velocity inlet"), 5000);
+        s.setNewCaseRole("inlet", "velocity-inlet");
+        QTRY_VERIFY_WITH_TIMEOUT(!s.newCaseDraft()->notes.join(' ').contains("No zone is a velocity inlet"), 5000);
+        QTRY_VERIFY_WITH_TIMEOUT(s.newCaseNotesCurrent(), 5000);
+        QVERIFY(!s.newCaseDraft()->notes.join(' ').contains("No zone is a velocity inlet"));
+
+        WheelGeometry wheel{0, {0.8, 0.6, 0.23}, {0, 1, 0}};
+        s.setNewCaseWheel("tyre-front", wheel);
+        QVERIFY(!s.newCaseDraft()->wheelError().isEmpty());
+        const QString out = m_dir.filePath("cases/car.kutta.json");
+        s.createNewCase(out);
+        QVERIFY(!QFileInfo::exists(out));
+        QVERIFY(s.newCaseError().contains("radius"));
+        wheel.radius = 0.23;
+        wheel.axis = {0, 0, 0};
+        s.setNewCaseWheel("tyre-front", wheel);
+        QVERIFY(s.newCaseDraft()->wheelError().contains("cannot be zero"));
+        wheel.axis = {0, 2, 0};  // either axle sign must roll with the ground
+        s.setNewCaseWheel("tyre-front", wheel);
+        wheel.centre = {2, -0.6, 0.23};
+        s.setNewCaseWheel("tyre-rear", wheel);
+        s.setNewCaseSpeed(23);
+        QTRY_VERIFY_WITH_TIMEOUT(s.newCaseNotesCurrent(), 5000);
+        QVERIFY(!wheelNote());
+
+        // A temporary role change cannot leave hidden wheel motion behind.
+        s.setNewCaseRole("tyre-rear", "symmetry");
+        QVERIFY(!s.newCaseDraft()->zone("tyre-rear")->wheel);
+        s.setNewCaseRole("tyre-rear", "wall");
+        s.setNewCaseWheel("tyre-rear", wheel);
+        QTRY_VERIFY_WITH_TIMEOUT(s.newCaseNotesCurrent(), 5000);
+        QSignalSpy notes(&s, &Session::newCaseNotesChanged);
+        QTest::qWait(650);
+        QCOMPARE(notes.count(), 0);  // no repeating refresh while idle
+
         // The starter opens as a Kutta case on the synthetic car.
         QSignalSpy opened(&s, &Session::caseOpened);
-        s.createNewCase(m_dir.filePath("cases/car.kutta.json"));
+        s.createNewCase(out);
         QVERIFY(opened.wait(20000));
         QVERIFY(s.caseSummary().kuttaCase());
         QVERIFY(s.caseSummary().synthetic);
         QCOMPARE(s.caseSummary().zone("tyre-rear")->type, QString("wall"));
+        for (const auto* name : {"tyre-front", "tyre-rear"}) {
+            const auto condition = s.caseSummary().zone(name)->condition;
+            QCOMPARE(condition.value("wall_motion").toString(), QString("rotating"));
+            QCOMPARE(condition.value("angular_speed").toDouble(), 100.0);
+            QCOMPARE(condition.value("axis_direction").toArray(), (QJsonArray{0, -1, 0}));
+        }
+        s.startNewCase(mesh);
+        s.discardNewCase();
+        QTest::qWait(500);
+        QVERIFY(!s.newCaseDraft());  // late replies cannot resurrect a discarded draft
     }
 
     void missingMeshSaysSo()
