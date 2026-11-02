@@ -44,6 +44,7 @@ struct Options {
   // Fluent's gradient limiter (SolverSettings::limiter); it changes the fixed point.
   Limiter limiter = Limiter::Standard;
   double limiter_coefficient = .05;
+  PressureInterpolation pressure_interpolation = PressureInterpolation::SecondOrder;
   // Convergence-path controls only; they do not change the steady fixed point.
   // Relaxation 0 takes the scheme's Fluent default: SIMPLEC momentum 0.7 and
   // pressure 1.0 (implicit), Coupled 0.5 and 0.5 (pseudo-transient explicit
@@ -169,6 +170,7 @@ inline Result run(Device& dev, const Options& o) {
   if (o.coupled) s.coupling = PressureVelocityCoupling::Coupled;
   s.limiter = o.limiter;
   s.limiter_coefficient = o.limiter_coefficient;
+  s.pressure_interpolation = o.pressure_interpolation;
   s.pseudo_time_step = o.pseudo_time_step;
   s.pseudo_time_scale = o.pseudo_time_scale;
   s.momentum_relaxation = o.momentum_relaxation > 0 ? o.momentum_relaxation : o.coupled ? .5 : .7;

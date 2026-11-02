@@ -34,6 +34,9 @@ int main(int argc, char** argv) {
     KUTTA_REQUIRE(limiter == "standard" || limiter == "differentiable", "--limiter is standard or differentiable");
     o.limiter = limiter == "standard" ? fv::Limiter::Standard : fv::Limiter::Differentiable;
     o.limiter_coefficient = number("--limiter-coefficient", o.limiter_coefficient);
+    const auto pressure_scheme = text("--pressure-scheme", "second-order");
+    KUTTA_REQUIRE(pressure_scheme == "standard" || pressure_scheme == "second-order", "--pressure-scheme is standard or second-order");
+    o.pressure_interpolation = pressure_scheme == "standard" ? fv::PressureInterpolation::Standard : fv::PressureInterpolation::SecondOrder;
     o.output = text("--out");
     o.reynolds = number("--re", 0);
     o.length = number("--length", 1);
@@ -67,7 +70,7 @@ int main(int argc, char** argv) {
     auto dev = Device::create(backend == "cpu" ? Backend::Cpu : backend == "metal" ? Backend::Metal : Backend::Cuda);
     const auto r = run(*dev, o);
     std::cout << "RESULT {\"source\":\"" << KUTTA_BENCH_COMMIT << "\",\"device\":\"" << dev->name() << "\",\"backend\":\"" << backend
-              << "\",\"result\":";
+              << "\",\"pressure_scheme\":\"" << pressure_scheme << "\",\"result\":";
     print(std::cout, r);
     std::cout << "}\n";
     return r.failure.empty() ? 0 : 2;

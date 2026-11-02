@@ -23,15 +23,20 @@ def main():
     ap.add_argument('--out', required=True, type=pathlib.Path)
     ap.add_argument('--limiter', choices=['standard', 'differentiable'], default='standard')
     ap.add_argument('--coupled', action='store_true')
+    ap.add_argument('--pressure-scheme', choices=['second-order', 'standard'])
+    ap.add_argument('--executable', type=pathlib.Path, default=pathlib.Path('build/bench_fsae_aero'))
     a = ap.parse_args()
     meta = json.loads(pathlib.Path(str(a.mesh) + '.json').read_text())
     a.out.mkdir(parents=True, exist_ok=True)
-    command = ['build/bench_fsae_aero', '--mesh', str(a.mesh), '--backend', 'metal',
+    command = [str(a.executable), '--mesh', str(a.mesh), '--backend', 'metal',
                '--re', '2.78e6', '--length', '1.044', '--area', '0.112032', '--walls', 'body',
                '--lift-z', '--tu', '0.01', '--window', '1000', '--iterations', '5000', '--cells',
                '--limiter', a.limiter, '--out', str(a.out)]
     if a.coupled:
         command.append('--coupled')
+    if a.pressure_scheme:
+        command += ['--pressure-scheme', a.pressure_scheme]
+    binary_sha256 = hashlib.sha256((ROOT / a.executable).read_bytes()).hexdigest()
     env = dict(os.environ, MallocSpaceEfficient='1')
     with (a.out / 'solve.log').open('w') as log:
         proc = subprocess.run(['/usr/bin/time', '-l'] + command, cwd=ROOT, env=env,
@@ -47,9 +52,13 @@ def main():
     r.update(command=command, mesh=meta, mesh_sha256=hashlib.sha256(a.mesh.read_bytes()).hexdigest(),
              case='ahmed', point=str(meta['slant_deg']), level=meta['level'],
              backend='metal', limiter=a.limiter, coupled=a.coupled, exit=proc.returncode,
+             binary_sha256=binary_sha256, pressure_scheme_requested=a.pressure_scheme,
+             configuration_verified=a.pressure_scheme is None or r.get('pressure_scheme') == a.pressure_scheme,
              peak_footprint_bytes=int(footprint[1]))
     (a.out / 'result.json').write_text(json.dumps(r, indent=2) + '\n')
     print(json.dumps(r, indent=2))
+    if not r['configuration_verified']:
+        raise RuntimeError('benchmark did not confirm the requested pressure scheme; use a freshly built executable')
     if proc.returncode:
         raise SystemExit(proc.returncode)
     if r['peak_footprint_bytes'] > 3e9:

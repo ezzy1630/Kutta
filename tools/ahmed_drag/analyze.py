@@ -95,6 +95,8 @@ def velocity_errors(cells, slant):
 
 def summarize(path):
     r = json.loads((path / 'result.json').read_text())
+    if r.get('configuration_verified') is False:
+        raise ValueError(f'unconfirmed benchmark configuration in {path.name}')
     r['dir'] = path
     res = r['result']
     if res['failure']:
@@ -155,6 +157,9 @@ def summarize(path):
            'yplus_mean': res['yplus_mean'], 'yplus_max': res['yplus_max'],
            'topology': report.centreline_topology(w, slant),
            'reversed_slant_fraction': report.separated_fraction(w, slant)}
+    for key in ('binary_sha256', 'pressure_scheme', 'configuration_verified'):
+        if key in r:
+            row[key] = r[key]
     if (path / 'cells.csv').exists():
         cells = np.genfromtxt(path / 'cells.csv', delimiter=',', names=True)
         row['velocity'] = velocity_errors(cells, slant)

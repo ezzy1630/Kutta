@@ -1,6 +1,8 @@
 """Analytic extrapolation checks; no restricted fixtures or CFD runs."""
 import pathlib
+import json
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -11,6 +13,13 @@ import analyze
 
 
 class AnalysisTest(unittest.TestCase):
+    def test_rejects_unconfirmed_configuration_before_reading_fields(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = pathlib.Path(directory)
+            (path / 'result.json').write_text(json.dumps({'configuration_verified': False}))
+            with self.assertRaises(ValueError):
+                analyze.summarize(path)
+
     def test_pressure_errors_use_common_taps(self):
         rows = [{'run': name, 'mesh': {'slant_deg': 35.0}, 'cp': {}} for name in ('coarse', 'fine')]
         def comparison(path, angle):
