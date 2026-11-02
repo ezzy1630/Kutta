@@ -35,8 +35,18 @@ int main(int argc,char** argv) {
   std::map<std::pair<Index,Index>,double> fluent_flux;std::map<std::pair<Index,Index>,int> multiplicity;
   const bool compare_flux=std::string_view(argv[2])!="-";
   if(compare_flux) {
-    std::ifstream in(argv[2]);std::size_t n=0;Index cells=0;in>>n>>cells;KUTTA_REQUIRE(in && cells==mesh.n_cells,"flux dump cell count");
-    for(std::size_t j=0;j<n;++j) {Index a,b;double f;in>>a>>b>>f;const auto key=std::minmax(a,b);fluent_flux[key]=a<b?f:-f;++multiplicity[key];}
+    std::ifstream in(argv[2]);std::size_t n=0;Index cells=0;in>>n>>cells;
+    KUTTA_REQUIRE(in && cells==mesh.n_cells && n==std::size_t(mesh.n_internal_faces()),"flux dump cell/face count");
+    for(std::size_t j=0;j<n;++j) {
+      Index a,b;double f;
+      KUTTA_REQUIRE(bool(in>>a>>b>>f),"Incomplete or malformed flux dump row "+std::to_string(j));
+      KUTTA_REQUIRE(a>=0 && a<cells && b>=0 && b<cells && a!=b && std::isfinite(f),"Invalid flux dump row "+std::to_string(j));
+      const auto key=std::minmax(a,b);fluent_flux[key]=a<b?f:-f;++multiplicity[key];
+    }
+    in>>std::ws;KUTTA_REQUIRE(in.eof(),"Unexpected trailing flux dump data");
+    std::map<std::pair<Index,Index>,int> expected;
+    for(Index f=0;f<mesh.n_internal_faces();++f) ++expected[std::minmax(mesh.owner[f],mesh.neighbour[f])];
+    KUTTA_REQUIRE(multiplicity==expected,"Flux dump face adjacency coverage differs from the source mesh");
   }
   const auto g=compute_geometry(mesh);
   std::vector<int> faces_per_cell(mesh.n_cells,0);
