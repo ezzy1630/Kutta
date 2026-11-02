@@ -431,3 +431,28 @@ TEST_CASE("FV constitutive derivatives retain a subulp physical velocity variati
     }
   }
 }
+
+TEST_CASE("FV paired pressure preserves the poor interface cell mean") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto owner=dev->upload<Index>(std::vector<Index>{0}),neighbor=dev->upload<Index>(std::vector<Index>{1});
+    auto kind=dev->upload<Index>(std::vector<Index>{1}),poor=dev->alloc<Index>(2);
+    auto px=dev->upload<float>(std::vector<float>{.25f}),nx=dev->upload<float>(std::vector<float>{-.75f});
+    auto pressure=dev->upload<float>(std::vector<float>{1,2}),gradient=dev->upload<float>(std::vector<float>{1,2});
+    auto zero=dev->alloc<float>(2),diagonal=dev->alloc<float>(2),low=dev->alloc<float>(2);
+    auto face=dev->alloc<float>(1),face_low=dev->alloc<float>(1),reference=dev->alloc<float>(1);
+    dev->fill(zero,0);dev->fill(diagonal,1);
+    for(const auto& flags:std::vector<std::vector<Index>>{{1,0},{0,1}}) {
+      dev->upload<Index>(poor,flags);dev->fill(low,0);dev->fill(reference,0);
+      kern::fv_poor_pressure_interfaces(*dev,1,owner,neighbor,poor,pressure,reference);
+      for(bool carry:{false,true}) {
+        if(carry) dev->upload<float>(low,std::vector<float>{std::ldexp(1.f,-28),-std::ldexp(1.f,-29)});
+        kern::fv_paired_pressure_faces(*dev,1,owner,neighbor,kind,poor,px,zero,zero,nx,zero,zero,
+          pressure,low,gradient,zero,zero,zero,zero,zero,zero,zero,diagonal,face,face_low,1,0);
+        const double expected=double(dev->download(reference)[0])+(carry?std::ldexp(1.,-30):0);
+        // A mixed interface omits both extrapolations, including the good
+        // cell's gradient, while retaining the complete pressure pair.
+        CHECK(double(dev->download(face)[0])+dev->download(face_low)[0]==expected);
+      }
+    }
+  }
+}

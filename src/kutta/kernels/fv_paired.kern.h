@@ -110,8 +110,11 @@ KUTTA_KERNEL void fv_paired_pressure_faces(int i,KIn(int) owner,KIn(int) neighbo
       numerator=kpair_product_add(numerator,-q,denominator.lo);
       value=ktwo_sum(q,(numerator.hi+numerator.lo)/denominator.hi);
     } else {
-      kpair own=poor[c]?ktwo_sum(p[c],low[c]):kpair_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
-      kpair next=poor[n]?ktwo_sum(p[n],low[n]):kpair_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],nx[i],ny[i],nz[i]);
+      // Match fv_poor_pressure_interfaces: a mixed interface omits both
+      // extrapolations, including the good cell's tangential gradient.
+      int low_order=poor[c] || poor[n];
+      kpair own=low_order?ktwo_sum(p[c],low[c]):kpair_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
+      kpair next=low_order?ktwo_sum(p[n],low[n]):kpair_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],nx[i],ny[i],nz[i]);
       value=ktwo_sum(0.5f*own.hi,0.5f*next.hi);
       value=ktwo_sum(value.hi,value.lo+0.5f*own.lo+0.5f*next.lo);
     }
