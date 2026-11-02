@@ -138,8 +138,11 @@ def summarize(path):
            'mesh_sha256': r['mesh_sha256'], 'backend': r['backend'], 'command': command,
            'peak_gb': r['peak_footprint_bytes'] / 1e9, 'iterations': res['iterations'],
            'residuals_met': res['residuals_met'], 'settled': res['settled'],
+           'settle_lift': res['settle_lift'], 'settle_drag': res['settle_drag'],
            'max_residual': res['max_residual'], 'cd_final': res['drag'],
            'cd_mean_last2000': float(tail['drag'].mean()),
+           'pressure_mean_last2000': float(tail['drag_pressure'].mean()),
+           'friction_mean_last2000': float((tail['drag'] - tail['drag_pressure']).mean()),
            'cd_range_last2000': [float(tail['drag'].min()), float(tail['drag'].max())],
            'cd_last1000': float(tail['drag'][tail['iteration'] > h['iteration'][-1] - 1000].mean()),
            'pressure_final': res['drag_pressure'], 'friction_final': res['drag'] - res['drag_pressure'],
@@ -152,6 +155,23 @@ def summarize(path):
     if (path / 'cells.csv').exists():
         cells = np.genfromtxt(path / 'cells.csv', delimiter=',', names=True)
         row['velocity'] = velocity_errors(cells, slant)
+        if (path / 'owners.csv').exists():
+            owners = np.genfromtxt(path / 'owners.csv', delimiter=',', names=True)
+            coordinates = lambda data, names: np.column_stack([data[name] for name in names])
+            face_distance, face_idx = cKDTree(coordinates(owners, ('x', 'y', 'z'))).query(
+                coordinates(w, ('x', 'y', 'z')))
+            owner_distance, cell_idx = cKDTree(coordinates(cells, ('x', 'y', 'z'))).query(
+                coordinates(owners, ('owner_x', 'owner_y', 'owner_z'))[face_idx])
+            # CSV fields have nine significant digits; this is a coordinate
+            # identity check, not an adjustable CFD-accuracy threshold.
+            if max(face_distance.max(), owner_distance.max()) > 1e-8:
+                raise ValueError(f'wall/cell centroid identity mismatch in {path.name}')
+            owner_force = 2 * cells['p'][cell_idx] * w['nx'] * w['area'] / area
+            row['owner_pressure_diagnostic'] = {
+                'max_coordinate_mismatch_m': float(max(face_distance.max(), owner_distance.max())),
+                'components_using_owner_pressure': {name: float(owner_force[mask].sum())
+                                                     for name, mask in regions.items()},
+                'slant_leading_40mm_using_owner_pressure': float(owner_force[bands['slant_leading_40mm']].sum())}
     return row
 
 
