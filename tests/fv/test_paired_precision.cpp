@@ -3,6 +3,9 @@
 #include "kutta/io/mesh_io.hpp"
 #include "kernels.hpp"
 
+#include <cmath>
+#include <vector>
+
 using namespace kutta;
 using namespace kutta::fv;
 
@@ -84,5 +87,60 @@ TEST_CASE("FV pressure jump retains curvature below one pressure ulp") {
       // Adding a pressure gauge offset must preserve the curvature jump.
       CHECK(std::abs(double(dev->download(jump)[0])+std::ldexp(1.,-31))<1e-14);
     }
+  }
+}
+
+TEST_CASE("FV paired momentum boundary preserves a constant advected diffused field") {
+  auto host=make_box_hex(1,1,1,{0,0,0},{1,1,1});const auto geometry=compute_geometry(host);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto mesh=upload_mesh(*dev,host,geometry);auto stencil=make_stencil(*dev,host,geometry);
+    TransportEquation equation(*dev,mesh,stencil,host,geometry);equation.enable_compensated_assembly();
+    auto q=dev->alloc<float>(1),zero=dev->alloc<float>(1),defect=dev->alloc<float>(1);
+    auto boundary=dev->alloc<float>(6);auto kind=dev->alloc<Index>(6);
+    std::vector<float> flux_values(6,0),mu_values(6,0);
+    flux_values[0]=-std::ldexp(1.f,-25);flux_values[1]=-flux_values[0];mu_values[0]=.5f;
+    auto flux=dev->upload<float>(flux_values),mu=dev->upload<float>(mu_values);
+    dev->fill(zero,0);dev->fill(kind,0);
+    for(float constant:{1.f,.1f}) {
+      dev->fill(q,constant);dev->fill(boundary,constant);
+      TransportSettings settings;settings.pseudo_time_step=1;settings.relaxation=.7f;
+      equation.assemble(q,boundary,kind,flux,mu,zero,settings);
+      kern::fv_paired_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
+        equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,zero,zero,mesh.volume,
+        equation.rhs,equation.rhs_low(),defect);
+      // Constant scalar, zero source and balanced mass flux: neither diffusion
+      // nor advection can produce a physical defect, however different D and F.
+      CHECK(dev->max_abs(defect,1)<1e-12);
+    }
+  }
+}
+
+TEST_CASE("FV compensated source retains cancellation with an integrated RHS") {
+  auto host=make_box_hex(1,1,1,{0,0,0},{1-std::ldexp(1.,-13),1,1});const auto geometry=compute_geometry(host);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto mesh=upload_mesh(*dev,host,geometry);auto stencil=make_stencil(*dev,host,geometry);
+    TransportEquation equation(*dev,mesh,stencil,host,geometry);equation.enable_compensated_assembly();
+    auto q=dev->alloc<float>(1),source=dev->alloc<float>(1),extra=dev->alloc<float>(1),defect=dev->alloc<float>(1);
+    auto boundary=dev->alloc<float>(6),flux=dev->alloc<float>(6),mu=dev->alloc<float>(6);auto kind=dev->alloc<Index>(6);
+    const float value=1+std::ldexp(1.f,-13);
+    dev->fill(q,0);dev->fill(source,value);dev->fill(extra,-1);
+    dev->fill(boundary,0);dev->fill(flux,0);dev->fill(mu,0);dev->fill(kind,1);
+    TransportSettings settings;settings.pseudo_time_step=1;
+    equation.assemble(q,boundary,kind,flux,mu,source,settings,{nullptr,nullptr,&extra});
+    kern::fv_paired_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
+      equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,q,q,mesh.volume,
+      equation.rhs,equation.rhs_low(),defect);
+    const double expected=double(value)*double(dev->download(mesh.volume)[0])-1;
+    REQUIRE(std::abs(expected)>1e-10);
+    CHECK(std::abs(double(dev->download(defect)[0])-expected)<1e-13);
+    dev->fill(q,1);
+    equation.assemble(q,boundary,kind,flux,mu,source,settings,{&source});
+    auto zero=dev->alloc<float>(1);dev->fill(zero,0);
+    kern::fv_paired_momentum_residual(*dev,1,equation.matrix.row_ptr,equation.matrix.col,
+      equation.matrix.val,equation.matrix.diag,equation.diagonal,equation.diagonal_low(),q,zero,zero,mesh.volume,
+      equation.rhs,equation.rhs_low(),defect);
+    // Equal production and reaction at q=1 cancel even when their products
+    // with cell volume do not fit in a single float.
+    CHECK(dev->max_abs(defect,1)<1e-12);
   }
 }

@@ -31,12 +31,16 @@ KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,
     KIn(float) sink,KIn(float) extra_diagonal,KIn(float) extra_rhs,
     KOut(float) values, KOut(float) rhs,KOut(float) rhs_low, KOut(float) diagonal,KOut(float) diagonal_low,
     KOut(float) consistent_inverse, int internal, float rho, float dt, float relax,int compensated) {
-  kupper_sum ap={sink[i]*volume[i],0.0f};ap=kupper_add(ap,extra_diagonal[i]);
+  float sink_product=sink[i]*volume[i];
+  kupper_sum ap={sink_product,0.0f};ap=kupper_add(ap,extra_diagonal[i]);
   float b=source[i]*volume[i]+extra_rhs[i];
   float error=0.0f;
   if(compensated) {
     float product=source[i]*volume[i];
-    error=ktwo_sum(product,extra_rhs[i]).lo+kfma(source[i],volume[i],-product);
+    // Keep the high word consistent with its carry; a fused initial sum
+    // would already include the multiplication error retained below.
+    kpair initial=ktwo_sum(product,extra_rhs[i]);
+    b=initial.hi;error=initial.lo+kfma(source[i],volume[i],-product);
   }
   for(int j=offsets[i];j<offsets[i+1];++j) if(adjacent[j]>=0) values[entry[j]]=0.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
@@ -56,14 +60,16 @@ KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,
       // backflow is on the RHS and uses the same upwind sign as an inlet.
       ap=kupper_add(ap,D);ap=kupper_add(ap,-kmin(F,0.0f));
       if(compensated) {
-        float factor=D-kmin(F,0.0f),product=factor*boundary[bf];
-        error+=ktwo_sum(b,product).lo+kfma(factor,boundary[bf],-product);
-        b+=product;
+        kpair factor=ktwo_sum(D,-kmin(F,0.0f));
+        float product=factor.hi*boundary[bf];
+        kpair sum=ktwo_sum(b,product);
+        error+=sum.lo+kfma(factor.hi,boundary[bf],-product)+factor.lo*boundary[bf];
+        b=sum.hi;
       } else b+=(D-kmin(F,0.0f))*boundary[bf];
     }
     float secondary=sign[j]*correction[f];
-    if(compensated) error+=ktwo_sum(b,secondary).lo;
-    b+=secondary;
+    if(compensated) {kpair sum=ktwo_sum(b,secondary);error+=sum.lo;b=sum.hi;}
+    else b+=secondary;
   }
   for(int j=rows[i];j<rows[i+1];++j) if(j!=diag[i]) ap=kupper_add(ap,-values[j]);
   float physical=kupper_value(ap);
@@ -72,15 +78,16 @@ KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,
   // row surplus is not physical reaction: retain it for the paired residual.
   if(compensated) {
     kpair difference=ktwo_sum(ap.sum,-physical);
-    diagonal_low[i]=difference.hi+(difference.lo+ap.error);
+    diagonal_low[i]=difference.hi+(difference.lo+ap.error+kfma(sink[i],volume[i],-sink_product));
   }
   float time=dt>0.0f?rho*volume[i]/dt:0.0f;
   float relaxed=kadd_up(physical,time)/relax;
   if(compensated) {
-    float factor=relaxed-physical,product=factor*old[i];
-    error+=ktwo_sum(b,product).lo+kfma(factor,old[i],-product)
-      +ktwo_sum(relaxed,-physical).lo*old[i];
-    b+=product;
+    kpair factor=ktwo_sum(relaxed,-physical);
+    float product=factor.hi*old[i];
+    kpair sum=ktwo_sum(b,product);
+    error+=sum.lo+kfma(factor.hi,old[i],-product)+factor.lo*old[i];
+    b=sum.hi;
   } else b+=(relaxed-physical)*old[i];
   values[diag[i]]=relaxed; rhs[i]=b;
   if(compensated) rhs_low[i]=error;
