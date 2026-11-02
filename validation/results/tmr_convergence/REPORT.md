@@ -1,0 +1,622 @@
+# NASA TMR convergence investigation
+
+This work is incomplete. The final source is `d823d6e`. Its quick tier passes
+299 cases and 7,457,758 assertions, but the user interruption stopped its slow
+run after 23 of 37 cases. Twenty of 24 TMR solves completed: seven converged,
+13 failed convergence, and four were not completed. No complete regression
+comparison exists for this final source.
+
+The preceding source `86a665a` completed the entire slow tier. TMR failures
+fell from 28 to 17, and total slow failures from 62 to 51. It recovered all
+four accuracy assertions and seven convergence assertions, with zero
+regressions against main. Those complete results belong to `86a665a`.
+They are not substituted for the unfinished validation of `d823d6e`.
+
+## Protocol and provenance
+
+The starting revision is main `8866cc0e16df5b0642b2243611099ddccd7f3cd3`.
+The final solver source is `d823d6e9c7675aecd10eb74dbd983b6e3206ebde`,
+built from main in twelve focused local commits, including the comparison-tool correction. The report commit changes documentation only. The binary and XML hashes are recorded below. The final slow XML is incomplete.
+The machine is an Apple M4 Pro with 24 GB unified memory. CPU is the serial
+reference backend and Metal uses the actual GPU. This lane runs one heavy
+solve at a time. Shared-machine wall times are not performance evidence.
+
+Every NASA grid/backend keeps its 3,000-step outer budget. Uniform initialization,
+meshes, freestream data, turbulence formulations, first-order turbulence
+advection, second-order momentum/pressure reconstruction, boundaries,
+reference values, and all convergence/accuracy gates are retained. No
+reference field seeds a run. No assertion is removed, weakened or skipped.
+
+The completed coordinator baseline on exact main supplies all 24 target
+solves, each at 3,000 steps. This lane also ran a partial exact-main target
+reproduction before that full baseline became available. None converged. The
+full baseline has 28 failing target assertions: 24 convergence and four
+aft-bump Cf accuracy assertions. Every failure is enumerated below.
+All `failure.empty()`, finite-value and load-availability assertions pass;
+there is no reproduced coarse-grid divergence on current main.
+
+| Model/case | Backend | Level | Continuity | Largest transport defect | Load change | Classification of failed convergence assertion |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| SST plate | cpu | 0 | 0.0001487815 | 3.478709e-07 | 2.61297e-07 | Continuity floor; loads settled |
+| SST plate | cpu | 1 | 0.0004876112 | 1.48377e-07 | 7.114497e-08 | Continuity floor; loads settled |
+| SST plate | cpu | 2 | 0.007514194 | 8.368414e-08 | 7.325466e-07 | Continuity floor; loads settled |
+| SST plate | metal | 0 | 0.0001835793 | 3.384738e-07 | 4.203027e-07 | Continuity floor; loads settled |
+| SST plate | metal | 1 | 0.0004031023 | 1.404783e-07 | 0 | Continuity floor; loads settled |
+| SST plate | metal | 2 | 0.005696822 | 8.21644e-08 | 1.662186e-06 | Continuity floor; loads settled |
+| SST bump | cpu | 0 | 2.269245e-05 | 0.000208247 (progress maximum) | 0.0002074413 | Continuity and turbulence plateau |
+| SST bump | cpu | 1 | 1.549432e-05 | 3.567575e-05 (progress maximum) | 0.0001271153 | Continuity and turbulence plateau |
+| SST bump | cpu | 2 | 1.654531e-05 | 0.0001197847 (progress maximum) | 0.0123655 | Slow convergence: loads and transport unresolved |
+| SST bump | metal | 0 | 3.513322e-05 | 0.0002082479 (progress maximum) | 9.510323e-05 | Continuity and turbulence plateau |
+| SST bump | metal | 1 | 2.633376e-05 | 3.56816e-05 (progress maximum) | 0.0001055961 | Continuity and turbulence plateau |
+| SST bump | metal | 2 | 1.397719e-05 | 0.0001197803 (progress maximum) | 0.01236376 | Slow convergence: loads and transport unresolved |
+| SA plate | cpu | 0 | 0.0002559519 | 8.825898e-06 | 4.60888e-07 | Continuity floor; loads settled |
+| SA plate | cpu | 1 | 0.0006237517 | 9.858658e-06 | 3.406633e-08 | Continuity floor; loads settled |
+| SA plate | cpu | 2 | 0.006870226 | 6.943274e-06 | 4.694171e-06 | Continuity floor; loads settled |
+| SA plate | metal | 0 | 0.0003023776 | 7.153247e-06 | 1.539584e-07 | Continuity floor; loads settled |
+| SA plate | metal | 1 | 0.0004093038 | 9.564456e-06 | 1.105921e-07 | Continuity floor; loads settled |
+| SA plate | metal | 2 | 0.005286517 | 6.710996e-06 | 5.631781e-06 | Continuity floor; loads settled |
+| SA bump | cpu | 0 | 3.560498e-05 | 0.0007388555 | 0.0003563521 | Continuity and turbulence plateau |
+| SA bump | cpu | 1 | 1.393743e-05 | 0.0002499332 | 0.0001048261 | Continuity and turbulence plateau |
+| SA bump | cpu | 2 | 2.786607e-05 | 0.0002351986 | 0.01228497 | Slow convergence: loads and transport unresolved |
+| SA bump | metal | 0 | 3.013505e-05 | 0.0007388047 | 0.0007059305 | Continuity and turbulence plateau |
+| SA bump | metal | 1 | 2.966741e-05 | 0.0002499212 | 0.00013187 | Continuity and turbulence plateau |
+| SA bump | metal | 2 | 1.204483e-05 | 0.0002351449 | 0.01228709 | Slow convergence: loads and transport unresolved |
+
+For SST bump, the CPU maximum transport/progress defects at levels 0/1/2
+are approximately 2.08247e-4 / 3.56757e-5 / 1.19785e-4. The fine-grid
+load change is about 1.24%, exceeding 0.1%. These runs combine a residual
+plateau with incomplete load convergence; the mechanism of each plateau
+has not been isolated. A continuity floor is observed, but its entire cause
+is not established.
+
+| Additional failing accuracy assertion | Before relative Cf error | Frozen maximum | Classification |
+| --- | ---: | ---: | --- |
+| SST bump, CPU, level 2, x=0.8678025 | 0.145326 | 0.10 | Accuracy on an unconverged field |
+| SST bump, Metal, level 2, x=0.8678025 | 0.145348 | 0.10 | Accuracy on an unconverged field |
+| SA bump, CPU, level 2, x=0.8678025 | 0.149930 | 0.10 | Accuracy on an unconverged field |
+| SA bump, Metal, level 2, x=0.8678025 | 0.149882 | 0.10 | Accuracy on an unconverged field |
+
+All other target Cf, CD, Cp and three-grid-trend assertions pass on main.
+Passing accuracy at an unconverged endpoint is not verification acceptance.
+
+## Retained changes
+
+`SolverSettings::compensated_momentum` preserves the momentum RHS sum/product
+remainders, the under-relaxation subtraction remainder, and the difference
+between the physical diagonal sum and its positive upward-rounded matrix
+coefficient. The paired defect uses these low words. The stored positive
+linear operator stays unchanged. The same option computes the existing
+bounded Rhie-Chow pressure jump after cancelling the common cell pressure,
+rather than subtracting two already-rounded reconstructed traces.
+
+The option defaults off. `paired_state_slack_ulps` defaults to the previous
+one feeding-scale epsilon. The SST and SA TMR setups opt into compensation,
+16-epsilon high-word hysteresis, and momentum/pressure inner absolute
+tolerances of `1e-20`. Relative tolerances and linear iteration limits stay
+unchanged. The hysteresis retains low-word corrections while allowing the
+high-word nonlinear coefficients to settle. It is a numerical setting, not
+a change to the outer residual gate. Other case setups keep their prior
+settings. The bump setup uses fixed flow pseudo-time .1 and momentum
+relaxation .7, compared with .01 and .5 on main; pressure relaxation remains
+.3. These change the iteration, not the steady spatial equation.
+
+The precision path also evaluates the same low-word pressure, velocity,
+projected/secondary diffusion, deferred advection, transpose-stress and wall
+operators as the high word. Flux normalization retains products between
+low flux and low velocity. Physical low-state reaction is evaluated directly,
+instead of subtracting two large rounded pseudo-time products. Green–Gauss
+force accumulation carries the high-word product/sum errors as well as low
+face pressures. Prescribed low boundary values are zero; symmetry projects
+the low velocity. Normal backflow selects its direction from the physical flux sign
+and its incremental speed from the low flux. The compensated flux high word
+is rebased when necessary to preserve that sign.
+
+Two later checks corrected the nonlinear limiter treatment. An intermediate
+full-low-word prototype bounded the high and low projected face fields
+independently. With high reconstruction 1.5 inside [1,2], and a cloud low
+perturbation 2^-20, it returned a low increment 2^-20 instead of the correct
+4*2^-20. The complete reconstruction stays inside [1,2]; clipping its
+increment loses 2.86102295e-6. `momentum_increment` now bounds the total pair
+and subtracts the high reconstruction. Walk-cloud extrema retain point
+identities, including prescribed boundary points, so an active bound carries
+the low word of the actual extremum.
+
+The cell limiter also used paired extrema with only the high gradient.
+A local extremum carried entirely in the low gradient incorrectly received
+limiter 1 instead of 0. The precision path now uses both gradients and the
+actual low boundary observations. This includes projected symmetry data,
+which need not equal the owner's low component. Both fixes leave the
+legacy/default path unchanged. The new focused checks pass on CPU and Metal;
+the walk predictor differs from reconstructing a representable total field
+by at most 3.05532e-7 in the checked mesh.
+
+The pressure least-squares reduction now carries both state words and the
+sum/product errors through the same geometry rows. Independent float fits
+of the two words lose the high fit's error. A cancellation check with a true
+gradient 2^-40 fails that old arithmetic; the paired fit retains 2^-40 under
+two equivalent state partitions. Canonical full face pressures retain curvature
+2^-31 below a common pressure of one. Neumann boundary low traces also carry
+the high trace's rounding remainder. This is an operator consistency fix;
+fixed-velocity boundary fluxes ignore that pressure jump, so the boundary
+trace correction did not change the measured TMR runs by itself.
+
+Rhie–Chow accumulation now combines both face velocity words with carried
+products and sums, and cancels full pressure pairs before rounding the small
+pressure curvature. Previously, separately rounded high and low fluxes omitted
+the high dot-product remainder. The native counterexample 1 + 2^-25 - 1
+loses 2^-25 in the old float reduction and retains it in the corrected flux.
+The coefficient and boundary flux policies stay the same.
+
+Nonlinear turbulence rates, scalar mass fluxes and viscous forces in this
+option read the physical velocity/flux pair independently of its held high
+word. Velocity values round once for wall data. Velocity derivatives now
+apply the existing least-squares and SST face-jump operators to both state
+words before rounding the final derivative to float32. The constitutive
+kernels and their outputs remain float32.
+
+An intermediate version rounded the velocity pair before differentiating it.
+That erased a physical derivative 2^-27 in the native affine-field check.
+The corrected derivative retains 2^-27 under two equivalent state partitions
+on CPU and Metal. The SST face-jump correction uses the same full traces;
+its geometric rows and reconstruction order are unchanged. SIMPLEC's
+compensated pressure update normalizes overlapping words before applying
+local pressure hysteresis. An isolated pressure 2^-43 with a correction
+2^-60 is retained instead of lost under a global feeding-scale slack.
+Velocity and flux keep feeding-scale hysteresis. Coupled retains its prior
+pressure-update policy; the final TMR driver uses SIMPLEC.
+
+Scalar transport can opt into a compensated delta solve. TMR enables it,
+omits scalar pseudo-time damping, lowers scalar absolute tolerance to
+1e-20, and checks an inner physical L1 defect tolerance of 1e-6. This is ten
+times below the unchanged outer 1e-5 gate. The source is re-evaluated at
+every solve, so a previously settled component resumes when coupling changes
+its equation. Fixed wall omega values are imposed before and after the
+increment solve. Outer monitors use the carried physical equation.
+
+Independent arithmetic checks in
+[`test_paired_precision.cpp`](../../../tests/fv/test_paired_precision.cpp)
+cover the following failures. The focused final run passes 23 cases / 470
+assertions across CPU and Metal, including the independent SA correction and
+the unchanged legacy SA equation oracle. These checks establish local
+arithmetic behavior; the full matrix determines whether a flow passes.
+
+| Reproduction | Before | After |
+| --- | --- | --- |
+| Steady source 0.125-q, pseudo-time diagonal eight orders larger, q=1 | Physical defect -0.875 erased | Error below 1e-8 at all three checked q values |
+| Constant diffusion field, face coefficients 1, 1e-8, 1e-12 | False defect 4.36837e-7 | Defect below 1e-12; stored matrix identical |
+| Pressure curvature with gauge offset 0 or 1 | True -2^-31 erased at offset 1 | Both jumps within 1e-14 of -2^-31 |
+| Constant advected/diffused boundary field | Boundary factor/product carry lost | Defect below 1e-12 |
+| Opposing integrated source and volume product | Remainder erased or counted twice in an intermediate candidate | Source and equal source/sink cancellation retained |
+| Flux increment 2^-10, scalar increment 2^-20 | Missing physical product 9.31323e-10 | Expected total-flux advection within 1e-13 |
+| Low-state reaction +/-2^-19 under strong pseudo-time | Physical reaction rounded to zero | Both defects within 1e-13 of the reaction |
+| Uniform-pressure face sum with areas 1, 2^-25, -1, -2^-25 | High reduction leaves false -2^-25 | Carried force cancels it |
+| Normal backflow, high flux -1, low flux 2^-20, area 2 | High speed -0.5 incorrectly enters low data | Incremental speed +2^-21 |
+| Low projected perturbation inside the total bounds | Increment clipped from 4*2^-20 to 2^-20 | Full increment retained; active total bounds retain their own low word |
+| Extremum carried only by the low gradient | Limiter 1 permits an undershoot | Limiter 0; actual low boundary observations retained |
+| Scalar already below inner tolerance; then change its source | Repeated roundoff chasing | Initial hold, followed by a real solve when source changes |
+
+### Final TMR measurements
+
+The following complete before/after tables are for `86a665a`, the latest
+source with a completed full slow comparison. They do not describe the final
+source's unfinished runs.
+
+| Model/case | Backend | Level | Converged before -> after | Steps after | Continuity before -> after | Maximum defect before -> after |
+| --- | --- | ---: | --- | ---: | --- | --- |
+| SST plate | cpu | 0 | False -> False | 3000 | 0.0001487815 -> 2.797489e-05 | 0.0001487815 -> 2.797489e-05 |
+| SST plate | cpu | 1 | False -> True | 800 | 0.0004876112 -> 6.156166e-06 | 0.0004876112 -> 6.156166e-06 |
+| SST plate | cpu | 2 | False -> False | 3000 | 0.007514194 -> 3.308411e-05 | 0.007514194 -> 3.308411e-05 |
+| SST plate | metal | 0 | False -> True | 300 | 0.0001835793 -> 5.655623e-06 | 0.0001835793 -> 5.655623e-06 |
+| SST plate | metal | 1 | False -> True | 800 | 0.0004031023 -> 8.894132e-06 | 0.0004031023 -> 8.894132e-06 |
+| SST plate | metal | 2 | False -> False | 3000 | 0.005696822 -> 1.908685e-05 | 0.005696822 -> 1.908685e-05 |
+| SST bump | cpu | 0 | False -> False | 3000 | 2.269245e-05 -> 1.228549e-05 | 0.000208247 -> 2.17146e-05 |
+| SST bump | cpu | 1 | False -> False | 3000 | 1.549432e-05 -> 3.558996e-05 | 3.567575e-05 -> 3.558996e-05 |
+| SST bump | cpu | 2 | False -> False | 3000 | 1.654531e-05 -> 9.009671e-06 | 0.0001197847 -> 2.570007e-05 |
+| SST bump | metal | 0 | False -> False | 3000 | 3.513322e-05 -> 3.460595e-05 | 0.0002082479 -> 3.460595e-05 |
+| SST bump | metal | 1 | False -> False | 3000 | 2.633376e-05 -> 2.467168e-05 | 3.56816e-05 -> 2.467168e-05 |
+| SST bump | metal | 2 | False -> False | 3000 | 1.397719e-05 -> 8.615868e-06 | 0.0001197803 -> 2.579496e-05 |
+| SA plate | cpu | 0 | False -> True | 300 | 0.0002559519 -> 3.318106e-06 | 0.0002559519 -> 3.318106e-06 |
+| SA plate | cpu | 1 | False -> True | 900 | 0.0006237517 -> 3.411298e-06 | 0.0006237517 -> 3.411298e-06 |
+| SA plate | cpu | 2 | False -> False | 3000 | 0.006870226 -> 1.859997e-05 | 0.006870226 -> 1.859997e-05 |
+| SA plate | metal | 0 | False -> True | 300 | 0.0003023776 -> 3.346611e-06 | 0.0003023776 -> 3.346611e-06 |
+| SA plate | metal | 1 | False -> True | 900 | 0.0004093038 -> 4.425867e-06 | 0.0004093038 -> 4.425867e-06 |
+| SA plate | metal | 2 | False -> False | 3000 | 0.005286517 -> 1.645356e-05 | 0.005286517 -> 1.645356e-05 |
+| SA bump | cpu | 0 | False -> False | 3000 | 3.560498e-05 -> 3.381407e-05 | 0.0007388555 -> 3.381407e-05 |
+| SA bump | cpu | 1 | False -> False | 3000 | 1.393743e-05 -> 2.207364e-05 | 0.0002499332 -> 4.116973e-05 |
+| SA bump | cpu | 2 | False -> False | 3000 | 2.786607e-05 -> 1.347539e-05 | 0.0002351986 -> 6.127949e-05 |
+| SA bump | metal | 0 | False -> False | 3000 | 3.013505e-05 -> 2.816948e-05 | 0.0007388047 -> 2.816948e-05 |
+| SA bump | metal | 1 | False -> False | 3000 | 2.966741e-05 -> 3.081602e-05 | 0.0002499212 -> 4.124761e-05 |
+| SA bump | metal | 2 | False -> False | 3000 | 1.204483e-05 -> 1.208387e-05 | 0.0002351449 -> 6.128517e-05 |
+
+| SST plate raw continuity | Level | Before | After |
+| --- | ---: | ---: | ---: |
+| cpu | 0 | 2.726211e-08 | 5.122466e-09 |
+| cpu | 1 | 1.33167e-08 | 1.67407e-10 |
+| cpu | 2 | 3.258206e-08 | 1.40184e-10 |
+| metal | 0 | 3.363881e-08 | 1.035619e-09 |
+| metal | 1 | 1.100876e-08 | 2.418615e-10 |
+| metal | 2 | 2.470181e-08 | 8.087481e-11 |
+
+The full slow driver prints raw continuity for SST plates only. Unprinted raw
+values are not inferred from separate representative probes. Complete public
+station values and printed transport defects are in [`measurements-86a665a.json`](measurements-86a665a.json).
+
+| Plate Cf | Backend | Before | After |
+| --- | --- | ---: | ---: |
+| SST | cpu | 0.002713813 | 0.002713701 |
+| SST | metal | 0.002713817 | 0.002713704 |
+| SA | cpu | 0.002726861 | 0.002727054 |
+| SA | metal | 0.002726862 | 0.002727054 |
+
+| Plate CD | Backend | Before | After |
+| --- | --- | ---: | ---: |
+| SST | cpu | 0.002876909 | 0.002876767 |
+| SST | metal | 0.002876906 | 0.002876771 |
+| SA | cpu | 0.002880514 | 0.002880676 |
+| SA | metal | 0.00288051 | 0.002880676 |
+
+| Bump aft Cf | Backend | Before | After |
+| --- | --- | ---: | ---: |
+| SST | cpu | 0.00298066 | 0.002553875 |
+| SST | metal | 0.002980718 | 0.002553918 |
+| SA | cpu | 0.003079214 | 0.002638856 |
+| SA | metal | 0.003079086 | 0.002638852 |
+
+| Finest bump aft Cf relative error | Backend | Before | After | Frozen limit |
+| --- | --- | ---: | ---: | ---: |
+| SST | cpu | 0.1453259 | 0.01866746 | 0.10 |
+| SST | metal | 0.1453479 | 0.01865085 | 0.10 |
+| SA | cpu | 0.1499296 | 0.01452156 | 0.10 |
+| SA | metal | 0.149882 | 0.01452304 | 0.10 |
+
+
+### Final source, interrupted measurements
+
+These rows belong to `d823d6e`. Pending means no completed solve was recorded.
+The incomplete finest CPU SA bump reached step 300; it is not an endpoint result.
+Full printed measurements are in [`measurements-d823d6e-partial.json`](measurements-d823d6e-partial.json).
+
+| Model/case | Backend | Level | Outcome | Steps | Continuity | Maximum defect |
+| --- | --- | ---: | --- | ---: | ---: | ---: |
+| SST plate | cpu | 0 | converged | 300 | 1.086581e-06 | 1.086581e-06 |
+| SST plate | cpu | 1 | converged | 800 | 4.278579e-06 | 4.278579e-06 |
+| SST plate | cpu | 2 | failed convergence | 3000 | 1.90981e-05 | 1.90981e-05 |
+| SST plate | metal | 0 | converged | 300 | 1.86489e-06 | 1.86489e-06 |
+| SST plate | metal | 1 | failed convergence | 3000 | 3.045154e-05 | 3.045154e-05 |
+| SST plate | metal | 2 | converged | 3000 | 7.407654e-06 | 7.407654e-06 |
+| SST bump | cpu | 0 | failed convergence | 3000 | 3.199287e-05 | 3.199287e-05 |
+| SST bump | cpu | 1 | failed convergence | 3000 | 2.765525e-05 | 2.765525e-05 |
+| SST bump | cpu | 2 | failed convergence | 3000 | 1.113483e-05 | 2.579356e-05 |
+| SST bump | metal | 0 | failed convergence | 3000 | 1.249686e-05 | 1.249686e-05 |
+| SST bump | metal | 1 | failed convergence | 3000 | 4.415422e-05 | 4.415422e-05 |
+| SST bump | metal | 2 | failed convergence | 3000 | 7.842514e-06 | 2.590229e-05 |
+| SA plate | cpu | 0 | converged | 400 | 4.356717e-08 | 9.231233e-07 |
+| SA plate | cpu | 1 | converged | 900 | 4.993192e-06 | 4.993192e-06 |
+| SA plate | cpu | 2 | failed convergence | 3000 | 4.282008e-05 | 4.282008e-05 |
+| SA plate | metal | 0 | converged | 300 | 2.887325e-06 | 2.887325e-06 |
+| SA plate | metal | 1 | failed convergence | 3000 | 2.417789e-05 | 2.417789e-05 |
+| SA plate | metal | 2 | failed convergence | 3000 | 1.397759e-05 | 1.397759e-05 |
+| SA bump | cpu | 0 | failed convergence | 3000 | 3.158527e-05 | 3.158527e-05 |
+| SA bump | cpu | 1 | failed convergence | 3000 | 1.867057e-05 | 4.125963e-05 |
+| SA bump | cpu | 2 | pending | not completed | not measured | not measured |
+| SA bump | metal | 0 | pending | not completed | not measured | not measured |
+| SA bump | metal | 1 | pending | not completed | not measured | not measured |
+| SA bump | metal | 2 | pending | not completed | not measured | not measured |
+
+## SA definition audit
+
+The frozen [plate](https://tmbwg.github.io/turbmodels/flatplate_sa.html)
+and [bump](https://tmbwg.github.io/turbmodels/bump_sa.html) datasets specify
+standard SA with ft2, as recorded in the pinned
+[fixture manifest](../../data/nasa_tmr/SOURCE.md). [TMR](https://tmbwg.github.io/turbmodels/spalart.html)
+recommends SA-neg for robustness. Kutta clips nu-tilde at zero and lacks
+SA-neg's negative branch. SA-neg normally uses Note 1(c); Kutta's reported
+TMR safeguard is Note 1(b). The production safeguard error described below was corrected explicitly; ft2
+and the reference variant remain unchanged.
+
+| Term or condition | Current implementation and source |
+| --- | --- |
+| Eddy viscosity | rho nu-tilde fv1; chi=nu-tilde/nu, cv1=7.1 (`sa_coefficients`) |
+| Production | cb1 (1-ft2) S-tilde nu-tilde; vorticity base with the fv2 correction |
+| Destruction | [cw1 fw - cb1 ft2/kappa^2] (nu-tilde/d)^2; cw1 derived from cb1, cb2, sigma and kappa |
+| Diffusion | div[(mu+rho nu-tilde)/sigma grad(nu-tilde)], plus rho cb2/sigma times the squared gradient |
+| Damping | TMR ft2=1.2 exp(-0.5 chi^2); Fluent formulation omits ft2 |
+| Safeguards | TMR Note 1(b), S-tilde at least 0.3 Omega, and r at most 10; the published production rate remains unclipped in the TMR setup |
+| Wall and inflow | nu-tilde=0 at resolved walls; freestream nu-tilde=3 nu; geometric nearest-wall distance |
+| Source linearization | Full local negative derivative is implicit with a compensating explicit term; net reaction source is unchanged |
+
+An isolated positive-nu-tilde state with negative raw modified strain
+exposed a model error: the Note 1(b) denominator safeguard was also applied
+to production. The [TMR definition](https://tmbwg.github.io/turbmodels/spalart.html)
+and [NASA CFL3D source at 776d5169](https://github.com/nasa/CFL3D/blob/776d5169f34d26ae65701c87038e63b125b7d86a/source/cfl3d/libs/spalart.F#L1380)
+retain raw modified strain in production while safeguarding r. Kutta now
+separates those quantities and their local derivatives. This is not evidence
+that the downloaded historical CFL3D reference used the same optional r
+safeguard; the current source's standard branch uses Note 1(a).
+
+`SaOptions::tmr_clip_production` defaults true for compatibility. TMR sets it
+false. Fluent's existing form is unaffected. The independent test uses
+nu-tilde=.003, nu=.001, wall distance=.1 and Omega=1. Before the correction,
+the production-rate error was 1.9385 and the net reaction error 7.77496e-4.
+Four assertions failed across CPU/Metal. The corrected form passes all eight
+assertions, including nonnegative explicit production and implicit sink.
+This proves the equation correction. The final field comparison combines
+precision and iteration changes, so its load shifts are not attributed to
+this production correction alone. The legacy equation oracle remains unchanged.
+
+Fluent Theory Guide 2026 R1 sections 4.2.2 (4-15), 4.2.3 (4-16 to 4-18),
+4.2.4 (4-19 to 4-25), 4.2.5 (4-26 to 4-29), 4.2.6 and 4.2.7
+were checked against the implementation. The transport, production and destruction
+SVG equations were downloaded and rendered because the text view omits their
+mathematics. Fluent production and destruction omit ft2; the TMR branch
+adds it explicitly. The automatic-wall blend described in section 4.2.7
+is distinct from these resolved-wall TMR runs.
+
+Resolved-wall, inlet and backflow data were checked against the setup. The
+low-word boundary operator used zero prescribed low inlet/wall
+values, homogeneous pressure-correction data and projected symmetry velocity.
+It did not establish boundary treatment as the cause of the remaining plateau.
+
+The existing independent double-equation test covers both legacy configured forms,
+source splitting, boundary data and CPU/Metal parity. Passing that constitutive
+test alone does not establish converged flow verification. Fluent automatic
+walls remain unavailable; resolved molecular walls are used here.
+
+Sources: [TMR SA equations and variants](https://tmbwg.github.io/turbmodels/spalart.html),
+[TMR plate SA reference](https://tmbwg.github.io/turbmodels/flatplate_sa.html),
+[TMR bump SA reference](https://tmbwg.github.io/turbmodels/bump_sa.html),
+[Fluent Theory Guide 2026 R1, section 4.2.4, production](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/flu_th/flu_th_sec_spal_turb_prod.html).
+The Fluent formula contract and its other section citations are in
+[`car_models.md`](../../../src/kutta/fv/turbulence/car_models.md).
+
+## What did not work
+
+Each exploratory solve used at most 3,000 outer steps. Intermediate variants
+below are not the final solver. The retained operators and TMR controls are described above. Earlier
+prototype numbers below are diagnostics, not final acceptance.
+
+| Isolating experiment | Observed result |
+| --- | --- |
+| Lower momentum or pressure absolute tolerances alone | CPU coarse SST plate still failed; continuity 6.8803e-5 or 1.48553e-4. Lowering both gave 2.81011e-4. |
+| Wider high-word hysteresis alone | 16 epsilons passed coarse CPU plate at 400 steps, continuity 3.49234e-6; middle/fine still failed at 5.74774e-5 / 2.5566e-3. 256 epsilons still failed the middle grid at 3.30734e-5. |
+| Freeze turbulence after step 1000 | Middle CPU plate still failed, continuity 7.99189e-5. |
+| Freeze all flow high words after step 1000 | Middle plate reached 2.92726e-6 at 1100. Freezing velocity, pressure or flux alone still failed. This was diagnostic instrumentation, removed. It is not an accepted solution. |
+| Consistent low pressure, face-velocity, diffusion, advection, transpose-stress and wall terms | Fine CPU plate continuity improved from about 3.1e-3 with the earlier compensated-RHS prototype to 4.38298e-5; still above 1e-5. Adding the physical-diagonal remainder gave 3.01106e-5. That early prototype was discarded; the corrected low-word operators above were rebuilt and retained. |
+| Tighter relative momentum, pressure and scalar solves with that full reconstruction | Fine CPU plate remained at 3.01642e-5. Coarse bump retained k near 2.09e-4. |
+| Increase bump pseudo-time step from .01 to .05 alone | Coarse k improved to 6.38385e-5 but continuity was 8.688e-5. Fine Metal bump still had continuity 1.59196e-5, load change .0118142 and aft Cf .002941025. |
+| Existing differentiable limiter | Coarse CPU plate continuity 1.65420e-4. With bump dt=.05 and momentum relaxation .7, continuity 2.32530e-5, k 1.45272e-5 and omega 1.31402e-5; still failed. Coupled bump also failed. No limiter change retained. |
+| Coupled plus full paired reconstruction | Fine CPU plate passed at 600 with continuity 2.56369e-6, but coarse plate failed at 3.44269e-5. |
+| Component steady stopping at 1e-7 with Coupled/full reconstruction | Coarse CPU plate passed at 300 with continuity 3.05581e-7, but middle plate remained at 1.33269e-5. Coarse bump developed a bounded limit cycle, continuity 2.4946 and load change 14.247 at 3000. Removed. |
+| Tighter Coupled block solve | Middle plate continuity worsened to about 8.74e-5; tighter linear termination did not remove the nonlinear plateau. |
+| Compensated scalar increments plus component stopping | Coarse SA plate passed in 200 (continuity 2.81086e-6); middle SST plate still failed at 1.08169e-5. Fine Metal SST plate passed in 600 (1.59899e-6), but this was not a passing common configuration. The final configuration uses a different inner stopping tolerance. |
+| Disable scalar pseudo-time, retaining the full prototype | Coarse CPU bump at 3000 still failed: continuity 2.84891e-5, k 8.75590e-6, omega 2.08179e-5. This alone was insufficient. |
+
+The final arithmetic path was also tested separately from those earlier
+prototypes:
+
+| Later controlled check, CPU | Result |
+| --- | --- |
+| Fine SST plate, full low operators, carried physical reaction, scalar inner stopping 1e-7 | Continuity 3.31229e-5 at 3000; failed |
+| Same with compensated Green–Gauss force | 2.82884e-5, raw 1.19910e-10 at 3000; failed |
+| Same binary, scalar inner stopping 1e-6 | Passed at 2900: continuity 4.66468e-6, raw 1.97728e-11, k 4.85604e-7, omega 9.17301e-7, zero measured load change |
+| Wider flow hysteresis, 256 epsilons | Fine plate 4.30620e-5 at 3000; failed |
+| Coarse SST bump, dt=.1, momentum relaxation .7, scalar stopping 1e-6 | Continuity 1.70541e-5, k 5.79433e-6, omega 1.21983e-5; failed |
+| Same, both scalar relaxation factors .3 | Continuity 4.90779e-6, k 1.20001e-4, omega 7.61034e-6; failed |
+| Same, only omega relaxation .3 | Continuity 4.08207e-5, k 2.34429e-5, omega 1.51188e-5; failed |
+| Corrected SA coarse bump, dt=.1, scalar stopping 1e-7 | Continuity 3.18097e-5 and nu-tilde 2.67610e-5; failed |
+| Corrected SA coarse bump, scalar relaxation .3 and stopping 1e-6 | Continuity 2.76500e-5 and nu-tilde 1.70707e-4; failed |
+
+The scalar-stopping pair is an isolating experiment: the binary, uniform
+start and all other inputs match. It shows that allowing an already small
+scalar defect to settle can reduce the pressure–velocity iteration floor.
+It does not show that all remaining plateaus have this cause. The final
+full-suite run rechecks the chosen common controls on all grids/backends.
+No source, load, iteration-budget or acceptance gate was frozen or bypassed.
+
+After the limiter corrections, the following checks still did not produce a
+passing common configuration:
+
+| Check | Observed result |
+| --- | --- |
+| Coarse SST bump, retained scalar relative tolerance 1e-3 | Continuity 1.98756e-5, k 5.90183e-6, omega 2.27048e-5; scalar inner solves converged in 6 / 5 iterations |
+| Same, scalar relative tolerance 1e-6 | Continuity 1.24490e-5, k 5.58984e-6, omega 1.16941e-5; inner solves converged in 12 / 9 iterations |
+| Same tighter solves, scalar stopping 8e-6 | Continuity 1.32611e-5, k 7.90939e-6, omega 1.16934e-5; still failed |
+| Fine Metal SA plate, scalar stopping 1e-6 / 5e-6 / 8e-6 | Continuity 5.72649e-5 / 1.52547e-5 / 1.84223e-5; all failed at 3000 |
+
+A read-only CPU probe captured every scalar update in the last 100 of the
+3,000 coarse-bump steps. With the tighter relative solve tolerance, the median
+changed-cell count was 2,455 of 3,520 for k and 2,022 for omega. Among changed
+cells, the median jump was 41.5 / 22 ulps; median per-step p95 jumps were
+5,559.5 / 2,873 ulps. Median relative L1 field movement was 8.08e-6 / 1.84e-6.
+This is continued nonlinear motion, not a demonstrated all-cell one-ulp
+storage stall. The inner linear solves converge, and tightening them does
+not remove the failure. These observations do not identify its sole cause.
+No extra outer steps or extra monitor calls were used for this probe.
+
+The final pressure/flux consistency work was measured separately on the
+fine Metal SA plate and coarse CPU SST bump. These are representative
+experiments, not substitutes for the final suite.
+
+| Isolated later configuration | Fine SA continuity at 3000 | Coarse SST bump continuity / omega at 3000 |
+| --- | ---: | ---: |
+| Full paired pressure fit and canonical constitutive inputs, feeding-scale pressure hysteresis | 1.29405e-4 | 1.24805e-5 / 1.15592e-5 |
+| Same, compensated full Rhie–Chow flux | 1.71804e-5 | 1.47958e-5 / 1.16993e-5 |
+| Same, local compensated SIMPLEC pressure update (retained) | 1.64536e-5 | 1.22855e-5 / 2.17146e-5 |
+| Same, classic steady flow without pseudo-time (rejected) | 4.07637e-5 | 2.66522e-5 / 1.17152e-5 |
+
+The flux pair is an isolating check: it reduces the fine-plate raw
+continuity defect from 6.67230e-10 to 8.85415e-11 with the same flow settings.
+Local pressure updating then gives 8.47958e-11. Neither clears the gate.
+An earlier local-pressure prototype, before completing flux accumulation,
+had continuity about 9.32e-3. Applying local hysteresis to velocity and flux
+as well was also rejected (about 8.93e-3). Gradient and boundary trace
+corrections alone did not cure that behavior. These experiments establish
+specific lost arithmetic terms and their measured consequences; they do not
+establish that one term explains every remaining plateau.
+
+Correcting the order of velocity rounding and differentiation was then
+measured with the same uniform starts and settings:
+
+| Representative solve | Before derivative correction | After |
+| --- | --- | --- |
+| Coarse CPU SST plate | Failed at 3000, continuity 2.79749e-5 | Passed at 300, continuity 1.08658e-6 |
+| Fine Metal SA plate | Failed at 3000, continuity 1.64536e-5 | Failed at 3000, continuity 1.39776e-5 |
+| Coarse CPU SST bump | Continuity 1.22855e-5, omega 2.17146e-5 | Continuity 3.19929e-5, omega 1.42903e-5, still failed |
+
+The native affine-field check isolates the lost derivative. These flow
+probes measure its effect without changing another setting. They recover
+one convergence gate and leave the other two failing. The final full run
+checks every grid/backend together.
+
+In the classic-steady experiment, the raw fine-plate defect falls slightly
+to 7.81911e-11, but its frozen initial continuity normalization also differs,
+so normalized continuity is worse. The gate is always reported as defined;
+a smaller raw residual is not substituted for acceptance.
+
+Lower inner tolerances, larger time steps and the alternative limiter each
+left failures. The paired operators recover specific arithmetic terms, but
+the remaining nonlinear convergence failures still need a cause established
+by a controlled experiment.
+
+## Full validation
+
+Completed comparison for `86a665a` against main `8866cc0`:
+
+- 37 cases and 201,633 assertions matched in both files.
+- 62 -> 51 failures; 11 recoveries, zero regressions.
+- Zero missing/new cases or assertions after the identity correction.
+- 48 changed expanded values: SST plate 10, SST bump 12, SA 26. Other cases had zero changed expanded values.
+- All 34 off-target failures remain: V6 25, V2 tet eight, V12 one.
+
+| Slow case | Assertions before / after | Failures before -> after | Changed expanded values |
+| --- | ---: | ---: | ---: |
+| Kutta cases converted from Fluent cases solve to the same bytes on every backend | 68 / 68 | 0 -> 0 | 0 |
+| The NACA ground-effect wing from a bare mesh and a Kutta case solves like its donor Fluent case | 1 / 1 | 0 -> 0 | 0 |
+| Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs | 477 / 477 | 0 -> 0 | 0 |
+| Corpus FSAE physics preserve strict solver holds or convert with identical outputs | 0 / 0 | 0 -> 0 | 0 |
+| FV V3 Re1000 cavity refinement against Erturk | 16 / 16 | 0 -> 0 | 0 |
+| FV V3 Re100 and Re400 cavity reported deviations | 4 / 4 | 0 -> 0 | 0 |
+| FV V4 Fluent cavity matches its actual grid | 763 / 763 | 0 -> 0 | 0 |
+| Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields | 17044 / 17044 | 0 -> 0 | 0 |
+| Fluent k-epsilon elbow converges with second-order pressure | 11220 / 11220 | 0 -> 0 | 0 |
+| Fluent laminar 2D cylinder matches converged Fluent fields | 207 / 207 | 0 -> 0 | 0 |
+| FV V6 Fluent mixing elbow fixed point and cold start | 2565 / 2565 | 25 -> 25 | 0 |
+| FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega | 28 / 28 | 0 -> 0 | 0 |
+| FSAE aero: Ahmed body 35 deg drag, level 1 | 4 / 4 | 0 -> 0 | 0 |
+| FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC | 9 / 9 | 0 -> 0 | 0 |
+| FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled | 8 / 8 | 0 -> 0 | 0 |
+| FSAE V12 native Fluent polynomial fan import acceptance | 1 / 1 | 1 -> 1 | 0 |
+| V8 realizable KE scalable channel MKM DNS profile and momentum balance | 18 / 18 | 0 -> 0 | 0 |
+| FV V2 manufactured Navier Stokes hex refinement | 16 / 16 | 0 -> 0 | 0 |
+| FV V2 manufactured Navier Stokes tet refinement | 18 / 18 | 8 -> 8 | 0 |
+| FV V1 manufactured scalar diffusion and upwind refinement | 48 / 48 | 0 -> 0 | 0 |
+| FV SIMPLEC develops planar Couette flow with moving and slip walls | 14 / 14 | 0 -> 0 | 0 |
+| V5 TMR flat plate SST accuracy and three-grid trend | 36 / 36 | 6 -> 3 | 10 |
+| V5 TMR bump SST station accuracy and three-grid trend | 47 / 47 | 8 -> 6 | 12 |
+| V7 SA TMR flat plate and bump accuracy convergence and three-grid trend | 70 / 70 | 14 -> 8 | 26 |
+| Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION) | 161470 / 161470 | 0 -> 0 | 0 |
+| Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC | 11 / 11 | 0 -> 0 | 0 |
+| FSAE V7.1 translating-wall Couette hex and poly | 104 / 104 | 0 -> 0 | 0 |
+| FSAE V7.2 rotating-wall Taylor Couette hex and poly | 6668 / 6668 | 0 -> 0 | 0 |
+| FSAE V8 Darcy Forchheimer pressure drop and oblique directions | 24 / 24 | 0 -> 0 | 0 |
+| FSAE V9 absolute-velocity MRF analytic solutions and frame invariance | 48 / 48 | 0 -> 0 | 0 |
+| FSAE V10 incompressible pressure and mass-flow inlets | 12 / 12 | 0 -> 0 | 0 |
+| FSAE V11 internal fan polynomial and porous jump pressure discontinuity | 312 / 312 | 0 -> 0 | 0 |
+| FSAE V7.3 SST moving-wall and translating-frame invariance | 16 / 16 | 0 -> 0 | 0 |
+| FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette | 4 / 4 | 0 -> 0 | 0 |
+| FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport | 12 / 12 | 0 -> 0 | 0 |
+| FSAE V9.3 rotation and translation preserve Taylor Couette pressure | 6 / 6 | 0 -> 0 | 0 |
+| Fluent research downloads retain published byte identities | 264 / 264 | 0 -> 0 | 0 |
+
+Final `d823d6e` validation:
+
+- Quick tier: 299/299 cases, 7,457,758/7,457,758 assertions pass.
+- Focused paired/SA checks: 23/23 cases, 470/470 assertions pass on CPU and Metal.
+- Portability lint passes. Comparison-tool Python tests: three pass.
+- Slow run interrupted after 23 completed cases, during V7 SA finest CPU bump at step 300. The partial XML records 47 failures, but that is not a full-tier failure count or a complete regression comparison.
+- Twenty TMR endpoint records exist. Seven converge and 13 fail convergence; four endpoint records remain absent.
+- CUDA compilation/runtime and integration with the other implementation lanes are unverified.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Main baseline XML | `9e60b5b5c8795f5aaacd4465e94cc67ee7bcccce12f0bf1f848bc70e164ce26a` |
+| Complete `86a665a` binary | `efa401894ff6eb08767c26e726822ac5ea4e6aa055dac69ce3eba10d4638e8f8` |
+| Complete `86a665a` slow XML | `2bd24b1192e2d33a5f8b51708ab27dc5b29227c9c789bc86adbcfa00055345c6` |
+| Final `d823d6e` binary | `394e6e0d4d21cee167e0294835d5d61150dee6c8aef33cceaa2f87046f319332` |
+
+
+
+The first complete candidate, `86a665a`, ran all 37 slow cases and 201,633
+assertions. Failures fell from 62 to 51, with 11 TMR recoveries and no
+regressions. Its 48 changed expanded values were all in TMR. It recovered
+all four accuracy assertions and seven convergence assertions. The final
+candidate adds the velocity-derivative correction above.
+
+The initial comparison reported 266 missing/new identities in two CLI cases.
+Their INFO fields contained process addresses, temporary MeshTemp IDs and
+captured solve timings. `6a74dc5` normalizes those transient fields while
+preserving every residual column, outcome and expanded value. Three focused
+Python tests check timing/path independence, a genuine regression and a
+changed numerical INFO value. Reprocessing the first run matches every
+assertion, with zero missing/new identities. No numerical gate changed.
+
+The first full run exceeded the requested memory guidance. It recorded
+4,446,978,048 bytes maximum RSS and 6,075,110,392 bytes peak footprint.
+The final run uses `MallocSpaceEfficient=1`, matching the existing
+[CLI allocator setup](../../../src/kutta/app/main.cpp) and
+[memory measurements](../memory_scale/REPORT.md). The final quick run records
+1,777,123,328 bytes maximum RSS and 1,305,249,592 bytes peak footprint.
+The three individual derivative probes record 8,176,048 / 203,506,360 /
+24,887,704 bytes peak footprint for coarse SST plate / fine SA plate /
+coarse SST bump. The final slow process was interrupted before its end-of-process measurement.
+A live measurement in its existing Ahmed y+ approximately one case recorded
+3,724,168,552 bytes footprint. This still exceeded the approximate 3 GB
+guidance. The final full-run peak is unverified; it was at least that large.
+Baseline memory was not recorded in the supplied artifact.
+
+Reproduction from the checkout root, with the read-only fixture environment
+set to the shared corpus and run directories:
+
+```sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+python3 tools/lint_portability.py
+export MallocSpaceEfficient=1
+build/kutta-tests --test-suite-exclude=slow
+build/kutta-tests -ts=slow -r=xml --success > branch.xml
+python3 tools/forensics/compare_slow_assertions.py "$BASELINE_XML" branch.xml
+```
+
+`BASELINE_XML` is the completed coordinator baseline for main 8866cc0.
+`KUTTA_FLUENT_EXAMPLES` and `KUTTA_RUNS` select its same fixture sources.
+The full XML, expanded comparison and restricted off-target reference values
+remain local build artifacts and are not committed. The tables in this report
+contain public TMR results and assertion counts.
+
+
+## Remaining work
+
+The NASA TMR matrix does not pass. On the latest complete source, all 17
+remaining TMR failures are convergence assertions. On the final source,
+13 completed runs still fail convergence and four endpoint runs are absent.
+The final source has no accepted full slow comparison. Its changed passing
+plate runs include gains on coarse CPU and fine Metal SST, and a loss on
+middle Metal SST relative to `86a665a`. The partial table preserves these
+mixed outcomes.
+
+The remaining nonlinear convergence mechanism is not isolated. The arithmetic
+checks prove specific lost terms and derivatives, not a sufficient fix for
+all floors. The scalar-update probe above also rules out claiming every
+bump failure is an all-cell one-ulp storage stall.
+
+SA-neg's negative branch and Fluent automatic SA wall treatment remain
+unsupported. These are model-coverage gaps; this investigation did not prove
+them to be causes of the observed convergence failures. The pinned reference
+variant, ft2, numerical gates and 3,000-step budgets remain unchanged.
+
+After interruption, no lane processes remain running. The owned scratch
+worktree and prototype source files were removed. The lane's fixture
+symlinks were removed after verification; raw evidence remains in the local
+ignored build directory. Resuming requires restoring those read-only fixture
+links and rerunning the final full slow tier and exact baseline comparison.
+No push or PR was made.
