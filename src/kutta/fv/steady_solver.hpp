@@ -111,8 +111,12 @@ struct SaSettings {
   double relaxation=.75;
   SolveControl linear{1e-3,1e-12,100};
 };
+enum class KeStrainReconstruction { CellGradient, JumpCorrected };
 struct RealizableKeSettings {
   RealizableKeOptions model;
+  // The derivative fit improves the standard elbow's turbulence fields, but
+  // changes pressure-drop agreement with second-order pressure. Keep it opt-in.
+  KeStrainReconstruction standard_strain_reconstruction=KeStrainReconstruction::CellGradient;
   ConvectionScheme k_convection=ConvectionScheme::SecondOrderUpwind,epsilon_convection=ConvectionScheme::SecondOrderUpwind;
   double k_relaxation=.75,epsilon_relaxation=.75;
   SolveControl linear{1e-3,1e-12,100};

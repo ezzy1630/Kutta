@@ -112,13 +112,15 @@ epsilon floor, so the row constraint and post-solve field limit agree.
 Wall shear replaces wall-face momentum diffusion, using the existing implicit
 tangential tensor hook and force integrator. k/epsilon use unlimited LSQ scalar
 gradients with independent inlet observations. Realizable velocity rates use the existing plain LSQ momentum gradient.
-Standard k-epsilon with LSQ gradients instead uses the same derivative fit as
-SST: wall rows omitted from the base fit, then half the face-jump LSQ correction.
+Standard k-epsilon with LSQ gradients can opt into the same derivative fit as
+SST using `RealizableKeSettings::standard_strain_reconstruction =
+KeStrainReconstruction::JumpCorrected`: wall rows omitted from the base fit, then half the face-jump LSQ correction.
 At Fluent's saved standard-k-epsilon elbow state this removes the interior
 production deficit; the cold solve reduces k L2 from 9.10% to 4.15% and epsilon
 from 17.61% to 10.37%. This reconstruction is an empirical discretization
 choice, not a documented decoding of `ke-source-mod`, `ke-time-marching?`, or
-WFGC (which is off in that case). Green-Gauss keeps its selected gradient.
+WFGC (which is off in that case). The default remains `CellGradient`; the second-order-pressure elbow exposes a
+pressure-drop trade-off. Green-Gauss keeps its selected gradient.
 See `validation/results/elbow_turbulence/REPORT.md` for the saved-state budgets
 and cross-case gates.
 As in the existing SSTm path, isotropic turbulent stress is omitted. Consequently

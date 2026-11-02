@@ -32,12 +32,18 @@ void compare(const char* name,const std::vector<double>& x,const std::vector<dou
 }
 int main(int argc,char** argv) {
   try {
-    KUTTA_REQUIRE(argc==8,"Usage: bench_elbow_turbulence case data out cpu|metal saved|cold iterations approximations");
+    KUTTA_REQUIRE((argc==8 || argc==9),"Usage: bench_elbow_turbulence case data out cpu|metal saved|cold iterations approximations [cell|jump]");
     const auto c=fluent::read_case(argv[1]);const auto mesh=read_mesh(argv[1]);
     const auto data=fluent::read_data(argv[2],c);const auto saved=setup::fluent_fields(c,data,mesh);
-    const auto problem=setup::fluent_setup(c,mesh,setup::parse_approximations(argv[7]));
+    auto problem=setup::fluent_setup(c,mesh,setup::parse_approximations(argv[7]));
     const bool ke=!saved.epsilon.empty();
     KUTTA_REQUIRE(problem.settings.sst || problem.settings.realizable_ke,"requires SST or k-epsilon");
+    if(argc==9) {
+      const std::string_view strain=argv[8];
+      KUTTA_REQUIRE(ke && problem.settings.realizable_ke->model.variant==KeVariant::Standard,"strain override requires standard k-epsilon");
+      KUTTA_REQUIRE(strain=="cell" || strain=="jump","invalid strain reconstruction");
+      problem.settings.realizable_ke->standard_strain_reconstruction=strain=="jump"?KeStrainReconstruction::JumpCorrected:KeStrainReconstruction::CellGradient;
+    }
     KUTTA_REQUIRE(std::string_view(argv[4])=="cpu" || std::string_view(argv[4])=="metal","invalid backend");
     KUTTA_REQUIRE(std::string_view(argv[5])=="saved" || std::string_view(argv[5])=="cold","invalid start");
     auto d=Device::create(std::string_view(argv[4])=="cpu"?Backend::Cpu:Backend::Metal);

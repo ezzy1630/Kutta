@@ -363,10 +363,13 @@ struct SteadySolver::Impl {
       if(poor_count) {poor=dev.upload<Index>(flags);low_order=std::move(flags);}
     }
     memory::phase("lsq");
-    // Standard k-epsilon production needs the derivative reconstruction too:
-    // plain cell LSQ underproduces k and epsilon at the saved elbow state.
-    // Keep the independently validated realizable model on its existing fit.
+    if(settings.realizable_ke && settings.realizable_ke->standard_strain_reconstruction==KeStrainReconstruction::JumpCorrected)
+      KUTTA_REQUIRE(settings.realizable_ke->model.variant==KeVariant::Standard && settings.gradient==GradientScheme::LeastSquares,
+                    "FV: jump-corrected standard k-epsilon strain requires the standard model and LSQ gradients");
+    // The standard k-epsilon derivative fit reuses SST's strain path without
+    // changing momentum or the realizable model's selected gradient.
     if(settings.sst || (settings.realizable_ke && settings.realizable_ke->model.variant==KeVariant::Standard
+                        && settings.realizable_ke->standard_strain_reconstruction==KeStrainReconstruction::JumpCorrected
                         && settings.gradient==GradientScheme::LeastSquares)) {
       std::vector<BoundaryObservation> strain_rows(nb);
       for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;
@@ -518,7 +521,9 @@ struct SteadySolver::Impl {
   }
   void update_turbulence(bool velocity_changed=true) {
     if(rke) {
-      if(settings.realizable_ke->model.variant==KeVariant::Standard && settings.gradient==GradientScheme::LeastSquares) {
+      if(settings.realizable_ke->model.variant==KeVariant::Standard
+         && settings.realizable_ke->standard_strain_reconstruction==KeStrainReconstruction::JumpCorrected
+         && settings.gradient==GradientScheme::LeastSquares) {
         reconstruct_strain();
         rke->update(velocity,boundary_velocity,{strain_gradient[0],strain_gradient[1],strain_gradient[2]},boundary_kind,mass,viscosity);
       } else {
