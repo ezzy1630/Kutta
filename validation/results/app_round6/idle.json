@@ -1,0 +1,26 @@
+{
+  "dark": {
+    "fps_mean": 117.79543165961798,
+    "frames": 23,
+    "idle_cpu_percent": 0.7281203957061668,
+    "idle_frames_rendered": 0,
+    "idle_seconds": 4.751,
+    "max_ms": 16.314791,
+    "mean_ms": 8.489293565217393,
+    "p95_ms": 14.832208,
+    "triangles": 359256,
+    "viewport_px": "598x446@2"
+  },
+  "light": {
+    "fps_mean": 129.59784998293816,
+    "frames": 23,
+    "idle_cpu_percent": 1.4916555534387494,
+    "idle_frames_rendered": 0,
+    "idle_seconds": 5.249,
+    "max_ms": 8.583625,
+    "mean_ms": 7.716177391304347,
+    "p95_ms": 8.554917,
+    "triangles": 359256,
+    "viewport_px": "598x446@2"
+  }
+}
