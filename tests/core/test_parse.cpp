@@ -1,7 +1,9 @@
 #include <doctest/doctest.h>
 
 #include <clocale>
+#include <ostream>
 #include <string>
+#include <string_view>
 
 #include "kutta/core/parse.hpp"
 #include "kutta/core/types.hpp"
