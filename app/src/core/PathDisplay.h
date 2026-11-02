@@ -8,7 +8,7 @@
 
 namespace kapp {
 
-// "/Users/ana/cases/car.kutta.json" -> "~/cases/car.kutta.json", with native
+// "/Users/user/cases/car.kutta.json" -> "~/cases/car.kutta.json", with native
 // separators. Paths outside home are only made native.
 QString homeRelativePath(const QString& path, const QString& home = {});
 
