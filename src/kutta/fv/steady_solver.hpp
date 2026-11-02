@@ -159,6 +159,11 @@ enum class GradientScheme { LeastSquares, GreenGaussCell };
 // validation/results/flux_limiter/REPORT.md.
 enum class Limiter { Standard, Differentiable };
 
+// Second-order pressure normally omits extrapolated boundary data from its
+// gradient fit. NormalFoot observes zero normal derivative at symmetry faces,
+// without treating a tangentially displaced face centroid as the cell value.
+enum class SymmetryPressureGradient { Extrapolated, NormalFoot };
+
 struct SolverSettings {
   double density=1, viscosity=.01;
   PressureVelocityCoupling coupling=PressureVelocityCoupling::Simplec;
@@ -175,6 +180,10 @@ struct SolverSettings {
   FaceVelocityWeights face_velocity=FaceVelocityWeights::Momentum;
   FaceVelocityReconstruction face_velocity_reconstruction=FaceVelocityReconstruction::Point;
   PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
+  // Opt-in: removes a far-field tet pressure/velocity cycle, but does not
+  // converge the native Ahmed forces. Defaults stay unchanged until the full
+  // convergence target is met (validation/results/tet_prism_convergence).
+  SymmetryPressureGradient symmetry_pressure_gradient=SymmetryPressureGradient::Extrapolated;
   // Fluent's poor-mesh-numerics quality threshold (solve/set/poor-mesh-numerics/
   // set-quality-threshold; the cell-quality-based value 0.05). Second-order
   // pressure faces incident to cells whose orthogonal quality is at or below

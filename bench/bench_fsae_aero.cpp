@@ -37,6 +37,11 @@ int main(int argc, char** argv) {
     const auto pressure_scheme = text("--pressure-scheme", "second-order");
     KUTTA_REQUIRE(pressure_scheme == "standard" || pressure_scheme == "second-order", "--pressure-scheme is standard or second-order");
     o.pressure_interpolation = pressure_scheme == "standard" ? fv::PressureInterpolation::Standard : fv::PressureInterpolation::SecondOrder;
+    const auto symmetry_gradient = text("--symmetry-pressure-gradient", "extrapolated");
+    KUTTA_REQUIRE(symmetry_gradient == "extrapolated" || symmetry_gradient == "normal-foot",
+                  "--symmetry-pressure-gradient is extrapolated or normal-foot");
+    o.symmetry_pressure_gradient = symmetry_gradient == "normal-foot"
+      ? fv::SymmetryPressureGradient::NormalFoot : fv::SymmetryPressureGradient::Extrapolated;
     const auto transport = text("--sst-transport", "fluent");
     KUTTA_REQUIRE(transport == "fluent" || transport == "cfl3d", "--sst-transport is fluent or cfl3d");
     if (transport == "cfl3d") {
@@ -95,7 +100,7 @@ int main(int argc, char** argv) {
     auto dev = Device::create(backend == "cpu" ? Backend::Cpu : backend == "metal" ? Backend::Metal : Backend::Cuda);
     const auto r = run(*dev, o);
     std::cout << "RESULT {\"source\":\"" << KUTTA_BENCH_COMMIT << "\",\"device\":\"" << dev->name() << "\",\"backend\":\"" << backend
-              << "\",\"pressure_scheme\":\"" << pressure_scheme << "\",\"result\":";
+              << "\",\"pressure_scheme\":\"" << pressure_scheme << "\",\"symmetry_pressure_gradient\":\"" << symmetry_gradient << "\",\"result\":";
     print(std::cout, r);
     std::cout << "}\n";
     return r.failure.empty() ? 0 : 2;

@@ -355,6 +355,12 @@ struct SteadySolver::Impl {
       const auto gain=boundary_extrapolation_gain(host,geom,independent_pressure);
       for(Index b=0;b<nb;++b) if(independent_pressure[b]==Omitted && gain[b]>1) independent_pressure[b]=FaceValue;
     }
+    // A symmetry face has zero normal pressure derivative (Fluent User's
+    // Guide 7.4.17.2). Its owner pressure is therefore an observation at the
+    // normal foot, not at a face centroid displaced along the symmetry plane.
+    // The latter suppresses the tangential gradient on skew boundary tets.
+    if(settings.symmetry_pressure_gradient==SymmetryPressureGradient::NormalFoot)
+      for(Index b=0;b<nb;++b) if(kinds[b]==3) independent_pressure[b]=NormalFootValue;
     pressure_lsq=fit(independent_pressure);
     // Empty unless some cell has low-order pressure faces.
     std::vector<Index> low_order;
