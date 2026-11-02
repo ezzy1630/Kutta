@@ -25,7 +25,7 @@ struct Bin {
 };
 }
 int main(int argc,char** argv) {
-  KUTTA_REQUIRE(argc>=3,"Usage: bench_v6_operators fluent_dir interior_flux.txt|- [cpu|metal] [converge]");
+  KUTTA_REQUIRE(argc>=3,"Usage: bench_v6_operators fluent_dir interior_flux.txt|- [cpu|metal] [converge] [peclet-side] [differentiable] [flux=output.csv]");
   const std::filesystem::path root=argv[1];
   const auto c=fluent::read_case(root/"mixing_elbow.cas.h5");const auto mesh=read_fluent_cff(root/"mixing_elbow.cas.h5");
   const auto d=fluent::read_data(root/"mixing_elbow.dat.h5",c);
@@ -45,14 +45,45 @@ int main(int argc,char** argv) {
   for(auto [k,count]:histogram) std::cout<<' '<<k<<':'<<count;
   std::cout<<'\n';
   const char* backend=argc>3?argv[3]:"metal";
+  KUTTA_REQUIRE(std::string_view(backend)=="cpu" || std::string_view(backend)=="metal","V6 probe backend must be cpu or metal");
+  bool selected=false;
   for(auto b:Device::available()) if(std::string_view(backend_name(b))==backend) {
+    selected=true;
     auto dev=Device::create(b);
     auto settings=setup.settings;settings.monitor_interval=50;
+    bool converge=false;
+    std::filesystem::path flux_output;
+    for(int arg=4;arg<argc;++arg) {
+      const std::string_view option=argv[arg];
+      if(option=="converge") converge=true;
+      else if(option=="peclet-side") settings.face_velocity_reconstruction=FaceVelocityReconstruction::PecletSide;
+      else if(option=="differentiable") settings.limiter=Limiter::Differentiable;
+      else if(option.starts_with("flux=")) {
+        flux_output=option.substr(5);KUTTA_REQUIRE(!flux_output.empty(),"V6 flux output path is empty");
+      }
+      else KUTTA_REQUIRE(false,"Unknown V6 operator probe option: "+std::string(option));
+    }
+    std::cout<<"V6_OPTIONS commit="<<KUTTA_BENCH_COMMIT
+      <<" reconstruction="<<(settings.face_velocity_reconstruction==FaceVelocityReconstruction::PecletSide?"peclet-side":"point")
+      <<" limiter="<<(settings.limiter==Limiter::Differentiable?"differentiable":"standard")<<'\n';
     SteadySolver solver(*dev,mesh,setup.boundaries,settings);
     setup::initialize(solver,setup::Initialization{saved});
     const auto r=solver.monitor();
     const auto& sm=solver.mesh();const auto& sg=solver.geometry();const auto& perm=solver.permutation().cells_new_to_old;
     const auto mass=dev->download(solver.mass_flux());
+    if(!flux_output.empty()) {
+      // Preserve face identity even when a cell pair shares several faces.
+      // RCM changes cells/faces and winding, but retains the input point IDs.
+      std::ofstream out(flux_output);KUTTA_REQUIRE(out,"Cannot write V6 face flux");
+      out<<std::setprecision(17)<<"owner,neighbour,flux,nodes\n";
+      for(Index f=0;f<sm.n_faces();++f) {
+        out<<perm[sm.owner[f]]<<','<<(f<sm.n_internal_faces()?perm[sm.neighbour[f]]:-1)<<','<<mass[f]<<',';
+        auto indices=nodes(sm,f);
+        for(std::size_t j=0;j<indices.size();++j) out<<(j?" ":"")<<indices[j];
+        out<<'\n';
+      }
+      KUTTA_REQUIRE(out,"V6 face flux write failed");
+    }
     // Skew is the tangential offset of both centroids from the face normal
     // line, relative to the normal centroid distance.
     Bin bins[4];const char* names[]{"orthogonal","skew<0.05","skew<0.2","skew>=0.2"};Bin all;double divergence=0;
@@ -78,7 +109,7 @@ int main(int argc,char** argv) {
         <<" relative_L2="<<(bin.reference>0?std::sqrt(bin.square/bin.reference):0)
         <<" median="<<bin.quantile(.5)<<" p90="<<bin.quantile(.9)<<'\n';
     }
-    if(argc<=4) continue;
+    if(!converge) continue;
     // Converge with V6's own stopping rule, then attribute the squared field
     // error to cell classes: wall-adjacent or not, and worst face skew.
     const double continuity_target=d.residuals.at("continuity").rows.back()[0];
@@ -121,4 +152,5 @@ int main(int argc,char** argv) {
       std::cout<<'\n';
     }
   }
+  KUTTA_REQUIRE(selected,"V6 probe backend is unavailable");
 }

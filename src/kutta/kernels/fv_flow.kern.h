@@ -108,6 +108,29 @@ KUTTA_KERNEL void fv_momentum_faces(int i,KIn(int) owner,KIn(int) neighbour,KIn(
     +0.5f*((wx[p]+wx[n])*rx+(wy[p]+wy[n])*ry+(wz[p]+wz[n])*rz);
 }
 
+KUTTA_KERNEL void fv_convective_outflow(int i,KIn(int) offsets,KIn(int) faces,
+    KIn(float) sign,KIn(float) flux,KOut(float) outflow) {
+  float sum=0.0f;
+  for(int j=offsets[i];j<offsets[i+1];++j) sum+=kmax(0.0f,sign[j]*flux[faces[j]]);
+  outflow[i]=sum;
+}
+
+// beta=O(cell Reynolds number) in the viscous limit. Multiplying the O(h^2)
+// side-minus-point difference by beta avoids the first-order boundary
+// divergence of the unweighted side reconstruction. Face holds the existing
+// point/projected value; only internal faces are dispatched here.
+KUTTA_KERNEL void fv_peclet_side_velocity(int i,KIn(int) owner,KIn(int) neighbour,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) q,KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) weights,
+    KIn(float) diagonal,KIn(float) outflow,KOut(float) face) {
+  int p=owner[i],n=neighbour[i];
+  float weight=weights[p]/(weights[p]+weights[n]);
+  float beta=kmin(1.0f,(outflow[p]+outflow[n])/kmax(diagonal[p]+diagonal[n],1.0e-20f));
+  float side=weight*(q[p]+gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])
+    +(1.0f-weight)*(q[n]+gx[n]*nx[i]+gy[n]*ny[i]+gz[n]*nz[i]);
+  face[i]+=beta*(side-face[i]);
+}
+
 // The physical (unrelaxed, no pseudo-time) momentum diagonal is used in the
 // Rhie–Chow term. Thus its converged pressure smoothing is independent of
 // relaxation and pseudo time (Majumdar consistency). SIMPLEC uses its own

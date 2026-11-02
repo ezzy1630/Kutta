@@ -131,6 +131,13 @@ enum class PressureVelocityCoupling { Simplec, Simple, Coupled };
 // Unlike the coupling, these face interpolations change the fixed point.
 // Face velocity in the face mass flux, TG 23-48 (distance) and 23-49 (momentum).
 enum class FaceVelocityWeights { Momentum, Distance };
+// Opt-in high-order part of the face velocity. PecletSide blends the existing
+// point/projected value toward independently reconstructed sides, by the
+// advective share of the physical momentum diagonal. The O(h) share preserves
+// the viscous-limit order. It improves V6 with the differentiable limiter but
+// worsens other Fluent comparisons; it is not a mapping of ho-rc-scheme.
+// See validation/results/v6_momentum/REPORT.md.
+enum class FaceVelocityReconstruction { Point, PecletSide };
 // Face pressure in the momentum pressure force, TG 23-43 (second order) and
 // 23-42 (standard, momentum-coefficient weighted).
 enum class PressureInterpolation { SecondOrder, Standard };
@@ -166,6 +173,7 @@ struct SolverSettings {
   // the implicit under-relaxation factors.
   bool pseudo_transient=true;
   FaceVelocityWeights face_velocity=FaceVelocityWeights::Momentum;
+  FaceVelocityReconstruction face_velocity_reconstruction=FaceVelocityReconstruction::Point;
   PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
   // Fluent's poor-mesh-numerics quality threshold (solve/set/poor-mesh-numerics/
   // set-quality-threshold; the cell-quality-based value 0.05). Second-order

@@ -103,6 +103,7 @@ struct SteadySolver::Impl {
   // Distance-based Rhie-Chow (TG 23-48) is the momentum-weighted face
   // interpolation with equal weights.
   Buffer<float> unit_diagonal;
+  Buffer<float> convective_outflow; // only for PecletSide face reconstruction
   Buffer<float> wall_mask;DeviceVec3 laminar_wall_shear;
   DeviceVec3 transpose_stress;
   DeviceVec3 velocity,body,boundary_velocity,prescribed_velocity,source,face_velocity;
@@ -228,6 +229,7 @@ struct SteadySolver::Impl {
     physical_diagonal=dev.alloc<float>(n);consistent_inverse=dev.alloc<float>(n);
     dev.fill(physical_diagonal,1);dev.fill(consistent_inverse,0);
     if(settings.face_velocity==FaceVelocityWeights::Distance) {unit_diagonal=dev.alloc<float>(n);dev.fill(unit_diagonal,1);}
+    if(settings.face_velocity_reconstruction==FaceVelocityReconstruction::PecletSide) convective_outflow=dev.alloc<float>(n);
     std::vector<Index> kinds(nb);std::vector<float> pressures(nb,0);std::vector<Vec3d> velocities(nb);
     std::vector<Index> open_kinds(nb,0);std::vector<Vec3d> directions(nb);
     std::map<std::string,std::pair<double,double>> inlet_areas;
@@ -839,6 +841,17 @@ struct SteadySolver::Impl {
       velocity_faces->momentum_values(velocity.x,boundary_velocity.x,face_velocity_weights(),face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
       velocity_faces->momentum_values(velocity.y,boundary_velocity.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
       velocity_faces->momentum_values(velocity.z,boundary_velocity.z,face_velocity_weights(),face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
+    }
+    if(!convective_outflow.empty()) {
+      kern::fv_convective_outflow(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,mass,convective_outflow);
+      Buffer<float>* face[]{&face_velocity.x,&face_velocity.y,&face_velocity.z};
+      for(int k=0;k<3;++k) {
+        const auto& g=limited_gradient[k];
+        kern::fv_peclet_side_velocity(dev,mesh.n_internal_faces,mesh.owner,mesh.neighbour,
+          mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+          mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+          *q[k],g.x,g.y,g.z,face_velocity_weights(),physical_diagonal,convective_outflow,*face[k]);
+      }
     }
     kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,
