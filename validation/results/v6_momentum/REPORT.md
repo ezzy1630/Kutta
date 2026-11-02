@@ -21,6 +21,10 @@ and some MMS orders, get worse, including values inside passing gates.
 - Numerical opt-in: `2ba69af`; probe identity: `e450904`; probe input and
   convergence guards: `f1e431b` and `4f017b8`; comparison identity repair:
   `87f9197`.
+  These are the measured pre-integration commits. On main they are `a3fda32`,
+  `d310f03`, `f165b48` and `d04b452`; the comparison identity repair was
+  superseded by main's equivalent `971fbb3`, which normalizes the same CLI
+  timing and scratch-path context for every source.
 - Base: `8866cc0`, branch `t3/v6-momentum-discretization`, Release AppleClang,
   Apple M4 Pro, CPU and Metal. Solve timings are not used as evidence on the
   shared machine. Each solve runs alone in this lane.
