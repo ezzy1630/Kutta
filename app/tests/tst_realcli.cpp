@@ -295,11 +295,24 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(!s.newCaseBusy(), 60000);
         QVERIFY2(s.newCaseDraft(), qPrintable(s.newCaseError()));
         QCOMPARE(s.newCaseDraft()->dimension, 2);
+        const auto* zone = s.newCaseDraft()->zone("wheel_front");
+        QVERIFY2(zone->wheelEstimate, qPrintable(s.newCaseDraft()->geometryError));
+        const auto estimate = *zone->wheelEstimate;
+        QVERIFY(std::abs(estimate.radius - 0.2) < 1e-6);
+        QVERIFY(std::abs(estimate.centre[0] - 0.4) < 1e-6);
+        QVERIFY(std::abs(estimate.centre[1] - 0.25) < 1e-6);
+        QCOMPARE(estimate.centre[2], 0.0);  // not the display extrusion's midpoint
+        QCOMPARE(estimate.axis, (std::array<double, 3>{0, 0, 1}));
+        QVERIFY(!zone->wheel);  // estimates never enable rotation
+        s.enableNewCaseWheel("wheel_front", true);
+        QVERIFY(s.newCaseDraft()->wheelError().contains("confirm"));
+        const auto out = m_dir.filePath("wheel.kutta.json");
+        s.createNewCase(out);
+        QVERIFY(!QFileInfo::exists(out));
+        s.confirmNewCaseWheel("wheel_front", true);
         s.setNewCaseSpeed(20);
-        s.setNewCaseWheel("wheel_front", WheelGeometry{0.2, {0.4, 0.25, 0}, {0, 0, -3}});
         QTRY_VERIFY_WITH_TIMEOUT(s.newCaseNotesCurrent(), 60000);
         QVERIFY(!s.newCaseDraft()->notes.join(' ').contains("Wheels without"));
-        const auto out = m_dir.filePath("wheel.kutta.json");
         QSignalSpy opened(&s, &Session::caseOpened);
         s.createNewCase(out);
         QVERIFY(opened.wait(60000));

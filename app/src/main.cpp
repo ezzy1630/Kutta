@@ -25,6 +25,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QKeyEvent>
 #include <QScrollBar>
 #include <QSet>
@@ -36,6 +37,7 @@
 #include <QTimer>
 
 #include <cstdio>
+#include <cmath>
 #include <deque>
 #include <functional>
 
@@ -177,9 +179,9 @@ int main(int argc, char** argv)
                                    "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare", "elbow-monitors",
                                    "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "param-run", "cylinder-run",
                                    "wing-models", "wing-aero", "wing-monitors", "bench",
-                                   "case-mesh", "case-approvals", "case-methods", "case-run", "case-stop",
+                                   "case-mesh", "car-mesh", "car-mesh-context", "car-mesh-below", "case-approvals", "case-methods", "case-run", "case-stop",
                                    "new-case", "new-case-car", "new-case-run", "new-case-save", "new-case-wheel", "new-case-wheel-invalid",
-                                   "new-case-wheel-boundary", "new-case-car-rotating", "new-case-car-boundary"};
+                                   "new-case-wheel-boundary", "new-case-wheel-estimate", "new-case-car-estimate", "new-case-car-rotating", "new-case-car-boundary"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
         return 0;
@@ -672,7 +674,7 @@ int main(int argc, char** argv)
                 next();
             }, "mesh to read");
         });
-        const bool wheelScenario = scenario.startsWith("new-case-wheel") || scenario == "new-case-car-rotating" || scenario == "new-case-car-boundary";
+        const bool wheelScenario = scenario.startsWith("new-case-wheel") || scenario.startsWith("new-case-car-");
         if (wheelScenario) {
             sc->add(go("new-case"));
             sc->add([session](auto next) { session->setNewCaseSpeed(20); next(); });
@@ -685,7 +687,11 @@ int main(int argc, char** argv)
                     rotate->click();
                     QTimer::singleShot(0, sc, next);
                 });
-                sc->add([sc, session, &w, name, car, scenario](auto next) {
+                sc->add([sc, session, &w, inspectorButton, name, car, scenario](auto next) {
+                    const auto* zone = session->newCaseDraft()->zone(name);
+                    if (!zone->wheelEstimate || !zone->wheel || zone->wheelConfirmed || session->newCaseDraft()->wheelError().isEmpty())
+                        return sc->fail("surface estimate must need explicit confirmation: " + name);
+                    if (scenario.endsWith("estimate")) return next();
                     // Type through the actual fields: input parsing, validation,
                     // draft updates and --wheel serialization all participate.
                     auto type = [sc, &w](const QString& accessible, const QString& value) {
@@ -712,9 +718,20 @@ int main(int argc, char** argv)
                     if (scenario.endsWith("invalid")) {
                         if (!session->newCaseDraft()->wheelError().contains("cannot be zero")) return sc->fail("zero wheel axis was accepted");
                         next();
-                    } else sc->waitFor([session] { return session->newCaseNotesCurrent(); }, next, "current wheel checks");
+                    } else {
+                        auto* confirm = inspectorButton(QObject::tr("Confirm wheel geometry of %1").arg(name));
+                        if (!confirm) return sc->fail("missing estimate confirmation: " + name);
+                        confirm->click();
+                        sc->waitFor([session] { return session->newCaseNotesCurrent(); }, next, "current wheel checks");
+                    }
                 });
             }
+            if (scenario.endsWith("estimate")) sc->add([&w, wheels](auto next) {
+                const QString target = QObject::tr("Radius of %1 (m)").arg(wheels.last());
+                for (auto* field : w.inspector()->findChildren<QLineEdit*>())
+                    if (field->accessibleName() == target) w.inspector()->ensureWidgetVisible(field, 0, 120);
+                next();
+            });
             if (scenario.endsWith("boundary")) {
                 const auto out = QDir(dataRoot).filePath("cases/rotating-wheels.kutta.json");
                 QDir().mkpath(QFileInfo(out).absolutePath());
@@ -723,20 +740,8 @@ int main(int argc, char** argv)
                     sc->waitFor([session, out] { return session->hasCase() && session->casePath() == out; }, next, "rotating-wheel case to open");
                 });
                 sc->add(go("setup/boundary/" + wheels.first()));
-                sc->add([sc, &w, car](auto next) {
-                    sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, [&w, car, next] {
-                        if (car) {
-                            auto* panel = w.graphics()->panel(0);
-                            auto d = panel->display();
-                            // Inspect the vehicle's wheels without the road
-                            // obscuring them in the mesh preview.
-                            for (const auto& item : panel->scene()->items)
-                                if (item.id == "zone:ground") d.visible.removeAll(item.id);
-                            panel->setDisplay(d);
-                            panel->view()->fitView();
-                        }
-                        next();
-                    }, "created case geometry");
+                sc->add([sc, &w](auto next) {
+                    sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, next, "created case geometry");
                 });
             }
         } else if (scenario == "new-case-car") {
@@ -787,6 +792,42 @@ int main(int argc, char** argv)
             }
             sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Reports); next(); });
         }
+    } else if (scenario.startsWith("car-mesh")) {
+        if (scenario.endsWith("context")) {
+            sc->add(open(elbow));
+            sc->add([sc, &w](auto next) {
+                sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, next, "first case mesh");
+            });
+        }
+        sc->add(open(car));
+        sc->add([sc, &w](auto next) {
+            sc->waitFor([&w] { return w.graphics()->panel(0)->scene() != nullptr; }, next, "car mesh");
+        });
+        sc->add(go("results/mesh"));
+        sc->add([sc, &w, scenario](auto next) {
+            auto* panel = w.graphics()->panel(0);
+            if (!panel->display().visible.contains("zone:ground")) return sc->fail("default mesh must retain the road");
+            if (scenario.endsWith("context")) {
+                if (std::abs(panel->display().camera.pitch - 25) > 0.01f || std::abs(panel->display().camera.yaw + 35) > 0.01f)
+                    return sc->fail("new car retained the previous case's camera");
+                QListWidget* surfaces = nullptr;
+                for (auto* list : w.inspector()->findChildren<QListWidget*>())
+                    if (list->accessibleName() == QObject::tr("Surfaces shown")) surfaces = list;
+                if (!surfaces) return sc->fail("missing mesh surface checklist");
+                for (int i = 0; i < surfaces->count(); ++i)
+                    if (surfaces->item(i)->flags().testFlag(Qt::ItemIsUserCheckable)) surfaces->item(i)->setCheckState(Qt::Checked);
+                for (const auto& item : panel->scene()->items)
+                    if (!panel->display().visible.contains(item.id)) return sc->fail("checklist did not show " + item.id);
+                panel->view()->fitView();
+            }
+            if (scenario.endsWith("below")) {
+                auto cam = panel->display().camera;
+                cam.pitch = -25;
+                panel->view()->setCamera(cam);
+                panel->view()->fitView();
+            }
+            next();
+        });
     } else if (scenario == "bench") {
         // Frame timing on the car's surfaces; KUTTA_FIXTURE_CAR_DETAIL scales
         // the tessellation (5 gives about 10M triangles).

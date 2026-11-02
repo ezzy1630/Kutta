@@ -5,6 +5,7 @@
 // CLI computes these for real runs (export-view --post).
 
 #include "core/ViewFormat.h"
+#include "core/Protocol.h"
 
 #include <QVector3D>
 
@@ -30,5 +31,10 @@ struct SurfaceIntegral { double area = 0; double value = 0; std::size_t samples 
 std::optional<SurfaceIntegral> integrate(const MeshData& mesh, const QString& field, IntegralKind kind);
 
 double triangleArea(const float* a, const float* b, const float* c);
+
+// Surface-only proposal, independent of zone names. Disconnected coaxial
+// tyres may share a zone: find the axle on its largest connected surface,
+// then measure the whole zone about that axis.
+std::optional<WheelGeometry> estimateWheel(const MeshData& mesh, int dimension);
 
 } // namespace kapp

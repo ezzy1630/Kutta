@@ -92,6 +92,7 @@ private:
     std::unique_ptr<QRhiSampler> m_sampler;
     int m_cmapUploaded = -1;
     std::unique_ptr<QRhiGraphicsPipeline> m_surfacePipe, m_surfaceBiasPipe, m_edgePipe, m_ribbonPipe, m_ribbonHaloPipe, m_glyphPipe;
+    std::unique_ptr<QRhiGraphicsPipeline> m_contextPipe;
     std::unique_ptr<QRhiBuffer> m_arrowVb, m_arrowIb;
     quint32 m_arrowIndexCount = 0;
     bool m_arrowUploaded = false;

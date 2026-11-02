@@ -136,9 +136,12 @@ std::vector<QVector3D> SceneView::visiblePoints() const
     if (!scene()) return pts;
     std::size_t total = 0;
     std::vector<const PreparedMesh*> meshes;
+    QStringList shown;
+    for (const auto& it : scene()->items)
+        if (m_display.visibleInitialized ? m_display.visible.contains(it.id) : it.defaultVisible) shown << it.id;
+    const auto focus = meshFocusItems(*scene(), shown);
     for (const SceneItem& it : scene()->items) {
-        const bool shown = m_display.visibleInitialized ? m_display.visible.contains(it.id) : it.defaultVisible;
-        if (shown && it.mesh) {
+        if (focus.contains(it.id) && it.mesh) {
             meshes.push_back(it.mesh.get());
             total += it.mesh->data().vertexCount();
         }

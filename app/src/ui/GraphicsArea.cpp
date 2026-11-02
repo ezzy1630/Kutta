@@ -104,7 +104,7 @@ ViewportPanel::ViewportPanel(Session* session, int index, QWidget* parent)
         a->setShortcutContext(Qt::WidgetShortcut);
     }
     camMenu->addSeparator();
-    camMenu->addAction(tr("Fit to visible"), this, [this] { m_view->fitView(); })->setShortcut(QKeySequence("F"));
+    camMenu->addAction(tr("Fit geometry"), this, [this] { m_view->fitView(); })->setShortcut(QKeySequence("F"));
     auto* proj = camMenu->addAction(tr("Orthographic"));
     proj->setCheckable(true);
     connect(camMenu, &QMenu::aboutToShow, this, [this, proj] { proj->setChecked(m_view->display().camera.fovY <= 0); });
@@ -228,6 +228,7 @@ void ViewportPanel::sceneArrived(std::shared_ptr<const SceneData> scene)
     if (scene) m_showedMesh = isMesh;
     if (scene && (wasMesh != isMesh || (isMesh && first))) {
         d.visibleInitialized = false;
+        if (isMesh && first) d.cameraInitialized = false;
         d.zoneColors = isMesh;
         d.contours = !isMesh;
         std::size_t tris = 0;
@@ -270,8 +271,11 @@ void ViewportPanel::sceneArrived(std::shared_ptr<const SceneData> scene)
         // Contours on one plane (a slice or symmetry plane) are seen face on;
         // otherwise the dataset's shape decides.
         const auto axis = isMesh ? std::nullopt : commonPlaneAxis(*scene, d.visible);
+        Bounds focus;
+        for (const auto& id : meshFocusItems(*scene, d.visible))
+            if (const auto* item = scene->item(id); item && item->mesh) focus.expand(item->mesh->bounds());
         d.camera.preset(axis ? (*axis == 2 ? Camera::Preset::Top : *axis == 1 ? Camera::Preset::Left : Camera::Preset::Front)
-                             : initialView(scene->bounds));
+                             : initialView(focus.valid ? focus : scene->bounds));
     }
     m_view->setScene(scene);
     m_view->setDisplay(d);
@@ -373,7 +377,11 @@ void ViewportPanel::updateOverlay()
                      : s->planar ? tr("%1 · 2D · %2 cells").arg(m_session->caseName(), QLocale().toString(m_session->caseSummary().cells))
                                  : tr("%1 · %2 boundary faces").arg(m_session->caseName(), QLocale().toString(qulonglong(faces)));
         for (const auto& it : s->items)
-            if (it.kind == ItemKind::Zone && d.visible.contains(it.id)) o.zoneKey.push_back({it.label, d.zoneColors ? it.color : QColor()});
+            if (it.kind == ItemKind::Zone && d.visible.contains(it.id)) {
+                const bool context = !s->planar && (it.zoneType != "wall" || isEnclosingWall(it, *s));
+                o.zoneKey.push_back({context ? tr("%1 (context)").arg(it.label) : it.label,
+                                     context ? (tokens().dark ? QColor(90, 94, 99) : QColor(190, 194, 199)) : d.zoneColors ? it.color : QColor()});
+            }
         if (m_probe && m_probe->hit) {
             o.probe = m_probe;
             o.probePixel = m_view->projectToLogical(m_probe->world);

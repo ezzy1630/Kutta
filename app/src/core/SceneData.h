@@ -96,12 +96,13 @@ std::shared_ptr<SceneData> runDifference(const SceneData& a, const SceneData& b,
 QString itemLabelForSlice(const ViewPart& s);
 // Distinct, colour-vision-friendly zone colours, stable by zone order.
 QColor zoneColor(int index);
-// Zones a mesh view shows first: bodies and walls, not the planar faces of an
-// enclosing box (ground, tunnel sides, far-field inlet/outlet) nor symmetry
-// planes that would hide the inside of the domain.
+// A mesh view shows body walls with a subdued road for context. Other domain
+// boundaries start hidden; all zones remain individually selectable.
 QStringList defaultMeshItems(const SceneData& s);
-// A face of the enclosing box (a ground plane, tunnel sides, far-field
-// planes): flat in one axis and spanning the domain in the other two.
+// Fit visible body walls, excluding domain context; fall back to the user's
+// visible items when there is no body (e.g. a duct or ground-only view).
+QStringList meshFocusItems(const SceneData& s, const QStringList& visible);
+// A face/shell of the enclosing box, or a broad partial plane at its edge.
 bool enclosesDomain(const SceneItem& it, const Bounds& domain);
 // External aero: walls that enclose the domain (or are named ground) beside
 // walls that do not, the body. Pipes and ducts are internal.

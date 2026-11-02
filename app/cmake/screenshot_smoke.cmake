@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.26)
 # The recorded k-epsilon, laminar 2D and transition cases run too: each has
 # its own equations, approximations and views.
 if(NOT SCENARIOS)
-  set(SCENARIOS start elbow-setup car-results param-run cylinder-run wing-aero new-case-car new-case-car-rotating new-case-car-boundary new-case-run new-case-save)
+  set(SCENARIOS start elbow-setup car-results car-mesh car-mesh-context car-mesh-below param-run cylinder-run wing-aero new-case-car new-case-car-estimate new-case-car-rotating new-case-car-boundary new-case-run new-case-save)
 endif()
 # Every scenario also checks its inspector page at each panel width and that
 # no visible text shows the home folder (main.cpp); the saved case gets a long

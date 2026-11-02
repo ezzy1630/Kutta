@@ -128,7 +128,7 @@ Result<CaseSummary> parseCaseSummary(const QJsonObject& json);
 
 // Zone roles a starter case can give (kutta new-case --role ZONE=ROLE).
 struct WheelGeometry {
-    double radius = 0;  // no guessed radius; the user must enter it
+    double radius = 0;
     std::array<double, 3> centre{};
     std::array<double, 3> axis{};
     QString error(int dimension) const;
@@ -140,6 +140,8 @@ struct NewCaseZone {
     qint64 faces = 0;
     QString role, suggestedRole, reason, group;
     std::optional<WheelGeometry> wheel;
+    std::optional<WheelGeometry> wheelEstimate;
+    bool wheelConfirmed = true;  // false while a surface proposal awaits review
 };
 // A starter case for a bare mesh, before it is written.
 struct NewCaseDraft {
@@ -152,6 +154,7 @@ struct NewCaseDraft {
     QStringList roles, notes;
     QJsonObject kuttaCase;  // the case as written
     QString out;            // where it was written, if it was
+    QString geometryError;  // manual entry remains available if export fails
     QString wheelError() const;
     std::vector<const NewCaseZone*> boundaries() const;
     NewCaseZone* zone(const QString& name);

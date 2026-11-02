@@ -160,12 +160,9 @@ QWidget* newCase(const InspectorContext& c)
             rotate->setEnabled(!s->newCaseBusy());
             nv->addWidget(rotate);
             const QString name = z->name;
-            const int dimension = d.dimension;
-            QObject::connect(rotate, &QCheckBox::toggled, rotate, [s, name, dimension](bool on) {
-                QTimer::singleShot(0, s, [s, name, dimension, on] {
-                    WheelGeometry wheel;
-                    wheel.axis = dimension == 2 ? std::array<double, 3>{0, 0, 1} : std::array<double, 3>{0, -1, 0};
-                    s->setNewCaseWheel(name, on ? std::optional(wheel) : std::nullopt);
+            QObject::connect(rotate, &QCheckBox::toggled, rotate, [s, name](bool on) {
+                QTimer::singleShot(0, s, [s, name, on] {
+                    s->enableNewCaseWheel(name, on);
                 });
             });
             if (!z->wheel && z->group == "Wheels")
@@ -193,6 +190,10 @@ QWidget* newCase(const InspectorContext& c)
             auto* fields = new QVBoxLayout(editor);
             fields->setContentsMargins(0, 2, 0, 10);
             fields->setSpacing(5);
+            if (z->wheelEstimate)
+                fields->addWidget(label(QObject::tr("Estimated from the tyre surface — check it"), "warning"));
+            else
+                fields->addWidget(label(QObject::tr("Surface estimate unavailable. Enter the wheel geometry from your mesh in metres."), "muted"));
             auto number = [](double value, const QString& name) {
                 auto* spin = new QLineEdit(QLocale().toString(value, 'g', 10));
                 spin->setAccessibleName(name);
@@ -223,8 +224,16 @@ QWidget* newCase(const InspectorContext& c)
             const auto centre = vector(QObject::tr("Wheel centre (m)"), QObject::tr("Centre %1 of %2 (m)"), z->wheel->centre);
             const auto axis = vector(QObject::tr("Axle direction"), QObject::tr("Axis %1 of %2"), z->wheel->axis);
             fields->addWidget(label(d.dimension == 2
-                                       ? QObject::tr("Enter geometry from your mesh in metres; check all three centre coordinates. The axle points out of the 2D plane (X = Y = 0).")
-                                       : QObject::tr("Enter geometry from your mesh in metres; check all three centre coordinates. The axle runs across the flow (X = 0)."), "muted"));
+                                       ? QObject::tr("Check the radius and centre in metres. The axle points out of the 2D plane (X = Y = 0).")
+                                       : QObject::tr("Check the radius and centre in metres. The axle runs across the flow (X = 0). A zone with two coaxial tyres uses their shared axle."), "muted"));
+            if (z->wheelEstimate) {
+                auto* confirm = new QCheckBox(QObject::tr("I checked this wheel geometry"));
+                confirm->setAccessibleName(QObject::tr("Confirm wheel geometry of %1").arg(z->name));
+                confirm->setChecked(z->wheelConfirmed);
+                const auto name = z->name;
+                QObject::connect(confirm, &QCheckBox::toggled, editor, [s, name](bool checked) { s->confirmNewCaseWheel(name, checked); });
+                fields->addWidget(confirm);
+            }
             auto* status = label({});
             fields->addWidget(status);
             const QString name = z->name;
@@ -236,7 +245,8 @@ QWidget* newCase(const InspectorContext& c)
                 QString error = zone->wheel->error(d.dimension);
                 if (error.isEmpty() && !std::isfinite(d.speed / zone->wheel->radius)) error = QObject::tr("Radius is too small for a finite angular speed.");
                 const auto axis = zone->wheel->rollingAxis(d.dimension);
-                status->setText(error.isEmpty() ? QObject::tr("Rotating wall · %1 rad/s\nRolling axis: (%2, %3, %4)")
+                status->setText(error.isEmpty() ? (zone->wheelConfirmed ? QObject::tr("Rotating wall · %1 rad/s\nRolling axis: (%2, %3, %4)")
+                                   : QObject::tr("After confirmation: %1 rad/s\nRolling axis: (%2, %3, %4)"))
                                    .arg(QLocale().toString(d.speed / zone->wheel->radius, 'g', 6), QString::number(axis[0]), QString::number(axis[1]), QString::number(axis[2])) : error);
                 status->setProperty("role", error.isEmpty() ? "muted" : "error");
                 status->style()->unpolish(status);
@@ -244,7 +254,7 @@ QWidget* newCase(const InspectorContext& c)
             };
             QObject::connect(s, &Session::newCaseValuesChanged, editor, update);
             update();
-            auto save = [s, name, radius, centre, axis] {
+            auto save = [s, name, radius, centre, axis, editor] {
                 auto value = [](QLineEdit* field) {
                     bool ok = false;
                     const double x = QLocale().toDouble(field->text(), &ok);
@@ -253,6 +263,8 @@ QWidget* newCase(const InspectorContext& c)
                 WheelGeometry w;
                 w.radius = value(radius);
                 for (int i = 0; i < 3; ++i) { w.centre[i] = value(centre[i]); w.axis[i] = value(axis[i]); }
+                // Editing a previously confirmed proposal requires review again.
+                for (auto* check : editor->findChildren<QCheckBox*>()) check->setChecked(false);
                 s->setNewCaseWheel(name, w);
             };
             QObject::connect(radius, &QLineEdit::textEdited, editor, save);
@@ -282,14 +294,14 @@ QWidget* newCase(const InspectorContext& c)
         f->layout()->addWidget(notes);
         auto updateNotes = [s, notes] {
             if (!s->newCaseDraft()) return;
-            if (!s->newCaseDraft()->wheelError().isEmpty()) notes->setText(QObject::tr("Complete the wheel geometry to check this setup."));
+            if (!s->newCaseDraft()->wheelError().isEmpty()) notes->setText(s->newCaseDraft()->wheelError());
             else if (!s->newCaseNotesError().isEmpty()) notes->setText(withHomeAsTilde(s->newCaseNotesError()));
             else if (!s->newCaseNotesCurrent()) notes->setText(QObject::tr("Checking the current choices…"));
             else {
                 QStringList text;
                 for (const auto& note : s->newCaseDraft()->notes)
                     text << (note.startsWith("Wheels without --wheel") || note.startsWith("Wheels are stationary walls")
-                                 ? QObject::tr("Some wheel zones are stationary. Enable ‘Rotate as a wheel’ and enter their geometry if they should turn.") : note);
+                                 ? QObject::tr("Some wheel zones are stationary. Enable ‘Rotate as a wheel’ and check their geometry if they should turn.") : note);
                 notes->setText(withHomeAsTilde(text.join("\n\n")));
             }
         };

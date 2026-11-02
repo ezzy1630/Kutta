@@ -756,6 +756,7 @@ QString NewCaseDraft::wheelError() const
         if (z.role == "wall" && z.wheel) {
             if (const QString error = z.wheel->error(dimension); !error.isEmpty()) return z.name + ": " + error;
             if (!std::isfinite(speed / z.wheel->radius)) return z.name + ": " + QObject::tr("Radius is too small for a finite angular speed.");
+            if (!z.wheelConfirmed) return z.name + ": " + QObject::tr("Check the estimated wheel geometry and confirm it.");
         }
     return {};
 }
@@ -793,7 +794,7 @@ Result<NewCaseDraft> parseNewCase(const QJsonObject& json)
         const QJsonObject o = v.toObject();
         NewCaseZone z{o.value("id").toInt(-1), o.value("name").toString(), o.value("mesh_type").toString(), o.value("kind").toString(),
                       qint64(o.value("faces").toDouble()), o.value("role").toString(), o.value("suggested_role").toString(),
-                      o.value("reason").toString(), o.value("group").toString(), std::nullopt};
+                      o.value("reason").toString(), o.value("group").toString(), std::nullopt, std::nullopt, true};
         if (z.name.isEmpty()) return R::failure("new-case: zone without a name");
         d.zones.push_back(z);
     }

@@ -328,7 +328,28 @@ bool enclosesDomain(const SceneItem& it, const Bounds& domain)
         span += e[a] > 0 && z[a] >= 0.98f * e[a];
         flat += z[a] <= 1e-3f * e.length();
     }
-    return span >= 2 && flat >= 1;
+    if (span >= 2 && flat >= 1) return true;
+    // A road can cover only part of a larger far-field box. It is still a
+    // boundary when flat at its edge and broad in the two other directions.
+    const float tolerance = 1e-3f * e.length();
+    for (int a = 0; a < 3; ++a) {
+        if (z[a] > tolerance || (std::abs(b.min[a] - domain.min[a]) > tolerance && std::abs(b.max[a] - domain.max[a]) > tolerance)) continue;
+        const int u = (a + 1) % 3, v = (a + 2) % 3;
+        if (z[u] >= 0.25f * e[u] && z[v] >= 0.25f * e[v]) return true;
+    }
+    // A single zone may combine several sides of a tunnel, so its bounding
+    // box is not flat. All of its vertices must lie on the domain's box.
+    if (span == 3) {
+        const auto& p = it.mesh->data().positions;
+        for (std::size_t i = 0; i < p.size(); i += 3) {
+            bool onBoundary = false;
+            for (int a = 0; a < 3; ++a)
+                onBoundary |= std::abs(p[i + a] - domain.min[a]) <= tolerance || std::abs(p[i + a] - domain.max[a]) <= tolerance;
+            if (!onBoundary) return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 bool isEnclosingWall(const SceneItem& it, const SceneData& s)
@@ -392,11 +413,27 @@ QStringList defaultMeshItems(const SceneData& s)
     for (const auto& it : s.items) {
         if (it.kind != ItemKind::Zone || !it.mesh) continue;
         all << it.id;
-        if (it.zoneType == "symmetry" || it.zoneType == "interior") continue;
-        if (enclosesDomain(it, s.bounds)) continue;
-        body << it.id;
+        if (it.zoneType != "wall") continue;
+        if (!isEnclosingWall(it, s)) body << it.id;
     }
-    return body.isEmpty() ? all : body;
+    if (body.isEmpty()) return all;
+    // Keep the road as subdued context, but no tunnel/inlet/outlet shell.
+    for (const auto& it : s.items) {
+        if (!isEnclosingWall(it, s) || !it.mesh) continue;
+        const auto b = it.mesh->bounds();
+        const float tol = 1e-3f * (s.bounds.max - s.bounds.min).length();
+        if (b.max.z() - b.min.z() <= tol && std::abs(b.min.z() - s.bounds.min.z()) <= tol) body << it.id;
+    }
+    return body;
+}
+
+QStringList meshFocusItems(const SceneData& s, const QStringList& visible)
+{
+    if (!s.geometryOnly || s.planar) return visible;
+    QStringList body;
+    for (const auto& it : s.items)
+        if (visible.contains(it.id) && it.mesh && it.kind == ItemKind::Zone && it.zoneType == "wall" && !isEnclosingWall(it, s)) body << it.id;
+    return body.isEmpty() ? visible : body;
 }
 
 std::optional<int> commonPlaneAxis(const SceneData& s, const QStringList& ids)

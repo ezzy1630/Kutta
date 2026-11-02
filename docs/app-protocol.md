@@ -185,11 +185,19 @@ array, described by the zone's `edges` object (`file`, `primitive:"polylines"`,
 
 ```sh
 kutta export-geometry case.cas.h5 --out DIR --json
+kutta export-geometry mesh.msh --out DIR --json
 ```
 
 ```json
 {"v":1,"event":"geometry","manifest":"/absolute/DIR/geometry/manifest.json","zones":6,"triangles":16978,"seconds":0.15}
 ```
+
+Accepts a Fluent bare mesh (`.msh`, `.msh.h5`), a Fluent case or a Kutta case.
+New Case uses this existing command before a case exists to estimate wheel
+geometry from each zone's surface, independently of its name. The proposal is
+not a boundary condition until the user enables rotation and confirms it.
+For 2D inputs, exported surfaces have an artificial unit-depth extrusion;
+estimates use the original XY extent, centre Z = 0 and axle along Z.
 
 Reads only the case mesh (no data, no volume snapshot, no solver) and publishes
 `DIR/geometry/` by staging and renaming, like `view/`. Its manifest is a normal

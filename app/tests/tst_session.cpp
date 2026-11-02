@@ -473,6 +473,23 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(!s.newCaseBusy(), 20000);
         QVERIFY2(s.newCaseDraft(), qPrintable(s.newCaseError()));
         QCOMPARE(s.newCaseDraft()->dimension, 3);
+        for (const auto& name : {QString("tyre-front"), QString("tyre-rear")}) {
+            const auto* zone = s.newCaseDraft()->zone(name);
+            QVERIFY2(zone->wheelEstimate, qPrintable(s.newCaseDraft()->geometryError));
+            const auto estimate = *zone->wheelEstimate;
+            QVERIFY(std::abs(estimate.radius - 0.233) < 0.001);
+            QVERIFY(std::abs(estimate.centre[0] - (name == "tyre-front" ? -0.78 : 0.8)) < 1e-5);
+            QVERIFY(std::abs(estimate.centre[1]) < 1e-5);
+            QVERIFY(std::abs(estimate.centre[2] - 0.23) < 1e-5);
+            QVERIFY(std::abs(estimate.axis[0]) < 1e-6);
+            QVERIFY(std::abs(estimate.axis[1] + 1) < 1e-6);
+            QVERIFY(std::abs(estimate.axis[2]) < 1e-6);
+            QVERIFY(!zone->wheel);
+            s.enableNewCaseWheel(name, true);
+            QVERIFY(s.newCaseDraft()->wheelError().contains("confirm"));
+            s.confirmNewCaseWheel(name, true);
+            s.enableNewCaseWheel(name, false);
+        }
         auto wheelNote = [&s] {
             for (const QString& n : s.newCaseDraft()->notes)
                 if (n.startsWith("Wheels are stationary walls")) return true;
@@ -482,6 +499,7 @@ private slots:
         for (const NewCaseZone* z : s.newCaseDraft()->boundaries())
             if (z->group == "Wheels") wheels << z->name + "=" + z->role;
         QCOMPARE(wheels, (QStringList{"tyre-front=wall", "tyre-rear=wall"}));
+        QTRY_VERIFY_WITH_TIMEOUT(s.newCaseNotesCurrent(), 5000);
         QVERIFY(wheelNote());
 
         s.setNewCaseRole("inlet", "wall");

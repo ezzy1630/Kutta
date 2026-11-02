@@ -3,11 +3,14 @@
 #include "TestSupport.h"
 #include "core/SceneData.h"
 #include "core/ViewFormat.h"
+#include "core/Geometry.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QTemporaryDir>
 #include <QtTest>
+
+#include <cmath>
 
 using namespace kapp;
 
@@ -67,7 +70,7 @@ private slots:
             zone("side", "symmetry", quad({-5, 0, 0}, {10, 0, 0}, {10, 0, 4}, {-5, 0, 4})),
         });
         QVERIFY(isExternalFlow(*car));
-        QCOMPARE(defaultMeshItems(*car), QStringList{"zone:body"});
+        QCOMPARE(defaultMeshItems(*car), (QStringList{"zone:body", "zone:road"}));
         QCOMPARE(defaultVisibleItems(*car), QStringList{"zone:body"});
 
         // A square duct's walls are all flat and span it: internal, so its symmetry plane shows.
@@ -78,6 +81,57 @@ private slots:
         });
         QVERIFY(!isExternalFlow(*duct));
         QCOMPARE(defaultVisibleItems(*duct), QStringList{"zone:mid"});
+    }
+
+    void partialRoadDoesNotControlMeshFit()
+    {
+        auto car = scene({
+            zone("a", "wall", quad({-3, -2.5, 0}, {6, -2.5, 0}, {6, 2.5, 0}, {-3, 2.5, 0})),
+            zone("b", "wall", quad({-1, -0.6f, 0.1f}, {2, -0.6f, 0.1f}, {2, 0.6f, 1}, {-1, 0.6f, 1})),
+            zone("c", "velocity-inlet", quad({-6, -4, 0}, {-6, 4, 0}, {-6, 4, 4}, {-6, -4, 4})),
+            zone("d", "pressure-outlet", quad({14, -4, 0}, {14, 4, 0}, {14, 4, 4}, {14, -4, 4})),
+        });
+        car->geometryOnly = true;
+        const QStringList all{"zone:a", "zone:b", "zone:c", "zone:d"};
+        QVERIFY(isEnclosingWall(*car->item("zone:a"), *car));
+        QCOMPARE(defaultMeshItems(*car), (QStringList{"zone:b", "zone:a"}));
+        QCOMPARE(meshFocusItems(*car, all), QStringList{"zone:b"});
+        QCOMPARE(meshFocusItems(*car, {"zone:a"}), QStringList{"zone:a"});
+        // Visibility is still the user's choice; a body hidden by the user
+        // cannot silently become the fit target.
+        QCOMPARE(meshFocusItems(*car, {"zone:c", "zone:d"}), (QStringList{"zone:c", "zone:d"}));
+    }
+
+    void wheelEstimateUsesSurfacePrincipalAxes()
+    {
+        MeshData mesh;
+        const QVector3D axis = QVector3D(0, -1, 0.2f).normalized();
+        const QVector3D radial(1, 0, 0), other = QVector3D::crossProduct(axis, radial);
+        const QVector3D centre(0.4f, 0.25f, 0.3f);
+        // Two coaxial tyres with a track width larger than their diameter.
+        // The zone has no name, and its global narrowest extent is radial.
+        for (float offset : {-0.6f, 0.6f}) {
+            const auto base = std::uint32_t(mesh.vertexCount());
+            for (int end = 0; end < 2; ++end)
+                for (int i = 0; i < 64; ++i) {
+                    const float angle = float(i) * 2 * float(M_PI) / 64;
+                    const auto p = centre + axis * (offset + (end ? 0.05f : -0.05f))
+                        + (radial * std::cos(angle) + other * std::sin(angle)) * 0.2f;
+                    mesh.positions.insert(mesh.positions.end(), {p.x(), p.y(), p.z()});
+                }
+            for (std::uint32_t i = 0; i < 64; ++i) {
+                const auto j = (i + 1) % 64;
+                mesh.indices.insert(mesh.indices.end(), {base + i, base + j, base + 64 + i, base + j, base + 64 + j, base + 64 + i});
+            }
+        }
+        const auto wheel = estimateWheel(mesh, 3);
+        QVERIFY(wheel);
+        QVERIFY(std::abs(wheel->radius - 0.2) < 1e-4);
+        for (int i = 0; i < 3; ++i) {
+            QVERIFY(std::abs(wheel->centre[i] - centre[i]) < 1e-5);
+            QVERIFY(std::abs(wheel->axis[i] - axis[i]) < 1e-5);
+        }
+        QVERIFY(!estimateWheel(MeshData{}, 3));
     }
 
     // A 2D case is shown as its plane: the +z extrusion cap, labelled as the

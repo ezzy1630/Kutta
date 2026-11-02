@@ -1,6 +1,7 @@
 #include "core/Session.h"
 
 #include "core/ChartScale.h"
+#include "core/Geometry.h"
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -13,6 +14,7 @@
 #include <QRegularExpression>
 #include <QSettings>
 #include <QTimer>
+#include <QTemporaryDir>
 
 #include <cmath>
 
@@ -175,19 +177,37 @@ void Session::startNewCase(const QString& meshPath)
     m_draftBusy = true;
     emit newCaseChanged();
     emit consoleLine(ConsoleLevel::Info, tr("Reading mesh %1").arg(QDir::toNativeSeparators(meshPath)));
-    m_cli->newCase({meshPath, 0, {}, {}, {}}, [this, revision](Result<NewCaseDraft> r) {
+    m_cli->newCase({meshPath, 0, {}, {}, {}}, [this, revision, meshPath](Result<NewCaseDraft> r) {
         if (revision != m_draftRevision) return;
-        m_draftBusy = false;
         if (!r) {
+            m_draftBusy = false;
             m_draftError = r.error();
             emit consoleLine(ConsoleLevel::Error, r.error());
+            emit newCaseChanged();
         } else {
-            m_draft = std::move(r).value();
-            emit consoleLine(ConsoleLevel::Info, tr("Mesh %1: %2 cells, %3 boundary zones; roles suggested from the zone names")
+            // export-geometry also reads bare meshes. Keep this export local
+            // to this request; discarded/replaced drafts cannot receive it.
+            auto draft = std::move(r).value();
+            auto dir = std::make_shared<QTemporaryDir>();
+            m_cli->exportGeometry(meshPath, dir->path(), [this, revision, draft = std::move(draft), dir](Result<ViewManifest> m) mutable {
+                if (revision != m_draftRevision) return;
+                if (m) {
+                    for (const auto& part : m.value().zones) {
+                        auto* zone = draft.zone(part.name);
+                        if (!zone || zone->kind != "boundary") continue;
+                        auto mesh = readMeshFile(QDir(m.value().dir).filePath(part.file), part);
+                        if (mesh) zone->wheelEstimate = estimateWheel(mesh.value(), draft.dimension);
+                        else draft.geometryError = mesh.error();
+                    }
+                } else draft.geometryError = m.error();
+                m_draft = std::move(draft);
+                m_draftBusy = false;
+                emit consoleLine(ConsoleLevel::Info, tr("Mesh %1: %2 cells, %3 boundary zones; roles suggested from the zone names")
                                                      .arg(QFileInfo(m_draft->meshPath).fileName(), QLocale().toString(m_draft->cells))
                                                      .arg(m_draft->boundaries().size()));
+                emit newCaseChanged();
+            });
         }
-        emit newCaseChanged();
     });
 }
 
@@ -215,6 +235,26 @@ void Session::setNewCaseWheel(const QString& zone, std::optional<WheelGeometry> 
         const bool rebuild = z->wheel.has_value() != wheel.has_value();
         z->wheel = std::move(wheel);
         draftEdited(rebuild);
+    }
+}
+
+void Session::enableNewCaseWheel(const QString& zone, bool enabled)
+{
+    if (!m_draft || m_draftBusy) return;
+    auto* z = m_draft->zone(zone);
+    if (!z || z->kind != "boundary" || z->role != "wall") return;
+    WheelGeometry manual;
+    manual.axis = m_draft->dimension == 2 ? std::array<double, 3>{0, 0, 1} : std::array<double, 3>{0, -1, 0};
+    z->wheelConfirmed = !enabled || !z->wheelEstimate;
+    setNewCaseWheel(zone, enabled ? std::optional(z->wheelEstimate.value_or(manual)) : std::nullopt);
+}
+
+void Session::confirmNewCaseWheel(const QString& zone, bool confirmed)
+{
+    if (!m_draft || m_draftBusy) return;
+    if (auto* z = m_draft->zone(zone); z && z->wheel) {
+        z->wheelConfirmed = confirmed;
+        draftEdited(false);
     }
 }
 

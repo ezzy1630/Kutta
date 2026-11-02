@@ -87,6 +87,8 @@ public:
     void setNewCaseRole(const QString& zone, const QString& role);
     void setNewCaseSpeed(double speed);
     void setNewCaseWheel(const QString& zone, std::optional<WheelGeometry> wheel);
+    void enableNewCaseWheel(const QString& zone, bool enabled);
+    void confirmNewCaseWheel(const QString& zone, bool confirmed);
     bool newCaseNotesCurrent() const { return m_notesCurrent; }
     QString newCaseNotesError() const { return m_notesError; }
     void discardNewCase();

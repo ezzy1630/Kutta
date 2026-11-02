@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <algorithm>
 
 namespace kapp {
 
@@ -108,6 +109,7 @@ void SceneRenderer::releaseResources()
     m_gpuScene.reset();
     m_surfacePipe.reset();
     m_surfaceBiasPipe.reset();
+    m_contextPipe.reset();
     m_edgePipe.reset();
     m_ribbonPipe.reset();
     m_ribbonHaloPipe.reset();
@@ -180,9 +182,10 @@ QRhiGraphicsPipeline* SceneRenderer::makePipeline(const char* vsName, const char
     ps->setDepthOp(QRhiGraphicsPipeline::LessOrEqual);
     ps->setCullMode(QRhiGraphicsPipeline::None);
     if (bias) {
-        // Push filled surfaces back so their own edges draw on top.
+        // One constant depth unit lets each surface's edges draw on top.
+        // Slope-scaled bias can push steep tyre/wing triangles behind other
+        // surfaces, especially when a large domain makes the car small.
         ps->setDepthBias(1);
-        ps->setSlopeScaledDepthBias(1.0f);
     }
     if (targets == 1) {
         QRhiGraphicsPipeline::TargetBlend blend;
@@ -217,6 +220,8 @@ void SceneRenderer::initialize(QRhi* rhi, QRhiRenderPassDescriptor* rp, int samp
                                      true, false, SurfaceInput));
     m_surfaceBiasPipe.reset(makePipeline("surface.vert", "surface.frag", rp, sampleCount,
                                          QRhiGraphicsPipeline::Triangles, true, true, SurfaceInput));
+    m_contextPipe.reset(makePipeline("surface.vert", "surface.frag", rp, sampleCount,
+                                     QRhiGraphicsPipeline::Triangles, false, false, SurfaceInput));
     m_edgePipe.reset(makePipeline("lines.vert", "lines.frag", rp, sampleCount, QRhiGraphicsPipeline::Lines, false,
                                   false, LineInput));
     m_ribbonPipe.reset(makePipeline("ribbon.vert", "surface.frag", rp, sampleCount, QRhiGraphicsPipeline::Triangles,
@@ -373,7 +378,17 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
         du.solid[3] = 1.0f;
     };
 
-    for (const auto& item : m_scene->items) {
+    auto context = [this](const SceneItem& item) {
+        return m_scene->geometryOnly && !m_scene->planar && item.kind == ItemKind::Zone
+            && (item.zoneType != "wall" || isEnclosingWall(item, *m_scene));
+    };
+    std::vector<const SceneItem*> ordered;
+    for (const auto& item : m_scene->items) ordered.push_back(&item);
+    // Domain context is a translucent backdrop, never an occluder. Rendering
+    // it first without depth writes also works when orbiting below the road.
+    if (!forPick) std::stable_partition(ordered.begin(), ordered.end(), [&](const auto* item) { return context(*item); });
+    for (const auto* entry : ordered) {
+        const auto& item = *entry;
         if (!visible.contains(item.id) || !item.mesh) continue;
         const PreparedMesh* mesh = item.mesh.get();
         GpuMesh* g = gpu(mesh, u);
@@ -489,13 +504,21 @@ std::vector<SceneRenderer::DrawCmd> SceneRenderer::buildDraws(QRhiResourceUpdate
             d.u.solid[0] = float(item.color.redF()), d.u.solid[1] = float(item.color.greenF()), d.u.solid[2] = float(item.color.blueF());
         }
         d.u.params[0] = (item.kind == ItemKind::Slice || !m_display.lighting) ? 0.0f : 1.0f;
+        const bool backdrop = !forPick && context(item);
+        if (backdrop) {
+            d.pipe = m_contextPipe.get();
+            const float grey = m_clear.lightnessF() < 0.5 ? 0.75f : 0.25f;
+            d.u.solid[0] = d.u.solid[1] = d.u.solid[2] = grey;
+            d.u.solid[3] = 0.12f;
+            d.u.params[0] = 0;
+        }
         if (forPick) {
             d.u.params[3] = float(m_pickIds.size());
             m_pickIds << item.id;
         }
         m_trianglesDrawn += g->indexCount / 3;
         draws.push_back(d);
-        if (m_display.edges && !forPick) {
+        if (m_display.edges && !forPick && !backdrop) {
             if (!g->edgeIb) {
                 const auto& e = mesh->edges();
                 if (!e.empty()) {
