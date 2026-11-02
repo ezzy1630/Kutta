@@ -115,6 +115,14 @@ KUTTA_FN kpair kpair_product_add(kpair a,float x,float y) {
   return ktwo_sum(sum.hi,(a.lo+sum.lo)+kfma(x,y,-product));
 }
 
+KUTTA_FN kpair kpair_trace(float p,float low,float gx,float gy,float gz,
+    float lx,float ly,float lz,float x,float y,float z) {
+  kpair value=ktwo_sum(p,low);
+  value=kpair_product_add(value,gx,x);value=kpair_product_add(value,lx,x);
+  value=kpair_product_add(value,gy,y);value=kpair_product_add(value,ly,y);
+  value=kpair_product_add(value,gz,z);value=kpair_product_add(value,lz,z);
+  return value;
+}
 // Difference without first rounding either carried value to one float.
 KUTTA_FN float kpair_delta(kpair a,kpair b) {
   kpair d=ktwo_sum(a.hi,-b.hi);

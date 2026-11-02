@@ -37,14 +37,6 @@ KUTTA_KERNEL void fv_compensated_pressure_jump(int i,KIn(int) owner,KIn(int) nei
 // A rounded O(p) trace can lose curvature that the compensated Rhie-Chow
 // jump retains; carrying only the low cell trace would leave the momentum
 // force and mass-flux pressure operators inconsistent on thin wall cells.
-KUTTA_FN kpair fv_pressure_trace(float p,float low,float gx,float gy,float gz,
-    float lx,float ly,float lz,float x,float y,float z) {
-  kpair value=ktwo_sum(p,low);
-  value=kpair_product_add(value,gx,x);value=kpair_product_add(value,lx,x);
-  value=kpair_product_add(value,gy,y);value=kpair_product_add(value,ly,y);
-  value=kpair_product_add(value,gz,z);value=kpair_product_add(value,lz,z);
-  return value;
-}
 KUTTA_FN float fv_pressure_trace_difference(kpair a,kpair b) {
   kpair d=ktwo_sum(a.hi,-b.hi);
   d=kpair_product_add(d,a.lo,1.0f);d=kpair_product_add(d,-b.lo,1.0f);
@@ -57,18 +49,18 @@ KUTTA_KERNEL void fv_paired_pressure_jump(int i,KIn(int) owner,KIn(int) neighbou
     KIn(float) lx,KIn(float) ly,KIn(float) lz,KIn(float) boundary,KIn(float) boundary_low,
     KOut(float) jump,int internal) {
   int c=owner[i];
-  kpair own=fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
+  kpair own=kpair_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
   if(i>=internal) {kpair b={boundary[i-internal],boundary_low[i-internal]};jump[i]=fv_pressure_trace_difference(own,b);return;}
   int n=neighbour[i];
-  kpair next=fv_pressure_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],nx[i],ny[i],nz[i]);
+  kpair next=kpair_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],nx[i],ny[i],nz[i]);
   float side=fv_pressure_trace_difference(own,next);
   float dx=px[i]-nx[i],dy=py[i]-ny[i],dz=pz[i]-nz[i];
   float sx=0.5f*(px[i]+nx[i]),sy=0.5f*(py[i]+ny[i]),sz=0.5f*(pz[i]+nz[i]);
   float d2=dx*dx+dy*dy+dz*dz,s2=sx*sx+sy*sy+sz*sz;
   float trust=kmax(0.0f,kmin(1.0f,(4.0f*d2-s2)/(3.0f*d2)));
   if(trust==1.0f) {jump[i]=side;return;}
-  own=fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],.5f*dx,.5f*dy,.5f*dz);
-  next=fv_pressure_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],-.5f*dx,-.5f*dy,-.5f*dz);
+  own=kpair_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],.5f*dx,.5f*dy,.5f*dz);
+  next=kpair_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],-.5f*dx,-.5f*dy,-.5f*dz);
   float shared=fv_pressure_trace_difference(own,next);jump[i]=shared+trust*(side-shared);
 }
 
@@ -98,7 +90,7 @@ KUTTA_KERNEL void fv_paired_pressure_boundary_low(int i,KIn(int) owner,KIn(int) 
     KIn(float) boundary,KOut(float) boundary_low,int internal) {
   if(kind[i]==2 || kind[i]==4) {boundary_low[i]=0.0f;return;}
   int f=i+internal,c=owner[f];
-  kpair value=fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[f],py[f],pz[f]);
+  kpair value=kpair_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[f],py[f],pz[f]);
   value=kpair_product_add(value,-boundary[i],1.0f);boundary_low[i]=value.hi+value.lo;
 }
 KUTTA_KERNEL void fv_paired_pressure_faces(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) kind,KIn(int) poor,
@@ -118,15 +110,15 @@ KUTTA_KERNEL void fv_paired_pressure_faces(int i,KIn(int) owner,KIn(int) neighbo
       numerator=kpair_product_add(numerator,-q,denominator.lo);
       value=ktwo_sum(q,(numerator.hi+numerator.lo)/denominator.hi);
     } else {
-      kpair own=poor[c]?ktwo_sum(p[c],low[c]):fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
-      kpair next=poor[n]?ktwo_sum(p[n],low[n]):fv_pressure_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],nx[i],ny[i],nz[i]);
+      kpair own=poor[c]?ktwo_sum(p[c],low[c]):kpair_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
+      kpair next=poor[n]?ktwo_sum(p[n],low[n]):kpair_trace(p[n],low[n],gx[n],gy[n],gz[n],lx[n],ly[n],lz[n],nx[i],ny[i],nz[i]);
       value=ktwo_sum(0.5f*own.hi,0.5f*next.hi);
       value=ktwo_sum(value.hi,value.lo+0.5f*own.lo+0.5f*next.lo);
     }
   } else {
     int b=i-internal;
     if(kind[b]==2 || kind[b]==4) value=ktwo_sum(boundary[b],boundary_low[b]);
-    else if(!standard && !poor[c]) value=fv_pressure_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
+    else if(!standard && !poor[c]) value=kpair_trace(p[c],low[c],gx[c],gy[c],gz[c],lx[c],ly[c],lz[c],px[i],py[i],pz[i]);
   }
   face[i]=value.hi;face_low[i]=value.lo;
 }

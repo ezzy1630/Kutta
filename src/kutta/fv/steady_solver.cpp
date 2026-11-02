@@ -142,7 +142,7 @@ struct SteadySolver::Impl {
   DeviceVec3 velocity_lo,pressure_gradient_lo;
   Buffer<float> pressure_lo,mass_lo,previous_mass,pressure_boundary_lo,imbalance,momentum_delta;
   DeviceVec3 pressure_force_lo,boundary_velocity_lo;
-  DeviceVec3 canonical_velocity,canonical_boundary_velocity,canonical_gradient[3],high_face_velocity;
+  DeviceVec3 canonical_velocity,canonical_boundary_velocity,canonical_gradient[3],canonical_low_gradient[3],high_face_velocity;
   Buffer<float> canonical_mass;
   Buffer<float> face_pressure_lo;
   Buffer<float> paired_diffusion_work,paired_advection_work;
@@ -239,6 +239,7 @@ struct SteadySolver::Impl {
         canonical_velocity=vector_field(dev,n);canonical_boundary_velocity=vector_field(dev,nb);
         canonical_mass=dev.alloc<float>(nf);high_face_velocity=vector_field(dev,nf);
         for(auto& gradient:canonical_gradient) gradient=vector_field(dev,n);
+        for(auto& gradient:canonical_low_gradient) gradient=vector_field(dev,n);
       }
       reset_paired();
     }
@@ -556,7 +557,13 @@ struct SteadySolver::Impl {
     if(zone_physics->has_frame_motion()) kern::fv_frame_wall_velocity(dev,mesh.n_boundary_faces(),boundary_kind,
       zone_physics->frame_normal_flux(),mesh.area.x,mesh.area.y,mesh.area.z,b.x,b.y,b.z,
       mesh.n_internal_faces,float(settings.density));
-    vector_gradient(dev,mesh,stencil,velocity_lsq,u,b,canonical_gradient[0],canonical_gradient[1],canonical_gradient[2]);
+    reconstruct_velocity_lo();
+    const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+    const Buffer<float>* low[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
+    const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+    const Buffer<float>* bc_low[]{&boundary_velocity_lo.x,&boundary_velocity_lo.y,&boundary_velocity_lo.z};
+    for(int k=0;k<3;++k)
+      paired_gradient(dev,mesh,stencil,velocity_lsq,*q[k],*low[k],*bc[k],*bc_low[k],canonical_gradient[k],canonical_low_gradient[k]);
   }
   void turbulence_boundaries() {
     kern::fv_turbulence_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,turbulence_spec,
@@ -570,6 +577,18 @@ struct SteadySolver::Impl {
       transition?&transition->gamma():nullptr});
   }
   void reconstruct_strain() {
+    if(compensated_state()) {
+      const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
+      const Buffer<float>* low[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
+      const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
+      const Buffer<float>* bc_low[]{&boundary_velocity_lo.x,&boundary_velocity_lo.y,&boundary_velocity_lo.z};
+      for(int k=0;k<3;++k) {
+        paired_gradient(dev,mesh,stencil,strain_lsq,*q[k],*low[k],*bc[k],*bc_low[k],strain_base[k],canonical_low_gradient[k]);
+        paired_jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*low[k],*bc[k],*bc_low[k],
+          strain_base[k],canonical_low_gradient[k],strain_gradient[k]);
+      }
+      return;
+    }
     const auto& u=model_velocity();const auto& b=model_boundary_velocity();
     vector_gradient(dev,mesh,stencil,strain_lsq,u,b,strain_base[0],strain_base[1],strain_base[2]);
     const Buffer<float>* q[]{&u.x,&u.y,&u.z};

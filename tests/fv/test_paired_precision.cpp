@@ -403,3 +403,31 @@ TEST_CASE("FV compensated SIMPLEC pressure update preserves a local correction")
     CHECK(double(dev->download(p)[0])+dev->download(pl)[0]==std::ldexp(1.,-43)+double(delta));
   }
 }
+
+TEST_CASE("FV constitutive derivatives retain a subulp physical velocity variation") {
+  auto host=make_box_hex(1,1,1,{0,0,0},{1,1,1});const auto geometry=compute_geometry(host);
+  const float slope=std::ldexp(1.f,-27),shift=std::ldexp(1.f,-20);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto mesh=upload_mesh(*dev,host,geometry);auto stencil=make_stencil(*dev,host,geometry);
+    std::vector<BoundaryObservation> observations(6,BoundaryObservation::FaceValue);
+    auto fit=boundary_least_squares(*dev,host,geometry,observations,&stencil);
+    auto jump=face_jump_least_squares(*dev,host,geometry);
+    auto q=dev->alloc<float>(1),low=dev->alloc<float>(1),bc=dev->alloc<float>(6),bl=dev->alloc<float>(6);
+    auto physical=dev->alloc<float>(1),physical_bc=dev->alloc<float>(6);
+    auto g=vector_field(*dev,1),gl=vector_field(*dev,1),out=vector_field(*dev,1);
+    for(int partition=0;partition<2;++partition) {
+      const float offset=partition?shift:0;dev->fill(q,1+offset);dev->fill(low,-offset);dev->fill(bc,1+offset);
+      std::vector<float> boundary_low;
+      for(const auto& face:geometry.face_centroid) boundary_low.push_back(slope*float(face.x-.5)-offset);
+      dev->upload<float>(bl,boundary_low);
+      kern::fv_paired_value(*dev,1,q,low,physical);kern::fv_paired_value(*dev,6,bc,bl,physical_bc);
+      gradient(*dev,mesh,stencil,fit,physical,physical_bc,out);
+      CHECK(dev->download(out.x)[0]==0); // The old order erases the physical derivative.
+      paired_gradient(*dev,mesh,stencil,fit,q,low,bc,bl,g,gl);
+      CHECK(double(dev->download(g.x)[0])+dev->download(gl.x)[0]==double(slope));
+      paired_jump_corrected_gradient(*dev,mesh,stencil,jump,q,low,bc,bl,g,gl,out);
+      CHECK(dev->download(out.x)[0]==slope);
+      CHECK(dev->download(out.y)[0]==0);CHECK(dev->download(out.z)[0]==0);
+    }
+  }
+}

@@ -239,6 +239,17 @@ void jump_corrected_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
     cell,bc,base.x,base.y,base.z,out.x,out.y,out.z,m.n_cells);
 }
 
+void paired_jump_corrected_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
+    const FaceJumpFit& fit,const Buffer<float>& cell,const Buffer<float>& low,
+    const Buffer<float>& boundary,const Buffer<float>& boundary_low,const DeviceVec3& base,const DeviceVec3& base_low,
+    DeviceVec3& out) {
+  kern::fv_paired_jump_gradient(dev,m.n_cells,m.cell_face_offsets,m.cell_faces,s.adjacent,m.cell_face_sign,
+    fit.delta.x,fit.delta.y,fit.delta.z,fit.inverse,
+    m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
+    cell,low,boundary,boundary_low,base.x,base.y,base.z,base_low.x,base_low.y,base_low.z,
+    out.x,out.y,out.z,m.n_cells);
+}
+
 void gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
     const BoundaryLeastSquares& lsq,const Buffer<float>& cell,
     const Buffer<float>& bc,DeviceVec3& out) {

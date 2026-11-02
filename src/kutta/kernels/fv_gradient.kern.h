@@ -221,3 +221,40 @@ KUTTA_KERNEL void fv_jump_gradient(int i,KIn(int) offsets,KIn(int) faces,KIn(int
   y[i]=gy[i]+0.5f*(inverse[i+n]*bx+inverse[i+3*n]*by+inverse[i+4*n]*bz);
   z[i]=gz[i]+0.5f*(inverse[i+2*n]*bx+inverse[i+4*n]*by+inverse[i+5*n]*bz);
 }
+
+// The face-jump derivative correction of the physical pair. Round only its
+// final derivative, rather than rounding the nearly constant cell field first.
+KUTTA_KERNEL void fv_paired_jump_gradient(int i,KIn(int) offsets,KIn(int) faces,KIn(int) adjacent,KIn(float) sign,
+    KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) inverse,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) cell,KIn(float) low,KIn(float) boundary,KIn(float) boundary_low,
+    KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) lx,KIn(float) ly,KIn(float) lz,
+    KOut(float) x,KOut(float) y,KOut(float) z,int n) {
+  kpair bx={0.0f,0.0f},by={0.0f,0.0f},bz={0.0f,0.0f};
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int f=faces[j],other=adjacent[j];
+    float a=sign[j]>0.0f?px[f]:nx[f],b=sign[j]>0.0f?py[f]:ny[f],c=sign[j]>0.0f?pz[f]:nz[f];
+    kpair own=kpair_trace(cell[i],low[i],gx[i],gy[i],gz[i],lx[i],ly[i],lz[i],a,b,c);
+    kpair next={0.0f,0.0f};
+    if(other<0) {next.hi=boundary[-other-1];next.lo=boundary_low[-other-1];}
+    else {
+      float a=sign[j]>0.0f?nx[f]:px[f],b=sign[j]>0.0f?ny[f]:py[f],c=sign[j]>0.0f?nz[f]:pz[f];
+      next=kpair_trace(cell[other],low[other],gx[other],gy[other],gz[other],lx[other],ly[other],lz[other],a,b,c);
+    }
+    kpair jump=ktwo_sum(next.hi,-own.hi);jump=kpair_product_add(jump,next.lo,1.0f);jump=kpair_product_add(jump,-own.lo,1.0f);
+    bx=kpair_product_add(bx,dx[j],jump.hi);bx=kpair_product_add(bx,dx[j],jump.lo);
+    by=kpair_product_add(by,dy[j],jump.hi);by=kpair_product_add(by,dy[j],jump.lo);
+    bz=kpair_product_add(bz,dz[j],jump.hi);bz=kpair_product_add(bz,dz[j],jump.lo);
+  }
+  kpair a=ktwo_sum(gx[i],lx[i]),b=ktwo_sum(gy[i],ly[i]),c=ktwo_sum(gz[i],lz[i]);
+  a=kpair_product_add(a,.5f*inverse[i],bx.hi);a=kpair_product_add(a,.5f*inverse[i],bx.lo);
+  a=kpair_product_add(a,.5f*inverse[i+n],by.hi);a=kpair_product_add(a,.5f*inverse[i+n],by.lo);
+  a=kpair_product_add(a,.5f*inverse[i+2*n],bz.hi);a=kpair_product_add(a,.5f*inverse[i+2*n],bz.lo);
+  b=kpair_product_add(b,.5f*inverse[i+n],bx.hi);b=kpair_product_add(b,.5f*inverse[i+n],bx.lo);
+  b=kpair_product_add(b,.5f*inverse[i+3*n],by.hi);b=kpair_product_add(b,.5f*inverse[i+3*n],by.lo);
+  b=kpair_product_add(b,.5f*inverse[i+4*n],bz.hi);b=kpair_product_add(b,.5f*inverse[i+4*n],bz.lo);
+  c=kpair_product_add(c,.5f*inverse[i+2*n],bx.hi);c=kpair_product_add(c,.5f*inverse[i+2*n],bx.lo);
+  c=kpair_product_add(c,.5f*inverse[i+4*n],by.hi);c=kpair_product_add(c,.5f*inverse[i+4*n],by.lo);
+  c=kpair_product_add(c,.5f*inverse[i+5*n],bz.hi);c=kpair_product_add(c,.5f*inverse[i+5*n],bz.lo);
+  x[i]=a.hi;y[i]=b.hi;z[i]=c.hi;
+}

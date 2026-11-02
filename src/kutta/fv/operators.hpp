@@ -80,6 +80,11 @@ void jump_corrected_gradient(Device& dev,const DeviceMesh& mesh,const Stencil& s
     const FaceJumpFit& fit,const Buffer<float>& cell,const Buffer<float>& boundary,
     const DeviceVec3& base,DeviceVec3& result);
 
+void paired_jump_corrected_gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
+    const FaceJumpFit& fit,const Buffer<float>& cell,const Buffer<float>& low,
+    const Buffer<float>& boundary,const Buffer<float>& boundary_low,const DeviceVec3& base,const DeviceVec3& base_low,
+    DeviceVec3& result);
+
 // Boundary entries are actual face values, including extrapolated Neumann data.
 // LSQ uses inverse-distance-squared weights and includes boundary faces.
 void gradient(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
