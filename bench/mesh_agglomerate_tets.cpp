@@ -125,7 +125,7 @@ int main(int argc,char** argv) {
   try {
     KUTTA_REQUIRE(argc==3,"usage: mesh_agglomerate_tets input.msh new-output.msh");
     const std::filesystem::path output=argv[2];
-    KUTTA_REQUIRE(!std::filesystem::exists(output),"tet agglomeration: output already exists");
+    KUTTA_REQUIRE(!std::filesystem::exists(std::filesystem::symlink_status(output)),"tet agglomeration: output already exists");
     const auto mesh=read_fluent_msh(argv[1]);
     KUTTA_REQUIRE(mesh.cell_zones.size()<=1 && mesh.internal_face_zones.empty(),
                   "tet agglomeration: requires one fluid region without internal BCs");
