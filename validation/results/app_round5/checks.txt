@@ -1,0 +1,96 @@
+Source commits: 9f5b857, 74d75dc
+Baseline: c0da65a
+Release / Qt 6.12.0 / macOS / M4 Pro / Metal
+
+APP TESTS
+Test project <checkout>/build/app
+      Start  1: app-tst_aero
+ 1/11 Test  #1: app-tst_aero .....................   Passed    0.73 sec
+      Start  2: app-tst_pathdisplay
+ 2/11 Test  #2: app-tst_pathdisplay ..............   Passed    0.02 sec
+      Start  3: app-tst_plotting
+ 3/11 Test  #3: app-tst_plotting .................   Passed    0.17 sec
+      Start  4: app-tst_protocol
+ 4/11 Test  #4: app-tst_protocol .................   Passed    0.21 sec
+      Start  5: app-tst_realcli
+ 5/11 Test  #5: app-tst_realcli ..................   Passed   50.87 sec
+      Start  6: app-tst_runhistory
+ 6/11 Test  #6: app-tst_runhistory ...............   Passed    0.02 sec
+      Start  7: app-tst_session
+ 7/11 Test  #7: app-tst_session ..................   Passed    6.45 sec
+      Start  8: app-tst_settings
+ 8/11 Test  #8: app-tst_settings .................   Passed    0.25 sec
+      Start  9: app-tst_study
+ 9/11 Test  #9: app-tst_study ....................   Passed    1.33 sec
+      Start 10: app-tst_viewformat
+10/11 Test #10: app-tst_viewformat ...............   Passed    0.03 sec
+      Start 11: app-screenshot-smoke
+11/11 Test #11: app-screenshot-smoke .............   Passed   46.87 sec
+
+100% tests passed out of 11
+
+Label Time Summary:
+app    = 106.96 sec*proc (11 tests)
+gui    =  46.87 sec*proc (1 test)
+
+Total Test time (real) = 106.97 sec
+
+REAL CLI (verbose)
+UpdateCTestConfiguration  from :<checkout>/build/app/DartConfiguration.tcl
+Test project <checkout>/build/app
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 5
+    Start 5: app-tst_realcli
+
+5: Test command: <checkout>/build/app/tst_realcli
+5: Working Directory: <checkout>/build/app
+5: Environment variables: 
+5:  QT_QPA_PLATFORM=offscreen
+5: Test timeout computed to be: 10000000
+5: ********* Start testing of TestRealCli *********
+5: Config: Using QtTest library 6.12.0, Qt 6.12.0 (arm64-little_endian-lp64 shared (dynamic) release build; by Apple LLVM 17.0.0 (clang-1700.3.19.1)), macos 26.6.2
+5: PASS   : TestRealCli::initTestCase()
+5: PASS   : TestRealCli::inventoryIsComplete()
+5: PASS   : TestRealCli::runLiveThenPostProcess()
+5: PASS   : TestRealCli::convergesOnTheCaseCriteriaThenAero()
+5: PASS   : TestRealCli::planarLaminarCylinder()
+5: PASS   : TestRealCli::kEpsilonElbow()
+5: PASS   : TestRealCli::stopFinishesTheCurrentIteration()
+5: PASS   : TestRealCli::newCaseFromBareMeshRunsAndSaves()
+5: PASS   : TestRealCli::rotatingWheelFromBareMesh()
+5: PASS   : TestRealCli::fluentCaseSavesAsKuttaCase()
+5: PASS   : TestRealCli::cleanupTestCase()
+5: Totals: 11 passed, 0 failed, 0 skipped, 0 blacklisted, 43841ms
+5: ********* Finished testing of TestRealCli *********
+1/1 Test #5: app-tst_realcli ..................   Passed   43.88 sec
+
+The following tests passed:
+	app-tst_realcli
+
+100% tests passed out of 1
+
+Label Time Summary:
+app    =  43.88 sec*proc (1 test)
+
+Total Test time (real) =  43.88 sec
+
+QUICK TIER (summary)
+===============================================================================
+[doctest] test cases:     277 |     277 passed | 0 failed | 37 skipped
+[doctest] assertions: 7457592 | 7457592 passed | 0 failed |
+[doctest] Status: SUCCESS!
+
+CLI ERROR AFTER FIX
+{"v":1,"event":"error","message":"fluent_msh.cpp:358: cannot open Fluent mesh: /tmp/kutta-round5-missing.msh","issues":[]}
+kutta new-case: fluent_msh.cpp:358: cannot open Fluent mesh: /tmp/kutta-round5-missing.msh
+
+IDLE EDITOR
+{"fps_mean":333.5742295227537,"frames":2,"idle_cpu_percent":1.2551673331930118,"idle_frames_rendered":0,"idle_seconds":4.751,"max_ms":5.435958,"mean_ms":2.9978335,"p95_ms":5.435958,"triangles":0,"viewport_px":"910x563@2"}
+
+Portability lint: exit 0, no output
+Solver parity: all 20 physical output files identical; residual histories identical without elapsed time (parity.json).

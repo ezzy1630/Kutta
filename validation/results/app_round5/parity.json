@@ -1,0 +1,52 @@
+{
+  "baseline": "c0da65a",
+  "iterations": 40,
+  "case": "mixing_elbow.cas.h5",
+  "approximation": "wfgc",
+  "results": [
+    {
+      "run": "cpu-plain",
+      "identical": {
+        "fluxes.csv": "c8fb841adb87e1d6331969113a36bc8847446c73063b00446049f7375a40b69c",
+        "forces.csv": "ba654674b72a28913d8c5a41d28d7c27a4c0ebee75cdd5857788604569651bbf",
+        "loads.json": "26915de1d5c1c8d67b3d374a0a9792319fb73c2e2f91d30a8e2fffe1914201e6",
+        "result.vtu": "affcc3c8b86189f5b383b81c36c8f1d7533fe0dc438b79e07e414d50abc16567",
+        "view-input.bin": "b48272799ee41c8321c58438c9d4de4478c9505bc1b47f991ff331645e4e8a68"
+      },
+      "residuals_without_elapsed": "identical"
+    },
+    {
+      "run": "cpu-jsonl",
+      "identical": {
+        "fluxes.csv": "c8fb841adb87e1d6331969113a36bc8847446c73063b00446049f7375a40b69c",
+        "forces.csv": "ba654674b72a28913d8c5a41d28d7c27a4c0ebee75cdd5857788604569651bbf",
+        "loads.json": "26915de1d5c1c8d67b3d374a0a9792319fb73c2e2f91d30a8e2fffe1914201e6",
+        "result.vtu": "affcc3c8b86189f5b383b81c36c8f1d7533fe0dc438b79e07e414d50abc16567",
+        "view-input.bin": "b48272799ee41c8321c58438c9d4de4478c9505bc1b47f991ff331645e4e8a68"
+      },
+      "residuals_without_elapsed": "identical"
+    },
+    {
+      "run": "metal-plain",
+      "identical": {
+        "fluxes.csv": "1ba515d94250e7905a325faccc8a6374505475b46c5fa62b6a55bd1793284171",
+        "forces.csv": "b84fb336d41d96cd31a538c912c18325a3c5c2baad9d7d6f8421bd0d573aba58",
+        "loads.json": "bacaf30a5fbf247b988febbc594ec90aca32862d1935cfd08ba0bda1d1a27275",
+        "result.vtu": "7d6a40de90a0406ba40e9aa67ab8c852ca90f575ad819b485f00530fa48f0726",
+        "view-input.bin": "34014917ca0b38b7c09f9e928b1ff01b5948a03a557f6adac943ad6bcd4735a7"
+      },
+      "residuals_without_elapsed": "identical"
+    },
+    {
+      "run": "metal-jsonl",
+      "identical": {
+        "fluxes.csv": "1ba515d94250e7905a325faccc8a6374505475b46c5fa62b6a55bd1793284171",
+        "forces.csv": "b84fb336d41d96cd31a538c912c18325a3c5c2baad9d7d6f8421bd0d573aba58",
+        "loads.json": "bacaf30a5fbf247b988febbc594ec90aca32862d1935cfd08ba0bda1d1a27275",
+        "result.vtu": "7d6a40de90a0406ba40e9aa67ab8c852ca90f575ad819b485f00530fa48f0726",
+        "view-input.bin": "34014917ca0b38b7c09f9e928b1ff01b5948a03a557f6adac943ad6bcd4735a7"
+      },
+      "residuals_without_elapsed": "identical"
+    }
+  ]
+}
