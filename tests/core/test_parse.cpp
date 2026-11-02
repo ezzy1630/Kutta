@@ -4,8 +4,24 @@
 #include <string>
 
 #include "kutta/core/parse.hpp"
+#include "kutta/core/types.hpp"
 
 using kutta::parse_double;
+
+TEST_CASE("Error locations expose a source filename without the build directory") {
+  CHECK(kutta::source_filename("/build/checkout/src/file.cpp") == "file.cpp");
+  CHECK(kutta::source_filename(R"(C:\build\checkout\src\file.cpp)") == "file.cpp");
+  CHECK(kutta::source_filename("file.cpp") == "file.cpp");
+  try {
+    KUTTA_REQUIRE(false, "diagnostic detail");
+    FAIL("the failed invariant must throw");
+  } catch (const kutta::Error& e) {
+    const std::string message(e.what());
+    CHECK(message.starts_with("test_parse.cpp:"));
+    CHECK(message.ends_with(": diagnostic detail"));
+    CHECK(message.find(KUTTA_SOURCE_DIR) == std::string::npos);
+  }
+}
 
 TEST_CASE("parse_double accepts whole decimal and exponent forms only") {
   CHECK(parse_double("1.5") == 1.5);
