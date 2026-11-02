@@ -1,0 +1,21 @@
+{
+  "clean_source_commit": "998a66634f59e2ee651d0993b0f1d583cfeedcd0",
+  "comparison": "generic retained option versus amplified-fallback plus symmetry prototype",
+  "samples": 100,
+  "last_iteration": 5000,
+  "all_nontiming_columns_exact": true,
+  "columns": [
+    "iteration",
+    "lift",
+    "drag",
+    "drag_pressure",
+    "u",
+    "v",
+    "w",
+    "continuity",
+    "k",
+    "omega",
+    "max_velocity",
+    "continuity_raw"
+  ]
+}

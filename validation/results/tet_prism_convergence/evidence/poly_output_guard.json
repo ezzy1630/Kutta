@@ -1,0 +1,8 @@
+{
+  "binary_sha256": "f13e94e797906df181222a72ebd54faebda7cda7edca7a55fdf8966ceca94c20",
+  "source_sha256": "eae13857a7d331ffc7f546e00be5eba594a9c0ef7d250dfb677a5b8e734aad0c",
+  "dangling_symlink_rejected": true,
+  "link_preserved": true,
+  "target_not_created": true,
+  "fresh_output_result": "original_cells=11 cells=7 convex_pairs=4 relative_volume_error=1.29525e-16 boundary_faces=18"
+}

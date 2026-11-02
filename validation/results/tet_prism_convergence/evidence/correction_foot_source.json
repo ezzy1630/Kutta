@@ -1,0 +1,7 @@
+{
+  "solver_base": "998a66634f59e2ee651d0993b0f1d583cfeedcd0",
+  "changes": "separate pressure-correction LSQ fit: normal-foot homogeneous Neumann on fixed-velocity boundaries, face-value homogeneous Dirichlet on fixed-pressure boundaries; physical pressure reconstruction unchanged",
+  "source_sha256": "f39f2275ce4cfd5ebc50df1f0a432156d228064a1814c9c5939af1a54aa1d7e6",
+  "binary_sha256": "1418bb7e77b2c477d48a5663be24127f0cc0dfbeaaa9b32cb96e53ce89a27975",
+  "library_sha256": "f3bcdebbb944ca4fd3cdb5e47a06ea8eed60c0981898ad02fcd6273259a90a59"
+}

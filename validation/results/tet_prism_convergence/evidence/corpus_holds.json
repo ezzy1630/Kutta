@@ -1,0 +1,58 @@
+{
+  "base22": {
+    "hold_count": 21,
+    "equivalent_count": 0,
+    "full_hold_text_sha256": "03daabfb34c12b4153d13097aae485ea603af2694107e9817ab3413affd8021d",
+    "cases": [
+      "axial_fan_performance_curve/axial_fan.cas.h5",
+      "axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.cas.h5",
+      "axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/BaseCases/axial_fan.cas.h5",
+      "axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/axial_fan.cas.h5",
+      "borealis_fracture/26 Mpa-solution-final.cas",
+      "borealis_fracture/final solution-before-26 MPa.cas",
+      "borealis_fracture/final solution-before-94 MPa.cas",
+      "catalytic_converter/catalytic_converter_param.cas",
+      "examples/MixingTank-DOE/test-laminar-visc.cas.h5",
+      "examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.cas.h5",
+      "examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.cas.h5",
+      "optislang/nozzle-2D-WB.cas.h5",
+      "other_folders/pytwin/other_files/HX_CFD.cas.h5",
+      "other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.cas.h5",
+      "other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.cas.h5",
+      "other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.cas.h5",
+      "peridoic_rot/peridoic_rot.cas.h5",
+      "peridoicrot_withpipes/peridoicrot_withpipes.cas.h5",
+      "periodic_rot/periodic_rot.cas.h5",
+      "vki_turbine/vki_turbine.cas",
+      "wigley_hull/wigley.cas.h5"
+    ]
+  },
+  "branch": {
+    "hold_count": 21,
+    "equivalent_count": 0,
+    "full_hold_text_sha256": "03daabfb34c12b4153d13097aae485ea603af2694107e9817ab3413affd8021d",
+    "cases": [
+      "axial_fan_performance_curve/axial_fan.cas.h5",
+      "axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/Base DP/axial_fan.cas.h5",
+      "axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/BaseCases/axial_fan.cas.h5",
+      "axial_fan_performance_curve/project_axial_fan.cffdb/axial_fan-Solve/axial_fan.cas.h5",
+      "borealis_fracture/26 Mpa-solution-final.cas",
+      "borealis_fracture/final solution-before-26 MPa.cas",
+      "borealis_fracture/final solution-before-94 MPa.cas",
+      "catalytic_converter/catalytic_converter_param.cas",
+      "examples/MixingTank-DOE/test-laminar-visc.cas.h5",
+      "examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT.cas.h5",
+      "examples/Tyler-Sofrin-Modes-Compressor/axial_comp_fullWheel_DFT_23R2.cas.h5",
+      "optislang/nozzle-2D-WB.cas.h5",
+      "other_folders/pytwin/other_files/HX_CFD.cas.h5",
+      "other_folders/result_files/fluent-axial_comp/axial_comp-1-01438.cas.h5",
+      "other_folders/result_files/fluent-axial_comp/axial_comp-1-01439.cas.h5",
+      "other_folders/result_files/fluent-axial_comp/axial_comp-1-01440.cas.h5",
+      "peridoic_rot/peridoic_rot.cas.h5",
+      "peridoicrot_withpipes/peridoicrot_withpipes.cas.h5",
+      "periodic_rot/periodic_rot.cas.h5",
+      "vki_turbine/vki_turbine.cas",
+      "wigley_hull/wigley.cas.h5"
+    ]
+  }
+}

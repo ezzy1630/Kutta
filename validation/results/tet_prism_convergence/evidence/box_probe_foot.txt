@@ -1,0 +1,14 @@
+patch=xmin x=0
+patch=xmax x=1
+patch=ymin x=0.166667
+patch=ymax x=0.166667
+patch=zmin x=0.166667
+patch=zmax x=0.166667
+balanced=0.0277781,0.0416667,0.0416667,0
+step=0.0300638,0.0422851,0.0422803,0.0490092
+mode=0 fallback=24
+farfield_n=0 gradient_rms=nan
+mode=1 fallback=24
+farfield_n=0 gradient_rms=nan
+mode=2 fallback=24
+farfield_n=0 gradient_rms=nan

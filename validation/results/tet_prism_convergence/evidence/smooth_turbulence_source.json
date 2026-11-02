@@ -1,0 +1,7 @@
+{
+  "solver_base": "998a66634f59e2ee651d0993b0f1d583cfeedcd0",
+  "changes": "under existing differentiable limiter selection, use its unchanged 0.05 coefficient for SST k and omega reconstruction too",
+  "activation": "--limiter differentiable",
+  "source_sha256": "36d08d9e78e05e6694ad6bb151b8c5a5da6642b1aa942e2112a5e987df7eb279",
+  "binary_sha256": "4a1e90f8ed64889ade481b499bcb405d6dd64b535d1edc97344f979fac1380ca"
+}

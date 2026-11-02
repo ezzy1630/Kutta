@@ -1,0 +1,16 @@
+{
+  "test_binary_sha256": "88a574e51f4572be66cd441efd958bd10461d659e87d7401a7f40bc9036b1d2a",
+  "cli_sha256": "e8aff4e4bfe1143361d5bfd49398b9a84874207896ea5b107008cef84893c9f1",
+  "test_solver_statically_linked": true,
+  "cli_dependent_slow_cases": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "cli_dependent_cases_ran_before_any_cli_rebuild": true,
+  "later_slow_cases_invoke_no_cli": true,
+  "baseline_did_not_have_per_case_cli_digest_guard": true,
+  "branch_has_per_case_cli_digest_guard": true,
+  "separate_baseline_wing_supplement_used_matching_baseline_cli": true
+}

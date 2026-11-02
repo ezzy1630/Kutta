@@ -1,0 +1,62 @@
+{
+  "base_commit": "22e65c7afa4df1c804a08d537c48cb74f7c61c8e",
+  "implementation_commit": "b27da75ec110c7ca4f67188794ef67168a04e5a4",
+  "source_sha256": {
+    "src/kutta/fv/steady_solver.cpp": "c94ea836d76fd56f9d0f7d1df97b030bf914c5cca9a27aaad3aa1c174c0a954f",
+    "src/kutta/fv/steady_solver.hpp": "eb511507870df2162d5d9335fcb4fde8e205704cf64eca221b0bae48f1d9e388",
+    "src/kutta/fv/operators.cpp": "1a420c7ae57f33891a1ad9f292d783472f907fcbd43abfaec6cf1f57cc8d1b08",
+    "src/kutta/fv/operators.hpp": "bc577c9bf848d3f2159d774aa7769286dc689ad90cba2bcd2e841ce39ac8abf1",
+    "src/kutta/kernels/fv_fluent_schemes.kern.h": "e6976d28df61517a1d500aa5217c380e1459be6a4cbe19062dc0081ad1b752a9",
+    "bench/bench_fsae_aero.cpp": "5f6f64ea27cda406f062334e30ca592f529d690f476d65f722afa81523895f5a",
+    "bench/mesh_agglomerate_tets.cpp": "9b4841274bd0fb086d98e19784e9e53b36e6a0b8c946bf462cc9f17a394373e7",
+    "validation/cases/fsae_aero.hpp": "6c3b9ef965f01b004f46518a9a943717ab348f808903e270145262db1b6f10a9",
+    "tests/fv/test_native_farfield.cpp": "714d335111d0a5626a14599f0822382e2477aacc110b1b201b0670fd36d0a1c4",
+    "tests/data/meshes/native_farfield_tets.msh": "62d6723c21a8ff295743facb4012b126e6573ee023b01f9c17e337619e4ea68a"
+  },
+  "base_source_sha256": {
+    "src/kutta/fv/steady_solver.cpp": "b465fff4a6f0ce162e02a9c616ad284941cc30d6258d6fe5e6698f5a389e97de",
+    "src/kutta/fv/steady_solver.hpp": "79239ad1328537e04da9748c3a84f6d9c42e9902f47bbb4eff536414ac09f595",
+    "src/kutta/fv/operators.cpp": "1a420c7ae57f33891a1ad9f292d783472f907fcbd43abfaec6cf1f57cc8d1b08",
+    "src/kutta/fv/operators.hpp": "bc577c9bf848d3f2159d774aa7769286dc689ad90cba2bcd2e841ce39ac8abf1",
+    "src/kutta/kernels/fv_fluent_schemes.kern.h": "e6976d28df61517a1d500aa5217c380e1459be6a4cbe19062dc0081ad1b752a9",
+    "bench/bench_fsae_aero.cpp": "47bbe178498db6ce4a89780b4bf1170a5dbba078070fb21d723657894760f74e",
+    "validation/cases/fsae_aero.hpp": "cae177fc8f713c6750e693e3990f27506334bd8ef92785a9a9fb151e1789e878"
+  },
+  "binaries": {
+    "base-bin": {
+      "bench_fsae_aero": "642384355b8a19a4bf82a1d6dd205b804547027ca9b16940ea8c1296635f8528",
+      "kutta": "e8aff4e4bfe1143361d5bfd49398b9a84874207896ea5b107008cef84893c9f1",
+      "kutta-tests": "88a574e51f4572be66cd441efd958bd10461d659e87d7401a7f40bc9036b1d2a",
+      "libkutta.a": "e5151a9cc89d3b4297ae63b5c33fec99f1e4e227e45297f79cdb7471caf33584"
+    },
+    "retained-bin": {
+      "bench_fsae_aero": "847aebb6ef5ca64e8783fa46c43febf031862fc5066de9bd7dcf86ad3f829b28",
+      "kutta": "544f0e6e799a67f0268b2453715c3187bb8f17fc295165984b140ee5c6dee4d4",
+      "kutta-tests": "ef5b6bdcc3938950bc6dbf9b8fbb0dec8c4bc4d0aabe39bf349c581d1be11ca5",
+      "libkutta.a": "775cf4b04150384b37507abd7ff93a446e9d6ef76d832993b1fefce354190ca7",
+      "mesh_agglomerate_tets": "f4187ea3f22dfa1fdd804f6d3445c639eac12448434a8548321293c047118086"
+    }
+  },
+  "mesh_sha256": {
+    "retained_native_L1.msh": "95bc6d879ce9d6e25b56d499a327bd2710cd9778cc983697767dceb4fd624829",
+    "native_L1.msh": "35cee20eaef0052a00b09b2dbabd199b19d26c58a22cb2a6d1d33c97d9f9424e",
+    "retained_poly_L1.msh": "a86a6569d512c4a9496087c306a94284ac30a382ceeae29cefc9c987d8e2b74d"
+  },
+  "baseline_cpu_diagnostic": {
+    "binary_sha256": "445200c5d60c284b8256ec782e4f553654c1575e497d13f79643dcf33f2de9b7",
+    "patch_sha256": "da552a7fbc0945b3757a1ffd2b5640edd161740f2dcec323ac07b02544c58e74",
+    "patch_base": "22e65c7afa4df1c804a08d537c48cb74f7c61c8e",
+    "patch_location": "runs/tet_prism_convergence/scratch/diagnostic.patch",
+    "patch_is_not_committed": true
+  },
+  "build": {
+    "type": "Release",
+    "cpu": true,
+    "metal": true,
+    "cuda": false,
+    "hdf5": true,
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "machine": "Apple M4 Pro",
+    "physical_memory_bytes": 25769803776
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "cases": 280,
+  "passed_cases": 280,
+  "failed_cases": 0,
+  "assertions": 7457646,
+  "failed_assertions": 0,
+  "excluded_slow_cases": 37,
+  "peak_footprint_bytes": 1316046672
+}

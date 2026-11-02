@@ -1,0 +1,15 @@
+{
+  "compiler": "Apple clang 21.0.0 (clang-2100.1.1.101)",
+  "target": "arm64-apple-darwin25.6.0",
+  "physical_memory_bytes": 25769803776,
+  "gpu": "Apple M4 Pro",
+  "build_type": "Release",
+  "release_flags": "-O3 -DNDEBUG",
+  "cpu": true,
+  "metal": true,
+  "hdf5": true,
+  "cuda": false,
+  "qt_app": false,
+  "solver_implementation_commit": "998a66634f59e2ee651d0993b0f1d583cfeedcd0",
+  "later_mesh_guard_commit": "fb0cb59d8ea007fe1f5994db4f2dd70ad730eced"
+}

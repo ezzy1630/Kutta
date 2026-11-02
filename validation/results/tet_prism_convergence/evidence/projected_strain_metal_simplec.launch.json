@@ -1,0 +1,41 @@
+{
+  "command": [
+    "runs/tet_prism_convergence/scratch/bench_projected_strain",
+    "--mesh",
+    "runs/tet_prism_convergence/retained_native_L1.msh",
+    "--backend",
+    "metal",
+    "--re",
+    "2.78e6",
+    "--length",
+    "1.044",
+    "--area",
+    "0.112032",
+    "--walls",
+    "body",
+    "--lift-z",
+    "--tu",
+    "0.01",
+    "--window",
+    "1000",
+    "--iterations",
+    "5000",
+    "--pressure-boundary-gradient",
+    "normal-foot",
+    "--out",
+    "runs/tet_prism_convergence/projected_strain_metal_simplec"
+  ],
+  "source": {
+    "solver_base": "998a66634f59e2ee651d0993b0f1d583cfeedcd0",
+    "changes": "normal-foot symmetry strain fit and tangentially extrapolated, normal-projected symmetry trace for the jump correction",
+    "host_prototype_only": true,
+    "source_sha256": "514f1dd516ed2efe794b276036b771042043ff278a8f5cf5b9cb5f8364e968aa",
+    "binary_sha256": "fbea3a045a6473e08e912d7f42baa270fb893b18a173a7dd71cf046c2555aad4"
+  },
+  "binary_sha256": "fbea3a045a6473e08e912d7f42baa270fb893b18a173a7dd71cf046c2555aad4",
+  "paused_case": "Tyrrell slow case 12; iteration/convergence stopping only",
+  "paused_pid": 7888,
+  "pause_utc": "2026-11-02T18:10:50.009015+00:00",
+  "native_exit": 0,
+  "resume_utc": "2026-11-02T18:15:24.901944+00:00"
+}

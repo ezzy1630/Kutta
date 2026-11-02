@@ -1,0 +1,27 @@
+{
+  "source_sha256": "5a9aab08dafe0c6797599a37690f2d6f556008cd2b7c6d4ae853c3ea3df70e3c",
+  "binary_sha256": "581a9c14bc0e168ea6dd1375b04cda7e8dc1b566ddec01caa64b6d99afe52f73",
+  "executed_cases": 1,
+  "case": "Normal-foot pressure boundary gradients recover uniform flow on native tetrahedra",
+  "boundary_backend_combinations": [
+    [
+      "cpu",
+      "moving wall"
+    ],
+    [
+      "cpu",
+      "symmetry"
+    ],
+    [
+      "metal",
+      "moving wall"
+    ],
+    [
+      "metal",
+      "symmetry"
+    ]
+  ],
+  "successes": 15,
+  "failures": 0,
+  "exit": 0
+}

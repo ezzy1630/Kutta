@@ -1,0 +1,14 @@
+{
+  "base22": {
+    "case": "The NACA ground-effect wing from a bare mesh and a Kutta case solves like its donor Fluent case",
+    "successes": 19,
+    "failures": 0,
+    "xml_sha256": "5aa3a5b2977800833006e84a755c3ec3d7d5dd7250224f127976e41bb5bd0675"
+  },
+  "branch": {
+    "case": "The NACA ground-effect wing from a bare mesh and a Kutta case solves like its donor Fluent case",
+    "successes": 19,
+    "failures": 0,
+    "xml_sha256": "a358bca70d2ab71ec2c51f217e1542f0bc5a4ca50533c6c66e4af4552fbca5ed"
+  }
+}

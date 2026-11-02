@@ -1,0 +1,6 @@
+{
+  "fresh22_matches_prior_f0fa072_changed_values": true,
+  "values": 31,
+  "prior_comparison_sha256": "db28b58d2d0bda1788109005a447fd2d917b98140666bde285cb5b5d7731f729",
+  "scope": "case, expression, before/after value and assertion outcomes; volatile contexts excluded only for this provenance check"
+}

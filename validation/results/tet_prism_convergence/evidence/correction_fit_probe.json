@@ -1,0 +1,18 @@
+{
+  "shared_physical_fit": {
+    "library_sha256": "f3b68bb9c478602c416e9b4884dde514eac5dc882c0c0774b1c89f28e19e7876",
+    "binary_sha256": "3473e1e62992400a020ed6d61f79f82ce3af7ccddb3d9d1677a8e6f48b58ded0",
+    "result": [
+      "wall=0 continuity=0.0697863871465 velocity_error=0.670492649078 pressure=0.141581639647",
+      "wall=1 continuity=0.0742761024012 velocity_error=0.766423881054 pressure=0.169887363911"
+    ]
+  },
+  "separate_neumann_fit": {
+    "library_sha256": "f3bcdebbb944ca4fd3cdb5e47a06ea8eed60c0981898ad02fcd6273259a90a59",
+    "binary_sha256": "9fbd6ffa30e116aa6010e18509276329a6705ccfc9ed907610398a8b49525205",
+    "result": [
+      "wall=0 continuity=3.05704017656e-09 velocity_error=1.31291670868e-07 pressure=2.4210396532e-07",
+      "wall=1 continuity=1.41420208877e-12 velocity_error=2.98023223877e-07 pressure=1.68860907479e-07"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "owned_reference_symlinks_removed": 269,
+  "all_targets_verified_before_removal": true,
+  "tracked_files_removed": 0,
+  "retained_solver_source_matches_verified_998a666": true,
+  "frozen_binary_hashes_still_match": true,
+  "raw_meshes_traces_xml_and_prototype_snapshots_remain_ignored_for_audit": true
+}

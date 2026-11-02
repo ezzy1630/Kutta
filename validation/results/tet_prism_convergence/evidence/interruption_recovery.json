@@ -1,0 +1,26 @@
+{
+  "completed_cases_preserved": 22,
+  "interrupted_case": 23,
+  "partial_sha256": {
+    "23.xml": "68ebc9c8f8939a5c09ef024ec04f192db8c74ae106b8e1f15940192ec328cac0",
+    "23.resources.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "action": "rerun interrupted case 23 from its initial state with the complete original case budget",
+  "guards": [
+    {
+      "guard": "Resume binary or CLI",
+      "rejected": true,
+      "exit": 1
+    },
+    {
+      "guard": "output already contains receipts",
+      "rejected": true,
+      "exit": 1
+    },
+    {
+      "guard": "changed completed XML",
+      "rejected": true,
+      "exit": 1
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "existing_output_rejected": true,
+  "existing_output_sha256_unchanged": "3b340b296e98c08df2d1f6d9b9855de7f4bf13ca056a2bf796b0e2d8f56a0765",
+  "crop_result": "original_cells=11 cells=7 convex_pairs=4 relative_volume_error=1.29525e-16 boundary_faces=18",
+  "native_result": "original_cells=130331 cells=111474 convex_pairs=18857 relative_volume_error=1.63475e-15 boundary_faces=8988",
+  "native_sha256": "a86a6569d512c4a9496087c306a94284ac30a382ceeae29cefc9c987d8e2b74d"
+}

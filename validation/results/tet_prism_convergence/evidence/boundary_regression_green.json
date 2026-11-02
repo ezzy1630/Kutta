@@ -1,0 +1,150 @@
+{
+  "case": "Normal-foot pressure boundary gradients recover uniform flow on native tetrahedra",
+  "expressions": [
+    {
+      "success": true,
+      "original": "mesh.n_cells==11",
+      "expanded": "11 == 11",
+      "exception": "",
+      "contexts": []
+    },
+    {
+      "success": true,
+      "original": "report.continuity.raw<1e-6",
+      "expanded": "1.73531e-08 <  1e-06",
+      "exception": "",
+      "contexts": [
+        "backend: cpu",
+        "symmetry"
+      ]
+    },
+    {
+      "success": true,
+      "original": "error<1e-5",
+      "expanded": "3.57628e-07 <  1e-05",
+      "exception": "",
+      "contexts": [
+        "backend: cpu",
+        "symmetry"
+      ]
+    },
+    {
+      "success": true,
+      "original": "dev->max_abs(solver.pressure(),mesh.n_cells)<1e-5",
+      "expanded": "1.22069e-07 <  1e-05",
+      "exception": "",
+      "contexts": [
+        "backend: cpu",
+        "symmetry"
+      ]
+    },
+    {
+      "success": true,
+      "original": "report.continuity.raw<1e-6",
+      "expanded": "6.66023e-09 <  1e-06",
+      "exception": "",
+      "contexts": [
+        "backend: cpu",
+        "moving wall"
+      ]
+    },
+    {
+      "success": true,
+      "original": "error<1e-5",
+      "expanded": "1.7005e-07 <  1e-05",
+      "exception": "",
+      "contexts": [
+        "backend: cpu",
+        "moving wall"
+      ]
+    },
+    {
+      "success": true,
+      "original": "dev->max_abs(solver.pressure(),mesh.n_cells)<1e-5",
+      "expanded": "1.00818e-07 <  1e-05",
+      "exception": "",
+      "contexts": [
+        "backend: cpu",
+        "moving wall"
+      ]
+    },
+    {
+      "success": true,
+      "original": "SteadySolver(*dev,mesh,base_bc,unsupported)",
+      "expanded": "",
+      "exception": "\"steady_solver.cpp:308: FV: normal-foot pressure boundary gradients require least-squares gradients\"",
+      "contexts": [
+        "backend: cpu"
+      ]
+    },
+    {
+      "success": true,
+      "original": "report.continuity.raw<1e-6",
+      "expanded": "1.73531e-08 <  1e-06",
+      "exception": "",
+      "contexts": [
+        "backend: metal",
+        "symmetry"
+      ]
+    },
+    {
+      "success": true,
+      "original": "error<1e-5",
+      "expanded": "3.57628e-07 <  1e-05",
+      "exception": "",
+      "contexts": [
+        "backend: metal",
+        "symmetry"
+      ]
+    },
+    {
+      "success": true,
+      "original": "dev->max_abs(solver.pressure(),mesh.n_cells)<1e-5",
+      "expanded": "1.22069e-07 <  1e-05",
+      "exception": "",
+      "contexts": [
+        "backend: metal",
+        "symmetry"
+      ]
+    },
+    {
+      "success": true,
+      "original": "report.continuity.raw<1e-6",
+      "expanded": "1.81188e-12 <  1e-06",
+      "exception": "",
+      "contexts": [
+        "backend: metal",
+        "moving wall"
+      ]
+    },
+    {
+      "success": true,
+      "original": "error<1e-5",
+      "expanded": "7.9654e-07 <  1e-05",
+      "exception": "",
+      "contexts": [
+        "backend: metal",
+        "moving wall"
+      ]
+    },
+    {
+      "success": true,
+      "original": "dev->max_abs(solver.pressure(),mesh.n_cells)<1e-5",
+      "expanded": "2.37652e-07 <  1e-05",
+      "exception": "",
+      "contexts": [
+        "backend: metal",
+        "moving wall"
+      ]
+    },
+    {
+      "success": true,
+      "original": "SteadySolver(*dev,mesh,base_bc,unsupported)",
+      "expanded": "",
+      "exception": "\"steady_solver.cpp:308: FV: normal-foot pressure boundary gradients require least-squares gradients\"",
+      "contexts": [
+        "backend: metal"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "binary_sha256": "3af4a7c23f0836bb7b75b3fb94ced055d9e52ad4a59ef26120f797bf092a93a0",
+  "checks": [
+    {
+      "argument": "--symmetry-pressure-gradient",
+      "exit": 1,
+      "message": "bench_fsae_aero.cpp:107: unknown option: --symmetry-pressure-gradient"
+    },
+    {
+      "argument": "--misspelled",
+      "exit": 1,
+      "message": "bench_fsae_aero.cpp:107: unknown option: --misspelled"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+[
+  {
+    "backend": "metal",
+    "last_iteration": 5000,
+    "samples": 100,
+    "compared_columns": [
+      "iteration",
+      "lift",
+      "drag",
+      "drag_pressure",
+      "u",
+      "v",
+      "w",
+      "continuity",
+      "k",
+      "omega",
+      "max_velocity",
+      "continuity_raw"
+    ],
+    "all_non_timing_values_exact": true,
+    "prior_history_sha256": "ead13bbf8ca8c85b9b2dba27899705216f8953bef455aa72bbd148b0d5b4dcdd",
+    "fresh_history_sha256": "318d540d7986409e82a9d4f2b33318ae20074fc0c95ec288d92fb59fbdc70c82"
+  },
+  {
+    "backend": "cpu",
+    "last_iteration": 1500,
+    "samples": 30,
+    "compared_columns": [
+      "iteration",
+      "lift",
+      "drag",
+      "drag_pressure",
+      "u",
+      "v",
+      "w",
+      "continuity",
+      "k",
+      "omega",
+      "max_velocity",
+      "continuity_raw"
+    ],
+    "all_non_timing_values_exact": true,
+    "prior_history_sha256": "6058a26c56ec9eb4200af1ad150a4504636a240ebe2c31513b9219cd6252e2f7",
+    "fresh_history_sha256": "58289702e2ea9aa4250ba3802c88c5a703c017f7fa0c424ed66eaccc57f47412"
+  }
+]

@@ -1,0 +1,39 @@
+{
+  "command": [
+    "runs/tet_prism_convergence/scratch/bench_correction_foot",
+    "--mesh",
+    "runs/tet_prism_convergence/retained_native_L1.msh",
+    "--backend",
+    "metal",
+    "--re",
+    "2.78e6",
+    "--length",
+    "1.044",
+    "--area",
+    "0.112032",
+    "--walls",
+    "body",
+    "--lift-z",
+    "--tu",
+    "0.01",
+    "--window",
+    "1000",
+    "--iterations",
+    "5000",
+    "--out",
+    "runs/tet_prism_convergence/correction_foot_default_metal_simplec"
+  ],
+  "source": {
+    "solver_base": "998a66634f59e2ee651d0993b0f1d583cfeedcd0",
+    "changes": "separate pressure-correction LSQ fit: normal-foot homogeneous Neumann on fixed-velocity boundaries, face-value homogeneous Dirichlet on fixed-pressure boundaries; physical pressure reconstruction unchanged",
+    "source_sha256": "f39f2275ce4cfd5ebc50df1f0a432156d228064a1814c9c5939af1a54aa1d7e6",
+    "binary_sha256": "1418bb7e77b2c477d48a5663be24127f0cc0dfbeaaa9b32cb96e53ce89a27975",
+    "library_sha256": "f3bcdebbb944ca4fd3cdb5e47a06ea8eed60c0981898ad02fcd6273259a90a59"
+  },
+  "paused_case": "Transition S1223 case 26, FSAE harness max_seconds=inf; iteration/convergence stops",
+  "paused_pid": 80001,
+  "pause_utc": "2026-11-02T20:14:57.043564+00:00",
+  "native_exit": 0,
+  "peak_footprint_bytes": 426394440,
+  "resume_utc": "2026-11-02T20:18:31.765562+00:00"
+}

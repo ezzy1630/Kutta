@@ -1,0 +1,37 @@
+[doctest] doctest version is "2.4.12"
+[doctest] run with "--help" for options
+===============================================================================
+<checkout>/tests/fv/test_native_farfield.cpp:9:
+TEST CASE:  Normal-foot symmetry pressure gradients recover uniform flow on native far-field tetrahedra
+
+<checkout>/tests/fv/test_native_farfield.cpp:12: SUCCESS: REQUIRE( mesh.n_cells==11 ) is correct!
+  values: REQUIRE( 11 == 11 )
+
+<checkout>/tests/fv/test_native_farfield.cpp:34: SUCCESS: CHECK( report.continuity.raw<1e-6 ) is correct!
+  values: CHECK( 1.46594e-12 <  1e-06 )
+  logged: backend: cpu
+
+<checkout>/tests/fv/test_native_farfield.cpp:35: SUCCESS: CHECK( error<1e-5 ) is correct!
+  values: CHECK( 1.9309e-07 <  1e-05 )
+  logged: backend: cpu
+
+<checkout>/tests/fv/test_native_farfield.cpp:36: SUCCESS: CHECK( dev->max_abs(solver.pressure(),mesh.n_cells)<1e-5 ) is correct!
+  values: CHECK( 2.36438e-07 <  1e-05 )
+  logged: backend: cpu
+
+<checkout>/tests/fv/test_native_farfield.cpp:34: SUCCESS: CHECK( report.continuity.raw<1e-6 ) is correct!
+  values: CHECK( 1.46594e-12 <  1e-06 )
+  logged: backend: metal
+
+<checkout>/tests/fv/test_native_farfield.cpp:35: SUCCESS: CHECK( error<1e-5 ) is correct!
+  values: CHECK( 1.9309e-07 <  1e-05 )
+  logged: backend: metal
+
+<checkout>/tests/fv/test_native_farfield.cpp:36: SUCCESS: CHECK( dev->max_abs(solver.pressure(),mesh.n_cells)<1e-5 ) is correct!
+  values: CHECK( 2.36438e-07 <  1e-05 )
+  logged: backend: metal
+
+===============================================================================
+[doctest] test cases: 1 | 1 passed | 0 failed | 316 skipped
+[doctest] assertions: 7 | 7 passed | 0 failed |
+[doctest] Status: SUCCESS!

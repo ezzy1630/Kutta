@@ -1,0 +1,301 @@
+{
+  "binary_sha256": "88a574e51f4572be66cd441efd958bd10461d659e87d7401a7f40bc9036b1d2a",
+  "cases": [
+    {
+      "case": "Kutta cases converted from Fluent cases solve to the same bytes on every backend",
+      "exit": 0,
+      "failures": 0,
+      "successes": 68,
+      "peak_footprint_bytes": 174539472,
+      "xml_sha256": "a5a7be6274cebdd51bc26f2b5512e735e639e836201f012e5cd6e1de2bc7bfc3"
+    },
+    {
+      "case": "The NACA ground-effect wing from a bare mesh and a Kutta case solves like its donor Fluent case",
+      "exit": 0,
+      "failures": 0,
+      "successes": 1,
+      "peak_footprint_bytes": 1704296,
+      "xml_sha256": "ff836c926a2f4a0d316bc6743da397fd95d975b163c3ef88fa8383bd199465c1"
+    },
+    {
+      "case": "Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs",
+      "exit": 0,
+      "failures": 0,
+      "successes": 477,
+      "peak_footprint_bytes": 9667112,
+      "xml_sha256": "18842764e8b9985b9cb898e0b7145e456d03567e5b670223e8f04230a9efe78d"
+    },
+    {
+      "case": "Corpus FSAE physics preserve strict solver holds or convert with identical outputs",
+      "exit": 0,
+      "failures": 0,
+      "successes": 0,
+      "peak_footprint_bytes": 722617304,
+      "xml_sha256": "c6e70a1e527c8e3018db320eb6c99269cbd77ff65c2b5b1e1b398abcdaa3ddac"
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "exit": 0,
+      "failures": 0,
+      "successes": 16,
+      "peak_footprint_bytes": 267338568,
+      "xml_sha256": "04b4279152f761db61508ef15bf2b468ee28baa911cea93647087bc1998bd364"
+    },
+    {
+      "case": "FV V3 Re100 and Re400 cavity reported deviations",
+      "exit": 0,
+      "failures": 0,
+      "successes": 4,
+      "peak_footprint_bytes": 166445728,
+      "xml_sha256": "06fd2d5569134dc47e988c53bc24e5fe46652522fd61d4bf27d50e337845512a"
+    },
+    {
+      "case": "FV V4 Fluent cavity matches its actual grid",
+      "exit": 0,
+      "failures": 0,
+      "successes": 763,
+      "peak_footprint_bytes": 146457224,
+      "xml_sha256": "b82ee2c8656a7f2c70c4e2b3f64e42f401f9f4227ae110c47d2fecdaf8c5a861"
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "exit": 0,
+      "failures": 0,
+      "successes": 17044,
+      "peak_footprint_bytes": 272237408,
+      "xml_sha256": "9a8a0556b7758979e4908085bc4fa54b8bd250d505731d5e8d12020c500f0826"
+    },
+    {
+      "case": "Fluent k-epsilon elbow converges with second-order pressure",
+      "exit": 0,
+      "failures": 0,
+      "successes": 11220,
+      "peak_footprint_bytes": 234799920,
+      "xml_sha256": "5f007c7910bfbcb8d1dea7c8f906301c0a91e6109282eeab25f1a31650c2c736"
+    },
+    {
+      "case": "Fluent laminar 2D cylinder matches converged Fluent fields",
+      "exit": 0,
+      "failures": 0,
+      "successes": 207,
+      "peak_footprint_bytes": 178733752,
+      "xml_sha256": "8504f322f6d16dcdfa5a9e0859d0bd053402f3354b61be042110203126553205"
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "exit": 1,
+      "failures": 25,
+      "successes": 2540,
+      "peak_footprint_bytes": 265388824,
+      "xml_sha256": "c7671765d961603f63f4d248842c424e9e8930f1d620cec636500e81e546221a"
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "exit": 0,
+      "failures": 0,
+      "successes": 28,
+      "peak_footprint_bytes": 1423967840,
+      "xml_sha256": "f5790036b30873e1a0c6da4f99f811a0258e3449d2ab082282665a379ed8024c"
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "exit": 0,
+      "failures": 0,
+      "successes": 4,
+      "peak_footprint_bytes": 1246889448,
+      "xml_sha256": "ffe571c71c3843288fc6f40496cc756b02912117f04f77d3dc38fb89e976a8f9"
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "exit": 0,
+      "failures": 0,
+      "successes": 9,
+      "peak_footprint_bytes": 736609384,
+      "xml_sha256": "70a896591de40353c88f0d3583051035dd9c955ea06e151d718ca6b8dc0c1970"
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "exit": 0,
+      "failures": 0,
+      "successes": 8,
+      "peak_footprint_bytes": 2149353512,
+      "xml_sha256": "d1287aadcbabb56fb6ad6f6a6fca8ccafaf72d395894d017c972e3ee1b7b1ecf"
+    },
+    {
+      "case": "FSAE V12 native Fluent polynomial fan import acceptance",
+      "exit": 1,
+      "failures": 1,
+      "successes": 0,
+      "peak_footprint_bytes": 1704296,
+      "xml_sha256": "d75398321cdf98c436bf26634666df8b58f628e0ce1cbe17dc948e288358ad11"
+    },
+    {
+      "case": "V8 realizable KE scalable channel MKM DNS profile and momentum balance",
+      "exit": 0,
+      "failures": 0,
+      "successes": 18,
+      "peak_footprint_bytes": 112083520,
+      "xml_sha256": "d64c588c4eb4566c995dc27df9dd7bd24aa553ff77aee9ce18c6f57c954f34cf"
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes hex refinement",
+      "exit": 0,
+      "failures": 0,
+      "successes": 16,
+      "peak_footprint_bytes": 152650328,
+      "xml_sha256": "bbfb9534036765c8067668a48243629c666e3301099ae2273d17b60a4b231382"
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes tet refinement",
+      "exit": 1,
+      "failures": 8,
+      "successes": 10,
+      "peak_footprint_bytes": 290308912,
+      "xml_sha256": "4c08df2aec78aa77058f99abef951c645d77c901b7be3660ee077204fee4d669"
+    },
+    {
+      "case": "FV V1 manufactured scalar diffusion and upwind refinement",
+      "exit": 0,
+      "failures": 0,
+      "successes": 48,
+      "peak_footprint_bytes": 575423520,
+      "xml_sha256": "b9512a608e4f78ce3f95df3c6f5da56d569c775e08845a5306ff9ab471cc4482"
+    },
+    {
+      "case": "FV SIMPLEC develops planar Couette flow with moving and slip walls",
+      "exit": 0,
+      "failures": 0,
+      "successes": 14,
+      "peak_footprint_bytes": 111477312,
+      "xml_sha256": "4741a4f4c63a03b962e6f44b300e548e6305c58c67fc16ec348321f630660991"
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "exit": 1,
+      "failures": 6,
+      "successes": 30,
+      "peak_footprint_bytes": 199574224,
+      "xml_sha256": "c31962976dfcd3139a259cb1b2c4e1e9017cbc01c4da7fe2235183cc4c79c908"
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "exit": 1,
+      "failures": 8,
+      "successes": 39,
+      "peak_footprint_bytes": 350864272,
+      "xml_sha256": "4d522966d761e9783a0b6b7cdd2188f3d75f23c078bf1317802814d45b22c82b"
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "exit": 1,
+      "failures": 14,
+      "successes": 56,
+      "peak_footprint_bytes": 217383776,
+      "xml_sha256": "ee14b5eb89931057b000276ff7c2b51bcf56bcd28230a547ed86d51524167956"
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "exit": 0,
+      "failures": 0,
+      "successes": 161470,
+      "peak_footprint_bytes": 343769856,
+      "xml_sha256": "03ab2578bdf6b62df5b6a7dad7da53b3948ba5220d4a8329899dc46a2971181b"
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "exit": 0,
+      "failures": 0,
+      "successes": 11,
+      "peak_footprint_bytes": 903677152,
+      "xml_sha256": "78d856ee634f24b4e7cb299aab8b43398bde6802b306620f78a9248947449116"
+    },
+    {
+      "case": "FSAE V7.1 translating-wall Couette hex and poly",
+      "exit": 0,
+      "failures": 0,
+      "successes": 104,
+      "peak_footprint_bytes": 111804992,
+      "xml_sha256": "b588c589e61e448ab948c8392109f632e964d730bd7d48ad963a3baf02a10dbf"
+    },
+    {
+      "case": "FSAE V7.2 rotating-wall Taylor Couette hex and poly",
+      "exit": 0,
+      "failures": 0,
+      "successes": 6668,
+      "peak_footprint_bytes": 153551472,
+      "xml_sha256": "024e19cbdf1d440726f1b9f79746c5bed35e3d79a249daf8f869d9b0770fec5c"
+    },
+    {
+      "case": "FSAE V8 Darcy Forchheimer pressure drop and oblique directions",
+      "exit": 0,
+      "failures": 0,
+      "successes": 24,
+      "peak_footprint_bytes": 111870552,
+      "xml_sha256": "cd0d64bc881e877d2a3ac734237306f14978a34ae0639a362568f303db8e2399"
+    },
+    {
+      "case": "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance",
+      "exit": 0,
+      "failures": 0,
+      "successes": 48,
+      "peak_footprint_bytes": 155140720,
+      "xml_sha256": "b8aae32142fe49b6d38d732c6081ee5c572cff94162a284002f32f26c9e33da1"
+    },
+    {
+      "case": "FSAE V10 incompressible pressure and mass-flow inlets",
+      "exit": 0,
+      "failures": 0,
+      "successes": 12,
+      "peak_footprint_bytes": 111559256,
+      "xml_sha256": "982a5c2e96b183cc9301722c43378351f8ebc7cc64f89f4f7e29e51195958536"
+    },
+    {
+      "case": "FSAE V11 internal fan polynomial and porous jump pressure discontinuity",
+      "exit": 0,
+      "failures": 0,
+      "successes": 312,
+      "peak_footprint_bytes": 111952448,
+      "xml_sha256": "6c1424361967791d90d1d53437b196eb77de4049f223649e8f91f20bfcf714a5"
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "exit": 0,
+      "failures": 0,
+      "successes": 16,
+      "peak_footprint_bytes": 112050752,
+      "xml_sha256": "e275a98824c9be146ccfd827e0c5def055386233b2dfe48bd39b126623289415"
+    },
+    {
+      "case": "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette",
+      "exit": 0,
+      "failures": 0,
+      "successes": 4,
+      "peak_footprint_bytes": 150258264,
+      "xml_sha256": "6da45de3f0411d17be586234e76e0b01c0d4ce7e413206cc085bd6162cadc9fc"
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "exit": 0,
+      "failures": 0,
+      "successes": 12,
+      "peak_footprint_bytes": 112099928,
+      "xml_sha256": "ec43e83c9a443d6c6beaa41552a0131f04857d56898b8ed4f0b52b10f358a367"
+    },
+    {
+      "case": "FSAE V9.3 rotation and translation preserve Taylor Couette pressure",
+      "exit": 0,
+      "failures": 0,
+      "successes": 6,
+      "peak_footprint_bytes": 149946968,
+      "xml_sha256": "1da43eb6b44861df95f6f8eeb4b9e30fa357aa701414b409c4c229d9ba399d80"
+    },
+    {
+      "case": "Fluent research downloads retain published byte identities",
+      "exit": 0,
+      "failures": 0,
+      "successes": 264,
+      "peak_footprint_bytes": 1737064,
+      "xml_sha256": "4e1e9622ce3a9941744a633f00a5164973c71b63e33f429622762f770e595803"
+    }
+  ]
+}
