@@ -27,10 +27,12 @@ inline QLabel* label(const QString& text, const QString& role = {}, QWidget* par
     return l;
 }
 
-// Break opportunities after "_" and "-" (zero-width spaces), so a long
-// case or file name wraps in a narrow panel instead of widening the page.
+// Break opportunities after "_" and "-" (zero-width spaces) in a name too
+// long to sit on one line of a narrow panel (over 24 characters), so it wraps
+// instead of widening the page. Shorter names keep their usual breaks.
 inline QString breakable(const QString& name)
 {
+    if (name.size() <= 24) return name;
     QString out;
     out.reserve(name.size() + 8);
     for (const QChar ch : name) {
@@ -40,12 +42,17 @@ inline QString breakable(const QString& name)
     return out;
 }
 
-// A file path in a page: compact (core/PathDisplay.h), the full path in the tooltip.
+// A file path in a page: compact (core/PathDisplay.h), the full path in the
+// tooltip. It wraps at separators, and inside a long folder or file name.
 inline QLabel* pathLabel(const QString& path, const QString& role = {}, QWidget* parent = nullptr)
 {
-    auto* l = label(breakable(compactPath(path)), role, parent);
+    const QString shown = compactPath(path);
+    const QChar sep = QDir::separator();
+    QStringList parts = shown.split(sep);
+    for (QString& part : parts) part = breakable(part);
+    auto* l = label(parts.join(sep), role, parent);
     l->setToolTip(QDir::toNativeSeparators(path));
-    l->setAccessibleName(compactPath(path));
+    l->setAccessibleName(shown);
     return l;
 }
 
