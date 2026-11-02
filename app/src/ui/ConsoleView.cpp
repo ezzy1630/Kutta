@@ -1,5 +1,7 @@
 #include "ui/ConsoleView.h"
 
+#include "core/PathDisplay.h"
+
 #include "ui/Theme.h"
 
 #include <QFontDatabase>
@@ -82,8 +84,11 @@ QString ConsoleView::wrapped(ConsoleLevel level, const QString& text) const
     return out + text.mid(start);
 }
 
-void ConsoleView::append(ConsoleLevel level, const QString& text)
+void ConsoleView::append(ConsoleLevel level, const QString& rawText)
 {
+    // Commands and the solver's messages name files by absolute path; the
+    // console shows them from "~" (still valid in a shell).
+    const QString text = withHomeAsTilde(rawText);
     m_lines.emplace_back(level, text);
     if (m_lines.size() > std::size_t(kMaxLines)) m_lines.erase(m_lines.begin(), m_lines.begin() + 500);
     QScrollBar* sb = verticalScrollBar();

@@ -1,4 +1,5 @@
 #include "core/CliClient.h"
+#include "core/PathDisplay.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -20,8 +21,8 @@ namespace kapp {
 
 QString CliInfo::describe() const
 {
-    return fixture ? QStringLiteral("Fixture CLI (recorded and synthetic data) · %1").arg(QDir::toNativeSeparators(program))
-                   : QStringLiteral("kutta CLI · %1").arg(QDir::toNativeSeparators(program));
+    return fixture ? QStringLiteral("Fixture CLI (recorded and synthetic data) · %1").arg(homeRelativePath(program))
+                   : QStringLiteral("kutta CLI · %1").arg(homeRelativePath(program));
 }
 
 CliInfo locateCli(const QString& explicitPath, const QString& devRealCli, const QString& devFixture)

@@ -1,4 +1,5 @@
 #include "ui/MainWindow.h"
+#include "core/PathDisplay.h"
 
 #include "ui/ChartsPanel.h"
 #include "ui/CommandPalette.h"
@@ -74,7 +75,7 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
 
     m_cliLabel = new QLabel(this);
     const CliInfo& cli = session->cliInfo();
-    m_cliLabel->setText(cli.fixture ? tr("Solver: fixture CLI (recorded and synthetic data)") : tr("Solver: %1").arg(QDir::toNativeSeparators(cli.program)));
+    m_cliLabel->setText(cli.fixture ? tr("Solver: fixture CLI (recorded and synthetic data)") : tr("Solver: %1").arg(compactPath(cli.program)));
     m_cliLabel->setToolTip(cli.describe());
     statusBar()->addPermanentWidget(m_cliLabel);
     statusBar()->setSizeGripEnabled(false);
@@ -86,7 +87,7 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
     connect(session, &Session::caseOpened, this, [this] {
         refreshTitle();
         refreshToolbar();
-        statusBar()->showMessage(tr("Opened %1").arg(m_session->caseName()), 5000);
+        showStatus(tr("Opened %1").arg(m_session->caseName()), 5000);
         // Show the newest finished run's results, as Fluent shows the last data;
         // without one, the mesh, as Fluent does when it reads a case.
         const QString key = m_session->latestSceneKey();
@@ -97,7 +98,7 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
     // Shown in place on the welcome or General page (no modal dialog); the
     // case that was open stays open.
     connect(session, &Session::caseFailed, this, [this](const QString& m) {
-        statusBar()->showMessage(tr("Could not open the case: %1").arg(m.section('\n', 0, 0)), 10000);
+        showStatus(tr("Could not open the case: %1").arg(m.section('\n', 0, 0)), 10000);
         navigate("setup/general");
     });
     connect(session, &Session::runStateChanged, this, &MainWindow::refreshToolbar);
@@ -106,7 +107,7 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
     connect(session, &Session::approvalsChanged, this, &MainWindow::refreshToolbar);
     connect(session->settings(), &SettingsModel::overridesChanged, this, &MainWindow::refreshToolbar);
     connect(session, &Session::runRefused, this, [this](const QString& why) {
-        statusBar()->showMessage(why, 8000);
+        showStatus(why, 8000);
         if (why.contains("approval")) navigate("setup/general");
     });
     connect(session, &Session::runStarted, this, [this] {
@@ -122,7 +123,7 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
         if (!r) return;
         const QString outcome = r->status == RunStatus::Completed && r->stopReason == QLatin1String("iteration_limit")
                                     ? tr("reached the iteration limit") : runStatusText(*r).toLower();
-        statusBar()->showMessage(tr("%1 %2").arg(r->title(), outcome), 8000);
+        showStatus(tr("%1 %2").arg(r->title(), outcome), 8000);
         if (r->status == RunStatus::Completed || r->status == RunStatus::Stopped) {
             for (int i = 0; i < m_graphics->visibleCount(); ++i) {
                 auto* p = m_graphics->panel(i);
@@ -184,7 +185,7 @@ QWidget* MainWindow::buildToolbar()
     connect(m_iterations, &QLineEdit::editingFinished, this, [this] {
         if (!m_session->hasCase()) return;
         const QString err = m_session->settings()->setValue("run/iterations", m_iterations->text().toInt());
-        if (!err.isEmpty()) statusBar()->showMessage(err, 6000);
+        if (!err.isEmpty()) showStatus(err, 6000);
         refreshToolbar();
     });
     h->addWidget(m_iterations);
@@ -337,10 +338,10 @@ void MainWindow::buildMenus()
     connect(m_session, &Session::caseOpened, this, updateSave);
     updateSave();
     connect(m_session, &Session::saveFailed, this, [this](const QString& message) {
-        statusBar()->showMessage(tr("Could not save the case: %1").arg(message.section('\n', 0, 0)), 8000);
+        showStatus(tr("Could not save the case: %1").arg(message.section('\n', 0, 0)), 8000);
     });
     connect(m_session, &Session::caseSaved, this, [this](const QString& path) {
-        statusBar()->showMessage(tr("Saved %1").arg(QFileInfo(path).fileName()), 5000);
+        showStatus(tr("Saved %1").arg(QFileInfo(path).fileName()), 5000);
     });
     connect(m_session, &Session::newCaseChanged, this, [this] {
         // A mesh being read or a draft to edit: show the New Case page.
@@ -417,6 +418,11 @@ void MainWindow::buildMenus()
                                     "click  probe (all viewports show the same point)\nF  fit   1–7  front/back/left/right/top/bottom/iso\n\n"
                                     "In charts:\ndrag  pan   wheel  zoom iterations (Shift: values)   Shift-drag  box zoom\ndouble-click  fit   L  log/linear"));
     });
+}
+
+void MainWindow::showStatus(const QString& message, int timeoutMs)
+{
+    statusBar()->showMessage(withHomeAsTilde(message), timeoutMs);
 }
 
 void MainWindow::refreshTitle()
@@ -568,7 +574,7 @@ void MainWindow::openCase(const QString& path, const QString& data)
         guess.replace(".cas.h5", ".dat.h5").replace(".cas", ".dat");
         if (guess != path && QFileInfo::exists(guess)) dataPath = guess;
     }
-    statusBar()->showMessage(tr("Reading %1…").arg(QFileInfo(path).fileName()));
+    showStatus(tr("Reading %1…").arg(QFileInfo(path).fileName()));
     m_session->openCase(path, dataPath);
 }
 

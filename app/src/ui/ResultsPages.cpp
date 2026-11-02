@@ -1284,7 +1284,9 @@ QWidget* runHistory(const InspectorContext& c)
         }
         if (!r->dataPath.isEmpty()) add(QObject::tr("Initial data"), QFileInfo(r->dataPath).fileName());
         if (!r->error.isEmpty()) add(QObject::tr("Error"), r->error);
-        add(QObject::tr("Folder"), QDir::toNativeSeparators(r->dir));
+        auto* folder = pathLabel(r->dir);
+        folder->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        grid->addRow(label(QObject::tr("Folder"), "muted"), folder);
         auto* w = new QWidget;
         w->setLayout(grid);
         dv->addWidget(w);

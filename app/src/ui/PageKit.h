@@ -2,7 +2,10 @@
 
 // Small building blocks shared by inspector pages.
 
+#include "core/PathDisplay.h"
 #include "ui/Theme.h"
+
+#include <QDir>
 
 #include <QFrame>
 #include <QHBoxLayout>
@@ -13,12 +16,36 @@
 
 namespace kapp::kit {
 
+// Page text. A path in it shows from "~", never the home folder (see
+// core/PathDisplay.h); the screenshot check in main.cpp holds every page to that.
 inline QLabel* label(const QString& text, const QString& role = {}, QWidget* parent = nullptr)
 {
-    auto* l = new QLabel(text, parent);
+    auto* l = new QLabel(withHomeAsTilde(text), parent);
     if (!role.isEmpty()) l->setProperty("role", role);
     l->setWordWrap(true);
     l->setTextFormat(Qt::PlainText);
+    return l;
+}
+
+// Break opportunities after "_" and "-" (zero-width spaces), so a long
+// case or file name wraps in a narrow panel instead of widening the page.
+inline QString breakable(const QString& name)
+{
+    QString out;
+    out.reserve(name.size() + 8);
+    for (const QChar ch : name) {
+        out += ch;
+        if (ch == '_' || ch == '-') out += QChar(0x200B);
+    }
+    return out;
+}
+
+// A file path in a page: compact (core/PathDisplay.h), the full path in the tooltip.
+inline QLabel* pathLabel(const QString& path, const QString& role = {}, QWidget* parent = nullptr)
+{
+    auto* l = label(breakable(compactPath(path)), role, parent);
+    l->setToolTip(QDir::toNativeSeparators(path));
+    l->setAccessibleName(compactPath(path));
     return l;
 }
 

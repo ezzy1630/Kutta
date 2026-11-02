@@ -60,6 +60,8 @@ private:
     void buildDocks();
     void refreshToolbar();
     void refreshTitle();
+    // Status bar messages, with paths from "~" (core/PathDisplay.h).
+    void showStatus(const QString& message, int timeoutMs = 0);
     std::vector<PaletteEntry> paletteEntries();
 
     Session* m_session;
