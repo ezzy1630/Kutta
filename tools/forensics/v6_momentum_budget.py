@@ -22,8 +22,20 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+import cff
 import fvops
 import momentum as mo
+
+
+def validate_inputs(st):
+    for name in ('U', 'Ub', 'p', 'pb', 'rho', 'mu', 'mut', 'k', 'kb', 'F'):
+        if not np.isfinite(getattr(st, name)).all():
+            raise ValueError('missing or nonfinite saved momentum input: ' + name)
+    # State zero-fills non-wall shear entries, which are legitimately absent.
+    # Check the original wall rows so a missing wall value cannot become zero.
+    shear = cff.cell_field(st.m['faces'], 'SV_WALL_SHEAR', st.ctx.nbf)
+    if not np.isfinite(shear[st.zone(3)]).all():
+        raise ValueError('missing or nonfinite saved wall shear')
 
 
 def flux_by_identity(st, path, hashes):
@@ -98,6 +110,7 @@ def main():
     cache = args.cache / hashes['cas.h5']
     cache.mkdir(parents=True, exist_ok=True)
     st = mo.State(str(args.case_dir), 'mixing_elbow', str(cache))
+    validate_inputs(st)
     ctx = st.ctx
     I, B, p, n = ctx.I, ctx.B, ctx.c0, ctx.c1
     gu = ctx.apply(fvops.lsq(ctx, 2, normal_types=(7,), omit_types=(5,)), st.U, st.Ub)
@@ -179,7 +192,7 @@ def main():
     print(json.dumps(dict(cells=ctx.n, faces=int(p.size), input_sha256=hashes,
                          fluent_raw_l1_xyz=[st.res[k][0] for k in ('x-velocity', 'y-velocity', 'z-velocity')],
                          isotropic_least_squares_coefficient=float(-np.sum(residual * isotropic) / np.sum(isotropic * isotropic)),
-                         continuity_l1_kg_s=continuity, momentum=rows), indent=2))
+                         continuity_l1_kg_s=continuity, momentum=rows), indent=2, allow_nan=False))
 
 
 if __name__ == '__main__':

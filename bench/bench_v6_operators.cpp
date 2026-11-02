@@ -67,6 +67,7 @@ int main(int argc,char** argv) {
     std::cout<<"V6_OPTIONS commit="<<KUTTA_BENCH_COMMIT
       <<" reconstruction="<<(settings.face_velocity_reconstruction==FaceVelocityReconstruction::PecletSide?"peclet-side":"point")
       <<" limiter="<<(settings.limiter==Limiter::Differentiable?"differentiable":"standard")<<'\n';
+    std::cout<<"V6_DIAGNOSTIC "<<setup::approximation_notice(setup.approximations)<<'\n';
     SteadySolver solver(*dev,mesh,setup.boundaries,settings);
     setup::initialize(solver,setup::Initialization{saved});
     const auto r=solver.monitor();
@@ -116,10 +117,19 @@ int main(int argc,char** argv) {
     // Converge with V6's own stopping rule, then attribute the squared field
     // error to cell classes: wall-adjacent or not, and worst face skew.
     const double continuity_target=d.residuals.at("continuity").rows.back()[0];
+    bool converged=false;
     for(int it=0;it<4000;it+=50) {
       solver.iterate(50);const auto q=solver.monitor();
-      if(std::max({q.u.scaled,q.v.scaled,q.w.scaled,q.k.scaled,q.omega.scaled})<1e-6 && q.continuity.raw<continuity_target) break;
+      const std::initializer_list<double> defects{q.u.scaled,q.v.scaled,q.w.scaled,q.k.scaled,q.omega.scaled};
+      if(std::all_of(defects.begin(),defects.end(),[](double x){return std::isfinite(x);})
+          && std::max(defects)<1e-6 && std::isfinite(q.continuity.raw)
+          && q.continuity.raw<continuity_target) {converged=true;break;}
     }
+    const auto final=solver.report();
+    std::cout<<"V6_CONVERGENCE backend="<<backend<<" iterations="<<final.iteration<<" converged="<<converged
+      <<" max_scaled="<<std::max({final.u.scaled,final.v.scaled,final.w.scaled,final.k.scaled,final.omega.scaled})
+      <<" continuity_raw="<<final.continuity.raw<<'\n';
+    if(!converged) return 2;
     std::vector<double> worst(sm.n_cells,0);std::vector<int> wall(sm.n_cells,0);
     for(Index f=0;f<sm.n_faces();++f) {
       const auto s=sg.face_area[f];const auto unit=s/norm(s);
