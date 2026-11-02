@@ -108,6 +108,11 @@ KUTTA_FN kpair ktwo_sum(float a, float b) {
   kpair s = {sum, (a - (sum - part)) + (b - part)};
   return s;
 }
+// Difference without first rounding either carried value to one float.
+KUTTA_FN float kpair_delta(kpair a,kpair b) {
+  kpair d=ktwo_sum(a.hi,-b.hi);
+  return d.hi+(d.lo+(a.lo-b.lo));
+}
 // Adds d to the pair. hi moves only once lo exceeds slack, one ulp of the
 // scale of what hi feeds (a cell value alone is not that scale: a tiny
 // flux or velocity component still re-rounds the sums it enters). Near

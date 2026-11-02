@@ -18,6 +18,38 @@ KUTTA_KERNEL void fv_projected_momentum_faces(int i,KIn(int) offsets,KIn(int) po
   } else face[i]=value;
 }
 
+// Increment of the bounded predictor, with bounds of the complete pair.
+// Clipping the low field independently is not its linear response: a low
+// extrapolation can exceed its own range while the total stays well inside.
+KUTTA_KERNEL void fv_projected_momentum_increment(int i,KIn(int) offsets,KIn(int) points,KIn(int) owner,KIn(int) neighbour,KIn(int) mask,
+    KIn(float) face_weights,KIn(float) link_weights,KIn(float) hi,KIn(float) lo,KIn(float) boundary_hi,KIn(float) boundary_lo,
+    KIn(float) diagonal,KIn(float) cell_limiter,KOut(float) face) {
+  if(mask[i]==0) return;
+  int p=owner[i],n=neighbour[i];float w=diagonal[p]/(diagonal[p]+diagonal[n]);
+  float ah=0.5f*(hi[p]+hi[n]),al=0.5f*(lo[p]+lo[n]);
+  float high_min=kmin(hi[p],hi[n]),high_max=kmax(hi[p],hi[n]);
+  kpair minimum={hi[p],lo[p]},maximum=minimum,other={hi[n],lo[n]};
+  if(kpair_delta(other,minimum)<0.0f) minimum=other;
+  if(kpair_delta(other,maximum)>0.0f) maximum=other;
+  kupper_sum fh={0.0f,0.0f},fl={0.0f,0.0f},lh={0.0f,0.0f},ll={0.0f,0.0f};
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int point=points[j];kpair value={point<0?boundary_hi[-point-1]:hi[point],point<0?boundary_lo[-point-1]:lo[point]};
+    high_min=kmin(high_min,value.hi);high_max=kmax(high_max,value.hi);
+    if(kpair_delta(value,minimum)<0.0f) minimum=value;
+    if(kpair_delta(value,maximum)>0.0f) maximum=value;
+    fh=kupper_add(fh,face_weights[j]*(value.hi-ah));fl=kupper_add(fl,face_weights[j]*(value.lo-al));
+    lh=kupper_add(lh,link_weights[j]*(value.hi-ah));ll=kupper_add(ll,link_weights[j]*(value.lo-al));
+  }
+  float vh=w*hi[p]+(1.0f-w)*hi[n]+kupper_value(fh)-(1.0f-w)*kupper_value(lh);
+  float vl=w*lo[p]+(1.0f-w)*lo[n]+kupper_value(fl)-(1.0f-w)*kupper_value(ll);
+  kpair value=ktwo_sum(vh,vl);
+  if(kpair_delta(value,minimum)<0.0f) value=minimum;
+  if(kpair_delta(value,maximum)>0.0f) value=maximum;
+  kpair clipped_high={kmin(high_max,kmax(high_min,vh)),0.0f};
+  float delta=kpair_delta(value,clipped_high),theta=kmin(cell_limiter[p],cell_limiter[n]);
+  face[i]+=theta*(delta-face[i]);
+}
+
 KUTTA_KERNEL void fv_wall_projected_viscous_force(int i,KIn(float) selected,KIn(int) mask,
     KIn(float) sx,KIn(float) sy,KIn(float) sz,
     KIn(float) ux,KIn(float) uy,KIn(float) uz,KIn(float) vx,KIn(float) vy,KIn(float) vz,

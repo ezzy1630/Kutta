@@ -111,6 +111,67 @@ KUTTA_KERNEL void fv_moment_momentum(int i,KIn(int) owner,KIn(int) neighbour,KIn
   } else face[i]=value;
 }
 
+KUTTA_FN kpair kmoment_pair(int point,KIn(float) hi,KIn(float) lo,KIn(float) boundary_hi,KIn(float) boundary_lo) {
+  kpair value={point<0?boundary_hi[-point-1]:hi[point],point<0?boundary_lo[-point-1]:lo[point]};
+  return value;
+}
+
+// Retain cloud extrema as point identities, not extrema of lo alone.
+KUTTA_KERNEL void fv_paired_moment_seed(int i,KIn(int) offsets,KIn(int) adjacent,KIn(int) observed,
+    KIn(float) rx,KIn(float) ry,KIn(float) rz,KIn(float) hi,KIn(float) lo,KIn(float) boundary_hi,KIn(float) boundary_lo,
+    KOut(float) moment,KOut(int) bounds,int internal) {
+  fv_moment_seed(i,offsets,adjacent,observed,rx,ry,rz,lo,boundary_lo,moment,internal);
+  int lower=i,upper=i;
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int point=adjacent[j];if(point>=0 || observed[-point-1]==0) continue;
+    kpair candidate=kmoment_pair(point,hi,lo,boundary_hi,boundary_lo);
+    if(kpair_delta(candidate,kmoment_pair(lower,hi,lo,boundary_hi,boundary_lo))<0.0f) lower=point;
+    if(kpair_delta(candidate,kmoment_pair(upper,hi,lo,boundary_hi,boundary_lo))>0.0f) upper=point;
+  }
+  bounds[2*i]=lower;bounds[2*i+1]=upper;
+}
+
+KUTTA_KERNEL void fv_paired_moment_hop(int i,KIn(int) offsets,KIn(int) faces,KIn(int) adjacent,KIn(float) sign,
+    KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) hi,KIn(float) lo,KIn(float) boundary_hi,KIn(float) boundary_lo,
+    KIn(float) geometry,KIn(float) moment,KOut(float) next,KIn(int) bounds,KOut(int) next_bounds) {
+  fv_moment_hop(i,offsets,faces,adjacent,sign,dx,dy,dz,lo,geometry,moment,next);
+  int lower=bounds[2*i],upper=bounds[2*i+1];
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int d=adjacent[j];if(d<0) continue;
+    int low=bounds[2*d],high=bounds[2*d+1];
+    if(kpair_delta(kmoment_pair(low,hi,lo,boundary_hi,boundary_lo),kmoment_pair(lower,hi,lo,boundary_hi,boundary_lo))<0.0f) lower=low;
+    if(kpair_delta(kmoment_pair(high,hi,lo,boundary_hi,boundary_lo),kmoment_pair(upper,hi,lo,boundary_hi,boundary_lo))>0.0f) upper=high;
+  }
+  next_bounds[2*i]=lower;next_bounds[2*i+1]=upper;
+}
+
+KUTTA_KERNEL void fv_paired_moment_momentum(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) slot,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) hi,KIn(float) lo,KIn(float) boundary_hi,KIn(float) boundary_lo,KIn(float) geometry,
+    KIn(float) moment_hi,KIn(float) moment_lo,KIn(float) coefficients,KIn(int) bounds,
+    KIn(float) diagonal,KIn(float) cell_limiter,KOut(float) face,int internal) {
+  int s=slot[i];if(s<0) return;
+  int p=owner[i],n=neighbour[i];float w=diagonal[p]/(diagonal[p]+diagonal[n]);
+  float ah=0.5f*(hi[p]+hi[n]),al=0.5f*(lo[p]+lo[n]);
+  kmoment mh=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,hi,geometry,moment_hi,internal,ah);
+  kmoment ml=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,lo,geometry,moment_lo,internal,al);
+  float vh=w*hi[p]+(1.0f-w)*hi[n]+kmoment_apply(coefficients,s,1,mh)-(1.0f-w)*kmoment_apply(coefficients,s,2,mh);
+  float vl=w*lo[p]+(1.0f-w)*lo[n]+kmoment_apply(coefficients,s,1,ml)-(1.0f-w)*kmoment_apply(coefficients,s,2,ml);
+  kpair minimum=kmoment_pair(bounds[2*p],hi,lo,boundary_hi,boundary_lo);
+  kpair maximum=kmoment_pair(bounds[2*p+1],hi,lo,boundary_hi,boundary_lo);
+  kpair lower=kmoment_pair(bounds[2*n],hi,lo,boundary_hi,boundary_lo),upper=kmoment_pair(bounds[2*n+1],hi,lo,boundary_hi,boundary_lo);
+  if(kpair_delta(lower,minimum)<0.0f) minimum=lower;
+  if(kpair_delta(upper,maximum)>0.0f) maximum=upper;
+  kpair value=ktwo_sum(vh,vl);
+  if(kpair_delta(value,minimum)<0.0f) value=minimum;
+  if(kpair_delta(value,maximum)>0.0f) value=maximum;
+  float low=kmin(moment_hi[p*KMOMENT_ROW+10],moment_hi[n*KMOMENT_ROW+10]);
+  float high=kmax(moment_hi[p*KMOMENT_ROW+11],moment_hi[n*KMOMENT_ROW+11]);
+  kpair clipped_high={kmin(high,kmax(low,vh)),0.0f};
+  float delta=kpair_delta(value,clipped_high),theta=kmin(cell_limiter[p],cell_limiter[n]);
+  face[i]+=theta*(delta-face[i]);
+}
+
 // Resolved walls: the momentum wall flux per unit viscosity is
 // diffusion*(u_b-u_P)+C. The legacy force's normal derivative equals that
 // flux with C=g_P.t; on projected faces shift it by (C-g_P.t)/|S|.

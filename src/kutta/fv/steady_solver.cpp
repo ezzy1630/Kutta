@@ -988,9 +988,9 @@ struct SteadySolver::Impl {
         velocity_lo.x,velocity_lo.y,velocity_lo.z,gu.x,gu.y,gu.z,gv.x,gv.y,gv.z,gw.x,gw.y,gw.z,
         face_velocity_weights(),b.x,b.y,b.z,face_velocity.x,face_velocity.y,face_velocity.z,mesh.n_internal_faces);
       if(velocity_faces) {
-        velocity_faces->momentum_values(velocity_lo.x,b.x,face_velocity_weights(),face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
-        velocity_faces->momentum_values(velocity_lo.y,b.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
-        velocity_faces->momentum_values(velocity_lo.z,b.z,face_velocity_weights(),face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
+        velocity_faces->momentum_increment(velocity.x,velocity_lo.x,boundary_velocity.x,b.x,face_velocity_weights(),face_velocity.x,settings.limit?&momentum[0]->limiter:nullptr);
+        velocity_faces->momentum_increment(velocity.y,velocity_lo.y,boundary_velocity.y,b.y,face_velocity_weights(),face_velocity.y,settings.limit?&momentum[1]->limiter:nullptr);
+        velocity_faces->momentum_increment(velocity.z,velocity_lo.z,boundary_velocity.z,b.z,face_velocity_weights(),face_velocity.z,settings.limit?&momentum[2]->limiter:nullptr);
       }
       kern::fv_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
         mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,

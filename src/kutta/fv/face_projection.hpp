@@ -15,6 +15,11 @@ class FaceReconstruction {
   // Replaces internal masked face values of the momentum-weighted predictor.
   virtual void momentum_values(const Buffer<float>& field,const Buffer<float>& boundary,const Buffer<float>& diagonal,
                                Buffer<float>& out,const Buffer<float>* cell_limiter=nullptr) const=0;
+  // Increment of the same bounded predictor for high+low. `out` enters
+  // as the low unprojected predictor and leaves as the projected increment.
+  virtual void momentum_increment(const Buffer<float>& high,const Buffer<float>& low,
+      const Buffer<float>& boundary_high,const Buffer<float>& boundary_low,const Buffer<float>& diagonal,
+      Buffer<float>& out,const Buffer<float>* cell_limiter=nullptr) const=0;
   virtual const Buffer<Index>& mask() const=0;
   virtual std::size_t corrected_faces() const=0;
 };
@@ -32,6 +37,9 @@ class ProjectedFaceReconstruction final : public FaceReconstruction {
   void diffusion_correction(const Buffer<float>& field,const Buffer<float>& boundary,Buffer<float>& out) const override;
   void momentum_values(const Buffer<float>& field,const Buffer<float>& boundary,const Buffer<float>& diagonal,
                        Buffer<float>& out,const Buffer<float>* cell_limiter=nullptr) const override;
+  void momentum_increment(const Buffer<float>& high,const Buffer<float>& low,
+      const Buffer<float>& boundary_high,const Buffer<float>& boundary_low,const Buffer<float>& diagonal,
+      Buffer<float>& out,const Buffer<float>* cell_limiter=nullptr) const override;
   const Buffer<Index>& mask() const override {return mask_;}
   std::size_t corrected_faces() const override {return corrected_;}
   std::size_t fallback_faces() const {return fallback_;}
@@ -62,6 +70,9 @@ class WalkFaceReconstruction final : public FaceReconstruction {
   void diffusion_correction(const Buffer<float>& field,const Buffer<float>& boundary,Buffer<float>& out) const override;
   void momentum_values(const Buffer<float>& field,const Buffer<float>& boundary,const Buffer<float>& diagonal,
                        Buffer<float>& out,const Buffer<float>* cell_limiter=nullptr) const override;
+  void momentum_increment(const Buffer<float>& high,const Buffer<float>& low,
+      const Buffer<float>& boundary_high,const Buffer<float>& boundary_low,const Buffer<float>& diagonal,
+      Buffer<float>& out,const Buffer<float>* cell_limiter=nullptr) const override;
   const Buffer<Index>& mask() const override {return mask_;}
   std::size_t corrected_faces() const override {return corrected_;}
   std::size_t fallback_faces() const {return fallback_;}
@@ -79,6 +90,9 @@ class WalkFaceReconstruction final : public FaceReconstruction {
   Buffer<Index> observed_,slot_,mask_;
   Buffer<float> geometry_[hops+1],coefficients_;
   mutable Buffer<float> moment_[2];
+  // Allocated once on the first paired request (during solver setup).
+  mutable Buffer<float> paired_moment_;
+  mutable Buffer<Index> paired_bounds_[2];
 };
 
 // Reuse shared when it observes exactly these boundary values; otherwise build

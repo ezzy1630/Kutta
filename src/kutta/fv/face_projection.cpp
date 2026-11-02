@@ -161,6 +161,13 @@ void ProjectedFaceReconstruction::momentum_values(const Buffer<float>& field,con
     const Buffer<float>& diagonal,Buffer<float>& out,const Buffer<float>* cell_limiter) const {
   kern::fv_projected_momentum_faces(dev_,internal_,offsets_,points_,owner_,neighbour_,mask_,value_weights_,link_weights_,field,boundary,diagonal,cell_limiter?*cell_limiter:diagonal,out,cell_limiter?1:0);
 }
+void ProjectedFaceReconstruction::momentum_increment(const Buffer<float>& high,const Buffer<float>& low,
+    const Buffer<float>& boundary_high,const Buffer<float>& boundary_low,const Buffer<float>& diagonal,
+    Buffer<float>& out,const Buffer<float>* cell_limiter) const {
+  if(!cell_limiter) {momentum_values(low,boundary_low,diagonal,out);return;}
+  kern::fv_projected_momentum_increment(dev_,internal_,offsets_,points_,owner_,neighbour_,mask_,value_weights_,link_weights_,
+    high,low,boundary_high,boundary_low,diagonal,*cell_limiter,out);
+}
 void ProjectedFaceReconstruction::gradient(const Buffer<float>& field,const Buffer<float>& boundary,DeviceVec3& out) const {
   kern::fv_projected_face_gradient(dev_,faces_,offsets_,points_,owner_,neighbour_,weights_.x,weights_.y,weights_.z,mask_,
     field,boundary,out.x,out.y,out.z,internal_);
@@ -356,5 +363,29 @@ void WalkFaceReconstruction::momentum_values(const Buffer<float>& field,const Bu
   kern::fv_moment_momentum(dev_,m.n_internal_faces,m.owner,m.neighbour,slot_,m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
     m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,field,geometry_[hops],moment_[1],coefficients_,
     diagonal,cell_limiter?*cell_limiter:diagonal,out,m.n_internal_faces,cell_limiter?1:0);
+}
+void WalkFaceReconstruction::momentum_increment(const Buffer<float>& high,const Buffer<float>& low,
+    const Buffer<float>& boundary_high,const Buffer<float>& boundary_low,const Buffer<float>& diagonal,
+    Buffer<float>& out,const Buffer<float>* cell_limiter) const {
+  if(!cell_limiter) {momentum_values(low,boundary_low,diagonal,out);return;}
+  const auto& m=mesh_;
+  if(paired_moment_.empty()) {
+    paired_moment_=dev_.alloc<float>(std::size_t(terms+2)*m.n_cells);
+    for(auto& bounds:paired_bounds_) bounds=dev_.alloc<Index>(std::size_t(2)*m.n_cells);
+  }
+  moments(high,boundary_high);dev_.copy(paired_moment_,moment_[1]);
+  kern::fv_paired_moment_seed(dev_,m.n_cells,m.cell_face_offsets,stencil_.adjacent,observed_,
+    m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,high,low,boundary_high,boundary_low,
+    moment_[0],paired_bounds_[0],m.n_internal_faces);
+  for(int level=0;level<hops;++level) {
+    const int from=level%2,to=1-from;
+    kern::fv_paired_moment_hop(dev_,m.n_cells,m.cell_face_offsets,m.cell_faces,stencil_.adjacent,m.cell_face_sign,
+      m.owner_to_neighbour.x,m.owner_to_neighbour.y,m.owner_to_neighbour.z,high,low,boundary_high,boundary_low,
+      geometry_[level],moment_[from],moment_[to],paired_bounds_[from],paired_bounds_[to]);
+  }
+  kern::fv_paired_moment_momentum(dev_,m.n_internal_faces,m.owner,m.neighbour,slot_,
+    m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
+    high,low,boundary_high,boundary_low,geometry_[hops],paired_moment_,moment_[1],coefficients_,paired_bounds_[1],
+    diagonal,*cell_limiter,out,m.n_internal_faces);
 }
 } // namespace kutta::fv
