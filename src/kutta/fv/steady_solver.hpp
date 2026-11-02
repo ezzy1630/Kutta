@@ -90,6 +90,9 @@ struct IntermittencyOptions {
 };
 struct IntermittencySettings {
   IntermittencyOptions model;
+  // Fluent 2021 R2: harmonic mean of k over this cell and its face neighbours
+  // for Tu_L only. Opt-in until its validation trade-offs are established.
+  bool harmonic_kinetic_energy=false;
   ConvectionScheme convection=ConvectionScheme::SecondOrderUpwind;
   double relaxation=.8;  // intermit/relax (Fluent default)
   SolveControl linear{1e-3,1e-12,100};

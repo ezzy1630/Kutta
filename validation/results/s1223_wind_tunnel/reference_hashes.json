@@ -1,0 +1,17 @@
+[
+  {
+    "file": "s1223_vol1_drag_polars.csv",
+    "sha256": "9c612c843214491d840af96aedfd91ae85ca13875a9cfc5b5502c17fb760dcff",
+    "bytes": 3672
+  },
+  {
+    "file": "s1223_vol1_lift_curves.csv",
+    "sha256": "62b8a937cc881aa43c4f94355a4f31706c851f3b662d384c260dc0d246b61936",
+    "bytes": 47962
+  },
+  {
+    "file": "lsat_vol1_COORD01_s1223.dap.txt",
+    "sha256": "f59857e2f2a3ffe7b0df624c3584cac8a3cd252c141f613df6d467717f68a1e6",
+    "bytes": 1847
+  }
+]

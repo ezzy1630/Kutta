@@ -1,0 +1,214 @@
+[
+  {
+    "label": "baseline_200k_4.76",
+    "run": "runs/s1223_wind_tunnel/before/s1223_re2e5_4.76_L2_metal",
+    "binary_sha256": "51a04472febcdbb1816afecab0a340a4617705415abc1d7a9c7c6f459737aaf0",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "re": 200000.0,
+    "inlet_tu": 0.001,
+    "inlet_viscosity_ratio": 1,
+    "inlet_x": -30,
+    "reference_speed": 1,
+    "probes": [
+      {
+        "x": -19.4193263,
+        "y": 1.7960044,
+        "tu_percent": 0.08812846872605924,
+        "k_over_analytic": 1.0008930431726357,
+        "omega_over_analytic": 0.999911547398337,
+        "speed": 1.0002023949251906
+      },
+      {
+        "x": -10.16883,
+        "y": 2.07725033,
+        "tu_percent": 0.08054600639800007,
+        "k_over_analytic": 1.0026721651502795,
+        "omega_over_analytic": 1.0001652115240414,
+        "speed": 1.0016865094062408
+      },
+      {
+        "x": -2.0482851,
+        "y": 2.02395654,
+        "tu_percent": 0.07540640061250327,
+        "k_over_analytic": 1.0086132584614629,
+        "omega_over_analytic": 1.002920541451547,
+        "speed": 1.025254731150886
+      },
+      {
+        "x": -0.105218107,
+        "y": 0.198301749,
+        "tu_percent": 0.08182231561947714,
+        "k_over_analytic": 1.2243660165970796,
+        "omega_over_analytic": 1.2041497391832707,
+        "speed": 1.1357181399748597
+      },
+      {
+        "x": -0.0621624322,
+        "y": 0.495959779,
+        "tu_percent": 0.08155041888304437,
+        "k_over_analytic": 1.2170537582280299,
+        "omega_over_analytic": 1.0956678837042355,
+        "speed": 1.1780774000277063
+      }
+    ]
+  },
+  {
+    "label": "baseline_300k_8.21",
+    "run": "runs/s1223_wind_tunnel/before/s1223_re3e5_8.21_L2_metal",
+    "binary_sha256": "51a04472febcdbb1816afecab0a340a4617705415abc1d7a9c7c6f459737aaf0",
+    "mesh_sha256": "742baf77f1109e529bd0696335e5a5ef4c1d5946bce82d263307355f9b7bd2c9",
+    "re": 300000.0,
+    "inlet_tu": 0.001,
+    "inlet_viscosity_ratio": 1,
+    "inlet_x": -30,
+    "reference_speed": 1,
+    "probes": [
+      {
+        "x": -19.8940765,
+        "y": 1.88023933,
+        "tu_percent": 0.08413105768184938,
+        "k_over_analytic": 1.0017801656740553,
+        "omega_over_analytic": 1.0002147367876255,
+        "speed": 1.000233729624421
+      },
+      {
+        "x": -10.0277194,
+        "y": 1.80028569,
+        "tu_percent": 0.0740649532055029,
+        "k_over_analytic": 1.0042024488586574,
+        "omega_over_analytic": 1.0002682045356006,
+        "speed": 1.0018741352819616
+      },
+      {
+        "x": -2.0283344,
+        "y": 2.03686493,
+        "tu_percent": 0.06823148466800352,
+        "k_over_analytic": 1.0116693425061676,
+        "omega_over_analytic": 1.0038611531988404,
+        "speed": 1.0317338059288501
+      },
+      {
+        "x": -0.102572732,
+        "y": 0.198054706,
+        "tu_percent": 0.07558586437511536,
+        "k_over_analytic": 1.2889951043049757,
+        "omega_over_analytic": 1.192149992381088,
+        "speed": 1.2115811724285712
+      },
+      {
+        "x": -0.0545312634,
+        "y": 0.493082801,
+        "tu_percent": 0.07523822259995247,
+        "k_over_analytic": 1.2783409612673677,
+        "omega_over_analytic": 1.1137817183372445,
+        "speed": 1.2316482787253515
+      }
+    ]
+  },
+  {
+    "label": "ratio10_200k_4.76",
+    "run": "runs/s1223_wind_tunnel/diagnostics/s1223_re2e5_4.76_L2_metal_ratio10",
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "re": 200000.0,
+    "inlet_tu": 0.001,
+    "inlet_viscosity_ratio": 10,
+    "inlet_x": -30,
+    "reference_speed": 1,
+    "probes": [
+      {
+        "x": -19.4193263,
+        "y": 1.7960044,
+        "tu_percent": 0.09860273762257651,
+        "k_over_analytic": 1.000056536480034,
+        "omega_over_analytic": 1.0000241237241696,
+        "speed": 1.0002022765907859
+      },
+      {
+        "x": -10.16883,
+        "y": 2.07725033,
+        "tu_percent": 0.09744598709028506,
+        "k_over_analytic": 1.0005233771227642,
+        "omega_over_analytic": 1.0002377952887778,
+        "speed": 1.001686278335033
+      },
+      {
+        "x": -2.0482851,
+        "y": 2.02395654,
+        "tu_percent": 0.09788589241220276,
+        "k_over_analytic": 1.030690965757342,
+        "omega_over_analytic": 1.0134482468397696,
+        "speed": 1.025256718255172
+      },
+      {
+        "x": -0.105218107,
+        "y": 0.198301749,
+        "tu_percent": 0.10108202840597663,
+        "k_over_analytic": 1.1044902055039036,
+        "omega_over_analytic": 2.363822276778678,
+        "speed": 1.13573731532322
+      },
+      {
+        "x": -0.0621624322,
+        "y": 0.495959779,
+        "tu_percent": 0.10094096030188472,
+        "k_over_analytic": 1.1015287357107206,
+        "omega_over_analytic": 1.6304919800247726,
+        "speed": 1.178090042758505
+      }
+    ]
+  },
+  {
+    "label": "far2_200k_4.76",
+    "run": "runs/s1223_wind_tunnel/diagnostics/s1223_re2e5_4.76_L2_metal_far2",
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "097b01fd64add99db99be6c139556f11e859cec5e63a18861912c675cb091d48",
+    "re": 200000.0,
+    "inlet_tu": 0.0021024114084727463,
+    "inlet_viscosity_ratio": 1.1262500745253756,
+    "inlet_x": -60,
+    "reference_speed": 1,
+    "probes": [
+      {
+        "x": -19.3644611,
+        "y": 1.67084323,
+        "tu_percent": 0.08826823399917624,
+        "k_over_analytic": 1.0052481298178353,
+        "omega_over_analytic": 1.0003911756223107,
+        "speed": 1.0003649821510785
+      },
+      {
+        "x": -10.1594124,
+        "y": 2.01830445,
+        "tu_percent": 0.08068842775350957,
+        "k_over_analytic": 1.0063925650566052,
+        "omega_over_analytic": 1.0007148909022248,
+        "speed": 1.001884458026397
+      },
+      {
+        "x": -2.02561992,
+        "y": 2.05395415,
+        "tu_percent": 0.07552563975233842,
+        "k_over_analytic": 1.012171046264169,
+        "omega_over_analytic": 1.0035522410621174,
+        "speed": 1.0258488036774311
+      },
+      {
+        "x": -0.102847682,
+        "y": 0.202375572,
+        "tu_percent": 0.08195360435433371,
+        "k_over_analytic": 1.228343416780691,
+        "omega_over_analytic": 1.203613686895266,
+        "speed": 1.1401649243952412
+      },
+      {
+        "x": -0.0421707777,
+        "y": 0.502081253,
+        "tu_percent": 0.08176293699878122,
+        "k_over_analytic": 1.223783967626298,
+        "omega_over_analytic": 1.0970716818479131,
+        "speed": 1.1844321565218272
+      }
+    ]
+  }
+]

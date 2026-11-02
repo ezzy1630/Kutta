@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; ++i) {
       std::string key = argv[i];
       KUTTA_REQUIRE(key.starts_with("--"), "expected --option, got " + key);
-      const bool is_flag = key == "--moving-ground" || key == "--coupled" || key == "--downforce" || key == "--cells" || key == "--lift-z" || key == "--hybrid" || key == "--transition" || key == "--laminar";
+      const bool is_flag = key == "--moving-ground" || key == "--coupled" || key == "--downforce" || key == "--cells" || key == "--lift-z" || key == "--hybrid" || key == "--transition" || key == "--laminar" || key == "--transition-harmonic" || key == "--kato-launder";
       KUTTA_REQUIRE(is_flag || i + 1 < argc, "missing value for " + key);
       args[key] = is_flag ? "1" : argv[++i];
     }
@@ -71,6 +71,7 @@ int main(int argc, char** argv) {
     const auto turbulence_convection = text("--turbulence-convection", "second-order");
     KUTTA_REQUIRE(turbulence_convection == "first-order" || turbulence_convection == "second-order", "--turbulence-convection is first-order or second-order");
     o.turbulence_convection = turbulence_convection == "first-order" ? fv::ConvectionScheme::FirstOrderUpwind : fv::ConvectionScheme::SecondOrderUpwind;
+    o.poor_cell_quality = number("--poor-cell-quality", o.poor_cell_quality);
     o.output = text("--out");
     o.reynolds = number("--re", 0);
     o.length = number("--length", 1);
@@ -82,6 +83,10 @@ int main(int argc, char** argv) {
     o.coupled = flag("--coupled");
     o.hybrid = flag("--hybrid");
     o.transition = flag("--transition");
+    o.intermittency_relaxation = number("--urf-gamma", o.intermittency_relaxation);
+    o.transition_harmonic = flag("--transition-harmonic");
+    o.kato_launder = flag("--kato-launder");
+    o.omega_production_molecular_ratio = number("--omega-production-molecular-ratio", 0);
     o.laminar = flag("--laminar");
     o.write_cells = flag("--cells");
     if (flag("--downforce")) o.lift_direction = {0, -1, 0};

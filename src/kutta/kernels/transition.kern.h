@@ -9,6 +9,23 @@
 // Menter et al. 2015 as restated by NASA TMR's "SST-2003-Menter-gamma-2015"
 // page. src/kutta/fv/turbulence/transition.md lists every source.
 
+// Menter et al. 2022 section 2.3 / Eq. 12; Fluent 2021 R2 release notes.
+// Boundary faces add no cell. In particular, symmetry caps of an extruded
+// 2D mesh must not count the current cell a second time.
+KUTTA_KERNEL void transition_harmonic_k(int i, KIn(int) offsets, KIn(int) adjacent,
+    KIn(float) k, KOut(float) harmonic, float k_floor) {
+  float inverse = 1.0f / kmax(k[i], k_floor);
+  int count = 1;
+  for (int j = offsets[i]; j < offsets[i + 1]; ++j) {
+    int n = adjacent[j];
+    if (n >= 0) {
+      inverse += 1.0f / kmax(k[n], k_floor);
+      ++count;
+    }
+  }
+  harmonic[i] = float(count) / inverse;
+}
+
 // Fluent's rescaled pressure-gradient parameter, Eq. 4-216 and its bound 4-217.
 // It is 14.68x the paper's lambda, so C_PG1 = 1 and C_PG2 = -.5 are the paper's
 // 14.68 and -7.34 in these units.
@@ -45,15 +62,16 @@ KUTTA_KERNEL void transition_normal_derivative(int i,
 // sink evaluated at the current gamma, so both coefficients are nonnegative
 // and the steady source is unchanged.
 KUTTA_KERNEL void transition_sources(int i,
-    KIn(float) rho, KIn(float) mu, KIn(float) k, KIn(float) omega, KIn(float) distance,
+    KIn(float) rho, KIn(float) mu, KIn(float) k, KIn(float) tu_k, KIn(float) omega, KIn(float) distance,
     KIn(float) dvdy, KIn(float) strain, KIn(float) vorticity, KIn(float) gamma,
     KOut(float) source, KOut(float) sink, KOut(float) re_theta_c, KOut(float) onset,
     float ctu1, float ctu2, float ctu3, float cpg1, float cpg2, float cpg3,
     float cpg1_lim, float cpg2_lim, float k_floor, float omega_floor) {
   float r = rho[i], m = mu[i], d = distance[i], s = strain[i];
   float ke = kmax(k[i], k_floor), w = kmax(omega[i], omega_floor);
+  // Only Tu_L uses tu_k (local or harmonic); R_T below uses transported k.
   // Tu_L in percent, and lambda_thetaL, Fluent 4.8.2 and Eq. 4-216/217.
-  float tu = kmin(100.0f * ksqrt(2.0f * ke / 3.0f) / (w * d), 100.0f);
+  float tu = kmin(100.0f * ksqrt(2.0f * kmax(tu_k[i], k_floor) / 3.0f) / (w * d), 100.0f);
   float lambda = transition_lambda(dvdy[i], d, m / r);
   float fpg = transition_fpg(lambda, cpg1, cpg2, cpg3, cpg1_lim, cpg2_lim);
   float critical = ctu1 + ctu2 * kexp(-ctu3 * tu * fpg);

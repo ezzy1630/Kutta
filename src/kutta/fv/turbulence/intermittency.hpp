@@ -33,7 +33,7 @@ class IntermittencyTransport {
   IntermittencySettings settings_;float rho_,k_floor_,omega_floor_;bool limit_;
   TransportEquation equation_;
   IntermittencyFields fields_;
-  Buffer<float> gamma_,boundary_,inflow_,residual_,absolute_,scale_,fluent_scale_;
+  Buffer<float> gamma_,boundary_,inflow_,residual_,absolute_,scale_,fluent_scale_,harmonic_k_;
   Buffer<Index> kind_,wall_,zero_;
   const Buffer<float>* mass_=nullptr;
 };

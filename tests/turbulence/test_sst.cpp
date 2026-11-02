@@ -16,6 +16,30 @@ double gamma1994(double f1) {
 }
 }  // namespace
 
+TEST_CASE("SST optional molecular omega-production denominator matches Fluent's stated formula") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=box(*dev); State s(*dev,m);
+    dev->fill(s.rho,1); dev->fill(s.mu,1e-5f); dev->fill(s.k,1e-9f); dev->fill(s.omega,1);
+    dev->fill(s.gu.y,1);
+    SstOptions o; o.wall_production=false; o.production_limiter=false;
+    o.omega_production_molecular_ratio=.001f;
+    SstModel model(*dev,m,o); model.update(s.inputs());
+    const auto& f=model.fields();
+    const double blend=first(*dev,f.f1),mut=first(*dev,f.mu_t);
+    const double production=gamma1994(blend)*mut/(mut+double(float(.001))*float(1e-5));
+    const double destruction=.075*blend+.0828*(1-blend);
+    CHECK(near(first(*dev,f.omega_source),production+destruction));
+    CHECK(near(first(*dev,f.k_source),mut));
+    o.omega_production_molecular_ratio=0;
+    SstModel original(*dev,m,o); original.update(s.inputs());
+    CHECK(near(first(*dev,original.fields().omega_source),gamma1994(blend)+destruction));
+    o.omega_production_molecular_ratio=-1;
+    CHECK_THROWS_AS(SstModel(*dev,m,o),Error);
+    o.omega_production_molecular_ratio=std::numeric_limits<float>::quiet_NaN();
+    CHECK_THROWS_AS(SstModel(*dev,m,o),Error);
+  }
+}
+
 TEST_CASE("fused SST constitutive update equals staged kernels on every backend") {
   KUTTA_FOR_EACH_BACKEND(dev) {
     constexpr int n=97;

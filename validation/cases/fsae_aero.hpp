@@ -39,6 +39,10 @@ struct Options {
   // Fluent's intermittency transition model on top of SST, with Fluent's
   // default constants; inflow intermittency 1.
   bool transition = false;
+  double intermittency_relaxation = .8;
+  bool transition_harmonic = false;
+  bool kato_launder = false;
+  double omega_production_molecular_ratio = 0;
   // Laminar flow (no turbulence model): a mesh check against Blasius.
   bool laminar = false;
   // Expose existing model choices for controlled code-to-code comparisons.
@@ -53,6 +57,8 @@ struct Options {
   double limiter_coefficient = .05;
   PressureInterpolation pressure_interpolation = PressureInterpolation::SecondOrder;
   PressureBoundaryGradient pressure_boundary_gradient = PressureBoundaryGradient::Extrapolated;
+  // Existing pressure-face fallback; a discretization control, not a force gate.
+  double poor_cell_quality = .05;
   // Convergence-path controls only; they do not change the steady fixed point.
   // Relaxation 0 takes the scheme's Fluent default: SIMPLEC momentum 0.7 and
   // pressure 1.0 (implicit), Coupled 0.5 and 0.5 (pseudo-transient explicit
@@ -199,12 +205,23 @@ inline Result run(Device& dev, const Options& o) {
     s.sst->k_convection = s.sst->omega_convection = o.turbulence_convection;
   }
   if (o.transition) s.sst->transition = IntermittencySettings{};
+  KUTTA_REQUIRE(!o.transition_harmonic || o.transition, "fsae_aero: harmonic k requires transition");
+  KUTTA_REQUIRE(!o.kato_launder || s.sst, "fsae_aero: Kato-Launder requires SST");
+  KUTTA_REQUIRE(o.omega_production_molecular_ratio == 0 || s.sst,
+                "fsae_aero: omega production molecular ratio requires SST");
+  if (o.transition) s.sst->transition->harmonic_kinetic_energy = o.transition_harmonic;
+  if (o.transition) s.sst->transition->relaxation = o.intermittency_relaxation;
+  if (o.kato_launder) s.sst->model.kato_launder = true;
+  if (s.sst) s.sst->model.omega_production_molecular_ratio = float(o.omega_production_molecular_ratio);
   s.monitor_interval = o.check_every;
   if (o.coupled) s.coupling = PressureVelocityCoupling::Coupled;
   s.limiter = o.limiter;
   s.limiter_coefficient = o.limiter_coefficient;
   s.pressure_interpolation = o.pressure_interpolation;
   s.pressure_boundary_gradient = o.pressure_boundary_gradient;
+  KUTTA_REQUIRE(std::isfinite(o.poor_cell_quality) && o.poor_cell_quality >= 0 && o.poor_cell_quality <= 1,
+                "fsae_aero: poor cell quality must lie in [0, 1]");
+  s.poor_cell_quality = o.poor_cell_quality;
   s.pseudo_time_step = o.pseudo_time_step;
   s.pseudo_time_scale = o.pseudo_time_scale;
   s.momentum_relaxation = o.momentum_relaxation > 0 ? o.momentum_relaxation : o.coupled ? .5 : .7;

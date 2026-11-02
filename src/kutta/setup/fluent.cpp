@@ -325,6 +325,10 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   if(transition) require(sst,"case-config/rp-trans-one-eqn?","the intermittency transition model is implemented with k-omega SST only");
   if(transition && sst) {
     auto& tr=s.sst->transition.emplace();auto& m=tr.model;
+    const std::string harmonic="turbulence/trans/harmonic-averaged-tke-for-tu?";
+    // Present in post-2021 R2 cases, including inactive model settings in the
+    // reference corpus. Absence preserves the original local-k formulation.
+    if(c.variables.entry(harmonic)) tr.harmonic_kinetic_energy=flag(c.variables,harmonic);
     const auto coefficient=[&](const std::string& key) {
       const auto it=t.transition_coefficients.find(key);
       require(it!=t.transition_coefficients.end(),"rp/"+key,"required setting absent or unparsed");

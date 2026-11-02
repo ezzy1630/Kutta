@@ -7,7 +7,14 @@ This report asks whether each transition-model discrepancy in
 - (b) a faithful property of the documented model, or
 - (c) a numerical or mesh effect.
 
-**Result:** Kutta implements the documented model correctly.
+**Result:** Kutta implements the printed local-k formulation correctly.
+
+**2026-11-01 qualification:** this audit did not cover Fluent's 2021 R2
+harmonic-k change, which its release notes document separately from the
+Theory Guide formula. The independent solutions below verify the local-k
+formulation; they do not establish complete parity with modern Fluent.
+The [S1223 investigation](../s1223_wind_tunnel/REPORT.md) tests the missing
+averaging separately. None of the evidence or acceptance limits below changes.
 
 - No defect was found. No solver code changed, and no constant or equation was
   touched.

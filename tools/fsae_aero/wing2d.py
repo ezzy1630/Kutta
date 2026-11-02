@@ -176,21 +176,36 @@ def signed_area(points, cells):
     return 0.5 * np.sum(x * np.roll(y, -1, axis=1) - np.roll(x, -1, axis=1) * y, axis=1)
 
 
-def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0, ground_layers=False, domain=None):
+def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0, ground_layers=False, domain=None,
+          wake_refinement=1.0, trailing_edge_refinement=1, wall_refinement=1.0):
     import gmsh
-    pts, blunt = resample(contour, level)
+    pts, blunt = resample(contour, level + math.log2(wall_refinement))
     r = 2.0 ** (level - 2)
-    ds_wall = 2e-5 / r
-    ratio = 1.2 ** (1.0 / r)
+    ds_wall = 2e-5 / (r * wall_refinement)
+    ratio = 1.2 ** (1.0 / (r * wall_refinement))
     surf = 0.004 / r
     n = len(pts) - (0 if blunt else 1)
     # Clockwise loop: lower TE -> LE -> upper TE, then down the blunt base.
     loop = pts[:n]
     if blunt:
         # Uniform base spacing close to the trailing-edge surface spacing.
-        nb = max(4, int(round(np.linalg.norm(loop[0] - loop[-1]) / (0.0012 / r))))
+        nb = max(4, int(round(np.linalg.norm(loop[0] - loop[-1]) / (0.0012 / (r * wall_refinement)))))
         base = loop[-1] + (loop[0] - loop[-1]) * (np.arange(1, nb) / nb)[:, None]
         loop = np.concatenate([loop, base])
+    if trailing_edge_refinement != 1:
+        # Split existing straight wall faces, preserving the polygon exactly.
+        # This isolates the last 15% chord/base resolution from geometry changes.
+        te_mid = 0.5 * (pts[0] + pts[-1])
+        leading_edge = pts[np.argmax(np.linalg.norm(pts - te_mid, axis=1))]
+        chord = te_mid - leading_edge
+        chord_length_squared = chord @ chord
+        refined = []
+        for p, q in zip(loop, np.roll(loop, -1, axis=0)):
+            x0 = (p - leading_edge) @ chord / chord_length_squared
+            x1 = (q - leading_edge) @ chord / chord_length_squared
+            count = trailing_edge_refinement if min(x0, x1) > 0.85 else 1
+            refined.extend(p + (q - p) * j / count for j in range(count))
+        loop = np.array(refined)
     gap = float(pts[:, 1].min() - ground_y) if ground_wall else None
     thickness = 0.02 if gap is None else min(0.02, 0.3 * gap)
     block = oblock(loop, ds_wall, ratio, thickness, surf)
@@ -271,6 +286,17 @@ def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0, g
         field.setNumber(box, "YMin", te[1] - half - (0.1 * x1 if ground_wall else 0))
         field.setNumber(box, "YMax", te[1] + half + 0.1 * x1)
         field.setNumber(box, "Thickness", 12.0)  # ~15% growth outside the box
+        sizes.append(box)
+    if wake_refinement != 1:
+        box = field.add("Box")
+        field.setNumber(box, "VIn", 0.008 / (r * wake_refinement))
+        field.setNumber(box, "VOut", 2.0)
+        field.setNumber(box, "XMin", float(te[0]))
+        field.setNumber(box, "XMax", float(te[0]) + 3)
+        # Cover the deflected free-air wake on either side of the trailing edge.
+        field.setNumber(box, "YMin", float(te[1]) - 0.45)
+        field.setNumber(box, "YMax", float(te[1]) + 0.45)
+        field.setNumber(box, "Thickness", 12.0)
         sizes.append(box)
     if ground_wall:
         box = field.add("Box")
@@ -377,6 +403,16 @@ def build(contour, ground_y, level, out, ground_wall, meta, png=None, far=1.0, g
     if len(ground_offsets) > 1:
         meta.update(ground_layers=len(ground_offsets) - 1, ground_first_height=ds_wall,
                     ground_layer_thickness=ground_offsets[-1], ground_far_layers="uniform, thickness 1c beyond [-4, 7]")
+    if wake_refinement != 1:
+        meta["wake_refinement"] = wake_refinement
+        meta["wake_refinement_half_width"] = 0.45
+        meta["wake_refinement_length"] = 3.0
+    if trailing_edge_refinement != 1:
+        meta["trailing_edge_refinement"] = trailing_edge_refinement
+        meta["trailing_edge_refinement_start"] = 0.85
+        meta["trailing_edge_refinement_coordinate"] = "chord projection"
+    if wall_refinement != 1:
+        meta["wall_refinement"] = wall_refinement
     pathlib.Path(str(out) + ".json").write_text(json.dumps(meta, indent=1))
     return meta
 
@@ -386,13 +422,16 @@ def main():
     ap.add_argument("case", choices=["zerihan", "s1223"])
     ap.add_argument("--hc", default="free", help="ride height h/c, or 'free'")
     ap.add_argument("--alpha", type=float, default=0.0, help="S1223 angle of attack, deg")
-    ap.add_argument("--level", type=float, default=2)
+    ap.add_argument("--level", type=float, default=2, help="fractional levels interpolate the refinement factor")
     ap.add_argument("--out", required=True)
     ap.add_argument("--png", help="write a mesh preview image")
     ap.add_argument("--far", type=float, default=1.0, help="scale the far-field distances")
     ap.add_argument("--ground-layers", action="store_true", help="resolve the ground with a conformal quad strip")
     ap.add_argument("--domain", type=float, nargs=3, metavar=("X_IN", "X_OUT", "Y_TOP"),
                     help="explicit domain boundaries in chords (overrides --far)")
+    ap.add_argument("--wake-refinement", type=float, default=1.0, help="divide wake-box cell sizes by this factor")
+    ap.add_argument("--trailing-edge-refinement", type=int, default=1, help="split wall faces aft of x/c .85 and the base")
+    ap.add_argument("--wall-refinement", type=float, default=1.0, help="refine surface/wall layers while keeping outer sizes fixed")
     a = ap.parse_args()
     if not math.isfinite(a.level) or a.level <= 0:
         ap.error("--level must be finite and positive")
@@ -420,7 +459,15 @@ def main():
         meta = {"case": "s1223", "alpha_deg": a.alpha, "coordinates": "as-tested (dap)"}
         ground_y, wall = -Y_FAR * a.far, False
     pathlib.Path(a.out).parent.mkdir(parents=True, exist_ok=True)
-    print(json.dumps(build(contour, ground_y, a.level, a.out, wall, meta, a.png, a.far, a.ground_layers, a.domain)))
+    if not math.isfinite(a.wake_refinement) or a.wake_refinement <= 0:
+        ap.error("--wake-refinement must be finite and positive")
+    if a.trailing_edge_refinement < 1:
+        ap.error("--trailing-edge-refinement must be at least one")
+    if not math.isfinite(a.wall_refinement) or a.wall_refinement <= 0:
+        ap.error("--wall-refinement must be finite and positive")
+    print(json.dumps(build(contour, ground_y, a.level, a.out, wall, meta, a.png, a.far, ground_layers=a.ground_layers,
+                           domain=a.domain, wake_refinement=a.wake_refinement,
+                           trailing_edge_refinement=a.trailing_edge_refinement, wall_refinement=a.wall_refinement)))
 
 
 if __name__ == "__main__":

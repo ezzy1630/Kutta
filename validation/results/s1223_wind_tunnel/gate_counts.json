@@ -1,0 +1,26 @@
+{
+  "SST before": {
+    "cl": 7,
+    "cd": 3,
+    "converged": 9,
+    "accepted_linear": 3
+  },
+  "SST after R": {
+    "cl": 7,
+    "cd": 1,
+    "converged": 9,
+    "accepted_linear": 1
+  },
+  "Gamma before": {
+    "cl": 3,
+    "cd": 6,
+    "converged": 7,
+    "accepted_linear": 0
+  },
+  "Gamma after H+R": {
+    "cl": 2,
+    "cd": 6,
+    "converged": 9,
+    "accepted_linear": 0
+  }
+}

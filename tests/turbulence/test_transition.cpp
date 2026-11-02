@@ -42,6 +42,36 @@ double production_limit(double g,double rho,double mu,double mut,double d,double
 }
 }
 
+TEST_CASE("Intermittency harmonic k includes fluid neighbours and leaves local R_T unchanged") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    // The large downstream value must not dominate an upstream laminar cell.
+    // Negative neighbours represent walls/inflow/symmetry, with no ghost k.
+    const std::vector<Index> offsets{0,3,6,8,10},adjacent{1,-1,-2,0,2,-3,1,-4,-1,-2};
+    auto offsets_d=dev->upload<Index>(offsets),adjacent_d=dev->upload<Index>(adjacent);
+    auto K=scalar(*dev,{1e-6,1e-4,1e-2,0}),H=dev->alloc<float>(4);
+    kern::transition_harmonic_k(*dev,4,offsets_d,adjacent_d,K,H,1e-14f);
+    const auto h=dev->download(H);
+    CHECK(near(h[0],2/(1e6+1e4)));
+    CHECK(near(h[1],3/(1e6+1e4+1e2)));
+    CHECK(near(h[2],2/(1e4+1e2)));
+    CHECK(near(h[3],1e-14));
+    auto R=filled(*dev,4,1),M=filled(*dev,4,1e-5f),W=filled(*dev,4,10),D=filled(*dev,4,.002f);
+    auto V=filled(*dev,4,0),S=filled(*dev,4,300),G=filled(*dev,4,.5f);
+    auto a=dev->alloc<float>(4),b=dev->alloc<float>(4),critical=dev->alloc<float>(4),onset=dev->alloc<float>(4);
+    kern::transition_sources(*dev,4,R,M,K,H,W,D,V,S,S,G,a,b,critical,onset,100,1000,1,1,-.5f,0,1.5f,3,1e-14f,1e-20f);
+    const auto rc=dev->download(critical),on=dev->download(onset);
+    const auto k=dev->download(K);
+    for(std::size_t i=0;i<h.size();++i) {
+      const double tu=std::min(100*std::sqrt(2*double(h[i])/3)/(10*double(float(.002))),100.);
+      const double expected=100+1000*std::exp(-tu*1.1875);
+      const double rt=std::max(double(k[i]),1e-14)/(double(float(1e-5))*10);
+      const double rev=double(float(.002))*float(.002)*300/float(1e-5);
+      CHECK(near(rc[i],expected));
+      CHECK(near(on[i],std::max(std::min(rev/(2.2*expected),2.)-std::max(1-std::pow(rt/3.5,3),0.),0.),2e-5,1e-6));
+    }
+  }
+}
+
 TEST_CASE("Intermittency sources match independent double formulas") {
   // Cells span laminar (R_T small), onset (Re_V large), freestream (Omega~0),
   // favourable/adverse/clipped lambda and gamma at both ends.
@@ -60,7 +90,7 @@ TEST_CASE("Intermittency sources match independent double formulas") {
       auto R=scalar(*dev,rho),M=scalar(*dev,mu),K=scalar(*dev,k),W=scalar(*dev,w),D=scalar(*dev,d),V=scalar(*dev,dvdy);
       auto S=scalar(*dev,s),O=scalar(*dev,o),G=scalar(*dev,g);
       auto source=dev->alloc<float>(n),sink=dev->alloc<float>(n),critical=dev->alloc<float>(n),onset=dev->alloc<float>(n);
-      kern::transition_sources(*dev,n,R,M,K,W,D,V,S,O,G,source,sink,critical,onset,float(c.ctu1),float(c.ctu2),float(c.ctu3),
+      kern::transition_sources(*dev,n,R,M,K,K,W,D,V,S,O,G,source,sink,critical,onset,float(c.ctu1),float(c.ctu2),float(c.ctu3),
         float(c.cpg1),float(c.cpg2),float(c.cpg3),float(c.lim1),float(c.lim2),1e-14f,1e-20f);
       const auto a=dev->download(source),b=dev->download(sink),rc=dev->download(critical),on=dev->download(onset);
       for(std::size_t i=0;i<n;++i) {
@@ -89,7 +119,7 @@ TEST_CASE("Intermittency sources match independent double formulas") {
     auto one=scalar(*dev,{1,1,1}),V=scalar(*dev,lam_dvdy),D=scalar(*dev,{1,1,1}),mu=scalar(*dev,{1,1,1});
     auto K=scalar(*dev,{1.5e-6,1.5e-6,1.5e-6}),W=scalar(*dev,{1,1,1}),S=scalar(*dev,{0,0,0}),G=scalar(*dev,{1,1,1});
     auto source=dev->alloc<float>(3),sink=dev->alloc<float>(3),critical=dev->alloc<float>(3),onset=dev->alloc<float>(3);
-    kern::transition_sources(*dev,3,one,mu,K,W,D,V,S,S,G,source,sink,critical,onset,100,1000,1,2,-.5f,0,1.5f,3,1e-14f,1e-20f);
+    kern::transition_sources(*dev,3,one,mu,K,K,W,D,V,S,S,G,source,sink,critical,onset,100,1000,1,2,-.5f,0,1.5f,3,1e-14f,1e-20f);
     const auto rc=dev->download(critical);
     // Tu_L = .1: lambda clipped to +10 (F_PG = min(21, 1.5)) and -10 (F_PG = min(6, 3)).
     CHECK(near(rc[0],100+1000*std::exp(-.1*1.5),1e-5));
@@ -237,6 +267,16 @@ TEST_CASE("Fluent intermittency transition settings are read, checked and solved
   CHECK(t.model.ctu1==100);CHECK(t.model.ctu2==1000);CHECK(t.model.ctu3==1);CHECK(t.model.cpg1==1);CHECK(t.model.cpg2==-.5f);
   CHECK(t.model.cpg3==0);CHECK(t.model.cpg1_lim==1.5f);CHECK(t.model.cpg2_lim==3);CHECK(t.model.csep==1);CHECK(t.model.ck==1);
   CHECK(t.model.sigma==1);CHECK(t.model.minimum==1e-7f);CHECK(t.model.maximum==1);
+  CHECK(t.harmonic_kinetic_energy);  // Explicit true in the saved case.
+  CHECK_FALSE(setup::fluent_setup(edited(original,on,"(turbulence/trans/harmonic-averaged-tke-for-tu? . #f)"),
+    mesh,allowed).settings.sst->transition->harmonic_kinetic_energy);
+  {
+    auto raw=c.raw_sections;auto& variables=raw.at("Rampant Variables")[0].elements[1].elements;
+    std::erase_if(variables,[](const auto& e){return !e.elements.empty() &&
+      e.elements[0].atom_text()==std::string_view("turbulence/trans/harmonic-averaged-tke-for-tu?");});
+    auto legacy=fluent::extract_case(std::move(raw),c.solver_version,c.origin);legacy.mesh=c.mesh;
+    CHECK_FALSE(setup::fluent_setup(legacy,mesh,allowed).settings.sst->transition->harmonic_kinetic_energy);
+  }
   CHECK(t.convection==fv::ConvectionScheme::SecondOrderUpwind);CHECK(t.relaxation==.75);  // intermit/pseudo-relax
   CHECK(std::any_of(problem.convergence_notes.begin(),problem.convergence_notes.end(),[](const auto& s){return s.find("dudn-method")!=s.npos;}));
   for(const auto& b:problem.boundaries) if(const auto* in=std::get_if<fv::VelocityInlet>(&b.condition)) CHECK(in->intermittency==1);
@@ -267,6 +307,8 @@ TEST_CASE("Fluent intermittency transition settings are read, checked and solved
   rejects(edited(original,on,"(trans-one-eqn-dudn-method . 2)"),"rp/trans-one-eqn-dudn-method");
   rejects(edited(original,on,"(trans-intermit-smoothing? . #t)"),"rp/trans-intermit-smoothing?");
   rejects(edited(original,on,"(intermit-sig . 0)"),"rp/intermit-sig");
+  rejects(edited(original,on,"(turbulence/trans/harmonic-averaged-tke-for-tu? . 1)"),
+    "turbulence/trans/harmonic-averaged-tke-for-tu?");
   rejects(edited(original,on,"","(intermit (constant . 1.5) (profile \"\" \"\"))"),"zone/"+std::to_string(std::find_if(original.boundaries.begin(),original.boundaries.end(),[](const auto& z){return z.type==fluent::ZoneType::velocity_inlet;})->id)+"/intermit");
   rejects(edited(original,"(rp-trans-sst? . #t)"),"case-config/rp-trans-sst?");
   rejects(edited(original,"(rp-transition-model . gamma-algebraic)"),"case-config/rp-transition-model");

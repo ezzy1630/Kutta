@@ -27,6 +27,7 @@ IntermittencyTransport::IntermittencyTransport(Device& d,const DeviceMesh& m,con
   for(auto* b:{&gamma_,&residual_,&absolute_,&scale_,&fluent_scale_,&fields_.source,&fields_.sink,
                &fields_.normal_derivative,&fields_.re_theta_c,&fields_.onset}) *b=d.alloc<float>(n);
   fields_.face_diffusivity=d.alloc<float>(m.n_faces);
+  if(settings_.harmonic_kinetic_energy) harmonic_k_=d.alloc<float>(n);
   boundary_=d.alloc<float>(nb);kind_=d.alloc<Index>(nb);zero_=d.alloc<Index>(n);d.fill(zero_,0);
   std::vector<float> inflow(nb,1);std::vector<Index> wall(nb,0);
   for(const auto& p:m.patches) {
@@ -65,7 +66,10 @@ void IntermittencyTransport::update(const SstFields& sst,const Buffer<float>& rh
   kern::transition_normal_derivative(dev_,n,w.x,w.y,w.z,g[0].x,g[0].y,g[0].z,g[1].x,g[1].y,g[1].z,
     g[2].x,g[2].y,g[2].z,f.normal_derivative);
   // SST's floors keep Tu_L and R_T finite where k or omega reach them.
-  kern::transition_sources(dev_,n,rho,mu,k,omega,mesh_.wall_distance,f.normal_derivative,sst.strain,sst.vorticity,
+  if(settings_.harmonic_kinetic_energy)
+    kern::transition_harmonic_k(dev_,n,mesh_.cell_face_offsets,stencil_.adjacent,k,harmonic_k_,k_floor_);
+  const auto& tu_k=settings_.harmonic_kinetic_energy?harmonic_k_:k;
+  kern::transition_sources(dev_,n,rho,mu,k,tu_k,omega,mesh_.wall_distance,f.normal_derivative,sst.strain,sst.vorticity,
     gamma_,f.source,f.sink,f.re_theta_c,f.onset,t.ctu1,t.ctu2,t.ctu3,t.cpg1,t.cpg2,t.cpg3,t.cpg1_lim,t.cpg2_lim,
     k_floor_,omega_floor_);
   kern::transition_face_diffusion(dev_,mesh_.n_faces,mesh_.owner,mesh_.neighbour,mesh_.weight,wall_,mu,sst.mu_t,

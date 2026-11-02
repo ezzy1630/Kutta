@@ -1,0 +1,80 @@
+[
+  {
+    "label": "base",
+    "binary": "runs/s1223_wind_tunnel/bench_before",
+    "sha256": "51a04472febcdbb1816afecab0a340a4617705415abc1d7a9c7c6f459737aaf0",
+    "source_commit": "8866cc0e16df5b0642b2243611099ddccd7f3cd3",
+    "embedded_commit": "8866cc0e16df5b0642b2243611099ddccd7f3cd3"
+  },
+  {
+    "label": "harmonic",
+    "binary": "build/experiment/bench_fsae_aero",
+    "sha256": "5f5538a69a99e74a8a9fc315d1776e6dddf56f9821b2ece1fd4cd57a7425f1f2",
+    "source_commit": "7ff5fa07e5ed291154891a7c55b3d6a7ac6b32c8",
+    "embedded_commit": "8866cc0e16df5b0642b2243611099ddccd7f3cd3"
+  },
+  {
+    "label": "candidate",
+    "binary": "runs/s1223_wind_tunnel/bench_35d6691",
+    "sha256": "3b6549e505d885f8ba679f5689df0a1d35da7e2f3aebcf6d591a608da5c54836",
+    "source_commit": "35d66910a7ec11092bd682c821c29143190cf854",
+    "embedded_commit": "35d66910a7ec11092bd682c821c29143190cf854"
+  },
+  {
+    "label": "tests-35d6691",
+    "binary": "build/kutta-tests",
+    "sha256": "3082b06021832885100311c27054faf530a8fbbef6e9f119dc580fc0f916f876",
+    "source_commit": "35d66910a7ec11092bd682c821c29143190cf854",
+    "embedded_commit": null,
+    "note": "Test source built at the stated commit; CLI subprocess is the matching standard-build artifact.",
+    "path_semantics": "path at measurement; later builds may replace this artifact"
+  },
+  {
+    "label": "case-setting-candidate",
+    "binary": "build/bench_fsae_aero",
+    "sha256": "1a3d81de3f4348430150088f4e15266a07bef003f5ef0abb7c40a49c712506ba",
+    "source_commit": "a5e54831fc11a177d6307400473dd23d611c31ff",
+    "embedded_commit": "a5e54831fc11a177d6307400473dd23d611c31ff",
+    "path_semantics": "path at measurement; later builds may replace this artifact"
+  },
+  {
+    "label": "case-setting-tests",
+    "binary": "build/kutta-tests",
+    "sha256": "4a1294c74d1c981ba3ec4f0246bda8e6bd2e8ec30389bdffaa165d51995302cf",
+    "source_commit": "a5e54831fc11a177d6307400473dd23d611c31ff",
+    "embedded_commit": null,
+    "path_semantics": "path at measurement; later builds may replace this artifact"
+  },
+  {
+    "label": "gamma-relaxation-candidate",
+    "binary": "build/bench_fsae_aero",
+    "sha256": "9e98fef776e9c3f874bf92beb720d61fcdd8d84cbbcf71fafa674b9ee606d0c6",
+    "source_commit": "d228f5af4f75ddc89ce87353b57c8fdbded5b198",
+    "embedded_commit": "d228f5af4f75ddc89ce87353b57c8fdbded5b198",
+    "path_semantics": "path at measurement; later builds may replace this artifact"
+  },
+  {
+    "label": "final-tests-d228f5a",
+    "binary": "build/kutta-tests",
+    "sha256": "f25168adf11fa0fe0a35bf4c2a14edacddea05270395ec0f8aa10046f105936f",
+    "source_commit": "d228f5af4f75ddc89ce87353b57c8fdbded5b198",
+    "embedded_commit": null,
+    "path_semantics": "path at measurement"
+  },
+  {
+    "label": "pressure-control-bench_fsae_aero",
+    "binary": "build/bench_fsae_aero",
+    "sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "source_commit": "51d8a4ddd53ea7cd92eca5303ee824f45fd20159",
+    "embedded_commit": "51d8a4ddd53ea7cd92eca5303ee824f45fd20159",
+    "path_semantics": "path at measurement"
+  },
+  {
+    "label": "pressure-control-kutta-tests",
+    "binary": "build/kutta-tests",
+    "sha256": "26d2aa8fe29c8d65ab1339bb1f45e2a3c876eb07ca27df5218a241c4d445450f",
+    "source_commit": "51d8a4ddd53ea7cd92eca5303ee824f45fd20159",
+    "embedded_commit": null,
+    "path_semantics": "path at measurement"
+  }
+]

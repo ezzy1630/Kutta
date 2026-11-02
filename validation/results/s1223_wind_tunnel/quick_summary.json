@@ -1,0 +1,11 @@
+{
+  "numerical_source_commit": "51d8a4ddd53ea7cd92eca5303ee824f45fd20159",
+  "binary_sha256": "26d2aa8fe29c8d65ab1339bb1f45e2a3c876eb07ca27df5218a241c4d445450f",
+  "test_cases": 279,
+  "passed_cases": 279,
+  "failed_cases": 0,
+  "assertions": 7457630,
+  "failed_assertions": 0,
+  "slow_cases_excluded": 37,
+  "log_sha256": "9bf7b7c0a57788f49f741ec392de67f7d8a68887ec1957be6405ef01e08549e1"
+}

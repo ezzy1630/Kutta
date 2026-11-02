@@ -42,6 +42,9 @@ struct SstOptions {
   bool production_limiter = true;
   float production_clip = 10.0f;  // C_lim
   bool limit_omega_production = true;  // documented inference; data does not settle this
+  // P_omega denominator mu_t + ratio*mu (Menter et al. 2022, Eq. 6).
+  // Zero preserves the established SST formulation; Fluent's stated ratio is .001.
+  float omega_production_molecular_ratio = 0;
   bool low_re = false;
   SstGammaSet gamma_set = SstGammaSet::Computed1994;
   SstViscosityLimiter viscosity_limiter = SstViscosityLimiter::Strain;

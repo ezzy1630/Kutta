@@ -1,0 +1,285 @@
+{
+  "numerical_source_commit": "51d8a4ddd53ea7cd92eca5303ee824f45fd20159",
+  "xml_sha256": "634a87e65f6bdeea75d038f47492e29e2ad12b96f57fe72252bc90cad0421423",
+  "xml_bytes": 214485348,
+  "completion": "exit=1",
+  "raw_counts": {
+    "regressions": 0,
+    "recoveries": 0,
+    "changed_values": 0,
+    "missing_assertions": 266,
+    "new_assertions": 266,
+    "missing_cases": 0,
+    "new_cases": 0
+  },
+  "metadata_audited_counts": {
+    "regressions": 0,
+    "recoveries": 0,
+    "changed_values": 0,
+    "missing_assertions": 0,
+    "new_assertions": 0,
+    "missing_cases": 0,
+    "new_cases": 0
+  },
+  "cases": [
+    {
+      "case": "Kutta cases converted from Fluent cases solve to the same bytes on every backend",
+      "baseline_assertions": 68,
+      "final_assertions": 68,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "The NACA ground-effect wing from a bare mesh and a Kutta case solves like its donor Fluent case",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs",
+      "baseline_assertions": 477,
+      "final_assertions": 477,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Corpus FSAE physics preserve strict solver holds or convert with identical outputs",
+      "baseline_assertions": 0,
+      "final_assertions": 0,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re100 and Re400 cavity reported deviations",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V4 Fluent cavity matches its actual grid",
+      "baseline_assertions": 763,
+      "final_assertions": 763,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "baseline_assertions": 17044,
+      "final_assertions": 17044,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent k-epsilon elbow converges with second-order pressure",
+      "baseline_assertions": 11220,
+      "final_assertions": 11220,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent laminar 2D cylinder matches converged Fluent fields",
+      "baseline_assertions": 207,
+      "final_assertions": 207,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "baseline_assertions": 2565,
+      "final_assertions": 2565,
+      "baseline_failed": 25,
+      "final_failed": 25
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "baseline_assertions": 28,
+      "final_assertions": 28,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 9,
+      "final_assertions": 9,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "baseline_assertions": 8,
+      "final_assertions": 8,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V12 native Fluent polynomial fan import acceptance",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 1,
+      "final_failed": 1
+    },
+    {
+      "case": "V8 realizable KE scalable channel MKM DNS profile and momentum balance",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes hex refinement",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes tet refinement",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 8,
+      "final_failed": 8
+    },
+    {
+      "case": "FV V1 manufactured scalar diffusion and upwind refinement",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV SIMPLEC develops planar Couette flow with moving and slip walls",
+      "baseline_assertions": 14,
+      "final_assertions": 14,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "baseline_assertions": 36,
+      "final_assertions": 36,
+      "baseline_failed": 6,
+      "final_failed": 6
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "baseline_assertions": 47,
+      "final_assertions": 47,
+      "baseline_failed": 8,
+      "final_failed": 8
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "baseline_assertions": 70,
+      "final_assertions": 70,
+      "baseline_failed": 14,
+      "final_failed": 14
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "baseline_assertions": 161470,
+      "final_assertions": 161470,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 11,
+      "final_assertions": 11,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.1 translating-wall Couette hex and poly",
+      "baseline_assertions": 104,
+      "final_assertions": 104,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.2 rotating-wall Taylor Couette hex and poly",
+      "baseline_assertions": 6668,
+      "final_assertions": 6668,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V8 Darcy Forchheimer pressure drop and oblique directions",
+      "baseline_assertions": 24,
+      "final_assertions": 24,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10 incompressible pressure and mass-flow inlets",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V11 internal fan polynomial and porous jump pressure discontinuity",
+      "baseline_assertions": 312,
+      "final_assertions": 312,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.3 rotation and translation preserve Taylor Couette pressure",
+      "baseline_assertions": 6,
+      "final_assertions": 6,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent research downloads retain published byte identities",
+      "baseline_assertions": 264,
+      "final_assertions": 264,
+      "baseline_failed": 0,
+      "final_failed": 0
+    }
+  ]
+}

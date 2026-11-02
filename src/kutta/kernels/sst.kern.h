@@ -197,7 +197,7 @@ KUTTA_KERNEL void sst_sources(int i,
     KOut(float) omega_source, KOut(float) omega_sink, KOut(float) production_k,
     int low_re, int gamma_2003, int production_mode, int limiter,
     int limit_omega, int wall_override, float clip,
-    int limit_cross, float cross_clip, float k_floor, float omega_floor) {
+    int limit_cross, float cross_clip, float k_floor, float omega_floor, float omega_molecular_ratio) {
   float r = rho[i], ke = kmax(k[i], k_floor), w = kmax(omega[i], omega_floor);
   float ret = (r / mu[i]) * (ke / w);
   float beta_star = sst_beta_star(ret, low_re);
@@ -213,6 +213,8 @@ KUTTA_KERNEL void sst_sources(int i,
   // damp G_omega twice when low-Re corrections are enabled.
   if (low_re) gamma *= 1.0f - (8.0f/9.0f) / (1.0f + ret/2.95f);
   float pw = mut[i] > 0.0f ? gamma * r * (pw_k / mut[i]) : gamma * r * rate2;
+  if (omega_molecular_ratio > 0.0f)
+    pw = gamma * r * (pw_k / (mut[i] + omega_molecular_ratio * mu[i]));
   float cross = (1.0f - f1[i]) * cdkw[i];
   if (limit_cross) {
     // Inferred from sst-limit-cross-diff-to-n-times-w-destruct. Apply to BOTH

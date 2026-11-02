@@ -1,0 +1,1211 @@
+[
+  {
+    "run": "s1223_re2e5_4.76_L2.5_metal_refined",
+    "lift": 1.597978165125,
+    "drag": 0.028568169841000003,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.0001910559594,
+    "settle_lift": 0.0001419207137,
+    "settle_drag": 0.00367978508,
+    "cells": 344180,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1756366648.0,
+    "drag_range": [
+      0.02851047719,
+      0.02863076243
+    ],
+    "max_velocity_range": [
+      1.722345114,
+      1.722467184
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "d140e2d36daabea3f35d8991f0d7359580e3aef232719ee0498bebae55b2bee9",
+    "reversed_shear": [
+      {
+        "start": 0.272220341005981,
+        "end": 0.436232684578933,
+        "faces": 15,
+        "max_dx": 0.01233639990984109,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9312110795646564,
+        "end": 0.9981845175518905,
+        "faces": 33,
+        "max_dx": 0.0038716405551508792,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.185604364,
+      "y": 0.133646841,
+      "u": 1.6999656,
+      "v": 0.276878715,
+      "p": -0.98487556,
+      "k": 1.5295401e-06,
+      "omega": 42.673481,
+      "mu_t": 3.584287e-08,
+      "intermittency": 0.68957597,
+      "speed": 1.7223660656211883
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_far2",
+    "lift": 1.6063512543000003,
+    "drag": 0.02788755081575,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 7.577085467e-05,
+    "settle_lift": 0.0001008151569,
+    "settle_drag": 0.004325454018,
+    "cells": 191920,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1036813632.0,
+    "drag_range": [
+      0.02782338758,
+      0.02795389861
+    ],
+    "max_velocity_range": [
+      1.724723935,
+      1.724876285
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "097b01fd64add99db99be6c139556f11e859cec5e63a18861912c675cb091d48",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.69988179,
+      "v": 0.29255408,
+      "p": -0.986290634,
+      "k": 1.60218679e-06,
+      "omega": 36.1412849,
+      "mu_t": 4.43312054e-08,
+      "intermittency": 0.848282278,
+      "speed": 1.7248727459433786
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_gamma04",
+    "lift": 1.6089565627,
+    "drag": 0.028469091009999996,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 5.756023055e-05,
+    "settle_lift": 8.255269918e-05,
+    "settle_drag": 0.002599001385,
+    "cells": 184470,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 980551024.0,
+    "drag_range": [
+      0.02842542826,
+      0.02852477685
+    ],
+    "max_velocity_range": [
+      1.725320697,
+      1.725436926
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.70040536,
+      "v": 0.292645633,
+      "p": -0.986965299,
+      "k": 1.60159698e-06,
+      "omega": 36.1988335,
+      "mu_t": 4.42444374e-08,
+      "intermittency": 0.827519834,
+      "speed": 1.7254042583785112
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_harmonic_omega001",
+    "lift": 1.612917526,
+    "drag": 0.02812331089,
+    "settled": true,
+    "failure": "",
+    "iterations": 2350,
+    "residual": 1.408922041e-05,
+    "settle_lift": 4.687359197e-05,
+    "settle_drag": 0.000306848372,
+    "cells": 184470,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 987890936.0,
+    "drag_range": [
+      0.02812057766,
+      0.03955211512
+    ],
+    "max_velocity_range": [
+      1.690285087,
+      1.727556944
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.70254874,
+      "v": 0.292883337,
+      "p": -0.990541995,
+      "k": 1.65849315e-06,
+      "omega": 20.8699799,
+      "mu_t": 7.79126523e-08,
+      "intermittency": 0.827396035,
+      "speed": 1.72755690533419
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_harmonic_omega001_kl",
+    "lift": 1.617468218025,
+    "drag": 0.027950903437999997,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.0001880087138,
+    "settle_lift": 0.0005254190182,
+    "settle_drag": 0.01757624038,
+    "cells": 184470,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1000817936.0,
+    "drag_range": [
+      0.02769181156,
+      0.02818903638
+    ],
+    "max_velocity_range": [
+      1.728806734,
+      1.729532123
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.70449603,
+      "v": 0.29313904,
+      "p": -0.993897378,
+      "k": 8.59573788e-07,
+      "omega": 3.03170609,
+      "mu_t": 4.06918375e-08,
+      "intermittency": 0.827459097,
+      "speed": 1.7295193589717006
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_hybrid",
+    "lift": 1.60888647625,
+    "drag": 0.028478628189,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.002574731303,
+    "settle_lift": 7.151948463e-05,
+    "settle_drag": 0.002109677502,
+    "cells": 184470,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1040024896.0,
+    "drag_range": [
+      0.02843207481,
+      0.02853561362
+    ],
+    "max_velocity_range": [
+      1.72527802,
+      1.725399852
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.70030308,
+      "v": 0.292634636,
+      "p": -0.986723065,
+      "k": 1.60163904e-06,
+      "omega": 36.1997948,
+      "mu_t": 4.42444232e-08,
+      "intermittency": 0.827243567,
+      "speed": 1.7253015950970252
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_kl",
+    "lift": 1.6126823920499997,
+    "drag": 0.028395729864999997,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 6.184637816e-05,
+    "settle_lift": 7.184102068e-05,
+    "settle_drag": 0.003213165857,
+    "cells": 184470,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 986055904.0,
+    "drag_range": [
+      0.02834913537,
+      0.02844188164
+    ],
+    "max_velocity_range": [
+      1.726358891,
+      1.726475954
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.70146108,
+      "v": 0.292826355,
+      "p": -0.988756537,
+      "k": 8.44291264e-07,
+      "omega": 5.34828329,
+      "mu_t": 3.81619181e-08,
+      "intermittency": 0.829814315,
+      "speed": 1.7264753345870172
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_omega001",
+    "lift": 1.612809151,
+    "drag": 0.02816599343,
+    "settled": true,
+    "failure": "",
+    "iterations": 2300,
+    "residual": 1.439833304e-05,
+    "settle_lift": 2.477844036e-05,
+    "settle_drag": 0.000217407935,
+    "cells": 184470,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 991544592.0,
+    "drag_range": [
+      0.02792483724,
+      0.03900455811
+    ],
+    "max_velocity_range": [
+      1.689697742,
+      1.727682829
+    ],
+    "binary_sha256": "9e98fef776e9c3f874bf92beb720d61fcdd8d84cbbcf71fafa674b9ee606d0c6",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.70233798,
+      "v": 0.292867541,
+      "p": -0.990177333,
+      "k": 1.65850065e-06,
+      "omega": 20.8732376,
+      "mu_t": 7.74374485e-08,
+      "intermittency": 0.82764703,
+      "speed": 1.727346518426997
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_pressure01",
+    "lift": 1.6091674781249998,
+    "drag": 0.02848527441075,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 6.011538486e-05,
+    "settle_lift": 7.62860519e-05,
+    "settle_drag": 0.00184367701,
+    "cells": 184470,
+    "poor_cells": 3,
+    "peak_footprint_bytes": 980632824.0,
+    "drag_range": [
+      0.02843933278,
+      0.0285426993
+    ],
+    "max_velocity_range": [
+      1.725345016,
+      1.725466609
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.7003777,
+      "v": 0.292648643,
+      "p": -0.986883283,
+      "k": 1.60169611e-06,
+      "omega": 36.2041664,
+      "mu_t": 4.42406574e-08,
+      "intermittency": 0.827217281,
+      "speed": 1.7253775096792676
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_ratio10",
+    "lift": 1.6090232718750002,
+    "drag": 0.02847651705075,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.0001034449556,
+    "settle_lift": 7.489231748e-05,
+    "settle_drag": 0.001883999842,
+    "cells": 184470,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 991298880.0,
+    "drag_range": [
+      0.02842823533,
+      0.02853470281
+    ],
+    "max_velocity_range": [
+      1.725306153,
+      1.725428343
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.7003448,
+      "v": 0.292642385,
+      "p": -0.986853659,
+      "k": 2.28299018e-06,
+      "omega": 27.8330193,
+      "mu_t": 8.20245276e-08,
+      "intermittency": 0.82966429,
+      "speed": 1.7253440249369192
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_te4_chord",
+    "lift": 1.5963059141750002,
+    "drag": 0.02825755023225,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 5.406539453e-05,
+    "settle_lift": 9.079839107e-05,
+    "settle_drag": 0.003036872359,
+    "cells": 191780,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1048855848.0,
+    "drag_range": [
+      0.02821381164,
+      0.02830439879
+    ],
+    "max_velocity_range": [
+      1.722297549,
+      1.722403407
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "f3a545795bb16b3bc44c919f1c24be60088243dc3329efcb5e50f90ba0fefcbb",
+    "reversed_shear": [
+      {
+        "start": 0.2806856332165037,
+        "end": 0.43053568561929895,
+        "faces": 10,
+        "max_dx": 0.017436561531640304,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9325557484401409,
+        "end": 0.9993853737189025,
+        "faces": 95,
+        "max_dx": 0.0013705408039083045,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.69736004,
+      "v": 0.292074203,
+      "p": -0.981210053,
+      "k": 1.59313095e-06,
+      "omega": 35.9802284,
+      "mu_t": 4.42779537e-08,
+      "intermittency": 0.827890277,
+      "speed": 1.7223061416156207
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_te8_chord",
+    "lift": 1.593053264,
+    "drag": 0.02818853363,
+    "settled": true,
+    "failure": "",
+    "iterations": 2400,
+    "residual": 2.671050509e-05,
+    "settle_lift": 2.338631432e-05,
+    "settle_drag": 0.0004213105953,
+    "cells": 200472,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1066566976.0,
+    "drag_range": [
+      0.01328408941,
+      0.03022373214
+    ],
+    "max_velocity_range": [
+      1.714799404,
+      1.774285793
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "8199d34dda0dea1243e8d4bd9e800d121da8ca9de018c7b8b3d3592fca8d5a35",
+    "reversed_shear": [
+      {
+        "start": 0.2806897447080966,
+        "end": 0.4305396202668816,
+        "faces": 10,
+        "max_dx": 0.017436517874125312,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9315003681820763,
+        "end": 0.9996926989110363,
+        "faces": 193,
+        "max_dx": 0.0007043590740897221,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.69654441,
+      "v": 0.291914791,
+      "p": -0.980115294,
+      "k": 1.62113975e-06,
+      "omega": 35.9605865,
+      "mu_t": 4.50810163e-08,
+      "intermittency": 0.826618791,
+      "speed": 1.7214752918084018
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_wake1.5_symmetric",
+    "lift": 1.605902125,
+    "drag": 0.02842687283,
+    "settled": true,
+    "failure": "",
+    "iterations": 3000,
+    "residual": 2.583041302e-05,
+    "settle_lift": 5.67617364e-05,
+    "settle_drag": 0.000473373511,
+    "cells": 344932,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1682245240.0,
+    "drag_range": [
+      0.02820332609,
+      0.02934217674
+    ],
+    "max_velocity_range": [
+      1.722526789,
+      1.724745631
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "41bc0f9eefbfa690358512d6879c9c2008d9b5550bffac74f4c0b933501d401f",
+    "reversed_shear": [
+      {
+        "start": 0.2806609545496686,
+        "end": 0.43051206285953697,
+        "faces": 10,
+        "max_dx": 0.0174368228769623,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9359180654823839,
+        "end": 0.9984722628976553,
+        "faces": 23,
+        "max_dx": 0.005183035453868223,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.180880603,
+      "y": 0.133223649,
+      "u": 1.69974554,
+      "v": 0.292490512,
+      "p": -0.985475123,
+      "k": 1.6034877e-06,
+      "omega": 36.1772461,
+      "mu_t": 4.43231016e-08,
+      "intermittency": 0.835341036,
+      "speed": 1.7247276887555072
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_wall2",
+    "lift": 1.6056485077250002,
+    "drag": 0.028606631852249997,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.0001985071916,
+    "settle_lift": 7.732303228e-05,
+    "settle_drag": 0.001585259281,
+    "cells": 206256,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1068189016.0,
+    "drag_range": [
+      0.02857936274,
+      0.02863499631
+    ],
+    "max_velocity_range": [
+      1.724453092,
+      1.724493265
+    ],
+    "binary_sha256": "3b6549e505d885f8ba679f5689df0a1d35da7e2f3aebcf6d591a608da5c54836",
+    "mesh_sha256": "887a1e9a570f0f3f1c346d83dfec46eb02c836a0c1a2f7b82fd6a3fb29d76bcf",
+    "reversed_shear": [
+      {
+        "start": 0.2768471298690351,
+        "end": 0.4349372534253041,
+        "faces": 20,
+        "max_dx": 0.008744514768702416,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9346209739611177,
+        "end": 0.9987517937665175,
+        "faces": 46,
+        "max_dx": 0.002664433121507548,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.183779285,
+      "y": 0.133397854,
+      "u": 1.70096159,
+      "v": 0.283883929,
+      "p": -0.988774478,
+      "k": 1.52981602e-06,
+      "omega": 41.955864,
+      "mu_t": 3.64625095e-08,
+      "intermittency": 0.693048239,
+      "speed": 1.7244884504686615
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_wall2_pressure01",
+    "lift": 1.6059689454000001,
+    "drag": 0.02861641784375,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.0001966088583,
+    "settle_lift": 5.947149385e-05,
+    "settle_drag": 0.001661579959,
+    "cells": 206256,
+    "poor_cells": 6,
+    "peak_footprint_bytes": 1094272392.0,
+    "drag_range": [
+      0.02858860038,
+      0.02864495125
+    ],
+    "max_velocity_range": [
+      1.724531889,
+      1.724572301
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "887a1e9a570f0f3f1c346d83dfec46eb02c836a0c1a2f7b82fd6a3fb29d76bcf",
+    "reversed_shear": [
+      {
+        "start": 0.2768471298690351,
+        "end": 0.4349372534253041,
+        "faces": 20,
+        "max_dx": 0.008744514768702416,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9346209739611177,
+        "end": 0.9987517937665175,
+        "faces": 46,
+        "max_dx": 0.002664433121507548,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.183779285,
+      "y": 0.133397854,
+      "u": 1.70104098,
+      "v": 0.283898234,
+      "p": -0.988903224,
+      "k": 1.52989628e-06,
+      "omega": 41.9613647,
+      "mu_t": 3.64596424e-08,
+      "intermittency": 0.692890346,
+      "speed": 1.7245691122444697
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_wall4",
+    "lift": 1.527797017225,
+    "drag": 0.03387801444125,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.01049732739,
+    "settle_lift": 0.05999714562,
+    "settle_drag": 2.368335514,
+    "cells": 289776,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1529251520.0,
+    "drag_range": [
+      -0.07018926962,
+      0.1419645152
+    ],
+    "max_velocity_range": [
+      17.84933662,
+      25.64320374
+    ],
+    "binary_sha256": "9e98fef776e9c3f874bf92beb720d61fcdd8d84cbbcf71fafa674b9ee606d0c6",
+    "mesh_sha256": "75984e5ecce8799f94495687de941c4e6922229a8b5063bee68e4300ac221d7e",
+    "reversed_shear": [
+      {
+        "start": 0.271103560421778,
+        "end": 0.4371096915462344,
+        "faces": 41,
+        "max_dx": 0.0043779245657980526,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9177899483008524,
+        "end": 0.9785922482830225,
+        "faces": 57,
+        "max_dx": 0.001570073222840418,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9858075778614923,
+        "end": 0.999881952933367,
+        "faces": 39,
+        "max_dx": 0.0005246583358484713,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.997113759,
+      "y": -0.0638638178,
+      "u": -18.9786301,
+      "v": -8.82766151,
+      "p": 97.7423477,
+      "k": 0.00018538002,
+      "omega": 18270034.0,
+      "mu_t": 7.96615812e-12,
+      "intermittency": 0.0202550143,
+      "speed": 20.931220896253556
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_wall4_fluent",
+    "lift": 1.5327192059249999,
+    "drag": 0.036388574789275,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.0122421442,
+    "settle_lift": 0.07520735686,
+    "settle_drag": 1.511142449,
+    "cells": 289776,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1609877232.0,
+    "drag_range": [
+      -0.06684212617,
+      0.1421206674
+    ],
+    "max_velocity_range": [
+      16.97475624,
+      25.59726143
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "75984e5ecce8799f94495687de941c4e6922229a8b5063bee68e4300ac221d7e",
+    "reversed_shear": [
+      {
+        "start": 0.271103560421778,
+        "end": 0.43273176698043636,
+        "faces": 40,
+        "max_dx": 0.0043725396026816354,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9193600215236928,
+        "end": 0.9772208039823895,
+        "faces": 54,
+        "max_dx": 0.0015492536849950334,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9868454240177261,
+        "end": 0.9993967071575156,
+        "faces": 35,
+        "max_dx": 0.0005019173054829906,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.997116448,
+      "y": -0.0638553754,
+      "u": -18.0807076,
+      "v": -16.8552856,
+      "p": 70.6600571,
+      "k": 0.000231652564,
+      "omega": 41024988.0,
+      "mu_t": 5.64662119e-12,
+      "intermittency": 0.0202544276,
+      "speed": 24.718669866606195
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_wall4_fluent_pressure01",
+    "lift": 1.5489802846,
+    "drag": 0.0308952348805,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.0001194821935,
+    "settle_lift": 0.006923062377,
+    "settle_drag": 0.01634422996,
+    "cells": 289776,
+    "poor_cells": 19,
+    "peak_footprint_bytes": 1593919216.0,
+    "drag_range": [
+      0.02966255173,
+      0.03262507799
+    ],
+    "max_velocity_range": [
+      1.696427822,
+      1.715743423
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "75984e5ecce8799f94495687de941c4e6922229a8b5063bee68e4300ac221d7e",
+    "reversed_shear": [
+      {
+        "start": 0.271103560421778,
+        "end": 0.43273176698043636,
+        "faces": 40,
+        "max_dx": 0.0043725396026816354,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9224378882068942,
+        "end": 0.998885818670923,
+        "faces": 100,
+        "max_dx": 0.0015081528679062872,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.188305997,
+      "y": 0.134380818,
+      "u": 1.69483757,
+      "v": 0.267022461,
+      "p": -0.974104822,
+      "k": 1.61055084e-06,
+      "omega": 21.3425255,
+      "mu_t": 7.54620544e-08,
+      "intermittency": 0.742790997,
+      "speed": 1.7157433908839634
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_wall4_pressure01",
+    "lift": 1.54635250325,
+    "drag": 0.031019442135,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.0001193290412,
+    "settle_lift": 0.007021450965,
+    "settle_drag": 0.01653370128,
+    "cells": 289776,
+    "poor_cells": 19,
+    "peak_footprint_bytes": 1608189728.0,
+    "drag_range": [
+      0.02976656317,
+      0.03277878244
+    ],
+    "max_velocity_range": [
+      1.695285916,
+      1.714798927
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "75984e5ecce8799f94495687de941c4e6922229a8b5063bee68e4300ac221d7e",
+    "reversed_shear": [
+      {
+        "start": 0.271103560421778,
+        "end": 0.4371096915462344,
+        "faces": 41,
+        "max_dx": 0.0043779245657980526,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9224378882068942,
+        "end": 0.998885818670923,
+        "faces": 100,
+        "max_dx": 0.0015081528679062872,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.188305997,
+      "y": 0.134380818,
+      "u": 1.69389939,
+      "v": 0.266908705,
+      "p": -0.97249186,
+      "k": 1.53724886e-06,
+      "omega": 37.0943718,
+      "mu_t": 4.14415666e-08,
+      "intermittency": 0.739514351,
+      "speed": 1.7147989387234728
+    }
+  },
+  {
+    "run": "s1223_re2e5_4.76_L2_metal_wall4_sst",
+    "lift": 1.5921737727749998,
+    "drag": 0.07812056161845,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 0.03831175307,
+    "settle_lift": 0.02393972621,
+    "settle_drag": 0.8457028387,
+    "cells": 289776,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1451460240.0,
+    "drag_range": [
+      -0.1223606163,
+      0.1929443708
+    ],
+    "max_velocity_range": [
+      15.72181034,
+      25.49149513
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "75984e5ecce8799f94495687de941c4e6922229a8b5063bee68e4300ac221d7e",
+    "reversed_shear": [
+      {
+        "start": 0.9161988793665214,
+        "end": 0.9811881082747735,
+        "faces": 62,
+        "max_dx": 0.0015910689343309192,
+        "kind": "trailing edge"
+      },
+      {
+        "start": 0.9892513027063298,
+        "end": 0.9993967071575156,
+        "faces": 30,
+        "max_dx": 0.00045243061447530764,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.997113759,
+      "y": -0.0638638178,
+      "u": -17.3346386,
+      "v": -9.15898037,
+      "p": 175.420746,
+      "k": 43.6885834,
+      "omega": 15331870.0,
+      "mu_t": 2.14539523e-06,
+      "speed": 19.605525160287225
+    }
+  },
+  {
+    "run": "s1223_re3e5_8.21_L2_metal_pressure01",
+    "lift": 1.95553868,
+    "drag": 0.03084290172,
+    "settled": true,
+    "failure": "",
+    "iterations": 2400,
+    "residual": 1.449235462e-05,
+    "settle_lift": 4.00058647e-05,
+    "settle_drag": 0.0004798087213,
+    "cells": 184216,
+    "poor_cells": 3,
+    "peak_footprint_bytes": 983336208.0,
+    "drag_range": [
+      0.03084290172,
+      0.03992586295
+    ],
+    "max_velocity_range": [
+      1.864654183,
+      1.914337158
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "742baf77f1109e529bd0696335e5a5ef4c1d5946bce82d263307355f9b7bd2c9",
+    "reversed_shear": [
+      {
+        "start": 0.2654375811817076,
+        "end": 0.34488633723672957,
+        "faces": 6,
+        "max_dx": 0.016500419781569575,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.924641596064534,
+        "end": 0.9984722626738881,
+        "faces": 25,
+        "max_dx": 0.005793932147771241,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.0462358513,
+      "y": 0.0920326093,
+      "u": 1.63554072,
+      "v": 0.99483335,
+      "p": -1.32989979,
+      "k": 1.82553151e-06,
+      "omega": 81.166069,
+      "mu_t": 2.24913137e-08,
+      "intermittency": 0.633835793,
+      "speed": 1.9143371806059508
+    }
+  },
+  {
+    "run": "s1223_re3e5_8.21_L2_metal_te4_chord_fluent",
+    "lift": 1.94604594,
+    "drag": 0.03063930711,
+    "settled": true,
+    "failure": "",
+    "iterations": 2500,
+    "residual": 5.643505515e-06,
+    "settle_lift": 2.005489097e-05,
+    "settle_drag": 0.0002082539204,
+    "cells": 191160,
+    "poor_cells": 0,
+    "peak_footprint_bytes": 1033930048.0,
+    "drag_range": [
+      0.03059674852,
+      0.0344736562
+    ],
+    "max_velocity_range": [
+      1.88966608,
+      1.910401106
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "a67cf5de63fca96e754b6aa8875f038d19cafa378ce5dd7df525d3a99c0f0b20",
+    "reversed_shear": [
+      {
+        "start": 0.2654621365251636,
+        "end": 0.34491094363587355,
+        "faces": 6,
+        "max_dx": 0.01650033292250952,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9193176641383028,
+        "end": 0.9991395082559933,
+        "faces": 103,
+        "max_dx": 0.0015702371102818136,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.0462358513,
+      "y": 0.0920326093,
+      "u": 1.63221025,
+      "v": 0.992734611,
+      "p": -1.32264018,
+      "k": 1.85046872e-06,
+      "omega": 81.0257492,
+      "mu_t": 2.28380337e-08,
+      "intermittency": 0.643124819,
+      "speed": 1.9104010856577693
+    }
+  },
+  {
+    "run": "s1223_re3e5_8.21_L2_metal_wall4_pressure01",
+    "lift": 1.8818600415749998,
+    "drag": 0.03511481382775,
+    "settled": false,
+    "failure": "",
+    "iterations": 6000,
+    "residual": 7.140414914e-05,
+    "settle_lift": 0.005380892155,
+    "settle_drag": 0.01515415413,
+    "cells": 289670,
+    "poor_cells": 19,
+    "peak_footprint_bytes": 1648346864.0,
+    "drag_range": [
+      0.03394769314,
+      0.03654563532
+    ],
+    "max_velocity_range": [
+      1.866905332,
+      1.88637948
+    ],
+    "binary_sha256": "e98376491b4cf841678e7669b82530bf5bfbd88fff4d478c0afef83025427bbb",
+    "mesh_sha256": "80976e30f5e9d7468207808e641f85a1b546dfa168d26f54f38c518349b2728d",
+    "reversed_shear": [
+      {
+        "start": 0.2451435983739313,
+        "end": 0.36376535933337917,
+        "faces": 31,
+        "max_dx": 0.004216710501388665,
+        "kind": "bubble"
+      },
+      {
+        "start": 0.9044590314256111,
+        "end": 0.9983485861458914,
+        "faces": 109,
+        "max_dx": 0.0017429362939023196,
+        "kind": "trailing edge"
+      }
+    ],
+    "fastest_final_cell": {
+      "x": 0.0573724409,
+      "y": 0.0986073876,
+      "u": 1.67213249,
+      "v": 0.873155534,
+      "p": -1.28324127,
+      "k": 2.65562176e-06,
+      "omega": 77.7011261,
+      "mu_t": 3.41773898e-08,
+      "intermittency": 0.720076323,
+      "speed": 1.8863795086536603
+    }
+  }
+]

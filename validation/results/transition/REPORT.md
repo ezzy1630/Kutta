@@ -1,5 +1,12 @@
 # Fluent Intermittency Transition Model in Kutta
 
+**2026-11-01 qualification:** the results here use the original local-k
+formulation. The [S1223 investigation](../s1223_wind_tunnel/REPORT.md) found
+that Fluent's 2021 R2 release notes additionally specify harmonic averaging
+of k for Tu_L. That detail was not covered by this implementation report or
+the original independent verification. The historical measurements below
+remain unchanged.
+
 Kutta now runs Fluent's **Intermittency Transition Model** (one-equation
 gamma, Menter et al. 2015) on top of SST, on CPU and Metal from one kernel
 source. A Fluent case with the model enabled is admitted, its constants and
