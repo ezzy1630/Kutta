@@ -161,6 +161,16 @@ No CUDA runtime or converged-flow claim follows from these checks.
 - Low-Re mode, multiple-wall-face rule, wall-limiter exemption and u-star limiter:
   not established by this fixture. The optional cross-diffusion clip above is
   an explicit inference.
+- Omega production regularization: Menter et al. (2022), *An Algebraic LCTM
+  Model for Laminar–Turbulent Transition Prediction*, equation 6
+  ([author-provided text](https://www.researchgate.net/publication/362198958_An_Algebraic_LCTM_Model_for_Laminar-Turbulent_Transition_Prediction)),
+  reports a Fluent denominator `mu_t + .001*mu`. This implementation retains
+  the Theory Guide's `mu_t` denominator. At V6's saved state with the current
+  SteadySolver gradients, the additional term changes production by 0.123% of
+  omega destruction and slightly worsens the aggregate absolute residual;
+  its cold-solve effect and presence
+  in the saved case's version are unverified. See
+  [the elbow turbulence report](../../../../validation/results/elbow_turbulence/REPORT.md).
 - Fluent's exact LSQ/WFGC and `kw-sst-strain? #t` semantics remain unknown.
   The explicit strain/vorticity enum does not pretend to decode that flag.
 - No converged flow solve, force-integral acceptance, CUDA runtime or performance

@@ -111,18 +111,20 @@ established that interpretation. Fixed epsilon targets honor the configured
 epsilon floor, so the row constraint and post-solve field limit agree.
 Wall shear replaces wall-face momentum diffusion, using the existing implicit
 tangential tensor hook and force integrator. k/epsilon use unlimited LSQ scalar
-gradients with independent inlet observations. Realizable velocity rates use the existing plain LSQ momentum gradient.
+gradients with independent inlet observations. Realizable velocity rates use
+the existing plain LSQ momentum gradient.
 Standard k-epsilon with LSQ gradients can opt into the same derivative fit as
 SST using `RealizableKeSettings::standard_strain_reconstruction =
-KeStrainReconstruction::JumpCorrected`: wall rows omitted from the base fit, then half the face-jump LSQ correction.
-At Fluent's saved standard-k-epsilon elbow state this removes the interior
-production deficit; the cold solve reduces k L2 from 9.10% to 4.15% and epsilon
+KeStrainReconstruction::JumpCorrected`: wall rows omitted from the base fit,
+then half the face-jump LSQ correction. At Fluent's saved standard-k-epsilon
+elbow state this reduces the net interior production deficit; the cold solve
+reduces k L2 from 9.10% to 4.15% and epsilon
 from 17.61% to 10.37%. This reconstruction is an empirical discretization
 choice, not a documented decoding of `ke-source-mod`, `ke-time-marching?`, or
-WFGC (which is off in that case). The default remains `CellGradient`; the second-order-pressure elbow exposes a
-pressure-drop trade-off. Green-Gauss keeps its selected gradient.
-See `validation/results/elbow_turbulence/REPORT.md` for the saved-state budgets
-and cross-case gates.
+WFGC (which is off in that case). The default remains `CellGradient`; the
+second-order-pressure elbow exposes a pressure-drop trade-off. Green-Gauss
+keeps its selected gradient. See [the elbow turbulence report](../../../../validation/results/elbow_turbulence/REPORT.md)
+for the saved-state budgets and cross-case gates.
 As in the existing SSTm path, isotropic turbulent stress is omitted. Consequently
 no claim about matching Fluent's physical static pressure follows from these tests.
 
