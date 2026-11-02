@@ -52,6 +52,9 @@ class TransportEquation {
                 const TransportSettings& settings,TransportTerms terms={});
   // Null restores the compact secondary-gradient diffusion.
   void set_reconstruction(std::shared_ptr<const FaceReconstruction> reconstruction);
+  void enable_compensated_assembly();
+  const Buffer<float>& rhs_low() const {return rhs_low_.empty()?zero_:rhs_low_;}
+  const Buffer<float>& diagonal_low() const {return diagonal_low_.empty()?zero_:diagonal_low_;}
   SolveStats solve(Buffer<float>& field, const SolveControl& control);
   CsrMatrix& matrix;
   Buffer<float> rhs, diagonal, consistent_inverse;
@@ -62,7 +65,7 @@ class TransportEquation {
   const DeviceMesh& mesh_;
   const Stencil& stencil_;
   std::unique_ptr<LinearSolver> solver_;
-  Buffer<float> zero_;
+  Buffer<float> zero_,rhs_low_,diagonal_low_;
   std::shared_ptr<const FaceReconstruction> diffusion_reconstruction_;
   Buffer<float> diffusion_correction_;
 };

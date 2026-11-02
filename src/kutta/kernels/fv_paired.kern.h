@@ -1,5 +1,44 @@
 #include "kutta/kernels/prelude.h"
 
+KUTTA_FN kpair fv_pair_product_add(kpair a,float x,float y) {
+  float product=x*y;
+  kpair sum=ktwo_sum(a.hi,product);
+  return ktwo_sum(sum.hi,(a.lo+sum.lo)+kfma(x,y,-product));
+}
+
+// Same bounded side reconstruction as fv_pressure_faces, without first
+// rounding two O(p) traces and then subtracting away their small difference.
+KUTTA_KERNEL void fv_compensated_pressure_jump(int i,KIn(int) owner,KIn(int) neighbour,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) p,KIn(float) gx,KIn(float) gy,KIn(float) gz,KIn(float) boundary,
+    KOut(float) jump,int internal) {
+  int c=owner[i];
+  kpair full=ktwo_sum(p[c],i<internal?-p[neighbour[i]]:-boundary[i-internal]);
+  full=fv_pair_product_add(full,gx[c],px[i]);
+  full=fv_pair_product_add(full,gy[c],py[i]);
+  full=fv_pair_product_add(full,gz[c],pz[i]);
+  if(i>=internal) {jump[i]=full.hi+full.lo;return;}
+  int n=neighbour[i];
+  full=fv_pair_product_add(full,-gx[n],nx[i]);
+  full=fv_pair_product_add(full,-gy[n],ny[i]);
+  full=fv_pair_product_add(full,-gz[n],nz[i]);
+  float side=full.hi+full.lo;
+  float dx=px[i]-nx[i],dy=py[i]-ny[i],dz=pz[i]-nz[i];
+  float sx=0.5f*(px[i]+nx[i]),sy=0.5f*(py[i]+ny[i]),sz=0.5f*(pz[i]+nz[i]);
+  float d2=dx*dx+dy*dy+dz*dz,s2=sx*sx+sy*sy+sz*sz;
+  float trust=kmax(0.0f,kmin(1.0f,(4.0f*d2-s2)/(3.0f*d2)));
+  if(trust==1.0f) {jump[i]=side;return;}
+  kpair shared=ktwo_sum(p[c],-p[n]);
+  shared=fv_pair_product_add(shared,gx[c],0.5f*px[i]);shared=fv_pair_product_add(shared,gx[n],0.5f*px[i]);
+  shared=fv_pair_product_add(shared,gx[c],-0.5f*nx[i]);shared=fv_pair_product_add(shared,gx[n],-0.5f*nx[i]);
+  shared=fv_pair_product_add(shared,gy[c],0.5f*py[i]);shared=fv_pair_product_add(shared,gy[n],0.5f*py[i]);
+  shared=fv_pair_product_add(shared,gy[c],-0.5f*ny[i]);shared=fv_pair_product_add(shared,gy[n],-0.5f*ny[i]);
+  shared=fv_pair_product_add(shared,gz[c],0.5f*pz[i]);shared=fv_pair_product_add(shared,gz[n],0.5f*pz[i]);
+  shared=fv_pair_product_add(shared,gz[c],-0.5f*nz[i]);shared=fv_pair_product_add(shared,gz[n],-0.5f*nz[i]);
+  float link=shared.hi+shared.lo;
+  jump[i]=link+trust*(side-link);
+}
+
 // SIMPLE/SIMPLEC float-pair state (SolverSettings::paired_state). Velocity and
 // pressure are hi + lo pairs (prelude kpair_add); the face mass flux is
 // F(hi) + F'(lo), with F' the linearized Rhie-Chow flux of the low words.
@@ -9,17 +48,19 @@
 
 // Momentum residual of hi + lo in delta form, compensated: rhs - A (hi + lo)
 // - V grad(p_lo). Assembly's relaxation term used old = hi; adding back
-// (relaxed - physical) lo makes it relax the full pair.
+// (relaxed - physical) lo makes it relax the full pair. Optional assembly low
+// words recover the physical row before positive upward matrix rounding.
 KUTTA_KERNEL void fv_paired_momentum_residual(int i,KIn(int) rows,KIn(int) cols,
-    KIn(float) values,KIn(int) diag,KIn(float) physical,KIn(float) hi,KIn(float) lo,
-    KIn(float) pressure_gradient_lo,KIn(float) volume,KIn(float) rhs,KOut(float) r) {
-  float sum=rhs[i],error=0.0f;
+    KIn(float) values,KIn(int) diag,KIn(float) physical,KIn(float) physical_low,KIn(float) hi,KIn(float) lo,
+    KIn(float) pressure_gradient_lo,KIn(float) volume,KIn(float) rhs,KIn(float) rhs_low,KOut(float) r) {
+  float sum=rhs[i],error=rhs_low[i];
   for(int j=rows[i];j<rows[i+1];++j) {
     float a=values[j],x=hi[cols[j]],product=a*x;
     kpair s=ktwo_sum(sum,-product);
     sum=s.hi;error+=s.lo-kfma(a,x,-product)-a*lo[cols[j]];
   }
   error+=(values[diag[i]]-physical[i])*lo[i]-volume[i]*pressure_gradient_lo[i];
+  error-=physical_low[i]*hi[i]+physical_low[i]*lo[i];
   r[i]=sum+error;
 }
 

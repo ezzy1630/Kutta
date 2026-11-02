@@ -198,14 +198,20 @@ struct SolverSettings {
   // iteration from the current flow. Its velocity scale is the mean cell
   // speed for Coupled (Fluent TG 23-103) and the maximum for SIMPLE/SIMPLEC.
   double pseudo_time_step=0;
-  // SIMPLE and SIMPLEC carry velocity, pressure and the face mass flux as
+  // The pressure-velocity algorithms carry velocity, pressure and face mass flux as
   // float pairs hi + lo, so the continuity residual can fall below the
   // float32 rounding floor to criteria set for Fluent's double-precision runs
   // (validation/results/paired_state/REPORT.md). The discrete equations are
   // unchanged; hi, which every other kernel and every output reads, stays
-  // within one ulp of the velocity, pressure and flux scales of the pair.
-  // Off, or with Coupled or interior jumps, the state is float32.
+  // within the configured slack of the feeding velocity, pressure and flux scales.
+  // Off, or with interior jumps, the state is float32.
   bool paired_state=true;
+  // High-word hysteresis in float epsilons of the feeding state scales.
+  // Larger values can settle roundoff cycles but delay nonlinear updates.
+  double paired_state_slack_ulps=1;
+  // Preserve assembly rounding remainders and pressure-jump curvature in
+  // paired momentum. Opt-in: its TMR convergence trade-off is not resolved.
+  bool compensated_momentum=false;
   SolveControl momentum_linear{1e-2,1e-10,100};
   SolveControl pressure_linear{1e-3,1e-12,300};
   // Fluent's flow Courant number (Solution Controls, Coupled): the Coupled

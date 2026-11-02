@@ -29,10 +29,15 @@ KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,
     KIn(int) kind, KIn(float) boundary, KIn(float) correction,
     KIn(float) source, KIn(float) volume, KIn(float) old,
     KIn(float) sink,KIn(float) extra_diagonal,KIn(float) extra_rhs,
-    KOut(float) values, KOut(float) rhs, KOut(float) diagonal,
-    KOut(float) consistent_inverse, int internal, float rho, float dt, float relax) {
+    KOut(float) values, KOut(float) rhs,KOut(float) rhs_low, KOut(float) diagonal,KOut(float) diagonal_low,
+    KOut(float) consistent_inverse, int internal, float rho, float dt, float relax,int compensated) {
   kupper_sum ap={sink[i]*volume[i],0.0f};ap=kupper_add(ap,extra_diagonal[i]);
   float b=source[i]*volume[i]+extra_rhs[i];
+  float error=0.0f;
+  if(compensated) {
+    float product=source[i]*volume[i];
+    error=ktwo_sum(product,extra_rhs[i]).lo+kfma(source[i],volume[i],-product);
+  }
   for(int j=offsets[i];j<offsets[i+1];++j) if(adjacent[j]>=0) values[entry[j]]=0.0f;
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int f=faces[j],n=adjacent[j];
@@ -50,17 +55,35 @@ KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,
       // Extrapolated outflow has F*phi_P on the implicit diagonal; prescribed
       // backflow is on the RHS and uses the same upwind sign as an inlet.
       ap=kupper_add(ap,D);ap=kupper_add(ap,-kmin(F,0.0f));
-      b+=(D-kmin(F,0.0f))*boundary[bf];
+      if(compensated) {
+        float factor=D-kmin(F,0.0f),product=factor*boundary[bf];
+        error+=ktwo_sum(b,product).lo+kfma(factor,boundary[bf],-product);
+        b+=product;
+      } else b+=(D-kmin(F,0.0f))*boundary[bf];
     }
-    b+=sign[j]*correction[f];
+    float secondary=sign[j]*correction[f];
+    if(compensated) error+=ktwo_sum(b,secondary).lo;
+    b+=secondary;
   }
   for(int j=rows[i];j<rows[i+1];++j) if(j!=diag[i]) ap=kupper_add(ap,-values[j]);
   float physical=kupper_value(ap);
   diagonal[i]=physical;
+  // The upward-rounded matrix remains a positive linear operator. Its small
+  // row surplus is not physical reaction: retain it for the paired residual.
+  if(compensated) {
+    kpair difference=ktwo_sum(ap.sum,-physical);
+    diagonal_low[i]=difference.hi+(difference.lo+ap.error);
+  }
   float time=dt>0.0f?rho*volume[i]/dt:0.0f;
   float relaxed=kadd_up(physical,time)/relax;
-  b+=(relaxed-physical)*old[i];
+  if(compensated) {
+    float factor=relaxed-physical,product=factor*old[i];
+    error+=ktwo_sum(b,product).lo+kfma(factor,old[i],-product)
+      +ktwo_sum(relaxed,-physical).lo*old[i];
+    b+=product;
+  } else b+=(relaxed-physical)*old[i];
   values[diag[i]]=relaxed; rhs[i]=b;
+  if(compensated) rhs_low[i]=error;
   // A non-solenoidal startup flux can make the SIMPLEC denominator negative
   // despite relaxation/pseudo time. Use SIMPLE's positive diagonal then;
   // clamping the negative value to 1e-20 creates a spurious 1e20 inverse.

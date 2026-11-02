@@ -166,6 +166,7 @@ struct SteadySolver::Impl {
     KUTTA_REQUIRE(settings.density>0 && std::isfinite(settings.density) && settings.viscosity>0 &&
       std::isfinite(settings.viscosity) && settings.momentum_relaxation>0 && settings.momentum_relaxation<=1 &&
       settings.pressure_relaxation>0 && settings.pressure_relaxation<=1 &&
+      std::isfinite(settings.paired_state_slack_ulps) && settings.paired_state_slack_ulps>0 &&
       settings.pseudo_time_scale>0 && settings.pseudo_time_step>=0 && settings.monitor_interval>0 &&
       std::isfinite(settings.coupled_courant) && settings.coupled_courant>0 &&
       (settings.limiter==Limiter::Standard || (std::isfinite(settings.limiter_coefficient) && settings.limiter_coefficient>0)),
@@ -343,6 +344,7 @@ struct SteadySolver::Impl {
     const bool momentum_diffusion=velocity_faces && !settings.sst && !settings.realizable_ke;
     for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
       momentum_diffusion?velocity_faces:nullptr,krylov_workspace);
+    if(paired && settings.compensated_momentum) for(auto& eq:momentum) eq->enable_compensated_assembly();
     memory::phase("transport");
     velocity_lsq=fit(independent_velocity);
     if(settings.pressure_interpolation!=PressureInterpolation::Standard && !green_gauss) {
@@ -704,6 +706,11 @@ struct SteadySolver::Impl {
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,face_pressure,pressure_jump,mesh.n_internal_faces);
+    if(paired && settings.compensated_momentum)
+      kern::fv_compensated_pressure_jump(dev,mesh.n_faces,mesh.owner,mesh.neighbour,
+        mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+        mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
+        pressure,grad_p.x,grad_p.y,grad_p.z,boundary_pressure,pressure_jump,mesh.n_internal_faces);
     if(poor_count) kern::fv_poor_cell_pressure_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,poor,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
@@ -745,7 +752,7 @@ struct SteadySolver::Impl {
   }
   struct PairedSlack {float velocity,pressure,flux_per_area;};
   PairedSlack paired_slack() const {
-    const double ulps=double(std::numeric_limits<float>::epsilon());
+    const double ulps=settings.paired_state_slack_ulps*double(std::numeric_limits<float>::epsilon());
     const double speed=std::max(bc_speed,paired_speed);
     const double pressure=std::max(settings.density*speed*speed,paired_pressure_magnitude);
     return {float(ulps*speed),float(ulps*pressure),float(ulps*settings.density*speed)};
@@ -779,8 +786,8 @@ struct SteadySolver::Impl {
     const Buffer<float>* hi[]{&velocity.x,&velocity.y,&velocity.z};
     const Buffer<float>* lo[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
     const Buffer<float>* g[]{&pressure_gradient_lo.x,&pressure_gradient_lo.y,&pressure_gradient_lo.z};
-    kern::fv_paired_momentum_residual(dev,mesh.n_cells,m.row_ptr,m.col,m.val,m.diag,eq.diagonal,
-      *hi[k],*lo[k],*g[k],mesh.volume,eq.rhs,r);
+    kern::fv_paired_momentum_residual(dev,mesh.n_cells,m.row_ptr,m.col,m.val,m.diag,eq.diagonal,eq.diagonal_low(),
+      *hi[k],*lo[k],*g[k],mesh.volume,eq.rhs,eq.rhs_low(),r);
   }
   // The differentiable limiter's thresholds (coefficient * velocity component
   // range)^2. Each step refreshes them first, inside refresh_time_step's
