@@ -224,12 +224,12 @@ class Krylov final : public LinearSolver {
     return !std::isfinite(stats.final_residual) ||
            stats.final_residual > 1e3 * stats.initial_residual;
   }
-  // Reads the batch status. On small systems the reliable residual of the
-  // current x is computed alongside, so a candidate exit costs one host wait
-  // instead of two. Copies keep x and r_ untouched until verified() adopts it.
+  // Read status alongside the reliable residual on small systems or at a
+  // predicted Metal exit. A candidate then costs one host wait instead of two.
+  // Copies keep x and r_ untouched until verified() adopts the same result.
   std::vector<Index> poll(Device& dev, const CsrMatrix& a, const Buffer<float>& x,
-                          const Buffer<float>& b) {
-    if (speculate_) {
+                          const Buffer<float>& b, bool expected_exit) {
+    if (speculate_ || expected_exit) {
       const Buffer<float>* source = &x;
       if (nullspace_) {
         dev.copy(speculative_x(), x);
@@ -249,6 +249,12 @@ class Krylov final : public LinearSolver {
   // there keeps Krylov storage unchanged.
   Buffer<float>& speculative_r() { return bicg(kind_) ? t_ : q_; }
   Buffer<float>& speculative_x() { return bicg(kind_) ? s_ : z_; }
+  bool expected_exit(Device& dev, int completed, int batch) const {
+    // After a noncandidate batch crosses the previous exit, later batches lie
+    // beyond it. At most one noncandidate batch pays for speculative work.
+    return dev.backend() == Backend::Metal &&
+        previous_iterations_ > completed && previous_iterations_ <= completed + batch;
+  }
   void reset(Device& dev, int iterations) {
     kern::solver_reset(dev, 1, scalars_, status_, iterations);
   }
@@ -292,7 +298,7 @@ class Krylov final : public LinearSolver {
         kern::solver_pcg_beta(dev, 1, scalars_, status_, preconditioner_->variable() ? 1 : 0);
         kern::solver_direction(dev, n_, z_, p_, scalars_, status_);
       }
-      const auto state = poll(dev, a, x, b);
+      const auto state = poll(dev, a, x, b, expected_exit(dev, stats.iterations, batch));
       stats.iterations = state[1];
       if (state[0] == 2) break;
       if (state[0] == 1) {
@@ -340,7 +346,7 @@ class Krylov final : public LinearSolver {
         dev.dot_into(r_, r_, n_, scalars_, 18);
         kern::solver_check(dev, 1, scalars_, status_, 0);
       }
-      const auto state = poll(dev, a, x, b);
+      const auto state = poll(dev, a, x, b, expected_exit(dev, stats.iterations, batch));
       stats.iterations = state[1];
       if (state[0] == 2) break;
       if (state[0] == 1) {
@@ -376,7 +382,8 @@ class Krylov final : public LinearSolver {
   Buffer<Index> status_;
   Buffer<float> projection_;
   // Polling with a speculative residual costs one extra residual and dot per
-  // batch; worthwhile only where a host wait costs more than that work.
+  // batch; always do it for small systems. Larger Metal systems use the
+  // previous exit batch instead, avoiding blind speculation at every poll.
   static constexpr Index kSpeculativeRows = 1 << 17;
   bool speculate_;
   std::optional<double> speculated_;  // norm of speculative_r() for the current x
