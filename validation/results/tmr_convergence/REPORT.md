@@ -707,8 +707,9 @@ main's unchanged `tools/forensics/compare_slow_assertions.py`.
 
 ### Option decisions and allocation cost
 
-Except for the rejected compensation default, decisions below remain pending
-the full slow-tier and iteration-cost experiments. Allocation measurements
+Compensation is rejected by the full slow tier; slack 16 is rejected by the
+quick tier, with its full slow comparison still running. Other decisions
+remain pending the full slow-tier and iteration-cost experiments. Allocation measurements
 come from independent one-step CPU plate probes, changing one setting at a
 time from ordinary settings, on 816 cells. The compensation row instead uses
 the measured fine-bump delta after the cleanup below. These allocations are
@@ -718,8 +719,8 @@ in [default-study-memory.json](default-study-memory.json) and
 
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
-| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; full convergence cost pending | 316.76 / 356.76, fine bump | Keep opt-in |
-| Paired-state slack 16 | Pending | Pending | 0 / 0 | Pending |
+| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary coarse-plate outer/inner counts unchanged | 316.76 / 356.76, fine bump | Keep opt-in |
+| Paired-state slack 16 | Pending; quick tier adds two moving-wall uniform-flow failures | Pending | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
@@ -847,6 +848,40 @@ the complete case-by-case assertion counts, failed-gate counts and changed-value
 counts, the original binary/source hashes and the explicit runtime-prototype
 qualification. The full XML and raw comparison stay outside version control.
 The full quick tier remains green: 307 cases, 7,990,154 assertions.
+
+### Slack 16 fails the quick-tier requirement
+
+Changing only the ordinary slack default from 1 to 16 adds two failures in
+`Normal-foot pressure boundary gradients recover uniform flow on native tetrahedra`,
+for the moving-wall variant. The errors are `1.48279e-5` on CPU and
+`1.48278e-5` on Metal against the unchanged `1e-5` gate. The run executes all
+307 quick cases: 306 pass, with 7,990,154 passing and two failing assertions.
+The candidate test binary SHA-256 is
+`19b03b060494386aa685a2ec911d51357ad7ef9c953d69fe7444f15141cd0591`.
+Slack 16 stays opt-in. Its requested full slow-tier effect and cost measurement
+are still running; this quick result does not replace them.
+
+### Ordinary-control iteration cost of compensation
+
+A separate 3,000-step probe uses the coarse TMR plate geometry with ordinary
+solver controls, independently of the TMR harness opt-ins. Enabling only
+compensated momentum changes neither outer iterations nor cumulative inner
+iterations in these four probes:
+
+| Model/backend | Outer steps, before → after | Momentum inner steps | Pressure inner steps | Scalar inner steps |
+|---|---:|---:|---:|---:|
+| SST CPU | 300 → 300 | 1,093 → 1,093 | 5,329 → 5,329 | 4,453 → 4,453 |
+| SST Metal | 300 → 300 | 1,080 → 1,080 | 4,952 → 4,952 | 4,475 → 4,475 |
+| SA CPU | 3,000 → 3,000 | 4,076 → 4,076 | 24,674 → 24,674 | 416 → 416 |
+| SA Metal | 3,000 → 3,000 | 9,442 → 9,442 | 24,677 → 24,677 | 417 → 417 |
+
+Both SA ordinary-control probes remain unconverged at the budget. This is
+not a TMR harness failure count or evidence that compensation is unnecessary
+when combined with the other TMR controls. These are iteration measurements;
+no unpaired timing comparison is claimed. Both binaries use the retained
+original Metal runtime. The candidate includes the byte-identical SST memory
+cleanup. [compensation-iteration-cost.json](compensation-iteration-cost.json)
+records their hashes and endpoints.
 
 ### Fresh remaining-failure baseline
 

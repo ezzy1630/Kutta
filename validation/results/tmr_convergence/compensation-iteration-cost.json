@@ -1,0 +1,138 @@
+{
+  "protocol": "Coarse TMR plate geometry and model, ordinary solver controls; original 3000-step convergence budget; iteration counts only, no unpaired timing comparison",
+  "settings": "Ordinary solver controls, independent of the TMR harness opt-ins. Candidate enables only compensated momentum. Both binaries use the original Metal runtime; the candidate contains the byte-identical 36 bytes per cell SST cleanup.",
+  "baseline_sha256": "8bbe546cb85d2eb3756f5b387908d88fb7f221f39c8a9ab60730efbd63a6fbbd",
+  "candidate_sha256": "ed178ef07fac078608dae6c9e13f64c5b0dc185439761b89f5f9ccc7ff2fe2e1",
+  "candidate_compensation_override": 1,
+  "timing_comparison": null,
+  "rows": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "variant": "baseline",
+      "compensated_momentum": false,
+      "outer_iterations": 300,
+      "converged": true,
+      "inner_iterations": {
+        "momentum": 1093,
+        "pressure": 5329,
+        "scalar": 4453
+      },
+      "maximum_defect": 6.01904017753e-06,
+      "load_change": 2.29465019721e-05,
+      "failure": null
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "variant": "candidate",
+      "compensated_momentum": true,
+      "outer_iterations": 300,
+      "converged": true,
+      "inner_iterations": {
+        "momentum": 1093,
+        "pressure": 5329,
+        "scalar": 4453
+      },
+      "maximum_defect": 6.01904017753e-06,
+      "load_change": 2.29465019721e-05,
+      "failure": null
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "variant": "baseline",
+      "compensated_momentum": false,
+      "outer_iterations": 300,
+      "converged": true,
+      "inner_iterations": {
+        "momentum": 1080,
+        "pressure": 4952,
+        "scalar": 4475
+      },
+      "maximum_defect": 1.44929994787e-07,
+      "load_change": 2.21970651882e-05,
+      "failure": null
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "variant": "candidate",
+      "compensated_momentum": true,
+      "outer_iterations": 300,
+      "converged": true,
+      "inner_iterations": {
+        "momentum": 1080,
+        "pressure": 4952,
+        "scalar": 4475
+      },
+      "maximum_defect": 1.44929994787e-07,
+      "load_change": 2.21970651882e-05,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "variant": "baseline",
+      "compensated_momentum": false,
+      "outer_iterations": 3000,
+      "converged": false,
+      "inner_iterations": {
+        "momentum": 4076,
+        "pressure": 24674,
+        "scalar": 416
+      },
+      "maximum_defect": 1.31528557856e-05,
+      "load_change": 0.0,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "variant": "candidate",
+      "compensated_momentum": true,
+      "outer_iterations": 3000,
+      "converged": false,
+      "inner_iterations": {
+        "momentum": 4076,
+        "pressure": 24674,
+        "scalar": 416
+      },
+      "maximum_defect": 1.31528557856e-05,
+      "load_change": 0.0,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "variant": "baseline",
+      "compensated_momentum": false,
+      "outer_iterations": 3000,
+      "converged": false,
+      "inner_iterations": {
+        "momentum": 9442,
+        "pressure": 24677,
+        "scalar": 417
+      },
+      "maximum_defect": 3.40673138094e-05,
+      "load_change": 0.0,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "variant": "candidate",
+      "compensated_momentum": true,
+      "outer_iterations": 3000,
+      "converged": false,
+      "inner_iterations": {
+        "momentum": 9442,
+        "pressure": 24677,
+        "scalar": 417
+      },
+      "maximum_defect": 3.40673138094e-05,
+      "load_change": 0.0,
+      "failure": null
+    }
+  ]
+}
