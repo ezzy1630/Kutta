@@ -900,6 +900,12 @@ separate ordinary-control probes, not the TMR harness or its 17 failures.
 [default-study-slack.json](default-study-slack.json) preserves the hashes,
 paired measurements, cumulative work and quick-tier rejection.
 
+The completed thin-wall Ahmed case passes all eight assertions and peaks
+at 2,215,168,184 bytes, below the 3,000,000,000-byte guard. This slack candidate
+uses the retained original Metal runtime. It is a different default candidate
+from the earlier compensation run, so their peak difference is not attributed
+to a memory optimization. The whole-tier run remains unfinished.
+
 A private field-motion diagnostic observes the true high-plus-low flow pairs
 and stored scalar fields without extra monitor or force calls. With downloads
 enabled every step, four 40-step finest-bump SST/SA CPU/Metal comparisons keep

@@ -1026,5 +1026,15 @@
       "u_metal": 15,
       "v_metal": 7
     }
+  },
+  "completed_heavy_case": {
+    "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+    "passed_assertions": 8,
+    "failed_assertions": 0,
+    "sampled_peak_bytes": 2211580280,
+    "reported_peak_bytes": 2215168184,
+    "conservative_peak_bytes": 2215168184,
+    "runtime": "Retained original Metal runtime. Global slack16 candidate, compensated momentum remains opt-in.",
+    "limit_bytes": 3000000000
   }
 }
