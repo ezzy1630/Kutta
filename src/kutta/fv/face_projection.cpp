@@ -21,12 +21,17 @@ Row basis(Vec3d r) {return {r.x,r.y,r.z,.5*r.x*r.x,r.x*r.y,r.x*r.z,.5*r.y*r.y,r.
 Matrix inverse(Matrix a) {
   Matrix q{};for(int i=0;i<terms;++i) q[i][i]=1;
   for(int iteration=0;iteration<terms*terms*16;++iteration) {
-    int p=0,r=1;double scale=0;
+    int p=0,r=1;double scale=0,maximum=std::abs(a[0][1]);
     for(int i=0;i<terms;++i) {
       scale=std::max(scale,std::abs(a[i][i]));
-      for(int j=i+1;j<terms;++j) if(std::abs(a[i][j])>std::abs(a[p][r])) {p=i;r=j;}
+      // The matrix is unchanged during this scan. Retain the winning value
+      // with its indices instead of reloading a dynamically indexed element.
+      for(int j=i+1;j<terms;++j) {
+        const double candidate=std::abs(a[i][j]);
+        if(candidate>maximum) {p=i;r=j;maximum=candidate;}
+      }
     }
-    if(std::abs(a[p][r])<1e-13*scale) break;
+    if(maximum<1e-13*scale) break;
     const double angle=.5*std::atan2(2*a[p][r],a[r][r]-a[p][p]);
     const double c=std::cos(angle),s=std::sin(angle),app=a[p][p],arr=a[r][r],apr=a[p][r];
     a[p][p]=c*c*app-2*c*s*apr+s*s*arr;a[r][r]=s*s*app+2*c*s*apr+c*c*arr;a[p][r]=a[r][p]=0;
