@@ -12,6 +12,17 @@
 using namespace kutta;
 
 namespace {
+// Independent old incidence layout, rounded from the host double geometry.
+std::array<std::vector<float>,3> face_rows(const PolyMesh& mesh,const MeshGeometry& g) {
+  using namespace kutta::detail;
+  std::array<std::vector<float>,3> r;
+  const auto cf=build_cell_faces(mesh);
+  for(Index c=0;c<mesh.n_cells;++c) for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j) {
+    const auto d=g.face_centroid[cf.faces[j]]-g.cell_centroid[c];
+    r[0].push_back(float(d.x));r[1].push_back(float(d.y));r[2].push_back(float(d.z));
+  }
+  return r;
+}
 void linear_exactness(const PolyMesh& mesh) {
   auto g=compute_geometry(mesh);
   const auto field=[](Vec3d p) { return float(1.3+0.7*p.x-0.4*p.y+0.2*p.z); };
@@ -56,7 +67,7 @@ void linear_exactness(const PolyMesh& mesh) {
     else for(Index c=0;c<mesh.n_cells;++c) CHECK(x[c]==doctest::Approx(baseline[c]).epsilon(1e-6));
     fv::limit_gradient(*dev,m,s,dc,db,grad,psi);
     auto limiter=dev->download(psi);
-    auto rx=dev->download(s.face_delta.x),ry=dev->download(s.face_delta.y),rz=dev->download(s.face_delta.z);
+    auto [rx,ry,rz]=face_rows(mesh,g);
     auto adj=dev->download(s.adjacent),offsets=dev->download(m.cell_face_offsets);
     for(Index c=0;c<mesh.n_cells;++c) {
       float lo=cell[c],hi=cell[c];
@@ -258,7 +269,8 @@ TEST_CASE("fused limiter and scaling preserve staged reconstruction") {
     fv::limit_gradient(*dev,m,s,q,bc,g,psi);
     kern::fv_scale_gradient(*dev,m.n_cells,g.x,g.y,g.z,psi,staged.x,staged.y,staged.z);
     kern::fv_limiter_scale(*dev,m.n_cells,m.cell_face_offsets,s.adjacent,
-      s.face_delta.x,s.face_delta.y,s.face_delta.z,q,bc,g.x,g.y,g.z,fused_psi,fused.x,fused.y,fused.z,-1.f);
+      m.cell_faces,m.cell_face_sign,m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
+      m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,q,bc,g.x,g.y,g.z,fused_psi,fused.x,fused.y,fused.z,-1.f);
     CHECK(dev->download(psi)==dev->download(fused_psi));
     CHECK(dev->download(staged.x)==dev->download(fused.x));
     CHECK(dev->download(staged.y)==dev->download(fused.y));
@@ -291,7 +303,7 @@ TEST_CASE("differentiable limiter bounds at zero threshold and passes small vari
     fv::limit_gradient(*dev,m,s,q,bc,g,psi,nullptr,nullptr,0.f);
     const auto limiter=dev->download(psi);
     const auto x=dev->download(g.x),y=dev->download(g.y),z=dev->download(g.z);
-    const auto rx=dev->download(s.face_delta.x),ry=dev->download(s.face_delta.y),rz=dev->download(s.face_delta.z);
+    const auto [rx,ry,rz]=face_rows(host,geom);
     const auto adj=dev->download(s.adjacent),offsets=dev->download(m.cell_face_offsets);
     int limited=0;
     for(Index c=0;c<m.n_cells;++c) {
@@ -310,7 +322,8 @@ TEST_CASE("differentiable limiter bounds at zero threshold and passes small vari
     const float eps2=std::pow(10.f*(*hi_it-*lo_it),2.f);
     fv::limit_gradient(*dev,m,s,q,bc,g,psi,nullptr,nullptr,eps2);
     kern::fv_limiter_scale(*dev,m.n_cells,m.cell_face_offsets,s.adjacent,
-      s.face_delta.x,s.face_delta.y,s.face_delta.z,q,bc,g.x,g.y,g.z,fused_psi,fused.x,fused.y,fused.z,eps2);
+      m.cell_faces,m.cell_face_sign,m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
+      m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,q,bc,g.x,g.y,g.z,fused_psi,fused.x,fused.y,fused.z,eps2);
     CHECK(dev->download(psi)==dev->download(fused_psi));
     auto low=dev->alloc<float>(m.n_cells);dev->fill(low,0);
     auto kind=dev->alloc<Index>(boundary.size());dev->fill(kind,0);

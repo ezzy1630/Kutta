@@ -16,7 +16,7 @@ DeviceVec3 vector_field(Device& dev, std::size_t n, float value = 0);
 struct Stencil {
   CsrPattern pattern;
   Buffer<Index> adjacent, matrix_entry;
-  DeviceVec3 lsq_delta, face_delta;
+  DeviceVec3 lsq_delta;
   DeviceVec3 boundary_lsq_delta;  // lsq_delta's boundary-face rows, by boundary face
   Buffer<float> lsq_inverse;  // six SoA planes: xx, xy, xz, yy, yz, zz
   Buffer<float> diffusion;

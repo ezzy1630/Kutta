@@ -47,7 +47,7 @@ Stencil make_stencil(Device& dev, const PolyMesh& m, const MeshGeometry& g) {
   auto& p=s.pattern;
   p.n_rows=m.n_cells;
   std::vector<Index> adjacent,entry;
-  std::vector<Vec3d> delta,rf;
+  std::vector<Vec3d> delta;
   std::vector<float> inverse(6*m.n_cells), diffusion;
   std::vector<Vec3d> nonorthogonal;
   for (Index c=0;c<m.n_cells;++c) {
@@ -63,7 +63,7 @@ Stencil make_stencil(Device& dev, const PolyMesh& m, const MeshGeometry& g) {
       entry.push_back(n<0 ? -1 : Index(std::lower_bound(p.col.begin()+p.row_ptr[c],p.col.end(),n)-p.col.begin()));
       const auto d=(n<0 ? g.face_centroid[f] : g.cell_centroid[n])-g.cell_centroid[c];
       const double w=1/dot(d,d);
-      delta.push_back(d*w); rf.push_back(g.face_centroid[f]-g.cell_centroid[c]);
+      delta.push_back(d*w);
       a[0]+=w*d.x*d.x; a[1]+=w*d.x*d.y; a[2]+=w*d.x*d.z;
       a[3]+=w*d.y*d.y; a[4]+=w*d.y*d.z; a[5]+=w*d.z*d.z;
     }
@@ -83,7 +83,7 @@ Stencil make_stencil(Device& dev, const PolyMesh& m, const MeshGeometry& g) {
     diffusion.push_back(float(coeff)); nonorthogonal.push_back(area-d*coeff);
   }
   s.adjacent=dev.upload<Index>(adjacent); s.matrix_entry=dev.upload<Index>(entry);
-  s.lsq_delta=vectors(dev,delta); s.face_delta=vectors(dev,rf);
+  s.lsq_delta=vectors(dev,delta);
   s.boundary_lsq_delta=vectors(dev,boundary_rows(m,cf,delta));
   s.lsq_inverse=dev.upload<float>(inverse); s.diffusion=dev.upload<float>(diffusion);
   s.nonorthogonal=vectors(dev,nonorthogonal);
@@ -352,11 +352,12 @@ void limit_gradient(Device& dev, const DeviceMesh& m, const Stencil& s,
   const auto* low_boundary=paired_gradient?&paired_gradient->boundary.get():nullptr;
   KUTTA_REQUIRE(!low_gradient || (low && low_gradient->x.size()==cell.size() &&
     low_gradient->y.size()==cell.size() && low_gradient->z.size()==cell.size() && low_boundary->size()==boundary.size()),"FV paired limiter gradient size mismatch");
-  if(low_gradient) kern::fv_paired_gradient_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,
-    s.face_delta.z,cell,*low,boundary,*low_boundary,g.x,g.y,g.z,low_gradient->x,low_gradient->y,low_gradient->z,limiter,epsilon2);
-  else if(low) kern::fv_paired_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,
-    s.face_delta.z,cell,*low,boundary,*boundary_kind,g.x,g.y,g.z,limiter,epsilon2);
-  else kern::fv_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,s.face_delta.x,s.face_delta.y,s.face_delta.z,
+  if(low_gradient) kern::fv_paired_gradient_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,m.cell_faces,m.cell_face_sign,
+    m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,cell,*low,boundary,*low_boundary,g.x,g.y,g.z,low_gradient->x,low_gradient->y,low_gradient->z,limiter,epsilon2);
+  else if(low) kern::fv_paired_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,m.cell_faces,m.cell_face_sign,
+    m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,cell,*low,boundary,*boundary_kind,g.x,g.y,g.z,limiter,epsilon2);
+  else kern::fv_limiter(dev,m.n_cells,m.cell_face_offsets,s.adjacent,m.cell_faces,m.cell_face_sign,
+    m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
     cell,boundary,g.x,g.y,g.z,limiter,epsilon2);
 }
 

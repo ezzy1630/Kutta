@@ -90,7 +90,7 @@ struct SteadySolver::Impl {
   DeviceMesh mesh;
   Stencil stencil;
   BoundaryLeastSquares velocity_lsq,pressure_lsq,k_lsq,omega_lsq,strain_lsq;FaceJumpFit jump_fit;
-  DeviceVec3 strain_base[3],strain_gradient[3];
+  DeviceVec3 strain_base,strain_gradient[3];
   MeshPermutation permutation;
   std::unique_ptr<SstModel> sst;
   std::unique_ptr<SaTransport> sa;
@@ -411,7 +411,8 @@ struct SteadySolver::Impl {
       for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;
       strain_lsq=boundary_least_squares(dev,host,geom,strain_rows,&stencil,lsq_workspace);
       jump_fit=face_jump_least_squares(dev,host,geom);
-      for(int k=0;k<3;++k) {strain_base[k]=vector_field(dev,n);strain_gradient[k]=vector_field(dev,n);}
+      strain_base=vector_field(dev,n);
+      for(auto& g:strain_gradient) g=vector_field(dev,n);
     }
     if(settings.sst) {
       const auto& t=*settings.sst;
@@ -585,18 +586,21 @@ struct SteadySolver::Impl {
       const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
       const Buffer<float>* bc_low[]{&boundary_velocity_lo.x,&boundary_velocity_lo.y,&boundary_velocity_lo.z};
       for(int k=0;k<3;++k) {
-        paired_gradient(dev,mesh,stencil,strain_lsq,*q[k],*low[k],*bc[k],*bc_low[k],strain_base[k],canonical_low_gradient[k]);
+        paired_gradient(dev,mesh,stencil,strain_lsq,*q[k],*low[k],*bc[k],*bc_low[k],strain_base,canonical_low_gradient[k]);
         paired_jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*low[k],*bc[k],*bc_low[k],
-          strain_base[k],canonical_low_gradient[k],strain_gradient[k]);
+          strain_base,canonical_low_gradient[k],strain_gradient[k]);
       }
       return;
     }
     const auto& u=model_velocity();const auto& b=model_boundary_velocity();
-    vector_gradient(dev,mesh,stencil,strain_lsq,u,b,strain_base[0],strain_base[1],strain_base[2]);
     const Buffer<float>* q[]{&u.x,&u.y,&u.z};
     const Buffer<float>* bc[]{&b.x,&b.y,&b.z};
-    for(int k=0;k<3;++k)
-      jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],strain_base[k],strain_gradient[k]);
+    // Each correction gathers only this component's base gradient. Preserve
+    // it through that gather, then reuse the three arrays for the next one.
+    for(int k=0;k<3;++k) {
+      gradient(dev,mesh,stencil,strain_lsq,*q[k],*bc[k],strain_base);
+      jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],strain_base,strain_gradient[k]);
+    }
   }
   void update_turbulence(bool velocity_changed=true) {
     if(velocity_changed) prepare_model_state();
@@ -1007,13 +1011,16 @@ struct SteadySolver::Impl {
       auto& eq=*momentum[k];auto& g=limited_gradient[k];
       if(settings.limit && paired && settings.compensated_momentum)
         kern::fv_paired_gradient_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
-          stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*lo[k],*bc[k],*low_boundary[k],
+          mesh.cell_faces,mesh.cell_face_sign,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+          mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,*q[k],*lo[k],*bc[k],*low_boundary[k],
           eq.grad.x,eq.grad.y,eq.grad.z,g.x,g.y,g.z,eq.limiter,g.x,g.y,g.z,limiter_epsilon2[k]);
       else if(settings.limit && paired) kern::fv_paired_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
-        stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*lo[k],*bc[k],scalar_kind,
+        mesh.cell_faces,mesh.cell_face_sign,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+          mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,*q[k],*lo[k],*bc[k],scalar_kind,
         eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z,limiter_epsilon2[k]);
       else if(settings.limit) kern::fv_limiter_scale(dev,mesh.n_cells,mesh.cell_face_offsets,stencil.adjacent,
-        stencil.face_delta.x,stencil.face_delta.y,stencil.face_delta.z,*q[k],*bc[k],
+        mesh.cell_faces,mesh.cell_face_sign,mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
+          mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,*q[k],*bc[k],
         eq.grad.x,eq.grad.y,eq.grad.z,eq.limiter,g.x,g.y,g.z,limiter_epsilon2[k]);
       else {
         dev.fill(eq.limiter,1);
