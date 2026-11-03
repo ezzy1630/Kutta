@@ -682,6 +682,10 @@ scratch probe. It does not change allocation sizes or numerical decisions.
 
 ## 2026-11-03 — lossless device compaction from 8011f3f
 
+This records the original recompute-by-default trial, rejected during integration
+review. The integration-review section below supersedes its default-mode
+recommendation; these measurements are retained as trial evidence.
+
 **The 2× target was not met.** Hex SIMPLEC goes from 2,199.35 to
 2,067.36 device B/cell (6.00%), still well above 1,300. Hex Coupled saves 9.94%;
 polyhedral Coupled saves 10.78%. The candidate is slower in the measured whole
@@ -914,3 +918,194 @@ Use the existing fixture-link procedure and test environment from the brief.
 The paired runner requires a fresh output directory, verifies cells and actual
 iterations, and stops before another solve if a process peak exceeds its
 3 GB default limit. L3 still requires a solo window and one run per binary.
+
+## 2026-11-03 — integration review: cached default and opt-in memory mode
+
+**Cached edges and the fused ordinary strain fit are restored as defaults.**
+The final solver source is `95215f5`. `SolverSettings::coupled_edge_storage`
+uses `CoupledEdgeStorage::Cached` by default; `Recompute` is the explicit
+memory-limited alternative. The CLI selects it with
+`--coupled-edge-storage recompute`, for either Fluent or Kutta case JSON inputs,
+and records the choice in `summary.json`. No new case JSON property was needed.
+The setting also selects sequential ordinary strain scratch with SIMPLEC.
+
+The original combined `b2db0a0` is replaced in this branch by `2b12d9c`
+(V-cycle residual scratch, default) and `ae31bee` (optional edge recomputation).
+`6b0e5ff`'s canonical face gathers stay default. The exact walk tables from
+`04b9559` were reapplied unchanged as `30aae18`. `95215f5` gates only the
+ordinary sequential strain part of `6b0e5ff`. The compensated strain path was
+already sequential and keeps its shared scratch without added launches.
+
+The frozen `8011f3f` baseline and final binary hashes, source commits and
+measurement methods are in [manifest.json](device-review-2026-11-03/manifest.json).
+The later report/tools changes do not change the measured solver.
+
+### Device payload and the remaining target
+
+These are exact sums of the live solver-owned buffers in the benchmark,
+excluding backend reduction/command storage and allocation granularity.
+All twelve new default/memory snapshots reconcile with the formulas below.
+The six before snapshots are the existing exact `8011f3f` inventory; all nine
+current input hashes match that dataset. All eighteen compressed per-buffer
+CSVs are retained in [the evidence directory](device-review-2026-11-03/).
+
+| Mesh / coupling | 8011f3f B/cell | Default B/cell | Memory mode B/cell |
+| --- | ---: | ---: | ---: |
+| Ahmed L1 hex / SIMPLEC | 2,199.35 | 2,091.36 | 2,067.36 |
+| Ahmed L1 hex / COUPLED | 2,722.98 | 2,596.42 | 2,452.42 |
+| V6 polyhedra / SIMPLEC | 3,072.65 | 2,917.02 | 2,893.02 |
+| V6 polyhedra / COUPLED | 3,699.75 | 3,525.17 | 3,301.01 |
+| Ahmed tet/prism / SIMPLEC | 1,897.38 | 1,807.19 | 1,783.19 |
+| Ahmed tet/prism / COUPLED | 2,372.99 | 2,264.18 | 2,149.83 |
+
+The 2× target is still unmet. Hex SIMPLEC is 2,091 B/cell by default and 2,067
+in memory mode, above the 1,300 target. This work does not establish that a
+5–20M-cell FSAE mesh fits an 8–12 GB card.
+
+For `E=F+I`, default savings are `12E` for canonical face gathers, the exact
+walk-row saving, and `16(N + sum n_l)` for Coupled V-cycle residual reuse.
+Restriction consumes the smoother temporary before post-smoothing overwrites
+it; fine/coarse handle assertions guard solution/scratch non-aliasing.
+Memory mode additionally saves `24N` for ordinary strain scratch and `20E`
+for Coupled coefficients. The corrected strain gradients stay separate.
+
+| Mesh | Face gathers B/cell | Walk rows B/cell | V-cycle residual B/cell | Optional strain B/cell | Optional edges B/cell |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Ahmed L1 hex | 72.000 | 35.987 | 18.565 | 24.000 | 120.000 |
+| V6 polyhedra | 120.096 | 35.533 | 18.954 | 24.000 | 200.160 |
+| Ahmed tet/prism | 54.210 | 35.985 | 18.615 | 24.000 | 90.350 |
+
+[change-savings.json](device-review-2026-11-03/change-savings.json) retains
+integer byte counts. Coupled Krylov vectors and coarse block coefficients are
+unchanged. No reduced precision is introduced.
+
+### Whole CLI paired timing and process peak
+
+All runs use Metal and 40 actual iterations on the same contended M4 Pro.
+Each Coupled case/mode has three alternating AB/BA pairs against `8011f3f`.
+The harness checks cell counts, completed iterations and all five numerical
+output hashes on every run. Whole-CLI wall time includes process startup,
+mesh read, setup, initialization, iterations and export. The separate iteration
+sample is the residual CSV batch for iterations 21–40. Peak process GB is the
+maximum `/usr/bin/time -l` physical footprint, in decimal GB. Device here
+includes Metal reductions, unlike the buffer inventory above.
+
+| Case | Mode | Live device B/cell, before → after | Peak process GB, before → after |
+| --- | --- | ---: | ---: |
+| V6 Coupled | default | 3,704.4 → 3,529.8 | 0.223 → 0.220 |
+| V6 Coupled | memory | 3,704.4 → 3,305.6 | 0.223 → 0.215 |
+| Ahmed L1 Coupled | default | 2,723.2 → 2,596.6 | 1.484 → 1.434 |
+| Ahmed L1 Coupled | memory | 2,723.2 → 2,452.6 | 1.485 → 1.376 |
+| Ahmed L2 Coupled | default | 2,713.4 → 2,586.9 | 2.434 → 2.347 |
+| Ahmed L2 Coupled | memory | 2,713.4 → 2,442.9 | 2.434 → 2.247 |
+| Ahmed L1 converted SIMPLEC | default | 2,199.6 → 2,091.6 | 1.277 → 1.233 |
+| Ahmed L1 converted SIMPLEC | memory | 2,199.6 → 2,067.6 | 1.277 → 1.223 |
+| Ahmed L1 aero JSON SIMPLEC | default | 2,199.6 → 2,091.6 | 1.220 → 1.177 |
+| Ahmed L1 aero JSON SIMPLEC | memory | 2,199.6 → 2,067.6 | 1.220 → 1.167 |
+
+| Case | Mode / pairs | Whole-CLI paired median change (range) | Median s/iteration, before → after | Iteration paired median change (range) |
+| --- | --- | ---: | ---: | ---: |
+| V6 Coupled | default / 3 | -1.0% (-10.1% to +29.2%) | 0.0244 → 0.0235 | -2.4% (-3.5% to -1.5%) |
+| V6 Coupled | memory / 3 | +1.9% (+0.7% to +2.4%) | 0.0394 → 0.0412 | +4.6% (+0.5% to +9.2%) |
+| Ahmed L1 Coupled | default / 3 | -3.7% (-4.6% to +5.2%) | 0.1547 → 0.1495 | -3.4% (-12.2% to -0.2%) |
+| Ahmed L1 Coupled | memory / 3 | +4.6% (-2.8% to +5.0%) | 0.1872 → 0.1946 | +0.9% (-14.5% to +11.7%) |
+| Ahmed L2 Coupled | default / 3 | -3.1% (-13.6% to +7.5%) | 0.2721 → 0.2201 | -7.9% (-19.1% to +4.3%) |
+| Ahmed L2 Coupled | memory / 3 | +4.4% (+3.9% to +7.8%) | 0.2280 → 0.2468 | +10.1% (+0.8% to +59.2%) |
+| Ahmed L1 converted SIMPLEC | default / 1 | -0.3% (-0.3% to -0.3%) | 0.1956 → 0.1919 | -1.9% (-1.9% to -1.9%) |
+| Ahmed L1 converted SIMPLEC | memory / 1 | -3.6% (-3.6% to -3.6%) | 0.2260 → 0.2020 | -10.6% (-10.6% to -10.6%) |
+| Ahmed L1 aero JSON SIMPLEC | default / 2 | +1.8% (+0.2% to +3.4%) | 0.2397 → 0.2447 | +2.4% (-2.4% to +7.2%) |
+| Ahmed L1 aero JSON SIMPLEC | memory / 1 | +0.6% (+0.6% to +0.6%) | 0.2405 → 0.2394 | -0.5% (-0.5% to -0.5%) |
+
+All three Coupled defaults meet the requested whole-CLI criterion: absolute
+paired median within about 3%, or a paired range crossing zero. Their iteration
+medians are −2.4%, −3.4% and −7.9%; V6 is within the band and L2's range
+crosses zero. L1's batch median is just outside a strict ±3% band on the faster
+side. These contended measurements do not establish a
+speedup. Memory mode's iteration medians are +4.6%, +0.9% and +10.1%; L1's
+range crosses zero, while V6 and L2 are slower in every pair.
+
+Converted SIMPLEC has one AB pair per mode. The native aero JSON default's
+first AB pair was +3.4% whole CLI and +7.2% in the iteration batch. One additional
+reverse-order BA pair was declared to investigate that result, and both samples
+are retained above; the memory mode has one AB pair. The two native default
+samples and their combination are in
+[native-simplec-combined.json](device-review-2026-11-03/native-simplec-combined.json).
+Both SIMPLEC default checks have paired medians within the requested band.
+No sample was discarded. Paired medians need not equal ratios of the separate
+before/after timing medians.
+
+[timing-summary.json](device-review-2026-11-03/timing-summary.json) and the
+compressed paired-run records contain every final sample, including setup and
+heap measurements. The before peak in each row comes from that comparison's
+baseline cohort, rather than from an unrelated earlier run.
+
+### What failed as a default
+
+The original isolated edge-cache removal was +22.8% on V6, slower in every
+pair. Its recomputation path is now optional. The cached coefficient builder,
+row, SpMV, residual and smoother sources are exactly those from `8011f3f`;
+the host chooses cached or recomputed kernels outside their row loops.
+
+Keeping sequential ordinary strain with cached edges then missed the L2
+iteration gate: +23.1% median, range +14.9% to +39.7%. That triggered restoring
+the fused vector fit. This is a whole-case observation under contention, not
+an isolated causal estimate of the four extra launches. The pre-gate V6/L1
+sets, the L2 miss and the first V6 set with cold/mixed Metal compilation are
+retained in [pre-gate-timing-summary.json](device-review-2026-11-03/pre-gate-timing-summary.json).
+The final-source tables above use a new complete set after the source change.
+
+No new isolated V-cycle-only or walk-only time claim is made. Their combined
+default cost is covered by the whole-case pairs. The earlier exact coefficient
+row interning experiment still saves zero bytes and remains removed.
+
+### Projected capacity and host mirrors
+
+The conservative hybrid-startup bound remains persistent payload plus
+`124N + 8(N+2I) + 16F + 12(F+I) + 40(F-I) + 112`, with a 0.6 GB context/display
+reserve. Values are mesh-ratio projections, not measured RTX capacity.
+
+| Mesh / coupling | Startup B/cell, before / default / memory | 8 GB Mcells, before / default / memory | 12 GB Mcells, before / default / memory | 24 GB Mcells, default / memory |
+| --- | ---: | ---: | ---: | ---: |
+| Ahmed L1 hex / SIMPLEC | 2,502.0 / 2,394.0 / 2,370.0 | 2.96 / 3.09 / 3.12 | 4.56 / 4.76 / 4.81 | 9.77 / 9.87 |
+| Ahmed L1 hex / COUPLED | 3,025.6 / 2,899.1 / 2,755.1 | 2.45 / 2.55 / 2.69 | 3.77 / 3.93 / 4.14 | 8.07 / 8.49 |
+| V6 polyhedra / SIMPLEC | 3,495.6 / 3,340.0 / 3,316.0 | 2.12 / 2.22 / 2.23 | 3.26 / 3.41 / 3.44 | 7.01 / 7.06 |
+| V6 polyhedra / COUPLED | 4,122.8 / 3,948.2 / 3,724.0 | 1.79 / 1.87 / 1.99 | 2.77 / 2.89 / 3.06 | 5.93 / 6.28 |
+| Ahmed tet/prism / SIMPLEC | 2,159.0 / 2,068.8 / 2,044.8 | 3.43 / 3.58 / 3.62 | 5.28 / 5.51 / 5.58 | 11.31 / 11.44 |
+| Ahmed tet/prism / COUPLED | 2,634.6 / 2,525.8 / 2,411.4 | 2.81 / 2.93 / 3.07 | 4.33 / 4.51 / 4.73 | 9.26 / 9.70 |
+
+Both modes add zero persistent host mirror bytes. The default edge cache is
+written directly on the device; memory mode reconstructs it without host
+transfers. Strain buffers are device allocations. Existing mesh/CSR mirrors
+remain; host `MeshGeometry` payload is still `48F + 32N` bytes besides topology/CSR.
+Walk dictionaries remain temporary host construction data. CUDA
+uses a separate device pool, so the Mac process peak is not an RTX VRAM peak.
+CUDA compilation, actual RTX memory high-water and throughput remain unverified.
+
+L3 remains held while the independent main slow baseline runs; no new L3
+numbers are substituted. [l3-hold.json](device-review-2026-11-03/l3-hold.json)
+records that gate. Walk coefficients, remaining LSQ geometry, corrected gradients,
+ten Coupled `4N` vectors, coarse block state and most SST cell/wall fields remain.
+The 2× target remains open.
+
+### Fresh parity and checks
+
+All twelve default case/backend pairs against `8011f3f` completed 40 iterations
+and passed literal `cmp` on fluxes.csv, forces.csv, loads.json and result.vtu,
+plus residuals.csv after `grep -v '^#' | cut -d, -f1-7`. The six cases are V6
+Coupled (`wfgc`), V6 SIMPLEC converted by the baseline, elbow_param
+(`compressibility,ke-options`), Ahmed L1 Coupled, converted Ahmed L1 SIMPLEC,
+and the native aero SIMPLEC JSON. Each is compared separately on CPU and Metal.
+
+Twelve fresh memory-mode candidates also pass the same comparisons against
+the just-produced final default outputs. These reuse the fresh default reference
+outputs; they do not substitute the original rejected candidate.
+[parity-default.jsonl](device-review-2026-11-03/parity-default.jsonl) and
+[parity-memory.jsonl](device-review-2026-11-03/parity-memory.jsonl) retain hashes.
+
+The full quick tier passes: 309 cases, 7,990,306 assertions, zero failures;
+37 slow cases excluded by the unchanged suite boundary. The new SST field-byte
+test passes 32 CPU/Metal assertions. The Release build and portability lint pass.
+No thresholds, references, iteration budgets, skips or expected failures changed.
+The slow tier was not rerun: this change uses the byte-identical procedure and
+makes no new full-slow or Fluent-accuracy claim.
+[checks.json](device-review-2026-11-03/checks.json) binds the checks to this artifact.

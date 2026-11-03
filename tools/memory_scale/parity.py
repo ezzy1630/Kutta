@@ -62,12 +62,14 @@ def compare_files(before, after):
     return differs
 
 
-def run(binary, case, approximate, backend, iterations, out):
-    out.mkdir(parents=True, exist_ok=True)
+def run(binary, case, approximate, backend, iterations, out, edge_storage=None):
+    out.mkdir(parents=True, exist_ok=False)
     cmd = [str(binary), "solve", str(case), "--backend", backend, "--iterations", str(iterations),
            "--out", str(out)]
     if approximate:
         cmd += ["--approximate", approximate]
+    if edge_storage:
+        cmd += ["--coupled-edge-storage", edge_storage]
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     (out / "solve.log").write_text(proc.stdout)
     if proc.returncode:
@@ -82,11 +84,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--baseline", required=True)
     ap.add_argument("--candidate", required=True)
+    for label in ("baseline", "candidate"):
+        ap.add_argument(f"--{label}-edge-storage", choices=("cached", "recompute"))
     ap.add_argument("--out", required=True)
     ap.add_argument("--backends", default="cpu,metal")
     ap.add_argument("--cases", default=",".join(CASES))
     ap.add_argument("--iterations", type=int, default=40)
     a = ap.parse_args()
+    if pathlib.Path(a.out).exists():
+        ap.error("use a fresh output directory")
     same = True
     for name in a.cases.split(","):
         case, approximate = CASES[name]
@@ -100,13 +106,19 @@ def main():
                             "--out", str(case)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         for backend in a.backends.split(","):
             hashes = {label: run(binary, case, approximate, backend, a.iterations,
-                                 pathlib.Path(a.out) / f"{name}_{backend}_{label}")
+                                 pathlib.Path(a.out) / f"{name}_{backend}_{label}",
+                                 getattr(a, label + "_edge_storage"))
                       for label, binary in (("baseline", a.baseline), ("candidate", a.candidate))}
             diff = [f for f in FILES if hashes["baseline"][f] != hashes["candidate"][f]]
             directories = [pathlib.Path(a.out) / f"{name}_{backend}_{label}" for label in ("baseline", "candidate")]
             diff = sorted(set(diff) | set(compare_files(*directories)))
             same &= not diff
             print(json.dumps({"case": name, "backend": backend, "iterations": a.iterations,
+                              "binary_sha256": {label: hashlib.sha256(pathlib.Path(binary).read_bytes()).hexdigest()
+                                                for label, binary in (("baseline", a.baseline), ("candidate", a.candidate))},
+                              "case_sha256": hashlib.sha256(case.read_bytes()).hexdigest(),
+                              "baseline_edge_storage": a.baseline_edge_storage or "cached",
+                              "candidate_edge_storage": a.candidate_edge_storage or "cached",
                               "identical": not diff, "differs": diff, "sha256": hashes["candidate"]}), flush=True)
     sys.exit(0 if same else 1)
 

@@ -1,0 +1,142 @@
+{
+  "default-l1": {
+    "case": "ahmed35_L1.cas",
+    "cells": 403560,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      0.9275995092867508,
+      0.9905524452693345,
+      0.771415001297007
+    ],
+    "median_paired_ratio": 0.9275995092867508,
+    "process_paired_ratios": [
+      0.8685576072688042,
+      0.9090585274573778,
+      0.9283475209513009
+    ],
+    "median_process_paired_ratio": 0.9090585274573778,
+    "baseline": {
+      "process_seconds_median": 33.608990458073094,
+      "seconds_per_iteration_median": 0.2184356125,
+      "seconds_per_iteration_min": 0.19422905210000002,
+      "seconds_per_iteration_max": 0.27830408125,
+      "peak_bytes_max": 1492092680,
+      "device_bytes_max": 1098966052
+    },
+    "candidate": {
+      "process_seconds_median": 30.55253937514499,
+      "seconds_per_iteration_median": 0.1923940625,
+      "seconds_per_iteration_min": 0.16850450830000002,
+      "seconds_per_iteration_max": 0.25815472920000004,
+      "peak_bytes_max": 1430881888,
+      "device_bytes_max": 1038209036
+    }
+  },
+  "default-l2": {
+    "case": "ahmed35_L2.cas",
+    "cells": 689796,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.3968595705947289,
+      1.1486755090179153,
+      1.2310857071055872
+    ],
+    "median_paired_ratio": 1.2310857071055872,
+    "process_paired_ratios": [
+      0.8616234227911099,
+      1.2522284852499403,
+      1.1434779224523584
+    ],
+    "median_process_paired_ratio": 1.1434779224523584,
+    "baseline": {
+      "process_seconds_median": 38.27049449994229,
+      "seconds_per_iteration_median": 0.20783714579999998,
+      "seconds_per_iteration_min": 0.1973379083,
+      "seconds_per_iteration_max": 0.2206337521,
+      "peak_bytes_max": 2434156848,
+      "device_bytes_max": 1871723916
+    },
+    "candidate": {
+      "process_seconds_median": 43.81141041708179,
+      "seconds_per_iteration_median": 0.2558653396,
+      "seconds_per_iteration_min": 0.25343658750000003,
+      "seconds_per_iteration_max": 0.27565334585,
+      "peak_bytes_max": 2330151120,
+      "device_bytes_max": 1767887380
+    }
+  },
+  "default-v6": {
+    "case": "mixing_elbow.cas.h5",
+    "cells": 17822,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.0807630905183856,
+      0.647126142261469,
+      0.8334033602269091
+    ],
+    "median_paired_ratio": 0.8334033602269091,
+    "process_paired_ratios": [
+      1.5769318089051205,
+      1.1065418254158081,
+      1.0378013944242226
+    ],
+    "median_process_paired_ratio": 1.1065418254158081,
+    "baseline": {
+      "process_seconds_median": 8.595719499979168,
+      "seconds_per_iteration_median": 0.06087506455,
+      "seconds_per_iteration_min": 0.047928479149999995,
+      "seconds_per_iteration_max": 0.06457825835,
+      "peak_bytes_max": 233652920,
+      "device_bytes_max": 66018932
+    },
+    "candidate": {
+      "process_seconds_median": 10.01817520800978,
+      "seconds_per_iteration_median": 0.05073348335,
+      "seconds_per_iteration_min": 0.0417902792,
+      "seconds_per_iteration_max": 0.051799331250000004,
+      "peak_bytes_max": 229917368,
+      "device_bytes_max": 62479784
+    }
+  },
+  "default-warm-v6": {
+    "case": "mixing_elbow.cas.h5",
+    "cells": 17822,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      0.878649889920292,
+      0.9383892852527898,
+      0.8537298479643564
+    ],
+    "median_paired_ratio": 0.878649889920292,
+    "process_paired_ratios": [
+      1.1314739187024172,
+      0.9274210132442213,
+      0.8952601266397239
+    ],
+    "median_process_paired_ratio": 0.9274210132442213,
+    "baseline": {
+      "process_seconds_median": 7.424976457841694,
+      "seconds_per_iteration_median": 0.04062965,
+      "seconds_per_iteration_min": 0.027714606250000003,
+      "seconds_per_iteration_max": 0.0462364208,
+      "peak_bytes_max": 223183544,
+      "device_bytes_max": 66018932
+    },
+    "candidate": {
+      "process_seconds_median": 7.086333874845877,
+      "seconds_per_iteration_median": 0.035699237499999995,
+      "seconds_per_iteration_min": 0.02600708955,
+      "seconds_per_iteration_max": 0.0394734125,
+      "peak_bytes_max": 219087520,
+      "device_bytes_max": 62479784
+    }
+  }
+}

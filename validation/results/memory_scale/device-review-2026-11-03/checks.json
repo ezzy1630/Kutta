@@ -1,0 +1,22 @@
+{
+  "build": "C++20 Release, CPU and Metal; passed",
+  "portability_lint": "passed",
+  "focused_sst_byte_test_assertions": 32,
+  "quick_summary": [
+    "===============================================================================",
+    "[doctest] test cases:     309 |     309 passed | 0 failed | 37 skipped",
+    "[doctest] assertions: 7990306 | 7990306 passed | 0 failed |",
+    "[doctest] Status: SUCCESS!"
+  ],
+  "quick_log_sha256": "dff2111d325c15ce5052ce02d157908516621adeb707c0c80afc3f4cf1ecef1c",
+  "quick_cases": 309,
+  "quick_assertions": 7990306,
+  "default_parity_pairs": 12,
+  "memory_parity_pairs": 12,
+  "iterations": 40,
+  "slow_tier": "not rerun; byte-identical procedure used",
+  "cached_kernel_source": "cached coefficient builder, row, SpMV, residual and smoother match 8011f3f exactly",
+  "new_persistent_host_mirror_bytes": 0,
+  "invalid_storage_cli_exit_status": 2,
+  "walk_source_identity": "Three walk source files match 04b9559 exactly"
+}

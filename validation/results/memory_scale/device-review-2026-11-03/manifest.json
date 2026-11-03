@@ -1,0 +1,68 @@
+{
+  "baseline_revision": "8011f3f619ba14610d8875203532d607c1100c2c",
+  "solver_revision": "95215f523933870ddb585cc70aea032d44c50443",
+  "embedded_candidate_commit": "95215f523933870ddb585cc70aea032d44c50443",
+  "backend": "Metal for timings/inventory; CPU and Metal for parity",
+  "device": "Apple M4 Pro, 24 GB unified memory",
+  "compiler": "AppleClang 21.0.0, C++20 Release",
+  "source_commits": [
+    "6b0e5ffe5b5190bf1433e2ca38c40203776293a7",
+    "2b12d9cebcb20ff5f8d54a27069fe53c3459cafa",
+    "ae31beeab6095fc519aa774bd852273efbe8716b",
+    "30aae181fa0f3e9229456b94789308e2b4de7e90",
+    "95215f523933870ddb585cc70aea032d44c50443"
+  ],
+  "binaries": {
+    "kutta-tests": {
+      "sha256": "5e38afb545bc1d67c4acb694a6b55c4879ca637f12a61e8740b3300700f96cd1",
+      "bytes": 8134296
+    },
+    "kutta": {
+      "sha256": "023c5e3ddd05f0fe19a7e681bf06616ac411f79a0226232cbf9da22947c4a138",
+      "bytes": 4095768
+    },
+    "bench_memory": {
+      "sha256": "a96f75dc0e261e6245c14001a38f4fb6f31967b6f6ef7a4f9bbeade655f01aa7",
+      "bytes": 1934384
+    }
+  },
+  "baseline_binary_sha256": "e8ba850a0dea000eca3e57562d9d7be7dcf232afbe68a0a30438ce334161c3ee",
+  "baseline_bench_sha256": "38c7e31dd3a168772facf5ec539575da39faf44728450a95e274a6683639316f",
+  "methods": {
+    "timing": "sequential AB/BA pairs; whole-process perf_counter plus final residual batch 21-40; all five numerical hashes checked",
+    "native_simplec_followup": "one additional predeclared BA pair after initial AB diagnostic",
+    "mode_parity": "12 fresh recompute candidates compared with the just-produced final default outputs; literal cmp, residuals grep/cut first seven columns",
+    "inventory": "MallocSpaceEfficient=1 KUTTA_MEMORY_BUFFERS=1; KUTTA_MEMORY_COUPLED=1 for Coupled, KUTTA_MEMORY_RECOMPUTE=1 for memory mode; bench_memory metal --mesh FILE 1"
+  },
+  "capacity": {
+    "formula": "persistent + 124N + 8(N+2I) + 16F + 12(F+I) + 40(F-I) + 112",
+    "context_reserve_decimal_gb": 0.6,
+    "measured_card_capacity": false
+  },
+  "unverified": [
+    "L3 held while main slow baseline is active",
+    "CUDA build and RTX performance/VRAM high-water",
+    "full slow-tier rerun; no non-byte-identical default introduced",
+    "2x memory target remains unmet"
+  ],
+  "baseline_inventory": "Reused exact 8011f3f snapshots from the previous round; all nine current input hashes match.",
+  "tool_sha256": {
+    "tools/memory_scale/paired.py": "84e877536cfbbb90d09bb48db4f3213087632353d2c92a7e2d8475817ed2bd9c",
+    "tools/memory_scale/parity.py": "7e05d917c70bf7511aad3a389436acb62930566561f46220d7fb44c95be8c8de",
+    "tools/memory_scale/inventory.py": "ed24acc879e940a60bd76a0d2afca02d6e26a1b06f34e832d94ed9f996515cfe"
+  },
+  "pre_gate": {
+    "source_revision": "ae8951f6f7f1097eb82899d12b971aac133f1707",
+    "binary_sha256": {
+      "kutta-tests": "47307b4d31aca8cd8be2f4aec051e0ace980bba395bfc08878f8cbe47cd9d4b8",
+      "kutta": "eb6cdddd5790e0357fe46bdac08e1145fca2e33c224edb973f9b6d115a36a0b8",
+      "bench_memory": "38ac19935e61263239aab544959a90d70df544c662e2b1a8bc96745afe39fd1d"
+    },
+    "v6_repeat": "One predeclared warm-source repeat after the initial cold/mixed Metal compilation set; all trial samples retained. Final timing was restarted only after gating ordinary strain."
+  },
+  "runtime_controls": {
+    "KUTTA_METAL_SEQUENCE": "unset (runtime default)",
+    "timed_cli": "KUTTA_MEMORY_PHASES=1; existing CLI allocator startup policy unchanged",
+    "bench_allocator": "MallocSpaceEfficient=1"
+  }
+}

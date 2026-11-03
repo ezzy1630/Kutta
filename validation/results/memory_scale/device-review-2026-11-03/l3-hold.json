@@ -1,0 +1,10 @@
+{
+  "observed_utc": "2026-11-03T11:16:04.439303+00:00",
+  "l3_measured": false,
+  "reason": "Held while the independent main slow-tier baseline remains active, as requested",
+  "slow_baseline_pid": 57091,
+  "slow_baseline_elapsed": "04:09:09",
+  "slow_baseline_binary": "kutta-tests-e014e36",
+  "physical_footprint_bytes": 5194207720,
+  "done_exists": false
+}

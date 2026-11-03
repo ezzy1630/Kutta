@@ -1,0 +1,368 @@
+{
+  "default-l1": {
+    "case": "ahmed35_L1.cas",
+    "cells": 403560,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      0.9663786781683381,
+      0.8777306125986051,
+      0.9981901940748852
+    ],
+    "median_paired_ratio": 0.9663786781683381,
+    "process_paired_ratios": [
+      0.954034554979064,
+      1.0521074769789747,
+      0.963295918392107
+    ],
+    "median_process_paired_ratio": 0.963295918392107,
+    "baseline": {
+      "process_seconds_median": 28.23382862494327,
+      "seconds_per_iteration_median": 0.1546781333,
+      "seconds_per_iteration_min": 0.15327565835,
+      "seconds_per_iteration_max": 0.16797955835,
+      "peak_bytes_max": 1483933328,
+      "device_bytes_max": 1098966052
+    },
+    "candidate": {
+      "process_seconds_median": 27.19753187499009,
+      "seconds_per_iteration_median": 0.14947765,
+      "seconds_per_iteration_min": 0.1345347375,
+      "seconds_per_iteration_max": 0.16767554795,
+      "peak_bytes_max": 1433912952,
+      "device_bytes_max": 1047894476
+    }
+  },
+  "default-l1-aero-simplec": {
+    "case": "ahmed_simplec.kutta.json",
+    "cells": 403560,
+    "backend": "metal",
+    "pairs": 1,
+    "iterations": 40,
+    "paired_ratios": [
+      1.0720078657311998
+    ],
+    "median_paired_ratio": 1.0720078657311998,
+    "process_paired_ratios": [
+      1.0342946757660745
+    ],
+    "median_process_paired_ratio": 1.0342946757660745,
+    "baseline": {
+      "process_seconds_median": 20.453970625065267,
+      "seconds_per_iteration_median": 0.22464551039999997,
+      "seconds_per_iteration_min": 0.22464551039999997,
+      "seconds_per_iteration_max": 0.22464551039999997,
+      "peak_bytes_max": 1220445624,
+      "device_bytes_max": 887651476
+    },
+    "candidate": {
+      "process_seconds_median": 21.155432915780693,
+      "seconds_per_iteration_median": 0.24082175415,
+      "seconds_per_iteration_min": 0.24082175415,
+      "seconds_per_iteration_max": 0.24082175415,
+      "peak_bytes_max": 1176602064,
+      "device_bytes_max": 844072076
+    }
+  },
+  "default-l1-aero-simplec-ba": {
+    "case": "ahmed_simplec.kutta.json",
+    "cells": 403560,
+    "backend": "metal",
+    "pairs": 1,
+    "first_order": "BA",
+    "iterations": 40,
+    "paired_ratios": [
+      0.97589449828739
+    ],
+    "median_paired_ratio": 0.97589449828739,
+    "process_paired_ratios": [
+      1.0021803084621084
+    ],
+    "median_process_paired_ratio": 1.0021803084621084,
+    "baseline": {
+      "process_seconds_median": 21.63854783307761,
+      "seconds_per_iteration_median": 0.2548100854,
+      "seconds_per_iteration_min": 0.2548100854,
+      "seconds_per_iteration_max": 0.2548100854,
+      "peak_bytes_max": 1220167144,
+      "device_bytes_max": 887651476
+    },
+    "candidate": {
+      "process_seconds_median": 21.685726542025805,
+      "seconds_per_iteration_median": 0.24866776045,
+      "seconds_per_iteration_min": 0.24866776045,
+      "seconds_per_iteration_max": 0.24866776045,
+      "peak_bytes_max": 1176323488,
+      "device_bytes_max": 844072076
+    }
+  },
+  "default-l1-simplec": {
+    "case": "ahmed35_L1_simplec.cas",
+    "cells": 403560,
+    "backend": "metal",
+    "pairs": 1,
+    "iterations": 40,
+    "paired_ratios": [
+      0.9808777820695542
+    ],
+    "median_paired_ratio": 0.9808777820695542,
+    "process_paired_ratios": [
+      0.9965202086377335
+    ],
+    "median_process_paired_ratio": 0.9965202086377335,
+    "baseline": {
+      "process_seconds_median": 28.839288792107254,
+      "seconds_per_iteration_median": 0.1956260625,
+      "seconds_per_iteration_min": 0.1956260625,
+      "seconds_per_iteration_max": 0.1956260625,
+      "peak_bytes_max": 1276773912,
+      "device_bytes_max": 887651476
+    },
+    "candidate": {
+      "process_seconds_median": 28.73893408407457,
+      "seconds_per_iteration_median": 0.1918852583,
+      "seconds_per_iteration_min": 0.1918852583,
+      "seconds_per_iteration_max": 0.1918852583,
+      "peak_bytes_max": 1233258008,
+      "device_bytes_max": 844072076
+    }
+  },
+  "default-l2": {
+    "case": "ahmed35_L2.cas",
+    "cells": 689796,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.0433105480514548,
+      0.8088460288534572,
+      0.9211507043635739
+    ],
+    "median_paired_ratio": 0.9211507043635739,
+    "process_paired_ratios": [
+      1.0752684139531483,
+      0.863677790456403,
+      0.9694095839111863
+    ],
+    "median_process_paired_ratio": 0.9694095839111863,
+    "baseline": {
+      "process_seconds_median": 46.1834747500252,
+      "seconds_per_iteration_median": 0.27209266665,
+      "seconds_per_iteration_min": 0.20814694585,
+      "seconds_per_iteration_max": 0.30089890415,
+      "peak_bytes_max": 2434418848,
+      "device_bytes_max": 1871723916
+    },
+    "candidate": {
+      "process_seconds_median": 43.27075666701421,
+      "seconds_per_iteration_median": 0.2200810729,
+      "seconds_per_iteration_min": 0.21716190415,
+      "seconds_per_iteration_max": 0.2771732375,
+      "peak_bytes_max": 2346830032,
+      "device_bytes_max": 1784442484
+    }
+  },
+  "default-v6": {
+    "case": "mixing_elbow.cas.h5",
+    "cells": 17822,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      0.9845509491418544,
+      0.976425899525444,
+      0.9653995837003118
+    ],
+    "median_paired_ratio": 0.976425899525444,
+    "process_paired_ratios": [
+      1.2918429926727188,
+      0.8990537440869499,
+      0.9900355762932663
+    ],
+    "median_process_paired_ratio": 0.9900355762932663,
+    "baseline": {
+      "process_seconds_median": 4.5307603750843555,
+      "seconds_per_iteration_median": 0.0243810896,
+      "seconds_per_iteration_min": 0.02405402915,
+      "seconds_per_iteration_max": 0.0244614542,
+      "peak_bytes_max": 223347360,
+      "device_bytes_max": 66018932
+    },
+    "candidate": {
+      "process_seconds_median": 4.272468375042081,
+      "seconds_per_iteration_median": 0.02353749375,
+      "seconds_per_iteration_min": 0.02348697705,
+      "seconds_per_iteration_max": 0.02408354795,
+      "peak_bytes_max": 219890336,
+      "device_bytes_max": 62907512
+    }
+  },
+  "memory-l1": {
+    "case": "ahmed35_L1.cas",
+    "cells": 403560,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.009408675159968,
+      1.1171379662733305,
+      0.8554395446696104
+    ],
+    "median_paired_ratio": 1.009408675159968,
+    "process_paired_ratios": [
+      1.0498014594694092,
+      1.0463096159498662,
+      0.9717846281278506
+    ],
+    "median_process_paired_ratio": 1.0463096159498662,
+    "baseline": {
+      "process_seconds_median": 28.271168832900003,
+      "seconds_per_iteration_median": 0.1872028792,
+      "seconds_per_iteration_min": 0.18129329795,
+      "seconds_per_iteration_max": 0.19280632705,
+      "peak_bytes_max": 1485096568,
+      "device_bytes_max": 1098966052
+    },
+    "candidate": {
+      "process_seconds_median": 29.389298500027508,
+      "seconds_per_iteration_median": 0.19462037915,
+      "seconds_per_iteration_min": 0.15508545625,
+      "seconds_per_iteration_max": 0.20913144374999998,
+      "peak_bytes_max": 1375635064,
+      "device_bytes_max": 989781836
+    }
+  },
+  "memory-l1-aero-simplec": {
+    "case": "ahmed_simplec.kutta.json",
+    "cells": 403560,
+    "backend": "metal",
+    "pairs": 1,
+    "iterations": 40,
+    "paired_ratios": [
+      0.9952764634580007
+    ],
+    "median_paired_ratio": 0.9952764634580007,
+    "process_paired_ratios": [
+      1.0058008038947848
+    ],
+    "median_process_paired_ratio": 1.0058008038947848,
+    "baseline": {
+      "process_seconds_median": 21.139009915990755,
+      "seconds_per_iteration_median": 0.24053437290000002,
+      "seconds_per_iteration_min": 0.24053437290000002,
+      "seconds_per_iteration_max": 0.24053437290000002,
+      "peak_bytes_max": 1220478440,
+      "device_bytes_max": 887651476
+    },
+    "candidate": {
+      "process_seconds_median": 21.26163316704333,
+      "seconds_per_iteration_median": 0.23939819999999998,
+      "seconds_per_iteration_min": 0.23939819999999998,
+      "seconds_per_iteration_max": 0.23939819999999998,
+      "peak_bytes_max": 1166968248,
+      "device_bytes_max": 834386636
+    }
+  },
+  "memory-l1-simplec": {
+    "case": "ahmed35_L1_simplec.cas",
+    "cells": 403560,
+    "backend": "metal",
+    "pairs": 1,
+    "iterations": 40,
+    "paired_ratios": [
+      0.8939009656046965
+    ],
+    "median_paired_ratio": 0.8939009656046965,
+    "process_paired_ratios": [
+      0.964075299995828
+    ],
+    "median_process_paired_ratio": 0.964075299995828,
+    "baseline": {
+      "process_seconds_median": 29.989515125053003,
+      "seconds_per_iteration_median": 0.22602740625,
+      "seconds_per_iteration_min": 0.22602740625,
+      "seconds_per_iteration_max": 0.22602740625,
+      "peak_bytes_max": 1277429272,
+      "device_bytes_max": 887651476
+    },
+    "candidate": {
+      "process_seconds_median": 28.912150790914893,
+      "seconds_per_iteration_median": 0.2020461167,
+      "seconds_per_iteration_min": 0.2020461167,
+      "seconds_per_iteration_max": 0.2020461167,
+      "peak_bytes_max": 1223214616,
+      "device_bytes_max": 834386636
+    }
+  },
+  "memory-l2": {
+    "case": "ahmed35_L2.cas",
+    "cells": 689796,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.101439406953977,
+      1.00794848764425,
+      1.5920422556949407
+    ],
+    "median_paired_ratio": 1.101439406953977,
+    "process_paired_ratios": [
+      1.0386722025780923,
+      1.0438239610217819,
+      1.0781280539378721
+    ],
+    "median_process_paired_ratio": 1.0438239610217819,
+    "baseline": {
+      "process_seconds_median": 40.12587141711265,
+      "seconds_per_iteration_median": 0.22800681455,
+      "seconds_per_iteration_min": 0.21491072705,
+      "seconds_per_iteration_max": 0.24490272705,
+      "peak_bytes_max": 2434353384,
+      "device_bytes_max": 1871723916
+    },
+    "candidate": {
+      "process_seconds_median": 41.884346042061225,
+      "seconds_per_iteration_median": 0.24684933335,
+      "seconds_per_iteration_min": 0.23671114375000002,
+      "seconds_per_iteration_max": 0.36299648335,
+      "peak_bytes_max": 2247313616,
+      "device_bytes_max": 1685111860
+    }
+  },
+  "memory-v6": {
+    "case": "mixing_elbow.cas.h5",
+    "cells": 17822,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.0918561470309731,
+      1.045922484683811,
+      1.005123883124521
+    ],
+    "median_paired_ratio": 1.045922484683811,
+    "process_paired_ratios": [
+      1.0188462476513127,
+      1.0243432145663585,
+      1.0066585535179082
+    ],
+    "median_process_paired_ratio": 1.0188462476513127,
+    "baseline": {
+      "process_seconds_median": 6.540910084033385,
+      "seconds_per_iteration_median": 0.039355858300000005,
+      "seconds_per_iteration_min": 0.0391312271,
+      "seconds_per_iteration_max": 0.03997985415,
+      "peak_bytes_max": 223281824,
+      "device_bytes_max": 66018932
+    },
+    "candidate": {
+      "process_seconds_median": 6.698147459188476,
+      "seconds_per_iteration_median": 0.0411631771,
+      "seconds_per_iteration_min": 0.04018470625,
+      "seconds_per_iteration_max": 0.04272567085,
+      "peak_bytes_max": 215220872,
+      "device_bytes_max": 58912524
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "case": "ahmed_simplec.kutta.json",
+  "cells": 403560,
+  "backend": "metal",
+  "pairs": 2,
+  "iterations": 40,
+  "paired_ratios": [
+    1.0720078657311998,
+    0.97589449828739
+  ],
+  "median_paired_ratio": 1.023951182009295,
+  "process_paired_ratios": [
+    1.0342946757660745,
+    1.0021803084621084
+  ],
+  "median_process_paired_ratio": 1.0182374921140913,
+  "baseline": {
+    "seconds_per_iteration_median": 0.23972779789999998,
+    "process_seconds_median": 21.04625922907144,
+    "peak_bytes_max": 1220445624,
+    "device_bytes_max": 887651476
+  },
+  "candidate": {
+    "seconds_per_iteration_median": 0.2447447573,
+    "process_seconds_median": 21.42057972890325,
+    "peak_bytes_max": 1176602064,
+    "device_bytes_max": 844072076
+  },
+  "sample_directories": [
+    "default-l1-aero-simplec",
+    "default-l1-aero-simplec-ba"
+  ]
+}
