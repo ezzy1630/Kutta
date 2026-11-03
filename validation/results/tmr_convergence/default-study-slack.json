@@ -863,7 +863,12 @@
         }
       }
     ],
-    "late_case": "Coarse TMR plate geometry and model, ordinary solver controls; original 3000-step convergence budget; iteration counts only, no unpaired timing comparison"
+    "late_case": "Coarse TMR plate geometry and model, ordinary solver controls; original 3000-step convergence budget; iteration counts only, no unpaired timing comparison",
+    "work_counter_semantics": {
+      "momentum": "Sum of separate momentum-component inner iterations; zero for the coupled block path.",
+      "pressure": "SIMPLEC pressure correction or the coupled momentum/pressure block, following IterationReport.pressure.",
+      "scalar": "Sum of turbulence-scalar inner iterations."
+    }
   },
   "quick_tier": {
     "cases": 307,

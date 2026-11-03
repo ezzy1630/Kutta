@@ -873,8 +873,9 @@ The corrected cost run checks every emitted setting against an exact-main
 solver baseline. Four alternating elbow pairs measure median time ratios of
 1.0017 on CPU (range 0.9439–1.0311) and 1.5586 on Metal (1.1153–2.4918).
 The Metal slowdown is observed under contention; no cause is attributed.
-At 40 steps, pressure work is 162 inner iterations for both settings on both
-backends. CPU scalar work is 439 → 438, Metal 438 → 438. Peak footprint is
+At 40 steps, the coupled block uses 162 inner iterations for both settings
+on both backends. This is stored in `IterationReport.pressure`, which the
+benchmark labels `pressure`; it includes the joint momentum/pressure solve. CPU scalar work is 439 → 438, Metal 438 → 438. Peak footprint is
 63,832,520 → 89,965,000 bytes on CPU and 205,537,976 → 205,538,000 on Metal.
 These process peaks do not establish a setting-specific allocation increase;
 the independent one-setting device measurement is unchanged at zero bytes.
