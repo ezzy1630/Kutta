@@ -2130,7 +2130,9 @@ The run budget is 3,000 outer steps or 600 solve seconds per grid, checked every
 100 steps. The time budget was added after measuring the serial CPU cost;
 it terminates with a failed convergence gate and does not change any accuracy
 or convergence threshold. `bench_tmr` accepts a larger time budget explicitly.
-The bump uses fixed dt=.01, momentum relaxation .5 and pressure relaxation .3:
+The bump uses fixed pseudo-time .1, momentum relaxation .7 and pressure
+relaxation .3 (dt .01 and momentum .5 until the TMR convergence work in
+[`validation/results/tmr_convergence/REPORT.md`](../../../validation/results/tmr_convergence/REPORT.md)):
 its huge outer domain made the automatic global pseudo-time unsuitable for a
 uniform no-slip-wall start. These are convergence controls, not altered steady
 physics. A budget-limited solution remains unverified.

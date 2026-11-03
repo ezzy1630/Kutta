@@ -11,7 +11,7 @@ TEST_CASE("TMR SA production retains raw modified strain when its ratio is safeg
     dev->fill(mesh.wall_distance,.1f);dev->fill(state.rho,1);dev->fill(state.mu,.001f);dev->fill(state.k,.003f);
     for(auto* g:{&state.gk.x,&state.gk.y,&state.gk.z}) dev->fill(*g,0);
     auto strain=filled(*dev,1,1),rotation=filled(*dev,1,1);
-    SaOptions options;options.formulation=SaFormulation::TmrStandard;options.tmr_clip_production=false;
+    SaOptions options;options.formulation=SaFormulation::TmrStandard;
     SaModel model(*dev,mesh,options);model.update({state.rho,state.mu,state.k,state.gk,strain,rotation});
     const double q=double(float(.003)),nu=double(float(.001)),d=double(float(.1)),kp=options.kappa;
     const double chi=q/nu,cv=options.cv1,f1=std::pow(chi,3)/(std::pow(chi,3)+std::pow(cv,3));

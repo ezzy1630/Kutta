@@ -9,7 +9,7 @@ KUTTA_FN float sa_fv1(float chi,float cv1) {
 KUTTA_KERNEL void sa_coefficients(int i,KIn(float) rho,KIn(float) mu,KIn(float) q,
     KIn(float) distance,KIn(float) strain,KIn(float) rotation,
     KOut(float) mut,KOut(float) gamma,KOut(float) fv1,KOut(float) fv2,
-    KOut(float) rate,KOut(float) fw,KOut(float) rate_derivative,KOut(float) fw_derivative,int alternate,int tmr,int clip_production,
+    KOut(float) rate,KOut(float) fw,KOut(float) rate_derivative,KOut(float) fw_derivative,int alternate,int tmr,
     float sigma,float cv1,float cw2,float cw3,float kappa,float max_ratio) {
   float v=kmax(q[i],0.0f),chi=v/(mu[i]/rho[i]);
   float t=kmin(chi/cv1,1e12f),one_minus_f1=1.0f/(1.0f+t*t*t);
@@ -22,11 +22,11 @@ KUTTA_KERNEL void sa_coefficients(int i,KIn(float) rho,KIn(float) mu,KIn(float) 
   float df2=ratio*ratio*df1-(1.0f/denom)/denom;
   float dwall=invd*invd/(kappa*kappa),ds=dwall*(f2+chi*df2);
   float production_rate=s,production_derivative=ds;
-  // Note 1(b) safeguards the ratio denominator. It does not change the
-  // production rate in TMR's equation; retain the prior shared clamp only
-  // under the explicit compatibility option.
+  // TMR Note 1(b) safeguards only the denominator that forms r (and so fw).
+  // Production keeps the raw modified strain, as in TMR's equation and
+  // CFL3D's spalart.F. Fluent's form leaves S-tilde's sign intact; sa_sources
+  // splits a negative production by sign rather than making a negative sink.
   if(tmr && s<0.3f*rotation[i]) {s=0.3f*rotation[i];ds=0.0f;}
-  if(tmr && clip_production) {production_rate=s;production_derivative=ds;}
   float r=wall_rate==0.0f?0.0f:(s==0.0f?10.0f:wall_rate/s);
   float dr=s!=0.0f?(dwall-r*ds)/s:0.0f;
   if(r<=-1e4f || r>=(tmr?10.0f:1e4f)) dr=0.0f;

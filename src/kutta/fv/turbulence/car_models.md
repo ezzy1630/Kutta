@@ -60,8 +60,8 @@ This is not a curvature correction or SA-neg. There is no trip source.
 
 Fluent's documented production/destruction has **no ft2**. The explicit
 `TmrStandard` variant includes ft2=1.2*exp(-.5*chi^2), its matching destruction
-correction, the TMR Note 1(b) safeguard S-tilde>=.3*Omega (applied here to
-both production and r), and r<=10. The reference codes' particular safeguarding
+correction, the TMR Note 1(b) safeguard S-tilde>=.3*Omega (applied to the
+denominator of r only; production keeps raw S-tilde, as in CFL3D), and r<=10. The reference codes' particular safeguarding
 choice has not been independently established. V7 selects
 this variant rather than presenting a no-ft2 solve as exact standard SA.
 Both variants use finite-surface BVH nearest-wall distance, not grid-line distance.

@@ -30,9 +30,10 @@ TEST_CASE("SA transport coefficients match independent double equations and back
       for(int i=0;i<8;++i) {
         const double v=q[i],chi=v/double(float(.001)),cv=o.cv1,kp=o.kappa;
         const double f1=std::pow(chi,3)/(std::pow(chi,3)+std::pow(cv,3));
-        double st=20+v/(kp*kp*distance[i]*distance[i])*(1-chi/(1+chi*f1));
-        if(form==SaFormulation::TmrStandard) st=std::max(st,6.);
-        double r=v==0?0:v/(st*kp*kp*distance[i]*distance[i]);
+        // TMR Note 1(b) bounds only the denominator of r; production keeps raw S-tilde.
+        const double st=20+v/(kp*kp*distance[i]*distance[i])*(1-chi/(1+chi*f1));
+        const double denominator=form==SaFormulation::TmrStandard?std::max(st,6.):st;
+        double r=v==0?0:v/(denominator*kp*kp*distance[i]*distance[i]);
         if(form==SaFormulation::TmrStandard) r=std::min(r,10.);
         double g=r+o.cw2*(std::pow(r,6)-r),wall=g*std::pow((1+std::pow(o.cw3,6))/(std::pow(g,6)+std::pow(o.cw3,6)),1./6);
         double ft=form==SaFormulation::TmrStandard?1.2*std::exp(-.5*chi*chi):0;
@@ -40,9 +41,9 @@ TEST_CASE("SA transport coefficients match independent double equations and back
         CHECK(near(fv[i],f1));CHECK(near(rate[i],st));CHECK(near(fw[i],wall));
         const auto local_source=[&](double q) {
           const double chi=q/double(float(.001)),f1=std::pow(chi,3)/(std::pow(chi,3)+std::pow(cv,3));
-          double rate=20+q/(kp*kp*distance[i]*distance[i])*(1-chi/(1+chi*f1));
-          if(form==SaFormulation::TmrStandard) rate=std::max(rate,6.);
-          double r=q==0?0:q/(rate*kp*kp*distance[i]*distance[i]);
+          const double rate=20+q/(kp*kp*distance[i]*distance[i])*(1-chi/(1+chi*f1));
+          const double denominator=form==SaFormulation::TmrStandard?std::max(rate,6.):rate;
+          double r=q==0?0:q/(denominator*kp*kp*distance[i]*distance[i]);
           r=std::clamp(r,-1e4,form==SaFormulation::TmrStandard?10.:1e4);
           const double g=r+o.cw2*(std::pow(r,6)-r);
           const double fw=g*std::pow((1+std::pow(o.cw3,6))/(std::pow(g,6)+std::pow(o.cw3,6)),1./6);

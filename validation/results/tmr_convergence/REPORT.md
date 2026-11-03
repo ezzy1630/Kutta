@@ -384,8 +384,10 @@ separates those quantities and their local derivatives. This is not evidence
 that the downloaded historical CFL3D reference used the same optional r
 safeguard; the current source's standard branch uses Note 1(a).
 
-`SaOptions::tmr_clip_production` defaults true for compatibility. TMR sets it
-false. Fluent's existing form is unaffected. The independent test uses
+The lane first kept the clipped production behind a compatibility option.
+At integration the option was removed: every `TmrStandard` SA solve now uses
+the published form, and the legacy equation oracle in `tests/turbulence/test_sa.cpp`
+was corrected to match. Fluent's existing form is unaffected. The independent test uses
 nu-tilde=.003, nu=.001, wall distance=.1 and Omega=1. Before the correction,
 the production-rate error was 1.9385 and the net reaction error 7.77496e-4.
 Four assertions failed across CPU/Metal. The corrected form passes all eight
