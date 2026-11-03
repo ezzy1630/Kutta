@@ -6,6 +6,9 @@ does not change any case, solve budget, reference or gate. The combined XML is
 compared by the existing compare_slow_assertions.py, without rewriting INFO or
 expression data. macOS physical-footprint monitoring includes shared Metal
 memory; output belongs in an ignored build directory.
+
+An interrupted run can resume only from a complete prefix bound to the same
+test and CLI binaries. Unreceipted outputs are preserved rather than overwritten.
 """
 import argparse
 import gc
@@ -80,11 +83,17 @@ def main():
     parser.add_argument("--cli", type=Path, help="also freeze the CLI used by these tests")
     parser.add_argument("--directory", type=Path, required=True)
     parser.add_argument("--limit-bytes", type=int, default=3_000_000_000)
+    parser.add_argument("--resume", action="store_true",
+                        help="reuse a verified complete prefix from the same frozen binaries")
+    parser.add_argument("--validate-resume", action="store_true",
+                        help="validate the saved prefix without starting a solve or changing receipts")
     args = parser.parse_args()
     if sys.platform != "darwin":
         parser.error("physical-footprint monitoring currently requires macOS")
     if args.limit_bytes <= 0:
         parser.error("--limit-bytes must be positive")
+    if args.validate_resume and not args.resume:
+        parser.error("--validate-resume requires --resume")
     for key in ("KUTTA_FLUENT_EXAMPLES", "KUTTA_RUNS"):
         if not os.environ.get(key):
             parser.error(f"{key} must select the read-only fixture source")
@@ -93,46 +102,111 @@ def main():
     cli = args.cli.resolve() if args.cli else None
     hashes = {str(p): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in (binary, cli) if p is not None}
-    directory.mkdir(parents=True, exist_ok=True)
     shards = directory / "shards"
-    shards.mkdir()  # Never reuse a previous binary's partial results.
+    ledger = directory / "isolated-results.json"
+    if args.resume:
+        if not directory.is_dir() or not shards.is_dir() or not ledger.is_file():
+            raise ValueError("resume requires an existing shard directory and receipt")
+    else:
+        directory.mkdir(parents=True, exist_ok=True)
+        shards.mkdir()
+    receipt = json.loads(ledger.read_text()) if args.resume else None
+    if receipt is not None:
+        if (receipt.get("complete") is not False or receipt.get("frozen_binaries") != hashes
+                or receipt.get("binary_sha256") != hashes[str(binary)]
+                or receipt.get("limit_bytes") != args.limit_bytes):
+            raise ValueError("resume requires an incomplete receipt from these exact binaries and resource limit")
     env = dict(os.environ, MallocSpaceEfficient="1")
     env.pop("KUTTA_MEMORY_PHASES", None)  # CLI INFO is part of assertion identity.
     manifest = directory / "case-manifest.xml"
-    with manifest.open("wb") as output:
-        subprocess.run([str(binary), "-ts=slow", "-ltc", "-r=xml"],
-                       stdout=output, env=env, check=True)
+    listing = subprocess.run([str(binary), "-ts=slow", "-ltc", "-r=xml"],
+                             stdout=subprocess.PIPE, env=env, check=True)
+    if not args.resume:
+        manifest.write_bytes(listing.stdout)
     manifest_root = ET.parse(manifest).getroot()
     version = manifest_root.get("version", "unknown")
     names = [c.get("name") for c in manifest_root.iter("TestCase")
              if c.get("skipped") != "true"]
     if not names or len(names) != len(set(names)):
         raise ValueError("slow-case manifest is empty or contains duplicate names")
+    listed_names = [c.get("name") for c in ET.fromstring(listing.stdout).iter("TestCase")
+                    if c.get("skipped") != "true"]
+    if listed_names != names:
+        raise ValueError("current binary's slow-case manifest differs from the saved manifest")
+
+    totals = {"successes": 0, "failures": 0}
+    completed_prefix = 0
+    if receipt is not None:
+        if receipt.get("case_count") != len(names):
+            raise ValueError("saved receipt has a different slow-case count")
+        for row in receipt["cases"]:
+            index = completed_prefix + 1
+            if (index > len(names) or row.get("index") != index or row.get("case") != names[index - 1]
+                    or row.get("complete") is not True or row.get("exit") not in (0, 1)
+                    or row.get("resource_limit_exceeded") is not False
+                    or row.get("reported_peak_bytes") is None
+                    or max(row["sampled_peak_bytes"], row["reported_peak_bytes"]) > args.limit_bytes):
+                raise ValueError(f"case {index} is not a verified complete prefix entry")
+            expected_command = ["/usr/bin/time", "-l", str(binary), "-ts=slow", "-r=xml",
+                                "--success", f"--first={index}", f"--last={index}"]
+            if row.get("command") != expected_command:
+                raise ValueError(f"case {index} was run with different command options")
+            part = shards / f"case-{index:03d}.xml"
+            fragment = part.with_suffix(".fragment.xml")
+            actual = read_assertions(fragment)
+            if list(actual) != [names[index - 1]]:
+                raise ValueError(f"saved fragment {index} has a different case identity")
+            del actual
+            selected = [c for c in ET.parse(part).getroot().iter("TestCase")
+                        if c.get("skipped") != "true"]
+            if len(selected) != 1 or ET.tostring(selected[0], encoding="utf-8") != fragment.read_bytes():
+                raise ValueError(f"saved fragment {index} differs from its original test output")
+            summary = selected[0].find("OverallResultsAsserts")
+            if dict(summary.attrib) != row.get("assertions"):
+                raise ValueError(f"saved assertion totals differ for case {index}")
+            for key in totals:
+                totals[key] += int(summary.get(key, 0))
+            completed_prefix = index
+            del selected, summary
+            gc.collect()
+    if args.validate_resume:
+        print(f"VERIFIED complete prefix {completed_prefix}/{len(names)}; no solve started", flush=True)
+        return 0
 
     helper_source, helper = directory / "footprint-pid.cpp", directory / "footprint-pid"
-    helper_source.write_text(FOOTPRINT_SOURCE)
-    try:
-        subprocess.run([*shlex.split(os.environ.get("CXX", "c++")), "-O2",
-                        str(helper_source), "-o", str(helper)], check=True)
-    finally:
-        helper_source.unlink()
-    receipt = {"mode": "one fresh process per slow test case",
-               "binary_sha256": hashes[str(binary)], "frozen_binaries": hashes,
-               "case_count": len(names), "limit_bytes": args.limit_bytes,
-               "complete": False, "cases": []}
-    ledger = directory / "isolated-results.json"
+    if not args.resume or not helper.exists():
+        helper_source.write_text(FOOTPRINT_SOURCE)
+        try:
+            subprocess.run([*shlex.split(os.environ.get("CXX", "c++")), "-O2",
+                            str(helper_source), "-o", str(helper)], check=True)
+        finally:
+            helper_source.unlink()
+    if receipt is None:
+        receipt = {"mode": "one fresh process per slow test case",
+                   "binary_sha256": hashes[str(binary)], "frozen_binaries": hashes,
+                   "case_count": len(names), "limit_bytes": args.limit_bytes,
+                   "complete": False, "cases": []}
+    else:
+        receipt.setdefault("resumptions", []).append({
+            "utc_epoch": time.time(), "verified_complete_prefix": completed_prefix,
+            "prior_receipt_sha256": hashlib.sha256(ledger.read_bytes()).hexdigest(),
+            "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        })
     save(ledger, receipt)
-    totals = {"successes": 0, "failures": 0}
 
     def interrupted(signum, frame):
         raise KeyboardInterrupt(f"interrupted by signal {signum}")
     signal.signal(signal.SIGTERM, interrupted)
     for index, name in enumerate(names, 1):
+        if index <= completed_prefix:
+            continue
         for path, expected in hashes.items():
             if hashlib.sha256(Path(path).read_bytes()).hexdigest() != expected:
                 raise ValueError(f"frozen binary changed during the run: {path}")
         part = shards / f"case-{index:03d}.xml"
         errors = part.with_suffix(".stderr")
+        if any(p.exists() for p in (part, errors, part.with_suffix(".fragment.xml"))):
+            raise ValueError(f"unreceipted shard {index} exists; preserve it before explicitly retrying")
         command = ["/usr/bin/time", "-l", str(binary), "-ts=slow", "-r=xml",
                    "--success", f"--first={index}", f"--last={index}"]
         print(f"START {index}/{len(names)} {name}", flush=True)

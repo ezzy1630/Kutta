@@ -832,6 +832,17 @@ in the experiment metadata. Its numerical gate effects are compared, while
 its memory/time results are kept separate from the final source. Future
 option binaries use the retained source only.
 
+A turn interruption stopped the momentum-tolerance study's controllers after
+25 fully receipted cases. The in-flight transitional S1223 process survived;
+it was monitored to completion below 3 GB. Its output is preserved separately
+and excluded from the combined tier because the original waiting parent's
+exit receipt was unavailable. Only that unreceipted case is repeated under
+the continuous guard. The first 25 cases are reused after checking their
+frozen test/CLI hashes, manifest order, commands, resource receipts, canonical
+assertion completeness, and exact agreement between each original XML case
+and its saved fragment. Resume validation accepts that prefix and rejects a
+different CLI binary before starting a solve. Gates and budgets are unchanged.
+
 ### Additional scratch reuse, validated privately
 
 An isolated source variant reuses the low-word gradient scratch across
