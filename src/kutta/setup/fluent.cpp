@@ -177,6 +177,10 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   require(n.limiter==fluent::Limiter::standard || n.limiter==fluent::Limiter::differentiable,"recon/lim/type",
     "only the standard (0) and differentiable (2) limiters are supported");
   s.limit=required(n.limiting,"recon/limit?");
+  // Fluent-derived setups keep the projected reconstruction that matches
+  // Fluent's discretization. Kutta's integrated laminar scheme would change
+  // the fixed point of an unlimited laminar case away from Fluent's.
+  s.laminar_reconstruction=fv::LaminarReconstruction::Projected;
   if(n.limiter==fluent::Limiter::differentiable) {
     s.limiter=fv::Limiter::Differentiable;
     out.convergence_notes.push_back("recon/lim/type 2: Kutta's differentiable limiter, Venkatakrishnan's function with Wang's threshold "
