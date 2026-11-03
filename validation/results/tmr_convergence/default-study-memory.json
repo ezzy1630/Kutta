@@ -74,7 +74,9 @@
         "device_bytes": 2110408,
         "peak_footprint_bytes": 4129128,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "79d71ee83c6c9f2e692194ca94b7069e91aa1c1e62a6f5fabdc233ebbf5080a7"
       },
       {
         "model": "sst",
@@ -83,7 +85,9 @@
         "device_bytes": 2402512,
         "peak_footprint_bytes": 4489576,
         "exit": 2,
-        "extra_bytes_per_cell": 357.97058823529414
+        "extra_bytes_per_cell": 357.97058823529414,
+        "emitted_controls_verified": true,
+        "log_sha256": "fafb71c9a0a2c734213e0b18a792edd72971c9440e4aa38c0793a99c3c747997"
       },
       {
         "model": "sst",
@@ -92,7 +96,9 @@
         "device_bytes": 2110408,
         "peak_footprint_bytes": 4211048,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "4e464926673a3ff2cc891bf84acf61adca69af1fa931ebfad94c6dd45d520323"
       },
       {
         "model": "sst",
@@ -101,7 +107,9 @@
         "device_bytes": 2110408,
         "peak_footprint_bytes": 4227456,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "e6224b4d1e8e3a1de1538c1618ae4ad13487f10107ddab9d050571b02c3a7ec5"
       },
       {
         "model": "sst",
@@ -110,7 +118,9 @@
         "device_bytes": 2110408,
         "peak_footprint_bytes": 4161896,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "dad7dbc864e2321b65902f5121e5737cf0d865c4d01fde900beadb1644ec1266"
       },
       {
         "model": "sst",
@@ -119,7 +129,9 @@
         "device_bytes": 2136520,
         "peak_footprint_bytes": 4194664,
         "exit": 2,
-        "extra_bytes_per_cell": 32.0
+        "extra_bytes_per_cell": 32.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "ec2bd846f5ebf55cb29a2fb4ab7a1ee484c1d98194ba8ea711954c9e4a14b843"
       },
       {
         "model": "sst",
@@ -128,7 +140,9 @@
         "device_bytes": 2110408,
         "peak_footprint_bytes": 4129128,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "472ec35aba4ce43ea850a4b7c2958aa39abd079049f8c8d7fa5f0cc00bc28b5c"
       },
       {
         "model": "sst",
@@ -137,7 +151,9 @@
         "device_bytes": 2129992,
         "peak_footprint_bytes": 4243816,
         "exit": 2,
-        "extra_bytes_per_cell": 24.0
+        "extra_bytes_per_cell": 24.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "3d434cd0f7690386dbc14c235cc06adbc39f6adad281965b9e0f759a6d3edaf5"
       },
       {
         "model": "sst",
@@ -146,7 +162,9 @@
         "device_bytes": 2110408,
         "peak_footprint_bytes": 4178280,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "53f4a98cc7201647f1fa90ea3106fc2444de9e22612bf6d010bbec98ba20702d"
       },
       {
         "model": "sst",
@@ -155,7 +173,9 @@
         "device_bytes": 2110408,
         "peak_footprint_bytes": 4145512,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "62a52f2484cfec22ff39cad4bfe41e991019e07d034a878feb7524a8aab4acb4"
       },
       {
         "model": "sa",
@@ -164,7 +184,9 @@
         "device_bytes": 1905412,
         "peak_footprint_bytes": 3899752,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "4751c06f4c1de246dda3a4cfd1789ae39cf6db760bc688c145073ff8eaeccb02"
       },
       {
         "model": "sa",
@@ -173,7 +195,9 @@
         "device_bytes": 2200780,
         "peak_footprint_bytes": 4276584,
         "exit": 2,
-        "extra_bytes_per_cell": 361.97058823529414
+        "extra_bytes_per_cell": 361.97058823529414,
+        "emitted_controls_verified": true,
+        "log_sha256": "7213001d268d6ea203937515b35ed0c82bc4fe22fe5a8c8b4b18b4df6e0c5a96"
       },
       {
         "model": "sa",
@@ -182,7 +206,9 @@
         "device_bytes": 1905412,
         "peak_footprint_bytes": 3932520,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "d3aec4159ac6f4d5a0bc2584b9b2d19bb77cf7a08c9efe0ef701b6e4eefbb7b2"
       },
       {
         "model": "sa",
@@ -191,7 +217,9 @@
         "device_bytes": 1905412,
         "peak_footprint_bytes": 3981672,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "16fdb57668683c8ee6c64e916139b0e894b48febce5ea16a46661f05562cf584"
       },
       {
         "model": "sa",
@@ -200,7 +228,9 @@
         "device_bytes": 1905412,
         "peak_footprint_bytes": 3981672,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "2433988d7cd25895f092d46a4248893175675c17090fb7e26239762ba8ea1b1b"
       },
       {
         "model": "sa",
@@ -209,7 +239,9 @@
         "device_bytes": 1918468,
         "peak_footprint_bytes": 3965288,
         "exit": 2,
-        "extra_bytes_per_cell": 16.0
+        "extra_bytes_per_cell": 16.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "0431b582445a897995c2311253b9d326b9eaa422e5dddee2417491cbfc2fa313"
       },
       {
         "model": "sa",
@@ -218,7 +250,9 @@
         "device_bytes": 1905412,
         "peak_footprint_bytes": 3948904,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "ff451825e39dca466a7c512b4444e6afb04d993bec2cb667e225b90490b8a572"
       },
       {
         "model": "sa",
@@ -227,7 +261,9 @@
         "device_bytes": 1915204,
         "peak_footprint_bytes": 3948904,
         "exit": 2,
-        "extra_bytes_per_cell": 12.0
+        "extra_bytes_per_cell": 12.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "a72cbdebfeec524f506b002f9a1eb900cadf0f7c5a3c9187a97fdd1643a0ffd5"
       },
       {
         "model": "sa",
@@ -236,7 +272,9 @@
         "device_bytes": 1905412,
         "peak_footprint_bytes": 3965288,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "8d5f5acc2106645b0773f19c0b84cd1547a53849a967101e85016dcb0ffe0f15"
       },
       {
         "model": "sa",
@@ -245,8 +283,16 @@
         "device_bytes": 1905412,
         "peak_footprint_bytes": 3932520,
         "exit": 2,
-        "extra_bytes_per_cell": 0.0
+        "extra_bytes_per_cell": 0.0,
+        "emitted_controls_verified": true,
+        "log_sha256": "d13b2e5a1926abe6304a881a227b3a5bc1e2fadddda299c3feb9b282cd218011"
       }
-    ]
+    ],
+    "control_check": {
+      "tool": "tools/forensics/check_solver_controls.py",
+      "sha256": "75b4dbd36cd1982b661ecb853729b464c55fb8139db679e4e502a3005f113fdd",
+      "verified_logs": 20,
+      "note": "Each allocation run explicitly overrides compensated_momentum to its intended 0 or 1; the baseline and other singleton probes emit 0. This is separate from the rejected supplemental iteration-cost attempt."
+    }
   }
 }
