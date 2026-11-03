@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <set>
 
 #if defined(__APPLE__)
 #include <mach/mach.h>
@@ -84,6 +85,20 @@ class SizedDevice final : public kutta::Device {
   std::map<std::size_t, std::pair<std::size_t, std::size_t>> live;  // elements -> (arrays, bytes)
   std::map<std::string, std::pair<std::size_t, std::size_t>> sites;  // allocating function -> (arrays, bytes)
   bool attribute = false;
+  std::set<kutta::BufferHandle*> buffers;
+  void inventory(const char* phase, std::size_t cells, std::size_t faces) const {
+    if (!std::getenv("KUTTA_MEMORY_BUFFERS")) return;
+    for (const auto* b : buffers) {
+      if (!b->bytes()) continue;
+      const auto& site = b->allocation_site;
+      std::string file = site.file_name();
+      const auto at = file.find("src/kutta/");
+      if (at != std::string::npos) file.erase(0, at);
+      std::cout << "MEMORY_BUFFER phase=" << phase << " file=" << file << " line=" << site.line()
+                << " column=" << site.column() << " bytes=" << b->bytes()
+                << " B_cell=" << double(b->bytes()) / cells << " B_face=" << double(b->bytes()) / faces << '\n';
+    }
+  }
   kutta::Backend backend() const override { return inner_.backend(); }
   std::string name() const override { return inner_.name(); }
   double sum(const kutta::Buffer<float>& x, std::size_t n) override { return inner_.sum(own(x), n); }
@@ -107,6 +122,7 @@ class SizedDevice final : public kutta::Device {
     Sized(kutta::Buffer<float> b, SizedDevice* o) : data(std::move(b)), owner(o) {
       auto& [arrays, bytes] = owner->live[data.size()];
       ++arrays; bytes += this->bytes();
+      owner->buffers.insert(this);
       if (owner->attribute) {
         site = caller() + " [" + std::to_string(data.size()) + "]";
         auto& [n, b2] = owner->sites[site];
@@ -114,6 +130,7 @@ class SizedDevice final : public kutta::Device {
       }
     }
     ~Sized() override {
+      owner->buffers.erase(this);
       auto& [arrays, bytes] = owner->live[data.size()];
       --arrays; bytes -= this->bytes();
       if (!site.empty()) { auto& [n, b2] = owner->sites[site]; --n; b2 -= this->bytes(); }
@@ -234,11 +251,13 @@ int main(int argc, char** argv) {
     phase("mesh", seconds_since(start));
     fv::SolverSettings settings;
     settings.viscosity = 1e-5; settings.sst = fv::SstSettings{}; settings.pseudo_time_step = .01;
+    if (std::getenv("KUTTA_MEMORY_COUPLED")) settings.coupling = fv::PressureVelocityCoupling::Coupled;
     settings.momentum_relaxation = .3; settings.pressure_relaxation = .2; settings.monitor_interval = 1000;
     start = Clock::now();
     fv::SteadySolver solver(dev, std::move(mesh), bc, settings);
     dev.synchronize();
     phase("solver_setup", seconds_since(start));
+    dev.inventory("setup", cells, faces);
     start = Clock::now();
     solver.initialize_fields(std::vector<Vec3d>(cells, {1, 0, 0}), std::vector<double>(cells, 0),
                              std::vector<double>(cells, .0015), std::vector<double>(cells, 10));
@@ -253,6 +272,7 @@ int main(int argc, char** argv) {
     dev.synchronize();
     const double per_iteration = seconds_since(start) / iterations;
     phase("iterations", per_iteration * iterations);
+    dev.inventory("iterations", cells, faces);
     const auto nb = std::size_t(faces - internal);
     const auto nnz = std::size_t(cells) + 2 * std::size_t(internal);
     const auto label = [&](std::size_t n) -> std::string {

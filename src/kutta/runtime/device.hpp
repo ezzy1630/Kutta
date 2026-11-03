@@ -12,6 +12,7 @@
 #include <initializer_list>
 #include <memory>
 #include <span>
+#include <source_location>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -40,6 +41,7 @@ class BufferHandle {
  public:
   virtual ~BufferHandle() = default;
   virtual std::size_t bytes() const = 0;
+  std::source_location allocation_site;  // diagnostic provenance; no device storage
 };
 
 class Device;
@@ -115,8 +117,10 @@ class Device {
   virtual std::string name() const = 0;  // e.g. "Apple M4 Pro"
 
   template <class T>
-  Buffer<T> alloc(std::size_t n) {
-    return Buffer<T>(alloc_bytes(n * sizeof(T)), n);
+  Buffer<T> alloc(std::size_t n, std::source_location site = std::source_location::current()) {
+    auto handle = alloc_bytes(n * sizeof(T));
+    handle->allocation_site = site;
+    return Buffer<T>(std::move(handle), n);
   }
   template <class T>
   void upload(Buffer<T>& dst, std::span<const T> src) {
@@ -129,8 +133,8 @@ class Device {
     download_bytes(*src.handle(), dst.data(), dst.size_bytes());
   }
   template <class T>
-  Buffer<T> upload(std::span<const T> src) {
-    Buffer<T> b = alloc<T>(src.size());
+  Buffer<T> upload(std::span<const T> src, std::source_location site = std::source_location::current()) {
+    Buffer<T> b = alloc<T>(src.size(), site);
     upload(b, src);
     return b;
   }
