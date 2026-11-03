@@ -1,0 +1,151 @@
+{
+  "quick": {
+    "cases": 308,
+    "assertions": 7996274,
+    "failures": 0,
+    "excluded_suite": "slow",
+    "excluded_cases": 37,
+    "seconds": 484.43,
+    "peak_bytes": 1708755032,
+    "binary_sha256": "ce2028edd9aac89c614d234fe885a34998e7cdcd11fda8fe30fc1a1d24cf307c",
+    "log_sha256": "07262dea783c21f4067a1beface9b2cf033c7570b5d61c468e9c71ad8b07b98b"
+  },
+  "jump_oracle": {
+    "cases": 1,
+    "bit_assertions": 6120,
+    "failures": 0,
+    "backends": [
+      "cpu",
+      "metal"
+    ],
+    "log_sha256": "2ef736d33354f886e384ec6e5bca089ae6c31d05f43e0dbe44b9c0c83689b531"
+  },
+  "slow_tier": {
+    "run": false,
+    "baseline_ledger_compared": false,
+    "regressions": null,
+    "recoveries": null,
+    "changed_values": null,
+    "reason": "No numerical settings or arithmetic order changed. CPU/Metal byte parity, direct bit oracles and the quick tier are used; no slow-ledger equality is claimed."
+  },
+  "cuda": {
+    "portable_kernel_generation": true,
+    "portability_lint_passed": true,
+    "compiled": false,
+    "runtime_verified": false
+  },
+  "cli_input_sha256": {
+    "mixing_elbow.cas.h5": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+    "elbow_param.cas.h5": "d5795b18a7b8b3f17701609486cd1f288d9e2badb9d33b571f642b68afed8a96"
+  },
+  "cli_input_identities": [
+    {
+      "case": "elbow",
+      "backend": "cpu",
+      "case_sha256": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+      "setup_sha256": null,
+      "mesh_sha256": null,
+      "data_sha256": null,
+      "iterations": 40
+    },
+    {
+      "case": "param",
+      "backend": "cpu",
+      "case_sha256": "d5795b18a7b8b3f17701609486cd1f288d9e2badb9d33b571f642b68afed8a96",
+      "setup_sha256": null,
+      "mesh_sha256": null,
+      "data_sha256": null,
+      "iterations": 40
+    },
+    {
+      "case": "simplec",
+      "backend": "cpu",
+      "case_sha256": "e9fab24faa29c56051c0f94e0bd13a569eeb61f8725d268a030b6cf7c10be5b0",
+      "setup_sha256": "cfb7894b34fcff3f9990cb350ebe6aabde5636297a942ee55e393cb545fdc715",
+      "mesh_sha256": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+      "data_sha256": null,
+      "iterations": 40
+    },
+    {
+      "case": "elbow",
+      "backend": "metal",
+      "case_sha256": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+      "setup_sha256": null,
+      "mesh_sha256": null,
+      "data_sha256": null,
+      "iterations": 40
+    },
+    {
+      "case": "param",
+      "backend": "metal",
+      "case_sha256": "d5795b18a7b8b3f17701609486cd1f288d9e2badb9d33b571f642b68afed8a96",
+      "setup_sha256": null,
+      "mesh_sha256": null,
+      "data_sha256": null,
+      "iterations": 40
+    },
+    {
+      "case": "simplec",
+      "backend": "metal",
+      "case_sha256": "e9fab24faa29c56051c0f94e0bd13a569eeb61f8725d268a030b6cf7c10be5b0",
+      "setup_sha256": "cfb7894b34fcff3f9990cb350ebe6aabde5636297a942ee55e393cb545fdc715",
+      "mesh_sha256": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+      "data_sha256": null,
+      "iterations": 40
+    }
+  ],
+  "generated_kernel_recheck": {
+    "kernels_cuda.cu": "163ba17df9fc543df97b0e4440cd0035dfb96984e0c2581af34b2d8ddf821c54",
+    "kernels_metal.cpp": "87b5409d4d92c3d3b54919818e1168f75f0e710fc72baf26c4f6f553ab7c2ba1",
+    "matches_fresh_generation": true
+  },
+  "overhead_solver_hashes": {
+    "run": true,
+    "cases_per_backend": 4,
+    "backends": [
+      "cpu",
+      "metal"
+    ],
+    "all_identical": true,
+    "receipt_sha256": "36fd848e9c9af2460600f29f83bc21a7b0cc3f420e7bf812e7fa3ba03f87e5d0"
+  },
+  "memory": {
+    "maximum_observed_bytes": 1708755032,
+    "maximum_observed_run": "full quick tier",
+    "maximum_native_convergence_bytes": 1460340296,
+    "maximum_profile_bytes": 1465108064
+  },
+  "selected_slow": {
+    "filter": "*V8*",
+    "cases": 2,
+    "assertions": 42,
+    "failures": 0,
+    "names": [
+      "V8 realizable KE scalable channel MKM DNS profile and momentum balance",
+      "FSAE V8 Darcy Forchheimer pressure drop and oblique directions"
+    ],
+    "backends": [
+      "cpu",
+      "metal"
+    ],
+    "seconds": 346.25,
+    "peak_bytes": 126059144,
+    "log_sha256": "1666129d4d56029e6d425d02e1bc68ac7ce53dbe009fb6f4fb3df5756ed83ab9",
+    "note": "Selected cases only; no full slow-ledger comparison."
+  },
+  "restored_native_build": {
+    "build_passed": true,
+    "targets": [
+      "kutta",
+      "kutta-tests",
+      "bench_fsae_aero",
+      "bench_overhead",
+      "bench_fv"
+    ],
+    "direct_oracle_assertions": 6120,
+    "failures": 0,
+    "no_profiler_output": true,
+    "binary_sha256": "ce2028edd9aac89c614d234fe885a34998e7cdcd11fda8fe30fc1a1d24cf307c",
+    "log_sha256": "2ef736d33354f886e384ec6e5bca089ae6c31d05f43e0dbe44b9c0c83689b531"
+  }
+}

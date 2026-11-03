@@ -1,0 +1,46 @@
+[
+  {
+    "backend": "cpu",
+    "identical": true,
+    "hashes": {
+      "baseline": {
+        "ke-channel-20": "4263a6c55de206aa",
+        "sst-tet-channel": "c544c1466c38fd81",
+        "laminar-lid-box": "dd1b8311fff5c3c0",
+        "laminar-lid-box-140k": "c135de24590eb5b7"
+      },
+      "candidate": {
+        "ke-channel-20": "4263a6c55de206aa",
+        "sst-tet-channel": "c544c1466c38fd81",
+        "laminar-lid-box": "dd1b8311fff5c3c0",
+        "laminar-lid-box-140k": "c135de24590eb5b7"
+      }
+    },
+    "binary_sha256": {
+      "baseline": "1c76256822c69e724644694fccbb55d8d322621ddf0937cfdef47a9a87d6cedf",
+      "candidate": "3e0901038522520d9e94ae3f8274341bbac62511822c96045a11a531ffea9cca"
+    }
+  },
+  {
+    "backend": "metal",
+    "identical": true,
+    "hashes": {
+      "baseline": {
+        "ke-channel-20": "72586688e49e9606",
+        "sst-tet-channel": "807fdc56770f6c8c",
+        "laminar-lid-box": "402b35d8cb2080eb",
+        "laminar-lid-box-140k": "87d9d373a73c82f4"
+      },
+      "candidate": {
+        "ke-channel-20": "72586688e49e9606",
+        "sst-tet-channel": "807fdc56770f6c8c",
+        "laminar-lid-box": "402b35d8cb2080eb",
+        "laminar-lid-box-140k": "87d9d373a73c82f4"
+      }
+    },
+    "binary_sha256": {
+      "baseline": "1c76256822c69e724644694fccbb55d8d322621ddf0937cfdef47a9a87d6cedf",
+      "candidate": "3e0901038522520d9e94ae3f8274341bbac62511822c96045a11a531ffea9cca"
+    }
+  }
+]

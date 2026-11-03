@@ -1,0 +1,73 @@
+case,scheme,label,family,n,median,min,max
+ahmed-L1,coupled,baseline,"AMG smoothing, transfers and shared residuals",2,48.461105059842,44.857664881268,52.064545238416
+ahmed-L1,coupled,baseline,"Gradients, limiter and face reconstruction",2,33.059526272103,30.252963309172,35.866089235033996
+ahmed-L1,coupled,baseline,Krylov/CSR/reductions,2,29.358376844309703,27.620806680054205,31.0959470085652
+ahmed-L1,coupled,baseline,"Momentum, pressure and flux coupling",2,4.6518662781441,4.574615787713,4.7291167685752
+ahmed-L1,coupled,baseline,Operator refresh and validation,2,20.994399120102898,17.883474892010998,24.105323348194798
+ahmed-L1,coupled,baseline,Other FV/runtime,2,1.747832503168389,1.366405040024108,2.12925996631267
+ahmed-L1,coupled,baseline,SST closure,2,6.2343171960673,5.2753508323794,7.1932835597552
+ahmed-L1,coupled,baseline,Small-operation replay (mixed),2,10.754849978260001,9.80364325922,11.706056697300001
+ahmed-L1,coupled,baseline,Transport assembly (momentum and turbulence),2,6.0081904288313,5.7271492155172,6.289231642145401
+ahmed-L1,coupled,candidate,"AMG smoothing, transfers and shared residuals",2,55.096202401995996,51.72448580627799,58.467918997713994
+ahmed-L1,coupled,candidate,"Gradients, limiter and face reconstruction",2,31.430723236400997,28.423768999041997,34.43767747376
+ahmed-L1,coupled,candidate,Krylov/CSR/reductions,2,31.802242533285202,29.987589982328807,33.6168950842416
+ahmed-L1,coupled,candidate,"Momentum, pressure and flux coupling",2,4.895064937885101,4.7496348712628,5.040495004507401
+ahmed-L1,coupled,candidate,Operator refresh and validation,2,25.2287241723414,23.0246624071264,27.4327859375564
+ahmed-L1,coupled,candidate,Other FV/runtime,2,1.5452475845817553,1.3545284839351242,1.7359666852283864
+ahmed-L1,coupled,candidate,SST closure,2,6.082660381218,5.631139134058,6.534181628378
+ahmed-L1,coupled,candidate,Small-operation replay (mixed),2,12.26126044755,10.36564002744,14.15688086766
+ahmed-L1,coupled,candidate,Transport assembly (momentum and turbulence),2,6.831586242190999,6.632422539406399,7.0307499449756
+ahmed-L1,simplec,baseline,"AMG smoothing, transfers and shared residuals",2,16.435079185755,16.422495604494,16.447662767016002
+ahmed-L1,simplec,baseline,"Gradients, limiter and face reconstruction",2,33.453748719769,29.552831631164,37.354665808374
+ahmed-L1,simplec,baseline,Krylov/CSR/reductions,2,44.984607691878196,44.0136722987554,45.955543085001
+ahmed-L1,simplec,baseline,"Momentum, pressure and flux coupling",2,5.186911264897699,5.081096705973799,5.292725823821599
+ahmed-L1,simplec,baseline,Operator refresh and validation,2,1.288952094038,1.245154989884,1.3327491981919999
+ahmed-L1,simplec,baseline,Other FV/runtime,2,2.6799682248352585,2.340965527108274,3.0189709225622434
+ahmed-L1,simplec,baseline,SST closure,2,5.9314795839596,5.5693632224552,6.293595945464001
+ahmed-L1,simplec,baseline,Small-operation replay (mixed),2,36.7358395714,34.75037253,38.7213066128
+ahmed-L1,simplec,baseline,Transport assembly (momentum and turbulence),2,6.0369165940205,5.8349616080496,6.2388715799914
+ahmed-L1,simplec,candidate,"AMG smoothing, transfers and shared residuals",2,16.418601800683,15.997107881113998,16.840095720252002
+ahmed-L1,simplec,candidate,"Gradients, limiter and face reconstruction",2,28.687387176322996,25.364285008985995,32.01048934366
+ahmed-L1,simplec,candidate,Krylov/CSR/reductions,2,44.500359417864615,43.38002352974241,45.62069530598682
+ahmed-L1,simplec,candidate,"Momentum, pressure and flux coupling",2,5.1782287331317995,4.8694833274964,5.4869741387672
+ahmed-L1,simplec,candidate,Operator refresh and validation,2,1.4123315899639999,1.294893296436,1.529769883492
+ahmed-L1,simplec,candidate,Other FV/runtime,2,2.6981398579658205,2.441979446448439,2.954300269483202
+ahmed-L1,simplec,candidate,SST closure,2,5.7193187111977,5.718105696140601,5.7205317262548
+ahmed-L1,simplec,candidate,Small-operation replay (mixed),2,37.8483020817,37.1111541334,38.585450030000004
+ahmed-L1,simplec,candidate,Transport assembly (momentum and turbulence),2,5.9381170477675,5.5943574989224,6.281876596612601
+wing-L2,coupled,baseline,"AMG smoothing, transfers and shared residuals",2,37.154193839509006,34.410048313418,39.89833936560001
+wing-L2,coupled,baseline,"Gradients, limiter and face reconstruction",2,12.209554589353,11.778862597432,12.640246581274
+wing-L2,coupled,baseline,Krylov/CSR/reductions,2,30.411957157770455,26.02637546603372,34.79753884950719
+wing-L2,coupled,baseline,"Momentum, pressure and flux coupling",2,3.8030320010147998,3.2824649196123996,4.3235990824172
+wing-L2,coupled,baseline,Operator refresh and validation,2,5.6961541296849,5.5543774086934,5.8379308506764005
+wing-L2,coupled,baseline,Other FV/runtime,2,0.985430390574956,0.826187431813486,1.1446733493364258
+wing-L2,coupled,baseline,SST closure,2,5.0319791212696,4.36815582216,5.6958024203792
+wing-L2,coupled,baseline,Small-operation replay (mixed),2,11.37741880492,9.8653142294,12.88952338044
+wing-L2,coupled,baseline,Transport assembly (momentum and turbulence),2,2.8630324755800003,2.6647274661814,3.0613374849786004
+wing-L2,coupled,candidate,"AMG smoothing, transfers and shared residuals",2,33.75771718099401,33.37626931257,34.139165049418004
+wing-L2,coupled,candidate,"Gradients, limiter and face reconstruction",2,10.479042143559,10.473790825350003,10.484293461767999
+wing-L2,coupled,candidate,Krylov/CSR/reductions,2,28.21296290495033,27.462695091972265,28.963230717928397
+wing-L2,coupled,candidate,"Momentum, pressure and flux coupling",2,3.6483232188054,3.6464864853794,3.6501599522314
+wing-L2,coupled,candidate,Operator refresh and validation,2,4.5401345426136,4.436097447751799,4.6441716374754005
+wing-L2,coupled,candidate,Other FV/runtime,2,0.9403820475561601,0.871829111129258,1.0089349839830621
+wing-L2,coupled,candidate,SST closure,2,5.1289945328591,4.9216240411626,5.3363650245556
+wing-L2,coupled,candidate,Small-operation replay (mixed),2,10.41558745084,10.3827074077,10.448467493979999
+wing-L2,coupled,candidate,Transport assembly (momentum and turbulence),2,2.4287949781864,2.415197440423,2.4423925159498
+wing-L2,simplec,baseline,"AMG smoothing, transfers and shared residuals",2,11.984027230647,11.210718946527999,12.757335514766
+wing-L2,simplec,baseline,"Gradients, limiter and face reconstruction",2,9.7046171175432,9.613828347074202,9.7954058880122
+wing-L2,simplec,baseline,Krylov/CSR/reductions,2,28.561742666651938,28.055152362218923,29.068332971084953
+wing-L2,simplec,baseline,"Momentum, pressure and flux coupling",2,3.0691650998776003,3.002158342861,3.136171856894201
+wing-L2,simplec,baseline,Operator refresh and validation,2,0.5214437423278,0.46921662986339996,0.5736708547922
+wing-L2,simplec,baseline,Other FV/runtime,2,2.351347277871022,2.1998177422195195,2.5028768135225237
+wing-L2,simplec,baseline,SST closure,2,3.9501061616467004,3.9107349188996006,3.9894774043938
+wing-L2,simplec,baseline,Small-operation replay (mixed),2,21.429906569000003,20.703423381800004,22.1563897562
+wing-L2,simplec,baseline,Transport assembly (momentum and turbulence),2,2.3813745239770006,2.3479657480506004,2.4147832999034002
+wing-L2,simplec,candidate,"AMG smoothing, transfers and shared residuals",2,14.954911877858999,10.973114338694,18.936709417023998
+wing-L2,simplec,candidate,"Gradients, limiter and face reconstruction",2,11.696507981973998,11.420220029531999,11.972795934415998
+wing-L2,simplec,candidate,Krylov/CSR/reductions,2,36.03887388250051,26.87992811669083,45.197819648310194
+wing-L2,simplec,candidate,"Momentum, pressure and flux coupling",2,3.7325324444099,3.2665649102984,4.1984999785214
+wing-L2,simplec,candidate,Operator refresh and validation,2,0.6005912111137,0.46685754321440004,0.7343248790129999
+wing-L2,simplec,candidate,Other FV/runtime,2,3.591193433382992,2.326130880974488,4.8562559857914955
+wing-L2,simplec,candidate,SST closure,2,5.2966262423428,4.3302191980194005,6.2630332866662
+wing-L2,simplec,candidate,Small-operation replay (mixed),2,26.2082653772,22.861811662999997,29.5547190914
+wing-L2,simplec,candidate,Transport assembly (momentum and turbulence),2,2.7133216639057,2.4022283451644,3.0244149826469995

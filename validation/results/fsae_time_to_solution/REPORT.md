@@ -1,5 +1,9 @@
 # FSAE time to solution on Metal
 
+Latest round: [2026-11-03 follow-up](#2026-11-03-cached-face-jumps-and-setup)
+compares current main `e014e36`. The opening results below remain the historical
+`85c489b` round.
+
 Ahmed L1 SIMPLEC reaches the same converged answer faster in all four paired
 runs: solve speedup 1.098 [1.003, 1.218], or about 8.9% less solve time at the
 paired median. Whole-process speedup is 1.090 [1.006, 1.208]. These are shared-GPU
@@ -458,3 +462,300 @@ python3 tools/lint_portability.py
 python3 validation/results/fsae_time_to_solution/analyze.py
 uv run --with matplotlib==3.11.2 python validation/results/fsae_time_to_solution/plot.py
 ```
+
+## 2026-11-03: Cached face jumps and setup
+
+Two byte-identical changes reduce reconstruction and setup work. **A consistent
+whole-case time-to-convergence win is not established.** The wing reaches the
+same gates at the same iterations; its paired timings remain mixed. On current
+main `e014e36`, Ahmed SIMPLEC reaches the residual gate but fails the lift-settling
+gate at 6,000 iterations. Ahmed Coupled fails both. Both candidate trajectories
+match their baseline's reported numerical histories exactly. The earlier report's
+Ahmed SIMPLEC convergence result used `85c489b`; it is not current-main acceptance.
+No cause for this baseline difference was isolated in this round.
+
+### Source, artifacts and measurement
+
+The baseline is main `e014e36c46cd63bd2b9fc52b24247b1e40939f85`.
+The source commits are `17d65a6` (directed face jumps) and `3de2c43` (pivot scan).
+[Metadata](2026-11-03/metadata.json) pins input meshes, frozen executable hashes
+and the complete [numerical source patch](2026-11-03/numerical-source.patch.gz).
+The frozen candidates were built before committing: their embedded version
+string remains `e014e36`, but their numerical-source patch matches
+`e014e36..3de2c43` byte for byte. Kernels are embedded in each executable.
+
+All runs use Release, C++20, HDF5 and Metal on the shared 24 GB M4 Pro. Inputs are
+the existing 403,560-cell Ahmed L1 and 195,581-cell wing L2, h/c 0.224. Re,
+reference dimensions, inlet turbulence, moving ground, SST, limiter, relaxation,
+CFL and pressure interpolation are unchanged. The existing runner retains its
+6,000-iteration cap, checks every 50 iterations, residual limit `1e-3` and relative
+change limit `5e-4` for **both** forces over 500 iterations. Each measurement is a
+fresh process with `MallocSpaceEfficient=1`. One owned heavy solve runs at a time.
+Other agents' CPU/GPU load is uncontrolled.
+
+Native convergence pairs alternate BC, CB, BC. The existing runner stops an
+unconverged combination after its first complete budget pair. Solve time includes
+monitoring and force samples; process time additionally includes input, setup and
+final wall-report construction. A speedup is baseline time divided by candidate
+time **within each pair**; its median need not equal the ratio of the two marginal
+medians. Brackets below are full observed ranges, not confidence intervals.
+
+### Changes and isolated effects
+
+The old strain jump correction evaluates each internal face's two traces again
+for each adjacent cell. A new portable face pass evaluates them once, stores
+both subtraction directions explicitly, then a cell pass gathers them in the
+original order. Storing both directions preserves signed zeros. Trace arithmetic,
+fit weights, sum order and final derivatives are unchanged. Scratch is allocated
+during setup and reused between components. This adds one dispatch per correction
+and 4 bytes per cell-face incidence: **9,685,440 bytes on Ahmed; 3,940,156 on the
+wing**. This is common `.kern.h` code generated for CPU, Metal and CUDA.
+
+Five alternating component pairs on the actual RCM-renumbered meshes compare
+old/new outputs, then time 200 corrections with the same allocations and native
+command batching. These are component measurements, not converged CFD timings.
+
+| Component | Before ms, median [range] | After ms, median [range] | Paired speedup [range] | Faster pairs |
+| --- | ---: | ---: | ---: | ---: |
+| Jump correction, ahmed-L1 | 1.529 [1.524, 1.574] | 0.944 [0.901, 0.968] | 1.667 [1.608, 1.694] | 5/5 |
+| Jump correction, wing-L2 | 0.507 [0.468, 0.521] | 0.451 [0.381, 0.488] | 1.154 [0.959, 1.322] | 4/5 |
+
+The CPU setup change caches the winning absolute matrix entry beside its pivot
+indices during the 10-by-10 Jacobi eigen scan. The matrix does not change during
+the scan; strict comparison order, ties, rotations and inverse accumulation are
+unchanged. A microbenchmark compares all 100 doubles in 512 inverse matrices,
+then consumes every entry through a volatile function pointer during timing.
+Five alternating pairs of three batches give 73.60 [63.38, 159.43] → 31.23 [25.30, 38.92] ms,
+paired speedup 2.479 [1.629, 5.106]. The earlier single-output pilot is excluded.
+[Micro summaries](2026-11-03/micro-summary.json), logs and exact sources are retained.
+
+The real setup ablation compares the frozen face-jump-only candidate against the
+final candidate, so the pivot scan is the only difference. Three alternating
+pairs use a one-iteration diagnostic, measuring `setup_s` only; the convergence
+budget above is unchanged. All reported numerical values match within each pair.
+
+| Setup only | Before s, median [range] | After s, median [range] | Paired speedup [range] |
+| --- | ---: | ---: | ---: |
+| ahmed-L1 | 9.604 [9.337, 10.341] | 7.856 [7.540, 10.992] | 1.223 [0.941, 1.238] |
+| wing-L2 | 1.733 [1.725, 2.074] | 1.655 [1.585, 1.972] | 1.052 [1.047, 1.088] |
+
+Ahmed's setup pair includes one slowdown; the small wing setup gain is consistent
+in these three pairs. These observations do not imply an iteration-time gain.
+[Setup receipts](2026-11-03/setup-receipts.jsonl) preserve ordering and hashes.
+
+### Metal kernel and phase breakdown
+
+Two alternating profile pairs per case/scheme warm 50 iterations and measure
+iterations 51–100, including that window's force sample and monitor. Scratch
+instrumentation splits command buffers at every **actual native dispatch** and
+uses Metal `GPUStartTime`/`GPUEndTime`. It was removed from production source after
+building frozen profiling binaries. The [profiling patch](2026-11-03/profiling.patch.gz)
+and [receipts](2026-11-03/profile-receipts.jsonl) make the experiment reproducible.
+
+These spans include shared-GPU scheduling effects and change native batching;
+**they are not exclusive GPU busy time or native wall-clock speedups**. Phase rows
+are disjoint kernel families, not separately timed physical solves. Shared CSR
+and residual kernels cannot be assigned uniquely to momentum or pressure.
+`runtime_sequence` is one real GPU kernel replaying mixed small operations; it
+is measured once, without double-counting its logical suboperations.
+
+Only the public `timestamp:GPUTimestamp` counter is exposed. The bandwidth column
+is **whole buffer argument footprint / timestamp span**, including duplicate
+arguments and guarded calls. It is not measured DRAM traffic, an achieved DRAM
+bandwidth, or a traffic bound. Values above the nominal 270 GB/s are possible and
+must not be read as utilization. Actual DRAM bandwidth remains unverified.
+Replay argument traffic is not modeled. Guarded dispatch counts are not active
+Krylov iteration counts. The full per-kernel counts, medians,
+ranges and footprint rates are in [kernels.csv](2026-11-03/kernels.csv);
+[phases.csv](2026-11-03/phases.csv) retains every family range.
+
+Each cell below is **before → after median ms per outer iteration**. Tables cover
+all timestamped work; the sums and ranges follow separately.
+
+| ahmed-L1: kernel family | SIMPLEC ms | Coupled ms |
+| --- | ---: | ---: |
+| AMG smoothing, transfers and shared residuals | 16.44 → 16.42 | 48.46 → 55.10 |
+| Gradients, limiter and face reconstruction | 33.45 → 28.69 | 33.06 → 31.43 |
+| Krylov/CSR/reductions | 44.98 → 44.50 | 29.36 → 31.80 |
+| Momentum, pressure and flux coupling | 5.19 → 5.18 | 4.65 → 4.90 |
+| Operator refresh and validation | 1.29 → 1.41 | 20.99 → 25.23 |
+| Other FV/runtime | 2.68 → 2.70 | 1.75 → 1.55 |
+| SST closure | 5.93 → 5.72 | 6.23 → 6.08 |
+| Small-operation replay (mixed) | 36.74 → 37.85 | 10.75 → 12.26 |
+| Transport assembly (momentum and turbulence) | 6.04 → 5.94 | 6.01 → 6.83 |
+
+| wing-L2: kernel family | SIMPLEC ms | Coupled ms |
+| --- | ---: | ---: |
+| AMG smoothing, transfers and shared residuals | 11.98 → 14.95 | 37.15 → 33.76 |
+| Gradients, limiter and face reconstruction | 9.70 → 11.70 | 12.21 → 10.48 |
+| Krylov/CSR/reductions | 28.56 → 36.04 | 30.41 → 28.21 |
+| Momentum, pressure and flux coupling | 3.07 → 3.73 | 3.80 → 3.65 |
+| Operator refresh and validation | 0.52 → 0.60 | 5.70 → 4.54 |
+| Other FV/runtime | 2.35 → 3.59 | 0.99 → 0.94 |
+| SST closure | 3.95 → 5.30 | 5.03 → 5.13 |
+| Small-operation replay (mixed) | 21.43 → 26.21 | 11.38 → 10.42 |
+| Transport assembly (momentum and turbulence) | 2.38 → 2.71 | 2.86 → 2.43 |
+
+| Timestamp total per outer iteration | Before ms, median [range] | After ms, median [range] |
+| --- | ---: | ---: |
+| ahmed-L1, simplec | 152.73 [152.13, 153.34] | 148.40 [146.84, 149.96] |
+| ahmed-L1, coupled | 161.27 [155.42, 167.12] | 175.17 [170.89, 179.46] |
+| wing-L2, simplec | 83.95 [82.01, 85.90] | 104.83 [85.48, 124.19] |
+| wing-L2, coupled | 109.53 [98.78, 120.29] | 99.55 [98.26, 100.84] |
+
+The dominant baseline kernels below illustrate the sparse/gradient split. Time
+is median ms per outer iteration. Rate is median argument-footprint GB/s, with
+the nominal 270 GB/s comparison in parentheses; full ranges are in the CSV.
+
+| Case / scheme | Kernel | Time before → after ms | Footprint rate before → after GB/s (% of 270) |
+| --- | --- | ---: | ---: |
+| ahmed-L1 / simplec | `runtime_sequence` | 36.74 → 37.85 | unmodeled → unmodeled |
+| ahmed-L1 / simplec | `runtime_reduce` | 12.85 → 12.64 | 73 (27%) → 74 (27%) |
+| ahmed-L1 / simplec | `amg_smooth` | 12.49 → 12.48 | 162 (60%) → 162 (60%) |
+| ahmed-L1 / simplec | `csr_spmv_guarded` | 12.14 → 12.02 | 195 (72%) → 197 (73%) |
+| ahmed-L1 / simplec | `fv_moment_hop` | 9.07 → 9.17 | 138 (51%) → 137 (51%) |
+| ahmed-L1 / simplec | `fv_jump_gradient → face + gather` | 9.81 → 5.47 | 90 (33%) → face 142 (53%); gather 165 (61%) |
+| ahmed-L1 / coupled | `coupled_fine_smooth` | 19.96 → 22.99 | 234 (87%) → 202 (75%) |
+| ahmed-L1 / coupled | `coupled_coarse_smooth` | 11.42 → 12.49 | 83 (31%) → 76 (28%) |
+| ahmed-L1 / coupled | `coupled_galerkin_fine` | 11.17 → 13.70 | 16 (6%) → 13 (5%) |
+| ahmed-L1 / coupled | `coupled_fine_residual` | 8.90 → 9.91 | 190 (70%) → 172 (64%) |
+| ahmed-L1 / coupled | `fv_moment_hop` | 8.71 → 10.14 | 143 (53%) → 124 (46%) |
+| ahmed-L1 / coupled | `fv_jump_gradient → face + gather` | 9.66 → 5.67 | 92 (34%) → face 137 (51%); gather 155 (57%) |
+| wing-L2 / simplec | `runtime_sequence` | 21.43 → 26.21 | unmodeled → unmodeled |
+| wing-L2 / simplec | `runtime_reduce` | 11.03 → 13.96 | 49 (18%) → 41 (15%) |
+| wing-L2 / simplec | `amg_smooth` | 7.95 → 9.81 | 165 (61%) → 142 (53%) |
+| wing-L2 / simplec | `csr_spmv_guarded` | 4.10 → 5.01 | 224 (83%) → 193 (71%) |
+| wing-L2 / simplec | `fv_jump_gradient → face + gather` | 2.15 → 2.69 | 172 (64%) → face 111 (41%); gather 159 (59%) |
+| wing-L2 / coupled | `coupled_fine_smooth` | 18.36 → 15.92 | 294 (109%) → 338 (125%) |
+| wing-L2 / coupled | `runtime_reduce` | 9.73 → 9.32 | 73 (27%) → 74 (27%) |
+| wing-L2 / coupled | `coupled_fine_spmv` | 7.14 → 5.95 | 241 (89%) → 288 (107%) |
+| wing-L2 / coupled | `fv_moment_hop` | 3.04 → 2.63 | 192 (71%) → 223 (82%) |
+| wing-L2 / coupled | `fv_jump_gradient → face + gather` | 2.72 → 2.27 | 136 (50%) → face 134 (50%); gather 183 (68%) |
+
+Ahmed jump spans fall from about 9.8 to 5.5 ms (SIMPLEC) and 9.7 to 5.7 ms
+(Coupled). The intrusive wing SIMPLEC jump span is worse, despite the native
+component median improving; the profile and native whole-case series must be
+read separately. Other kernels' timing changes are not attributed to the source
+changes: shared load and profiler dispatch splitting were not isolated.
+
+A single additional wing SIMPLEC profile pair measures iterations 2351–2400,
+near its actual stopping point. Baseline → candidate total timestamp span is
+113.09 → 122.09 ms/outer; Krylov/CSR/reductions are 68.72 → 72.77 ms and
+reconstruction 9.73 → 10.23 ms. On the baseline, the Krylov family grows from
+34% of early spans to 61% late. This diagnostic locates remaining work; it is
+neither a repeated native timing result nor a measured regression cause.
+[Late kernel breakdown](2026-11-03/late-kernels.csv) retains all dispatches.
+
+### Time to the unchanged convergence gates
+
+All 16 completed native runs are retained in [convergence receipts](2026-11-03/convergence.jsonl)
+and the [paired summary](2026-11-03/convergence-summary.json). Every pair has the
+same stopping iteration, byte-identical **printed** checkpoint history, and
+identical final reported physical values. This is full-trajectory reporting
+parity, not a full-field export at every checkpoint. Full-field parity is checked
+separately at 40 iterations below.
+
+| Converged wing case | Iterations before → after, all pairs | Solve s before, median [range] | Solve s after, median [range] | Paired solve speedup [range] | Faster pairs |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| coupled | 700 → 700 | 101.98 [51.14, 115.47] | 122.59 [45.26, 124.83] | 0.925 [0.832, 1.130] | 1/3 |
+| simplec | 2400 → 2400 | 333.68 [214.26, 556.39] | 339.06 [175.44, 360.82] | 1.221 [0.984, 1.542] | 2/3 |
+
+Wing SIMPLEC's paired median is favorable, but its candidate marginal median is
+slightly slower and one pair loses. Coupled's paired median loses. Neither is a
+consistent whole-case win. Whole-process paired speedups are
+coupled: 0.932 [0.837, 1.133]; simplec: 1.219 [0.970, 1.542].
+
+![Paired converged wing timings](2026-11-03/converged-speedup.png)
+
+Ahmed results below are **single unconverged budget pairs**, not speedup medians
+or times to a converged answer. Repeating failed budget runs would not establish
+the requested converged-answer target.
+
+| Ahmed L1 | Iterations, both | Solve s before → after | Process s before → after | Final max residual | Lift change / drag change over 500 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| simplec | 6,000 | 1353.35 → 1784.49 | 1366.10 → 1791.97 | 9.410969e-06 | 0.001642851 / 0.0001655641 |
+| coupled | 6,000 | 1240.55 → 1022.04 | 1264.99 → 1033.22 | 0.004148628 | 0.007046151 / 0.0006944255 |
+
+SIMPLEC passes residuals and drag settling but lift change is 0.00164285, above
+0.0005. Coupled's residual is 0.00414863, above 0.001, and neither force settles.
+The candidate does not fix these current-main convergence limitations. No
+acceptance criterion was weakened. The existing Ahmed slow test checks residuals
+and drag, but does not assert the benchmark's force-settling gate.
+
+![Ahmed residual and force gates](2026-11-03/ahmed-gates.png)
+
+### Parity, checks and memory
+
+All six 40-iteration CLI comparisons pass: V6 mixing elbow with
+`--approximate wfgc`, parameter elbow with
+`--approximate compressibility,ke-options`, and the converted SIMPLEC mixing
+elbow, each on CPU and Metal. `cmp` matches `fluxes.csv`, `forces.csv`, `loads.json`
+and `result.vtu`. Residual checks remove comments and compare columns 1–7;
+additionally every column except `seconds_per_iteration` matches. Each summary
+confirms 40 iterations and matching case/setup/mesh/data identities.
+[CLI receipts](2026-11-03/parity-cli.jsonl) pin both binaries and the comparisons.
+The target wing's 40-iteration `cells.csv` and `walls.csv` also match byte for byte
+on CPU and Metal ([target receipts](2026-11-03/parity-wing.jsonl)).
+
+The direct old/new jump oracle passes 6,120 bit assertions on CPU/Metal, including
+warped hex/tet geometry, both zero signs, subnormals, large finite fields and
+scratch reuse. The full quick tier passes **308 cases, 7,996,274 assertions,
+zero failures**; 37 existing slow cases are excluded. Portability lint and fresh
+Metal/CUDA kernel generation pass. Four additional fixed-workload solver-state
+hashes match for each backend (CPU and Metal), covering realizable k-epsilon,
+SST tet and two laminar sizes.
+Two selected V8 slow cases also pass on CPU/Metal: the realizable k-epsilon
+channel at three resolutions and the Darcy–Forchheimer pressure-drop/direction
+case, totaling **2 cases and 42 assertions**.
+[Verification receipts](2026-11-03/verification.json) record hashes and exact
+scope; the selected cases are not a full slow-tier comparison.
+
+The full slow tier was **not run** for these byte-identical changes. There is no
+expanded slow-assertion comparison, and no measured count of slow-tier
+regressions, recoveries or changed values is claimed. No numerical settings or
+arithmetic order changed. The requested CPU/Metal file parity, direct bit oracle,
+quick tier, additional solver hashes and matched target trajectories support
+that narrower contract. No full slow XML or restricted reference data is committed.
+
+Maximum observed process footprint was **1,708,755,032 bytes (1.709 GB)** in the
+quick tier. The heaviest native convergence run was candidate Ahmed Coupled at
+**1,460,340,296 bytes (1.460 GB)**; the largest instrumented profile was 1.465 GB.
+The face-jump cache costs 9.69 MB on Ahmed and 3.94 MB on the wing; native Coupled
+peak rose from 1.451 to 1.460 GB. These are process footprints on unified memory,
+not isolated GPU allocation totals. All owned fixture symlinks were removed;
+no fixture checkout was modified. No owned solves remain running.
+
+CUDA and Metal wrappers regenerate from the same portable kernel sources.
+CUDA compilation, RTX runtime parity/performance, actual DRAM bandwidth and
+uncontended performance remain unverified. This round does not establish
+"same answer as Fluent, much faster": it preserves the observed baseline answers
+and identifies remaining convergence and linear-solver work.
+
+### What did not work and what remains
+
+A backward dependency filter for walk moments was prototyped and removed.
+Ahmed's corrected faces require 403,513 of 403,560 final moment rows, and the
+first backward halo reaches all cells. The wing requires 159,729 final rows
+and 166,079 seed rows out of 195,581. This trial was not timing-qualified;
+there was no useful Ahmed work reduction to retain.
+
+The retained reconstruction change does not produce a consistent native wing
+win. It adds a dispatch and scratch traffic while saving duplicate trace work;
+these are structural facts, not an isolated explanation of the timing losses.
+Do not infer a universal 1.667x solver speedup from the Ahmed component result.
+
+On these paths, AMG hierarchy construction already occurs during setup;
+outer iterations refresh coefficients. Reusing hierarchy setup alone will not
+remove those refresh kernels. Coupled fine Galerkin refresh still searches a
+coarse row for each fine neighbour. Caching that static entry mapping is a
+concrete next experiment; its payoff is unmeasured. The early Coupled profile
+shows substantial smoother/refresh cost, while the late wing SIMPLEC profile
+points to Krylov/reduction work.
+
+Further reconstruction fusion, fewer host waits, alternative layouts and static
+mapping caches need native paired measurements and byte parity. Cheaper
+smoothers, V-cycle changes, tolerance changes and mixed precision remain
+numerical experiments: they require the full unchanged slow tier, zero
+regressions, matching converged forces and a total-time-to-converged win.
+Ahmed's current-main residual/force-settling limitations must also be resolved
+before its budget timings can support a converged-answer pitch.

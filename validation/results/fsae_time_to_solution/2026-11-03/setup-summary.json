@@ -1,0 +1,46 @@
+[
+  {
+    "case": "ahmed-L1",
+    "before_setup_seconds": {
+      "n": 3,
+      "median": 9.604179,
+      "min": 9.337491084,
+      "max": 10.34103263
+    },
+    "after_setup_seconds": {
+      "n": 3,
+      "median": 7.855978625,
+      "min": 7.539666125,
+      "max": 10.99158183
+    },
+    "paired_speedup": {
+      "n": 3,
+      "median": 1.222531203106475,
+      "min": 0.9408138691899273,
+      "max": 1.238448882111474
+    },
+    "all_reported_numerical_values_identical": true
+  },
+  {
+    "case": "wing-L2",
+    "before_setup_seconds": {
+      "n": 3,
+      "median": 1.733435958,
+      "min": 1.7248995,
+      "max": 2.074274583
+    },
+    "after_setup_seconds": {
+      "n": 3,
+      "median": 1.654897208,
+      "min": 1.585069083,
+      "max": 1.971920125
+    },
+    "paired_speedup": {
+      "n": 3,
+      "median": 1.051905985796458,
+      "min": 1.0474583857053676,
+      "max": 1.0882172382892916
+    },
+    "all_reported_numerical_values_identical": true
+  }
+]

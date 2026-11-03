@@ -1,0 +1,28 @@
+JUMP_TRIAL rep=0 candidate=0 cells=195581 ms=0.516081
+JUMP_TRIAL rep=0 candidate=1 cells=195581 ms=0.472054
+JUMP_TRIAL rep=1 candidate=1 cells=195581 ms=0.381387
+JUMP_TRIAL rep=1 candidate=0 cells=195581 ms=0.50416
+JUMP_TRIAL rep=2 candidate=0 cells=195581 ms=0.468425
+JUMP_TRIAL rep=2 candidate=1 cells=195581 ms=0.488472
+JUMP_TRIAL rep=3 candidate=1 cells=195581 ms=0.399284
+JUMP_TRIAL rep=3 candidate=0 cells=195581 ms=0.507304
+JUMP_TRIAL rep=4 candidate=0 cells=195581 ms=0.5207
+JUMP_TRIAL rep=4 candidate=1 cells=195581 ms=0.45126
+       11.36 real         1.96 user         0.44 sys
+           263356416  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               58755  page reclaims
+                 293  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 118  voluntary context switches
+               11280  involuntary context switches
+         20654640502  instructions retired
+          7868279255  cycles elapsed
+           441811904  peak memory footprint

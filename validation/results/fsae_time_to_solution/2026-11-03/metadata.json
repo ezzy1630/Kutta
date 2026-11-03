@@ -1,0 +1,65 @@
+{
+  "baseline_source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "candidate_patch_sha256": "20118a5c7d8b51a584809ee65508b5f95f60fd32105d8438efb8c42550d5733c",
+  "created_utc": "2026-11-03T07:32:14.964524+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "binaries": {
+    "baseline": {
+      "bench_overhead": "1c76256822c69e724644694fccbb55d8d322621ddf0937cfdef47a9a87d6cedf",
+      "kutta": "49a4973f191dea91d29a18377002fb1c51055437437994807399093d1658f1ce",
+      "bench_fsae_aero": "b787d36999dbb0c9db0317df600f2d81ecbcbe00480d56b5a8262fdc686c5754"
+    },
+    "candidate": {
+      "bench_overhead": "8de96d60192ae413f8cf734408d2602cd8c693b337f68aaf2b57e3738eb8a246",
+      "kutta": "87f6b84edf99f047e00c84fd71c87d0ce2afa38b9e2ef8e41bbd124b55f108f1",
+      "bench_fsae_aero": "2f3a775598090c3508602f25e134a8637ebc4b71ff4a5c350708a56cc735d0da"
+    },
+    "candidate_final": {
+      "bench_overhead": "3e0901038522520d9e94ae3f8274341bbac62511822c96045a11a531ffea9cca",
+      "kutta": "0a694c925dd96b127bdf55b037c13c795c683032d557be0a1c407c57de524e32",
+      "bench_fsae_aero": "58a167cc6caf839bb81fe5d4e9b390c17e960a7ed02b5eb0c4716524c62505e8"
+    }
+  },
+  "meshes": {
+    "ahmed35_L1.msh": "0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609",
+    "zerihan_h0.224_L2.msh": "8e07959462635925c0f5c89f42b7774cd4114fa15d806da3f252cc4e0da24ed2"
+  },
+  "candidate_final_patch_sha256": "72010f0ecdd1d668427e7c0427160a8e451025b0e887dc31045ecd09e3df5e93",
+  "quick": {
+    "cases": 308,
+    "passed": 308,
+    "assertions": 7996274,
+    "failures": 0,
+    "seconds": 484.43,
+    "peak_bytes": 1708755032,
+    "test_binary_sha256": "ce2028edd9aac89c614d234fe885a34998e7cdcd11fda8fe30fc1a1d24cf307c"
+  },
+  "code_commits": {
+    "face_jumps": "17d65a6cc78c39657e80c4cf984fa2dc8c4750d9",
+    "pivot_scan": "3de2c437cd6afaad7b9fc4f43d6dc4a9b33d7779"
+  },
+  "artifact_source_note": "Frozen candidate-final binaries were built before committing; their full numerical-source diff is byte-identical to e014e36..3de2c43. Embedded source string remains e014e36.",
+  "candidate_final_patch_matches_committed_diff": true,
+  "target_mesh_counts": {
+    "ahmed-L1": {
+      "cells": 403560,
+      "faces": 1224168,
+      "internal_faces": 1197192,
+      "face_jump_scratch_bytes": 9685440
+    },
+    "wing-L2": {
+      "cells": 195581,
+      "faces": 688696,
+      "internal_faces": 296343,
+      "face_jump_scratch_bytes": 3940156
+    }
+  },
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+  "build": "Release, C++20, Metal and HDF5 enabled, Qt application disabled",
+  "profiling": {
+    "patch_sha256": "3185715262a8176a3d4ae98fc9f569cc4fb0aa3fdb280ce229a63e7b87b76c5c",
+    "baseline_binary_sha256": "7dd32a45eb3453fac732ba17270cf6ed11e0c4afe940fe796aab32760692d7ff",
+    "candidate_binary_sha256": "e2ca94cce58bb6ee9c070b4c7512f5170b864b378dfb881dd11fa5c04cd68790",
+    "source_note": "Baseline numerical source e014e36; final candidate numerical source e014e36..3de2c43; removed scratch timestamp instrumentation is retained as profiling.patch. Native timing binaries have no profiling instrumentation."
+  }
+}

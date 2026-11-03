@@ -1,0 +1,4272 @@
+{
+  "counter_inventory": [
+    "timestamp:GPUTimestamp"
+  ],
+  "groups": [
+    {
+      "case": "wing-L2",
+      "scheme": "simplec",
+      "label": "baseline",
+      "samples": 1,
+      "kernels": {
+        "amg_galerkin": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0860208226368,
+            "min": 0.0860208226368,
+            "max": 0.0860208226368
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 9317372.0,
+            "min": 9317372.0,
+            "max": 9317372.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 108.3153091820584,
+            "min": 108.3153091820584,
+            "max": 108.3153091820584
+          }
+        },
+        "amg_m_matrix_diagonal": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 2.0,
+            "min": 2.0,
+            "max": 2.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0902941869572,
+            "min": 0.0902941869572,
+            "max": 0.0902941869572
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 7538496.0,
+            "min": 7538496.0,
+            "max": 7538496.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 83.48816523009718,
+            "min": 83.48816523009718,
+            "max": 83.48816523009718
+          }
+        },
+        "amg_prolong_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 75.0,
+            "min": 75.0,
+            "max": 75.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.8451683912419999,
+            "min": 0.8451683912419999,
+            "max": 0.8451683912419999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 47736200.0,
+            "min": 47736200.0,
+            "max": 47736200.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 56.48128881139324,
+            "min": 56.48128881139324,
+            "max": 56.48128881139324
+          }
+        },
+        "amg_restrict_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 50.0,
+            "min": 50.0,
+            "max": 50.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.567236794158,
+            "min": 0.567236794158,
+            "max": 0.567236794158
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 49813600.0,
+            "min": 49813600.0,
+            "max": 49813600.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 87.81799860839908,
+            "min": 87.81799860839908,
+            "max": 87.81799860839908
+          }
+        },
+        "amg_smooth": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 225.0,
+            "min": 225.0,
+            "max": 225.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 5.11778973042,
+            "min": 5.11778973042,
+            "max": 5.11778973042
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 920751300.0,
+            "min": 920751300.0,
+            "max": 920751300.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 179.91190504117037,
+            "min": 179.91190504117037,
+            "max": 179.91190504117037
+          }
+        },
+        "amg_smooth_zero": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 75.0,
+            "min": 75.0,
+            "max": 75.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.124553177506,
+            "min": 1.124553177506,
+            "max": 1.124553177506
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 306917100.0,
+            "min": 306917100.0,
+            "max": 306917100.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 272.9235985804348,
+            "min": 272.9235985804348,
+            "max": 272.9235985804348
+          }
+        },
+        "csr_residual": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 38.26,
+            "min": 38.26,
+            "max": 38.26
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.00467751828,
+            "min": 2.00467751828,
+            "max": 2.00467751828
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 360999781.36,
+            "min": 360999781.36,
+            "max": 360999781.36
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 180.0787299045162,
+            "min": 180.0787299045162,
+            "max": 180.0787299045162
+          }
+        },
+        "csr_residual_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 75.0,
+            "min": 75.0,
+            "max": 75.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.476858374662,
+            "min": 1.476858374662,
+            "max": 1.476858374662
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 284510200.0,
+            "min": 284510200.0,
+            "max": 284510200.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 192.6455541582409,
+            "min": 192.6455541582409,
+            "max": 192.6455541582409
+          }
+        },
+        "csr_spmv_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 317.4,
+            "min": 317.4,
+            "max": 317.4
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 8.445914979100001,
+            "min": 8.445914979100001,
+            "max": 8.445914979100001
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 2746501557.6,
+            "min": 2746501557.6,
+            "max": 2746501557.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 325.1869767096174,
+            "min": 325.1869767096174,
+            "max": 325.1869767096174
+          }
+        },
+        "fv_backflow_pressure": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 2.12,
+            "min": 2.12,
+            "max": 2.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.17098002135760001,
+            "min": 0.17098002135760001,
+            "max": 0.17098002135760001
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 23310171.68,
+            "min": 23310171.68,
+            "max": 23310171.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 136.33272177015007,
+            "min": 136.33272177015007,
+            "max": 136.33272177015007
+          }
+        },
+        "fv_boundary_momentum": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.12,
+            "min": 3.12,
+            "max": 3.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.28545252513200003,
+            "min": 0.28545252513200003,
+            "max": 0.28545252513200003
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 94395862.08,
+            "min": 94395862.08,
+            "max": 94395862.08
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 330.6884815131662,
+            "min": 330.6884815131662,
+            "max": 330.6884815131662
+          }
+        },
+        "fv_cell_pressure_boundary": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.06,
+            "min": 1.06,
+            "max": 1.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0985933374614,
+            "min": 0.0985933374614,
+            "max": 0.0985933374614
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 7076487.92,
+            "min": 7076487.92,
+            "max": 7076487.92
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 71.77450426374394,
+            "min": 71.77450426374394,
+            "max": 71.77450426374394
+          }
+        },
+        "fv_effective_viscosity": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.06,
+            "min": 3.06,
+            "max": 3.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.292411660776,
+            "min": 0.292411660776,
+            "max": 0.292411660776
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 31310066.88,
+            "min": 31310066.88,
+            "max": 31310066.88
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 107.07530197978278,
+            "min": 107.07530197978278,
+            "max": 107.07530197978278
+          }
+        },
+        "fv_fixed_rows": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0205624848604,
+            "min": 0.0205624848604,
+            "max": 0.0205624848604
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 7347279.68,
+            "min": 7347279.68,
+            "max": 7347279.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 357.3147763940566,
+            "min": 357.3147763940566,
+            "max": 357.3147763940566
+          }
+        },
+        "fv_floor": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 2.0,
+            "min": 2.0,
+            "max": 2.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0547732925042,
+            "min": 0.0547732925042,
+            "max": 0.0547732925042
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 1564648.0,
+            "min": 1564648.0,
+            "max": 1564648.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 28.56589276388713,
+            "min": 28.56589276388713,
+            "max": 28.56589276388713
+          }
+        },
+        "fv_fluent_momentum_scale": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.04,
+            "min": 0.04,
+            "max": 0.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.001712497323752,
+            "min": 0.001712497323752,
+            "max": 0.001712497323752
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 250343.68,
+            "min": 250343.68,
+            "max": 250343.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 146.18631896691605,
+            "min": 146.18631896691605,
+            "max": 146.18631896691605
+          }
+        },
+        "fv_gradient": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 9.18,
+            "min": 9.18,
+            "max": 9.18
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.48773339577,
+            "min": 1.48773339577,
+            "max": 1.48773339577
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 281310451.2,
+            "min": 281310451.2,
+            "max": 281310451.2
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 189.08660113420612,
+            "min": 189.08660113420612,
+            "max": 189.08660113420612
+          }
+        },
+        "fv_jump_gradient": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.18,
+            "min": 6.18,
+            "max": 6.18
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.0574474195,
+            "min": 2.0574474195,
+            "max": 2.0574474195
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 369587632.32,
+            "min": 369587632.32,
+            "max": 369587632.32
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 179.63405957164971,
+            "min": 179.63405957164971,
+            "max": 179.63405957164971
+          }
+        },
+        "fv_limiter": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 2.08,
+            "min": 2.08,
+            "max": 2.08
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.267779165878,
+            "min": 0.267779165878,
+            "max": 0.267779165878
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 45809886.72,
+            "min": 45809886.72,
+            "max": 45809886.72
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 171.07337895312946,
+            "min": 171.07337895312946,
+            "max": 171.07337895312946
+          }
+        },
+        "fv_moment_diffusion": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.25492664426600004,
+            "min": 0.25492664426600004,
+            "max": 0.25492664426600004
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 70718672.96,
+            "min": 70718672.96,
+            "max": 70718672.96
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 277.40793106823895,
+            "min": 277.40793106823895,
+            "max": 277.40793106823895
+          }
+        },
+        "fv_moment_hop": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 12.12,
+            "min": 12.12,
+            "max": 12.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.5575032318,
+            "min": 2.5575032318,
+            "max": 2.5575032318
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 584771674.56,
+            "min": 584771674.56,
+            "max": 584771674.56
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 228.6494371889536,
+            "min": 228.6494371889536,
+            "max": 228.6494371889536
+          }
+        },
+        "fv_moment_momentum": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.837576650084,
+            "min": 0.837576650084,
+            "max": 0.837576650084
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 208690116.0,
+            "min": 208690116.0,
+            "max": 208690116.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 249.15942436918533,
+            "min": 249.15942436918533,
+            "max": 249.15942436918533
+          }
+        },
+        "fv_moment_seed": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 4.04,
+            "min": 4.04,
+            "max": 4.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.40236917324399996,
+            "min": 0.40236917324399996,
+            "max": 0.40236917324399996
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 106235322.88,
+            "min": 106235322.88,
+            "max": 106235322.88
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 264.02450770148346,
+            "min": 264.02450770148346,
+            "max": 264.02450770148346
+          }
+        },
+        "fv_momentum_diagonal": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0460483320058,
+            "min": 0.0460483320058,
+            "max": 0.0460483320058
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 6508935.68,
+            "min": 6508935.68,
+            "max": 6508935.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 141.3500858007228,
+            "min": 141.3500858007228,
+            "max": 141.3500858007228
+          }
+        },
+        "fv_momentum_faces": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.19915249664339998,
+            "min": 0.19915249664339998,
+            "max": 0.19915249664339998
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 40472836.0,
+            "min": 40472836.0,
+            "max": 40472836.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 203.22535083489393,
+            "min": 203.22535083489393,
+            "max": 203.22535083489393
+          }
+        },
+        "fv_momentum_source": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1471725013108,
+            "min": 0.1471725013108,
+            "max": 0.1471725013108
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 26164365.76,
+            "min": 26164365.76,
+            "max": 26164365.76
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 177.7802614412722,
+            "min": 177.7802614412722,
+            "max": 177.7802614412722
+          }
+        },
+        "fv_monitor_cell": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.04,
+            "min": 0.04,
+            "max": 0.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.007847500965,
+            "min": 0.007847500965,
+            "max": 0.007847500965
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 863505.44,
+            "min": 863505.44,
+            "max": 863505.44
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 110.03572269073305,
+            "min": 110.03572269073305,
+            "max": 110.03572269073305
+          }
+        },
+        "fv_paired_accumulate": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0867433194072,
+            "min": 0.0867433194072,
+            "max": 0.0867433194072
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 7040916.0,
+            "min": 7040916.0,
+            "max": 7040916.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 81.16954767372643,
+            "min": 81.16954767372643,
+            "max": 81.16954767372643
+          }
+        },
+        "fv_paired_continuity": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0815699994564,
+            "min": 0.0815699994564,
+            "max": 0.0815699994564
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 16366330.24,
+            "min": 16366330.24,
+            "max": 16366330.24
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 200.64153915739536,
+            "min": 200.64153915739536,
+            "max": 200.64153915739536
+          }
+        },
+        "fv_paired_correct_flux": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.14124916400760001,
+            "min": 0.14124916400760001,
+            "max": 0.14124916400760001
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 21251184.0,
+            "min": 21251184.0,
+            "max": 21251184.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 150.45175063023075,
+            "min": 150.45175063023075,
+            "max": 150.45175063023075
+          }
+        },
+        "fv_paired_correct_velocity": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.077798338607,
+            "min": 0.077798338607,
+            "max": 0.077798338607
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 11734860.0,
+            "min": 11734860.0,
+            "max": 11734860.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 150.8368971640757,
+            "min": 150.8368971640757,
+            "max": 150.8368971640757
+          }
+        },
+        "fv_paired_flux": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.20830748137,
+            "min": 0.20830748137,
+            "max": 0.20830748137
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 44436764.0,
+            "min": 44436764.0,
+            "max": 44436764.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 213.32293832054216,
+            "min": 213.32293832054216,
+            "max": 213.32293832054216
+          }
+        },
+        "fv_paired_limiter": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.12,
+            "min": 3.12,
+            "max": 3.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.422404129058,
+            "min": 0.422404129058,
+            "max": 0.422404129058
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 76052246.4,
+            "min": 76052246.4,
+            "max": 76052246.4
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 180.04617182508014,
+            "min": 180.04617182508014,
+            "max": 180.04617182508014
+          }
+        },
+        "fv_paired_limiter_scale": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.42971500661199996,
+            "min": 0.42971500661199996,
+            "max": 0.42971500661199996
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 80168076.0,
+            "min": 80168076.0,
+            "max": 80168076.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 186.56103409575752,
+            "min": 186.56103409575752,
+            "max": 186.56103409575752
+          }
+        },
+        "fv_paired_momentum_residual": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.12,
+            "min": 3.12,
+            "max": 3.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.17126415390520003,
+            "min": 0.17126415390520003,
+            "max": 0.17126415390520003
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 46524516.48,
+            "min": 46524516.48,
+            "max": 46524516.48
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 271.65355632885536,
+            "min": 271.65355632885536,
+            "max": 271.65355632885536
+          }
+        },
+        "fv_paired_pressure_rhs": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0258333189412,
+            "min": 0.0258333189412,
+            "max": 0.0258333189412
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 1564648.0,
+            "min": 1564648.0,
+            "max": 1564648.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 60.56705309764272,
+            "min": 60.56705309764272,
+            "max": 60.56705309764272
+          }
+        },
+        "fv_pressure_assemble": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1445625163614,
+            "min": 0.1445625163614,
+            "max": 0.1445625163614
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 27552564.0,
+            "min": 27552564.0,
+            "max": 27552564.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 190.59272551066965,
+            "min": 190.59272551066965,
+            "max": 190.59272551066965
+          }
+        },
+        "fv_pressure_boundary": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 4.12,
+            "min": 4.12,
+            "max": 4.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.393644175492,
+            "min": 0.393644175492,
+            "max": 0.393644175492
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 77689472.16,
+            "min": 77689472.16,
+            "max": 77689472.16
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 197.35963846765688,
+            "min": 197.35963846765688,
+            "max": 197.35963846765688
+          }
+        },
+        "fv_pressure_faces": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.06,
+            "min": 1.06,
+            "max": 1.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1815241482108,
+            "min": 0.1815241482108,
+            "max": 0.1815241482108
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 27527034.0,
+            "min": 27527034.0,
+            "max": 27527034.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 151.64392325385523,
+            "min": 151.64392325385523,
+            "max": 151.64392325385523
+          }
+        },
+        "fv_projected_transport_faces": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.19415331073099998,
+            "min": 0.19415331073099998,
+            "max": 0.19415331073099998
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 45430295.04,
+            "min": 45430295.04,
+            "max": 45430295.04
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 233.99186379543028,
+            "min": 233.99186379543028,
+            "max": 233.99186379543028
+          }
+        },
+        "fv_rhie_chow": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1590683264658,
+            "min": 0.1590683264658,
+            "max": 0.1590683264658
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 35404380.0,
+            "min": 35404380.0,
+            "max": 35404380.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 222.5734109776531,
+            "min": 222.5734109776531,
+            "max": 222.5734109776531
+          }
+        },
+        "fv_scalar_monitor": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.08,
+            "min": 0.08,
+            "max": 0.08
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.00389416702092,
+            "min": 0.00389416702092,
+            "max": 0.00389416702092
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 500687.36,
+            "min": 500687.36,
+            "max": 500687.36
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 128.57367373054078,
+            "min": 128.57367373054078,
+            "max": 128.57367373054078
+          }
+        },
+        "fv_speed": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.1,
+            "min": 1.1,
+            "max": 1.1
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0267608324066,
+            "min": 0.0267608324066,
+            "max": 0.0267608324066
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 3442225.6,
+            "min": 3442225.6,
+            "max": 3442225.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 128.62924245775878,
+            "min": 128.62924245775878,
+            "max": 128.62924245775878
+          }
+        },
+        "fv_sst_force": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.02,
+            "min": 0.02,
+            "max": 0.02
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0012883357703680001,
+            "min": 0.0012883357703680001,
+            "max": 0.0012883357703680001
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 385004.72,
+            "min": 385004.72,
+            "max": 385004.72
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 298.83880340450946,
+            "min": 298.83880340450946,
+            "max": 298.83880340450946
+          }
+        },
+        "fv_stress_source": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.10146082378920002,
+            "min": 0.10146082378920002,
+            "max": 0.10146082378920002
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 20858539.52,
+            "min": 20858539.52,
+            "max": 20858539.52
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 205.5822014942115,
+            "min": 205.5822014942115,
+            "max": 205.5822014942115
+          }
+        },
+        "fv_transport_assemble": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 5.2,
+            "min": 5.2,
+            "max": 5.2
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.21699493844,
+            "min": 1.21699493844,
+            "max": 1.21699493844
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 228925819.2,
+            "min": 228925819.2,
+            "max": 228925819.2
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 188.10745383497454,
+            "min": 188.10745383497454,
+            "max": 188.10745383497454
+          }
+        },
+        "fv_transport_faces": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 4.16,
+            "min": 4.16,
+            "max": 4.16
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.712108272128,
+            "min": 0.712108272128,
+            "max": 0.712108272128
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 158801377.28,
+            "min": 158801377.28,
+            "max": 158801377.28
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 223.00173091017788,
+            "min": 223.00173091017788,
+            "max": 223.00173091017788
+          }
+        },
+        "fv_transpose_stress": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.17905832268299998,
+            "min": 0.17905832268299998,
+            "max": 0.17905832268299998
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 34340117.76,
+            "min": 34340117.76,
+            "max": 34340117.76
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 191.7817460001276,
+            "min": 191.7817460001276,
+            "max": 191.7817460001276
+          }
+        },
+        "fv_turbulence_boundary": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.06,
+            "min": 3.06,
+            "max": 3.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.24116665590599998,
+            "min": 0.24116665590599998,
+            "max": 0.24116665590599998
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 74473508.88,
+            "min": 74473508.88,
+            "max": 74473508.88
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 308.80516462867774,
+            "min": 308.80516462867774,
+            "max": 308.80516462867774
+          }
+        },
+        "fv_vector_gradient": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 4.12,
+            "min": 4.12,
+            "max": 4.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.830692518502,
+            "min": 0.830692518502,
+            "max": 0.830692518502
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 164969974.72,
+            "min": 164969974.72,
+            "max": 164969974.72
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 198.59330744604847,
+            "min": 198.59330744604847,
+            "max": 198.59330744604847
+          }
+        },
+        "fv_velocity_boundary": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.06,
+            "min": 3.06,
+            "max": 3.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.33494582865399997,
+            "min": 0.33494582865399997,
+            "max": 0.33494582865399997
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 87749135.28,
+            "min": 87749135.28,
+            "max": 87749135.28
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 261.98008087643666,
+            "min": 261.98008087643666,
+            "max": 261.98008087643666
+          }
+        },
+        "fv_wall_pressure_force": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.02,
+            "min": 0.02,
+            "max": 0.02
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0009491667151459999,
+            "min": 0.0009491667151459999,
+            "max": 0.0009491667151459999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 345935.68,
+            "min": 345935.68,
+            "max": 345935.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 364.4625064067786,
+            "min": 364.4625064067786,
+            "max": 364.4625064067786
+          }
+        },
+        "krylov_diagonal": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 8.0,
+            "min": 8.0,
+            "max": 8.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.218869135716,
+            "min": 0.218869135716,
+            "max": 0.218869135716
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 38894584.0,
+            "min": 38894584.0,
+            "max": 38894584.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 177.70702969498996,
+            "min": 177.70702969498996,
+            "max": 177.70702969498996
+          }
+        },
+        "krylov_multiply_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 293.4,
+            "min": 293.4,
+            "max": 293.4
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 5.27058169712,
+            "min": 5.27058169712,
+            "max": 5.27058169712
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 688605105.6,
+            "min": 688605105.6,
+            "max": 688605105.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 130.65068434026435,
+            "min": 130.65068434026435,
+            "max": 130.65068434026435
+          }
+        },
+        "runtime_copy": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 74.12,
+            "min": 74.12,
+            "max": 74.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.88754862547,
+            "min": 0.88754862547,
+            "max": 0.88754862547
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 119916629.76,
+            "min": 119916629.76,
+            "max": 119916629.76
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 135.10992673387142,
+            "min": 135.10992673387142,
+            "max": 135.10992673387142
+          }
+        },
+        "runtime_fill": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.08,
+            "min": 146.08,
+            "max": 146.08
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.18916154466,
+            "min": 2.18916154466,
+            "max": 2.18916154466
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 78108940.48,
+            "min": 78108940.48,
+            "max": 78108940.48
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 35.67984312100236,
+            "min": 35.67984312100236,
+            "max": 35.67984312100236
+          }
+        },
+        "runtime_reduce": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 868.6,
+            "min": 868.6,
+            "max": 868.6
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 28.122015628,
+            "min": 28.122015628,
+            "max": 28.122015628
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 1576345302.88,
+            "min": 1576345302.88,
+            "max": 1576345302.88
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 56.053780914284616,
+            "min": 56.053780914284616,
+            "max": 56.053780914284616
+          }
+        },
+        "runtime_reduce_into": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 806.5,
+            "min": 806.5,
+            "max": 806.5
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 7.686841408719999,
+            "min": 7.686841408719999,
+            "max": 7.686841408719999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 4935780.0,
+            "min": 4935780.0,
+            "max": 4935780.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.6421076925563758,
+            "min": 0.6421076925563758,
+            "max": 0.6421076925563758
+          }
+        },
+        "runtime_sequence": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 32.0,
+            "min": 32.0,
+            "max": 32.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 14.37922943384,
+            "min": 14.37922943384,
+            "max": 14.37922943384
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "argument_footprint_GB_s": null
+        },
+        "solver_bicg_alpha": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.950443497858,
+            "min": 0.950443497858,
+            "max": 0.950443497858
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 15843.6,
+            "min": 15843.6,
+            "max": 15843.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.01666969160787199,
+            "min": 0.01666969160787199,
+            "max": 0.01666969160787199
+          }
+        },
+        "solver_bicg_beta": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.099990340882,
+            "min": 1.099990340882,
+            "max": 1.099990340882
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 15843.6,
+            "min": 15843.6,
+            "max": 15843.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.014403399203756828,
+            "min": 0.014403399203756828,
+            "max": 0.014403399203756828
+          }
+        },
+        "solver_bicg_difference": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.6760309655200003,
+            "min": 2.6760309655200003,
+            "max": 2.6760309655200003
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 344316636.0,
+            "min": 344316636.0,
+            "max": 344316636.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 128.66691022504412,
+            "min": 128.66691022504412,
+            "max": 128.66691022504412
+          }
+        },
+        "solver_bicg_direction": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.7186007984,
+            "min": 2.7186007984,
+            "max": 2.7186007984
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 344316636.0,
+            "min": 344316636.0,
+            "max": 344316636.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 126.65214995987769,
+            "min": 126.65214995987769,
+            "max": 126.65214995987769
+          }
+        },
+        "solver_bicg_omega": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.798003915698,
+            "min": 0.798003915698,
+            "max": 0.798003915698
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 15843.6,
+            "min": 15843.6,
+            "max": 15843.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.019854037916771226,
+            "min": 0.019854037916771226,
+            "max": 0.019854037916771226
+          }
+        },
+        "solver_bicg_s": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.7410107553,
+            "min": 0.7410107553,
+            "max": 0.7410107553
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 15843.6,
+            "min": 15843.6,
+            "max": 15843.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.02138106618113212,
+            "min": 0.02138106618113212,
+            "max": 0.02138106618113212
+          }
+        },
+        "solver_bicg_step": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 4.3581833969799995,
+            "min": 4.3581833969799995,
+            "max": 4.3581833969799995
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 688617428.4,
+            "min": 688617428.4,
+            "max": 688617428.4
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 158.00561052046982,
+            "min": 158.00561052046982,
+            "max": 158.00561052046982
+          }
+        },
+        "solver_check": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 170.7,
+            "min": 170.7,
+            "max": 170.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.9063274227079999,
+            "min": 0.9063274227079999,
+            "max": 0.9063274227079999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 18435.6,
+            "min": 18435.6,
+            "max": 18435.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.020340993263688954,
+            "min": 0.020340993263688954,
+            "max": 0.020340993263688954
+          }
+        },
+        "solver_direction": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 24.0,
+            "min": 24.0,
+            "max": 24.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.47717417590399996,
+            "min": 0.47717417590399996,
+            "max": 0.47717417590399996
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 37554144.0,
+            "min": 37554144.0,
+            "max": 37554144.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 78.70112402636666,
+            "min": 78.70112402636666,
+            "max": 78.70112402636666
+          }
+        },
+        "solver_pcg_alpha": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 24.0,
+            "min": 24.0,
+            "max": 24.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1382350269706,
+            "min": 0.1382350269706,
+            "max": 0.1382350269706
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 2592.0,
+            "min": 2592.0,
+            "max": 2592.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.01875067453454666,
+            "min": 0.01875067453454666,
+            "max": 0.01875067453454666
+          }
+        },
+        "solver_pcg_beta": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 24.0,
+            "min": 24.0,
+            "max": 24.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1721950154752,
+            "min": 0.1721950154752,
+            "max": 0.1721950154752
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 2592.0,
+            "min": 2592.0,
+            "max": 2592.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.015052700525894762,
+            "min": 0.015052700525894762,
+            "max": 0.015052700525894762
+          }
+        },
+        "solver_reset": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 25.48,
+            "min": 25.48,
+            "max": 25.48
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1813766919076,
+            "min": 0.1813766919076,
+            "max": 0.1813766919076
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 2751.84,
+            "min": 2751.84,
+            "max": 2751.84
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.01517196047109454,
+            "min": 0.01517196047109454,
+            "max": 0.01517196047109454
+          }
+        },
+        "solver_step": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 24.0,
+            "min": 24.0,
+            "max": 24.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.49478342291000005,
+            "min": 0.49478342291000005,
+            "max": 0.49478342291000005
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 75105696.0,
+            "min": 75105696.0,
+            "max": 75105696.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 151.79509361545757,
+            "min": 151.79509361545757,
+            "max": 151.79509361545757
+          }
+        },
+        "sst_blending_viscosity": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.420379182324,
+            "min": 0.420379182324,
+            "max": 0.420379182324
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 90968634.72,
+            "min": 90968634.72,
+            "max": 90968634.72
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 216.39662130054646,
+            "min": 216.39662130054646,
+            "max": 216.39662130054646
+          }
+        },
+        "sst_face_diffusion": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.73295416776,
+            "min": 0.73295416776,
+            "max": 0.73295416776
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 89055057.6,
+            "min": 89055057.6,
+            "max": 89055057.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 121.50153654513412,
+            "min": 121.50153654513412,
+            "max": 121.50153654513412
+          }
+        },
+        "sst_rates": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.305838286876,
+            "min": 0.305838286876,
+            "max": 0.305838286876
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 52666051.68,
+            "min": 52666051.68,
+            "max": 52666051.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 172.2022844751059,
+            "min": 172.2022844751059,
+            "max": 172.2022844751059
+          }
+        },
+        "sst_sources": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.427425769158,
+            "min": 0.427425769158,
+            "max": 0.427425769158
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 76605166.08,
+            "min": 76605166.08,
+            "max": 76605166.08
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 179.22449137988806,
+            "min": 179.22449137988806,
+            "max": 179.22449137988806
+          }
+        },
+        "sst_wall": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.53509418387,
+            "min": 0.53509418387,
+            "max": 0.53509418387
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 245023894.08,
+            "min": 245023894.08,
+            "max": 245023894.08
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 457.90797483145144,
+            "min": 457.90797483145144,
+            "max": 457.90797483145144
+          }
+        },
+        "sst_wall_cells": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.400442560204,
+            "min": 0.400442560204,
+            "max": 0.400442560204
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 86472099.36,
+            "min": 86472099.36,
+            "max": 86472099.36
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 215.94133080147117,
+            "min": 215.94133080147117,
+            "max": 215.94133080147117
+          }
+        },
+        "sst_wall_omega": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.48332169651999995,
+            "min": 0.48332169651999995,
+            "max": 0.48332169651999995
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 74458931.04,
+            "min": 74458931.04,
+            "max": 74458931.04
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 154.05666986629655,
+            "min": 154.05666986629655,
+            "max": 154.05666986629655
+          }
+        }
+      },
+      "phases": {
+        "AMG smoothing, transfers and shared residuals": {
+          "n": 1,
+          "median": 7.654748093326,
+          "min": 7.654748093326,
+          "max": 7.654748093326
+        },
+        "Gradients, limiter and face reconstruction": {
+          "n": 1,
+          "median": 9.729671482924799,
+          "min": 9.729671482924799,
+          "max": 9.729671482924799
+        },
+        "Krylov/CSR/reductions": {
+          "n": 1,
+          "median": 68.7192450323954,
+          "min": 68.7192450323954,
+          "max": 68.7192450323954
+        },
+        "Momentum, pressure and flux coupling": {
+          "n": 1,
+          "median": 3.0529049830510004,
+          "min": 3.0529049830510004,
+          "max": 3.0529049830510004
+        },
+        "Operator refresh and validation": {
+          "n": 1,
+          "median": 0.39518414531,
+          "min": 0.39518414531,
+          "max": 0.39518414531
+        },
+        "Other FV/runtime": {
+          "n": 1,
+          "median": 3.1191626703317863,
+          "min": 3.1191626703317863,
+          "max": 3.1191626703317863
+        },
+        "SST closure": {
+          "n": 1,
+          "median": 3.8938074558982,
+          "min": 3.8938074558982,
+          "max": 3.8938074558982
+        },
+        "Small-operation replay (mixed)": {
+          "n": 1,
+          "median": 14.37922943384,
+          "min": 14.37922943384,
+          "max": 14.37922943384
+        },
+        "Transport assembly (momentum and turbulence)": {
+          "n": 1,
+          "median": 2.1438190061594,
+          "min": 2.1438190061594,
+          "max": 2.1438190061594
+        }
+      },
+      "total_timestamp_ms_per_outer": {
+        "n": 1,
+        "median": 113.08777230323659,
+        "min": 113.08777230323659,
+        "max": 113.08777230323659
+      }
+    },
+    {
+      "case": "wing-L2",
+      "scheme": "simplec",
+      "label": "candidate",
+      "samples": 1,
+      "kernels": {
+        "amg_galerkin": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.09771164972340002,
+            "min": 0.09771164972340002,
+            "max": 0.09771164972340002
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 9317372.0,
+            "min": 9317372.0,
+            "max": 9317372.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 95.35579458923692,
+            "min": 95.35579458923692,
+            "max": 95.35579458923692
+          }
+        },
+        "amg_m_matrix_diagonal": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 2.0,
+            "min": 2.0,
+            "max": 2.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0882341479882,
+            "min": 0.0882341479882,
+            "max": 0.0882341479882
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 7538496.0,
+            "min": 7538496.0,
+            "max": 7538496.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 85.43739778626481,
+            "min": 85.43739778626481,
+            "max": 85.43739778626481
+          }
+        },
+        "amg_prolong_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 75.0,
+            "min": 75.0,
+            "max": 75.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.9260232560339999,
+            "min": 0.9260232560339999,
+            "max": 0.9260232560339999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 47736200.0,
+            "min": 47736200.0,
+            "max": 47736200.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 51.54967727748655,
+            "min": 51.54967727748655,
+            "max": 51.54967727748655
+          }
+        },
+        "amg_restrict_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 50.0,
+            "min": 50.0,
+            "max": 50.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.629278430716,
+            "min": 0.629278430716,
+            "max": 0.629278430716
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 49813600.0,
+            "min": 49813600.0,
+            "max": 49813600.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 79.15987195575977,
+            "min": 79.15987195575977,
+            "max": 79.15987195575977
+          }
+        },
+        "amg_smooth": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 225.0,
+            "min": 225.0,
+            "max": 225.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 5.7229142915399995,
+            "min": 5.7229142915399995,
+            "max": 5.7229142915399995
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 920751300.0,
+            "min": 920751300.0,
+            "max": 920751300.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 160.88853564714694,
+            "min": 160.88853564714694,
+            "max": 160.88853564714694
+          }
+        },
+        "amg_smooth_zero": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 75.0,
+            "min": 75.0,
+            "max": 75.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.260920818896,
+            "min": 1.260920818896,
+            "max": 1.260920818896
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 306917100.0,
+            "min": 306917100.0,
+            "max": 306917100.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 243.40711597475362,
+            "min": 243.40711597475362,
+            "max": 243.40711597475362
+          }
+        },
+        "csr_residual": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 38.26,
+            "min": 38.26,
+            "max": 38.26
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.21815999598,
+            "min": 2.21815999598,
+            "max": 2.21815999598
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 360999781.36,
+            "min": 360999781.36,
+            "max": 360999781.36
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 162.74740416121676,
+            "min": 162.74740416121676,
+            "max": 162.74740416121676
+          }
+        },
+        "csr_residual_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 75.0,
+            "min": 75.0,
+            "max": 75.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.7072858661420003,
+            "min": 1.7072858661420003,
+            "max": 1.7072858661420003
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 284510200.0,
+            "min": 284510200.0,
+            "max": 284510200.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 166.6447345709687,
+            "min": 166.6447345709687,
+            "max": 166.6447345709687
+          }
+        },
+        "csr_spmv_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 317.4,
+            "min": 317.4,
+            "max": 317.4
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 9.149124724799998,
+            "min": 9.149124724799998,
+            "max": 9.149124724799998
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 2746501557.6,
+            "min": 2746501557.6,
+            "max": 2746501557.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 300.1928206482111,
+            "min": 300.1928206482111,
+            "max": 300.1928206482111
+          }
+        },
+        "fv_backflow_pressure": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 2.12,
+            "min": 2.12,
+            "max": 2.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.08429415989660001,
+            "min": 0.08429415989660001,
+            "max": 0.08429415989660001
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 23310171.68,
+            "min": 23310171.68,
+            "max": 23310171.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 276.5336496454034,
+            "min": 276.5336496454034,
+            "max": 276.5336496454034
+          }
+        },
+        "fv_boundary_momentum": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.12,
+            "min": 3.12,
+            "max": 3.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.310384174808,
+            "min": 0.310384174808,
+            "max": 0.310384174808
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 94395862.08,
+            "min": 94395862.08,
+            "max": 94395862.08
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 304.12588572981264,
+            "min": 304.12588572981264,
+            "max": 304.12588572981264
+          }
+        },
+        "fv_cell_pressure_boundary": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.06,
+            "min": 1.06,
+            "max": 1.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0773283280432,
+            "min": 0.0773283280432,
+            "max": 0.0773283280432
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 7076487.92,
+            "min": 7076487.92,
+            "max": 7076487.92
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 91.51223230957059,
+            "min": 91.51223230957059,
+            "max": 91.51223230957059
+          }
+        },
+        "fv_effective_viscosity": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.06,
+            "min": 3.06,
+            "max": 3.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.345926689916,
+            "min": 0.345926689916,
+            "max": 0.345926689916
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 31310066.88,
+            "min": 31310066.88,
+            "max": 31310066.88
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 90.51070007810875,
+            "min": 90.51070007810875,
+            "max": 90.51070007810875
+          }
+        },
+        "fv_face_jump": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.18,
+            "min": 6.18,
+            "max": 6.18
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.086424961686,
+            "min": 1.086424961686,
+            "max": 1.086424961686
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 150788835.84,
+            "min": 150788835.84,
+            "max": 150788835.84
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 138.7936039374445,
+            "min": 138.7936039374445,
+            "max": 138.7936039374445
+          }
+        },
+        "fv_fixed_rows": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.032818345353,
+            "min": 0.032818345353,
+            "max": 0.032818345353
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 7347279.68,
+            "min": 7347279.68,
+            "max": 7347279.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 223.87721260689239,
+            "min": 223.87721260689239,
+            "max": 223.87721260689239
+          }
+        },
+        "fv_floor": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 2.0,
+            "min": 2.0,
+            "max": 2.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.05448915064339999,
+            "min": 0.05448915064339999,
+            "max": 0.05448915064339999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 1564648.0,
+            "min": 1564648.0,
+            "max": 1564648.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 28.714853902563412,
+            "min": 28.714853902563412,
+            "max": 28.714853902563412
+          }
+        },
+        "fv_fluent_momentum_scale": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.04,
+            "min": 0.04,
+            "max": 0.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.00107666477561,
+            "min": 0.00107666477561,
+            "max": 0.00107666477561
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 250343.68,
+            "min": 250343.68,
+            "max": 250343.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 232.51775823924783,
+            "min": 232.51775823924783,
+            "max": 232.51775823924783
+          }
+        },
+        "fv_gather_jump_gradient": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.18,
+            "min": 6.18,
+            "max": 6.18
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.280265753158,
+            "min": 1.280265753158,
+            "max": 1.280265753158
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 208952919.36,
+            "min": 208952919.36,
+            "max": 208952919.36
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 163.2105825252148,
+            "min": 163.2105825252148,
+            "max": 163.2105825252148
+          }
+        },
+        "fv_gradient": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 9.18,
+            "min": 9.18,
+            "max": 9.18
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.3953091716400001,
+            "min": 1.3953091716400001,
+            "max": 1.3953091716400001
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 281310451.2,
+            "min": 281310451.2,
+            "max": 281310451.2
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 201.61155456991443,
+            "min": 201.61155456991443,
+            "max": 201.61155456991443
+          }
+        },
+        "fv_limiter": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 2.08,
+            "min": 2.08,
+            "max": 2.08
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.260259169154,
+            "min": 0.260259169154,
+            "max": 0.260259169154
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 45809886.72,
+            "min": 45809886.72,
+            "max": 45809886.72
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 176.01641805324243,
+            "min": 176.01641805324243,
+            "max": 176.01641805324243
+          }
+        },
+        "fv_moment_diffusion": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.293614184484,
+            "min": 0.293614184484,
+            "max": 0.293614184484
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 70718672.96,
+            "min": 70718672.96,
+            "max": 70718672.96
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 240.8557784232447,
+            "min": 240.8557784232447,
+            "max": 240.8557784232447
+          }
+        },
+        "fv_moment_hop": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 12.12,
+            "min": 12.12,
+            "max": 12.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.88979840464,
+            "min": 2.88979840464,
+            "max": 2.88979840464
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 584771674.56,
+            "min": 584771674.56,
+            "max": 584771674.56
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 202.35725565529495,
+            "min": 202.35725565529495,
+            "max": 202.35725565529495
+          }
+        },
+        "fv_moment_momentum": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.8368324907499999,
+            "min": 0.8368324907499999,
+            "max": 0.8368324907499999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 208690116.0,
+            "min": 208690116.0,
+            "max": 208690116.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 249.38099118613843,
+            "min": 249.38099118613843,
+            "max": 249.38099118613843
+          }
+        },
+        "fv_moment_seed": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 4.04,
+            "min": 4.04,
+            "max": 4.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.36606751848,
+            "min": 0.36606751848,
+            "max": 0.36606751848
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 106235322.88,
+            "min": 106235322.88,
+            "max": 106235322.88
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 290.20690860832036,
+            "min": 290.20690860832036,
+            "max": 290.20690860832036
+          }
+        },
+        "fv_momentum_diagonal": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.039458330720599996,
+            "min": 0.039458330720599996,
+            "max": 0.039458330720599996
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 6508935.68,
+            "min": 6508935.68,
+            "max": 6508935.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 164.95719816656822,
+            "min": 164.95719816656822,
+            "max": 164.95719816656822
+          }
+        },
+        "fv_momentum_faces": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.23385164793600002,
+            "min": 0.23385164793600002,
+            "max": 0.23385164793600002
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 40472836.0,
+            "min": 40472836.0,
+            "max": 40472836.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 173.07056143164965,
+            "min": 173.07056143164965,
+            "max": 173.07056143164965
+          }
+        },
+        "fv_momentum_source": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.15992003493020002,
+            "min": 0.15992003493020002,
+            "max": 0.15992003493020002
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 26164365.76,
+            "min": 26164365.76,
+            "max": 26164365.76
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 163.60905480929833,
+            "min": 163.60905480929833,
+            "max": 163.60905480929833
+          }
+        },
+        "fv_monitor_cell": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.04,
+            "min": 0.04,
+            "max": 0.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0035774987191,
+            "min": 0.0035774987191,
+            "max": 0.0035774987191
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 863505.44,
+            "min": 863505.44,
+            "max": 863505.44
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 241.37127859468086,
+            "min": 241.37127859468086,
+            "max": 241.37127859468086
+          }
+        },
+        "fv_paired_accumulate": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0756142195314,
+            "min": 0.0756142195314,
+            "max": 0.0756142195314
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 7040916.0,
+            "min": 7040916.0,
+            "max": 7040916.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 93.11629536923472,
+            "min": 93.11629536923472,
+            "max": 93.11629536923472
+          }
+        },
+        "fv_paired_continuity": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0771350041032,
+            "min": 0.0771350041032,
+            "max": 0.0771350041032
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 16366330.24,
+            "min": 16366330.24,
+            "max": 16366330.24
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 212.17773215002694,
+            "min": 212.17773215002694,
+            "max": 212.17773215002694
+          }
+        },
+        "fv_paired_correct_flux": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1282441802322,
+            "min": 0.1282441802322,
+            "max": 0.1282441802322
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 21251184.0,
+            "min": 21251184.0,
+            "max": 21251184.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 165.7087593489422,
+            "min": 165.7087593489422,
+            "max": 165.7087593489422
+          }
+        },
+        "fv_paired_correct_velocity": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.06961831357340001,
+            "min": 0.06961831357340001,
+            "max": 0.06961831357340001
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 11734860.0,
+            "min": 11734860.0,
+            "max": 11734860.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 168.5599578281611,
+            "min": 168.5599578281611,
+            "max": 168.5599578281611
+          }
+        },
+        "fv_paired_flux": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.253608338534,
+            "min": 0.253608338534,
+            "max": 0.253608338534
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 44436764.0,
+            "min": 44436764.0,
+            "max": 44436764.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 175.2180715226861,
+            "min": 175.2180715226861,
+            "max": 175.2180715226861
+          }
+        },
+        "fv_paired_limiter": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.12,
+            "min": 3.12,
+            "max": 3.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.44248250313199994,
+            "min": 0.44248250313199994,
+            "max": 0.44248250313199994
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 76052246.4,
+            "min": 76052246.4,
+            "max": 76052246.4
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 171.87627954028352,
+            "min": 171.87627954028352,
+            "max": 171.87627954028352
+          }
+        },
+        "fv_paired_limiter_scale": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.364278336056,
+            "min": 0.364278336056,
+            "max": 0.364278336056
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 80168076.0,
+            "min": 80168076.0,
+            "max": 80168076.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 220.07368559978235,
+            "min": 220.07368559978235,
+            "max": 220.07368559978235
+          }
+        },
+        "fv_paired_momentum_residual": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.12,
+            "min": 3.12,
+            "max": 3.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.218700012192,
+            "min": 0.218700012192,
+            "max": 0.218700012192
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 46524516.48,
+            "min": 46524516.48,
+            "max": 46524516.48
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 212.73211653575692,
+            "min": 212.73211653575692,
+            "max": 212.73211653575692
+          }
+        },
+        "fv_paired_pressure_rhs": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0239316746592,
+            "min": 0.0239316746592,
+            "max": 0.0239316746592
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 1564648.0,
+            "min": 1564648.0,
+            "max": 1564648.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 65.3797957009459,
+            "min": 65.3797957009459,
+            "max": 65.3797957009459
+          }
+        },
+        "fv_pressure_assemble": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1556875230744,
+            "min": 0.1556875230744,
+            "max": 0.1556875230744
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 27552564.0,
+            "min": 27552564.0,
+            "max": 27552564.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 176.97348802211448,
+            "min": 176.97348802211448,
+            "max": 176.97348802211448
+          }
+        },
+        "fv_pressure_boundary": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 4.12,
+            "min": 4.12,
+            "max": 4.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.346279083752,
+            "min": 0.346279083752,
+            "max": 0.346279083752
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 77689472.16,
+            "min": 77689472.16,
+            "max": 77689472.16
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 224.3550817976637,
+            "min": 224.3550817976637,
+            "max": 224.3550817976637
+          }
+        },
+        "fv_pressure_faces": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.06,
+            "min": 1.06,
+            "max": 1.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.23962083272600002,
+            "min": 0.23962083272600002,
+            "max": 0.23962083272600002
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 27527034.0,
+            "min": 27527034.0,
+            "max": 27527034.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 114.87746573135577,
+            "min": 114.87746573135577,
+            "max": 114.87746573135577
+          }
+        },
+        "fv_projected_transport_faces": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.18940167501559999,
+            "min": 0.18940167501559999,
+            "max": 0.18940167501559999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 45430295.04,
+            "min": 45430295.04,
+            "max": 45430295.04
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 239.86216086134482,
+            "min": 239.86216086134482,
+            "max": 239.86216086134482
+          }
+        },
+        "fv_rhie_chow": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.16389835160219998,
+            "min": 0.16389835160219998,
+            "max": 0.16389835160219998
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 35404380.0,
+            "min": 35404380.0,
+            "max": 35404380.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 216.01425306540284,
+            "min": 216.01425306540284,
+            "max": 216.01425306540284
+          }
+        },
+        "fv_scalar_monitor": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.08,
+            "min": 0.08,
+            "max": 0.08
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0054316688329000004,
+            "min": 0.0054316688329000004,
+            "max": 0.0054316688329000004
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 500687.36,
+            "min": 500687.36,
+            "max": 500687.36
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 92.17928695639569,
+            "min": 92.17928695639569,
+            "max": 92.17928695639569
+          }
+        },
+        "fv_speed": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.1,
+            "min": 1.1,
+            "max": 1.1
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.032935841009,
+            "min": 0.032935841009,
+            "max": 0.032935841009
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 3442225.6,
+            "min": 3442225.6,
+            "max": 3442225.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 104.51306220051833,
+            "min": 104.51306220051833,
+            "max": 104.51306220051833
+          }
+        },
+        "fv_sst_force": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.02,
+            "min": 0.02,
+            "max": 0.02
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.0013233302161100003,
+            "min": 0.0013233302161100003,
+            "max": 0.0013233302161100003
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 385004.72,
+            "min": 385004.72,
+            "max": 385004.72
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 290.93624199993104,
+            "min": 290.93624199993104,
+            "max": 290.93624199993104
+          }
+        },
+        "fv_stress_source": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.09833334479479999,
+            "min": 0.09833334479479999,
+            "max": 0.09833334479479999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 20858539.52,
+            "min": 20858539.52,
+            "max": 20858539.52
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 212.1207161571405,
+            "min": 212.1207161571405,
+            "max": 212.1207161571405
+          }
+        },
+        "fv_transport_assemble": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 5.2,
+            "min": 5.2,
+            "max": 5.2
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.3637575320900002,
+            "min": 1.3637575320900002,
+            "max": 1.3637575320900002
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 228925819.2,
+            "min": 228925819.2,
+            "max": 228925819.2
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 167.86401820942774,
+            "min": 167.86401820942774,
+            "max": 167.86401820942774
+          }
+        },
+        "fv_transport_faces": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 4.16,
+            "min": 4.16,
+            "max": 4.16
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.7482832763339999,
+            "min": 0.7482832763339999,
+            "max": 0.7482832763339999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 158801377.28,
+            "min": 158801377.28,
+            "max": 158801377.28
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 212.22093597761793,
+            "min": 212.22093597761793,
+            "max": 212.22093597761793
+          }
+        },
+        "fv_transpose_stress": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 1.04,
+            "min": 1.04,
+            "max": 1.04
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.28386416845,
+            "min": 0.28386416845,
+            "max": 0.28386416845
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 34340117.76,
+            "min": 34340117.76,
+            "max": 34340117.76
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 120.97376695167037,
+            "min": 120.97376695167037,
+            "max": 120.97376695167037
+          }
+        },
+        "fv_turbulence_boundary": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.06,
+            "min": 3.06,
+            "max": 3.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.242730816826,
+            "min": 0.242730816826,
+            "max": 0.242730816826
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 74473508.88,
+            "min": 74473508.88,
+            "max": 74473508.88
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 306.8152196487925,
+            "min": 306.8152196487925,
+            "max": 306.8152196487925
+          }
+        },
+        "fv_vector_gradient": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 4.12,
+            "min": 4.12,
+            "max": 4.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.7752799848099999,
+            "min": 0.7752799848099999,
+            "max": 0.7752799848099999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 164969974.72,
+            "min": 164969974.72,
+            "max": 164969974.72
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 212.7876095762096,
+            "min": 212.7876095762096,
+            "max": 212.7876095762096
+          }
+        },
+        "fv_velocity_boundary": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 3.06,
+            "min": 3.06,
+            "max": 3.06
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.37720667663999996,
+            "min": 0.37720667663999996,
+            "max": 0.37720667663999996
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 87749135.28,
+            "min": 87749135.28,
+            "max": 87749135.28
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 232.62879666296675,
+            "min": 232.62879666296675,
+            "max": 232.62879666296675
+          }
+        },
+        "fv_wall_pressure_force": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 0.02,
+            "min": 0.02,
+            "max": 0.02
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.001130001619458,
+            "min": 0.001130001619458,
+            "max": 0.001130001619458
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 345935.68,
+            "min": 345935.68,
+            "max": 345935.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 306.13733117119466,
+            "min": 306.13733117119466,
+            "max": 306.13733117119466
+          }
+        },
+        "krylov_diagonal": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 8.0,
+            "min": 8.0,
+            "max": 8.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.268296697176,
+            "min": 0.268296697176,
+            "max": 0.268296697176
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 38894584.0,
+            "min": 38894584.0,
+            "max": 38894584.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 144.96855313312162,
+            "min": 144.96855313312162,
+            "max": 144.96855313312162
+          }
+        },
+        "krylov_multiply_guarded": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 293.4,
+            "min": 293.4,
+            "max": 293.4
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 5.54543758742,
+            "min": 5.54543758742,
+            "max": 5.54543758742
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 688605105.6,
+            "min": 688605105.6,
+            "max": 688605105.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 124.17507090191086,
+            "min": 124.17507090191086,
+            "max": 124.17507090191086
+          }
+        },
+        "runtime_copy": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 74.12,
+            "min": 74.12,
+            "max": 74.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.03997733072,
+            "min": 2.03997733072,
+            "max": 2.03997733072
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 119916629.76,
+            "min": 119916629.76,
+            "max": 119916629.76
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 58.78331487030594,
+            "min": 58.78331487030594,
+            "max": 58.78331487030594
+          }
+        },
+        "runtime_fill": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.08,
+            "min": 146.08,
+            "max": 146.08
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.13758978528,
+            "min": 2.13758978528,
+            "max": 2.13758978528
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 78108940.48,
+            "min": 78108940.48,
+            "max": 78108940.48
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 36.540659493172406,
+            "min": 36.540659493172406,
+            "max": 36.540659493172406
+          }
+        },
+        "runtime_reduce": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 868.6,
+            "min": 868.6,
+            "max": 868.6
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 29.285208308200005,
+            "min": 29.285208308200005,
+            "max": 29.285208308200005
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 1576345302.88,
+            "min": 1576345302.88,
+            "max": 1576345302.88
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 53.827354966726176,
+            "min": 53.827354966726176,
+            "max": 53.827354966726176
+          }
+        },
+        "runtime_reduce_into": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 806.5,
+            "min": 806.5,
+            "max": 806.5
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 8.6922515696,
+            "min": 8.6922515696,
+            "max": 8.6922515696
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 4935780.0,
+            "min": 4935780.0,
+            "max": 4935780.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.5678367636369658,
+            "min": 0.5678367636369658,
+            "max": 0.5678367636369658
+          }
+        },
+        "runtime_sequence": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 32.0,
+            "min": 32.0,
+            "max": 32.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 16.55538662336,
+            "min": 16.55538662336,
+            "max": 16.55538662336
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "argument_footprint_GB_s": null
+        },
+        "solver_bicg_alpha": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.9671858651560001,
+            "min": 0.9671858651560001,
+            "max": 0.9671858651560001
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 15843.6,
+            "min": 15843.6,
+            "max": 15843.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.01638113269722417,
+            "min": 0.01638113269722417,
+            "max": 0.01638113269722417
+          }
+        },
+        "solver_bicg_beta": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 1.042753541842,
+            "min": 1.042753541842,
+            "max": 1.042753541842
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 15843.6,
+            "min": 15843.6,
+            "max": 15843.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.015194002575155628,
+            "min": 0.015194002575155628,
+            "max": 0.015194002575155628
+          }
+        },
+        "solver_bicg_difference": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.7750144666,
+            "min": 2.7750144666,
+            "max": 2.7750144666
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 344316636.0,
+            "min": 344316636.0,
+            "max": 344316636.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 124.0774201879615,
+            "min": 124.0774201879615,
+            "max": 124.0774201879615
+          }
+        },
+        "solver_bicg_direction": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 2.89641408716,
+            "min": 2.89641408716,
+            "max": 2.89641408716
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 344316636.0,
+            "min": 344316636.0,
+            "max": 344316636.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 118.87686830635819,
+            "min": 118.87686830635819,
+            "max": 118.87686830635819
+          }
+        },
+        "solver_bicg_omega": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.8800291642539999,
+            "min": 0.8800291642539999,
+            "max": 0.8800291642539999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 15843.6,
+            "min": 15843.6,
+            "max": 15843.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.018003494251728133,
+            "min": 0.018003494251728133,
+            "max": 0.018003494251728133
+          }
+        },
+        "solver_bicg_s": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.79840561375,
+            "min": 0.79840561375,
+            "max": 0.79840561375
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 15843.6,
+            "min": 15843.6,
+            "max": 15843.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.019844048848285046,
+            "min": 0.019844048848285046,
+            "max": 0.019844048848285046
+          }
+        },
+        "solver_bicg_step": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 146.7,
+            "min": 146.7,
+            "max": 146.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 4.30030836258,
+            "min": 4.30030836258,
+            "max": 4.30030836258
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 688617428.4,
+            "min": 688617428.4,
+            "max": 688617428.4
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 160.13210457002185,
+            "min": 160.13210457002185,
+            "max": 160.13210457002185
+          }
+        },
+        "solver_check": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 170.7,
+            "min": 170.7,
+            "max": 170.7
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.9622640023,
+            "min": 0.9622640023,
+            "max": 0.9622640023
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 18435.6,
+            "min": 18435.6,
+            "max": 18435.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.019158567665355137,
+            "min": 0.019158567665355137,
+            "max": 0.019158567665355137
+          }
+        },
+        "solver_direction": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 24.0,
+            "min": 24.0,
+            "max": 24.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.495792520232,
+            "min": 0.495792520232,
+            "max": 0.495792520232
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 37554144.0,
+            "min": 37554144.0,
+            "max": 37554144.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 75.74568487323488,
+            "min": 75.74568487323488,
+            "max": 75.74568487323488
+          }
+        },
+        "solver_pcg_alpha": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 24.0,
+            "min": 24.0,
+            "max": 24.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.14677914325139998,
+            "min": 0.14677914325139998,
+            "max": 0.14677914325139998
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 2592.0,
+            "min": 2592.0,
+            "max": 2592.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.017659184694657066,
+            "min": 0.017659184694657066,
+            "max": 0.017659184694657066
+          }
+        },
+        "solver_pcg_beta": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 24.0,
+            "min": 24.0,
+            "max": 24.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.16480420716100003,
+            "min": 0.16480420716100003,
+            "max": 0.16480420716100003
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 2592.0,
+            "min": 2592.0,
+            "max": 2592.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.015727753827715282,
+            "min": 0.015727753827715282,
+            "max": 0.015727753827715282
+          }
+        },
+        "solver_reset": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 25.48,
+            "min": 25.48,
+            "max": 25.48
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.1618616236374,
+            "min": 0.1618616236374,
+            "max": 0.1618616236374
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 2751.84,
+            "min": 2751.84,
+            "max": 2751.84
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 0.017001188658311194,
+            "min": 0.017001188658311194,
+            "max": 0.017001188658311194
+          }
+        },
+        "solver_step": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 24.0,
+            "min": 24.0,
+            "max": 24.0
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.5763817252600001,
+            "min": 0.5763817252600001,
+            "max": 0.5763817252600001
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 75105696.0,
+            "min": 75105696.0,
+            "max": 75105696.0
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 130.30547761749486,
+            "min": 130.30547761749486,
+            "max": 130.30547761749486
+          }
+        },
+        "sst_blending_viscosity": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.414228285662,
+            "min": 0.414228285662,
+            "max": 0.414228285662
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 90968634.72,
+            "min": 90968634.72,
+            "max": 90968634.72
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 219.60990562153003,
+            "min": 219.60990562153003,
+            "max": 219.60990562153003
+          }
+        },
+        "sst_face_diffusion": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.6893841875719999,
+            "min": 0.6893841875719999,
+            "max": 0.6893841875719999
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 89055057.6,
+            "min": 89055057.6,
+            "max": 89055057.6
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 129.1805921943909,
+            "min": 129.1805921943909,
+            "max": 129.1805921943909
+          }
+        },
+        "sst_rates": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.34949253779,
+            "min": 0.34949253779,
+            "max": 0.34949253779
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 52666051.68,
+            "min": 52666051.68,
+            "max": 52666051.68
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 150.69292183756298,
+            "min": 150.69292183756298,
+            "max": 150.69292183756298
+          }
+        },
+        "sst_sources": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.42313914280400006,
+            "min": 0.42313914280400006,
+            "max": 0.42313914280400006
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 76605166.08,
+            "min": 76605166.08,
+            "max": 76605166.08
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 181.0401315566399,
+            "min": 181.0401315566399,
+            "max": 181.0401315566399
+          }
+        },
+        "sst_wall": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.510955839418,
+            "min": 0.510955839418,
+            "max": 0.510955839418
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 245023894.08,
+            "min": 245023894.08,
+            "max": 245023894.08
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 479.5402560798452,
+            "min": 479.5402560798452,
+            "max": 479.5402560798452
+          }
+        },
+        "sst_wall_cells": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.353841627948,
+            "min": 0.353841627948,
+            "max": 0.353841627948
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 86472099.36,
+            "min": 86472099.36,
+            "max": 86472099.36
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 244.38079787691854,
+            "min": 244.38079787691854,
+            "max": 244.38079787691854
+          }
+        },
+        "sst_wall_omega": {
+          "calls_per_outer": {
+            "n": 1,
+            "median": 6.12,
+            "min": 6.12,
+            "max": 6.12
+          },
+          "ms_per_outer": {
+            "n": 1,
+            "median": 0.431650015526,
+            "min": 0.431650015526,
+            "max": 0.431650015526
+          },
+          "argument_bytes_per_outer": {
+            "n": 1,
+            "median": 74458931.04,
+            "min": 74458931.04,
+            "max": 74458931.04
+          },
+          "argument_footprint_GB_s": {
+            "n": 1,
+            "median": 172.49838610399644,
+            "min": 172.49838610399644,
+            "max": 172.49838610399644
+          }
+        }
+      },
+      "phases": {
+        "AMG smoothing, transfers and shared residuals": {
+          "n": 1,
+          "median": 8.539136797186,
+          "min": 8.539136797186,
+          "max": 8.539136797186
+        },
+        "Gradients, limiter and face reconstruction": {
+          "n": 1,
+          "median": 10.230233310716,
+          "min": 10.230233310716,
+          "max": 10.230233310716
+        },
+        "Krylov/CSR/reductions": {
+          "n": 1,
+          "median": 72.76546237532581,
+          "min": 72.76546237532581,
+          "max": 72.76546237532581
+        },
+        "Momentum, pressure and flux coupling": {
+          "n": 1,
+          "median": 3.1773575674733996,
+          "min": 3.1773575674733996,
+          "max": 3.1773575674733996
+        },
+        "Operator refresh and validation": {
+          "n": 1,
+          "median": 0.45424249488760005,
+          "min": 0.45424249488760005,
+          "max": 0.45424249488760005
+        },
+        "Other FV/runtime": {
+          "n": 1,
+          "median": 4.223042121172178,
+          "min": 4.223042121172178,
+          "max": 4.223042121172178
+        },
+        "SST closure": {
+          "n": 1,
+          "median": 3.8158382941054,
+          "min": 3.8158382941054,
+          "max": 3.8158382941054
+        },
+        "Small-operation replay (mixed)": {
+          "n": 1,
+          "median": 16.55538662336,
+          "min": 16.55538662336,
+          "max": 16.55538662336
+        },
+        "Transport assembly (momentum and turbulence)": {
+          "n": 1,
+          "median": 2.3342608287926003,
+          "min": 2.3342608287926003,
+          "max": 2.3342608287926003
+        }
+      },
+      "total_timestamp_ms_per_outer": {
+        "n": 1,
+        "median": 122.094960413019,
+        "min": 122.094960413019,
+        "max": 122.094960413019
+      }
+    }
+  ],
+  "bandwidth_note": "Whole buffer argument footprint divided by command-buffer GPU timestamp span. Not measured DRAM traffic, achieved DRAM bandwidth, or a traffic bound. Replay traffic is not modeled."
+}

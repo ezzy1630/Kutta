@@ -1,0 +1,101 @@
+WALK_ACTIVE corrected=239459 cells=195581 level3=159729 level2=162023 level1=164113 level0=166079
+fsae_aero it=50 lift=0.79356028 drag=0.064802916 residual=0.021722966 settle=inf
+fsae_aero it=100 lift=0.90544568 drag=0.059980951 residual=0.0058412602 settle=inf
+RESULT {"source":"e014e36c46cd63bd2b9fc52b24247b1e40939f85","device":"Apple M4 Pro","backend":"metal","pressure_scheme":"second-order","pressure_boundary_gradient":"extrapolated","result":{"cells":195581,"poor_cells":0,"iterations":100,"setup_s":1.822083875,"solve_s":14.80671929,"lift":0.9054456759,"drag":0.05998095125,"drag_pressure":0.04893306278,"max_residual":0.005841260241,"settle_lift":null,"settle_drag":null,"residuals_met":false,"settled":false,"budget":false,"yplus_max":0.5254944563,"yplus_mean":0.2429842672,"failure":""}}
+GPU_PROFILE amg_galerkin calls=150 seconds=0.0071275413502 logical_bytes=465868600
+GPU_PROFILE amg_m_matrix_diagonal calls=100 seconds=0.00601816806011 logical_bytes=376924800
+GPU_PROFILE amg_prolong_guarded calls=5334 seconds=0.0665535030421 logical_bytes=3394998544
+GPU_PROFILE amg_restrict_guarded calls=3556 seconds=0.0402813781984 logical_bytes=3542743232
+GPU_PROFILE amg_smooth calls=16002 seconds=0.373031738214 logical_bytes=65483832456
+GPU_PROFILE amg_smooth_zero calls=5334 seconds=0.0806693278719 logical_bytes=21827944152
+GPU_PROFILE csr_residual calls=613 seconds=0.0350698290858 logical_bytes=5783922268
+GPU_PROFILE csr_residual_guarded calls=5334 seconds=0.101555959322 logical_bytes=20234365424
+GPU_PROFILE csr_spmv_guarded calls=5294 seconds=0.203633832047 logical_bytes=45809638456
+GPU_PROFILE fv_backflow_pressure calls=106 seconds=0.00527220848016 logical_bytes=1165508584
+GPU_PROFILE fv_boundary_momentum calls=156 seconds=0.0173190848436 logical_bytes=4719793104
+GPU_PROFILE fv_cell_pressure_boundary calls=53 seconds=0.00459654210135 logical_bytes=353824396
+GPU_PROFILE fv_effective_viscosity calls=153 seconds=0.02119595767 logical_bytes=1565503344
+GPU_PROFILE fv_fixed_rows calls=52 seconds=0.00143483327702 logical_bytes=367363984
+GPU_PROFILE fv_floor calls=100 seconds=0.00232012453489 logical_bytes=78232400
+GPU_PROFILE fv_fluent_momentum_scale calls=2 seconds=8.8875181973e-05 logical_bytes=12517184
+GPU_PROFILE fv_gradient calls=459 seconds=0.0716085005552 logical_bytes=14065522560
+GPU_PROFILE fv_jump_gradient calls=309 seconds=0.107506205561 logical_bytes=18479381616
+GPU_PROFILE fv_limiter calls=104 seconds=0.012256457936 logical_bytes=2290494336
+GPU_PROFILE fv_moment_diffusion calls=52 seconds=0.0136848334223 logical_bytes=3535933648
+GPU_PROFILE fv_moment_hop calls=606 seconds=0.134287294932 logical_bytes=29238583728
+GPU_PROFILE fv_moment_momentum calls=150 seconds=0.0416437501553 logical_bytes=10434505800
+GPU_PROFILE fv_moment_seed calls=202 seconds=0.0180619999301 logical_bytes=5311766144
+GPU_PROFILE fv_momentum_diagonal calls=52 seconds=0.00198287609965 logical_bytes=325446784
+GPU_PROFILE fv_momentum_faces calls=50 seconds=0.00894354167394 logical_bytes=2023641800
+GPU_PROFILE fv_momentum_source calls=52 seconds=0.00709166750312 logical_bytes=1308218288
+GPU_PROFILE fv_monitor_cell calls=2 seconds=0.000173875130713 logical_bytes=43175272
+GPU_PROFILE fv_paired_accumulate calls=150 seconds=0.00482258200645 logical_bytes=352045800
+GPU_PROFILE fv_paired_continuity calls=52 seconds=0.00376437488012 logical_bytes=818316512
+GPU_PROFILE fv_paired_correct_flux calls=50 seconds=0.00630424916744 logical_bytes=1062559200
+GPU_PROFILE fv_paired_correct_velocity calls=50 seconds=0.00351654156111 logical_bytes=586743000
+GPU_PROFILE fv_paired_flux calls=50 seconds=0.0113452908117 logical_bytes=2221838200
+GPU_PROFILE fv_paired_limiter calls=156 seconds=0.0233407097403 logical_bytes=3802612320
+GPU_PROFILE fv_paired_limiter_scale calls=150 seconds=0.0203136662021 logical_bytes=4008403800
+GPU_PROFILE fv_paired_momentum_residual calls=156 seconds=0.0124240852892 logical_bytes=2326225824
+GPU_PROFILE fv_paired_pressure_rhs calls=50 seconds=0.00156174995936 logical_bytes=78232400
+GPU_PROFILE fv_pressure_assemble calls=50 seconds=0.00868962542154 logical_bytes=1377628200
+GPU_PROFILE fv_pressure_boundary calls=206 seconds=0.0177792937029 logical_bytes=3884473608
+GPU_PROFILE fv_pressure_faces calls=53 seconds=0.00911933346651 logical_bytes=1376351700
+GPU_PROFILE fv_projected_transport_faces calls=52 seconds=0.00998904136941 logical_bytes=2271514752
+GPU_PROFILE fv_rhie_chow calls=50 seconds=0.00917970971204 logical_bytes=1770219000
+GPU_PROFILE fv_scalar_monitor calls=4 seconds=0.000242666807026 logical_bytes=25034368
+GPU_PROFILE fv_speed calls=55 seconds=0.0017668758519 logical_bytes=172111280
+GPU_PROFILE fv_sst_force calls=1 seconds=0.000128791667521 logical_bytes=19250236
+GPU_PROFILE fv_stress_source calls=52 seconds=0.00485129165463 logical_bytes=1042926976
+GPU_PROFILE fv_transport_assemble calls=260 seconds=0.0651058291551 logical_bytes=11446290960
+GPU_PROFILE fv_transport_faces calls=208 seconds=0.040868583601 logical_bytes=7940068864
+GPU_PROFILE fv_transpose_stress calls=52 seconds=0.0110534592532 logical_bytes=1717005888
+GPU_PROFILE fv_turbulence_boundary calls=153 seconds=0.0116262917873 logical_bytes=3723675444
+GPU_PROFILE fv_vector_gradient calls=206 seconds=0.0379475424998 logical_bytes=8248498736
+GPU_PROFILE fv_velocity_boundary calls=153 seconds=0.0163104187232 logical_bytes=4387456764
+GPU_PROFILE fv_wall_pressure_force calls=1 seconds=0.000119166681543 logical_bytes=17296784
+GPU_PROFILE krylov_diagonal calls=400 seconds=0.0155378333293 logical_bytes=1944729200
+GPU_PROFILE krylov_multiply_guarded calls=3566 seconds=0.0776334293187 logical_bytes=8369344944
+GPU_PROFILE runtime_copy calls=1392 seconds=0.0353467063978 logical_bytes=2375236016
+GPU_PROFILE runtime_fill calls=6344 seconds=0.0721239293925 logical_bytes=2388448496
+GPU_PROFILE runtime_reduce calls=15954 seconds=0.5438250117 logical_bytes=27140071000
+GPU_PROFILE runtime_reduce_into calls=14149 seconds=0.141541883815 logical_bytes=86591880
+GPU_PROFILE runtime_sequence calls=2128 seconds=1.03517116909 logical_bytes=0
+GPU_PROFILE solver_bicg_alpha calls=1783 seconds=0.0131624126807 logical_bytes=192564
+GPU_PROFILE solver_bicg_beta calls=1783 seconds=0.0141634619795 logical_bytes=192564
+GPU_PROFILE solver_bicg_difference calls=1783 seconds=0.0385777465999 logical_bytes=4184843640
+GPU_PROFILE solver_bicg_direction calls=1783 seconds=0.0369551710319 logical_bytes=4184843640
+GPU_PROFILE solver_bicg_omega calls=1783 seconds=0.0135927968659 logical_bytes=192564
+GPU_PROFILE solver_bicg_s calls=1783 seconds=0.0103064160794 logical_bytes=192564
+GPU_PROFILE solver_bicg_step calls=1783 seconds=0.059191837674 logical_bytes=8369494716
+GPU_PROFILE solver_check calls=3511 seconds=0.0225570378825 logical_bytes=379188
+GPU_PROFILE solver_direction calls=1728 seconds=0.0327569986694 logical_bytes=2703898368
+GPU_PROFILE solver_pcg_alpha calls=1728 seconds=0.00953058642335 logical_bytes=186624
+GPU_PROFILE solver_pcg_beta calls=1728 seconds=0.0110607477836 logical_bytes=186624
+GPU_PROFILE solver_reset calls=2 seconds=2.2541731596e-05 logical_bytes=216
+GPU_PROFILE solver_step calls=1728 seconds=0.0376199174207 logical_bytes=5407610112
+GPU_PROFILE sst_blending_viscosity calls=306 seconds=0.0235518326517 logical_bytes=4548431736
+GPU_PROFILE sst_face_diffusion calls=306 seconds=0.0377663748804 logical_bytes=4452752880
+GPU_PROFILE sst_rates calls=306 seconds=0.0147552066483 logical_bytes=2633302584
+GPU_PROFILE sst_sources calls=306 seconds=0.0211407095194 logical_bytes=3830258304
+GPU_PROFILE sst_wall calls=306 seconds=0.0238461242989 logical_bytes=12251194704
+GPU_PROFILE sst_wall_cells calls=306 seconds=0.0196285001002 logical_bytes=4323604968
+GPU_PROFILE sst_wall_omega calls=306 seconds=0.0236427481286 logical_bytes=3722946552
+       16.68 real         7.05 user         3.40 sys
+           513785856  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               96714  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+              217923  involuntary context switches
+         64871097648  instructions retired
+         37033986847  cycles elapsed
+           717292624  peak memory footprint

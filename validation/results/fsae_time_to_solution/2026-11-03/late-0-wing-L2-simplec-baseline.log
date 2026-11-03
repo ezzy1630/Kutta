@@ -1,0 +1,147 @@
+WALK_ACTIVE corrected=239459 cells=195581 level3=159729 level2=162023 level1=164113 level0=166079
+fsae_aero it=50 lift=0.79356028 drag=0.064802916 residual=0.021722966 settle=inf
+fsae_aero it=100 lift=0.90544568 drag=0.059980951 residual=0.0058412602 settle=inf
+fsae_aero it=150 lift=1.0096169 drag=0.05472861 residual=0.005517017 settle=inf
+fsae_aero it=200 lift=1.1001267 drag=0.0511001 residual=0.0054852927 settle=inf
+fsae_aero it=250 lift=1.1675506 drag=0.04726211 residual=0.004877621 settle=inf
+fsae_aero it=300 lift=1.220217 drag=0.043991917 residual=0.0041937771 settle=inf
+fsae_aero it=350 lift=1.2613907 drag=0.041280858 residual=0.0036394994 settle=inf
+fsae_aero it=400 lift=1.2931235 drag=0.039031847 residual=0.0031923611 settle=inf
+fsae_aero it=450 lift=1.3177053 drag=0.037231482 residual=0.0030587914 settle=inf
+fsae_aero it=500 lift=1.336499 drag=0.035776955 residual=0.0037499803 settle=inf
+fsae_aero it=550 lift=1.3508778 drag=0.03462211 residual=0.0036978708 settle=0.87172058
+fsae_aero it=600 lift=1.3618653 drag=0.033713926 residual=0.0033095032 settle=0.77911501
+fsae_aero it=650 lift=1.3702567 drag=0.033008181 residual=0.0027867733 settle=0.65803168
+fsae_aero it=700 lift=1.3766838 drag=0.032458588 residual=0.0019045899 settle=0.57431677
+fsae_aero it=750 lift=1.3816582 drag=0.032028609 residual=0.0010258399 settle=0.47562168
+fsae_aero it=800 lift=1.3855162 drag=0.03169643 residual=0.00061364278 settle=0.38791391
+fsae_aero it=850 lift=1.3885176 drag=0.031443931 residual=0.0005166187 settle=0.31284026
+fsae_aero it=900 lift=1.3908725 drag=0.031249985 residual=0.00037666769 settle=0.2490197
+fsae_aero it=950 lift=1.3927569 drag=0.031102327 residual=0.00027124847 settle=0.19706423
+fsae_aero it=1000 lift=1.394259 drag=0.030986152 residual=0.00020753684 settle=0.15461111
+fsae_aero it=1050 lift=1.3954799 drag=0.030896494 residual=0.00016121614 settle=0.1205838
+fsae_aero it=1100 lift=1.3964826 drag=0.030826743 residual=0.00012634189 settle=0.093658367
+fsae_aero it=1150 lift=1.3973191 drag=0.03077353 residual=9.9286437e-05 settle=0.072616025
+fsae_aero it=1200 lift=1.3979964 drag=0.030728527 residual=7.807142e-05 settle=0.056301484
+fsae_aero it=1250 lift=1.398568 drag=0.030693077 residual=6.2002525e-05 settle=0.043512495
+fsae_aero it=1300 lift=1.3990407 drag=0.030663274 residual=5.021751e-05 settle=0.033693603
+fsae_aero it=1350 lift=1.3994424 drag=0.030639478 residual=4.1370197e-05 settle=0.026255422
+fsae_aero it=1400 lift=1.3997793 drag=0.030619397 residual=3.2227852e-05 settle=0.020594377
+fsae_aero it=1450 lift=1.4000624 drag=0.030602714 residual=2.5049902e-05 settle=0.016325775
+fsae_aero it=1500 lift=1.4002987 drag=0.030588825 residual=2.0194034e-05 settle=0.012989291
+fsae_aero it=1550 lift=1.4004856 drag=0.030576474 residual=1.6011438e-05 settle=0.010466222
+fsae_aero it=1600 lift=1.4006485 drag=0.030566813 residual=1.3397009e-05 settle=0.0085036721
+fsae_aero it=1650 lift=1.4007835 drag=0.030558921 residual=1.0531281e-05 settle=0.0070227847
+fsae_aero it=1700 lift=1.400899 drag=0.030552672 residual=1.0926254e-05 settle=0.0057558012
+fsae_aero it=1750 lift=1.4009943 drag=0.030547438 residual=1.0066194e-05 settle=0.0047676349
+fsae_aero it=1800 lift=1.4010754 drag=0.030542849 residual=1.0000297e-05 settle=0.0039428304
+fsae_aero it=1850 lift=1.4011446 drag=0.030539062 residual=1.0126898e-05 settle=0.0032881249
+fsae_aero it=1900 lift=1.4012025 drag=0.030535865 residual=9.5688979e-06 settle=0.0027355352
+fsae_aero it=1950 lift=1.4012495 drag=0.030533037 residual=9.1580841e-06 settle=0.0022820143
+fsae_aero it=2000 lift=1.4012904 drag=0.030530702 residual=9.0623904e-06 settle=0.0019037322
+fsae_aero it=2050 lift=1.4013243 drag=0.030528679 residual=9.018622e-06 settle=0.0015655488
+fsae_aero it=2100 lift=1.4013513 drag=0.030527333 residual=8.8142522e-06 settle=0.0012932633
+fsae_aero it=2150 lift=1.4013755 drag=0.030525981 residual=8.628365e-06 settle=0.0010790731
+fsae_aero it=2200 lift=1.4013954 drag=0.030524864 residual=8.349715e-06 settle=0.00091098884
+fsae_aero it=2250 lift=1.4014129 drag=0.030523905 residual=8.3706954e-06 settle=0.00077094951
+fsae_aero it=2300 lift=1.4014266 drag=0.030522991 residual=8.4975963e-06 settle=0.00065059373
+fsae_aero it=2350 lift=1.4014375 drag=0.030522389 residual=8.0262811e-06 settle=0.00054624107
+fsae_aero it=2400 lift=1.4014468 drag=0.030521985 residual=7.8766571e-06 settle=0.00045477801
+RESULT {"source":"e014e36c46cd63bd2b9fc52b24247b1e40939f85","device":"Apple M4 Pro","backend":"metal","pressure_scheme":"second-order","pressure_boundary_gradient":"extrapolated","result":{"cells":195581,"poor_cells":0,"iterations":2400,"setup_s":2.279087834,"solve_s":393.9589653,"lift":1.401446848,"drag":0.03052198474,"drag_pressure":0.01846461676,"max_residual":7.876657106e-06,"settle_lift":0.0001743226054,"settle_drag":0.0004547780067,"residuals_met":true,"settled":true,"budget":false,"yplus_max":0.6386094093,"yplus_mean":0.2374664854,"failure":""}}
+GPU_PROFILE amg_galerkin calls=150 seconds=0.00430104113184 logical_bytes=465868600
+GPU_PROFILE amg_m_matrix_diagonal calls=100 seconds=0.00451470934786 logical_bytes=376924800
+GPU_PROFILE amg_prolong_guarded calls=3750 seconds=0.0422584195621 logical_bytes=2386810000
+GPU_PROFILE amg_restrict_guarded calls=2500 seconds=0.0283618397079 logical_bytes=2490680000
+GPU_PROFILE amg_smooth calls=11250 seconds=0.255889486521 logical_bytes=46037565000
+GPU_PROFILE amg_smooth_zero calls=3750 seconds=0.0562276588753 logical_bytes=15345855000
+GPU_PROFILE csr_residual calls=1913 seconds=0.100233875914 logical_bytes=18049989068
+GPU_PROFILE csr_residual_guarded calls=3750 seconds=0.0738429187331 logical_bytes=14225510000
+GPU_PROFILE csr_spmv_guarded calls=15870 seconds=0.422295748955 logical_bytes=137325077880
+GPU_PROFILE fv_backflow_pressure calls=106 seconds=0.00854900106788 logical_bytes=1165508584
+GPU_PROFILE fv_boundary_momentum calls=156 seconds=0.0142726262566 logical_bytes=4719793104
+GPU_PROFILE fv_cell_pressure_boundary calls=53 seconds=0.00492966687307 logical_bytes=353824396
+GPU_PROFILE fv_effective_viscosity calls=153 seconds=0.0146205830388 logical_bytes=1565503344
+GPU_PROFILE fv_fixed_rows calls=52 seconds=0.00102812424302 logical_bytes=367363984
+GPU_PROFILE fv_floor calls=100 seconds=0.00273866462521 logical_bytes=78232400
+GPU_PROFILE fv_fluent_momentum_scale calls=2 seconds=8.56248661876e-05 logical_bytes=12517184
+GPU_PROFILE fv_gradient calls=459 seconds=0.0743866697885 logical_bytes=14065522560
+GPU_PROFILE fv_jump_gradient calls=309 seconds=0.102872370975 logical_bytes=18479381616
+GPU_PROFILE fv_limiter calls=104 seconds=0.0133889582939 logical_bytes=2290494336
+GPU_PROFILE fv_moment_diffusion calls=52 seconds=0.0127463322133 logical_bytes=3535933648
+GPU_PROFILE fv_moment_hop calls=606 seconds=0.12787516159 logical_bytes=29238583728
+GPU_PROFILE fv_moment_momentum calls=150 seconds=0.0418788325042 logical_bytes=10434505800
+GPU_PROFILE fv_moment_seed calls=202 seconds=0.0201184586622 logical_bytes=5311766144
+GPU_PROFILE fv_momentum_diagonal calls=52 seconds=0.00230241660029 logical_bytes=325446784
+GPU_PROFILE fv_momentum_faces calls=50 seconds=0.00995762483217 logical_bytes=2023641800
+GPU_PROFILE fv_momentum_source calls=52 seconds=0.00735862506554 logical_bytes=1308218288
+GPU_PROFILE fv_monitor_cell calls=2 seconds=0.00039237504825 logical_bytes=43175272
+GPU_PROFILE fv_paired_accumulate calls=150 seconds=0.00433716597036 logical_bytes=352045800
+GPU_PROFILE fv_paired_continuity calls=52 seconds=0.00407849997282 logical_bytes=818316512
+GPU_PROFILE fv_paired_correct_flux calls=50 seconds=0.00706245820038 logical_bytes=1062559200
+GPU_PROFILE fv_paired_correct_velocity calls=50 seconds=0.00388991693035 logical_bytes=586743000
+GPU_PROFILE fv_paired_flux calls=50 seconds=0.0104153740685 logical_bytes=2221838200
+GPU_PROFILE fv_paired_limiter calls=156 seconds=0.0211202064529 logical_bytes=3802612320
+GPU_PROFILE fv_paired_limiter_scale calls=150 seconds=0.0214857503306 logical_bytes=4008403800
+GPU_PROFILE fv_paired_momentum_residual calls=156 seconds=0.00856320769526 logical_bytes=2326225824
+GPU_PROFILE fv_paired_pressure_rhs calls=50 seconds=0.00129166594706 logical_bytes=78232400
+GPU_PROFILE fv_pressure_assemble calls=50 seconds=0.00722812581807 logical_bytes=1377628200
+GPU_PROFILE fv_pressure_boundary calls=206 seconds=0.0196822087746 logical_bytes=3884473608
+GPU_PROFILE fv_pressure_faces calls=53 seconds=0.00907620741054 logical_bytes=1376351700
+GPU_PROFILE fv_projected_transport_faces calls=52 seconds=0.00970766553655 logical_bytes=2271514752
+GPU_PROFILE fv_rhie_chow calls=50 seconds=0.00795341632329 logical_bytes=1770219000
+GPU_PROFILE fv_scalar_monitor calls=4 seconds=0.000194708351046 logical_bytes=25034368
+GPU_PROFILE fv_speed calls=55 seconds=0.00133804162033 logical_bytes=172111280
+GPU_PROFILE fv_sst_force calls=1 seconds=6.44167885184e-05 logical_bytes=19250236
+GPU_PROFILE fv_stress_source calls=52 seconds=0.00507304118946 logical_bytes=1042926976
+GPU_PROFILE fv_transport_assemble calls=260 seconds=0.060849746922 logical_bytes=11446290960
+GPU_PROFILE fv_transport_faces calls=208 seconds=0.0356054136064 logical_bytes=7940068864
+GPU_PROFILE fv_transpose_stress calls=52 seconds=0.00895291613415 logical_bytes=1717005888
+GPU_PROFILE fv_turbulence_boundary calls=153 seconds=0.0120583327953 logical_bytes=3723675444
+GPU_PROFILE fv_vector_gradient calls=206 seconds=0.0415346259251 logical_bytes=8248498736
+GPU_PROFILE fv_velocity_boundary calls=153 seconds=0.0167472914327 logical_bytes=4387456764
+GPU_PROFILE fv_wall_pressure_force calls=1 seconds=4.74583357573e-05 logical_bytes=17296784
+GPU_PROFILE krylov_diagonal calls=400 seconds=0.0109434567858 logical_bytes=1944729200
+GPU_PROFILE krylov_multiply_guarded calls=14670 seconds=0.263529084856 logical_bytes=34430255280
+GPU_PROFILE runtime_copy calls=3706 seconds=0.0443774312735 logical_bytes=5995831488
+GPU_PROFILE runtime_fill calls=7304 seconds=0.109458077233 logical_bytes=3905447024
+GPU_PROFILE runtime_reduce calls=43430 seconds=1.4061007814 logical_bytes=78817265144
+GPU_PROFILE runtime_reduce_into calls=40325 seconds=0.384342070436 logical_bytes=246789000
+GPU_PROFILE runtime_sequence calls=1600 seconds=0.718961471692 logical_bytes=0
+GPU_PROFILE solver_bicg_alpha calls=7335 seconds=0.0475221748929 logical_bytes=792180
+GPU_PROFILE solver_bicg_beta calls=7335 seconds=0.0549995170441 logical_bytes=792180
+GPU_PROFILE solver_bicg_difference calls=7335 seconds=0.133801548276 logical_bytes=17215831800
+GPU_PROFILE solver_bicg_direction calls=7335 seconds=0.13593003992 logical_bytes=17215831800
+GPU_PROFILE solver_bicg_omega calls=7335 seconds=0.0399001957849 logical_bytes=792180
+GPU_PROFILE solver_bicg_s calls=7335 seconds=0.037050537765 logical_bytes=792180
+GPU_PROFILE solver_bicg_step calls=7335 seconds=0.217909169849 logical_bytes=34430871420
+GPU_PROFILE solver_check calls=8535 seconds=0.0453163711354 logical_bytes=921780
+GPU_PROFILE solver_direction calls=1200 seconds=0.0238587087952 logical_bytes=1877707200
+GPU_PROFILE solver_pcg_alpha calls=1200 seconds=0.00691175134853 logical_bytes=129600
+GPU_PROFILE solver_pcg_beta calls=1200 seconds=0.00860975077376 logical_bytes=129600
+GPU_PROFILE solver_reset calls=1274 seconds=0.00906883459538 logical_bytes=137592
+GPU_PROFILE solver_step calls=1200 seconds=0.0247391711455 logical_bytes=3755284800
+GPU_PROFILE sst_blending_viscosity calls=306 seconds=0.0210189591162 logical_bytes=4548431736
+GPU_PROFILE sst_face_diffusion calls=306 seconds=0.036647708388 logical_bytes=4452752880
+GPU_PROFILE sst_rates calls=306 seconds=0.0152919143438 logical_bytes=2633302584
+GPU_PROFILE sst_sources calls=306 seconds=0.0213712884579 logical_bytes=3830258304
+GPU_PROFILE sst_wall calls=306 seconds=0.0267547091935 logical_bytes=12251194704
+GPU_PROFILE sst_wall_cells calls=306 seconds=0.0200221280102 logical_bytes=4323604968
+GPU_PROFILE sst_wall_omega calls=306 seconds=0.024166084826 logical_bytes=3722946552
+      396.31 real        18.38 user        16.14 sys
+           580337664  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              101039  page reclaims
+                 126  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   4  voluntary context switches
+              995623  involuntary context switches
+        189194040133  instructions retired
+        113577635974  cycles elapsed
+           789677208  peak memory footprint

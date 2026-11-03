@@ -1,0 +1,139 @@
+fsae_aero it=50 lift=0.55383099 drag=0.44578166 residual=0.037406645 settle=inf
+fsae_aero it=100 lift=0.47514238 drag=0.42095852 residual=0.011272298 settle=inf
+fsae_aero it=150 lift=0.37755167 drag=0.41101191 residual=0.0067966149 settle=inf
+fsae_aero it=200 lift=0.26181965 drag=0.38128994 residual=0.004456439 settle=inf
+fsae_aero it=250 lift=0.20518755 drag=0.35838298 residual=0.0020545727 settle=inf
+fsae_aero it=300 lift=0.21202322 drag=0.35034182 residual=0.0012499779 settle=inf
+fsae_aero it=350 lift=0.21692616 drag=0.35445122 residual=0.00053810501 settle=inf
+fsae_aero it=400 lift=0.21145102 drag=0.35548749 residual=0.00027966222 settle=inf
+fsae_aero it=450 lift=0.20810368 drag=0.35348256 residual=0.00016050934 settle=inf
+fsae_aero it=500 lift=0.20923524 drag=0.35278979 residual=0.00011265029 settle=inf
+fsae_aero it=550 lift=0.21016264 drag=0.35336454 residual=5.6639766e-05 settle=1.6352495
+fsae_aero it=600 lift=0.20940972 drag=0.35338602 residual=4.2900279e-05 settle=1.2689605
+fsae_aero it=650 lift=0.20940299 drag=0.35311023 residual=2.5607351e-05 settle=0.80299087
+fsae_aero it=700 lift=0.20958118 drag=0.35316278 residual=1.9217074e-05 settle=0.24925174
+fsae_aero it=750 lift=0.20944741 drag=0.35325339 residual=1.0919078e-05 settle=0.035707096
+fsae_aero it=800 lift=0.20942726 drag=0.35322639 residual=1.0124596e-05 settle=0.035806732
+fsae_aero it=850 lift=0.20954373 drag=0.35329837 residual=1.0612887e-05 settle=0.035230996
+fsae_aero it=900 lift=0.2094887 drag=0.3532176 residual=1.0628105e-05 settle=0.009367195
+fsae_aero it=950 lift=0.2095454 drag=0.35321483 residual=1.0575512e-05 settle=0.0068802271
+fsae_aero it=1000 lift=0.20963518 drag=0.35325995 residual=1.0263111e-05 settle=0.0025161044
+fsae_aero it=1050 lift=0.20935368 drag=0.35322737 residual=1.0040857e-05 settle=0.0038641071
+fsae_aero it=1100 lift=0.20941685 drag=0.35319974 residual=9.704289e-06 settle=0.0010425269
+fsae_aero it=1150 lift=0.20956673 drag=0.35327195 residual=1.0682624e-05 settle=0.0010166346
+fsae_aero it=1200 lift=0.20945054 drag=0.35325503 residual=9.6513975e-06 settle=0.00088151158
+fsae_aero it=1250 lift=0.20958092 drag=0.3532544 residual=1.033791e-05 settle=0.0010842688
+fsae_aero it=1300 lift=0.20959845 drag=0.35326847 residual=9.3055549e-06 settle=0.0011678224
+fsae_aero it=1350 lift=0.20937823 drag=0.35321702 residual=1.0365041e-05 settle=0.0012271883
+fsae_aero it=1400 lift=0.20943714 drag=0.35318454 residual=1.1480111e-05 settle=0.00094555603
+fsae_aero it=1450 lift=0.2095963 drag=0.35327691 residual=9.5986841e-06 settle=0.0011575654
+fsae_aero it=1500 lift=0.20939264 drag=0.35325988 residual=1.1452555e-05 settle=0.0011583011
+fsae_aero it=1550 lift=0.20950835 drag=0.35325068 residual=1.0594559e-05 settle=0.00073827178
+fsae_aero it=1600 lift=0.20953857 drag=0.35327079 residual=1.1238124e-05 settle=0.00076519242
+fsae_aero it=1650 lift=0.20945413 drag=0.35324211 residual=9.5685934e-06 settle=0.00068902274
+fsae_aero it=1700 lift=0.2095482 drag=0.35320722 residual=1.07277e-05 settle=0.00081110556
+fsae_aero it=1750 lift=0.20955734 drag=0.35326786 residual=1.0155156e-05 settle=0.00085469267
+fsae_aero it=1800 lift=0.20934758 drag=0.35323444 residual=9.8896432e-06 settle=0.0011983619
+fsae_aero it=1850 lift=0.20942651 drag=0.35325222 residual=9.4057143e-06 settle=0.00081070409
+fsae_aero it=1900 lift=0.20957163 drag=0.35331289 residual=1.0256759e-05 settle=0.0010691003
+fsae_aero it=1950 lift=0.20946476 drag=0.35324495 residual=1.04814e-05 settle=0.00062795716
+fsae_aero it=2000 lift=0.20954552 drag=0.35324365 residual=1.060236e-05 settle=0.00094461543
+fsae_aero it=2050 lift=0.20961688 drag=0.35327231 residual=9.9387952e-06 settle=0.0012847543
+fsae_aero it=2100 lift=0.20933357 drag=0.35323007 residual=1.1271613e-05 settle=0.0013533821
+fsae_aero it=2150 lift=0.20943845 drag=0.3532177 residual=1.0461308e-05 settle=0.00085194222
+fsae_aero it=2200 lift=0.20955123 drag=0.35328181 residual=9.5134063e-06 settle=0.0010386818
+fsae_aero it=2250 lift=0.20944411 drag=0.35327911 residual=1.1398532e-05 settle=0.00082490883
+fsae_aero it=2300 lift=0.20951668 drag=0.35329029 residual=1.0669362e-05 settle=0.000873932
+fsae_aero it=2350 lift=0.20958842 drag=0.35328851 residual=9.4003077e-06 settle=0.00121592
+fsae_aero it=2400 lift=0.20936476 drag=0.3532095 residual=1.0027555e-05 settle=0.0012042378
+fsae_aero it=2450 lift=0.20944197 drag=0.35321118 residual=1.0305212e-05 settle=0.00083514607
+fsae_aero it=2500 lift=0.20955437 drag=0.35327076 residual=1.0846136e-05 settle=0.0010536246
+fsae_aero it=2550 lift=0.2093407 drag=0.35329417 residual=1.0407394e-05 settle=0.0013192795
+fsae_aero it=2600 lift=0.20938594 drag=0.35324063 residual=9.8064126e-06 settle=0.00096699093
+fsae_aero it=2650 lift=0.20953346 drag=0.3532608 residual=1.0464157e-05 settle=0.00091995154
+fsae_aero it=2700 lift=0.20941277 drag=0.35323891 residual=1.0896961e-05 settle=0.00083875085
+fsae_aero it=2750 lift=0.20954529 drag=0.35323884 residual=1.0178143e-05 settle=0.00097631381
+fsae_aero it=2800 lift=0.20950166 drag=0.35325477 residual=1.0060698e-05 settle=0.00076828891
+fsae_aero it=2850 lift=0.209243 drag=0.35324559 residual=9.9227103e-06 settle=0.0016508145
+fsae_aero it=2900 lift=0.20931942 drag=0.35322458 residual=9.8705803e-06 settle=0.0011224018
+fsae_aero it=2950 lift=0.20958083 drag=0.35329363 residual=1.0225748e-05 settle=0.0016119498
+fsae_aero it=3000 lift=0.20943308 drag=0.35325433 residual=1.0783837e-05 settle=0.00090763401
+fsae_aero it=3050 lift=0.20946728 drag=0.3532248 residual=1.0412705e-05 settle=0.0010707492
+fsae_aero it=3100 lift=0.2094552 drag=0.35323409 residual=1.0093001e-05 settle=0.0010131094
+fsae_aero it=3150 lift=0.20926288 drag=0.3532221 residual=1.0371336e-05 settle=0.0015193971
+fsae_aero it=3200 lift=0.20938838 drag=0.35321851 residual=1.0211597e-05 settle=0.00091911891
+fsae_aero it=3250 lift=0.20951024 drag=0.35325946 residual=9.7678448e-06 settle=0.0012755667
+fsae_aero it=3300 lift=0.20927465 drag=0.35324655 residual=1.0169096e-05 settle=0.0014630565
+fsae_aero it=3350 lift=0.20945859 drag=0.35323308 residual=1.0717375e-05 settle=0.0010292924
+fsae_aero it=3400 lift=0.20954079 drag=0.35327733 residual=1.0257697e-05 settle=0.0013262832
+fsae_aero it=3450 lift=0.20935933 drag=0.35321794 residual=1.1677523e-05 settle=0.0010579838
+fsae_aero it=3500 lift=0.20934867 drag=0.35316751 residual=1.0327452e-05 settle=0.0009176673
+fsae_aero it=3550 lift=0.20945207 drag=0.35325636 residual=9.7197608e-06 settle=0.00090329568
+fsae_aero it=3600 lift=0.20927595 drag=0.35326582 residual=9.3811075e-06 settle=0.0012654674
+fsae_aero it=3650 lift=0.20941326 drag=0.3532429 residual=1.0896361e-05 settle=0.00071810588
+fsae_aero it=3700 lift=0.20946944 drag=0.35324323 residual=9.5164926e-06 settle=0.00092993744
+fsae_aero it=3750 lift=0.20934987 drag=0.35318537 residual=1.0189924e-05 settle=0.00091195892
+fsae_aero it=3800 lift=0.20942215 drag=0.35320073 residual=1.0006538e-05 settle=0.00070434363
+fsae_aero it=3850 lift=0.20949936 drag=0.3532594 residual=1.0203013e-05 settle=0.0010664021
+fsae_aero it=3900 lift=0.20919794 drag=0.35320321 residual=9.9944508e-06 settle=0.0016388548
+fsae_aero it=3950 lift=0.20930245 drag=0.35316865 residual=1.0297426e-05 settle=0.00094079652
+fsae_aero it=4000 lift=0.20947937 drag=0.35324023 residual=1.0358542e-05 settle=0.0013434582
+fsae_aero it=4050 lift=0.20942413 drag=0.35326929 residual=1.1746334e-05 settle=0.0010800464
+fsae_aero it=4100 lift=0.20945488 drag=0.35322204 residual=1.0195301e-05 settle=0.001226706
+fsae_aero it=4150 lift=0.20942401 drag=0.35318387 residual=1.0357737e-05 settle=0.0010794998
+fsae_aero it=4200 lift=0.20919425 drag=0.35316494 residual=1.0325745e-05 settle=0.001458541
+fsae_aero it=4250 lift=0.20935434 drag=0.35320061 residual=1.0711812e-05 settle=0.00076470291
+fsae_aero it=4300 lift=0.20950819 drag=0.35328563 residual=9.5630855e-06 settle=0.0014984582
+fsae_aero it=4350 lift=0.20926455 drag=0.35322388 residual=9.1890718e-06 settle=0.0011642571
+fsae_aero it=4400 lift=0.20937151 drag=0.35318436 residual=9.7257346e-06 settle=0.00084664482
+fsae_aero it=4450 lift=0.2094958 drag=0.35322004 residual=1.0304608e-05 settle=0.0014394361
+fsae_aero it=4500 lift=0.20934865 drag=0.35320218 residual=1.0199156e-05 settle=0.00076205752
+fsae_aero it=4550 lift=0.20937798 drag=0.35318037 residual=1.0656511e-05 settle=0.00087751706
+fsae_aero it=4600 lift=0.20940693 drag=0.35319037 residual=1.1027238e-05 settle=0.0010156377
+fsae_aero it=4650 lift=0.20923386 drag=0.35320854 residual=9.2784788e-06 settle=0.0013110852
+fsae_aero it=4700 lift=0.20937851 drag=0.353201 residual=1.1731418e-05 settle=0.00088003483
+fsae_aero it=4750 lift=0.20955817 drag=0.35324234 residual=9.9335221e-06 settle=0.0015476028
+fsae_aero it=4800 lift=0.20933226 drag=0.35318676 residual=1.0758423e-05 settle=0.0010792316
+fsae_aero it=4850 lift=0.20936895 drag=0.35317236 residual=1.0713731e-05 settle=0.00090380769
+fsae_aero it=4900 lift=0.20941796 drag=0.35322834 residual=9.9308338e-06 settle=0.00087909655
+fsae_aero it=4950 lift=0.20923377 drag=0.3532149 residual=1.1094327e-05 settle=0.0015504611
+fsae_aero it=5000 lift=0.20935393 drag=0.35318916 residual=9.8267222e-06 settle=0.00097559594
+fsae_aero it=5050 lift=0.20953663 drag=0.35321356 residual=9.8274335e-06 settle=0.0014454215
+fsae_aero it=5100 lift=0.20938402 drag=0.35321419 residual=1.0393456e-05 settle=0.00083173095
+fsae_aero it=5150 lift=0.20947734 drag=0.35321255 residual=1.1024593e-05 settle=0.0011627702
+fsae_aero it=5200 lift=0.20947289 drag=0.35320345 residual=9.6654024e-06 settle=0.0011415402
+fsae_aero it=5250 lift=0.20921853 drag=0.35313408 residual=9.2108947e-06 settle=0.0016234151
+fsae_aero it=5300 lift=0.20933138 drag=0.35317287 residual=1.0864612e-05 settle=0.00098050973
+fsae_aero it=5350 lift=0.20954338 drag=0.353255 residual=1.001547e-05 settle=0.0015502926
+fsae_aero it=5400 lift=0.20930103 drag=0.35324437 residual=9.1943914e-06 settle=0.0011579118
+fsae_aero it=5450 lift=0.20938457 drag=0.35317888 residual=1.0354827e-05 settle=0.0007929995
+fsae_aero it=5500 lift=0.20951679 drag=0.35321006 residual=1.0142194e-05 settle=0.0014236011
+fsae_aero it=5550 lift=0.20941821 drag=0.35317866 residual=9.567044e-06 settle=0.00095353444
+fsae_aero it=5600 lift=0.20942371 drag=0.35318574 residual=9.9699882e-06 settle=0.00097976631
+fsae_aero it=5650 lift=0.20943974 drag=0.35322043 residual=1.002955e-05 settle=0.0010562017
+fsae_aero it=5700 lift=0.20926368 drag=0.3531769 residual=9.7736759e-06 settle=0.0013366059
+fsae_aero it=5750 lift=0.20939369 drag=0.35317688 residual=1.138081e-05 settle=0.00083654048
+fsae_aero it=5800 lift=0.20964763 drag=0.35325286 residual=9.5019315e-06 settle=0.0018314139
+fsae_aero it=5850 lift=0.20941108 drag=0.3532115 residual=1.1379262e-05 settle=0.0011295929
+fsae_aero it=5900 lift=0.20938796 drag=0.35315745 residual=1.066892e-05 settle=0.0012401465
+fsae_aero it=5950 lift=0.20943205 drag=0.35319559 residual=9.201527e-06 settle=0.0010293493
+fsae_aero it=6000 lift=0.20930377 drag=0.35319438 residual=9.4109687e-06 settle=0.0016428515
+RESULT {"source":"e014e36c46cd63bd2b9fc52b24247b1e40939f85","device":"Apple M4 Pro","backend":"metal","pressure_scheme":"second-order","pressure_boundary_gradient":"extrapolated","result":{"cells":403560,"poor_cells":10,"iterations":6000,"setup_s":12.62997692,"solve_s":1353.353186,"lift":0.2093037735,"drag":0.3531943806,"drag_pressure":0.3062349666,"max_residual":9.410968704e-06,"settle_lift":0.001642851459,"settle_drag":0.0001655641122,"residuals_met":true,"settled":false,"budget":false,"yplus_max":7.101935387,"yplus_mean":3.202613979,"failure":""}}
+     1366.10 real        87.70 user        18.59 sys
+           737656832  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              259296  page reclaims
+                 160  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 385  voluntary context switches
+              944188  involuntary context switches
+        531748881336  instructions retired
+        357841715933  cycles elapsed
+          1252427264  peak memory footprint

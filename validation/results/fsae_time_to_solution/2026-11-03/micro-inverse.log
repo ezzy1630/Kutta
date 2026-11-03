@@ -1,0 +1,29 @@
+parity_matrices=512
+INVERSE_TRIAL rep=0 candidate=0 ms=73.6008
+INVERSE_TRIAL rep=0 candidate=1 ms=32.8409
+INVERSE_TRIAL rep=1 candidate=1 ms=28.3478
+INVERSE_TRIAL rep=1 candidate=0 ms=70.2624
+INVERSE_TRIAL rep=2 candidate=0 ms=63.3798
+INVERSE_TRIAL rep=2 candidate=1 ms=38.9165
+INVERSE_TRIAL rep=3 candidate=1 ms=25.3035
+INVERSE_TRIAL rep=3 candidate=0 ms=112.844
+INVERSE_TRIAL rep=4 candidate=0 ms=159.428
+INVERSE_TRIAL rep=4 candidate=1 ms=31.2258
+        2.91 real         0.46 user         0.01 sys
+             1835008  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                 280  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                1101  involuntary context switches
+          2075174512  instructions retired
+          1616656254  cycles elapsed
+             1392928  peak memory footprint

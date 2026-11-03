@@ -1,0 +1,33 @@
+fsae_aero it=50 lift=0.48108619 drag=0.039563738 residual=0.19879581 settle=inf
+fsae_aero it=100 lift=1.2989686 drag=0.032214254 residual=0.041994251 settle=inf
+fsae_aero it=150 lift=1.4005242 drag=0.030619433 residual=0.011549941 settle=inf
+fsae_aero it=200 lift=1.4015312 drag=0.030508694 residual=0.0037214072 settle=inf
+fsae_aero it=250 lift=1.4016076 drag=0.030513013 residual=0.0019854178 settle=inf
+fsae_aero it=300 lift=1.4015211 drag=0.03051364 residual=0.0015873351 settle=inf
+fsae_aero it=350 lift=1.4015343 drag=0.030517355 residual=0.001805511 settle=inf
+fsae_aero it=400 lift=1.4014897 drag=0.030517381 residual=0.0017541213 settle=inf
+fsae_aero it=450 lift=1.401471 drag=0.030516544 residual=0.0014523752 settle=inf
+fsae_aero it=500 lift=1.4015084 drag=0.030517692 residual=0.0014945461 settle=inf
+fsae_aero it=550 lift=1.4014738 drag=0.030516698 residual=0.0010781176 settle=0.65672838
+fsae_aero it=600 lift=1.4014827 drag=0.030516918 residual=0.0012003425 settle=0.073146869
+fsae_aero it=650 lift=1.4014748 drag=0.030516922 residual=0.00088259294 settle=0.0033591733
+fsae_aero it=700 lift=1.4014793 drag=0.03051726 residual=0.00074854403 settle=0.00028071431
+RESULT {"source":"e014e36c46cd63bd2b9fc52b24247b1e40939f85","device":"Apple M4 Pro","backend":"metal","pressure_scheme":"second-order","pressure_boundary_gradient":"extrapolated","result":{"cells":195581,"poor_cells":0,"iterations":700,"setup_s":1.823382333,"solve_s":101.9831012,"lift":1.401479253,"drag":0.03051726047,"drag_pressure":0.01845982308,"max_residual":0.000748544029,"settle_lift":9.15690549e-05,"settle_drag":0.0002807143084,"residuals_met":true,"settled":true,"budget":false,"yplus_max":0.6386178136,"yplus_mean":0.2374649348,"failure":""}}
+      103.90 real         7.07 user         2.37 sys
+           611418112  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              105855  page reclaims
+                 353  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  77  voluntary context switches
+              119789  involuntary context switches
+         64301712745  instructions retired
+         33471738135  cycles elapsed
+           823755928  peak memory footprint
