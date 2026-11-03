@@ -93,6 +93,31 @@ def velocity_errors(cells, slant):
     return out
 
 
+def pressure_groups(xyz, slant, groups):
+    """Split the slant at the same Cartesian distance used for force bands."""
+    start = -.222 * math.cos(math.radians(slant))
+    leading = xyz[:, 0] < start + .04
+    return dict(groups, slant_leading_40mm=groups['slant'] & leading,
+                slant_remaining=groups['slant'] & ~leading)
+
+
+def upstream_turbulence(cells, viscosity):
+    """Volume-weighted box ahead of the nose, outside ground/body layers.
+
+    U_inlet = rho = 1 in this case. Tu is the mean of sqrt(2k/3)/U_inlet;
+    the outlet-gauge Cp is recorded without fitting a reference-pressure shift.
+    """
+    keep = ((cells['x'] > -1.5) & (cells['x'] < -1.2) &
+            (np.abs(cells['y']) < .15) & (cells['z'] > .35) & (cells['z'] < .55))
+    values = {'tu_over_U_inlet': np.sqrt(2 * cells['k'] / 3),
+              'k': cells['k'], 'omega': cells['omega'],
+              'mu_t_over_mu': cells['mu_t'] / viscosity,
+              'u': cells['u'], 'cp_outlet_gauge': 2 * cells['p']}
+    return dict(cells=int(keep.sum()), **{
+        name: float(np.average(value[keep], weights=cells['volume'][keep])) if keep.any() else None
+        for name, value in values.items()})
+
+
 def summarize(path):
     r = json.loads((path / 'result.json').read_text())
     if r.get('configuration_verified') is False:
@@ -127,9 +152,7 @@ def summarize(path):
     edge_loads = {name: float(cp_force[mask].sum()) for name, mask in bands.items()}
     cp = {}
     for name, xyz, reference, kutta, distance, groups in report.cp_compare(w, slant):
-        groups = dict(groups)
-        groups['slant_leading_40mm'] = groups['slant'] & (xyz[:, 0] < start + .04)
-        groups['slant_remaining'] = groups['slant'] & (xyz[:, 0] >= start + .04)
+        groups = pressure_groups(xyz, slant, groups)
         for region, mask in groups.items():
             keep = mask & (distance < .006)
             cp[f'{name} {region}'] = {'points': int(keep.sum()), 'eligible': int(mask.sum()),
@@ -162,6 +185,8 @@ def summarize(path):
             row[key] = r[key]
     if (path / 'cells.csv').exists():
         cells = np.genfromtxt(path / 'cells.csv', delimiter=',', names=True)
+        viscosity = float(command[command.index('--length') + 1]) / float(command[command.index('--re') + 1])
+        row['upstream_turbulence'] = upstream_turbulence(cells, viscosity)
         row['velocity'] = velocity_errors(cells, slant)
         if (path / 'owners.csv').exists():
             owners = np.genfromtxt(path / 'owners.csv', delimiter=',', names=True)
@@ -190,8 +215,10 @@ def common_pressure_comparisons(rows, paths):
         population = [(r, p) for r, p in zip(rows, paths) if 'cp' in r and r['mesh']['slant_deg'] == angle]
         comparisons = [report.cp_compare(report.walls(p), int(angle)) for _, p in population]
         for source in range(2):
-            for region in ('slant', 'base'):
-                common = np.logical_and.reduce([c[source][5][region] & (c[source][4] < .006) for c in comparisons])
+            groups = [pressure_groups(c[source][1], angle, c[source][5]) for c in comparisons]
+            for region in ('slant', 'base', 'slant_leading_40mm', 'slant_remaining'):
+                common = np.logical_and.reduce([g[region] & (c[source][4] < .006)
+                                                for g, c in zip(groups, comparisons)])
                 for (row, _), comparison in zip(population, comparisons):
                     name, _, reference, kutta, _, _ = comparison[source]
                     row.setdefault('cp_common', {})[f'{name} {region}'] = {
