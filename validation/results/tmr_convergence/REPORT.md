@@ -689,8 +689,10 @@ were removed. No lane processes remain running. No push or PR was made.
 
 ## 2026-11-03 UTC: defaults and remaining convergence study
 
-This follow-up is in progress on base `e014e36`. No new default or convergence
-fix has been accepted. The 3,000-step budget, all reference values and every
+This follow-up is in progress on base `e014e36`. Four of twelve default
+studies are complete. Compensation and slack 16 regress gates; tighter
+momentum and pressure tolerances qualify numerically. No new default or
+convergence fix has been accepted. The 3,000-step budget, all reference values and every
 outer gate remain unchanged. The shared exact-main baseline and the first
 complete default-candidate comparison are recorded below. Other candidates
 and the causal convergence experiments remain unfinished.
@@ -708,8 +710,9 @@ main's unchanged `tools/forensics/compare_slow_assertions.py`.
 ### Option decisions and allocation cost
 
 Compensation and slack 16 are rejected by their completed full slow tiers;
-slack 16 also fails the quick tier. Other decisions
-remain pending the full slow-tier and iteration-cost experiments. Allocation measurements
+slack 16 also fails the quick tier. Momentum and pressure tolerances preserve
+all slow gates and pass the quick tier. Their promotion awaits the remaining
+studies and combined-default proof. Other decisions remain pending. Allocation measurements
 come from independent one-step CPU plate probes, changing one setting at a
 time from ordinary settings, on 816 cells. The compensation row instead uses
 the measured fine-bump delta after the cleanup below. These allocations are
@@ -722,7 +725,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
 | Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Late step time, SST / SA: CPU 0.988x / 0.936x, Metal 1.046x / 1.260x; Metal SA total 1.187x, wide contended ranges | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
-| Pressure absolute tolerance 1e-20 | Quick passes; full tier running | All four ordinary plates still fail at 3,000. Late time, SST / SA: CPU 1.021x / 1.012x, Metal 1.006x / 0.980x; SA inner work unchanged | 0 / 0 | Pending full comparison |
+| Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates still fail at 3,000. Late time, SST / SA: CPU 1.021x / 1.012x, Metal 1.006x / 0.980x; SA inner work unchanged | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
 | Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
 | Scalar steady tolerance 1e-6 | Pending | Pending | 24 / 12 | Pending |
@@ -1141,11 +1144,22 @@ The 3.19–3.47x momentum inner-work increase is deterministic. This option
 must not be described as free, nor can these contended timings establish a
 uniform slowdown across ordinary solves. No default has yet been changed.
 
-### Pressure tolerance: cost complete, full comparison pending
+### Pressure tolerance: complete comparison and cost
 
 Changing only pressure absolute tolerance from `1e-12` to `1e-20` passes the
-quick tier: 307 cases and 7,990,154 assertions. Its complete slow comparison
-is running. No default decision is established by the costs alone.
+quick tier: 307 cases and 7,990,154 assertions. The full slow tier completes
+all 37 cases and 201,633 assertions, retaining main's 51 failed assertions.
+The unchanged canonical comparator exits zero: no regressions, recoveries,
+changed expanded values, missing/new assertion identities or missing/new
+cases. Every recorded assertion payload matches main, including all 153 TMR
+assertions and the 17 remaining convergence failures. This qualifies
+numerically; promotion awaits the remaining studies and combined-default
+proof. The matrix continues to restore ordinary defaults between candidates.
+
+The heaviest completed case peaks at 2,201,946,248 bytes; the heaviest TMR
+case peaks at 388,137,872 bytes. Both stay below the 3 GB guard. Full per-case
+counts and source, binary, XML and comparator hashes are in
+[default-study-pressure-absolute.json](default-study-pressure-absolute.json).
 
 All four ordinary-control plate probes still fail convergence at 3,000.
 SST CPU pressure inner work changes from 60,635 to 59,608, with final maximum

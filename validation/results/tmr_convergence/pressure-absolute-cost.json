@@ -1,5 +1,5 @@
 {
-  "status": "Cost and quick tier complete; full slow comparison running. No default decision or promotion.",
+  "status": "Full slow comparison passed with zero regressions and identical assertion payloads; quick and cost checks complete. Promotion awaits the remaining studies and combined-default proof.",
   "candidate": "Only ordinary pressure absolute tolerance changes from 1e-12 to 1e-20, with retained byte-identical SST scratch cleanup and original Metal runtime.",
   "baseline_sha256": "982116e6897e571b239d0650104e268c9fa618221d557f6e16dce834046875bd",
   "candidate_sha256": "ac4a3ddff5c0924e1d35411a05c14b64f2646ee63845f3737f9bce73a8acd3a9",
@@ -263,5 +263,6 @@
       "candidate_log_sha256": "211c6d4e757f5d48f228800a5cad7e5e2a60e6fffe6ee814a6d1efd26cb59cdd",
       "scope": "Printed every-100-step monitor and cumulative work samples; no claim of full-field byte parity."
     }
-  ]
+  ],
+  "full_study": "default-study-pressure-absolute.json"
 }
