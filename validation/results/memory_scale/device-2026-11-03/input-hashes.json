@@ -1,0 +1,57 @@
+[
+  {
+    "input": "validation/fluent_examples/mixing_elbow/mixing_elbow.cas.h5",
+    "bytes": 3062081,
+    "sha256": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc"
+  },
+  {
+    "input": "validation/fluent_examples/mixing_elbow/elbow_param.cas.h5",
+    "bytes": 1228645,
+    "sha256": "d5795b18a7b8b3f17701609486cd1f288d9e2badb9d33b571f642b68afed8a96"
+  },
+  {
+    "input": "runs/mesh/ahmed35_L1.msh",
+    "bytes": 71924483,
+    "sha256": "0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609"
+  },
+  {
+    "input": "runs/mesh/ahmed35_L2.msh",
+    "bytes": 123752927,
+    "sha256": "e36a524746446c0b54b079957a71969be685758393d0c2279cec1ebd009fbac3"
+  },
+  {
+    "input": "runs/mesh/ahmed35_L3.msh",
+    "bytes": 244092840,
+    "sha256": "f5e041fc6bdd2f5702046654b2d1bdf5fff61fbae83c7c80fc4f19779f44925a"
+  },
+  {
+    "input": "runs/mesh/ahmed35_native.msh",
+    "bytes": 10484537,
+    "sha256": "571b0d11678ee3e806571c7af7ffb2454ed8bb3bb7498f12e1e273aba9820fcd"
+  },
+  {
+    "input": "runs/mesh/ahmed35_L1.cas",
+    "bytes": 72307322,
+    "sha256": "6a8a037dfd73407a230afabdd02004688236f6772b6aed4f42536d1500afada9"
+  },
+  {
+    "input": "runs/mesh/ahmed35_L1_simplec.cas",
+    "bytes": 72307322,
+    "sha256": "cb990b96804973a2efd1ca21bc83837f7a0858346d78c37578c59a22ff0f2ac1"
+  },
+  {
+    "input": "runs/mesh/ahmed35_L2.cas",
+    "bytes": 124135766,
+    "sha256": "edb75934d4cee114fc0e44c4ed1f51ff00e7c3afbe180b2e37a1eac0e6573eb8"
+  },
+  {
+    "input": "runs/mesh/ahmed35_L3.cas",
+    "bytes": 244475679,
+    "sha256": "3f131ec6bf1e7ab083bdf7db5fa1a542b6b8187c611dfd6550716f3b1e2abd0b"
+  },
+  {
+    "input": "tools/memory_scale/ahmed_simplec.kutta.json",
+    "bytes": 1917,
+    "sha256": "ab60a42ac0ffbabce1ca1991e49657030a987a280326e777034ac0205302ceb2"
+  }
+]

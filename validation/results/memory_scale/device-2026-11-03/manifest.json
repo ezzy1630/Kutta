@@ -1,0 +1,39 @@
+{
+  "baseline_arithmetic_source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "diagnostic_source": "95d6b447604da4da51305091c36f9cef99516788",
+  "candidate_solver_source": "e63e157b132fe89e08f01daab907e0fa8155174a",
+  "machine": "Apple M4 Pro, Mac16,8",
+  "physical_memory_bytes": 25769803776,
+  "frozen_binary_embedded_version": "e014e36",
+  "binaries": [
+    {
+      "label": "baseline",
+      "name": "kutta",
+      "sha256": "d1f2a5054312268833aab9c91d70483ed3e3f3e89ed399780ff4b07de6371e92"
+    },
+    {
+      "label": "baseline",
+      "name": "bench_memory",
+      "sha256": "32650f727044d9e93f3039afb336454e774a98f78527b6daa295b09c4a78e1c8"
+    },
+    {
+      "label": "candidate",
+      "name": "kutta",
+      "sha256": "b44c11879bc2e7ac5a2920c02fa9f2ee449bfb4ae4b16bedee8f3d1b20ebcf57"
+    },
+    {
+      "label": "candidate",
+      "name": "bench_memory",
+      "sha256": "ffe0901d6f57d717332c74f8200f40f005db4ca900acf07d0c14e1ad1b4eb4b3"
+    },
+    {
+      "label": "candidate",
+      "name": "kutta-tests",
+      "sha256": "34b119f600d528f082c489559ff877a816f055f6f4f5ff44093c66dceee37148"
+    }
+  ],
+  "verification_tools_source": "68225dea339cc560121c774ba91e1faaf29652a9",
+  "quick_cli_sha256": "a4ae87a9ea74336de659f9a6b8d72a91cd88aa987d005ab3edc38dd6d15e5a39",
+  "quick_cli_embedded_version": "e63e157",
+  "notes": "Scale and parity use the frozen binaries; the quick tier CLI tests use build/kutta rebuilt from the same solver source with the e63e157 version stamp."
+}

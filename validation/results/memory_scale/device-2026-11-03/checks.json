@@ -1,0 +1,46 @@
+{
+  "full_default_build": {
+    "passed": true,
+    "command": "cmake --build build -j 2"
+  },
+  "portability_lint": {
+    "passed": true,
+    "command": "python3 tools/lint_portability.py"
+  },
+  "focused_bitwise_storage_test": {
+    "passed": true,
+    "cases": 1,
+    "assertions": 120,
+    "backends": [
+      "cpu",
+      "metal"
+    ]
+  },
+  "quick_tier": {
+    "passed": true,
+    "cases": 308,
+    "assertions": 7990274,
+    "failures": 0,
+    "slow_cases_excluded": 37,
+    "command": "kutta-tests --test-suite-exclude=slow",
+    "fluent_examples": "<checkout>/validation/fluent_examples",
+    "runs": "<checkout>/runs",
+    "fixture_source": "read-only main checkout"
+  },
+  "parity": {
+    "case_backend_pairs": 10,
+    "actual_iterations_each_run": 40,
+    "cmp_equal": true,
+    "residual_normalization": "grep -v ^# | cut -d, -f1-7"
+  },
+  "phase_runner_propagates_child_failure": true,
+  "full_slow_tier": {
+    "run": false,
+    "reason": "Byte-identical storage-only changes; required CPU/Metal output parity plus native external-aero parity and focused storage tests pass. No slow regression, recovery or changed-value counts are claimed."
+  },
+  "cuda": {
+    "compiled": false,
+    "executed": false,
+    "host_memory": "source audit only"
+  }
+}
