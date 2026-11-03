@@ -75,6 +75,14 @@ int main(int argc, char** argv) {
     KUTTA_REQUIRE(production == "strain" || production == "vorticity", "--sst-production is strain or vorticity");
     o.sst_model.viscosity_limiter = viscosity == "strain" ? SstViscosityLimiter::Strain : SstViscosityLimiter::Vorticity;
     o.sst_model.vorticity_production = production == "vorticity";
+    const auto production_limiter = text("--sst-production-limiter", o.sst_model.production_limiter ? "on" : "off");
+    KUTTA_REQUIRE(production_limiter == "on" || production_limiter == "off", "--sst-production-limiter is on or off");
+    o.sst_model.production_limiter = production_limiter == "on";
+    const auto production_clip = number("--sst-production-clip", o.sst_model.production_clip);
+    KUTTA_REQUIRE(std::isfinite(production_clip) && production_clip >= std::numeric_limits<float>::denorm_min() &&
+                    production_clip <= std::numeric_limits<float>::max(),
+                  "--sst-production-clip must be positive, finite and representable as float");
+    o.sst_model.production_clip = static_cast<float>(production_clip);
     const auto turbulence_convection = text("--turbulence-convection", "second-order");
     KUTTA_REQUIRE(turbulence_convection == "first-order" || turbulence_convection == "second-order", "--turbulence-convection is first-order or second-order");
     o.turbulence_convection = turbulence_convection == "first-order" ? fv::ConvectionScheme::FirstOrderUpwind : fv::ConvectionScheme::SecondOrderUpwind;
@@ -126,7 +134,9 @@ int main(int argc, char** argv) {
     const auto r = run(*dev, o);
     std::cout << "RESULT {\"source\":\"" << KUTTA_BENCH_COMMIT << "\",\"device\":\"" << dev->name() << "\",\"backend\":\"" << backend
               << "\",\"pressure_scheme\":\"" << pressure_scheme << "\",\"pressure_boundary_gradient\":\"" << boundary_gradient
-              << "\",\"laminar_reconstruction\":\"" << laminar_reconstruction << "\",\"result\":";
+              << "\",\"laminar_reconstruction\":\"" << laminar_reconstruction
+              << "\",\"sst_production_limiter\":" << (o.sst_model.production_limiter ? "true" : "false")
+              << ",\"sst_production_clip\":" << std::setprecision(10) << o.sst_model.production_clip << ",\"result\":";
     print(std::cout, r);
     std::cout << "}\n";
     return r.failure.empty() ? 0 : 2;
