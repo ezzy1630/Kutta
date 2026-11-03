@@ -719,7 +719,7 @@ in [default-study-memory.json](default-study-memory.json) and
 
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
-| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary coarse-plate outer/inner counts unchanged | 316.76 / 356.76, fine bump | Keep opt-in |
+| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary iteration cost pending (first supplemental comparison invalid) | 316.76 / 356.76, fine bump | Keep opt-in |
 | Paired-state slack 16 | Pending; quick tier adds two moving-wall uniform-flow failures | Pending | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
@@ -861,27 +861,23 @@ The candidate test binary SHA-256 is
 Slack 16 stays opt-in. Its requested full slow-tier effect and cost measurement
 are still running; this quick result does not replace them.
 
-### Ordinary-control iteration cost of compensation
+### Withdrawn iteration-cost comparison
 
-A separate 3,000-step probe uses the coarse TMR plate geometry with ordinary
-solver controls, independently of the TMR harness opt-ins. Enabling only
-compensated momentum changes neither outer iterations nor cumulative inner
-iterations in these four probes:
+The first supplemental iteration-cost comparison was invalid: its binary
+labeled baseline already enabled compensated momentum. Its identical work
+counts compared compensation with itself. Those counts do not establish the
+option's iteration cost and are withdrawn. The invalid receipt is explicitly
+marked in [compensation-iteration-cost.json](compensation-iteration-cost.json).
+The interrupted slack cost run used the same incorrect baseline and is also
+excluded. Neither invalid cost run changes the completed slow-tier comparison
+or slack's quick-tier regression.
 
-| Model/backend | Outer steps, before → after | Momentum inner steps | Pressure inner steps | Scalar inner steps |
-|---|---:|---:|---:|---:|
-| SST CPU | 300 → 300 | 1,093 → 1,093 | 5,329 → 5,329 | 4,453 → 4,453 |
-| SST Metal | 300 → 300 | 1,080 → 1,080 | 4,952 → 4,952 | 4,475 → 4,475 |
-| SA CPU | 3,000 → 3,000 | 4,076 → 4,076 | 24,674 → 24,674 | 416 → 416 |
-| SA Metal | 3,000 → 3,000 | 9,442 → 9,442 | 24,677 → 24,677 | 417 → 417 |
-
-Both SA ordinary-control probes remain unconverged at the budget. This is
-not a TMR harness failure count or evidence that compensation is unnecessary
-when combined with the other TMR controls. These are iteration measurements;
-no unpaired timing comparison is claimed. Both binaries use the retained
-original Metal runtime. The candidate includes the byte-identical SST memory
-cleanup. [compensation-iteration-cost.json](compensation-iteration-cost.json)
-records their hashes and endpoints.
+A replacement baseline is being built from exact main `e014e36` solver sources
+with only the independent diagnostic benchmark added. Future cost runs will
+check the emitted settings for both binaries before accepting measurements.
+The earlier four-pair compensation timing experiment used a different,
+ordinary-default main binary and remains separately bound to its recorded
+hash and logs; it is not the withdrawn supplemental comparison.
 
 ### Fresh remaining-failure baseline
 

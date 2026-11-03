@@ -134,5 +134,7 @@
       "load_change": 0.0,
       "failure": null
     }
-  ]
+  ],
+  "status": "INVALID: baseline already enables compensated momentum; not an option comparison. Rerun required.",
+  "rows_are_accepted_evidence": false
 }
