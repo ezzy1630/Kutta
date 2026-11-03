@@ -1,0 +1,71 @@
+{
+  "baseline_revision": "8011f3f619ba14610d8875203532d607c1100c2c",
+  "solver_revision": "04b95595d8d54a64327f97e4f7e906408228179b",
+  "backend": "Metal",
+  "device": "Apple M4 Pro",
+  "compiler": "AppleClang 21.0.0, C++20 Release",
+  "default_precision": "float32 storage; unchanged",
+  "rejected_experiment": {
+    "name": "exact coefficient-row interning",
+    "v6_before_bytes": 10268640,
+    "v6_after_bytes": 10268640,
+    "hex_before_bytes": 138654120,
+    "hex_after_bytes": 138654120,
+    "reason": "zero device saving; removed to avoid extra host setup work"
+  },
+  "new_persistent_host_mirror_bytes": 0,
+  "source_commits": [
+    "6b0e5ffe5b5190bf1433e2ca38c40203776293a7",
+    "b2db0a095e28bea307cbe1bf5ec56f386f8556cf",
+    "04b95595d8d54a64327f97e4f7e906408228179b"
+  ],
+  "binaries": {
+    "baseline": {
+      "sha256": "e8ba850a0dea000eca3e57562d9d7be7dcf232afbe68a0a30438ce334161c3ee",
+      "bytes": 4076056,
+      "source_revision": "8011f3f619ba14610d8875203532d607c1100c2c"
+    },
+    "gather": {
+      "sha256": "9e7c2be5e92a5078e6e9fc3f922d3726b49ead45aea8ba6a8acfb7b879a5b311",
+      "bytes": 4076376,
+      "source_state": "Frozen precommit checkpoint in the same isolated checkout; embedded commit remains 8011f3f."
+    },
+    "recompute": {
+      "sha256": "193f4a57ad8bd61a88d3491cba3a0435084eef7646536abcc0c71eb549d6daf5",
+      "bytes": 4076280,
+      "source_state": "Frozen precommit checkpoint in the same isolated checkout; embedded commit remains 8011f3f."
+    },
+    "scratch": {
+      "sha256": "fbe85c58e44b41c1d1eb8c9b1da3645904eed4c5a1da961fa94629bb2e974bb5",
+      "bytes": 4076344,
+      "source_state": "Frozen precommit checkpoint in the same isolated checkout; embedded commit remains 8011f3f."
+    },
+    "final": {
+      "sha256": "0b2731ef68aebaeffc38cd88591d7bcb51908dc437b5d4f164b743548881da1a",
+      "bytes": 4077384,
+      "source_revision": "04b95595d8d54a64327f97e4f7e906408228179b"
+    }
+  },
+  "checkpoint_changes": {
+    "gather": "Face displacement gathers only.",
+    "recompute": "Adds Coupled edge recomputation.",
+    "scratch": "Adds sequential strain and V-cycle scratch; source equals b2db0a0 solver code.",
+    "final": "Adds exact geometry row tables; coefficient interning rejected."
+  },
+  "bench_binaries": {
+    "baseline": "38c7e31dd3a168772facf5ec539575da39faf44728450a95e274a6683639316f",
+    "final": "fa6363b1501d0da54626614bd323263c195be7ce47e8fa5452dc7f4b1ee6f1d2"
+  },
+  "tests_binary_sha256": "d249cbfcc8f6b37f4b7daafec135fd30ec96b12f719ba6399bd2e092cb1a885c",
+  "timing_method": "Three sequential alternating AB/BA pairs, forty iterations, final residual CSV batch 21-40. Each run checks mesh cells, actual iterations and all five output hashes. Contended Mac timings; no RTX timing claim.",
+  "process_peak_method": "Maximum /usr/bin/time -l peak memory footprint across three runs, including mesh read, setup, initialization, solve and output; decimal GB.",
+  "inventory_method": "Exact live solver-owned allocation payload at benchmark iteration mark; per-buffer CSV sum. Excludes backend reductions, driver rounding and thread-local storage.",
+  "capacity_method": "Projection: 0.6 decimal GB reserve, source-derived conservative hybrid-startup bound; no RTX runtime evidence.",
+  "os": "macOS 26.6.2",
+  "v6_simplec_override": {
+    "v": 1,
+    "overrides": {
+      "methods/pressure-velocity-coupling": "simplec"
+    }
+  }
+}

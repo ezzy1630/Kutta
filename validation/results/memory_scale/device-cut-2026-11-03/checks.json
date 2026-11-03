@@ -1,0 +1,65 @@
+{
+  "build": {
+    "exit": 0,
+    "type": "Release",
+    "targets": "full default build",
+    "solver_revision": "04b9559"
+  },
+  "portability_lint": {
+    "exit": 0
+  },
+  "quick": {
+    "cases": 308,
+    "passed": 308,
+    "failed": 0,
+    "assertions": 7990274,
+    "failed_assertions": 0,
+    "excluded_slow_cases": 37
+  },
+  "parity": {
+    "case_backend_pairs": 12,
+    "actual_iterations_per_run": 40,
+    "files": [
+      "fluxes.csv",
+      "forces.csv",
+      "loads.json",
+      "result.vtu",
+      "residuals.csv"
+    ],
+    "residuals": "grep -v ^# | cut -d, -f1-7 then cmp",
+    "all_identical": true
+  },
+  "slow": {
+    "rerun": false,
+    "comparator_run": false,
+    "reason": "Specified byte-identical parity procedure passed; slow assertion changes and zero-regression counts not measured."
+  },
+  "cuda": {
+    "build": false,
+    "runtime": false
+  },
+  "windows_msvc": {
+    "build": false,
+    "runtime": false
+  },
+  "reduced_precision": {
+    "implemented": false,
+    "converged_force_measurements": false,
+    "slow_tier_measurements": false
+  },
+  "target": {
+    "twofold_reduction_met": false,
+    "hex_simplec_at_or_below_1300": false
+  },
+  "l3": {
+    "new_run": false,
+    "status": "held: solo-run window unavailable"
+  },
+  "largest_measured_process_peak_bytes": 2439874840,
+  "owned_heavy_solves_running": false,
+  "parity_comparator_control": {
+    "timing_and_comments_ignored": true,
+    "changed_residual_detected": true,
+    "changed_force_detected": true
+  }
+}

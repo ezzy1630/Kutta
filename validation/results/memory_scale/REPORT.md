@@ -1,7 +1,8 @@
 # Peak memory of a full `kutta solve`
 
-The undated sections below describe the earlier host-memory round. The latest
-[2026-11-03 device-storage results](#2026-11-03--device-storage-baseline-e014e36) are at the end.
+The undated sections describe the earlier host-memory round. The latest
+[lossless device-compaction round](#2026-11-03--lossless-device-compaction-from-8011f3f)
+is at the end; it did not reach the 2× target.
 
 Peak process memory for a whole `kutta solve` (mesh read, case setup, solver setup,
 iterations, VTU and loads output) is 37–41% lower on the Ahmed meshes. Every output
@@ -677,3 +678,239 @@ python3 tools/memory_scale/parity.py --baseline BASE/build/kutta \
 
 The allocation-site provenance is permanent diagnostic support, not a retained
 scratch probe. It does not change allocation sizes or numerical decisions.
+
+
+## 2026-11-03 — lossless device compaction from 8011f3f
+
+**The 2× target was not met.** Hex SIMPLEC goes from 2,199.35 to
+2,067.36 device B/cell (6.00%), still well above 1,300. Hex Coupled saves 9.94%;
+polyhedral Coupled saves 10.78%. The candidate is slower in the measured whole
+CLI pairs. These results do not establish that a 5–20M-cell FSAE mesh fits an
+8–12 GB RTX card.
+
+The baseline is an unchanged build of `8011f3f`. The candidate solver is
+`04b95595d8d54a64327f97e4f7e906408228179b`, built in the isolated checkout with
+AppleClang 21, C++20 Release, HDF5 and Metal, on the M4 Pro with 24 GB unified
+memory and macOS 26.6.2. The three local source commits are:
+
+- `6b0e5ff`: canonical face-side gathers and sequential strain scratch.
+- `b2db0a0`: Coupled edge recomputation and V-cycle residual scratch.
+- `04b9559`: exact walk geometry row tables.
+
+The later tools/report commit does not change this solver source. Full binary
+hashes, the frozen intermediate checkpoints and measurement boundaries are in
+[manifest.json](device-cut-2026-11-03/manifest.json). Input hashes are in
+[input-hashes.json](device-cut-2026-11-03/input-hashes.json). Every comparison
+uses the same input and the same iteration budget.
+
+### Exact device inventory
+
+The twelve `baseline-*-buffers.csv.gz` and `candidate-*-buffers.csv.gz` files in
+[the evidence directory](device-cut-2026-11-03/) enumerate every live
+solver-owned allocation at the benchmark iteration mark. Their exact integer
+byte sums reconcile with `MEMORY_TOTAL`; the table uses those sums, not the
+rounded log values. Backend reductions, command storage, allocation granularity
+and thread-local storage remain outside this inventory. The benchmark uses
+plain SST, default paired state, and its existing inlet/outlet/wall mapping;
+it is a storage probe rather than the native aero boundary setup.
+
+| Mesh | Coupling | Device B/cell, 8011f3f → candidate | Reduction |
+| --- | --- | ---: | ---: |
+| Ahmed L1 hex | SIMPLEC | 2,199.35 → 2,067.36 | 6.00% |
+| Ahmed L1 hex | COUPLED | 2,722.98 → 2,452.42 | 9.94% |
+| V6 polyhedra | SIMPLEC | 3,072.65 → 2,893.02 | 5.85% |
+| V6 polyhedra | COUPLED | 3,699.75 → 3,301.01 | 10.78% |
+| Ahmed native tet/prism | SIMPLEC | 1,897.38 → 1,783.19 | 6.02% |
+| Ahmed native tet/prism | COUPLED | 2,372.99 → 2,149.83 | 9.40% |
+
+[inventory-summary.json](device-cut-2026-11-03/inventory-summary.json) records
+cells, faces, internal faces, buffer counts and exact totals. The meshes have
+403,560 hex cells, 17,822 polyhedral cells and 115,882 native tet/prism cells.
+
+### Changes, lifetimes and time cost
+
+As above, `N` is cells, `F` faces, `I` internal faces and `E=F+I` incidences.
+
+1. **Face displacement gathers: `12E` bytes saved.** The removed incidence
+   vectors contained `float(face_centroid - cell_centroid)`. Those exact words
+   already exist in `owner_to_face` and `neighbour_to_face`. Limiters and the
+   jump correction select the face side using the existing incidence sign.
+   No subtraction from rounded coordinates is introduced.
+2. **Sequential scratch: `24N + 16(N + sum n_l)` bytes saved with Coupled.**
+   The three base strain gradients become one vector, consumed by each
+   component's jump correction before the next component overwrites it. The
+   corrected gradients remain separate. The ordinary strain path adds two
+   scalar gradient launches and two inverse restores versus the fused vector fit. In the Coupled
+   V-cycle, the smoothing temporary holds the residual until restriction has
+   consumed it; post-smoothing then overwrites it. Fine and coarse non-alias
+   assertions check the actual solution/scratch handles. The base-gradient part
+   saves `24N` with SIMPLEC; the Coupled residual part saves
+   `16(N + sum n_l)`, where `n_l` are coarse-level cell counts.
+3. **Coupled edge recomputation: `20E` bytes saved.** Five directed-edge
+   coefficients are reconstructed from the mass, viscosity, weights and geometry
+   frozen for the blocking solve. Their expressions and accumulation order stay
+   the same. Volatile final float values preserve the former cache's rounding
+   boundary before multiplication into the Krylov vector. The block inverse and
+   coarse operators remain stored. This is the clear measured time penalty.
+4. **Exact walk geometry rows: about `36N` bytes saved.** Rows are interned by
+   all ten float words, including signed zero. Encounter order fixes row ids.
+   An indexed level costs `40U + 4N` bytes for `U` unique rows; dense storage
+   stays in use whenever it is smaller. On these meshes only hop zero compacts;
+   the other three levels stay dense. The row dictionaries and construction
+   maps are freed on the host after upload.
+
+The per-change byte totals below reconcile exactly with the inventory delta;
+[change-savings.json](device-cut-2026-11-03/change-savings.json) has integer
+bytes, including the native mesh. Time attribution uses three alternating
+pairs on V6 Coupled, 40 iterations, timing the final batch (21–40). Each row
+compares successive frozen checkpoints. Intermediate binaries were built
+before the source commits; their hashes and changes are recorded in the
+manifest. The final whole-case measurements use the committed solver.
+
+| Change | Hex B/cell saved, SIMPLEC / Coupled | Poly B/cell saved, SIMPLEC / Coupled | V6 paired median time change (range) |
+| --- | ---: | ---: | ---: |
+| Face-side gathers | 72.00 / 72.00 | 120.10 / 120.10 | -1.5% (-1.7% to -1.0%) |
+| Sequential strain / V-cycle scratch | 24.00 / 42.57 | 24.00 / 42.95 | -6.2% (-53.5% to +4.2%) |
+| Coupled edge cache removed | 0.00 / 120.00 | 0.00 / 200.16 | +22.8% (+14.2% to +22.9%) |
+| Walk geometry row tables | 35.99 / 35.99 | 35.53 / 35.53 | -0.9% (-9.3% to +9.5%) |
+
+The scratch and walk timing ranges cross zero and are inconclusive. Small
+negative medians are not claimed as speedups. Coupled recomputation was slower
+in every isolated pair. The exact data are in
+[timing-summary.json](device-cut-2026-11-03/timing-summary.json) and the
+`*-paired-runs.jsonl.gz` records. These are contended Mac timings, not RTX costs.
+
+### Whole CLI process and iteration measurements
+
+Each case uses Metal, SST Coupled and 40 actual iterations: three sequential
+AB/BA pairs, with the last residual CSV batch (21–40) timed. Every run checks
+actual mesh cells, completed iterations and all five output hashes. Peak process
+memory is the maximum of the three runs per binary under `/usr/bin/time -l`,
+including mesh read, setup, initialization, iterations and output. GB is decimal.
+Device here is the live iteration payload including Metal reductions, so it
+is slightly larger than the allocation inventory above. It is not a measured
+CUDA allocation high-water mark.
+
+| Case | Cells | Device B/cell, before → after | Peak process GB, before → after | Median s/iteration, before → after | Paired median time change |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| V6 polyhedral elbow | 17,822 | 3,704.4 → 3,305.6 | 0.233 → 0.226 | 0.0711 → 0.0762 | +7.2% |
+| Ahmed L1 | 403,560 | 2,723.2 → 2,452.6 | 1.492 → 1.382 | 0.2006 → 0.2373 | +17.3% |
+| Ahmed L2 | 689,796 | 2,713.4 → 2,442.9 | 2.440 → 2.253 | 0.2846 → 0.3214 | +9.9% |
+| Ahmed L3 | 1,329,048 | not measured | not measured | not measured | held |
+
+**L3 remains unfinished.** A solo window was unavailable: the separate main
+slow-tier process was still active with a 4.46 GB physical footprint at the
+recorded gate. RSS understated that footprint. [l3-hold.json](device-cut-2026-11-03/l3-hold.json)
+records the observation. The earlier section's L3 numbers are historical;
+they are not substituted for a new before/after run. No owned solve remains
+running.
+
+The whole-case paired time-change ranges were +5.3% to +22.2% for V6,
++12.0% to +21.3% for L1, and +6.4% to +15.9% for L2. Paired medians need not
+equal the ratio of the two separate timing medians.
+
+### Projected RTX capacity
+
+The same conservative hybrid-startup bound is retained:
+persistent payload plus `124N + 8P + 16F + 12E + 40B + 112` bytes, with
+`P=N+2I` and `B=F-I`. Pressure AMG still serves hybrid initialization under
+Coupled, so it has not been removed. The table reserves 0.6 GB for context,
+display and driver use, as before. Values use the measured mesh ratios and
+are projections, not card measurements.
+
+| Mesh / coupling | Startup-bound B/cell, before → after | 8 GB Mcells, before → after | 12 GB Mcells, before → after | 24 GB Mcells after |
+| --- | ---: | ---: | ---: | ---: |
+| Hex / SIMPLEC | 2,502.0 → 2,370.0 | 2.96 → 3.12 | 4.56 → 4.81 | 9.87 |
+| Hex / COUPLED | 3,025.6 → 2,755.1 | 2.45 → 2.69 | 3.77 → 4.14 | 8.49 |
+| Poly / SIMPLEC | 3,495.6 → 3,316.0 | 2.12 → 2.23 | 3.26 → 3.44 | 7.06 |
+| Poly / COUPLED | 4,122.8 → 3,724.0 | 1.79 → 1.99 | 2.77 → 3.06 | 6.28 |
+| Tet/prism / SIMPLEC | 2,159.0 → 2,044.8 | 3.43 → 3.62 | 5.28 → 5.58 | 11.44 |
+| Tet/prism / COUPLED | 2,634.6 → 2,411.4 | 2.81 → 3.07 | 4.33 → 4.73 | 9.70 |
+
+The 8 GB poly Coupled projection is still only about 2.0M cells. The
+consumer-card full-car target remains open.
+
+### Host mirrors and CUDA boundary
+
+There are **zero new persistent host mirror bytes**. The current CUDA source
+uses `cudaMalloc` and completed upload/download copies; it does not keep a
+whole-solve staging mirror for every device allocation. Walk dictionaries are
+construction temporaries. Coupled recomputation adds no iteration-time host
+transfer. The removed stencil face-displacement construction also removes its
+`24E`-byte host double-vector temporary.
+
+Existing host owner/neighbour arrays, fine CSR pattern, mesh points, face-node
+CSR, zones, patches and permutations remain. `MeshGeometry` remains
+`48F + 32N` host bytes, excluding capacity/allocator overhead, against float
+geometry on device. Scalar fields and Krylov vectors have no permanent full
+host copies. In the measured CLI runs, maximum live heap at the iteration
+mark was 408.730 → 408.729 B/cell on L1 and 397.029 → 397.047 on L2:
+essentially unchanged. These are macOS heap observations, not CUDA host RSS.
+CUDA compilation, actual VRAM high-water usage, Windows/Linux host RSS and
+RTX iteration cost remain unverified.
+
+### Parity and checks
+
+All twelve final-source case/backend pairs completed 40 iterations and passed
+`cmp` for `fluxes.csv`, `forces.csv`, `loads.json`, `result.vtu`, and residuals
+after the literal `grep -v '^#' | cut -d, -f1-7` pipeline. Baseline outputs were
+from actual 40-iteration runs of `8011f3f`; candidates were checked against the
+final `04b9559` artifact. CPU and Metal are compared separately, not to one
+another. [parity.jsonl](device-cut-2026-11-03/parity.jsonl) has full hashes.
+
+| Case | CPU, 40 iterations | Metal, 40 iterations |
+| --- | --- | --- |
+| V6 Coupled, `wfgc` | identical | identical |
+| elbow_param, `compressibility,ke-options` | identical | identical |
+| V6 converted SIMPLEC, `wfgc` | identical | identical |
+| Ahmed L1 Coupled, V6-derived wrapper | identical | identical |
+| Ahmed L1 SIMPLEC, V6-derived wrapper | identical | identical |
+| Native Ahmed L1 SIMPLEC, 40 m/s air | identical | identical |
+
+- Full default Release build and portability lint pass.
+- Quick tier: 308 cases and 7,990,274 assertions passed, zero failures.
+  The 37 excluded cases match the separately counted slow suite.
+- No test threshold, reference, control, iteration budget or skip was changed.
+- Full slow tier and comparator were **not rerun** under the brief's
+  byte-identical exception. Slow assertion changes and zero-regression counts
+  are not measured. The separately running main slow baseline was not modified.
+- Forty-iteration output parity is not converged force or Fluent acceptance.
+
+[checks.json](device-cut-2026-11-03/checks.json) records the scope.
+
+### Rejected work and remaining costs
+
+Exact coefficient-row interning saved **zero bytes**: hex coefficient storage
+stayed 138,654,120 bytes and poly storage stayed 10,268,640. It adds host table
+construction, so it was removed. Its setup time was not measured in controlled
+pairs. Geometry row interning remains because it does save payload.
+
+The SST source/sink fields are consumed after `update()` by successive
+assemblies and physical residuals. Its diagnostics are publicly exposed through
+`SteadySolver::turbulence()` and remain valid after update; transition also reads
+strain and vorticity. They cannot simply become overlapping scratch without
+changing that contract or proving a replacement. Even hypothetical removal of
+all fifteen cell float fields would save only 60 B/cell, versus the remaining
+767 B/cell gap to 1,300 on hex SIMPLEC.
+
+Walk coefficients, the three remaining dense geometry-moment levels, gradients,
+fine state and Coupled Krylov/coarse block state still dominate. The coarse
+operators and transfer maps remain live through refresh, restriction and
+prolongation. A larger reconstruction/storage change is still needed to reach
+2×; this round has not proved one. No float16/bfloat16 mode was implemented.
+Its converged Ahmed/wing force effects and slow-tier results are unmeasured.
+
+To reproduce the final paired measurement on the same generated inputs:
+
+```sh
+python3 tools/memory_scale/parity.py --baseline BASE/kutta \
+  --candidate build/kutta --out runs/memory-parity --backends cpu,metal
+python3 tools/memory_scale/paired.py --baseline BASE/kutta \
+  --candidate build/kutta --case runs/mesh/ahmed35_L1.cas --cells 403560 \
+  --iterations 40 --pairs 3 --out runs/memory-paired-l1
+```
+
+Use the existing fixture-link procedure and test environment from the brief.
+The paired runner requires a fresh output directory, verifies cells and actual
+iterations, and stops before another solve if a process peak exceeds its
+3 GB default limit. L3 still requires a solo window and one run per binary.

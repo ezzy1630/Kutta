@@ -1,0 +1,32 @@
+[
+  {
+    "mesh": "hex",
+    "cells": 403560,
+    "face_gather_bytes": 29056320,
+    "strain_scratch_bytes": 9685440,
+    "walk_dictionary_bytes": 14523080,
+    "coupled_edge_bytes": 48427200,
+    "coupled_residual_bytes": 7492176,
+    "coarse_cells_sum": 64701
+  },
+  {
+    "mesh": "v6",
+    "cells": 17822,
+    "face_gather_bytes": 2140356,
+    "strain_scratch_bytes": 427728,
+    "walk_dictionary_bytes": 633272,
+    "coupled_edge_bytes": 3567260,
+    "coupled_residual_bytes": 337792,
+    "coarse_cells_sum": 3290
+  },
+  {
+    "mesh": "native",
+    "cells": 115882,
+    "face_gather_bytes": 6281952,
+    "strain_scratch_bytes": 2781168,
+    "walk_dictionary_bytes": 4170032,
+    "coupled_edge_bytes": 10469920,
+    "coupled_residual_bytes": 2157088,
+    "coarse_cells_sum": 18936
+  }
+]

@@ -1,0 +1,218 @@
+[
+  {
+    "label": "baseline",
+    "mesh": "hex",
+    "coupling": "simplec",
+    "cells": 403560,
+    "faces": 1224168,
+    "internal_faces": 1197192,
+    "device_bytes": 887569556,
+    "buffer_count": 341,
+    "bytes_per_cell": 2199.3496778669837,
+    "hybrid_bound_bytes_per_cell": 2502.023758548915,
+    "capacity_mcells": {
+      "8": 2.957605807984708,
+      "12": 4.556311650138604,
+      "24": 9.352429176600294
+    },
+    "source_revision": "8011f3f619ba14610d8875203532d607c1100c2c"
+  },
+  {
+    "label": "candidate",
+    "mesh": "hex",
+    "coupling": "simplec",
+    "cells": 403560,
+    "faces": 1224168,
+    "internal_faces": 1197192,
+    "device_bytes": 834304716,
+    "buffer_count": 333,
+    "bytes_per_cell": 2067.362265834077,
+    "hybrid_bound_bytes_per_cell": 2370.0363465160076,
+    "capacity_mcells": {
+      "8": 3.1223149851174736,
+      "12": 4.810052814910703,
+      "24": 9.87326630429039
+    },
+    "source_revision": "04b95595d8d54a64327f97e4f7e906408228179b"
+  },
+  {
+    "label": "baseline",
+    "mesh": "hex",
+    "coupling": "coupled",
+    "cells": 403560,
+    "faces": 1224168,
+    "internal_faces": 1197192,
+    "device_bytes": 1098884132,
+    "buffer_count": 419,
+    "bytes_per_cell": 2722.975844979681,
+    "hybrid_bound_bytes_per_cell": 3025.6499256616116,
+    "capacity_mcells": {
+      "8": 2.445755517595731,
+      "12": 3.767785527106937,
+      "24": 7.733875555640555
+    },
+    "source_revision": "8011f3f619ba14610d8875203532d607c1100c2c"
+  },
+  {
+    "label": "candidate",
+    "mesh": "hex",
+    "coupling": "coupled",
+    "cells": 403560,
+    "faces": 1224168,
+    "internal_faces": 1197192,
+    "device_bytes": 989699916,
+    "buffer_count": 405,
+    "bytes_per_cell": 2452.4232233125185,
+    "hybrid_bound_bytes_per_cell": 2755.0973039944492,
+    "capacity_mcells": {
+      "8": 2.6859305438218777,
+      "12": 4.137784891833704,
+      "24": 8.493347935869181
+    },
+    "source_revision": "04b95595d8d54a64327f97e4f7e906408228179b"
+  },
+  {
+    "label": "baseline",
+    "mesh": "v6",
+    "coupling": "simplec",
+    "cells": 17822,
+    "faces": 91581,
+    "internal_faces": 86782,
+    "device_bytes": 54760688,
+    "buffer_count": 340,
+    "bytes_per_cell": 3072.645494332847,
+    "hybrid_bound_bytes_per_cell": 3495.647402087308,
+    "capacity_mcells": {
+      "8": 2.116918312636835,
+      "12": 3.261198481629719,
+      "24": 6.69403898860837
+    },
+    "source_revision": "8011f3f619ba14610d8875203532d607c1100c2c"
+  },
+  {
+    "label": "candidate",
+    "mesh": "v6",
+    "coupling": "simplec",
+    "cells": 17822,
+    "faces": 91581,
+    "internal_faces": 86782,
+    "device_bytes": 51559332,
+    "buffer_count": 332,
+    "bytes_per_cell": 2893.0160475816406,
+    "hybrid_bound_bytes_per_cell": 3316.0179553361013,
+    "capacity_mcells": {
+      "8": 2.231592259050346,
+      "12": 3.437858345023506,
+      "24": 7.0566566029429865
+    },
+    "source_revision": "04b95595d8d54a64327f97e4f7e906408228179b"
+  },
+  {
+    "label": "baseline",
+    "mesh": "v6",
+    "coupling": "coupled",
+    "cells": 17822,
+    "faces": 91581,
+    "internal_faces": 86782,
+    "device_bytes": 65937012,
+    "buffer_count": 418,
+    "bytes_per_cell": 3699.753787453709,
+    "hybrid_bound_bytes_per_cell": 4122.7556952081695,
+    "capacity_mcells": {
+      "8": 1.7949159608465117,
+      "12": 2.765140804547329,
+      "24": 5.67581533564978
+    },
+    "source_revision": "8011f3f619ba14610d8875203532d607c1100c2c"
+  },
+  {
+    "label": "candidate",
+    "mesh": "v6",
+    "coupling": "coupled",
+    "cells": 17822,
+    "faces": 91581,
+    "internal_faces": 86782,
+    "device_bytes": 58830604,
+    "buffer_count": 404,
+    "bytes_per_cell": 3301.0102120974075,
+    "hybrid_bound_bytes_per_cell": 3724.0121198518686,
+    "capacity_mcells": {
+      "8": 1.987104166646577,
+      "12": 3.061214526996078,
+      "24": 6.283545608044581
+    },
+    "source_revision": "04b95595d8d54a64327f97e4f7e906408228179b"
+  },
+  {
+    "label": "baseline",
+    "mesh": "native",
+    "coupling": "simplec",
+    "cells": 115882,
+    "faces": 266244,
+    "internal_faces": 257252,
+    "device_bytes": 219872320,
+    "buffer_count": 341,
+    "bytes_per_cell": 1897.381129079581,
+    "hybrid_bound_bytes_per_cell": 2158.9757166773097,
+    "capacity_mcells": {
+      "8": 3.427551288714211,
+      "12": 5.2802817150462165,
+      "24": 10.838472994042235
+    },
+    "source_revision": "8011f3f619ba14610d8875203532d607c1100c2c"
+  },
+  {
+    "label": "candidate",
+    "mesh": "native",
+    "coupling": "simplec",
+    "cells": 115882,
+    "faces": 266244,
+    "internal_faces": 257252,
+    "device_bytes": 206639168,
+    "buffer_count": 333,
+    "bytes_per_cell": 1783.1860685870108,
+    "hybrid_bound_bytes_per_cell": 2044.7806561847397,
+    "capacity_mcells": {
+      "8": 3.618970072715434,
+      "12": 5.575170112021074,
+      "24": 11.443770229937995
+    },
+    "source_revision": "04b95595d8d54a64327f97e4f7e906408228179b"
+  },
+  {
+    "label": "baseline",
+    "mesh": "native",
+    "coupling": "coupled",
+    "cells": 115882,
+    "faces": 266244,
+    "internal_faces": 257252,
+    "device_bytes": 274986404,
+    "buffer_count": 419,
+    "bytes_per_cell": 2372.986348181771,
+    "hybrid_bound_bytes_per_cell": 2634.5809357794997,
+    "capacity_mcells": {
+      "8": 2.808795850415028,
+      "12": 4.3270638776663946,
+      "24": 8.881867959420495
+    },
+    "source_revision": "8011f3f619ba14610d8875203532d607c1100c2c"
+  },
+  {
+    "label": "candidate",
+    "mesh": "native",
+    "coupling": "coupled",
+    "cells": 115882,
+    "faces": 266244,
+    "internal_faces": 257252,
+    "device_bytes": 249126244,
+    "buffer_count": 405,
+    "bytes_per_cell": 2149.826927391657,
+    "hybrid_bound_bytes_per_cell": 2411.4215149893857,
+    "capacity_mcells": {
+      "8": 3.068729359011534,
+      "12": 4.727501985504255,
+      "24": 9.70381986498242
+    },
+    "source_revision": "04b95595d8d54a64327f97e4f7e906408228179b"
+  }
+]

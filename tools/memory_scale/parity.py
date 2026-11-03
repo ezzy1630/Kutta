@@ -15,11 +15,13 @@ import json
 import pathlib
 import subprocess
 import sys
+import tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 EXAMPLES = ROOT / "validation/fluent_examples/mixing_elbow"
 CASES = {
     "v6_elbow": (EXAMPLES / "mixing_elbow.cas.h5", "wfgc"),
+    "v6_simplec": (None, "wfgc"),  # converted by the baseline binary below
     "elbow_param": (EXAMPLES / "elbow_param.cas.h5", "compressibility,ke-options"),
     "ahmed_l1": (ROOT / "runs/mesh/ahmed35_L1.cas", "wfgc"),
     "ahmed_l1_simplec": (ROOT / "runs/mesh/ahmed35_L1_simplec.cas", "wfgc"),
@@ -35,6 +37,29 @@ def digest(path):
         data = b"".join(b",".join(line.split(b",")[:7]) + b"\n" for line in data.splitlines()
                          if not line.startswith(b"#"))
     return hashlib.sha256(data).hexdigest()
+
+
+def compare_files(before, after):
+    """Run cmp on outputs, including the brief's literal grep/cut residual path."""
+    differs = []
+    with tempfile.TemporaryDirectory() as temporary:
+        for name in FILES:
+            paths = [before / name, after / name]
+            if name == "residuals.csv":
+                normalized = []
+                for index, path in enumerate(paths):
+                    filtered = subprocess.check_output(["grep", "-v", "^#", str(path)])
+                    data = subprocess.check_output(["cut", "-d,", "-f1-7"], input=filtered)
+                    target = pathlib.Path(temporary) / str(index)
+                    target.write_bytes(data)
+                    normalized.append(target)
+                paths = normalized
+            status = subprocess.run(["cmp", "-s", *(str(path) for path in paths)]).returncode
+            if status > 1:
+                raise RuntimeError(f"cmp failed for {name}, status {status}")
+            if status:
+                differs.append(name)
+    return differs
 
 
 def run(binary, case, approximate, backend, iterations, out):
@@ -65,16 +90,21 @@ def main():
     same = True
     for name in a.cases.split(","):
         case, approximate = CASES[name]
+        if name == "v6_simplec":
+            generated = pathlib.Path(a.out) / "v6_simplec_case"
+            generated.mkdir(parents=True, exist_ok=True)
+            setup = generated / "setup.json"
+            setup.write_text(json.dumps({"v": 1, "overrides": {"methods/pressure-velocity-coupling": "simplec"}}))
+            case = generated / "simplec.kutta.json"
+            subprocess.run([a.baseline, "convert", str(CASES["v6_elbow"][0]), "--setup", str(setup),
+                            "--out", str(case)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         for backend in a.backends.split(","):
             hashes = {label: run(binary, case, approximate, backend, a.iterations,
                                  pathlib.Path(a.out) / f"{name}_{backend}_{label}")
                       for label, binary in (("baseline", a.baseline), ("candidate", a.candidate))}
             diff = [f for f in FILES if hashes["baseline"][f] != hashes["candidate"][f]]
-            for f in FILES[:-1]:
-                directories = [pathlib.Path(a.out) / f"{name}_{backend}_{label}" for label in ("baseline", "candidate")]
-                status = subprocess.run(["cmp", "-s", str(directories[0] / f), str(directories[1] / f)]).returncode
-                if status and f not in diff:
-                    diff.append(f)
+            directories = [pathlib.Path(a.out) / f"{name}_{backend}_{label}" for label in ("baseline", "candidate")]
+            diff = sorted(set(diff) | set(compare_files(*directories)))
             same &= not diff
             print(json.dumps({"case": name, "backend": backend, "iterations": a.iterations,
                               "identical": not diff, "differs": diff, "sha256": hashes["candidate"]}), flush=True)

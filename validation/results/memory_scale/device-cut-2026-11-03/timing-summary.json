@@ -1,0 +1,191 @@
+{
+  "v6": {
+    "case": "mixing_elbow.cas.h5",
+    "cells": 17822,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.2219750192639292,
+      1.0723775150421666,
+      1.0533431498302612
+    ],
+    "median_paired_ratio": 1.0723775150421666,
+    "baseline": {
+      "seconds_per_iteration_median": 0.071095975,
+      "seconds_per_iteration_min": 0.06958137290000001,
+      "seconds_per_iteration_max": 0.073550675,
+      "peak_bytes_max": 233226912,
+      "device_bytes_max": 66018932
+    },
+    "candidate": {
+      "seconds_per_iteration_median": 0.07624172500000001,
+      "seconds_per_iteration_min": 0.07329306249999999,
+      "seconds_per_iteration_max": 0.0898770875,
+      "peak_bytes_max": 226345656,
+      "device_bytes_max": 58912524
+    }
+  },
+  "l1": {
+    "case": "ahmed35_L1.cas",
+    "cells": 403560,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.212782515335196,
+      1.1734417944957916,
+      1.1202347462094289
+    ],
+    "median_paired_ratio": 1.1734417944957916,
+    "baseline": {
+      "seconds_per_iteration_median": 0.20058237289999997,
+      "seconds_per_iteration_min": 0.20009630834999997,
+      "seconds_per_iteration_max": 0.21181278335,
+      "peak_bytes_max": 1492059768,
+      "device_bytes_max": 1098966052
+    },
+    "candidate": {
+      "seconds_per_iteration_median": 0.23728003960000002,
+      "seconds_per_iteration_min": 0.2353717396,
+      "seconds_per_iteration_max": 0.24267330415,
+      "peak_bytes_max": 1382319760,
+      "device_bytes_max": 989781836
+    }
+  },
+  "l2": {
+    "case": "ahmed35_L2.cas",
+    "cells": 689796,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.0642692997773004,
+      1.09932893456383,
+      1.159263373188047
+    ],
+    "median_paired_ratio": 1.09932893456383,
+    "baseline": {
+      "seconds_per_iteration_median": 0.2846459521,
+      "seconds_per_iteration_min": 0.28020524999999996,
+      "seconds_per_iteration_max": 0.30202172915,
+      "peak_bytes_max": 2439874840,
+      "device_bytes_max": 1871723916
+    },
+    "candidate": {
+      "seconds_per_iteration_median": 0.3214324542,
+      "seconds_per_iteration_min": 0.31291953125,
+      "seconds_per_iteration_max": 0.3248316833,
+      "peak_bytes_max": 2252982480,
+      "device_bytes_max": 1685111860
+    }
+  },
+  "stage-gather": {
+    "case": "mixing_elbow.cas.h5",
+    "cells": 17822,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      0.9854860569521573,
+      0.9833422050830438,
+      0.9898034524851034
+    ],
+    "median_paired_ratio": 0.9854860569521573,
+    "baseline": {
+      "seconds_per_iteration_median": 0.0583839333,
+      "seconds_per_iteration_min": 0.0579849917,
+      "seconds_per_iteration_max": 0.0596637521,
+      "peak_bytes_max": 223920800,
+      "device_bytes_max": 66018932
+    },
+    "candidate": {
+      "seconds_per_iteration_median": 0.05778861875,
+      "seconds_per_iteration_min": 0.057019089599999996,
+      "seconds_per_iteration_max": 0.0587977958,
+      "peak_bytes_max": 219923104,
+      "device_bytes_max": 63878576
+    }
+  },
+  "stage-recompute": {
+    "case": "mixing_elbow.cas.h5",
+    "cells": 17822,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      1.1418172007727823,
+      1.2281346743071964,
+      1.2288399754934263
+    ],
+    "median_paired_ratio": 1.2281346743071964,
+    "baseline": {
+      "seconds_per_iteration_median": 0.04071095415,
+      "seconds_per_iteration_min": 0.03966471045,
+      "seconds_per_iteration_max": 0.058703797950000004,
+      "peak_bytes_max": 231260832,
+      "device_bytes_max": 63878576
+    },
+    "candidate": {
+      "seconds_per_iteration_median": 0.0500272479,
+      "seconds_per_iteration_min": 0.04871360625,
+      "seconds_per_iteration_max": 0.06702900625,
+      "peak_bytes_max": 228426424,
+      "device_bytes_max": 60311316
+    }
+  },
+  "stage-scratch": {
+    "case": "mixing_elbow.cas.h5",
+    "cells": 17822,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      0.4651071266397747,
+      1.0421401009137023,
+      0.9375918083366069
+    ],
+    "median_paired_ratio": 0.9375918083366069,
+    "baseline": {
+      "seconds_per_iteration_median": 0.0207149625,
+      "seconds_per_iteration_min": 0.01893089795,
+      "seconds_per_iteration_max": 0.0427469396,
+      "peak_bytes_max": 217465504,
+      "device_bytes_max": 60311316
+    },
+    "candidate": {
+      "seconds_per_iteration_median": 0.0197286479,
+      "seconds_per_iteration_min": 0.01942217915,
+      "seconds_per_iteration_max": 0.01988190625,
+      "peak_bytes_max": 216597152,
+      "device_bytes_max": 59545796
+    }
+  },
+  "stage-walk": {
+    "case": "mixing_elbow.cas.h5",
+    "cells": 17822,
+    "backend": "metal",
+    "pairs": 3,
+    "iterations": 40,
+    "paired_ratios": [
+      0.9911432435612009,
+      1.0946968104338972,
+      0.9073686100760407
+    ],
+    "median_paired_ratio": 0.9911432435612009,
+    "baseline": {
+      "seconds_per_iteration_median": 0.01868573125,
+      "seconds_per_iteration_min": 0.01854869795,
+      "seconds_per_iteration_max": 0.0193793875,
+      "peak_bytes_max": 216777400,
+      "device_bytes_max": 59545796
+    },
+    "candidate": {
+      "seconds_per_iteration_median": 0.01838441665,
+      "seconds_per_iteration_min": 0.0175842479,
+      "seconds_per_iteration_max": 0.0204552104,
+      "peak_bytes_max": 215794384,
+      "device_bytes_max": 58912524
+    }
+  }
+}

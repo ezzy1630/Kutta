@@ -1,0 +1,15 @@
+{
+  "utc": "2026-11-03T09:47:22.323664+00:00",
+  "status": "held",
+  "constraint": "L3 must run alone",
+  "reason": "Other CFD solves remain active; no solo memory window.",
+  "other_processes": [
+    {
+      "pid": 57091,
+      "binary": "kutta-tests-e014e36",
+      "physical_footprint_bytes": 4457222272
+    }
+  ],
+  "owned_heavy_solves_running": false,
+  "baseline_slow_done": false
+}
