@@ -55,7 +55,7 @@ def body(occ, slant_deg):
     return out[0][1]
 
 
-def surface(slant, size):
+def surface(slant, size, *, slant_edge_size=None, slant_edge_reach=0.06, slant_surface_size=None):
     """Outward-oriented body surface triangles (points, triangles)."""
     import gmsh
     gmsh.initialize()
@@ -63,9 +63,47 @@ def surface(slant, size):
     gmsh.model.add("body")
     vb = body(gmsh.model.occ, slant)
     gmsh.model.occ.synchronize()
-    for key, value in {"Mesh.MeshSizeMax": size, "Mesh.MeshSizeMin": 0.25 * size,
+    minimum = min([.25 * size] + [h for h in (slant_edge_size, slant_surface_size) if h is not None])
+    for key, value in {"Mesh.MeshSizeMax": size, "Mesh.MeshSizeMin": minimum,
                        "Mesh.MeshSizeFromCurvature": 30, "Mesh.Algorithm": 6}.items():
         gmsh.option.setNumber(key, value)
+    targets = []
+    if slant_edge_size is not None:
+        # Refine the roof/slant intersection without refining the nose, base,
+        # outer domain or the prescribed wall-normal layer heights.
+        xs = -SLANT * math.cos(math.radians(slant))
+        edges = [tag for dim, tag in gmsh.model.getEntities(1)
+                 if np.allclose(gmsh.model.occ.getCenterOfMass(dim, tag),
+                                (xs, 0, CLEAR + H), atol=1e-8, rtol=0)]
+        if len(edges) != 1:
+            raise ValueError('expected one roof/slant intersection edge')
+        targets.append(('CurvesList', edges, slant_edge_size))
+    if slant_surface_size is not None:
+        angle = math.radians(slant)
+        centre = (-.5 * SLANT * math.cos(angle), 0, CLEAR + H - .5 * SLANT * math.sin(angle))
+        faces = [tag for dim, tag in gmsh.model.getEntities(2)
+                 if np.allclose(gmsh.model.occ.getCenterOfMass(dim, tag), centre, atol=1e-8, rtol=0)]
+        if len(faces) != 1:
+            raise ValueError('expected one planar slant face')
+        targets.append(('SurfacesList', faces, slant_surface_size))
+    fields = []
+    for entity_list, tags, spacing in targets:
+        field = gmsh.model.mesh.field
+        distance = field.add('Distance')
+        field.setNumbers(distance, entity_list, tags)
+        field.setNumber(distance, 'Sampling', 200)
+        threshold = field.add('Threshold')
+        for key, value in {'InField': distance, 'SizeMin': spacing,
+                           'SizeMax': size, 'DistMin': 0,
+                           'DistMax': slant_edge_reach}.items():
+            field.setNumber(threshold, key, value)
+        fields.append(threshold)
+    if fields:
+        background = fields[0]
+        if len(fields) > 1:
+            background = field.add('Min')
+            field.setNumbers(background, 'FieldsList', fields)
+        field.setAsBackgroundMesh(background)
     gmsh.model.mesh.generate(2)
     tags, coords, _ = gmsh.model.mesh.getNodes()
     points = np.zeros((int(tags.max()) + 1, 3))
@@ -93,25 +131,29 @@ def vertex_normals(points, tris):
     return acc / np.linalg.norm(acc, axis=1)[:, None]
 
 
-def layers(points, tris, top_size, first):
+def layers(points, tris, top_size, first, growth=GROWTH):
     """March prism layers: geometric heights from `first`, capped at `top_size`
     and stopped below 40% of the ground clearance."""
     shells, h, total = [points], first, 0.0
     while total + h <= 0.4 * CLEAR and h <= top_size:
         shells.append(shells[-1] + h * vertex_normals(shells[-1], tris))
         total += h
-        h *= GROWTH
+        h *= growth
     return np.array(shells), total
 
 
-def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0, cell_type="hex"):
+def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0, cell_type="hex", *,
+          slant_edge_size=None, slant_edge_reach=0.06, slant_edge_volume_size=None, slant_surface_size=None,
+          growth=GROWTH, body_surface_size=None):
     import gmsh
     if cell_type not in ("hex", "tet-prism"):
         raise ValueError("cell type must be hex or tet-prism")
     r = 2.0 ** ((level - 2) / 2)  # surface spacing /sqrt(2), cells ~x2 per level
     size = 0.028 / r
-    points, tris = surface(slant, size)
-    shells, thickness = layers(points, tris, 0.6 * size, first)
+    surface_size = size if body_surface_size is None else body_surface_size
+    points, tris = surface(slant, surface_size, slant_edge_size=slant_edge_size,
+                           slant_edge_reach=slant_edge_reach, slant_surface_size=slant_surface_size)
+    shells, thickness = layers(points, tris, 0.6 * size, first, growth)
     nl, nn = shells.shape[0], shells.shape[1]
     top = shells[-1]
 
@@ -175,7 +217,20 @@ def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0
     for k, v in {"XMin": -L - 0.1, "XMax": 1.0, "YMin": -0.4, "YMax": 0.4, "ZMin": 0, "ZMax": 0.5, "Thickness": wake_padding}.items():
         f.setNumber(wake, k, v)
     fmin = f.add("Min")
-    f.setNumbers(fmin, "FieldsList", [thr, wake])
+    fields = [thr, wake]
+    if slant_edge_volume_size is not None:
+        # Independent of the surface option: this resolves the separated shear
+        # layer beyond the prism stack while retaining the same body triangles.
+        edge = f.add("Box")
+        xs = -SLANT * math.cos(math.radians(slant))
+        for key, value in {"VIn": slant_edge_volume_size, "VOut": 0.4,
+                           "XMin": xs - slant_edge_reach, "XMax": xs + slant_edge_reach,
+                           "YMin": -W / 2 - .025, "YMax": W / 2 + .025,
+                           "ZMin": CLEAR + H - slant_edge_reach,
+                           "ZMax": CLEAR + H + .1, "Thickness": .04}.items():
+            f.setNumber(edge, key, value)
+        fields.append(edge)
+    f.setNumbers(fmin, "FieldsList", fields)
     f.setAsBackgroundMesh(fmin)
     # One thread: with eight, gmsh 4.15.2 produced a different mesh on every
     # run, so no regenerated mesh matched validation/generated_fixtures.tsv.
@@ -222,11 +277,20 @@ def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0
         stats = fluent_msh.write(out, allpts, [(4, tets), (6, prisms)], boundary,
                                  comment=f"fsae_aero ahmed {slant} native tet/prism")
         nhex = 0
-    meta = dict(stats, case="ahmed", slant_deg=slant, level=level, surface_size=size, body_triangles=int(len(tris)),
-                prism_layers=int(nl - 1), layer_thickness=thickness, first_height=first, growth=GROWTH,
+    meta = dict(stats, case="ahmed", slant_deg=slant, level=level, surface_size=surface_size, body_triangles=int(len(tris)),
+                prism_layers=int(nl - 1), layer_thickness=thickness, first_height=first, growth=growth,
                 tets=int(len(tets)), prisms=int(len(prisms)), hexes=int(nhex),
                 refinement_reach=refinement_reach, wake_padding=wake_padding, cell_type=cell_type,
                 domain={"x": [x0, x1], "y": [-ymax, ymax], "z": [0, zmax], "ground_wall_from_x": xg})
+    if slant_edge_size is not None:
+        meta.update(slant_edge_size=slant_edge_size, slant_edge_reach=slant_edge_reach)
+    if slant_edge_volume_size is not None:
+        meta.update(slant_edge_volume_size=slant_edge_volume_size, slant_edge_reach=slant_edge_reach)
+    if slant_surface_size is not None:
+        meta.update(slant_surface_size=slant_surface_size, slant_edge_reach=slant_edge_reach)
+    if body_surface_size is not None:
+        # --level still controls the outer volume, wake and layer-height cap.
+        meta.update(body_surface_size=body_surface_size, outer_level_surface_size=size)
     pathlib.Path(str(out) + ".json").write_text(json.dumps(meta, indent=1))
     return meta
 
@@ -236,7 +300,18 @@ def main():
     ap.add_argument("--slant", type=float, default=35.0)
     ap.add_argument("--level", type=float, default=2, help="refinement level; 3.5 is half a level above 3")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--body-surface-size", type=float,
+                    help="override whole-body surface spacing, m; keeps the level's volume and wake sizing")
+    ap.add_argument("--slant-edge-size", type=float,
+                    help="optional roof/slant edge surface spacing, m; leaves outer sizing unchanged")
+    ap.add_argument("--slant-surface-size", type=float,
+                    help="optional spacing over the whole slant face, m; leaves outer sizing unchanged")
+    ap.add_argument("--slant-edge-reach", type=float, default=0.06,
+                    help="surface transition distance and shear-layer box half-length, m")
+    ap.add_argument("--slant-edge-volume-size", type=float,
+                    help="optional outer-volume spacing in the roof/slant shear-layer box, m")
     ap.add_argument("--first", type=float, default=FIRST, help="first prism height, m")
+    ap.add_argument("--growth", type=float, default=GROWTH, help="wall-layer height ratio, greater than one")
     ap.add_argument("--refinement-reach", type=float, default=3.0,
                     help="distance over which body refinement grows to the 0.4 m far-field size, m")
     ap.add_argument("--wake-padding", type=float, default=2.0,
@@ -244,11 +319,18 @@ def main():
     ap.add_argument("--cell-type", choices=["hex", "tet-prism"], default="hex",
                     help="hex is the regression mesh; tet-prism is a native-cell diagnostic")
     a = ap.parse_args()
-    if not (all(math.isfinite(v) for v in (a.first, a.refinement_reach, a.wake_padding)) and
-            0 < a.first < 0.4 * CLEAR and a.refinement_reach > 0 and a.wake_padding > 0):
-        ap.error("first height, refinement reach and wake padding must be positive; first height must fit the wall layer")
+    if not (math.isfinite(a.slant_edge_reach) and a.slant_edge_reach > 0 and
+            all(v is None or (math.isfinite(v) and v > 0)
+                for v in (a.slant_edge_size, a.slant_edge_volume_size, a.slant_surface_size, a.body_surface_size))):
+        ap.error("local sizes and reach must be positive and finite")
+    if not (all(math.isfinite(v) for v in (a.first, a.refinement_reach, a.wake_padding, a.growth)) and
+            0 < a.first < 0.4 * CLEAR and a.refinement_reach > 0 and a.wake_padding > 0 and a.growth > 1):
+        ap.error("first height, refinement reach and wake padding must be positive; growth must exceed one; first height must fit the wall layer")
     pathlib.Path(a.out).parent.mkdir(parents=True, exist_ok=True)
-    print(json.dumps(build(a.slant, a.level, a.out, a.first, a.refinement_reach, a.wake_padding, a.cell_type)))
+    print(json.dumps(build(a.slant, a.level, a.out, a.first, a.refinement_reach, a.wake_padding, a.cell_type,
+                           slant_edge_size=a.slant_edge_size, slant_edge_reach=a.slant_edge_reach,
+                           slant_edge_volume_size=a.slant_edge_volume_size, slant_surface_size=a.slant_surface_size,
+                           growth=a.growth, body_surface_size=a.body_surface_size)))
 
 
 if __name__ == "__main__":
