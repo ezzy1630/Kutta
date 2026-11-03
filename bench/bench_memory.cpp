@@ -251,6 +251,7 @@ int main(int argc, char** argv) {
     phase("mesh", seconds_since(start));
     fv::SolverSettings settings;
     settings.viscosity = 1e-5; settings.sst = fv::SstSettings{}; settings.pseudo_time_step = .01;
+    if (std::getenv("KUTTA_MEMORY_RECOMPUTE")) settings.coupled_edge_storage = fv::CoupledEdgeStorage::Recompute;
     if (std::getenv("KUTTA_MEMORY_COUPLED")) settings.coupling = fv::PressureVelocityCoupling::Coupled;
     settings.momentum_relaxation = .3; settings.pressure_relaxation = .2; settings.monitor_interval = 1000;
     start = Clock::now();

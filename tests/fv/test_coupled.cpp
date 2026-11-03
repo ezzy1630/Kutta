@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstring>
 
 #include "../backend_helpers.hpp"
 #include "kutta/fv/steady_solver.hpp"
@@ -110,5 +111,35 @@ TEST_CASE("FV Coupled flow Courant number changes the path, not the fixed point"
       solver.iterate(5);early[k]=dev->download(solver.velocity().x);
     }
     CHECK(relative(early[1],early[0])>1e-3);
+  }
+}
+
+// A capacity option must not change the Krylov trajectory, including the
+// cached coefficient rounding boundary. Exercise multiple V-cycles on both backends.
+TEST_CASE("FV Coupled recomputed edges preserve cached field bytes") {
+  const auto mesh=make_box_hex(12,6,2,{0,0,0},{1,.5,.1});
+  std::vector<PatchCondition> bc;
+  for(const auto& patch:mesh.patches) {
+    if(patch.name=="xmin") bc.push_back({patch.name,VelocityInlet{Vec3d{1,0,0}}});
+    else if(patch.name=="xmax") bc.push_back({patch.name,PressureOutlet{0}});
+    else bc.push_back({patch.name,Wall{}});
+  }
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    std::vector<std::vector<float>> reference;
+    for(auto storage:{CoupledEdgeStorage::Cached,CoupledEdgeStorage::Recompute}) {
+      SolverSettings settings;settings.viscosity=.01;
+      settings.coupling=PressureVelocityCoupling::Coupled;settings.coupled_edge_storage=storage;
+      SteadySolver solver(*dev,mesh,bc,settings);
+      solver.initialize([](Vec3d){return Vec3d{1,0,0};},[](Vec3d){return 0.;});
+      solver.iterate(40);
+      std::vector<std::vector<float>> fields;
+      for(const auto* field:{&solver.velocity().x,&solver.velocity().y,&solver.velocity().z,
+                            &solver.pressure(),&solver.mass_flux()}) fields.push_back(dev->download(*field));
+      if(storage==CoupledEdgeStorage::Cached) reference=fields;
+      else for(std::size_t i=0;i<fields.size();++i) {
+        REQUIRE(fields[i].size()==reference[i].size());
+        CHECK(std::memcmp(fields[i].data(),reference[i].data(),fields[i].size()*sizeof(float))==0);
+      }
+    }
   }
 }

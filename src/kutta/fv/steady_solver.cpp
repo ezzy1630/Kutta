@@ -515,6 +515,7 @@ struct SteadySolver::Impl {
     length=std::min(std::cbrt(volume),std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z}));
     if(settings.coupling==PressureVelocityCoupling::Coupled) {
       CoupledOptions coupled_options;coupled_options.courant=settings.coupled_courant;
+      coupled_options.edge_storage=settings.coupled_edge_storage;
       coupled=std::make_unique<CoupledSolver>(dev,mesh,stencil,host,geom,boundary_kind,pressure_lsq,reference,low_order,coupled_options);
     }
     memory::phase("coupled-solver");

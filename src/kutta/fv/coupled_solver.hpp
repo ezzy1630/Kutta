@@ -18,11 +18,13 @@
 #include <vector>
 
 #include "kutta/fv/operators.hpp"
+#include "kutta/fv/coupled_storage.hpp"
 #include "kutta/linalg/solver.hpp"
 
 namespace kutta::fv {
 
 struct CoupledOptions {
+  CoupledEdgeStorage edge_storage = CoupledEdgeStorage::Cached;
   // The coarsest level (aggregation often stalls near 100 rows) gets parallel
   // block-Jacobi sweeps: a single-thread Gauss-Seidel there cost about half of
   // the Metal block solve for the same Krylov iteration counts.

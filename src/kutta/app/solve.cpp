@@ -34,6 +34,7 @@ using Clock=std::chrono::steady_clock;
 struct Options {
   std::filesystem::path input,data,setup_file,live_directory,out="kutta-result";
   std::string backend="auto";
+  fv::CoupledEdgeStorage coupled_edge_storage=fv::CoupledEdgeStorage::Cached;
   int iterations=1000,live_every=app::LiveCadence::default_every;
   std::vector<setup::Approximation> approximations;
 };
@@ -49,6 +50,10 @@ Options parse(int argc,char** argv) {
     else if(key=="--out") o.out=v;
     else if(key=="--live-view") {KUTTA_REQUIRE(!v.empty(),"--live-view requires a directory");o.live_directory=v;}
     else if(key=="--backend") o.backend=v;
+    else if(key=="--coupled-edge-storage") {
+      KUTTA_REQUIRE(v=="cached" || v=="recompute","--coupled-edge-storage requires cached or recompute");
+      o.coupled_edge_storage=v=="cached"?fv::CoupledEdgeStorage::Cached:fv::CoupledEdgeStorage::Recompute;
+    }
     else if(key=="--progress") {KUTTA_REQUIRE(v=="jsonl","--progress requires jsonl");}
     else if(key=="--approximate") o.approximations=setup::parse_approximations(v);
     else if(key=="--iterations" || key=="--live-every") {
@@ -160,6 +165,7 @@ int solve(int argc,char** argv) {
       human<<message<<'\n';
     };
     setup->settings.monitor_interval=controls.monitor_interval;
+    setup->settings.coupled_edge_storage=o.coupled_edge_storage;
     notice=setup::approximation_notice(setup->approximations);
     if(!changes.empty()) {
       if(!notice.empty())notice+="; ";
@@ -399,6 +405,7 @@ int solve(int argc,char** argv) {
       <<",\n  \"kutta_version\": "<<json_string(KUTTA_VERSION)<<",\n  \"kutta_commit\": "<<json_string(KUTTA_COMMIT)
       <<",\n  \"backend\": "<<json_string(backend_name(dev->backend()))<<",\n  \"device\": "<<json_string(dev->name())
       <<",\n  \"cells\": "<<solver.mesh().n_cells<<",\n  \"poor_quality_cells\": "<<solver.poor_cells()<<",\n  \"poor_cell_quality\": "<<setup->settings.poor_cell_quality<<",\n  \"pressure_velocity_coupling\": "<<json_string(coupling)
+      <<",\n  \"coupled_edge_storage\": "<<json_string(o.coupled_edge_storage==fv::CoupledEdgeStorage::Cached?"cached":"recompute")
       <<",\n  \"iterations\": "<<solver.report().iteration
       <<",\n  \"wall_time_seconds\": "<<wall_time<<",\n  \"setup_time_seconds\": "<<setup_time;
     if(live)summary<<",\n  \"live_view\": "<<dump_json(live_statistics(wall_time));

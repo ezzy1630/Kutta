@@ -199,7 +199,8 @@ struct CoupledSolver::Impl {
                   m.cell_faces.size() <= std::size_t(std::numeric_limits<Index>::max() / 5),
                   "coupled: fine coefficient cache exceeds signed kernel index range");
     fine_entries = Index(m.cell_faces.size());
-    fine_coefficients = alloc<float>(5 * std::size_t(fine_entries));
+    if (options.edge_storage == CoupledEdgeStorage::Cached)
+      fine_coefficients = alloc<float>(5 * std::size_t(fine_entries));
     cell = upload(packed);
     coefficient = alloc<float>(nf);
     fine_tmp = alloc<float>(4 * std::size_t(n));
@@ -283,20 +284,39 @@ struct CoupledSolver::Impl {
   // ---- operators -------------------------------------------------------
   void fine_spmv(const Buffer<float>& in, Buffer<float>& out) {
     const auto& m = mesh;
-    kern::coupled_fine_spmv(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent,
+    if (options.edge_storage == CoupledEdgeStorage::Cached) {
+      kern::coupled_fine_spmv(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent,
         m.area.x, m.area.y, m.area.z, coefficient, cell, fine_coefficients, in, out, n, fine_entries, wc);
+    } else {
+      kern::coupled_recompute_spmv(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent, m.cell_face_sign,
+        m.area.x, m.area.y, m.area.z, coefficient, cell, stencil.diffusion, *viscosity, *mass, *weight,
+        lsq.rows().x, lsq.rows().y, lsq.rows().z, in, out, n, wc);
+    }
   }
   void fine_residual(const Buffer<float>& in, const Buffer<float>& rhs, Buffer<float>& out) {
     const auto& m = mesh;
-    kern::coupled_fine_residual(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent,
+    if (options.edge_storage == CoupledEdgeStorage::Cached) {
+      kern::coupled_fine_residual(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent,
         m.area.x, m.area.y, m.area.z, coefficient, cell, fine_coefficients, in, rhs, out, n, fine_entries, wc);
+    } else {
+      kern::coupled_recompute_residual(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent, m.cell_face_sign,
+        m.area.x, m.area.y, m.area.z, coefficient, cell, stencil.diffusion, *viscosity, *mass, *weight,
+        lsq.rows().x, lsq.rows().y, lsq.rows().z, in, rhs, out, n, wc);
+    }
   }
   void fine_smooth(Buffer<float>& out, const Buffer<float>& rhs, int sweeps, bool first) {
     const auto& m = mesh;
     for (int k = 0; k < sweeps; ++k) {
-      kern::coupled_fine_smooth(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent,
+      if (options.edge_storage == CoupledEdgeStorage::Cached) {
+        kern::coupled_fine_smooth(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent,
           m.area.x, m.area.y, m.area.z, coefficient, cell, fine_coefficients, out, rhs, fine_tmp,
           n, fine_entries, wc, options.smoother_damping, first && k == 0 ? 1 : 0);
+      } else {
+        kern::coupled_recompute_smooth(dev, n, m.cell_face_offsets, m.cell_faces, stencil.adjacent, m.cell_face_sign,
+          m.area.x, m.area.y, m.area.z, coefficient, cell, stencil.diffusion, *viscosity, *mass, *weight,
+          lsq.rows().x, lsq.rows().y, lsq.rows().z, out, rhs, fine_tmp,
+          n, wc, options.smoother_damping, first && k == 0 ? 1 : 0);
+      }
       std::swap(out, fine_tmp);
     }
   }
@@ -480,10 +500,14 @@ SolveStats CoupledSolver::solve(const CoupledResiduals& in, const SolveControl& 
   kern::coupled_fine_schur(s.dev, s.n, m.cell_face_offsets, s.stencil.adjacent, m.cell_faces,
       m.area.x, m.area.y, m.area.z, in.face_weights, s.fine_tmp, s.cell, s.n, float(wc));
   s.galerkin();
-  kern::coupled_fine_coefficients(s.dev, s.n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign,
+  if (s.options.edge_storage == CoupledEdgeStorage::Cached) {
+    kern::coupled_fine_coefficients(s.dev, s.n, m.cell_face_offsets, m.cell_faces, m.cell_face_sign,
       s.stencil.adjacent, m.area.x, m.area.y, m.area.z, s.stencil.diffusion, in.viscosity, in.mass,
       in.face_weights, s.lsq.rows().x, s.lsq.rows().y, s.lsq.rows().z, s.cell,
       s.fine_coefficients, s.n, s.fine_entries, s.wc);
+  } else {
+    kern::coupled_fine_prepare(s.dev, s.n, s.cell, s.n, s.wc);
+  }
   return s.bicgstab(control);
 }
 

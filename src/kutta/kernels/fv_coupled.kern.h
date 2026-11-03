@@ -309,6 +309,86 @@ KUTTA_KERNEL void coupled_fine_smooth(int i, KIn(int) offsets, KIn(int) faces, K
   next[2 * n + i] = base_w + omega * d.w; next[3 * n + i] = base_p + omega * d.p;
 }
 
+// Opt-in memory-limited operator. Cached kernels above stay on the default path.
+// Only the block inverse is retained. Edge coefficients are reconstructed
+// from the same frozen inputs in each row application (see below).
+KUTTA_KERNEL void coupled_fine_prepare(int i,KOut(float) cell,int n,float wc) {
+  coupled_block_prepare(i, cell, n, 20, cell[i], cell[n + i], cell[2 * n + i],
+      wc * cell[4 * n + i], wc * cell[5 * n + i], wc * cell[6 * n + i],
+      wc * cell[7 * n + i], wc * cell[8 * n + i], wc * cell[9 * n + i], cell[3 * n + i] + cell[19 * n + i]);
+}
+
+KUTTA_FN kblock4 coupled_recompute_row(int i, KIn(int) offsets, KIn(int) faces, KIn(int) adjacent, KIn(float) sign,
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) coefficient,
+    KIn(float) cell, KIn(float) diffusion, KIn(float) mu, KIn(float) mass, KIn(float) weight,
+    KIn(float) dx, KIn(float) dy, KIn(float) dz, KIn(float) x, int n, float wc) {
+  float xu = x[i], xv = x[n + i], xw = x[2 * n + i], xp = x[3 * n + i];
+  float ex = wc * cell[4 * n + i], ey = wc * cell[5 * n + i], ez = wc * cell[6 * n + i];
+  float hx = wc * cell[7 * n + i], hy = wc * cell[8 * n + i], hz = wc * cell[9 * n + i];
+  kblock4 y = kb4(cell[i] * xu + ex * xp, cell[n + i] * xv + ey * xp, cell[2 * n + i] * xw + ez * xp,
+                  cell[3 * n + i] * xp + hx * xu + hy * xv + hz * xw);
+  float q00 = wc * cell[10 * n + i], q01 = wc * cell[11 * n + i], q02 = wc * cell[12 * n + i];
+  float q10 = wc * cell[13 * n + i], q11 = wc * cell[14 * n + i], q12 = wc * cell[15 * n + i];
+  float q20 = wc * cell[16 * n + i], q21 = wc * cell[17 * n + i], q22 = wc * cell[18 * n + i];
+  float half_wc = 0.5f * wc;
+  for (int j = offsets[i]; j < offsets[i + 1]; ++j) {
+    int c = adjacent[j];
+    if (c < 0) continue;
+    int f = faces[j];
+    float s = sign[j];
+    // The former cache rounded these five coefficients before J*x. Keep
+    // that storage boundary: contraction into the following products would
+    // change the discrete Krylov trajectory on CUDA/CPU.
+    volatile float a = -mu[f] * diffusion[f] + kmin(s * mass[f], 0.0f);
+    float bx = half_wc * s * sx[f], by = half_wc * s * sy[f], bz = half_wc * s * sz[f];
+    volatile float gx = bx + q00 * dx[j] + q01 * dy[j] + q02 * dz[j];
+    volatile float gy = by + q10 * dx[j] + q11 * dy[j] + q12 * dz[j];
+    volatile float gz = bz + q20 * dx[j] + q21 * dy[j] + q22 * dz[j];
+    volatile float h = wc * s * coupled_share(weight, i, c);
+    float pu = x[c], pv = x[n + c], pw = x[2 * n + c], pp = x[3 * n + c];
+    y.u += a * pu + gx * pp; y.v += a * pv + gy * pp; y.w += a * pw + gz * pp;
+    y.p += h * (sx[f] * pu + sy[f] * pv + sz[f] * pw) - coefficient[f] * pp;
+  }
+  return y;
+}
+
+KUTTA_KERNEL void coupled_recompute_spmv(int i, KIn(int) offsets, KIn(int) faces, KIn(int) adjacent, KIn(float) sign,
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) coefficient,
+    KIn(float) cell, KIn(float) diffusion, KIn(float) mu, KIn(float) mass, KIn(float) weight,
+    KIn(float) dx, KIn(float) dy, KIn(float) dz, KIn(float) x, KOut(float) y, int n, float wc) {
+  kblock4 r = coupled_recompute_row(i, offsets, faces, adjacent, sign, sx, sy, sz, coefficient, cell, diffusion, mu, mass, weight, dx, dy, dz, x, n, wc);
+  y[i] = r.u; y[n + i] = r.v; y[2 * n + i] = r.w; y[3 * n + i] = r.p;
+}
+
+KUTTA_KERNEL void coupled_recompute_residual(int i, KIn(int) offsets, KIn(int) faces, KIn(int) adjacent, KIn(float) sign,
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) coefficient,
+    KIn(float) cell, KIn(float) diffusion, KIn(float) mu, KIn(float) mass, KIn(float) weight,
+    KIn(float) dx, KIn(float) dy, KIn(float) dz, KIn(float) x, KIn(float) b, KOut(float) r, int n, float wc) {
+  kblock4 y = coupled_recompute_row(i, offsets, faces, adjacent, sign, sx, sy, sz, coefficient, cell, diffusion, mu, mass, weight, dx, dy, dz, x, n, wc);
+  r[i] = b[i] - y.u; r[n + i] = b[n + i] - y.v; r[2 * n + i] = b[2 * n + i] - y.w;
+  r[3 * n + i] = b[3 * n + i] - y.p;
+}
+
+// Damped block Jacobi, double buffered: next = x + omega * B^-1 (b - J x).
+// first != 0 means x == 0, so the residual is b and x is not read.
+KUTTA_KERNEL void coupled_recompute_smooth(int i, KIn(int) offsets, KIn(int) faces, KIn(int) adjacent, KIn(float) sign,
+    KIn(float) sx, KIn(float) sy, KIn(float) sz, KIn(float) coefficient,
+    KIn(float) cell, KIn(float) diffusion, KIn(float) mu, KIn(float) mass, KIn(float) weight,
+    KIn(float) dx, KIn(float) dy, KIn(float) dz, KIn(float) x, KIn(float) b, KOut(float) next,
+    int n, float wc, float omega, int first) {
+  kblock4 r = kb4(b[i], b[n + i], b[2 * n + i], b[3 * n + i]);
+  if (first == 0) {
+    kblock4 y = coupled_recompute_row(i, offsets, faces, adjacent, sign, sx, sy, sz, coefficient, cell, diffusion, mu, mass, weight, dx, dy, dz, x, n, wc);
+    r = kb4(r.u - y.u, r.v - y.v, r.w - y.w, r.p - y.p);
+  }
+  kblock4 d = coupled_block_solve(r, wc * cell[4 * n + i], wc * cell[5 * n + i],
+      wc * cell[6 * n + i], cell, i, n, 20);
+  float base_u = first == 0 ? x[i] : 0.0f, base_v = first == 0 ? x[n + i] : 0.0f;
+  float base_w = first == 0 ? x[2 * n + i] : 0.0f, base_p = first == 0 ? x[3 * n + i] : 0.0f;
+  next[i] = base_u + omega * d.u; next[n + i] = base_v + omega * d.v;
+  next[2 * n + i] = base_w + omega * d.w; next[3 * n + i] = base_p + omega * d.p;
+}
+
 // Coarse levels: CSR with a (uu), c (pp), G (up) and H (pu) per entry and the
 // three momentum diagonals per row. G and H already include wc.
 KUTTA_FN kblock4 coupled_coarse_row(int i, KIn(int) rows, KIn(int) cols, KIn(int) diag,

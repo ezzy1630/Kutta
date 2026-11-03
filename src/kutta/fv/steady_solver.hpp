@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "kutta/fv/transport.hpp"
+#include "kutta/fv/coupled_storage.hpp"
 #include "kutta/fv/zone_physics.hpp"
 #include "kutta/fv/interior_jump.hpp"
 #include "kutta/fv/turbulence/sst.hpp"
@@ -229,6 +230,8 @@ struct SolverSettings {
   // block Jacobian's implicit relaxation a_P/CFL (CoupledOptions::courant).
   // Convergence path only.
   double coupled_courant=200;
+  // Opt-in memory-limited mode: omit five cached floats per cell-face incidence.
+  CoupledEdgeStorage coupled_edge_storage=CoupledEdgeStorage::Cached;
   // Coupled block solve: one order of residual reduction per outer
   // iteration, Fluent's default AMG termination criterion.
   SolveControl coupled_linear{.1,1e-12,20};
