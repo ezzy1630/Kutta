@@ -1,0 +1,3235 @@
+{
+  "source_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "source": "Completed TMR cases captured from the supplied main slow-tier run before its whole-tier DONE marker. Progress observations, not a substitute for the canonical assertion comparison.",
+  "test_binary_sha256": "e317481083fba85dec3cf3e3578c4c421aacf21812480bbdf40400b09fc100de",
+  "outer_budget": 3000,
+  "tmr_solve_count": 24,
+  "unconverged_at_budget": 17,
+  "rows": [
+    {
+      "model": "sst",
+      "case": "plate",
+      "backend": "cpu",
+      "level": 0,
+      "iteration": 300,
+      "defect": 1.08658073802e-06,
+      "load_change": 3.16705721536e-05,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.0105064111949,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 7.70804150594e-05,
+          "load_change": 0.0115121360061
+        },
+        {
+          "iteration": 300,
+          "defect": 1.08658073802e-06,
+          "load_change": 3.16705721536e-05
+        }
+      ],
+      "terminal_3000_observed": false,
+      "failure_at_terminal_observed": false
+    },
+    {
+      "model": "sst",
+      "case": "plate",
+      "backend": "cpu",
+      "level": 1,
+      "iteration": 800,
+      "defect": 4.27857860586e-06,
+      "load_change": 6.86213612579e-07,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.0750968850436,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.0166909194424,
+          "load_change": 0.153468825541
+        },
+        {
+          "iteration": 300,
+          "defect": 0.00535612016477,
+          "load_change": 0.0299876245896
+        },
+        {
+          "iteration": 400,
+          "defect": 0.00136713249519,
+          "load_change": 0.00590350962805
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000347974205401,
+          "load_change": 0.00114838634426
+        },
+        {
+          "iteration": 600,
+          "defect": 8.72567698484e-05,
+          "load_change": 0.000201046159814
+        },
+        {
+          "iteration": 700,
+          "defect": 2.51046702656e-05,
+          "load_change": 3.62959219321e-05
+        },
+        {
+          "iteration": 800,
+          "defect": 4.27857860586e-06,
+          "load_change": 6.86213612579e-07
+        }
+      ],
+      "terminal_3000_observed": false,
+      "failure_at_terminal_observed": false
+    },
+    {
+      "model": "sst",
+      "case": "plate",
+      "backend": "cpu",
+      "level": 2,
+      "iteration": 3000,
+      "defect": 1.9098099621e-05,
+      "load_change": 2.9349888398e-06,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.128174172715,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.118884196755,
+          "load_change": 0.513657243145
+        },
+        {
+          "iteration": 300,
+          "defect": 0.0608856631191,
+          "load_change": 0.0693414301415
+        },
+        {
+          "iteration": 400,
+          "defect": 0.0331256303726,
+          "load_change": 0.0984444632157
+        },
+        {
+          "iteration": 500,
+          "defect": 0.0244592344506,
+          "load_change": 0.0738783948333
+        },
+        {
+          "iteration": 600,
+          "defect": 0.0201507540835,
+          "load_change": 0.042201704144
+        },
+        {
+          "iteration": 700,
+          "defect": 0.014283949183,
+          "load_change": 0.0267015386401
+        },
+        {
+          "iteration": 800,
+          "defect": 0.0114957736076,
+          "load_change": 0.0178855230845
+        },
+        {
+          "iteration": 900,
+          "defect": 0.00796045453698,
+          "load_change": 0.0118583410441
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.00551865494157,
+          "load_change": 0.00786003046138
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.00413643117337,
+          "load_change": 0.00503208943952
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.00324716594138,
+          "load_change": 0.00323587268215
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.0020886989184,
+          "load_change": 0.0020480935479
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.00180046325227,
+          "load_change": 0.00129205030651
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.00111035272947,
+          "load_change": 0.000844113380532
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.000918316473203,
+          "load_change": 0.000548133952902
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.000664951576562,
+          "load_change": 0.000351560249594
+        },
+        {
+          "iteration": 1800,
+          "defect": 0.000515520437741,
+          "load_change": 0.000230348480896
+        },
+        {
+          "iteration": 1900,
+          "defect": 0.000333794481243,
+          "load_change": 0.00015017119874
+        },
+        {
+          "iteration": 2000,
+          "defect": 0.000227265902757,
+          "load_change": 9.32617044602e-05
+        },
+        {
+          "iteration": 2100,
+          "defect": 0.000267571330406,
+          "load_change": 5.75108515996e-05
+        },
+        {
+          "iteration": 2200,
+          "defect": 0.000140808853696,
+          "load_change": 3.33530992049e-05
+        },
+        {
+          "iteration": 2300,
+          "defect": 8.39620351731e-05,
+          "load_change": 2.5932394679e-05
+        },
+        {
+          "iteration": 2400,
+          "defect": 6.9859700278e-05,
+          "load_change": 2.43730488566e-05
+        },
+        {
+          "iteration": 2500,
+          "defect": 8.72075988175e-05,
+          "load_change": 1.34197934236e-05
+        },
+        {
+          "iteration": 2600,
+          "defect": 0.00010160078488,
+          "load_change": 6.77156696439e-06
+        },
+        {
+          "iteration": 2700,
+          "defect": 4.23811202622e-05,
+          "load_change": 1.40977344889e-05
+        },
+        {
+          "iteration": 2800,
+          "defect": 3.89997521173e-05,
+          "load_change": 2.20956600848e-06
+        },
+        {
+          "iteration": 2900,
+          "defect": 3.50759379804e-05,
+          "load_change": 2.2935476206e-06
+        },
+        {
+          "iteration": 3000,
+          "defect": 1.9098099621e-05,
+          "load_change": 2.9349888398e-06
+        }
+      ],
+      "tail_min": 1.9098099621e-05,
+      "tail_max": 0.000267571330406,
+      "median_per_step_contraction": 0.998551547213151,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sst",
+      "case": "plate",
+      "backend": "metal",
+      "level": 0,
+      "iteration": 300,
+      "defect": 1.86488954371e-06,
+      "load_change": 3.17232355992e-05,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.0104995771082,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 8.45771225313e-05,
+          "load_change": 0.0115117917176
+        },
+        {
+          "iteration": 300,
+          "defect": 1.86488954371e-06,
+          "load_change": 3.17232355992e-05
+        }
+      ],
+      "terminal_3000_observed": false,
+      "failure_at_terminal_observed": false
+    },
+    {
+      "model": "sst",
+      "case": "plate",
+      "backend": "metal",
+      "level": 1,
+      "iteration": 3000,
+      "defect": 3.04515373356e-05,
+      "load_change": 0.0,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.0750990272864,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.0167859890147,
+          "load_change": 0.153480510156
+        },
+        {
+          "iteration": 300,
+          "defect": 0.00507656026238,
+          "load_change": 0.0299800802266
+        },
+        {
+          "iteration": 400,
+          "defect": 0.00121048987162,
+          "load_change": 0.00590308766799
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000354723888213,
+          "load_change": 0.00114810613625
+        },
+        {
+          "iteration": 600,
+          "defect": 8.63866420276e-05,
+          "load_change": 0.000201372642544
+        },
+        {
+          "iteration": 700,
+          "defect": 3.65253996452e-05,
+          "load_change": 3.2563440861e-05
+        },
+        {
+          "iteration": 800,
+          "defect": 3.30495911713e-05,
+          "load_change": 5.99560561363e-06
+        },
+        {
+          "iteration": 900,
+          "defect": 3.05078130123e-05,
+          "load_change": 2.06222193332e-06
+        },
+        {
+          "iteration": 1000,
+          "defect": 3.06791894394e-05,
+          "load_change": 1.47266051183e-07
+        },
+        {
+          "iteration": 1100,
+          "defect": 3.04877918081e-05,
+          "load_change": 5.92049362445e-08
+        },
+        {
+          "iteration": 1200,
+          "defect": 3.0539517102e-05,
+          "load_change": 3.03487497523e-08
+        },
+        {
+          "iteration": 1300,
+          "defect": 3.04156050283e-05,
+          "load_change": 1.39305738508e-08
+        },
+        {
+          "iteration": 1400,
+          "defect": 3.04405393477e-05,
+          "load_change": 6.96528697393e-09
+        },
+        {
+          "iteration": 1500,
+          "defect": 3.04772774058e-05,
+          "load_change": 4.07692789596e-08
+        },
+        {
+          "iteration": 1600,
+          "defect": 3.04563172419e-05,
+          "load_change": 1.9900820074e-09
+        },
+        {
+          "iteration": 1700,
+          "defect": 3.03818454787e-05,
+          "load_change": 1.99008201136e-09
+        },
+        {
+          "iteration": 1800,
+          "defect": 3.03824716821e-05,
+          "load_change": 3.98016403857e-09
+        },
+        {
+          "iteration": 1900,
+          "defect": 3.03794016857e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2000,
+          "defect": 3.03937703104e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2100,
+          "defect": 3.04590766454e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2200,
+          "defect": 3.04334932846e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2300,
+          "defect": 3.04549668619e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2400,
+          "defect": 3.04642777945e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2500,
+          "defect": 3.04238178598e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2600,
+          "defect": 3.0457833324e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2700,
+          "defect": 3.0443693566e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2800,
+          "defect": 3.04532645063e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2900,
+          "defect": 3.04433166862e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 3000,
+          "defect": 3.04515373356e-05,
+          "load_change": 0.0
+        }
+      ],
+      "tail_min": 3.03937703104e-05,
+      "tail_max": 3.04642777945e-05,
+      "median_per_step_contraction": 1.000002878384364,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sst",
+      "case": "plate",
+      "backend": "metal",
+      "level": 2,
+      "iteration": 3000,
+      "defect": 7.40765424044e-06,
+      "load_change": 1.26287885206e-06,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.12820441372,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.110560290291,
+          "load_change": 0.513605599408
+        },
+        {
+          "iteration": 300,
+          "defect": 0.0578312428081,
+          "load_change": 0.069324417503
+        },
+        {
+          "iteration": 400,
+          "defect": 0.0327425218135,
+          "load_change": 0.0984713566201
+        },
+        {
+          "iteration": 500,
+          "defect": 0.0256392271376,
+          "load_change": 0.0738855184839
+        },
+        {
+          "iteration": 600,
+          "defect": 0.0194612142545,
+          "load_change": 0.0422056791107
+        },
+        {
+          "iteration": 700,
+          "defect": 0.0145110259384,
+          "load_change": 0.0267039585274
+        },
+        {
+          "iteration": 800,
+          "defect": 0.0113822308964,
+          "load_change": 0.0178867168292
+        },
+        {
+          "iteration": 900,
+          "defect": 0.00800698326589,
+          "load_change": 0.0118595784573
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.00550546972631,
+          "load_change": 0.00786440911229
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.00436065644189,
+          "load_change": 0.0050301368566
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.00292541637769,
+          "load_change": 0.00323502191412
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.0022467547515,
+          "load_change": 0.00204590979539
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.0016405579198,
+          "load_change": 0.00129563757597
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.00138551372888,
+          "load_change": 0.000844275981897
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.000969827732378,
+          "load_change": 0.000545502029241
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.00066308225668,
+          "load_change": 0.000352603369928
+        },
+        {
+          "iteration": 1800,
+          "defect": 0.000402033903089,
+          "load_change": 0.00022969282183
+        },
+        {
+          "iteration": 1900,
+          "defect": 0.000438911543673,
+          "load_change": 0.000148350950273
+        },
+        {
+          "iteration": 2000,
+          "defect": 0.000351987495845,
+          "load_change": 9.10932748535e-05
+        },
+        {
+          "iteration": 2100,
+          "defect": 0.000128925952028,
+          "load_change": 6.25203634426e-05
+        },
+        {
+          "iteration": 2200,
+          "defect": 0.000137173764618,
+          "load_change": 3.36055282828e-05
+        },
+        {
+          "iteration": 2300,
+          "defect": 0.000191883439673,
+          "load_change": 3.61840319197e-05
+        },
+        {
+          "iteration": 2400,
+          "defect": 6.72698606521e-05,
+          "load_change": 4.33416038208e-06
+        },
+        {
+          "iteration": 2500,
+          "defect": 8.71533522568e-05,
+          "load_change": 4.97183572135e-06
+        },
+        {
+          "iteration": 2600,
+          "defect": 3.95157841068e-05,
+          "load_change": 1.08168852808e-05
+        },
+        {
+          "iteration": 2700,
+          "defect": 3.06603015523e-05,
+          "load_change": 9.17054039647e-06
+        },
+        {
+          "iteration": 2800,
+          "defect": 1.73814045016e-05,
+          "load_change": 5.45483286463e-06
+        },
+        {
+          "iteration": 2900,
+          "defect": 1.42978938093e-05,
+          "load_change": 3.00418073133e-06
+        },
+        {
+          "iteration": 3000,
+          "defect": 7.40765424044e-06,
+          "load_change": 1.26287885206e-06
+        }
+      ],
+      "tail_min": 7.40765424044e-06,
+      "tail_max": 0.000351987495845,
+      "median_per_step_contraction": 0.995903149937476,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": false
+    },
+    {
+      "model": "sst",
+      "case": "bump",
+      "backend": "cpu",
+      "level": 0,
+      "iteration": 3000,
+      "defect": 3.14385728337e-05,
+      "load_change": 4.79683619736e-05,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00228261797632,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.000596765178048,
+          "load_change": 0.0894075406523
+        },
+        {
+          "iteration": 300,
+          "defect": 0.00026400462603,
+          "load_change": 0.00220584954485
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000293775058694,
+          "load_change": 0.000682202131144
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000418837513293,
+          "load_change": 0.000733685581302
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000430951829352,
+          "load_change": 0.000621916104684
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000402894179266,
+          "load_change": 0.000532845097737
+        },
+        {
+          "iteration": 800,
+          "defect": 0.000332936427048,
+          "load_change": 0.00038252037747
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000338121742954,
+          "load_change": 0.000350867845891
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.000238425006983,
+          "load_change": 0.000330936413494
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.00022237051989,
+          "load_change": 0.000246052854389
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000229685763945,
+          "load_change": 0.000264753366753
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000191331367265,
+          "load_change": 0.000178892615378
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.000137767195744,
+          "load_change": 0.000141173113494
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.00012569733144,
+          "load_change": 0.000139572093391
+        },
+        {
+          "iteration": 1600,
+          "defect": 9.89649698988e-05,
+          "load_change": 0.000142087721701
+        },
+        {
+          "iteration": 1700,
+          "defect": 9.42628855223e-05,
+          "load_change": 9.76821729127e-05
+        },
+        {
+          "iteration": 1800,
+          "defect": 7.33669258377e-05,
+          "load_change": 7.47152385191e-05
+        },
+        {
+          "iteration": 1900,
+          "defect": 6.04623667043e-05,
+          "load_change": 0.000123551987512
+        },
+        {
+          "iteration": 2000,
+          "defect": 6.94124582773e-05,
+          "load_change": 5.79852771487e-05
+        },
+        {
+          "iteration": 2100,
+          "defect": 5.14048995371e-05,
+          "load_change": 8.76980242689e-05
+        },
+        {
+          "iteration": 2200,
+          "defect": 7.69027348074e-05,
+          "load_change": 6.33226721195e-05
+        },
+        {
+          "iteration": 2300,
+          "defect": 3.51996169257e-05,
+          "load_change": 0.00011118793648
+        },
+        {
+          "iteration": 2400,
+          "defect": 3.16969961412e-05,
+          "load_change": 6.32779847074e-05
+        },
+        {
+          "iteration": 2500,
+          "defect": 2.56180756915e-05,
+          "load_change": 0.000146392290807
+        },
+        {
+          "iteration": 2600,
+          "defect": 2.44035890683e-05,
+          "load_change": 2.42278004139e-05
+        },
+        {
+          "iteration": 2700,
+          "defect": 2.20932134289e-05,
+          "load_change": 0.000107355278622
+        },
+        {
+          "iteration": 2800,
+          "defect": 3.35696781841e-05,
+          "load_change": 0.00017045622304
+        },
+        {
+          "iteration": 2900,
+          "defect": 1.65639317177e-05,
+          "load_change": 8.17195340708e-05
+        },
+        {
+          "iteration": 3000,
+          "defect": 3.14385728337e-05,
+          "load_change": 4.79683619736e-05
+        }
+      ],
+      "tail_min": 1.65639317177e-05,
+      "tail_max": 7.69027348074e-05,
+      "median_per_step_contraction": 0.9989791566733983,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sst",
+      "case": "bump",
+      "backend": "cpu",
+      "level": 1,
+      "iteration": 3000,
+      "defect": 2.30844266492e-05,
+      "load_change": 0.000109985227325,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00820790312756,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.00123561761554,
+          "load_change": 0.211530748711
+        },
+        {
+          "iteration": 300,
+          "defect": 0.000839660582523,
+          "load_change": 0.168462674828
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000539667535298,
+          "load_change": 0.0788493154874
+        },
+        {
+          "iteration": 500,
+          "defect": 0.00033991066134,
+          "load_change": 0.0326051678128
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000218164690794,
+          "load_change": 0.0134447347954
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000142032922986,
+          "load_change": 0.00523350203042
+        },
+        {
+          "iteration": 800,
+          "defect": 9.51071385501e-05,
+          "load_change": 0.00204263146227
+        },
+        {
+          "iteration": 900,
+          "defect": 7.22483541611e-05,
+          "load_change": 0.000820238056103
+        },
+        {
+          "iteration": 1000,
+          "defect": 8.13494579553e-05,
+          "load_change": 0.000454385015011
+        },
+        {
+          "iteration": 1100,
+          "defect": 7.08554166369e-05,
+          "load_change": 0.000288335700998
+        },
+        {
+          "iteration": 1200,
+          "defect": 7.36171911719e-05,
+          "load_change": 0.000239521963883
+        },
+        {
+          "iteration": 1300,
+          "defect": 6.39752664176e-05,
+          "load_change": 0.000223783398317
+        },
+        {
+          "iteration": 1400,
+          "defect": 5.34464488873e-05,
+          "load_change": 0.000200284503016
+        },
+        {
+          "iteration": 1500,
+          "defect": 4.28395694973e-05,
+          "load_change": 0.000200581568324
+        },
+        {
+          "iteration": 1600,
+          "defect": 5.02203226853e-05,
+          "load_change": 0.000185440467237
+        },
+        {
+          "iteration": 1700,
+          "defect": 4.40188729897e-05,
+          "load_change": 0.000176533265619
+        },
+        {
+          "iteration": 1800,
+          "defect": 4.40802822581e-05,
+          "load_change": 0.000176309008391
+        },
+        {
+          "iteration": 1900,
+          "defect": 6.05857402887e-05,
+          "load_change": 0.000162286625913
+        },
+        {
+          "iteration": 2000,
+          "defect": 4.27961949332e-05,
+          "load_change": 0.000155964017357
+        },
+        {
+          "iteration": 2100,
+          "defect": 4.88299934449e-05,
+          "load_change": 0.000156390897395
+        },
+        {
+          "iteration": 2200,
+          "defect": 3.37902885125e-05,
+          "load_change": 0.000146017748613
+        },
+        {
+          "iteration": 2300,
+          "defect": 3.9793907992e-05,
+          "load_change": 0.000148889380192
+        },
+        {
+          "iteration": 2400,
+          "defect": 4.39884305565e-05,
+          "load_change": 0.000132164252142
+        },
+        {
+          "iteration": 2500,
+          "defect": 3.67934649638e-05,
+          "load_change": 0.000131148276186
+        },
+        {
+          "iteration": 2600,
+          "defect": 2.80938044143e-05,
+          "load_change": 0.000127490598151
+        },
+        {
+          "iteration": 2700,
+          "defect": 3.18366735233e-05,
+          "load_change": 0.000125994100046
+        },
+        {
+          "iteration": 2800,
+          "defect": 2.79844426508e-05,
+          "load_change": 0.000112518770422
+        },
+        {
+          "iteration": 2900,
+          "defect": 3.23894185014e-05,
+          "load_change": 0.000119697778063
+        },
+        {
+          "iteration": 3000,
+          "defect": 2.30844266492e-05,
+          "load_change": 0.000109985227325
+        }
+      ],
+      "tail_min": 2.30844266492e-05,
+      "tail_max": 4.88299934449e-05,
+      "median_per_step_contraction": 0.9998568801918668,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sst",
+      "case": "bump",
+      "backend": "cpu",
+      "level": 2,
+      "iteration": 3000,
+      "defect": 2.57342260198e-05,
+      "load_change": 0.00080014620876,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00537303461448,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.00395340366353,
+          "load_change": 0.976761229388
+        },
+        {
+          "iteration": 300,
+          "defect": 0.00247510245375,
+          "load_change": 0.430970366106
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000859765733556,
+          "load_change": 0.074653532585
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000425356753559,
+          "load_change": 0.0771248281234
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000401145765893,
+          "load_change": 0.080003909254
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000353694780038,
+          "load_change": 0.0753524729681
+        },
+        {
+          "iteration": 800,
+          "defect": 0.000318675983826,
+          "load_change": 0.0615864208148
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000291057085025,
+          "load_change": 0.052263109976
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.000261122169548,
+          "load_change": 0.0454564609557
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.000230356286793,
+          "load_change": 0.0381607894954
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000201932598125,
+          "load_change": 0.0312058793611
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000177166153014,
+          "load_change": 0.0254393171172
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.00015580654494,
+          "load_change": 0.0209335616845
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.00013741870805,
+          "load_change": 0.0173668457703
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.00012147287955,
+          "load_change": 0.0144198649063
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.000107583976856,
+          "load_change": 0.0119275574629
+        },
+        {
+          "iteration": 1800,
+          "defect": 9.54700769151e-05,
+          "load_change": 0.00981635640928
+        },
+        {
+          "iteration": 1900,
+          "defect": 8.45932558771e-05,
+          "load_change": 0.00807168157987
+        },
+        {
+          "iteration": 2000,
+          "defect": 7.50690036107e-05,
+          "load_change": 0.00660679207354
+        },
+        {
+          "iteration": 2100,
+          "defect": 6.67806463789e-05,
+          "load_change": 0.00535861542815
+        },
+        {
+          "iteration": 2200,
+          "defect": 5.9633233989e-05,
+          "load_change": 0.00432897461074
+        },
+        {
+          "iteration": 2300,
+          "defect": 5.32889934241e-05,
+          "load_change": 0.00352505694583
+        },
+        {
+          "iteration": 2400,
+          "defect": 4.7678343008e-05,
+          "load_change": 0.00285556348028
+        },
+        {
+          "iteration": 2500,
+          "defect": 4.27516096695e-05,
+          "load_change": 0.00232967997285
+        },
+        {
+          "iteration": 2600,
+          "defect": 3.84375463442e-05,
+          "load_change": 0.00187355495942
+        },
+        {
+          "iteration": 2700,
+          "defect": 3.46027727118e-05,
+          "load_change": 0.00152865148844
+        },
+        {
+          "iteration": 2800,
+          "defect": 3.12584690488e-05,
+          "load_change": 0.00121807992675
+        },
+        {
+          "iteration": 2900,
+          "defect": 2.832443776e-05,
+          "load_change": 0.000986586711844
+        },
+        {
+          "iteration": 3000,
+          "defect": 2.57342260198e-05,
+          "load_change": 0.00080014620876
+        }
+      ],
+      "tail_min": 2.57342260198e-05,
+      "tail_max": 7.50690036107e-05,
+      "median_per_step_contraction": 0.9989233674834472,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sst",
+      "case": "bump",
+      "backend": "metal",
+      "level": 0,
+      "iteration": 3000,
+      "defect": 1.99188050291e-05,
+      "load_change": 0.000120502689492,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00225997815479,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.000596426702936,
+          "load_change": 0.089162724085
+        },
+        {
+          "iteration": 300,
+          "defect": 0.000287148835783,
+          "load_change": 0.00219913790608
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000299306268233,
+          "load_change": 0.000696211979191
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000404125610995,
+          "load_change": 0.000738740405117
+        },
+        {
+          "iteration": 600,
+          "defect": 0.00043564363568,
+          "load_change": 0.000626781578522
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000399131247914,
+          "load_change": 0.000474679226878
+        },
+        {
+          "iteration": 800,
+          "defect": 0.00036695327722,
+          "load_change": 0.000436158948055
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000310044077161,
+          "load_change": 0.000344731698295
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.000242493349916,
+          "load_change": 0.000266075965892
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.000220182052745,
+          "load_change": 0.000257322888687
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000189705309513,
+          "load_change": 0.000264837777563
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000168739141335,
+          "load_change": 0.0002091137931
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.000139807135762,
+          "load_change": 0.000231232840814
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.000114612719924,
+          "load_change": 0.000222860645123
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.000106002547694,
+          "load_change": 0.000260987552608
+        },
+        {
+          "iteration": 1700,
+          "defect": 9.47287352894e-05,
+          "load_change": 8.9951822054e-05
+        },
+        {
+          "iteration": 1800,
+          "defect": 7.60546114823e-05,
+          "load_change": 9.81183575602e-05
+        },
+        {
+          "iteration": 1900,
+          "defect": 6.55261821169e-05,
+          "load_change": 6.10421885397e-05
+        },
+        {
+          "iteration": 2000,
+          "defect": 6.61692904115e-05,
+          "load_change": 0.000204459826521
+        },
+        {
+          "iteration": 2100,
+          "defect": 5.84203613429e-05,
+          "load_change": 0.000121499280987
+        },
+        {
+          "iteration": 2200,
+          "defect": 4.18989176655e-05,
+          "load_change": 7.40635978891e-05
+        },
+        {
+          "iteration": 2300,
+          "defect": 3.89149136749e-05,
+          "load_change": 0.000110331975914
+        },
+        {
+          "iteration": 2400,
+          "defect": 4.81954113874e-05,
+          "load_change": 0.000114690768233
+        },
+        {
+          "iteration": 2500,
+          "defect": 2.61970445442e-05,
+          "load_change": 9.1124734903e-05
+        },
+        {
+          "iteration": 2600,
+          "defect": 2.48686771847e-05,
+          "load_change": 9.2743408685e-05
+        },
+        {
+          "iteration": 2700,
+          "defect": 2.37643434473e-05,
+          "load_change": 0.000132806308686
+        },
+        {
+          "iteration": 2800,
+          "defect": 1.94374077467e-05,
+          "load_change": 0.000129254263462
+        },
+        {
+          "iteration": 2900,
+          "defect": 2.08176644892e-05,
+          "load_change": 1.88195367705e-05
+        },
+        {
+          "iteration": 3000,
+          "defect": 1.99188050291e-05,
+          "load_change": 0.000120502689492
+        }
+      ],
+      "tail_min": 1.94374077467e-05,
+      "tail_max": 6.61692904115e-05,
+      "median_per_step_contraction": 0.9993706042843528,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sst",
+      "case": "bump",
+      "backend": "metal",
+      "level": 1,
+      "iteration": 3000,
+      "defect": 2.81366024514e-05,
+      "load_change": 0.000112066029761,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00821297480883,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.00123532009952,
+          "load_change": 0.211842000027
+        },
+        {
+          "iteration": 300,
+          "defect": 0.000839789869956,
+          "load_change": 0.168621391871
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000539825022471,
+          "load_change": 0.0789358524897
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000340040061524,
+          "load_change": 0.0326329562574
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000218281243294,
+          "load_change": 0.0134554031406
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000142094279784,
+          "load_change": 0.00523646056702
+        },
+        {
+          "iteration": 800,
+          "defect": 9.51646477015e-05,
+          "load_change": 0.00204211506714
+        },
+        {
+          "iteration": 900,
+          "defect": 8.16447699817e-05,
+          "load_change": 0.000822441953295
+        },
+        {
+          "iteration": 1000,
+          "defect": 6.68908985666e-05,
+          "load_change": 0.00045461989585
+        },
+        {
+          "iteration": 1100,
+          "defect": 7.25166143706e-05,
+          "load_change": 0.000287654502346
+        },
+        {
+          "iteration": 1200,
+          "defect": 5.84239190295e-05,
+          "load_change": 0.000237614945893
+        },
+        {
+          "iteration": 1300,
+          "defect": 6.52242179192e-05,
+          "load_change": 0.000220163503771
+        },
+        {
+          "iteration": 1400,
+          "defect": 4.74610363021e-05,
+          "load_change": 0.000203254155571
+        },
+        {
+          "iteration": 1500,
+          "defect": 5.95173793068e-05,
+          "load_change": 0.000198299021908
+        },
+        {
+          "iteration": 1600,
+          "defect": 4.40867995409e-05,
+          "load_change": 0.000188563561677
+        },
+        {
+          "iteration": 1700,
+          "defect": 4.78012501747e-05,
+          "load_change": 0.000181592088076
+        },
+        {
+          "iteration": 1800,
+          "defect": 4.10982522051e-05,
+          "load_change": 0.000173230418051
+        },
+        {
+          "iteration": 1900,
+          "defect": 3.55497628059e-05,
+          "load_change": 0.000158686512595
+        },
+        {
+          "iteration": 2000,
+          "defect": 4.17753148445e-05,
+          "load_change": 0.000162142937111
+        },
+        {
+          "iteration": 2100,
+          "defect": 4.22501405673e-05,
+          "load_change": 0.000153619626115
+        },
+        {
+          "iteration": 2200,
+          "defect": 4.02452185378e-05,
+          "load_change": 0.000145371663851
+        },
+        {
+          "iteration": 2300,
+          "defect": 3.52624486522e-05,
+          "load_change": 0.000141338654665
+        },
+        {
+          "iteration": 2400,
+          "defect": 3.50147006069e-05,
+          "load_change": 0.000142034329336
+        },
+        {
+          "iteration": 2500,
+          "defect": 3.8855240054e-05,
+          "load_change": 0.00013212836634
+        },
+        {
+          "iteration": 2600,
+          "defect": 2.97610571249e-05,
+          "load_change": 0.000120788215596
+        },
+        {
+          "iteration": 2700,
+          "defect": 2.96504351637e-05,
+          "load_change": 0.000126402247157
+        },
+        {
+          "iteration": 2800,
+          "defect": 5.47766200523e-05,
+          "load_change": 0.000122951470138
+        },
+        {
+          "iteration": 2900,
+          "defect": 3.33947038173e-05,
+          "load_change": 0.000113177510591
+        },
+        {
+          "iteration": 3000,
+          "defect": 2.81366024514e-05,
+          "load_change": 0.000112066029761
+        }
+      ],
+      "tail_min": 2.81366024514e-05,
+      "tail_max": 5.47766200523e-05,
+      "median_per_step_contraction": 0.9997217247840309,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sst",
+      "case": "bump",
+      "backend": "metal",
+      "level": 2,
+      "iteration": 3000,
+      "defect": 2.57270639969e-05,
+      "load_change": 0.000803104893041,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00537747201579,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.00395294225434,
+          "load_change": 0.976875164879
+        },
+        {
+          "iteration": 300,
+          "defect": 0.00247397638768,
+          "load_change": 0.430671062342
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000859596005567,
+          "load_change": 0.07460885873
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000425563008265,
+          "load_change": 0.0771982980542
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000401127478964,
+          "load_change": 0.0800923658206
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000353723331758,
+          "load_change": 0.0754234996591
+        },
+        {
+          "iteration": 800,
+          "defect": 0.00031876953613,
+          "load_change": 0.0616282555391
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000291091326282,
+          "load_change": 0.0522861236881
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.000261183114633,
+          "load_change": 0.0454734777733
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.000230435410684,
+          "load_change": 0.0381781676949
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000201991453752,
+          "load_change": 0.0312152111742
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000177255283536,
+          "load_change": 0.0254579119954
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.000155861592692,
+          "load_change": 0.0209440112437
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.000137451815226,
+          "load_change": 0.0173771537759
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.00012152533031,
+          "load_change": 0.0144309439602
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.000107644382436,
+          "load_change": 0.0119342701504
+        },
+        {
+          "iteration": 1800,
+          "defect": 9.54521359084e-05,
+          "load_change": 0.00983174406325
+        },
+        {
+          "iteration": 1900,
+          "defect": 8.46149388814e-05,
+          "load_change": 0.00808176423687
+        },
+        {
+          "iteration": 2000,
+          "defect": 7.50554914386e-05,
+          "load_change": 0.00659050941603
+        },
+        {
+          "iteration": 2100,
+          "defect": 6.67242103641e-05,
+          "load_change": 0.00537893499417
+        },
+        {
+          "iteration": 2200,
+          "defect": 5.95866563549e-05,
+          "load_change": 0.00431495616188
+        },
+        {
+          "iteration": 2300,
+          "defect": 5.33245370688e-05,
+          "load_change": 0.00352064697738
+        },
+        {
+          "iteration": 2400,
+          "defect": 4.76555655465e-05,
+          "load_change": 0.00287407783768
+        },
+        {
+          "iteration": 2500,
+          "defect": 4.27186313596e-05,
+          "load_change": 0.00231698486131
+        },
+        {
+          "iteration": 2600,
+          "defect": 3.84548136183e-05,
+          "load_change": 0.00186960897893
+        },
+        {
+          "iteration": 2700,
+          "defect": 3.46846501785e-05,
+          "load_change": 0.00153651666596
+        },
+        {
+          "iteration": 2800,
+          "defect": 3.13088640355e-05,
+          "load_change": 0.00123084093658
+        },
+        {
+          "iteration": 2900,
+          "defect": 2.83605809483e-05,
+          "load_change": 0.000988023692997
+        },
+        {
+          "iteration": 3000,
+          "defect": 2.57270639969e-05,
+          "load_change": 0.000803104893041
+        }
+      ],
+      "tail_min": 2.57270639969e-05,
+      "tail_max": 7.50554914386e-05,
+      "median_per_step_contraction": 0.9989279975070806,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sa",
+      "case": "plate",
+      "backend": "cpu",
+      "level": 0,
+      "iteration": 400,
+      "defect": 9.23123312827e-07,
+      "load_change": 4.72940158892e-07,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.0220749505181,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.000671053926687,
+          "load_change": 0.0207460270527
+        },
+        {
+          "iteration": 300,
+          "defect": 0.000124158194056,
+          "load_change": 0.000187157051737
+        },
+        {
+          "iteration": 400,
+          "defect": 9.23123312827e-07,
+          "load_change": 4.72940158892e-07
+        }
+      ],
+      "terminal_3000_observed": false,
+      "failure_at_terminal_observed": false
+    },
+    {
+      "model": "sa",
+      "case": "plate",
+      "backend": "cpu",
+      "level": 1,
+      "iteration": 900,
+      "defect": 4.99319219744e-06,
+      "load_change": 7.23281923771e-06,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.0858662581535,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.0336025366332,
+          "load_change": 0.22934191758
+        },
+        {
+          "iteration": 300,
+          "defect": 0.0128150385641,
+          "load_change": 0.0618736052383
+        },
+        {
+          "iteration": 400,
+          "defect": 0.00464356434477,
+          "load_change": 0.0145400669645
+        },
+        {
+          "iteration": 500,
+          "defect": 0.00131962358488,
+          "load_change": 0.00342715263777
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000320205728633,
+          "load_change": 0.000789243703948
+        },
+        {
+          "iteration": 700,
+          "defect": 0.00010432677377,
+          "load_change": 0.000172071955729
+        },
+        {
+          "iteration": 800,
+          "defect": 2.36747197186e-05,
+          "load_change": 3.59387054946e-05
+        },
+        {
+          "iteration": 900,
+          "defect": 4.99319219744e-06,
+          "load_change": 7.23281923771e-06
+        }
+      ],
+      "terminal_3000_observed": false,
+      "failure_at_terminal_observed": false
+    },
+    {
+      "model": "sa",
+      "case": "plate",
+      "backend": "cpu",
+      "level": 2,
+      "iteration": 3000,
+      "defect": 4.28200779547e-05,
+      "load_change": 4.36018004445e-06,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.109868299086,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.0999978327739,
+          "load_change": 0.292453945069
+        },
+        {
+          "iteration": 300,
+          "defect": 0.0682879033129,
+          "load_change": 0.104675006364
+        },
+        {
+          "iteration": 400,
+          "defect": 0.0480659638111,
+          "load_change": 0.0974466784401
+        },
+        {
+          "iteration": 500,
+          "defect": 0.0433517621479,
+          "load_change": 0.0726945889782
+        },
+        {
+          "iteration": 600,
+          "defect": 0.0327793121192,
+          "load_change": 0.0526032141755
+        },
+        {
+          "iteration": 700,
+          "defect": 0.0259013528971,
+          "load_change": 0.0375701268015
+        },
+        {
+          "iteration": 800,
+          "defect": 0.0196420055792,
+          "load_change": 0.0265401516763
+        },
+        {
+          "iteration": 900,
+          "defect": 0.0159081337365,
+          "load_change": 0.0185589527733
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.0122581216194,
+          "load_change": 0.0128518607673
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.00840597731993,
+          "load_change": 0.00881528218518
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.00641908631869,
+          "load_change": 0.00599065150316
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.00498062135065,
+          "load_change": 0.00403486723018
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.00355089296496,
+          "load_change": 0.00269390105261
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.00252104881635,
+          "load_change": 0.00178261073475
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.00204446045102,
+          "load_change": 0.00119622461905
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.00145274050988,
+          "load_change": 0.000814885828741
+        },
+        {
+          "iteration": 1800,
+          "defect": 0.0011125697939,
+          "load_change": 0.000553186978359
+        },
+        {
+          "iteration": 1900,
+          "defect": 0.000816773825295,
+          "load_change": 0.000374214246717
+        },
+        {
+          "iteration": 2000,
+          "defect": 0.000595148943844,
+          "load_change": 0.000252648394077
+        },
+        {
+          "iteration": 2100,
+          "defect": 0.000398296895211,
+          "load_change": 0.000170684877798
+        },
+        {
+          "iteration": 2200,
+          "defect": 0.000327294521915,
+          "load_change": 0.000114754950115
+        },
+        {
+          "iteration": 2300,
+          "defect": 0.000197180378914,
+          "load_change": 7.68454905014e-05
+        },
+        {
+          "iteration": 2400,
+          "defect": 0.000189977424246,
+          "load_change": 5.1274306368e-05
+        },
+        {
+          "iteration": 2500,
+          "defect": 8.79400424585e-05,
+          "load_change": 3.4123445138e-05
+        },
+        {
+          "iteration": 2600,
+          "defect": 9.97655016673e-05,
+          "load_change": 2.26185070424e-05
+        },
+        {
+          "iteration": 2700,
+          "defect": 5.4335780596e-05,
+          "load_change": 1.49679075498e-05
+        },
+        {
+          "iteration": 2800,
+          "defect": 2.85107433776e-05,
+          "load_change": 9.86351524011e-06
+        },
+        {
+          "iteration": 2900,
+          "defect": 3.1437848103e-05,
+          "load_change": 6.42739583682e-06
+        },
+        {
+          "iteration": 3000,
+          "defect": 4.28200779547e-05,
+          "load_change": 4.36018004445e-06
+        }
+      ],
+      "tail_min": 2.85107433776e-05,
+      "tail_max": 0.000595148943844,
+      "median_per_step_contraction": 0.9970152337507971,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sa",
+      "case": "plate",
+      "backend": "metal",
+      "level": 0,
+      "iteration": 300,
+      "defect": 2.88732530877e-06,
+      "load_change": 0.000186977425748,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.0221111559857,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.000539114982083,
+          "load_change": 0.0207380414108
+        },
+        {
+          "iteration": 300,
+          "defect": 2.88732530877e-06,
+          "load_change": 0.000186977425748
+        }
+      ],
+      "terminal_3000_observed": false,
+      "failure_at_terminal_observed": false
+    },
+    {
+      "model": "sa",
+      "case": "plate",
+      "backend": "metal",
+      "level": 1,
+      "iteration": 3000,
+      "defect": 2.41778890637e-05,
+      "load_change": 0.0,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.0860162827873,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.0340698069832,
+          "load_change": 0.22932556498
+        },
+        {
+          "iteration": 300,
+          "defect": 0.01262424075,
+          "load_change": 0.0618800795533
+        },
+        {
+          "iteration": 400,
+          "defect": 0.00467221295711,
+          "load_change": 0.0145381340867
+        },
+        {
+          "iteration": 500,
+          "defect": 0.00142696770587,
+          "load_change": 0.00342621307219
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000321785899791,
+          "load_change": 0.000789022624199
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000104218610689,
+          "load_change": 0.000172058141851
+        },
+        {
+          "iteration": 800,
+          "defect": 3.79178970487e-05,
+          "load_change": 3.58760047567e-05
+        },
+        {
+          "iteration": 900,
+          "defect": 2.78468102619e-05,
+          "load_change": 7.28860856431e-06
+        },
+        {
+          "iteration": 1000,
+          "defect": 2.47557305684e-05,
+          "load_change": 1.1236802637e-06
+        },
+        {
+          "iteration": 1100,
+          "defect": 2.43309420336e-05,
+          "load_change": 3.16467169145e-07
+        },
+        {
+          "iteration": 1200,
+          "defect": 2.41998047633e-05,
+          "load_change": 1.07628471605e-07
+        },
+        {
+          "iteration": 1300,
+          "defect": 2.41446345424e-05,
+          "load_change": 4.03115354743e-08
+        },
+        {
+          "iteration": 1400,
+          "defect": 2.41820458903e-05,
+          "load_change": 4.93708603626e-09
+        },
+        {
+          "iteration": 1500,
+          "defect": 2.41737510752e-05,
+          "load_change": 1.77735100464e-08
+        },
+        {
+          "iteration": 1600,
+          "defect": 2.41793507293e-05,
+          "load_change": 3.94966891481e-09
+        },
+        {
+          "iteration": 1700,
+          "defect": 2.41751967047e-05,
+          "load_change": 3.94966893041e-09
+        },
+        {
+          "iteration": 1800,
+          "defect": 2.41776250718e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 1900,
+          "defect": 2.41611536623e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2000,
+          "defect": 2.41669032952e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2100,
+          "defect": 2.41600449876e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2200,
+          "defect": 2.41516433007e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2300,
+          "defect": 2.41697580135e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2400,
+          "defect": 2.41587600263e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2500,
+          "defect": 2.41699205056e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2600,
+          "defect": 2.41602649387e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2700,
+          "defect": 2.41767348409e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2800,
+          "defect": 2.41638915414e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 2900,
+          "defect": 2.41642258194e-05,
+          "load_change": 0.0
+        },
+        {
+          "iteration": 3000,
+          "defect": 2.41778890637e-05,
+          "load_change": 0.0
+        }
+      ],
+      "tail_min": 2.41516433007e-05,
+      "tail_max": 2.41778890637e-05,
+      "median_per_step_contraction": 0.9999986500227703,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sa",
+      "case": "plate",
+      "backend": "metal",
+      "level": 2,
+      "iteration": 3000,
+      "defect": 1.39775922557e-05,
+      "load_change": 4.3562335481e-06,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.108177324459,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.104404102341,
+          "load_change": 0.292530018865
+        },
+        {
+          "iteration": 300,
+          "defect": 0.0719705405954,
+          "load_change": 0.104649525336
+        },
+        {
+          "iteration": 400,
+          "defect": 0.0498485556176,
+          "load_change": 0.0974417625907
+        },
+        {
+          "iteration": 500,
+          "defect": 0.0427662593992,
+          "load_change": 0.0726890001261
+        },
+        {
+          "iteration": 600,
+          "defect": 0.0313403265553,
+          "load_change": 0.0526037446804
+        },
+        {
+          "iteration": 700,
+          "defect": 0.0259463251466,
+          "load_change": 0.0375668481267
+        },
+        {
+          "iteration": 800,
+          "defect": 0.0206511598507,
+          "load_change": 0.0265382233152
+        },
+        {
+          "iteration": 900,
+          "defect": 0.0151498942675,
+          "load_change": 0.0185589197177
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.0116788773652,
+          "load_change": 0.0128527299445
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.00874913251692,
+          "load_change": 0.0088154049764
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.00642595544199,
+          "load_change": 0.00599060745766
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.0049002369204,
+          "load_change": 0.00403529032094
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.00369665107942,
+          "load_change": 0.00269356000685
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.00258668714481,
+          "load_change": 0.00178269228212
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.00202101277531,
+          "load_change": 0.00119620866249
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.00144772692336,
+          "load_change": 0.000815013097002
+        },
+        {
+          "iteration": 1800,
+          "defect": 0.00108808995584,
+          "load_change": 0.000553347679733
+        },
+        {
+          "iteration": 1900,
+          "defect": 0.000777076818483,
+          "load_change": 0.000374115909904
+        },
+        {
+          "iteration": 2000,
+          "defect": 0.000575417354235,
+          "load_change": 0.000252654315929
+        },
+        {
+          "iteration": 2100,
+          "defect": 0.000435579099571,
+          "load_change": 0.000170698938422
+        },
+        {
+          "iteration": 2200,
+          "defect": 0.000294951152003,
+          "load_change": 0.000114723631718
+        },
+        {
+          "iteration": 2300,
+          "defect": 0.000245956241744,
+          "load_change": 7.68681817651e-05
+        },
+        {
+          "iteration": 2400,
+          "defect": 0.000127448560037,
+          "load_change": 5.1265674982e-05
+        },
+        {
+          "iteration": 2500,
+          "defect": 9.09058398605e-05,
+          "load_change": 3.41125930036e-05
+        },
+        {
+          "iteration": 2600,
+          "defect": 6.57268910848e-05,
+          "load_change": 2.2625413521e-05
+        },
+        {
+          "iteration": 2700,
+          "defect": 4.63141267502e-05,
+          "load_change": 1.49669211138e-05
+        },
+        {
+          "iteration": 2800,
+          "defect": 3.80616111957e-05,
+          "load_change": 9.85142910782e-06
+        },
+        {
+          "iteration": 2900,
+          "defect": 3.10596752433e-05,
+          "load_change": 6.44022209726e-06
+        },
+        {
+          "iteration": 3000,
+          "defect": 1.39775922557e-05,
+          "load_change": 4.3562335481e-06
+        }
+      ],
+      "tail_min": 1.39775922557e-05,
+      "tail_max": 0.000575417354235,
+      "median_per_step_contraction": 0.9966944542404017,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sa",
+      "case": "bump",
+      "backend": "cpu",
+      "level": 0,
+      "iteration": 3000,
+      "defect": 3.43975672022e-05,
+      "load_change": 4.55523787382e-05,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00230107257451,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.0011113513157,
+          "load_change": 0.103605200346
+        },
+        {
+          "iteration": 300,
+          "defect": 0.000502766192849,
+          "load_change": 0.00744964098094
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000320499820944,
+          "load_change": 0.00110408641336
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000305415985663,
+          "load_change": 0.000658989025027
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000327786262231,
+          "load_change": 0.000558346867286
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000314472940998,
+          "load_change": 0.000503492697922
+        },
+        {
+          "iteration": 800,
+          "defect": 0.000276731502848,
+          "load_change": 0.000614856541999
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000224672082979,
+          "load_change": 0.000403027659561
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.000216586053322,
+          "load_change": 0.000416777468161
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.000174091983708,
+          "load_change": 0.000315819310039
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000176785047054,
+          "load_change": 0.000295721787866
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000167177046474,
+          "load_change": 0.000275136105536
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.000140411726661,
+          "load_change": 0.000234073415035
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.000133701931654,
+          "load_change": 0.00022142640374
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.000143690803701,
+          "load_change": 0.00019419127214
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.000102134678333,
+          "load_change": 0.000174136050255
+        },
+        {
+          "iteration": 1800,
+          "defect": 9.54990941591e-05,
+          "load_change": 0.000166291430041
+        },
+        {
+          "iteration": 1900,
+          "defect": 0.000106550275296,
+          "load_change": 0.000149005236613
+        },
+        {
+          "iteration": 2000,
+          "defect": 7.66106105141e-05,
+          "load_change": 0.000128956075315
+        },
+        {
+          "iteration": 2100,
+          "defect": 7.08013422074e-05,
+          "load_change": 0.000119307294874
+        },
+        {
+          "iteration": 2200,
+          "defect": 6.87789737959e-05,
+          "load_change": 0.000106185386504
+        },
+        {
+          "iteration": 2300,
+          "defect": 5.86658527968e-05,
+          "load_change": 9.97781900508e-05
+        },
+        {
+          "iteration": 2400,
+          "defect": 6.95818582333e-05,
+          "load_change": 8.65749381335e-05
+        },
+        {
+          "iteration": 2500,
+          "defect": 5.1354469045e-05,
+          "load_change": 7.63712874713e-05
+        },
+        {
+          "iteration": 2600,
+          "defect": 4.62953621478e-05,
+          "load_change": 6.42341362226e-05
+        },
+        {
+          "iteration": 2700,
+          "defect": 5.84394958502e-05,
+          "load_change": 6.19903756569e-05
+        },
+        {
+          "iteration": 2800,
+          "defect": 3.79027092044e-05,
+          "load_change": 5.32800388062e-05
+        },
+        {
+          "iteration": 2900,
+          "defect": 4.2718587928e-05,
+          "load_change": 4.67744859622e-05
+        },
+        {
+          "iteration": 3000,
+          "defect": 3.43975672022e-05,
+          "load_change": 4.55523787382e-05
+        }
+      ],
+      "tail_min": 3.43975672022e-05,
+      "tail_max": 7.66106105141e-05,
+      "median_per_step_contraction": 0.9990875852017114,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sa",
+      "case": "bump",
+      "backend": "cpu",
+      "level": 1,
+      "iteration": 3000,
+      "defect": 4.12498250169e-05,
+      "load_change": 0.000113970731325,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00231199457553,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.00084272354189,
+          "load_change": 0.271845201667
+        },
+        {
+          "iteration": 300,
+          "defect": 0.00088504601628,
+          "load_change": 0.165928318171
+        },
+        {
+          "iteration": 400,
+          "defect": 0.00069386401255,
+          "load_change": 0.0837862344143
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000514144128039,
+          "load_change": 0.0401325999743
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000381830490373,
+          "load_change": 0.0187246542693
+        },
+        {
+          "iteration": 700,
+          "defect": 0.00028990843228,
+          "load_change": 0.00846695515985
+        },
+        {
+          "iteration": 800,
+          "defect": 0.000227951655965,
+          "load_change": 0.00371175452248
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000186012782753,
+          "load_change": 0.00159560710618
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.00015703219236,
+          "load_change": 0.000722350739456
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.000136240069951,
+          "load_change": 0.000463977235498
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000120460825264,
+          "load_change": 0.000343936593939
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000108014166074,
+          "load_change": 0.000284365631371
+        },
+        {
+          "iteration": 1400,
+          "defect": 9.78913067885e-05,
+          "load_change": 0.000253603752642
+        },
+        {
+          "iteration": 1500,
+          "defect": 8.96016193325e-05,
+          "load_change": 0.000233235809092
+        },
+        {
+          "iteration": 1600,
+          "defect": 8.2716770083e-05,
+          "load_change": 0.00022166628227
+        },
+        {
+          "iteration": 1700,
+          "defect": 7.6822812494e-05,
+          "load_change": 0.000205871393925
+        },
+        {
+          "iteration": 1800,
+          "defect": 7.17066229275e-05,
+          "load_change": 0.000189361559582
+        },
+        {
+          "iteration": 1900,
+          "defect": 6.73221296314e-05,
+          "load_change": 0.000175960524517
+        },
+        {
+          "iteration": 2000,
+          "defect": 6.34472623385e-05,
+          "load_change": 0.000158600683021
+        },
+        {
+          "iteration": 2100,
+          "defect": 6.00196083926e-05,
+          "load_change": 0.000145646290661
+        },
+        {
+          "iteration": 2200,
+          "defect": 5.70204472719e-05,
+          "load_change": 0.000135975053886
+        },
+        {
+          "iteration": 2300,
+          "defect": 5.4329763909e-05,
+          "load_change": 0.000129453066747
+        },
+        {
+          "iteration": 2400,
+          "defect": 5.18942198614e-05,
+          "load_change": 0.000125120647749
+        },
+        {
+          "iteration": 2500,
+          "defect": 4.9696083143e-05,
+          "load_change": 0.000119373681058
+        },
+        {
+          "iteration": 2600,
+          "defect": 4.76869161717e-05,
+          "load_change": 0.000117810580693
+        },
+        {
+          "iteration": 2700,
+          "defect": 4.58660971063e-05,
+          "load_change": 0.000122371344784
+        },
+        {
+          "iteration": 2800,
+          "defect": 4.41997879035e-05,
+          "load_change": 0.00011777119372
+        },
+        {
+          "iteration": 2900,
+          "defect": 4.26509750548e-05,
+          "load_change": 0.00010981352443
+        },
+        {
+          "iteration": 3000,
+          "defect": 4.12498250169e-05,
+          "load_change": 0.000113970731325
+        }
+      ],
+      "tail_min": 4.12498250169e-05,
+      "tail_max": 6.34472623385e-05,
+      "median_per_step_contraction": 0.9995773376619701,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sa",
+      "case": "bump",
+      "backend": "cpu",
+      "level": 2,
+      "iteration": 3000,
+      "defect": 6.12823509099e-05,
+      "load_change": 0.000925772890975,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.000393861054864,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.00038985912753,
+          "load_change": 0.909071340498
+        },
+        {
+          "iteration": 300,
+          "defect": 0.000273066671144,
+          "load_change": 0.368860750542
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000205803736218,
+          "load_change": 0.0942368517942
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000216149280123,
+          "load_change": 0.0813685668915
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000280378262706,
+          "load_change": 0.0743908778826
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000335785294238,
+          "load_change": 0.0678635844302
+        },
+        {
+          "iteration": 800,
+          "defect": 0.000360377352322,
+          "load_change": 0.0604062549133
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000357289639649,
+          "load_change": 0.0525211589396
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.000336712039085,
+          "load_change": 0.0450277127516
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.000308350606921,
+          "load_change": 0.0382353445882
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000278667814621,
+          "load_change": 0.0322405201649
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000250488106704,
+          "load_change": 0.0270238172291
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.000224871508109,
+          "load_change": 0.0225363777121
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.000202043518919,
+          "load_change": 0.0187183834538
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.000182051619183,
+          "load_change": 0.0155009397177
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.00016458721753,
+          "load_change": 0.0128066254092
+        },
+        {
+          "iteration": 1800,
+          "defect": 0.000149329378119,
+          "load_change": 0.0105552112484
+        },
+        {
+          "iteration": 1900,
+          "defect": 0.000135997109097,
+          "load_change": 0.00868762004673
+        },
+        {
+          "iteration": 2000,
+          "defect": 0.000124349339652,
+          "load_change": 0.007142577906
+        },
+        {
+          "iteration": 2100,
+          "defect": 0.000114139772877,
+          "load_change": 0.00585779766997
+        },
+        {
+          "iteration": 2200,
+          "defect": 0.000105096087799,
+          "load_change": 0.00480326859831
+        },
+        {
+          "iteration": 2300,
+          "defect": 9.71583996589e-05,
+          "load_change": 0.00392516890008
+        },
+        {
+          "iteration": 2400,
+          "defect": 9.01157208392e-05,
+          "load_change": 0.00320618838998
+        },
+        {
+          "iteration": 2500,
+          "defect": 8.38785265357e-05,
+          "load_change": 0.00261510221709
+        },
+        {
+          "iteration": 2600,
+          "defect": 7.83156973498e-05,
+          "load_change": 0.00213284656222
+        },
+        {
+          "iteration": 2700,
+          "defect": 7.33473202545e-05,
+          "load_change": 0.00173386484222
+        },
+        {
+          "iteration": 2800,
+          "defect": 6.88995257289e-05,
+          "load_change": 0.00140862343892
+        },
+        {
+          "iteration": 2900,
+          "defect": 6.48917644505e-05,
+          "load_change": 0.0011448905541
+        },
+        {
+          "iteration": 3000,
+          "defect": 6.12823509099e-05,
+          "load_change": 0.000925772890975
+        }
+      ],
+      "tail_min": 6.12823509099e-05,
+      "tail_max": 0.000124349339652,
+      "median_per_step_contraction": 0.9992985134192086,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sa",
+      "case": "bump",
+      "backend": "metal",
+      "level": 0,
+      "iteration": 3000,
+      "defect": 5.78428002807e-05,
+      "load_change": 3.97250444738e-05,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00231569221527,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.00111440610307,
+          "load_change": 0.103592030217
+        },
+        {
+          "iteration": 300,
+          "defect": 0.000502689545648,
+          "load_change": 0.0074750210262
+        },
+        {
+          "iteration": 400,
+          "defect": 0.00032044426951,
+          "load_change": 0.00108609043712
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000293422436811,
+          "load_change": 0.000674361636674
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000322291012136,
+          "load_change": 0.000566954261922
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000295748996129,
+          "load_change": 0.000455170689693
+        },
+        {
+          "iteration": 800,
+          "defect": 0.000257009947581,
+          "load_change": 0.000663612487827
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000233927604001,
+          "load_change": 0.000393592252972
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.000218467305331,
+          "load_change": 0.000415722192219
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.00018697929176,
+          "load_change": 0.000291036665376
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000173621917874,
+          "load_change": 0.000299318337956
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000163774406529,
+          "load_change": 0.000265962678082
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.00014778647554,
+          "load_change": 0.000246768229637
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.000123338884491,
+          "load_change": 0.000219318809735
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.000124684208128,
+          "load_change": 0.000204772302026
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.00010167294339,
+          "load_change": 0.0001753696548
+        },
+        {
+          "iteration": 1800,
+          "defect": 0.000111715874849,
+          "load_change": 0.000154669908863
+        },
+        {
+          "iteration": 1900,
+          "defect": 9.18269223914e-05,
+          "load_change": 0.000146264398388
+        },
+        {
+          "iteration": 2000,
+          "defect": 8.23601431843e-05,
+          "load_change": 0.000132631841619
+        },
+        {
+          "iteration": 2100,
+          "defect": 7.24262215635e-05,
+          "load_change": 0.00011805058724
+        },
+        {
+          "iteration": 2200,
+          "defect": 6.52942684521e-05,
+          "load_change": 0.000107750824689
+        },
+        {
+          "iteration": 2300,
+          "defect": 5.95144195938e-05,
+          "load_change": 9.26384660355e-05
+        },
+        {
+          "iteration": 2400,
+          "defect": 5.62597942007e-05,
+          "load_change": 8.55913249728e-05
+        },
+        {
+          "iteration": 2500,
+          "defect": 6.3650447133e-05,
+          "load_change": 7.64956109175e-05
+        },
+        {
+          "iteration": 2600,
+          "defect": 6.56049477299e-05,
+          "load_change": 8.45627926746e-05
+        },
+        {
+          "iteration": 2700,
+          "defect": 4.57375708219e-05,
+          "load_change": 4.54906299035e-05
+        },
+        {
+          "iteration": 2800,
+          "defect": 4.44174351122e-05,
+          "load_change": 6.82263789397e-05
+        },
+        {
+          "iteration": 2900,
+          "defect": 4.19366755784e-05,
+          "load_change": 3.58078209263e-05
+        },
+        {
+          "iteration": 3000,
+          "defect": 5.78428002807e-05,
+          "load_change": 3.97250444738e-05
+        }
+      ],
+      "tail_min": 4.19366755784e-05,
+      "tail_max": 8.23601431843e-05,
+      "median_per_step_contraction": 0.9994316125967537,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sa",
+      "case": "bump",
+      "backend": "metal",
+      "level": 1,
+      "iteration": 3000,
+      "defect": 4.12428160127e-05,
+      "load_change": 0.000106065966228,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.00232407937633,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.000842708222843,
+          "load_change": 0.271866637293
+        },
+        {
+          "iteration": 300,
+          "defect": 0.000884810273054,
+          "load_change": 0.165952448125
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000693819097191,
+          "load_change": 0.0837794672262
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000514082927624,
+          "load_change": 0.0401300527137
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000381856901117,
+          "load_change": 0.0187243599864
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000289925551473,
+          "load_change": 0.00846621145506
+        },
+        {
+          "iteration": 800,
+          "defect": 0.000227984194228,
+          "load_change": 0.00371169594893
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000185991987556,
+          "load_change": 0.00159454766167
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.00015706360382,
+          "load_change": 0.000721653004574
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.000136229878431,
+          "load_change": 0.000464629651684
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000120434487353,
+          "load_change": 0.000341851771275
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000107991738603,
+          "load_change": 0.000285465732102
+        },
+        {
+          "iteration": 1400,
+          "defect": 9.79230250889e-05,
+          "load_change": 0.000253531722853
+        },
+        {
+          "iteration": 1500,
+          "defect": 8.95957907565e-05,
+          "load_change": 0.000233886898202
+        },
+        {
+          "iteration": 1600,
+          "defect": 8.27115099012e-05,
+          "load_change": 0.000218065695587
+        },
+        {
+          "iteration": 1700,
+          "defect": 7.68087489027e-05,
+          "load_change": 0.000205886347943
+        },
+        {
+          "iteration": 1800,
+          "defect": 7.17360473681e-05,
+          "load_change": 0.000190453315123
+        },
+        {
+          "iteration": 1900,
+          "defect": 6.73036443749e-05,
+          "load_change": 0.000176138910523
+        },
+        {
+          "iteration": 2000,
+          "defect": 6.34639668885e-05,
+          "load_change": 0.000160569678776
+        },
+        {
+          "iteration": 2100,
+          "defect": 6.00309666051e-05,
+          "load_change": 0.000144321981955
+        },
+        {
+          "iteration": 2200,
+          "defect": 5.70154369831e-05,
+          "load_change": 0.000132618259127
+        },
+        {
+          "iteration": 2300,
+          "defect": 5.43381184496e-05,
+          "load_change": 0.000126792225356
+        },
+        {
+          "iteration": 2400,
+          "defect": 5.1907072123e-05,
+          "load_change": 0.000124408855204
+        },
+        {
+          "iteration": 2500,
+          "defect": 4.96919404862e-05,
+          "load_change": 0.000127530024075
+        },
+        {
+          "iteration": 2600,
+          "defect": 4.77037279489e-05,
+          "load_change": 0.000122231668665
+        },
+        {
+          "iteration": 2700,
+          "defect": 4.58720804104e-05,
+          "load_change": 0.000119100289753
+        },
+        {
+          "iteration": 2800,
+          "defect": 4.41959528204e-05,
+          "load_change": 0.000110459403735
+        },
+        {
+          "iteration": 2900,
+          "defect": 4.26447427044e-05,
+          "load_change": 0.000116141372016
+        },
+        {
+          "iteration": 3000,
+          "defect": 4.12428160127e-05,
+          "load_change": 0.000106065966228
+        }
+      ],
+      "tail_min": 4.12428160127e-05,
+      "tail_max": 6.34639668885e-05,
+      "median_per_step_contraction": 0.9995778617400015,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    },
+    {
+      "model": "sa",
+      "case": "bump",
+      "backend": "metal",
+      "level": 2,
+      "iteration": 3000,
+      "defect": 6.12966637979e-05,
+      "load_change": 0.000927412913962,
+      "history": [
+        {
+          "iteration": 100,
+          "defect": 0.000391879412851,
+          "load_change": null
+        },
+        {
+          "iteration": 200,
+          "defect": 0.000388368231528,
+          "load_change": 0.908540749863
+        },
+        {
+          "iteration": 300,
+          "defect": 0.000272483764581,
+          "load_change": 0.368459799815
+        },
+        {
+          "iteration": 400,
+          "defect": 0.000205668370544,
+          "load_change": 0.0942261626506
+        },
+        {
+          "iteration": 500,
+          "defect": 0.000216028293848,
+          "load_change": 0.0814118709603
+        },
+        {
+          "iteration": 600,
+          "defect": 0.000280335267667,
+          "load_change": 0.0744175669483
+        },
+        {
+          "iteration": 700,
+          "defect": 0.000335672746619,
+          "load_change": 0.0678612947351
+        },
+        {
+          "iteration": 800,
+          "defect": 0.000360278059235,
+          "load_change": 0.0603919430232
+        },
+        {
+          "iteration": 900,
+          "defect": 0.000357162611723,
+          "load_change": 0.0525066052208
+        },
+        {
+          "iteration": 1000,
+          "defect": 0.000336608733601,
+          "load_change": 0.0450188114544
+        },
+        {
+          "iteration": 1100,
+          "defect": 0.000308253461128,
+          "load_change": 0.0382266932262
+        },
+        {
+          "iteration": 1200,
+          "defect": 0.000278644494961,
+          "load_change": 0.0322319890252
+        },
+        {
+          "iteration": 1300,
+          "defect": 0.000250425404074,
+          "load_change": 0.0270177643613
+        },
+        {
+          "iteration": 1400,
+          "defect": 0.000224843836762,
+          "load_change": 0.0225304037571
+        },
+        {
+          "iteration": 1500,
+          "defect": 0.000202094258737,
+          "load_change": 0.0187116795992
+        },
+        {
+          "iteration": 1600,
+          "defect": 0.000182082407698,
+          "load_change": 0.0154968554569
+        },
+        {
+          "iteration": 1700,
+          "defect": 0.000164573704952,
+          "load_change": 0.0128024572786
+        },
+        {
+          "iteration": 1800,
+          "defect": 0.000149338550455,
+          "load_change": 0.0105521556916
+        },
+        {
+          "iteration": 1900,
+          "defect": 0.000136009962707,
+          "load_change": 0.00868756864786
+        },
+        {
+          "iteration": 2000,
+          "defect": 0.000124350529185,
+          "load_change": 0.00713799459181
+        },
+        {
+          "iteration": 2100,
+          "defect": 0.000114124717117,
+          "load_change": 0.00585985466418
+        },
+        {
+          "iteration": 2200,
+          "defect": 0.000105110962714,
+          "load_change": 0.0047990572218
+        },
+        {
+          "iteration": 2300,
+          "defect": 9.71721086647e-05,
+          "load_change": 0.00392316978638
+        },
+        {
+          "iteration": 2400,
+          "defect": 9.01319333786e-05,
+          "load_change": 0.00320593039407
+        },
+        {
+          "iteration": 2500,
+          "defect": 8.388794393e-05,
+          "load_change": 0.0026141942681
+        },
+        {
+          "iteration": 2600,
+          "defect": 7.83311201192e-05,
+          "load_change": 0.00213141404056
+        },
+        {
+          "iteration": 2700,
+          "defect": 7.33637061869e-05,
+          "load_change": 0.00173477557689
+        },
+        {
+          "iteration": 2800,
+          "defect": 6.89081642223e-05,
+          "load_change": 0.00140769810978
+        },
+        {
+          "iteration": 2900,
+          "defect": 6.49046575461e-05,
+          "load_change": 0.00114308773147
+        },
+        {
+          "iteration": 3000,
+          "defect": 6.12966637979e-05,
+          "load_change": 0.000927412913962
+        }
+      ],
+      "tail_min": 6.12966637979e-05,
+      "tail_max": 0.000124350529185,
+      "median_per_step_contraction": 0.9992985984693364,
+      "terminal_3000_observed": true,
+      "failure_at_terminal_observed": true
+    }
+  ],
+  "contains_cause_classification": false,
+  "complete_slow_tier_summary": {
+    "case_count": 37,
+    "assertion_count": 201633,
+    "failed_assertions": 51,
+    "exit": 1,
+    "elapsed_seconds_contended": 16993,
+    "xml_sha256": "aa01955caa4f6601b141ca32cb154644bfdfee56fd498bb53d88aae90264b522"
+  }
+}

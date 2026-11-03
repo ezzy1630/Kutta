@@ -813,12 +813,39 @@ It preserves each actual test-case XML element and uses the unchanged main
 comparator. There are no expression or INFO rewrites. This measures individual
 case peaks without allocator/driver retention across unrelated cases. A
 3,000,000,000-byte guard stops the run rather than hiding a resource excess.
+The isolated thin-wall Ahmed case completes both SIMPLEC and Coupled with
+eight passing assertions and a 2,307,148,032-byte peak. The complete 37-case
+run is still pending; this is a completed resource-heavy case only.
 
 The replacement compensation binary includes the byte-identical SST cleanup
 and the since-reverted replay-buffer prototype. Its exact hashes are retained
 in the experiment metadata. Its numerical gate effects are compared, while
 its memory/time results are kept separate from the final source. Future
 option binaries use the retained source only.
+
+### Fresh remaining-failure baseline
+
+The supplied exact-main run has completed all 24 TMR solves and reproduces
+all 17 remaining convergence failures: SST plate 2, SST bump 6, SA 9. Their
+maximum-defect and load-change endpoints match the preceding report. Main's
+whole baseline subsequently completes all 37 slow cases with 51 failed
+assertions in 16,993 seconds. The candidate's complete comparison is pending.
+[default-study-baseline.json](default-study-baseline.json) records every
+100-step observation and the supplied binary hash. The absent first load
+comparison is null, not zero.
+
+On the first 14 completed cases, the unchanged main comparator reports two
+regressions, zero recoveries, 916 changed assertion values, 84 missing
+assertions and 84 new assertions for the compensated-default candidate. The
+missing/new identities occur in CLI conversion cases: the physical residual
+logs inside INFO changed. These counts are retained, without rewriting INFO.
+This partial comparison does not replace the required complete comparison.
+
+The completed SST TMR subset matches all 83 baseline assertion identities,
+outcomes and expanded values exactly: plate 36 assertions with two failures,
+bump 47 with six. There are no changed values, regressions or recoveries in
+that subset. This confirms that the existing TMR opt-ins make the global
+compensation-default experiment numerically unchanged on these cases.
 
 ### Exact fine-bump reproduction
 
