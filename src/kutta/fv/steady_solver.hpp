@@ -159,11 +159,11 @@ enum class PressureInterpolation { SecondOrder, Standard };
 // based, or Green-Gauss cell based (operators.hpp, green_gauss_cell). It
 // changes the fixed point. Green-Gauss serves laminar and k-epsilon flows.
 enum class GradientScheme { LeastSquares, GreenGaussCell };
-// Cubic face integrals for laminar LSQ flow.
-// Automatic selects them for 3-D cell-centroid clouds with continuous
-// prescribed velocity traces. Coplanar centroids cannot determine a 3-D cubic;
-// velocity jumps require the more robust original projected operator.
-enum class LaminarReconstruction { Projected, Cubic, Automatic };
+// Integrated laminar fluxes: quadratic interiors, cubic boundary gradients.
+// Automatic selects them for unlimited LSQ flow with 3-D cell-centroid clouds
+// and continuous prescribed velocity traces. Limited and coplanar cases keep
+// Projected; the integrated scheme is unqualified with the current limiter.
+enum class LaminarReconstruction { Projected, Integrated, Automatic };
 // Fluent's gradient limiter type (Theory Guide 23.3.4). Standard is
 // Barth-Jespersen. Differentiable is Venkatakrishnan's smooth function with
 // Wang's threshold, limiter_coefficient times the component's global range;
@@ -198,7 +198,7 @@ struct SolverSettings {
   FaceVelocityWeights face_velocity=FaceVelocityWeights::Momentum;
   FaceVelocityReconstruction face_velocity_reconstruction=FaceVelocityReconstruction::Point;
   PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
-  // Automatic pairs normal-foot pressure observations with Cubic laminar
+  // Automatic pairs normal-foot pressure observations with Integrated laminar
   // reconstruction and retains the original treatment on other paths.
   // Global NormalFoot remains opt-in and requires LSQ.
   PressureBoundaryGradient pressure_boundary_gradient=PressureBoundaryGradient::Automatic;

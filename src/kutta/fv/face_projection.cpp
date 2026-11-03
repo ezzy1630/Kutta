@@ -128,7 +128,6 @@ void ProjectedFaceReconstruction::build(const PolyMesh& mesh,const MeshGeometry&
     std::span<const BoundaryObservation> observations,std::span<const Index> nonsmooth_cells) {
   auto& dev=dev_;
   using Row=std::array<double,terms>;using Matrix=std::array<Row,terms>;
-  const auto row_of=[](Vec3d r) {if constexpr(terms==10) return basis(r);else return cubic_basis(r);};
 
   const auto internal=mesh.n_internal_faces();
   KUTTA_REQUIRE(nonsmooth_cells.empty() || nonsmooth_cells.size()==std::size_t(mesh.n_cells),"face projection smoothness mask mismatch");
@@ -138,6 +137,15 @@ void ProjectedFaceReconstruction::build(const PolyMesh& mesh,const MeshGeometry&
   std::vector<float> wx,wy,wz,wflux,wvalue,wlink;
   for(Index face=0;face<faces_;++face) {
     if(face>=internal && observations[face-internal]!=BoundaryObservation::FaceValue) {offsets.push_back(Index(points.size()));continue;}
+    const bool quadratic_only=face<internal;
+    const auto row_of=[&](Vec3d r) {
+      if constexpr(terms==10) return basis(r);
+      else {
+        auto row=cubic_basis(r);
+        if(quadratic_only) for(int k=10;k<terms;++k) row[k]=0;
+        return row;
+      }
+    };
     const auto owner=mesh.owner[face];
     const auto face_area=g.face_area[face],unit_normal=face_area/norm(face_area);
     const auto rp=g.face_centroid[face]-g.cell_centroid[owner];
@@ -180,7 +188,17 @@ void ProjectedFaceReconstruction::build(const PolyMesh& mesh,const MeshGeometry&
         rows.push_back(b);weights.push_back(w);
         for(int k=0;k<terms;++k) for(int j=0;j<terms;++j) a[k][j]+=w*b[k]*b[j];
       }
-      const auto inv=inverse(a);const auto r=scaled(g.face_centroid[face]-fit_origin);
+      const auto inv=[&] {
+        if constexpr(terms==20) if(quadratic_only) {
+          std::array<std::array<double,10>,10> quadratic{};
+          for(int i=0;i<10;++i) for(int j=0;j<10;++j) quadratic[i][j]=a[i][j];
+          const auto inverse_quadratic=inverse(quadratic);Matrix out{};
+          for(int i=0;i<10;++i) for(int j=0;j<10;++j) out[i][j]=inverse_quadratic[i][j];
+          return out;
+        }
+        return inverse(a);
+      }();
+      const auto r=scaled(g.face_centroid[face]-fit_origin);
       const auto average_face=[&](auto sample) {
         const auto point=[&](Index node) {const auto p=mesh.points[node];return p-unit_normal*dot(p-fit_origin,unit_normal);};
         Row average{};const auto a=point(mesh.face_nodes[mesh.face_offsets[face]]);
@@ -196,7 +214,7 @@ void ProjectedFaceReconstruction::build(const PolyMesh& mesh,const MeshGeometry&
         return average;
       };
       Row targets[]{Row{1,0,0,r.x,r.y,r.z,0,0,0},Row{0,1,0,0,r.x,0,r.y,r.z,0},Row{0,0,1,0,0,r.x,0,r.y,r.z}};
-      if constexpr(terms==20) for(int axis=0;axis<3;++axis)
+      if constexpr(terms==20) if(!quadratic_only) for(int axis=0;axis<3;++axis)
         targets[axis]=average_face([&](Vec3d q){return cubic_derivative(scaled(q-fit_origin),axis);});
       const auto area=g.face_area[face];
       const auto link=(face<internal?g.cell_centroid[mesh.neighbour[face]]:g.face_centroid[face])-g.cell_centroid[owner];
@@ -205,8 +223,9 @@ void ProjectedFaceReconstruction::build(const PolyMesh& mesh,const MeshGeometry&
       auto jump=row_of(scaled((face<internal?g.cell_centroid[mesh.neighbour[face]]:g.face_centroid[face])-fit_origin));
       for(int k=0;k<terms;++k) jump[k]-=owner_row[k];
       // Projected mode preserves the compact normal finite difference.
-      // Cubic mode replaces it with the integrated polynomial derivative;
-      // the implicit primary coefficient and its compact coupling remain.
+      // Integrated mode fits quadratic interior derivatives and cubic
+      // boundary derivatives. A full cubic interior diffusion stencil is
+      // unstable on an open tet channel. Keep the compact implicit coupling.
       auto pfoot=row_of(scaled(g.face_centroid[face]-unit_normal*dp-fit_origin));
       auto nfoot=row_of(scaled(g.face_centroid[face]+unit_normal*dn-fit_origin));
       for(int k=0;k<terms;++k) {pfoot[k]-=owner_row[k];nfoot[k]-=owner_row[k];}
@@ -261,7 +280,7 @@ void ProjectedFaceReconstruction::build(const PolyMesh& mesh,const MeshGeometry&
 }
 ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyMesh& mesh,const MeshGeometry& g,
     std::span<const BoundaryObservation> observations,std::span<const Index> nonsmooth_cells,Mode mode):dev_(dev),faces_(mesh.n_faces()),internal_(mesh.n_internal_faces()) {
-  if(mode==Mode::Cubic) build<20>(mesh,g,observations,nonsmooth_cells);
+  if(mode==Mode::Integrated) build<20>(mesh,g,observations,nonsmooth_cells);
   else build<10>(mesh,g,observations,nonsmooth_cells);
 }
 void ProjectedFaceReconstruction::diffusion_correction(const Buffer<float>& field,const Buffer<float>& boundary,Buffer<float>& out) const {

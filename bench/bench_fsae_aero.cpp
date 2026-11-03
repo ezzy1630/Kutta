@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; ++i) {
       std::string key = argv[i];
       KUTTA_REQUIRE(key.starts_with("--"), "expected --option, got " + key);
-      const bool is_flag = key == "--moving-ground" || key == "--coupled" || key == "--downforce" || key == "--cells" || key == "--lift-z" || key == "--hybrid" || key == "--transition" || key == "--laminar" || key == "--transition-harmonic" || key == "--kato-launder";
+      const bool is_flag = key == "--moving-ground" || key == "--coupled" || key == "--downforce" || key == "--cells" || key == "--lift-z" || key == "--hybrid" || key == "--transition" || key == "--laminar" || key == "--unlimited" || key == "--transition-harmonic" || key == "--kato-launder";
       KUTTA_REQUIRE(is_flag || i + 1 < argc, "missing value for " + key);
       args[key] = is_flag ? "1" : argv[++i];
     }
@@ -51,10 +51,10 @@ int main(int argc, char** argv) {
     o.pressure_boundary_gradient = boundary_gradient == "normal-foot" ? fv::PressureBoundaryGradient::NormalFoot
       : boundary_gradient == "extrapolated" ? fv::PressureBoundaryGradient::Extrapolated : fv::PressureBoundaryGradient::Automatic;
     const auto laminar_reconstruction = text("--laminar-reconstruction", o.laminar_reconstruction == fv::LaminarReconstruction::Automatic ? "automatic"
-      : o.laminar_reconstruction == fv::LaminarReconstruction::Cubic ? "cubic" : "projected");
-    KUTTA_REQUIRE(laminar_reconstruction == "automatic" || laminar_reconstruction == "projected" || laminar_reconstruction == "cubic",
-                  "--laminar-reconstruction is automatic, projected or cubic");
-    o.laminar_reconstruction = laminar_reconstruction == "cubic" ? fv::LaminarReconstruction::Cubic
+      : o.laminar_reconstruction == fv::LaminarReconstruction::Integrated ? "integrated" : "projected");
+    KUTTA_REQUIRE(laminar_reconstruction == "automatic" || laminar_reconstruction == "projected" || laminar_reconstruction == "integrated",
+                  "--laminar-reconstruction is automatic, projected or integrated");
+    o.laminar_reconstruction = laminar_reconstruction == "integrated" ? fv::LaminarReconstruction::Integrated
       : laminar_reconstruction == "projected" ? fv::LaminarReconstruction::Projected : fv::LaminarReconstruction::Automatic;
     const auto transport = text("--sst-transport", "fluent");
     KUTTA_REQUIRE(transport == "fluent" || transport == "cfl3d", "--sst-transport is fluent or cfl3d");
@@ -95,8 +95,11 @@ int main(int argc, char** argv) {
     o.kato_launder = flag("--kato-launder");
     o.omega_production_molecular_ratio = number("--omega-production-molecular-ratio", 0);
     o.laminar = flag("--laminar");
-    KUTTA_REQUIRE(o.laminar || o.laminar_reconstruction != fv::LaminarReconstruction::Cubic,
-                  "--laminar-reconstruction cubic requires --laminar");
+    o.limit = !flag("--unlimited");
+    KUTTA_REQUIRE(o.laminar || o.laminar_reconstruction != fv::LaminarReconstruction::Integrated,
+                  "--laminar-reconstruction integrated requires --laminar");
+    KUTTA_REQUIRE(!o.limit || o.laminar_reconstruction != fv::LaminarReconstruction::Integrated,
+                  "--laminar-reconstruction integrated requires --unlimited");
     o.write_cells = flag("--cells");
     if (flag("--downforce")) o.lift_direction = {0, -1, 0};
     if (flag("--lift-z")) o.lift_direction = {0, 0, 1};

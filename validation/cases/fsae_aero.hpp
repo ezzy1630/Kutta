@@ -45,6 +45,7 @@ struct Options {
   double omega_production_molecular_ratio = 0;
   // Laminar flow (no turbulence model): a mesh check against Blasius.
   bool laminar = false;
+  bool limit = true;
   // Expose existing model choices for controlled code-to-code comparisons.
   // Defaults remain Fluent's; original CFL3D SST uses vorticity for both.
   SstOptions sst_model;
@@ -217,6 +218,7 @@ inline Result run(Device& dev, const Options& o) {
   s.monitor_interval = o.check_every;
   if (o.coupled) s.coupling = PressureVelocityCoupling::Coupled;
   s.limiter = o.limiter;
+  s.limit = o.limit;
   s.limiter_coefficient = o.limiter_coefficient;
   s.pressure_interpolation = o.pressure_interpolation;
   s.pressure_boundary_gradient = o.pressure_boundary_gradient;

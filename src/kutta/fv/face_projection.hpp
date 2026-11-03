@@ -24,12 +24,12 @@ class FaceReconstruction {
 };
 
 // Projected mode retains the compact normal stencil and fits quadratic
-// tangential shifts. Cubic mode integrates the fitted normal derivative and
-// face value. Both use geometry-only weights, evaluated by the same device
-// kernels, and keep wall gradients consistent with the assembled flux.
+// tangential shifts. Integrated mode uses quadratic interior fluxes/face means
+// and cubic boundary gradients. Both use geometry-only weights, evaluated by
+// the same kernels, and keep wall gradients consistent with assembled fluxes.
 class ProjectedFaceReconstruction final : public FaceReconstruction {
  public:
-  enum class Mode { Projected, Cubic };
+  enum class Mode { Projected, Integrated };
   ProjectedFaceReconstruction(Device&,const PolyMesh&,const MeshGeometry&,
                         std::span<const BoundaryObservation>,
                         std::span<const Index> nonsmooth_cells={},Mode mode=Mode::Projected);

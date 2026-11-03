@@ -222,8 +222,10 @@ struct SteadySolver::Impl {
     permutation=renumber_cells_rcm(host);memory::phase("renumber");geom=compute_geometry(host);memory::phase("geometry");
     KUTTA_REQUIRE(host.n_cells>0,"FV steady solver needs a nonempty mesh");
     const bool laminar_lsq=!settings.sst && !settings.sa && !settings.realizable_ke && settings.gradient==GradientScheme::LeastSquares;
-    KUTTA_REQUIRE(settings.laminar_reconstruction!=LaminarReconstruction::Cubic || laminar_lsq,
-      "FV: cubic laminar reconstruction requires laminar least-squares flow");
+    KUTTA_REQUIRE(settings.laminar_reconstruction!=LaminarReconstruction::Integrated || laminar_lsq,
+      "FV: integrated laminar reconstruction requires laminar least-squares flow");
+    KUTTA_REQUIRE(settings.laminar_reconstruction!=LaminarReconstruction::Integrated || !settings.limit,
+      "FV: integrated laminar reconstruction requires unlimited convection");
     if(!outlet) reference=locate_cell(host,geom,settings.reference_point);
     // A single pin cannot constrain disconnected Neumann components.
     const auto neighbours=build_cell_neighbours(host);
@@ -351,21 +353,20 @@ struct SteadySolver::Impl {
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
     krylov_workspace=std::make_shared<KrylovWorkspace>(n);
     const bool green_gauss=settings.gradient==GradientScheme::GreenGaussCell;
-    bool cubic_laminar=false;std::vector<Index> nonsmooth;
+    bool integrated_laminar=false;std::vector<Index> nonsmooth;
     if(laminar_lsq) {
-      cubic_laminar=settings.laminar_reconstruction==LaminarReconstruction::Cubic ||
-        (settings.laminar_reconstruction==LaminarReconstruction::Automatic && volumetric_centroids(geom));
-      nonsmooth=discontinuous_wall_cells(host,boundaries,frames,cubic_laminar);
-      // Cubic diffusion is not monotone. A prescribed velocity jump defeats
-      // its smooth-field accuracy premise and destabilizes even SIMPLEC;
-      // automatic mode retains the original operator throughout that case.
-      if(cubic_laminar && settings.laminar_reconstruction==LaminarReconstruction::Automatic &&
+      integrated_laminar=settings.laminar_reconstruction==LaminarReconstruction::Integrated ||
+        (settings.laminar_reconstruction==LaminarReconstruction::Automatic && !settings.limit && volumetric_centroids(geom));
+      nonsmooth=discontinuous_wall_cells(host,boundaries,frames,integrated_laminar);
+      // Polynomial accuracy assumes continuous prescribed velocity traces.
+      // Retain the original operator when those traces conflict.
+      if(integrated_laminar && settings.laminar_reconstruction==LaminarReconstruction::Automatic &&
          std::any_of(nonsmooth.begin(),nonsmooth.end(),[](Index value){return value!=0;})) {
-        cubic_laminar=false;nonsmooth=discontinuous_wall_cells(host,boundaries,frames);
+        integrated_laminar=false;nonsmooth=discontinuous_wall_cells(host,boundaries,frames);
       }
     }
     const bool normal_foot_pressure=settings.pressure_boundary_gradient==PressureBoundaryGradient::NormalFoot ||
-      (settings.pressure_boundary_gradient==PressureBoundaryGradient::Automatic && cubic_laminar);
+      (settings.pressure_boundary_gradient==PressureBoundaryGradient::Automatic && integrated_laminar);
     KUTTA_REQUIRE(!green_gauss || settings.pressure_boundary_gradient!=PressureBoundaryGradient::NormalFoot,
       "FV: normal-foot pressure boundary gradients require least-squares gradients");
     // SST's strain and SA's gradients have only been verified with LSQ fits.
@@ -378,7 +379,7 @@ struct SteadySolver::Impl {
     // the linear primary/secondary split; a Green-Gauss case keeps Fluent's
     // documented split with its own cell gradients.
     if(!settings.sst && !settings.sa && !settings.realizable_ke && !green_gauss) {
-      const auto mode=cubic_laminar?ProjectedFaceReconstruction::Mode::Cubic:ProjectedFaceReconstruction::Mode::Projected;
+      const auto mode=integrated_laminar?ProjectedFaceReconstruction::Mode::Integrated:ProjectedFaceReconstruction::Mode::Projected;
       diffusion_reconstruction=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,independent_velocity,nonsmooth,mode);
       if(diffusion_reconstruction->corrected_faces()==0) diffusion_reconstruction.reset();
       velocity_faces=diffusion_reconstruction;
