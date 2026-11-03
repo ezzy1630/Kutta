@@ -871,6 +871,19 @@ backends. CPU scalar work is 439 → 438, Metal 438 → 438. Peak footprint is
 These process peaks do not establish a setting-specific allocation increase;
 the independent one-setting device measurement is unchanged at zero bytes.
 
+The completed Re1000 cavity case also shows a material iteration cost. All
+16 assertions pass, but the same stopping rule takes:
+
+| Grid | CPU outer steps, before → after | Metal outer steps, before → after |
+|---|---:|---:|
+| 65² | 600 → 1,000 | 600 → 1,000 |
+| 129² | 600 → 1,100 | 600 → 1,000 |
+| 257² | 900 → 2,800 | 900 → 4,400 |
+
+These are iteration counts on identical cases and gates, not contended
+wall-clock ratios. The finest-grid cost increases by 211% on CPU and 389%
+on Metal. The full slow comparison remains pending.
+
 On the ordinary-control coarse plate, SST remains unconverged at 3,000
 baseline steps but converges at 400 with slack 16 on both backends. SA remains
 unconverged on CPU at 3,000, while Metal reaches the gate at 500. These are

@@ -915,5 +915,85 @@
     "helper_sha256": "c5638b0f06fc85077808ebb0dd1e43a8b67d955e4be0e553f34dbc1c5d50bda9",
     "binary_sha256": "4b55850e24672979bc083037d376ed7e87e9db68ef56a9cd54c2eab1089d85d2",
     "mode": "Read-only paired-state and scalar downloads after existing steps; no added monitor or force calls. Model coefficients are last assembly values, not refreshed for diagnostics."
+  },
+  "full_tier_completed_cavity_case": {
+    "case": "FV V3 Re1000 cavity refinement against Erturk",
+    "passing_assertions": 16,
+    "failed_assertions": 0,
+    "iteration_comparison": [
+      {
+        "backend": "cpu",
+        "grid_n": 65,
+        "before": {
+          "iterations": 600,
+          "converged": true
+        },
+        "after": {
+          "iterations": 1000,
+          "converged": true
+        }
+      },
+      {
+        "backend": "cpu",
+        "grid_n": 129,
+        "before": {
+          "iterations": 600,
+          "converged": true
+        },
+        "after": {
+          "iterations": 1100,
+          "converged": true
+        }
+      },
+      {
+        "backend": "cpu",
+        "grid_n": 257,
+        "before": {
+          "iterations": 900,
+          "converged": true
+        },
+        "after": {
+          "iterations": 2800,
+          "converged": true
+        }
+      },
+      {
+        "backend": "metal",
+        "grid_n": 65,
+        "before": {
+          "iterations": 600,
+          "converged": true
+        },
+        "after": {
+          "iterations": 1000,
+          "converged": true
+        }
+      },
+      {
+        "backend": "metal",
+        "grid_n": 129,
+        "before": {
+          "iterations": 600,
+          "converged": true
+        },
+        "after": {
+          "iterations": 1000,
+          "converged": true
+        }
+      },
+      {
+        "backend": "metal",
+        "grid_n": 257,
+        "before": {
+          "iterations": 900,
+          "converged": true
+        },
+        "after": {
+          "iterations": 4400,
+          "converged": true
+        }
+      }
+    ],
+    "timing_comparison": null
   }
 }
