@@ -222,6 +222,39 @@ KUTTA_KERNEL void fv_jump_gradient(int i,KIn(int) offsets,KIn(int) faces,KIn(int
   z[i]=gz[i]+0.5f*(inverse[i+2*n]*bx+inverse[i+4*n]*by+inverse[i+5*n]*bz);
 }
 
+// Both directions are evaluated, rather than negating one stored difference:
+// subtraction of equal traces must retain the original signed zero on each
+// side. The mesh face offsets are the same rounded centroid differences as
+// the cell-face offsets consumed by fv_jump_gradient.
+KUTTA_KERNEL void fv_face_jump(int i,KIn(int) owner,KIn(int) neighbour,
+    KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
+    KIn(float) cell,KIn(float) boundary,KIn(float) gx,KIn(float) gy,KIn(float) gz,
+    KOut(float) forward,KOut(float) reverse,int internal) {
+  int p=owner[i];
+  float own=cell[p]+gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i];
+  float next=0.0f;
+  if(i<internal) {
+    int n=neighbour[i];
+    next=cell[n]+gx[n]*nx[i]+gy[n]*ny[i]+gz[n]*nz[i];
+    reverse[i]=own-next;
+  } else next=boundary[i-internal];
+  forward[i]=next-own;
+}
+
+KUTTA_KERNEL void fv_gather_jump_gradient(int i,KIn(int) offsets,KIn(int) faces,KIn(float) sign,
+    KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) inverse,
+    KIn(float) forward,KIn(float) reverse,KIn(float) gx,KIn(float) gy,KIn(float) gz,
+    KOut(float) x,KOut(float) y,KOut(float) z,int n) {
+  float bx=0.0f,by=0.0f,bz=0.0f;
+  for(int j=offsets[i];j<offsets[i+1];++j) {
+    int f=faces[j];float jump=sign[j]>0.0f?forward[f]:reverse[f];
+    bx+=dx[j]*jump;by+=dy[j]*jump;bz+=dz[j]*jump;
+  }
+  x[i]=gx[i]+0.5f*(inverse[i]*bx+inverse[i+n]*by+inverse[i+2*n]*bz);
+  y[i]=gy[i]+0.5f*(inverse[i+n]*bx+inverse[i+3*n]*by+inverse[i+4*n]*bz);
+  z[i]=gz[i]+0.5f*(inverse[i+2*n]*bx+inverse[i+4*n]*by+inverse[i+5*n]*bz);
+}
+
 // The face-jump derivative correction of the physical pair. Round only its
 // final derivative, rather than rounding the nearly constant cell field first.
 KUTTA_KERNEL void fv_paired_jump_gradient(int i,KIn(int) offsets,KIn(int) faces,KIn(int) adjacent,KIn(float) sign,

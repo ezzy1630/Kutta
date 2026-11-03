@@ -84,6 +84,9 @@ void vector_gradient(Device& dev,const DeviceMesh& mesh,const Stencil& stencil,
 struct FaceJumpFit {
   DeviceVec3 delta;  // per cell-face entry
   Buffer<float> inverse;
+  // Reused between components; each gather completes before the next face
+  // pass on the Device queue. Allocated on first use, during solver setup.
+  mutable Buffer<float> forward,reverse;
 };
 FaceJumpFit face_jump_least_squares(Device& dev,const PolyMesh& mesh,
     const MeshGeometry& geometry);

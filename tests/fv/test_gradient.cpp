@@ -1,6 +1,7 @@
 #include "../fluent_examples.hpp"
 #include <iostream>
 #include <limits>
+#include <bit>
 #include "kernels.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
@@ -199,6 +200,45 @@ TEST_CASE("FV jump derivative satisfies independent face-row normal equations") 
       CHECK(norm(lhs-rhs)<3e-6);
     }
     CHECK(nonzero>.01);
+  }
+}
+
+TEST_CASE("FV stored face jumps preserve the cell gather bit for bit") {
+  for(bool tet:{false,true}) {
+    auto mesh=tet?make_box_tet(4,3,2,{0,0,0},{1,1,1}):make_box_hex(5,4,3,{0,0,0},{1,1,1});
+    for(auto& p:mesh.points) p.x+=.03*p.y*p.z;
+    const auto geo=compute_geometry(mesh);
+    KUTTA_FOR_EACH_BACKEND(dev) {
+      INFO("tet "<<tet);
+      const auto m=upload_mesh(*dev,mesh,geo);const auto s=fv::make_stencil(*dev,mesh,geo);
+      const auto fit=fv::face_jump_least_squares(*dev,mesh,geo);
+      auto q=dev->alloc<float>(m.n_cells),bc=dev->alloc<float>(m.n_boundary_faces());
+      auto base=fv::vector_field(*dev,m.n_cells),old=fv::vector_field(*dev,m.n_cells),out=fv::vector_field(*dev,m.n_cells);
+      // Include both uniform zero signs, subnormals and large finite scales.
+      // The same scratch is reused for changed fields, as between u/v/w.
+      for(int variant=0;variant<5;++variant) {
+        const float scale=variant==2?1e-38f:variant==3?1e20f:1.0f;
+        const auto values=[&](std::size_t size,int offset) {
+          std::vector<float> v(size);
+          for(std::size_t i=0;i<size;++i)
+            v[i]=variant<2?(variant==0?0.0f:-0.0f):scale*float(int((i*37+offset)%101)-50)/51;
+          return v;
+        };
+        dev->upload<float>(q,values(m.n_cells,3));dev->upload<float>(bc,values(m.n_boundary_faces(),7));
+        dev->upload<float>(base.x,values(m.n_cells,11));dev->upload<float>(base.y,values(m.n_cells,19));
+        dev->upload<float>(base.z,values(m.n_cells,23));
+        kern::fv_jump_gradient(*dev,m.n_cells,m.cell_face_offsets,m.cell_faces,s.adjacent,m.cell_face_sign,
+          fit.delta.x,fit.delta.y,fit.delta.z,fit.inverse,s.face_delta.x,s.face_delta.y,s.face_delta.z,
+          m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
+          q,bc,base.x,base.y,base.z,old.x,old.y,old.z,m.n_cells);
+        fv::jump_corrected_gradient(*dev,m,s,fit,q,bc,base,out);
+        const Buffer<float>* expected[]{&old.x,&old.y,&old.z};const Buffer<float>* actual[]{&out.x,&out.y,&out.z};
+        for(int axis=0;axis<3;++axis) {
+          const auto a=dev->download(*expected[axis]),b=dev->download(*actual[axis]);
+          for(std::size_t i=0;i<a.size();++i) CHECK(std::bit_cast<std::uint32_t>(a[i])==std::bit_cast<std::uint32_t>(b[i]));
+        }
+      }
+    }
   }
 }
 

@@ -249,16 +249,22 @@ FaceJumpFit face_jump_least_squares(Device& dev,const PolyMesh& m,const MeshGeom
       (a[1]*a[2]-a[0]*a[4])/det,(a[0]*a[3]-a[1]*a[1])/det};
     for(int k=0;k<6;++k) inverse[c+k*m.n_cells]=float(inv[k]);
   }
-  return {vectors(dev,delta),dev.upload<float>(inverse)};
+  return {vectors(dev,delta),dev.upload<float>(inverse),{},{}};
 }
-void jump_corrected_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
+void jump_corrected_gradient(Device& dev,const DeviceMesh& m,const Stencil&,
     const FaceJumpFit& fit,const Buffer<float>& cell,const Buffer<float>& bc,
     const DeviceVec3& base,DeviceVec3& out) {
-  kern::fv_jump_gradient(dev,m.n_cells,m.cell_face_offsets,m.cell_faces,s.adjacent,m.cell_face_sign,
-    fit.delta.x,fit.delta.y,fit.delta.z,fit.inverse,s.face_delta.x,s.face_delta.y,s.face_delta.z,
+  if(fit.forward.empty()) {
+    fit.forward=dev.alloc<float>(m.n_faces);
+    fit.reverse=dev.alloc<float>(m.n_internal_faces);
+  }
+  kern::fv_face_jump(dev,m.n_faces,m.owner,m.neighbour,
     m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
     m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
-    cell,bc,base.x,base.y,base.z,out.x,out.y,out.z,m.n_cells);
+    cell,bc,base.x,base.y,base.z,fit.forward,fit.reverse,m.n_internal_faces);
+  kern::fv_gather_jump_gradient(dev,m.n_cells,m.cell_face_offsets,m.cell_faces,m.cell_face_sign,
+    fit.delta.x,fit.delta.y,fit.delta.z,fit.inverse,fit.forward,fit.reverse,
+    base.x,base.y,base.z,out.x,out.y,out.z,m.n_cells);
 }
 
 void paired_jump_corrected_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
