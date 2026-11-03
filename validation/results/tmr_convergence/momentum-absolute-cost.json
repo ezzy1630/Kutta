@@ -1,5 +1,5 @@
 {
-  "status": "Provisional cost measurement; full slow comparison and paired SIMPLEC timing remain pending. No default decision is earned.",
+  "status": "Full slow comparison passed with zero regressions; active SIMPLEC paired timing and combined-default verification remain pending. No default promoted yet.",
   "candidate": "Only ordinary momentum absolute tolerance changes from 1e-10 to 1e-20; retained byte-identical SST scratch cleanup is also present. Original Metal runtime.",
   "baseline_sha256": "982116e6897e571b239d0650104e268c9fa618221d557f6e16dce834046875bd",
   "candidate_sha256": "5a7f91ec023d1a2b279042d25db897fdd2879c9ba960454cf20210a7027e750d",
@@ -168,5 +168,6 @@
       "device_bytes_at_stop": 1987332,
       "failure": null
     }
-  ]
+  ],
+  "full_study": "default-study-momentum-absolute.json"
 }

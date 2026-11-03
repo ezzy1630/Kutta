@@ -721,7 +721,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | --- | --- | --- | ---: | --- |
 | Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
 | Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
-| Momentum absolute tolerance 1e-20 | Full slow pending; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Active-path paired timing pending | 0 / 0 | Pending |
+| Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Active-path paired timing pending | 0 / 0 | Numerically eligible; promotion pending cost and combined proof |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
 | Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
@@ -998,7 +998,8 @@ or slack's quick-tier regression.
 ### Momentum tolerance: measured work, decision still pending
 
 Changing only momentum absolute tolerance from `1e-10` to `1e-20` passes the
-quick tier (307 cases, 7,990,154 assertions). The full slow tier is running.
+quick tier (307 cases, 7,990,154 assertions). The full slow tier now passes its
+comparison with main, as recorded below.
 The ordinary-control coarse plate uses SIMPLEC, where this tolerance is
 active. Its cumulative momentum work and final maximum defect are:
 
@@ -1033,6 +1034,44 @@ three existing corrected receipts and rejects an already-compensated
 baseline despite its claimed checked marker. These paired plate runs are
 queued serially between full-tier variants; no new timing result is claimed
 here yet.
+
+### Complete momentum-tolerance comparison
+
+Only the ordinary momentum absolute tolerance changes from `1e-10` to
+`1e-20`. The full tier completes all 37 cases and 201,633 assertions, retaining
+main's 51 failed assertions. Main's unchanged comparator exits zero:
+zero regressions or recoveries, six changed expanded values, and zero
+missing/new assertions or cases. The quick tier also passes all 307 cases
+and 7,990,154 assertions. This candidate qualifies numerically for a default;
+promotion awaits its active-path paired cost and the final combined-default
+proof. The matrix continues with ordinary defaults restored between candidates.
+
+All six changed values are passing Re=1,000 cavity checks. Their changed
+quantities are:
+
+| Backend | Quantity | Before → after |
+|---|---|---:|
+| CPU | Middle-grid v deviation | 0.00711187 → 0.00711191 |
+| CPU | v refinement order | 2.71436 → 2.71437 |
+| Metal | Middle-grid u deviation | 0.00435289 → 0.004353 |
+| Metal | Middle-grid v deviation | 0.00711203 → 0.00711196 |
+| Metal | u refinement order | 2.87464 → 2.87468 |
+| Metal | v refinement order | 2.71455 → 2.71454 |
+
+All 153 TMR assertion identities, outcomes and expanded values match main
+exactly: plate still has two convergence failures, bump six, and SA nine.
+ERCOFTAC T3A uses 6,000 outer iterations in both runs. The full-tier elapsed
+times are unpaired and are not attributed to this option. The measured
+ordinary-plate inner-work increase above remains material.
+
+The heaviest completed case is thin-wall Ahmed at 2,214,447,264 bytes; the
+heaviest TMR case is 389,645,248 bytes. Both remain below the 3 GB guard.
+After the controller interruption, the repeated S1223 case records its exit
+and resource receipt and reproduces all 11 preserved assertion payloads
+exactly. The excluded orphan contributes no assertion to the combined tier.
+Complete per-case counts, source/binary/XML hashes, changed values and the
+cost scope are in
+[default-study-momentum-absolute.json](default-study-momentum-absolute.json).
 
 ### Fresh remaining-failure baseline
 
