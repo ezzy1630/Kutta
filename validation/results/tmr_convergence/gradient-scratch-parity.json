@@ -1,0 +1,139 @@
+{
+  "status": "Private experiment validated; not yet merged into production source, which remains frozen for the ongoing defaults matrix.",
+  "base_revision": "e20bd5709bc028aa3c684e163902379236a7cc98",
+  "source_cpp_sha256": "4ed3c8002fe96e55811453bfebd92853e62f890489e93d2da130d71cb2e73254",
+  "change": "Reuse sequential paired-gradient low-word scratch for all compensated models and the paired strain-base scratch across components. No kernel, operation order, default, equation, gate or budget changes.",
+  "results": {
+    "common_and_tmr_csv": [
+      {
+        "case": "mixing_elbow",
+        "backend": "cpu",
+        "iterations": 40,
+        "checks": {
+          "fluxes.csv": true,
+          "forces.csv": true,
+          "loads.json": true,
+          "result.vtu": true,
+          "residuals_columns_1_7": true
+        }
+      },
+      {
+        "case": "mixing_elbow",
+        "backend": "metal",
+        "iterations": 40,
+        "checks": {
+          "fluxes.csv": true,
+          "forces.csv": true,
+          "loads.json": true,
+          "result.vtu": true,
+          "residuals_columns_1_7": true
+        }
+      },
+      {
+        "case": "elbow_param",
+        "backend": "cpu",
+        "iterations": 40,
+        "checks": {
+          "fluxes.csv": true,
+          "forces.csv": true,
+          "loads.json": true,
+          "result.vtu": true,
+          "residuals_columns_1_7": true
+        }
+      },
+      {
+        "case": "elbow_param",
+        "backend": "metal",
+        "iterations": 40,
+        "checks": {
+          "fluxes.csv": true,
+          "forces.csv": true,
+          "loads.json": true,
+          "result.vtu": true,
+          "residuals_columns_1_7": true
+        }
+      },
+      {
+        "case": "SST TMR finest bump (compensated momentum active)",
+        "backend": "cpu",
+        "iterations": 40,
+        "checks": {
+          "cells.csv": true,
+          "wall_cf.csv": true,
+          "history.csv": true
+        }
+      },
+      {
+        "case": "SST TMR finest bump (compensated momentum active)",
+        "backend": "metal",
+        "iterations": 40,
+        "checks": {
+          "cells.csv": true,
+          "wall_cf.csv": true,
+          "history.csv": true
+        }
+      }
+    ],
+    "states_and_memory": [
+      {
+        "model": "sst",
+        "backend": "cpu",
+        "cells": 56320,
+        "iterations": 40,
+        "public_state_identical": true,
+        "device_bytes_before": 177040352,
+        "device_bytes_after": 174336992,
+        "bytes_saved_per_cell": 48.0,
+        "process_peak_before": 154649152,
+        "process_peak_after": 154681920,
+        "state_sha256": "6fdf06d9aad2f752b6f6c59ab802acd96b61b9a9163eda8f18a714c0a31f34ee"
+      },
+      {
+        "model": "sst",
+        "backend": "metal",
+        "cells": 56320,
+        "iterations": 40,
+        "public_state_identical": true,
+        "device_bytes_before": 177040352,
+        "device_bytes_after": 174336992,
+        "bytes_saved_per_cell": 48.0,
+        "process_peak_before": 323158736,
+        "process_peak_after": 320193280,
+        "state_sha256": "b13be53d5acc582eccc249c09231dfe12a44c0f9bd7fcda02e3818e5cd5335a9"
+      },
+      {
+        "model": "sa",
+        "backend": "cpu",
+        "cells": 56320,
+        "iterations": 40,
+        "public_state_identical": true,
+        "device_bytes_before": 163938028,
+        "device_bytes_after": 162586348,
+        "bytes_saved_per_cell": 24.0,
+        "process_peak_before": 155107928,
+        "process_peak_after": 153518680,
+        "state_sha256": "2c2f7b10a7ce96b127bd954e5f19c830b3fd9f5b36d0285e8bc59e0c24b2be87"
+      },
+      {
+        "model": "sa",
+        "backend": "metal",
+        "cells": 56320,
+        "iterations": 40,
+        "public_state_identical": true,
+        "device_bytes_before": 163938028,
+        "device_bytes_after": 162586348,
+        "bytes_saved_per_cell": 24.0,
+        "process_peak_before": 313361128,
+        "process_peak_after": 311919384,
+        "state_sha256": "4363d77fb0cce1b2f99acf1a036715d57ea3eac068dc83be2a05f145449e30e5"
+      }
+    ],
+    "baseline_cli_sha256": "49558155ab98f0619827b0469b4edb6505494c8926141080909cf152939c06f5",
+    "candidate_cli_sha256": "4ed6a44b291bff57f95ba3e7c7402b33d665e1ee2913f955bd15ade870e4f036",
+    "baseline_probe_sha256": "c3e2b418dc78eb5f4a919d8e4bb10afac3e1aba39e83854d0d847816d1cad2dc",
+    "candidate_probe_sha256": "6af144550a7cf9b2c07a940590e42d93fc112b499f076747b5e1134b6b9eb80b",
+    "solver_cpp_sha256": "4ed3c8002fe96e55811453bfebd92853e62f890489e93d2da130d71cb2e73254"
+  },
+  "timing_claim": null,
+  "cuda_runtime_validation": "Unavailable on this machine."
+}

@@ -707,8 +707,8 @@ main's unchanged `tools/forensics/compare_slow_assertions.py`.
 
 ### Option decisions and allocation cost
 
-Compensation is rejected by the full slow tier; slack 16 is rejected by the
-quick tier, with its full slow comparison still running. Other decisions
+Compensation and slack 16 are rejected by their completed full slow tiers;
+slack 16 also fails the quick tier. Other decisions
 remain pending the full slow-tier and iteration-cost experiments. Allocation measurements
 come from independent one-step CPU plate probes, changing one setting at a
 time from ordinary settings, on 816 cells. The compensation row instead uses
@@ -720,7 +720,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
 | Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
-| Paired-state slack 16 | Full pending; completed Fluent cavity has 45 regressions, quick adds two moving-wall failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
+| Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
@@ -832,6 +832,27 @@ in the experiment metadata. Its numerical gate effects are compared, while
 its memory/time results are kept separate from the final source. Future
 option binaries use the retained source only.
 
+### Additional scratch reuse, validated privately
+
+An isolated source variant reuses the low-word gradient scratch across
+sequential component fits, and the base scratch across paired strain fits.
+The fitted output gradients remain separate. It keeps the same kernel calls
+and their order. On the 56,320-cell finest bump it saves another 48 device
+B/cell for SST and 24 B/cell for SA, on both CPU and Metal:
+
+| Model | Device bytes before → after | Additional saving |
+|---|---:|---:|
+| SST | 177,040,352 → 174,336,992 | 2,703,360 bytes / 48 B per cell |
+| SA | 163,938,028 → 162,586,348 | 1,351,680 bytes / 24 B per cell |
+
+The required 40-step CPU/Metal common-case comparisons keep all 20 file
+checks identical against main. Six finest-SST-bump CSV comparisons and four
+SST/SA public-state comparisons also remain byte-identical. These checks are
+recorded in [gradient-scratch-parity.json](gradient-scratch-parity.json).
+No timing improvement is claimed. This change remains private while the
+per-option defaults matrix uses a frozen source; it is not yet a retained
+solver saving. The currently retained change still saves 36 B/cell for SST.
+
 ### Complete compensation-default comparison
 
 All 37 slow cases execute with 201,633 assertions. Main has 51 failures;
@@ -852,7 +873,7 @@ counts, the original binary/source hashes and the explicit runtime-prototype
 qualification. The full XML and raw comparison stay outside version control.
 The full quick tier remains green: 307 cases, 7,990,154 assertions.
 
-### Slack 16 fails the quick-tier requirement
+### Slack 16: full slow-tier rejection and cost
 
 Changing only the ordinary slack default from 1 to 16 adds two failures in
 `Normal-foot pressure boundary gradients recover uniform flow on native tetrahedra`,
@@ -861,16 +882,24 @@ for the moving-wall variant. The errors are `1.48279e-5` on CPU and
 307 quick cases: 306 pass, with 7,990,154 passing and two failing assertions.
 The candidate test binary SHA-256 is
 `19b03b060494386aa685a2ec911d51357ad7ef9c953d69fe7444f15141cd0591`.
-Slack 16 stays opt-in. Its requested full slow-tier effect is still running;
-this quick result does not replace it.
+Slack 16 stays opt-in. Its full slow tier completes all 37 cases with 201,637
+assertions and 96 failures, against main's 201,633 assertions and 51 failures.
+The unchanged comparator reports 45 regressions, zero recoveries, 1,237 changed
+expanded values, 84 missing identities and 88 new identities. No test cases
+are missing or added. The canonical comparison is not clean.
 
-The completed Fluent cavity case adds 45 failed assertions comparing
-imported-mesh and equivalent generated-mesh velocity profiles. The unchanged
-canonical comparator confirms, for this one case only: 45 regressions,
-zero recoveries, 715 changed expanded values, and no missing/new assertions
-or cases. Main passes all 763 assertions; the candidate passes 718 and fails
-45. The failures split into u/v counts of 12/11 on CPU and 15/7 on Metal.
-This is a partial comparison; the whole-tier totals remain pending.
+The 84 missing/new pairs are CLI-context identities in conversion cases.
+The other four new assertions are passing V6 finite-value and maximum-speed
+safety checks. The unchanged loop executes two extra 50-step checkpoints:
+saved-state CPU convergence takes 200 → 300 steps. Cold-start CPU stays 250;
+Metal saved/cold stay 200/250. These are measured iteration costs, not
+contended wall-clock comparisons. All identity changes are retained.
+
+All 45 regressions are in the Fluent cavity case, comparing imported-mesh
+and equivalent generated-mesh velocity profiles. That case has 715 changed
+expanded values and no missing/new identities. Main passes all 763 assertions;
+the candidate passes 718 and fails 45. The failures split into u/v counts of
+12/11 on CPU and 15/7 on Metal.
 
 The corrected cost run checks every emitted setting against an exact-main
 solver baseline. Four alternating elbow pairs measure median time ratios of
@@ -894,7 +923,7 @@ The completed Re1000 cavity case also shows a material iteration cost. All
 
 These are iteration counts on identical cases and gates, not contended
 wall-clock ratios. The finest-grid cost increases by 211% on CPU and 389%
-on Metal. The full slow comparison remains pending.
+on Metal. The complete slow comparison confirms the rejection.
 
 On the ordinary-control coarse plate, SST remains unconverged at 3,000
 baseline steps but converges at 400 with slack 16 on both backends. SA remains
@@ -907,7 +936,7 @@ The completed thin-wall Ahmed case passes all eight assertions and peaks
 at 2,215,168,184 bytes, below the 3,000,000,000-byte guard. This slack candidate
 uses the retained original Metal runtime. It is a different default candidate
 from the earlier compensation run, so their peak difference is not attributed
-to a memory optimization. The whole-tier run remains unfinished.
+to a memory optimization. All 37 case processes remain below the 3 GB guard.
 
 A private field-motion diagnostic observes the true high-plus-low flow pairs
 and stored scalar fields without extra monitor or force calls. With downloads
@@ -1109,7 +1138,7 @@ experiment has run, and no convergence fix is accepted.
 The unchanged canonical comparator confirms all 153 TMR assertions retain
 their exact identities, outcomes and expanded values, with zero regressions,
 recoveries, changed values or missing/new identities. All 17 convergence
-failures remain. The full 37-case slack comparison is still running.
+failures remain. The complete 37-case slack comparison is reported above.
 
 The heaviest completed TMR case peaks at 392,692,648 bytes with field-motion
 diagnostics enabled, below 3 GB. These are fresh test-case processes; the
