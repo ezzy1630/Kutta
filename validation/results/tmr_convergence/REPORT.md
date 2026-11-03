@@ -691,15 +691,15 @@ were removed. No lane processes remain running. No push or PR was made.
 
 This follow-up is in progress on base `e014e36`. No new default or convergence
 fix has been accepted. The 3,000-step budget, all reference values and every
-outer gate remain unchanged. The shared exact-main slow baseline must finish
-before a final assertion comparison can be reported.
+outer gate remain unchanged. The shared exact-main baseline and the first
+complete default-candidate comparison are recorded below. Other candidates
+and the causal convergence experiments remain unfinished.
 
 The first candidate changes only the default of `compensated_momentum` to
-true. Its quick tier passes 307 cases and 7,990,154 assertions. Its full slow
-tier is running, but already establishes that this option must stay opt-in:
-the Fluent standard k-epsilon elbow pressure-drop relative error becomes
-2.00753% on CPU and Metal, failing the unchanged 1.5% gate that main passes.
-These are partial observations, not the completed comparison totals.
+true. Its quick tier passes 307 cases and 7,990,154 assertions. The complete
+slow comparison rejects this default: the Fluent standard k-epsilon elbow
+pressure-drop relative error becomes 2.00753% on CPU and Metal, failing the
+unchanged 1.5% gate that main passes. It stays opt-in.
 An earlier attempt was stopped in its first case because
 memory profiling appeared in captured CLI assertion context; that interrupted
 XML is excluded. The replacement runs without profiling. The comparator is
@@ -709,14 +709,16 @@ main's unchanged `tools/forensics/compare_slow_assertions.py`.
 
 Except for the rejected compensation default, decisions below remain pending
 the full slow-tier and iteration-cost experiments. Allocation measurements
-precede the unused-fit cleanup below. They are independent one-step CPU plate
-probes, changing one setting at a time from ordinary settings, on 816 cells.
-They are not convergence or timing measurements. The exact data and probe
-hashes are in [default-study-memory.json](default-study-memory.json).
+come from independent one-step CPU plate probes, changing one setting at a
+time from ordinary settings, on 816 cells. The compensation row instead uses
+the measured fine-bump delta after the cleanup below. These allocations are
+not convergence or timing measurements. The exact data and probe hashes are
+in [default-study-memory.json](default-study-memory.json) and
+[lean-sst-parity.json](lean-sst-parity.json).
 
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
-| Compensated momentum | Two new elbow pressure-drop failures observed; full run pending | Startup time/step: CPU 2.91x, Metal 1.22x; full convergence cost pending | 357.97 / 361.97 before cleanup | Keep opt-in |
+| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; full convergence cost pending | 316.76 / 356.76, fine bump | Keep opt-in |
 | Paired-state slack 16 | Pending | Pending | 0 / 0 | Pending |
 | Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
@@ -765,9 +767,9 @@ comparison results are in [lean-sst-parity.json](lean-sst-parity.json).
 | Finest SST and SA bumps, compensation active | Binary downloads of public velocity, pressure, mass flux, boundary pressure, scalars and eddy viscosity | Identical for all four model/backend pairs |
 
 The cleanup's full quick tier passes 307 cases and 7,990,154 assertions, and
-portability lint passes. The full singleton-default experiment continues on
-its original frozen binary; its results will not be attributed to this later
-cleanup. No default was promoted by the byte-parity checks.
+portability lint passes. The completed isolated default-candidate experiment
+includes this cleanup; its source and runtime qualifications are recorded
+below. No default was promoted by the byte-parity checks.
 
 ### Ordinary-solve cost of compensation
 
@@ -815,7 +817,10 @@ case peaks without allocator/driver retention across unrelated cases. A
 3,000,000,000-byte guard stops the run rather than hiding a resource excess.
 The isolated thin-wall Ahmed case completes both SIMPLEC and Coupled with
 eight passing assertions and a 2,307,148,032-byte peak. The complete 37-case
-run is still pending; this is a completed resource-heavy case only.
+isolated run finishes below the guard; its heaviest case is this thin-wall
+Ahmed case. This is a different execution protocol
+from the original single-process suite, not a like-for-like solver memory
+reduction.
 
 The replacement compensation binary includes the byte-identical SST cleanup
 and the since-reverted replay-buffer prototype. Its exact hashes are retained
@@ -823,29 +828,43 @@ in the experiment metadata. Its numerical gate effects are compared, while
 its memory/time results are kept separate from the final source. Future
 option binaries use the retained source only.
 
+### Complete compensation-default comparison
+
+All 37 slow cases execute with 201,633 assertions. Main has 51 failures;
+the compensated-default candidate has 53. The unchanged comparator reports
+two regressions, zero recoveries and 1,173 changed expanded values. It also
+reports 84 missing and 84 new identities because physical CLI residual logs
+inside INFO changed. There are no missing or added test cases. These identity
+changes are retained; this is not a clean canonical comparison.
+
+The two new failures are k-epsilon elbow pressure-drop relative errors:
+CPU `0.0101201 -> 0.0200753`, Metal `0.0101167 -> 0.0200753`, against the
+unchanged `0.015` limit. All 153 TMR assertions retain their exact identities,
+outcomes and expanded values. Compensated momentum stays opt-in.
+
+[default-study-compensation.json](default-study-compensation.json) contains
+the complete case-by-case assertion counts, failed-gate counts and changed-value
+counts, the original binary/source hashes and the explicit runtime-prototype
+qualification. The full XML and raw comparison stay outside version control.
+The full quick tier remains green: 307 cases, 7,990,154 assertions.
+
 ### Fresh remaining-failure baseline
 
 The supplied exact-main run has completed all 24 TMR solves and reproduces
 all 17 remaining convergence failures: SST plate 2, SST bump 6, SA 9. Their
 maximum-defect and load-change endpoints match the preceding report. Main's
 whole baseline subsequently completes all 37 slow cases with 51 failed
-assertions in 16,993 seconds. The candidate's complete comparison is pending.
+assertions in 16,993 seconds. The complete candidate comparison is above.
 [default-study-baseline.json](default-study-baseline.json) records every
 100-step observation and the supplied binary hash. The absent first load
 comparison is null, not zero.
 
-On the first 14 completed cases, the unchanged main comparator reports two
-regressions, zero recoveries, 916 changed assertion values, 84 missing
-assertions and 84 new assertions for the compensated-default candidate. The
-missing/new identities occur in CLI conversion cases: the physical residual
-logs inside INFO changed. These counts are retained, without rewriting INFO.
-This partial comparison does not replace the required complete comparison.
-
-The completed SST TMR subset matches all 83 baseline assertion identities,
-outcomes and expanded values exactly: plate 36 assertions with two failures,
-bump 47 with six. There are no changed values, regressions or recoveries in
-that subset. This confirms that the existing TMR opt-ins make the global
-compensation-default experiment numerically unchanged on these cases.
+The completed TMR subset matches all 153 baseline assertion identities,
+outcomes and expanded values exactly: SST plate 36 assertions with two
+failures, SST bump 47 with six, SA 70 with nine. There are no changed values,
+regressions or recoveries in that subset. This confirms that the existing TMR
+opt-ins make the global compensation-default experiment numerically unchanged
+on these cases. All 17 convergence failures remain.
 
 ### Exact fine-bump reproduction
 
