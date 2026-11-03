@@ -1,0 +1,98 @@
+{
+  "resumed_utc": "2026-11-03T19:47:59.775493+00:00",
+  "reason": "Execution interrupted; no owned workers remained. Completed cases retained. Incomplete cold solve restarts from uniform initialization with unchanged cap and gates.",
+  "cases": [
+    {
+      "name": "baseline_L2_pressure05_compmomentum",
+      "mesh": "runs/ahmed_cause/mesh/compact_L2.msh",
+      "cells": 563140,
+      "estimated_peak_bytes": 1740792000,
+      "estimate_is_not_measurement": true,
+      "binary": "compensated_experiment/bench_fsae_aero",
+      "extra": [
+        "--urf-p",
+        ".5"
+      ]
+    },
+    {
+      "name": "df59f85_native_L1",
+      "mesh": "runs/ahmed_cause/mesh/native_L1.msh",
+      "cells": 130331,
+      "estimated_peak_bytes": 528926800,
+      "estimate_is_not_measurement": true,
+      "binary": "df59f85/build/bench_fsae_aero",
+      "extra": []
+    },
+    {
+      "name": "edge10_shear10_L1_pressure05",
+      "mesh": "runs/ahmed_cause/mesh/edge10_shear10_L1.msh",
+      "cells": 902480,
+      "estimated_peak_bytes": 2690944000,
+      "estimate_is_not_measurement": true,
+      "binary": null,
+      "extra": [
+        "--urf-p",
+        ".5"
+      ]
+    },
+    {
+      "name": "wall50_L1_pressure05",
+      "mesh": "runs/ahmed_cause/mesh/wall50_L1.msh",
+      "cells": 283308,
+      "estimated_peak_bytes": 957262400,
+      "estimate_is_not_measurement": true,
+      "binary": null,
+      "extra": [
+        "--urf-p",
+        ".5"
+      ]
+    },
+    {
+      "name": "slant15_shear10_L1_pressure05",
+      "mesh": "runs/ahmed_cause/mesh/slant15_shear10_L1.msh",
+      "cells": 940648,
+      "estimated_peak_bytes": 2797814400,
+      "estimate_is_not_measurement": true,
+      "binary": null,
+      "extra": [
+        "--urf-p",
+        ".5"
+      ]
+    },
+    {
+      "name": "normal_g11_L1_pressure05",
+      "mesh": "runs/ahmed_cause/mesh/normal_g11_L1.msh",
+      "cells": 676024,
+      "estimated_peak_bytes": 2056867200,
+      "estimate_is_not_measurement": true,
+      "binary": null,
+      "extra": [
+        "--urf-p",
+        ".5"
+      ]
+    },
+    {
+      "name": "shear15_L2_pressure05",
+      "mesh": "runs/ahmed_cause/mesh/shear15_L2.msh",
+      "cells": 707568,
+      "estimated_peak_bytes": 2145190400,
+      "estimate_is_not_measurement": true,
+      "binary": null,
+      "extra": [
+        "--urf-p",
+        ".5"
+      ]
+    }
+  ],
+  "preserved_partial": [
+    "runs/ahmed_cause/interrupted/baseline_L2_pressure05_compmomentum_2026-11-03_1946"
+  ],
+  "queued_control_replacement": {
+    "utc": "2026-11-03T21:17:27.438973+00:00",
+    "original": "shear15_L2_pressure05",
+    "original_had_not_started": true,
+    "original_request_absent": true,
+    "replacement": "shear15_L2_urfu03_urfp05",
+    "reason": "The matched L2 baseline passed only after momentum/pressure 0.3/0.5. Use that same demonstrated stable setting for the rear-volume-only control. Caps, gates, initialization and mesh unchanged."
+  }
+}

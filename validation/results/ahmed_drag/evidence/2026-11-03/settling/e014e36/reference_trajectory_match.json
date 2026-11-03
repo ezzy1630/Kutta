@@ -1,0 +1,6 @@
+{
+  "matched_checkpoints": 120,
+  "speed_report_checkpoints": 120,
+  "matching_printed_full_trajectory": true,
+  "source_of_reference": "8556598:validation/results/fsae_time_to_solution/2026-11-03/convergence-0-ahmed-L1-simplec-baseline.log"
+}

@@ -1,0 +1,20 @@
+{
+  "upstream": {
+    "faces": 36,
+    "owner_height_min": 0.014751913772608333,
+    "owner_height_median": 0.0222556585745287,
+    "owner_height_max": 0.05450650056895011,
+    "yplus_min": 180.42952,
+    "yplus_median": 225.229988,
+    "yplus_max": 400.188629
+  },
+  "under_body": {
+    "faces": 475,
+    "owner_height_min": 0.0024257191100938097,
+    "owner_height_median": 0.0052256073775840935,
+    "owner_height_max": 0.006160305779985417,
+    "yplus_min": 79.611824,
+    "yplus_median": 154.694809,
+    "yplus_max": 450.111053
+  }
+}

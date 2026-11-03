@@ -1,0 +1,201 @@
+{
+  "candidates": [
+    {
+      "name": "final_refined_L2p5",
+      "command": [
+        "<checkout>/build-py/bin/python",
+        "tools/fsae_aero/ahmed.py",
+        "--slant",
+        "35",
+        "--level",
+        "2.5",
+        "--first",
+        "1.5e-5",
+        "--refinement-reach",
+        ".6",
+        "--wake-padding",
+        ".3",
+        "--slant-edge-size",
+        ".01",
+        "--slant-surface-size",
+        ".015",
+        "--slant-edge-volume-size",
+        ".015",
+        "--slant-edge-volume-reach",
+        ".25",
+        "--wake-volume-size",
+        ".025",
+        "--out",
+        "<checkout>/runs/ahmed_cause/mesh/final_refined_L2p5.msh"
+      ],
+      "mesh": {
+        "cells": 1132344,
+        "faces": 3416610,
+        "nodes": 1200102,
+        "case": "ahmed",
+        "slant_deg": 35.0,
+        "level": 2.5,
+        "surface_size": 0.023545099627104008,
+        "body_triangles": 8916,
+        "prism_layers": 20,
+        "layer_thickness": 0.017283153809908292,
+        "first_height": 1.5e-05,
+        "growth": 1.35,
+        "tets": 149346,
+        "prisms": 178320,
+        "hexes": 1132344,
+        "refinement_reach": 0.6,
+        "wake_padding": 0.3,
+        "cell_type": "hex",
+        "domain": {
+          "x": [
+            -4.176,
+            5.220000000000001
+          ],
+          "y": [
+            -0.9396000000000001,
+            0.9396000000000001
+          ],
+          "z": [
+            0,
+            1.2006
+          ],
+          "ground_wall_from_x": -3.132
+        },
+        "slant_edge_size": 0.01,
+        "slant_edge_reach": 0.06,
+        "slant_edge_volume_size": 0.015,
+        "slant_edge_volume_reach": 0.25,
+        "slant_surface_size": 0.015,
+        "wake_volume_size": 0.025,
+        "wake_volume_box": {
+          "x": [
+            0.06,
+            0.8
+          ],
+          "y": [
+            -0.25,
+            0.25
+          ],
+          "z": [
+            0.09,
+            0.44
+          ],
+          "transition": 0.04
+        }
+      },
+      "mesh_sha256": "c50dc997668dbe1090db429d437c7afe6fea180ee794cc873e9bbd18517646a9",
+      "mesher_sha256": "00f6bf0416722f9badba6c8e8c2af67806b4503d60be3759b4b6907fb196bbfa",
+      "geometry": {
+        "cells": 1132344,
+        "min_volume": 1.241263001155555e-10,
+        "min_quality": 0.02469611914015904,
+        "quality_p01": 0.1827505423714239,
+        "quality_p50": 0.8575756218551296,
+        "poor_cells": 447
+      },
+      "estimated_peak_bytes": 3334563200,
+      "estimate_is_not_measurement": true,
+      "within_regular_budget": false
+    },
+    {
+      "name": "final_refined_L2",
+      "command": [
+        "<checkout>/build-py/bin/python",
+        "tools/fsae_aero/ahmed.py",
+        "--slant",
+        "35",
+        "--level",
+        "2.0",
+        "--first",
+        "1.5e-5",
+        "--refinement-reach",
+        ".6",
+        "--wake-padding",
+        ".3",
+        "--slant-edge-size",
+        ".01",
+        "--slant-surface-size",
+        ".015",
+        "--slant-edge-volume-size",
+        ".015",
+        "--slant-edge-volume-reach",
+        ".25",
+        "--wake-volume-size",
+        ".025",
+        "--out",
+        "<checkout>/runs/ahmed_cause/mesh/final_refined_L2.msh"
+      ],
+      "mesh": {
+        "cells": 951976,
+        "faces": 2871975,
+        "nodes": 1008658,
+        "case": "ahmed",
+        "slant_deg": 35.0,
+        "level": 2.0,
+        "surface_size": 0.028,
+        "body_triangles": 7484,
+        "prism_layers": 20,
+        "layer_thickness": 0.017283153809908292,
+        "first_height": 1.5e-05,
+        "growth": 1.35,
+        "tets": 125734,
+        "prisms": 149680,
+        "hexes": 951976,
+        "refinement_reach": 0.6,
+        "wake_padding": 0.3,
+        "cell_type": "hex",
+        "domain": {
+          "x": [
+            -4.176,
+            5.220000000000001
+          ],
+          "y": [
+            -0.9396000000000001,
+            0.9396000000000001
+          ],
+          "z": [
+            0,
+            1.2006
+          ],
+          "ground_wall_from_x": -3.132
+        },
+        "slant_edge_size": 0.01,
+        "slant_edge_reach": 0.06,
+        "slant_edge_volume_size": 0.015,
+        "slant_edge_volume_reach": 0.25,
+        "slant_surface_size": 0.015,
+        "wake_volume_size": 0.025,
+        "wake_volume_box": {
+          "x": [
+            0.06,
+            0.8
+          ],
+          "y": [
+            -0.25,
+            0.25
+          ],
+          "z": [
+            0.09,
+            0.44
+          ],
+          "transition": 0.04
+        }
+      },
+      "mesh_sha256": "6f767d63b12b7b7ceffe79912b75029d4d3da5f39e710e44e2ba4eca43567b81",
+      "mesher_sha256": "00f6bf0416722f9badba6c8e8c2af67806b4503d60be3759b4b6907fb196bbfa",
+      "geometry": {
+        "cells": 951976,
+        "min_volume": 1.223632335557996e-10,
+        "min_quality": 0.02093475959211516,
+        "quality_p01": 0.1579459741761045,
+        "quality_p50": 0.8546926554703191,
+        "poor_cells": 1036
+      },
+      "estimated_peak_bytes": 2829532800,
+      "estimate_is_not_measurement": true,
+      "within_regular_budget": true
+    }
+  ],
+  "selected": "final_refined_L2"
+}

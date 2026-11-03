@@ -1,0 +1,197 @@
+{
+  "method": "Common supported experimental leading-40mm taps; bins use absolute y at W/6 and W/3 with W=0.389m. No tap coordinates or curves exported.",
+  "rows": [
+    {
+      "run": "pressure_urf05_L1",
+      "span_bin": "central_third",
+      "points": 4,
+      "reference_mean": -0.2735,
+      "kutta_mean": -0.5147455555,
+      "rms": 0.3375922460379795
+    },
+    {
+      "run": "pressure_urf05_L1",
+      "span_bin": "middle_thirds",
+      "points": 4,
+      "reference_mean": -0.26975000000000005,
+      "kutta_mean": -0.559966892,
+      "rms": 0.3642716550183758
+    },
+    {
+      "run": "pressure_urf05_L1",
+      "span_bin": "outer_thirds",
+      "points": 15,
+      "reference_mean": -0.26666666666666666,
+      "kutta_mean": -0.8020885540000001,
+      "rms": 0.6262978601303254
+    },
+    {
+      "run": "edge10_L1",
+      "span_bin": "central_third",
+      "points": 4,
+      "reference_mean": -0.2735,
+      "kutta_mean": -0.393846005,
+      "rms": 0.12057095752943668
+    },
+    {
+      "run": "edge10_L1",
+      "span_bin": "middle_thirds",
+      "points": 4,
+      "reference_mean": -0.26975000000000005,
+      "kutta_mean": -0.42061064375,
+      "rms": 0.15133849724082063
+    },
+    {
+      "run": "edge10_L1",
+      "span_bin": "outer_thirds",
+      "points": 15,
+      "reference_mean": -0.26666666666666666,
+      "kutta_mean": -0.5020595808,
+      "rms": 0.23750600905095587
+    },
+    {
+      "run": "edge5_L1",
+      "span_bin": "central_third",
+      "points": 4,
+      "reference_mean": -0.2735,
+      "kutta_mean": -0.39643845725000004,
+      "rms": 0.12302344097374987
+    },
+    {
+      "run": "edge5_L1",
+      "span_bin": "middle_thirds",
+      "points": 4,
+      "reference_mean": -0.26975000000000005,
+      "kutta_mean": -0.42552611975,
+      "rms": 0.15615726940171168
+    },
+    {
+      "run": "edge5_L1",
+      "span_bin": "outer_thirds",
+      "points": 15,
+      "reference_mean": -0.26666666666666666,
+      "kutta_mean": -0.4821663180666666,
+      "rms": 0.21620617378177606
+    },
+    {
+      "run": "slant10_L1",
+      "span_bin": "central_third",
+      "points": 4,
+      "reference_mean": -0.2735,
+      "kutta_mean": -0.38773965850000003,
+      "rms": 0.11431050564681008
+    },
+    {
+      "run": "slant10_L1",
+      "span_bin": "middle_thirds",
+      "points": 4,
+      "reference_mean": -0.26975000000000005,
+      "kutta_mean": -0.40816866625000003,
+      "rms": 0.13887303745552962
+    },
+    {
+      "run": "slant10_L1",
+      "span_bin": "outer_thirds",
+      "points": 15,
+      "reference_mean": -0.26666666666666666,
+      "kutta_mean": -0.45661130533333333,
+      "rms": 0.19054966268014492
+    },
+    {
+      "run": "shear15_L1_pressure05",
+      "span_bin": "central_third",
+      "points": 4,
+      "reference_mean": -0.2735,
+      "kutta_mean": -0.493496962,
+      "rms": 0.3210628969020429
+    },
+    {
+      "run": "shear15_L1_pressure05",
+      "span_bin": "middle_thirds",
+      "points": 4,
+      "reference_mean": -0.26975000000000005,
+      "kutta_mean": -0.5164320545,
+      "rms": 0.32707242433955813
+    },
+    {
+      "run": "shear15_L1_pressure05",
+      "span_bin": "outer_thirds",
+      "points": 15,
+      "reference_mean": -0.26666666666666666,
+      "kutta_mean": -0.6707160784,
+      "rms": 0.50391449019258
+    },
+    {
+      "run": "shear10_L1_pressure05",
+      "span_bin": "central_third",
+      "points": 4,
+      "reference_mean": -0.2735,
+      "kutta_mean": -0.4962270035,
+      "rms": 0.32502751825792486
+    },
+    {
+      "run": "shear10_L1_pressure05",
+      "span_bin": "middle_thirds",
+      "points": 4,
+      "reference_mean": -0.26975000000000005,
+      "kutta_mean": -0.5199970455,
+      "rms": 0.3310630932802129
+    },
+    {
+      "run": "shear10_L1_pressure05",
+      "span_bin": "outer_thirds",
+      "points": 15,
+      "reference_mean": -0.26666666666666666,
+      "kutta_mean": -0.6670474051999999,
+      "rms": 0.5009033867836429
+    },
+    {
+      "run": "wake20_L1_pressure05",
+      "span_bin": "central_third",
+      "points": 4,
+      "reference_mean": -0.2735,
+      "kutta_mean": -0.511088319,
+      "rms": 0.3348718562975848
+    },
+    {
+      "run": "wake20_L1_pressure05",
+      "span_bin": "middle_thirds",
+      "points": 4,
+      "reference_mean": -0.26975000000000005,
+      "kutta_mean": -0.54221888625,
+      "rms": 0.34883279330294187
+    },
+    {
+      "run": "wake20_L1_pressure05",
+      "span_bin": "outer_thirds",
+      "points": 15,
+      "reference_mean": -0.26666666666666666,
+      "kutta_mean": -0.7664230281333333,
+      "rms": 0.5930797769468302
+    },
+    {
+      "run": "shear15_wake25_L1_pressure05",
+      "span_bin": "central_third",
+      "points": 4,
+      "reference_mean": -0.2735,
+      "kutta_mean": -0.479594089,
+      "rms": 0.3110459434050373
+    },
+    {
+      "run": "shear15_wake25_L1_pressure05",
+      "span_bin": "middle_thirds",
+      "points": 4,
+      "reference_mean": -0.26975000000000005,
+      "kutta_mean": -0.4996956065,
+      "rms": 0.3097274590065794
+    },
+    {
+      "run": "shear15_wake25_L1_pressure05",
+      "span_bin": "outer_thirds",
+      "points": 15,
+      "reference_mean": -0.26666666666666666,
+      "kutta_mean": -0.6511338994666667,
+      "rms": 0.4869554400891119
+    }
+  ]
+}

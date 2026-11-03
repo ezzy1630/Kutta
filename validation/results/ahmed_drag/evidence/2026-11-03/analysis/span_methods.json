@@ -1,0 +1,15 @@
+{
+  "purpose": "Reproduce aggregate spanwise Cp errors and exact own-wall pressure loads; no raw reference taps exported.",
+  "recipes": [
+    {
+      "script": "span_pressure.py",
+      "sha256": "7ab1c3f5a482ddb1631608b15716f0b6426e02284254872ffaa52bfcc66f64d8",
+      "restore_to": "<checkout>/runs/ahmed_cause/span_pressure.py"
+    },
+    {
+      "script": "span_loads.py",
+      "sha256": "a811d1521df342e8552e3ab6f2203a1ec412039aecf32f8bfe1f5c2dace98b32",
+      "restore_to": "<checkout>/runs/ahmed_cause/span_loads.py"
+    }
+  ]
+}

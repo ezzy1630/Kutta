@@ -1,0 +1,17 @@
+{
+  "regressions": 0,
+  "recoveries": 0,
+  "changed_values": 68,
+  "missing_assertions": 0,
+  "new_assertions": 0,
+  "case_changes": {
+    "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega": 3,
+    "FSAE aero: Ahmed body 35 deg drag, level 1": 1,
+    "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC": 2,
+    "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled": 4,
+    "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)": 55,
+    "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC": 3
+  },
+  "proposal_retained_as_general_default": false,
+  "reason": "Transition S1223 stops at2200 instead of6000; its fixed last2000 average includes startup and drag error worsens16.2312% to24.5165%. Existing explicit pressure0.5 option retained forAhmed; frozen averaging/stopping criteria unchanged."
+}

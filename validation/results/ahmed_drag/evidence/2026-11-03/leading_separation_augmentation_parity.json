@@ -1,0 +1,22 @@
+[
+  {
+    "run": "pressure_urf05_L1",
+    "existing_fields_identical": true,
+    "area_fraction_closure_error": 0.0
+  },
+  {
+    "run": "edge10_L1",
+    "existing_fields_identical": true,
+    "area_fraction_closure_error": 1.1102230246251565e-16
+  },
+  {
+    "run": "wake25_L1_pressure05",
+    "existing_fields_identical": true,
+    "area_fraction_closure_error": 0.0
+  },
+  {
+    "run": "wake20_L1_pressure05",
+    "existing_fields_identical": true,
+    "area_fraction_closure_error": 0.0
+  }
+]

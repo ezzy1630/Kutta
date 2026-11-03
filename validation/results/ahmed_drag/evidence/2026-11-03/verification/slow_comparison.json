@@ -1,0 +1,564 @@
+{
+  "cases": [
+    {
+      "case": "Kutta cases converted from Fluent cases solve to the same bytes on every backend",
+      "baseline_assertions": 68,
+      "final_assertions": 68,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "The NACA ground-effect wing from a bare mesh and a Kutta case solves like its donor Fluent case",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs",
+      "baseline_assertions": 477,
+      "final_assertions": 477,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Corpus FSAE physics preserve strict solver holds or convert with identical outputs",
+      "baseline_assertions": 0,
+      "final_assertions": 0,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re100 and Re400 cavity reported deviations",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V4 Fluent cavity matches its actual grid",
+      "baseline_assertions": 763,
+      "final_assertions": 763,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "baseline_assertions": 17044,
+      "final_assertions": 17044,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent k-epsilon elbow converges with second-order pressure",
+      "baseline_assertions": 11220,
+      "final_assertions": 11220,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent laminar 2D cylinder matches converged Fluent fields",
+      "baseline_assertions": 207,
+      "final_assertions": 207,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "baseline_assertions": 2565,
+      "final_assertions": 2565,
+      "baseline_failed": 25,
+      "final_failed": 25
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "baseline_assertions": 28,
+      "final_assertions": 28,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 9,
+      "final_assertions": 9,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "baseline_assertions": 8,
+      "final_assertions": 8,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V12 native Fluent polynomial fan import acceptance",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 1,
+      "final_failed": 1
+    },
+    {
+      "case": "V8 realizable KE scalable channel MKM DNS profile and momentum balance",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes hex refinement",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes tet refinement",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 8,
+      "final_failed": 8
+    },
+    {
+      "case": "FV V1 manufactured scalar diffusion and upwind refinement",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV SIMPLEC develops planar Couette flow with moving and slip walls",
+      "baseline_assertions": 14,
+      "final_assertions": 14,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "baseline_assertions": 36,
+      "final_assertions": 36,
+      "baseline_failed": 2,
+      "final_failed": 2
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "baseline_assertions": 47,
+      "final_assertions": 47,
+      "baseline_failed": 6,
+      "final_failed": 6
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "baseline_assertions": 70,
+      "final_assertions": 70,
+      "baseline_failed": 9,
+      "final_failed": 9
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "baseline_assertions": 161470,
+      "final_assertions": 161470,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 11,
+      "final_assertions": 11,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.1 translating-wall Couette hex and poly",
+      "baseline_assertions": 104,
+      "final_assertions": 104,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.2 rotating-wall Taylor Couette hex and poly",
+      "baseline_assertions": 6668,
+      "final_assertions": 6668,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V8 Darcy Forchheimer pressure drop and oblique directions",
+      "baseline_assertions": 24,
+      "final_assertions": 24,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10 incompressible pressure and mass-flow inlets",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V11 internal fan polynomial and porous jump pressure discontinuity",
+      "baseline_assertions": 312,
+      "final_assertions": 312,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.3 rotation and translation preserve Taylor Couette pressure",
+      "baseline_assertions": 6,
+      "final_assertions": 6,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent research downloads retain published byte identities",
+      "baseline_assertions": 264,
+      "final_assertions": 264,
+      "baseline_failed": 0,
+      "final_failed": 0
+    }
+  ],
+  "regressions": [],
+  "recoveries": [],
+  "changed_values": [
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "104",
+        "type": "CHECK",
+        "expression": "std::abs(r.lift / kw.at(p.hc) - 1) <= .05",
+        "occurrence": 0
+      },
+      "before": "0.0123559 <= 0.05",
+      "after": "0.0123569 <= 0.05",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "104",
+        "type": "CHECK",
+        "expression": "std::abs(r.lift / kw.at(p.hc) - 1) <= .05",
+        "occurrence": 0
+      },
+      "before": "0.0365731 <= 0.05",
+      "after": "0.036565 <= 0.05",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "108",
+        "type": "CHECK",
+        "expression": "std::abs(r.lift / p.guard - 1) <= .01",
+        "occurrence": 0
+      },
+      "before": "8.28407e-05 <= 0.01",
+      "after": "1.14808e-05 <= 0.01",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "132",
+        "type": "CHECK",
+        "expression": "std::abs(r.drag / .3531 - 1) <= .02",
+        "occurrence": 0
+      },
+      "before": "0.00012109 <= 0.02",
+      "after": "7.48983e-05 <= 0.02",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "152",
+        "type": "CHECK",
+        "expression": "std::abs(r.lift - cl) <= .10",
+        "occurrence": 0
+      },
+      "before": "0.0747029 <= 0.1",
+      "after": "0.0747002 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "153",
+        "type": "CHECK",
+        "expression": "std::abs(r.drag / cd - 1) <= .25",
+        "occurrence": 0
+      },
+      "before": "0.227273 <= 0.25",
+      "after": "0.227325 <= 0.25",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "176",
+        "type": "CHECK",
+        "expression": "simplec.wall_yplus_mean < 1.5",
+        "occurrence": 0
+      },
+      "before": "0.879503 <  1.5",
+      "after": "0.8795 <  1.5",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "178",
+        "type": "CHECK",
+        "expression": "std::abs(simplec.drag / .3545 - 1) <= .02",
+        "occurrence": 0
+      },
+      "before": "0.000114572 <= 0.02",
+      "after": "5.49318e-05 <= 0.02",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "185",
+        "type": "CHECK",
+        "expression": "std::abs(coupled.drag / simplec.drag - 1) <= .01",
+        "occurrence": 0
+      },
+      "before": "0.000414598 <= 0.01",
+      "after": "0.000474216 <= 0.01",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "assertion": {
+        "file": "tests/fv/test_fsae_aero.cpp",
+        "line": "186",
+        "type": "CHECK",
+        "expression": "std::abs(coupled.lift / simplec.lift - 1) <= .03",
+        "occurrence": 0
+      },
+      "before": "0.0100257 <= 0.03",
+      "after": "0.0107306 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "122",
+        "type": "CHECK",
+        "expression": "r.settle_drag <= 5e-4",
+        "occurrence": 0
+      },
+      "before": "6.06069e-07 <= 0.0005",
+      "after": "6.69509e-07 <= 0.0005",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "160",
+        "type": "CHECK",
+        "expression": "std::abs(onset_error) <= .13",
+        "occurrence": 0
+      },
+      "before": "0.118214 <= 0.13",
+      "after": "0.118215 <= 0.13",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "161",
+        "type": "CHECK",
+        "expression": "laminar <= .13",
+        "occurrence": 0
+      },
+      "before": "0.120958 <= 0.13",
+      "after": "0.120962 <= 0.13",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "162",
+        "type": "CHECK",
+        "expression": "turbulent <= .075",
+        "occurrence": 0
+      },
+      "before": "0.0694313 <= 0.075",
+      "after": "0.0694459 <= 0.075",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "183",
+        "type": "CHECK",
+        "expression": "std::abs(verified_onset) <= .05",
+        "occurrence": 0
+      },
+      "before": "0.0246644 <= 0.05",
+      "after": "0.0246648 <= 0.05",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "184",
+        "type": "CHECK",
+        "expression": "verified_laminar <= .03",
+        "occurrence": 0
+      },
+      "before": "0.0169599 <= 0.03",
+      "after": "0.016964 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "185",
+        "type": "CHECK",
+        "expression": "verified_turbulent <= .03",
+        "occurrence": 0
+      },
+      "before": "0.0134799 <= 0.03",
+      "after": "0.0134817 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "220",
+        "type": "CHECK",
+        "expression": "r.settle_lift <= 5e-4",
+        "occurrence": 0
+      },
+      "before": "7.39032e-05 <= 0.0005",
+      "after": "9.44999e-05 <= 0.0005",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "222",
+        "type": "CHECK",
+        "expression": "std::abs(lift - cl) <= .10",
+        "occurrence": 0
+      },
+      "before": "0.0988863 <= 0.1",
+      "after": "0.075896 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "assertion": {
+        "file": "tests/fv/test_transition_validation.cpp",
+        "line": "223",
+        "type": "CHECK",
+        "expression": "std::abs(drag / cd - 1) <= .25",
+        "occurrence": 0
+      },
+      "before": "0.162312 <= 0.25",
+      "after": "0.245165 <= 0.25",
+      "baseline_passed": true,
+      "final_passed": true
+    }
+  ],
+  "missing_assertions": [],
+  "new_assertions": [],
+  "missing_cases": [],
+  "new_cases": [],
+  "no_new_failures": true,
+  "changed_values_total": 68,
+  "reference_query_bound_changes": [
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "before_computed_upper_rex": "592918",
+      "after_computed_upper_rex": "592917",
+      "baseline_passed": true,
+      "final_passed": true,
+      "assertions": 48
+    }
+  ],
+  "privacy_note": "INFO contexts and measured query coordinates omitted. Repeated range checks retain only their own computed upper bound and count."
+}

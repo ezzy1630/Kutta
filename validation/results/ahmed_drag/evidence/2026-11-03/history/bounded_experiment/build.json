@@ -1,0 +1,10 @@
+{
+  "source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "kernel_experiment": {
+    "old": "if(poor[c]!=poor[n]) face[i]=0.5f*(p[c]+p[n]);",
+    "new": "if(poor[c]!=poor[n]) face[i]=kmin(kmax(face[i],kmin(p[c],p[n])),kmax(p[c],p[n]));"
+  },
+  "binary_sha256": "ee0247b60c640a264482d9a103060c27010fc1d1dcd23af764fb21cfd7d0e3b4",
+  "embedded_source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85 bounded-face experiment",
+  "archive_version_override": "CMake explicitly pins archived revision; avoids inheriting enclosing worktree Git HEAD."
+}

@@ -1,0 +1,93 @@
+{
+  "command": [
+    "<checkout>/build/bench_fsae_aero",
+    "--mesh",
+    "<checkout>/runs/ahmed_cause/mesh/compact_L1.msh",
+    "--backend",
+    "metal",
+    "--re",
+    "2.78e6",
+    "--length",
+    "1.044",
+    "--area",
+    "0.112032",
+    "--walls",
+    "body",
+    "--lift-z",
+    "--tu",
+    "0.01",
+    "--window",
+    "1000",
+    "--iterations",
+    "5000",
+    "--cells",
+    "--out",
+    "<checkout>/runs/ahmed_cause/baseline_L1"
+  ],
+  "mesh": {
+    "cells": 327584,
+    "faces": 991719,
+    "nodes": 345018,
+    "case": "ahmed",
+    "slant_deg": 35.0,
+    "level": 1.0,
+    "surface_size": 0.03959797974644666,
+    "body_triangles": 3748,
+    "prism_layers": 20,
+    "layer_thickness": 0.017283153809908292,
+    "first_height": 1.5e-05,
+    "growth": 1.35,
+    "tets": 25676,
+    "prisms": 74960,
+    "hexes": 327584,
+    "refinement_reach": 0.6,
+    "wake_padding": 0.3,
+    "cell_type": "hex",
+    "domain": {
+      "x": [
+        -4.176,
+        5.220000000000001
+      ],
+      "y": [
+        -0.9396000000000001,
+        0.9396000000000001
+      ],
+      "z": [
+        0,
+        1.2006
+      ],
+      "ground_wall_from_x": -3.132
+    }
+  },
+  "mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e",
+  "binary_sha256": "945064c8a8f9f6af09703d835670629570d67b0f9850a7339001ef456b09ef20",
+  "backend": "metal",
+  "case": "ahmed",
+  "point": "35",
+  "configuration_verified": true,
+  "source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "device": "Apple M4 Pro",
+  "pressure_scheme": "second-order",
+  "pressure_boundary_gradient": "extrapolated",
+  "result": {
+    "cells": 327584,
+    "poor_cells": 2127,
+    "iterations": 5000,
+    "setup_s": 44.11971346,
+    "solve_s": 1073.93005,
+    "lift": 0.2314890842,
+    "drag": 0.3620441852,
+    "drag_pressure": 0.3178086685,
+    "max_residual": 1.065240733e-05,
+    "settle_lift": 0.001122568504,
+    "settle_drag": 0.0002321507324,
+    "residuals_met": true,
+    "settled": false,
+    "budget": false,
+    "yplus_max": 1.651188135,
+    "yplus_mean": 0.8836274072,
+    "failure": ""
+  },
+  "exit": 0,
+  "peak_footprint_bytes": 1029342480
+}

@@ -1,0 +1,92 @@
+{
+  "command": [
+    "<checkout>/runs/ahmed_cause/history/df59f85/build/bench_fsae_aero",
+    "--mesh",
+    "<checkout>/runs/ahmed_cause/mesh/native_L1.msh",
+    "--backend",
+    "metal",
+    "--re",
+    "2.78e6",
+    "--length",
+    "1.044",
+    "--area",
+    "0.112032",
+    "--walls",
+    "body",
+    "--lift-z",
+    "--tu",
+    "0.01",
+    "--window",
+    "1000",
+    "--iterations",
+    "5000",
+    "--cells",
+    "--out",
+    "<checkout>/runs/ahmed_cause/df59f85_native_L1"
+  ],
+  "mesh": {
+    "cells": 130331,
+    "faces": 302636,
+    "nodes": 48676,
+    "case": "ahmed",
+    "slant_deg": 35.0,
+    "level": 1.0,
+    "surface_size": 0.03959797974644666,
+    "body_triangles": 3748,
+    "prism_layers": 20,
+    "layer_thickness": 0.017283153809908292,
+    "first_height": 1.5e-05,
+    "growth": 1.35,
+    "tets": 55371,
+    "prisms": 74960,
+    "hexes": 0,
+    "refinement_reach": 3.0,
+    "wake_padding": 2.0,
+    "cell_type": "tet-prism",
+    "domain": {
+      "x": [
+        -4.176,
+        5.220000000000001
+      ],
+      "y": [
+        -0.9396000000000001,
+        0.9396000000000001
+      ],
+      "z": [
+        0,
+        1.2006
+      ],
+      "ground_wall_from_x": -3.132
+    }
+  },
+  "mesh_sha256": "35cee20eaef0052a00b09b2dbabd199b19d26c58a22cb2a6d1d33c97d9f9424e",
+  "binary_sha256": "958d5105bf6c96b3cc91b3d3ebbff3059f48674a6b699baacddb8d6a643469f1",
+  "backend": "metal",
+  "case": "ahmed",
+  "point": "35",
+  "configuration_verified": true,
+  "source": "df59f85090d81e251d689774c91e7d03370609cb",
+  "device": "Apple M4 Pro",
+  "pressure_scheme": "second-order",
+  "result": {
+    "cells": 130331,
+    "poor_cells": 2709,
+    "iterations": 5000,
+    "setup_s": 1.794723042,
+    "solve_s": 209.2043534,
+    "lift": 0.575242784,
+    "drag": 0.4576104428,
+    "drag_pressure": 0.4098072394,
+    "max_residual": 0.008254250821,
+    "settle_lift": 0.0917024066,
+    "settle_drag": 0.02242564403,
+    "residuals_met": false,
+    "settled": false,
+    "budget": false,
+    "yplus_max": 1.62362349,
+    "yplus_mean": 0.9176445371,
+    "failure": ""
+  },
+  "exit": 0,
+  "peak_footprint_bytes": 422560584
+}

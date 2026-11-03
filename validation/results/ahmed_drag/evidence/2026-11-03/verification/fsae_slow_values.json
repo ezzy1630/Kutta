@@ -1,0 +1,377 @@
+{
+  "partial": false,
+  "runs": {
+    "baseline": [
+      {
+        "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+        "mesh": "zerihan_hfree_L2.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 185964,
+          "poor_cells": 0,
+          "iterations": 1800,
+          "lift": 0.8612256119,
+          "drag": 0.0161395295,
+          "drag_pressure": 0.006433376002,
+          "max_residual": 7.046859311e-06,
+          "settle_lift": 5.288017424e-05,
+          "settle_drag": 0.0004876717389,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 0.5908061862,
+          "yplus_mean": 0.2275858092,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+        "mesh": "zerihan_h0.224_L2.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 195581,
+          "poor_cells": 0,
+          "iterations": 2400,
+          "lift": 1.401446848,
+          "drag": 0.03052198474,
+          "drag_pressure": 0.01846461676,
+          "max_residual": 7.876657106e-06,
+          "settle_lift": 0.0001743226054,
+          "settle_drag": 0.0004547780067,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 0.6386094093,
+          "yplus_mean": 0.2374664854,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+        "mesh": "zerihan_h0.090_L2.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 177312,
+          "poor_cells": 0,
+          "iterations": 2300,
+          "lift": 1.410583137,
+          "drag": 0.05905759245,
+          "drag_pressure": 0.04704497805,
+          "max_residual": 4.158930467e-06,
+          "settle_lift": 0.0004619791789,
+          "settle_drag": 0.0001128943725,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 0.557777524,
+          "yplus_mean": 0.241543847,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+        "mesh": "ahmed35_L1.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 403560,
+          "poor_cells": 10,
+          "iterations": 2000,
+          "lift": 0.2094856629,
+          "drag": 0.353142757,
+          "drag_pressure": 0.3061952885,
+          "max_residual": 1.060235969e-05,
+          "settle_lift": 0.0009446154328,
+          "settle_drag": 0.0001960077811,
+          "residuals_met": true,
+          "settled": false,
+          "budget": false,
+          "yplus_max": 7.101939201,
+          "yplus_mean": 3.202522944,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+        "mesh": "s1223_a4.76_L2.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 184470,
+          "poor_cells": 0,
+          "iterations": 2150,
+          "lift": 1.584702904,
+          "drag": 0.03006819665,
+          "drag_pressure": 0.0192165542,
+          "max_residual": 1.530517051e-05,
+          "settle_lift": 3.385369733e-05,
+          "settle_drag": 0.00026611303,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 0.2429421693,
+          "yplus_mean": 0.1079735922,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+        "mesh": "ahmed35_L1_first15um.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 446364,
+          "poor_cells": 2127,
+          "iterations": 2000,
+          "lift": 0.2200653357,
+          "drag": 0.3544593844,
+          "drag_pressure": 0.3105477297,
+          "max_residual": 5.608569166e-06,
+          "settle_lift": 0.0007186967656,
+          "settle_drag": 0.0003058978055,
+          "residuals_met": true,
+          "settled": false,
+          "budget": false,
+          "yplus_max": 1.64522624,
+          "yplus_mean": 0.8795034005,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+        "mesh": "ahmed35_L1_first15um.msh",
+        "backend": "metal",
+        "observation": 1,
+        "result": {
+          "cells": 446364,
+          "poor_cells": 2127,
+          "iterations": 2000,
+          "lift": 0.2222716487,
+          "drag": 0.3543124263,
+          "drag_pressure": 0.3104832141,
+          "max_residual": 0.00590678196,
+          "settle_lift": 0.01375903082,
+          "settle_drag": 0.002011085748,
+          "residuals_met": false,
+          "settled": false,
+          "budget": false,
+          "yplus_max": 1.646346211,
+          "yplus_mean": 0.8783114102,
+          "failure": ""
+        }
+      }
+    ],
+    "candidate": [
+      {
+        "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+        "mesh": "zerihan_hfree_L2.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 185964,
+          "poor_cells": 0,
+          "iterations": 1850,
+          "momentum_relaxation": 0.7,
+          "pressure_relaxation": 0.5,
+          "lift": 0.8612247459,
+          "drag": 0.0161396794,
+          "drag_pressure": 0.006433524969,
+          "max_residual": 8.973128233e-05,
+          "settle_lift": 2.547439716e-05,
+          "settle_drag": 0.0001542507152,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 0.5908051133,
+          "yplus_mean": 0.227585646,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+        "mesh": "zerihan_h0.224_L2.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 195581,
+          "poor_cells": 0,
+          "iterations": 2400,
+          "momentum_relaxation": 0.7,
+          "pressure_relaxation": 0.5,
+          "lift": 1.401435868,
+          "drag": 0.03051949674,
+          "drag_pressure": 0.01846212988,
+          "max_residual": 0.0001741393102,
+          "settle_lift": 0.0001774802846,
+          "settle_drag": 0.0004617952117,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 0.6386085749,
+          "yplus_mean": 0.237466173,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+        "mesh": "zerihan_h0.090_L2.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 177312,
+          "poor_cells": 0,
+          "iterations": 2300,
+          "momentum_relaxation": 0.7,
+          "pressure_relaxation": 0.5,
+          "lift": 1.410683804,
+          "drag": 0.05905831157,
+          "drag_pressure": 0.04704541275,
+          "max_residual": 0.0001709380093,
+          "settle_lift": 0.0004700852999,
+          "settle_drag": 0.0001111815684,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 0.5577888489,
+          "yplus_mean": 0.2415485285,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+        "mesh": "ahmed35_L1.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 403560,
+          "poor_cells": 10,
+          "iterations": 1600,
+          "momentum_relaxation": 0.7,
+          "pressure_relaxation": 0.5,
+          "lift": 0.2089814583,
+          "drag": 0.3531264466,
+          "drag_pressure": 0.3061808038,
+          "max_residual": 2.132498868e-05,
+          "settle_lift": 0.0004583500825,
+          "settle_drag": 0.0002006430157,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 7.241134167,
+          "yplus_mean": 3.202487183,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+        "mesh": "s1223_a4.76_L2.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 184470,
+          "poor_cells": 0,
+          "iterations": 2150,
+          "momentum_relaxation": 0.7,
+          "pressure_relaxation": 0.5,
+          "lift": 1.584700241,
+          "drag": 0.03006945233,
+          "drag_pressure": 0.01921779418,
+          "max_residual": 0.0001174325433,
+          "settle_lift": 3.288116442e-05,
+          "settle_drag": 0.0003180954025,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 0.2429419756,
+          "yplus_mean": 0.1079735361,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+        "mesh": "ahmed35_L1_first15um.msh",
+        "backend": "metal",
+        "observation": 0,
+        "result": {
+          "cells": 446364,
+          "poor_cells": 2127,
+          "iterations": 1750,
+          "momentum_relaxation": 0.7,
+          "pressure_relaxation": 0.5,
+          "lift": 0.2199118695,
+          "drag": 0.3544805267,
+          "drag_pressure": 0.3105683261,
+          "max_residual": 1.519640979e-05,
+          "settle_lift": 0.0003787358268,
+          "settle_drag": 0.0001247948046,
+          "residuals_met": true,
+          "settled": true,
+          "budget": false,
+          "yplus_max": 1.64521718,
+          "yplus_mean": 0.8794995737,
+          "failure": ""
+        }
+      },
+      {
+        "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+        "mesh": "ahmed35_L1_first15um.msh",
+        "backend": "metal",
+        "observation": 1,
+        "result": {
+          "cells": 446364,
+          "poor_cells": 2127,
+          "iterations": 2000,
+          "momentum_relaxation": 0.5,
+          "pressure_relaxation": 0.5,
+          "lift": 0.2222716487,
+          "drag": 0.3543124263,
+          "drag_pressure": 0.3104832141,
+          "max_residual": 0.00590678196,
+          "settle_lift": 0.01375903082,
+          "settle_drag": 0.002011085748,
+          "residuals_met": false,
+          "settled": false,
+          "budget": false,
+          "yplus_max": 1.646346211,
+          "yplus_mean": 0.8783114102,
+          "failure": ""
+        }
+      }
+    ]
+  },
+  "transition_averages": {
+    "baseline": {
+      "backend": "metal",
+      "iterations": 6000,
+      "lift_mean": 1.60889,
+      "drag_mean": 0.0284766,
+      "drag_range": [
+        0.0284309,
+        0.0285344
+      ],
+      "max_residual": 6.0464e-05,
+      "mean_window_iterations": 2000,
+      "reference_values_removed": true
+    },
+    "candidate": {
+      "backend": "metal",
+      "iterations": 2200,
+      "lift_mean": 1.5859,
+      "drag_mean": 0.0305066,
+      "drag_range": [
+        0.0285166,
+        0.0421237
+      ],
+      "max_residual": 0.000131027,
+      "mean_window_iterations": 2000,
+      "reference_values_removed": true
+    }
+  },
+  "xml_sha256": {
+    "baseline": "aa01955caa4f6601b141ca32cb154644bfdfee56fd498bb53d88aae90264b522",
+    "candidate": "38e9e71dfe1fd46492d8ccd95a7d17a866cadf23012274f802157e491b012aa4"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "all": {
+    "delta_over_current_production": 0.0009015545681071575,
+    "delta_over_destruction": 0.00014676878366995944,
+    "delta_integral": 1.1919941565725551,
+    "current_production_integral": 1322.154197582499
+  },
+  "nose": {
+    "delta_over_current_production": 0.002327498531980611,
+    "delta_over_destruction": 0.000831275649552907,
+    "delta_integral": 0.8883477237500125,
+    "current_production_integral": 381.67488036783556
+  },
+  "slant_leading": {
+    "delta_over_current_production": 2.3544257515760828e-05,
+    "delta_over_destruction": 3.066078599916795e-06,
+    "delta_integral": 0.00019233447731036943,
+    "current_production_integral": 8.169061062198214
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "mesh_sha256": "68e9a20d94652e902417d7af02adcd16a400bcbc36a1bb4d0a8a0531bd7dbc7e",
+  "baseline_mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e",
+  "boundary_identity": {
+    "body": {
+      "faces": 11244,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "inlet": {
+      "faces": 126,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "outlet": {
+      "faces": 126,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "ground_slip": {
+      "faces": 126,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "ground": {
+      "faces": 4284,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "top": {
+      "faces": 864,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "side": {
+      "faces": 1164,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    }
+  }
+}

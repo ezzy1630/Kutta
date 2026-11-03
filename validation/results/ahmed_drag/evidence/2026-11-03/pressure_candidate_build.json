@@ -1,0 +1,10 @@
+{
+  "source_head": "bc81ad8f22731e5f33734c5c68123ca7ceff0f4e",
+  "dirty_case_patch_sha256": "888883885f5810669557130abec8d29efa13a47d031004904208e07e9dc6521b",
+  "binaries": {
+    "bench_fsae_aero": "660647485a49b445847a2f7ff864cf8d86d7334fd2f64f33a1fe8d031df370dc",
+    "kutta-tests": "6a328706666626c37375a1560b24c3f8923f9198ba0d06d3b675d13d4a11774a",
+    "kutta": "cd212a744afbe1c062adefb22af678cf55f899e00891e659d1018e858aa1bd88",
+    "libkutta.a": "cbb4744b5babc0fefcb56ff71acbc1ef0f6ff1e8ccdc832ab82b98a1df05f726"
+  }
+}

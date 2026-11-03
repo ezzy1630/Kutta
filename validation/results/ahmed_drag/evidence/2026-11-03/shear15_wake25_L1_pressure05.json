@@ -1,0 +1,116 @@
+{
+  "command": [
+    "<checkout>/runs/ahmed_cause/history/e014e36_drag/bench_fsae_aero",
+    "--mesh",
+    "<checkout>/runs/ahmed_cause/mesh/shear15_wake25_L1.msh",
+    "--backend",
+    "metal",
+    "--re",
+    "2.78e6",
+    "--length",
+    "1.044",
+    "--area",
+    "0.112032",
+    "--walls",
+    "body",
+    "--lift-z",
+    "--tu",
+    "0.01",
+    "--window",
+    "1000",
+    "--iterations",
+    "5000",
+    "--cells",
+    "--out",
+    "<checkout>/runs/ahmed_cause/shear15_wake25_L1_pressure05",
+    "--urf-p",
+    ".5"
+  ],
+  "mesh": {
+    "cells": 622472,
+    "faces": 1876383,
+    "nodes": 663762,
+    "case": "ahmed",
+    "slant_deg": 35.0,
+    "level": 1.0,
+    "surface_size": 0.03959797974644666,
+    "body_triangles": 3748,
+    "prism_layers": 20,
+    "layer_thickness": 0.017283153809908292,
+    "first_height": 1.5e-05,
+    "growth": 1.35,
+    "tets": 99398,
+    "prisms": 74960,
+    "hexes": 622472,
+    "refinement_reach": 0.6,
+    "wake_padding": 0.3,
+    "cell_type": "hex",
+    "domain": {
+      "x": [
+        -4.176,
+        5.220000000000001
+      ],
+      "y": [
+        -0.9396000000000001,
+        0.9396000000000001
+      ],
+      "z": [
+        0,
+        1.2006
+      ],
+      "ground_wall_from_x": -3.132
+    },
+    "slant_edge_volume_size": 0.015,
+    "slant_edge_reach": 0.06,
+    "slant_edge_volume_reach": 0.25,
+    "wake_volume_size": 0.025,
+    "wake_volume_box": {
+      "x": [
+        0.06,
+        0.8
+      ],
+      "y": [
+        -0.25,
+        0.25
+      ],
+      "z": [
+        0.09,
+        0.44
+      ],
+      "transition": 0.04
+    }
+  },
+  "mesh_sha256": "80ef28971be5084b1a8b602c557c813d5407c82c3e3a4d240a899b1d3cdf9c25",
+  "binary_sha256": "765b475d5ad0293b7ea86037eb9f94648628aa6eb0015c7429d70845e4951cfd",
+  "backend": "metal",
+  "case": "ahmed",
+  "point": "35",
+  "configuration_verified": true,
+  "source": "1c36f4de630cf10c3c12f5e8ec7db842583b266e",
+  "device": "Apple M4 Pro",
+  "pressure_scheme": "second-order",
+  "pressure_boundary_gradient": "extrapolated",
+  "sst_production_limiter": true,
+  "sst_production_clip": 10,
+  "result": {
+    "cells": 622472,
+    "poor_cells": 2127,
+    "iterations": 2200,
+    "setup_s": 13.35485225,
+    "solve_s": 381.2747943,
+    "lift": 0.1603749178,
+    "drag": 0.3386593855,
+    "drag_pressure": 0.2943181178,
+    "max_residual": 1.591687144e-05,
+    "settle_lift": 0.0004013227506,
+    "settle_drag": 0.0002341779904,
+    "residuals_met": true,
+    "settled": true,
+    "budget": false,
+    "yplus_max": 1.65096271,
+    "yplus_mean": 0.8780682496,
+    "failure": ""
+  },
+  "exit": 0,
+  "peak_footprint_bytes": 1843562320
+}

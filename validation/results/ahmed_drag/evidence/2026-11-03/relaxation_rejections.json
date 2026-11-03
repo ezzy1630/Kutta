@@ -1,0 +1,26 @@
+[
+  {
+    "option": "--urf-u",
+    "value": "-0.1",
+    "exit": 1,
+    "error": "fsae_aero.hpp:193: fsae_aero: relaxation overrides must lie in [0, 1]; zero selects the case default"
+  },
+  {
+    "option": "--urf-u",
+    "value": "1.1",
+    "exit": 1,
+    "error": "fsae_aero.hpp:193: fsae_aero: relaxation overrides must lie in [0, 1]; zero selects the case default"
+  },
+  {
+    "option": "--urf-p",
+    "value": "-0.1",
+    "exit": 1,
+    "error": "fsae_aero.hpp:193: fsae_aero: relaxation overrides must lie in [0, 1]; zero selects the case default"
+  },
+  {
+    "option": "--urf-p",
+    "value": "1.1",
+    "exit": 1,
+    "error": "fsae_aero.hpp:193: fsae_aero: relaxation overrides must lie in [0, 1]; zero selects the case default"
+  }
+]

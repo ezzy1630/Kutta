@@ -1,0 +1,37 @@
+{
+  "source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "bench_source": "1c36f4de630cf10c3c12f5e8ec7db842583b266e",
+  "option": "SolverSettings.compensated_momentum=true",
+  "case_patch": {
+    "old": "  SolverSettings s;",
+    "new": "  SolverSettings s;\n  s.compensated_momentum=true;"
+  },
+  "compile_command": [
+    "c++",
+    "-std=c++20",
+    "-O3",
+    "-DNDEBUG",
+    "-arch",
+    "arm64",
+    "-DKUTTA_HAS_HDF5=1",
+    "-DKUTTA_HAS_METAL=1",
+    "-isystem",
+    "/opt/homebrew/include",
+    "-DKUTTA_BENCH_COMMIT=\"e014e36 existing compensated_momentum option\"",
+    "-Isrc",
+    "-Ibuild/generated",
+    "<checkout>/runs/ahmed_cause/history/compensated_experiment/bench.cpp",
+    "build/libkutta.a",
+    "-L/opt/homebrew/lib",
+    "-lhdf5",
+    "-framework",
+    "Metal",
+    "-framework",
+    "Foundation",
+    "-o",
+    "<checkout>/runs/ahmed_cause/history/compensated_experiment/bench_fsae_aero"
+  ],
+  "library_sha256": "cbb4744b5babc0fefcb56ff71acbc1ef0f6ff1e8ccdc832ab82b98a1df05f726",
+  "binary_sha256": "6d533b2c37203c74fe552a0b1cc3067dc90de39876da15cf0064507f423c1083",
+  "case_patch_unified": "--- validation/cases/fsae_aero.hpp\n+++ diagnostic-case.hpp\n@@ -197,6 +197,7 @@\n   const bool three_d = std::none_of(mesh.patches.begin(), mesh.patches.end(), [](const Patch& p) { return p.name == \"front\"; });\n   auto bc = boundaries(mesh, o);\n   SolverSettings s;\n+  s.compensated_momentum=true;\n   s.viscosity = o.length / o.reynolds;\n   KUTTA_REQUIRE(!(o.laminar && o.transition), \"fsae_aero: transition requires the turbulence model\");\n   if (!o.laminar) s.sst = SstSettings{};\n"
+}

@@ -1,0 +1,8 @@
+{
+  "source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "instrumentation": {
+    "old": "if (r.residuals_met && r.settled) break;",
+    "new": "if (r.residuals_met && r.settled && !recorded_first_gate) {std::cout << \"GATE_FIRST_MET iteration=\" << r.iterations << std::endl;recorded_first_gate=true;}"
+  },
+  "binary_sha256": "fffbda8d293e5fed1ddcf908ebd8fc878e0f4c984272f91aad4fbb876ab30fe2"
+}

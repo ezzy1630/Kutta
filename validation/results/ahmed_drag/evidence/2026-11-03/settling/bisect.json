@@ -1,0 +1,120 @@
+{
+  "first_bad_solver_commit": "df59f85090d81e251d689774c91e7d03370609cb",
+  "good_parent": "773f64f9703ca02b8f56582a08dbe386d8b08d01",
+  "good_parent_matches_85c_complete_trajectory": true,
+  "bad_commit_matches_e014_complete_trajectory": true,
+  "good_checkpoints": 22,
+  "bad_checkpoints": 120,
+  "rows": [
+    {
+      "label": "85c489b",
+      "source": "85c489bbbcd685933f30188272315f9a61702474",
+      "binary_sha256": "9e7b07cd13e6e84ab36769acc3f6552b5b6cdd7347e75405ae32516b224c4cf3",
+      "mesh_sha256": "0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609",
+      "peak_footprint_bytes": 1233225168,
+      "result": {
+        "cells": 403560,
+        "poor_cells": 10,
+        "iterations": 1100,
+        "setup_s": 8.854004792,
+        "solve_s": 124.0657005,
+        "lift": 0.209446234,
+        "drag": 0.353327036,
+        "drag_pressure": 0.3063673212,
+        "max_residual": 1.223060313e-05,
+        "settle_lift": 0.0004600419359,
+        "settle_drag": 0.0003278837624,
+        "residuals_met": true,
+        "settled": true,
+        "budget": false,
+        "yplus_max": 7.101936817,
+        "yplus_mean": 3.202572428,
+        "failure": ""
+      }
+    },
+    {
+      "label": "773f64f",
+      "source": "773f64f9703ca02b8f56582a08dbe386d8b08d01",
+      "binary_sha256": "64eb8f4877e26761ce21b8fec1992e012f261943025d3a5b65dd857087f54ee5",
+      "mesh_sha256": "0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609",
+      "peak_footprint_bytes": 1233405392,
+      "result": {
+        "cells": 403560,
+        "poor_cells": 10,
+        "iterations": 1100,
+        "setup_s": 9.615407,
+        "solve_s": 123.7041411,
+        "lift": 0.209446234,
+        "drag": 0.353327036,
+        "drag_pressure": 0.3063673212,
+        "max_residual": 1.223060313e-05,
+        "settle_lift": 0.0004600419359,
+        "settle_drag": 0.0003278837624,
+        "residuals_met": true,
+        "settled": true,
+        "budget": false,
+        "yplus_max": 7.101936817,
+        "yplus_mean": 3.202572428,
+        "failure": ""
+      }
+    },
+    {
+      "label": "df59f85",
+      "source": "df59f85090d81e251d689774c91e7d03370609cb",
+      "binary_sha256": "958d5105bf6c96b3cc91b3d3ebbff3059f48674a6b699baacddb8d6a643469f1",
+      "mesh_sha256": "0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609",
+      "peak_footprint_bytes": 1243776512,
+      "result": {
+        "cells": 403560,
+        "poor_cells": 10,
+        "iterations": 6000,
+        "setup_s": 8.722332333,
+        "solve_s": 706.3130386,
+        "lift": 0.2093037735,
+        "drag": 0.3531943806,
+        "drag_pressure": 0.3062349666,
+        "max_residual": 9.410968704e-06,
+        "settle_lift": 0.001642851459,
+        "settle_drag": 0.0001655641122,
+        "residuals_met": true,
+        "settled": false,
+        "budget": false,
+        "yplus_max": 7.101935387,
+        "yplus_mean": 3.202613979,
+        "failure": ""
+      }
+    },
+    {
+      "label": "e014e36",
+      "source": "1c36f4de630cf10c3c12f5e8ec7db842583b266e",
+      "binary_sha256": "765b475d5ad0293b7ea86037eb9f94648628aa6eb0015c7429d70845e4951cfd",
+      "mesh_sha256": "0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609",
+      "peak_footprint_bytes": 1244513816,
+      "result": {
+        "cells": 403560,
+        "poor_cells": 10,
+        "iterations": 6000,
+        "setup_s": 9.410397625,
+        "solve_s": 1093.424449,
+        "lift": 0.2093037735,
+        "drag": 0.3531943806,
+        "drag_pressure": 0.3062349666,
+        "max_residual": 9.410968704e-06,
+        "settle_lift": 0.001642851459,
+        "settle_drag": 0.0001655641122,
+        "residuals_met": true,
+        "settled": false,
+        "budget": false,
+        "yplus_max": 7.101935387,
+        "yplus_mean": 3.202613979,
+        "failure": ""
+      }
+    }
+  ],
+  "source_audit_before_boundary": {
+    "2cdfdba": "standard k-epsilon production change; SST not selected",
+    "a1da1fc": "standard k-epsilon derivative option; SST not selected",
+    "c0c543a": "documentation only",
+    "a3fda32": "PecletSide face velocity is opt-in; default Point path unchanged"
+  }
+}

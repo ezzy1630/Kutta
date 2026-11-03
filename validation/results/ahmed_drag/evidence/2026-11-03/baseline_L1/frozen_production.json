@@ -1,0 +1,41 @@
+{
+  "mut_relative_L2": 1.8384003135085283e-08,
+  "regions": {
+    "nose": {
+      "cells": 73888,
+      "clipped_cells": 21012,
+      "raw_integral": 0.00028891217813982467,
+      "pk_integral": 0.00028833090100672393,
+      "frozen_kl_integral": 0.0002918835465904205,
+      "frozen_kl_over_default": 1.012321418104311,
+      "cap_ratio_max": 20.24844067603045
+    },
+    "roof_edge": {
+      "cells": 1820,
+      "clipped_cells": 10,
+      "raw_integral": 2.230600071914657e-05,
+      "pk_integral": 2.2305630351248647e-05,
+      "frozen_kl_integral": 2.294098393690797e-05,
+      "frozen_kl_over_default": 1.02848400048124,
+      "cap_ratio_max": 1.8210041691540282
+    },
+    "slant_leading": {
+      "cells": 1350,
+      "clipped_cells": 7,
+      "raw_integral": 4.864282244569244e-05,
+      "pk_integral": 4.864206577437541e-05,
+      "frozen_kl_integral": 4.5931873917640556e-05,
+      "frozen_kl_over_default": 0.9442829613917718,
+      "cap_ratio_max": 2.965901561896053
+    },
+    "slant_remaining": {
+      "cells": 5458,
+      "clipped_cells": 0,
+      "raw_integral": 0.000307313487221935,
+      "pk_integral": 0.000307313487221935,
+      "frozen_kl_integral": 0.0003037586128468873,
+      "frozen_kl_over_default": 0.9884324166596683,
+      "cap_ratio_max": 0.36323630146004915
+    }
+  }
+}

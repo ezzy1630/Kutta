@@ -1,0 +1,660 @@
+{
+  "speed_e014": {
+    "checkpoints": 120,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.2094867035,
+        "range": 0.0002508699999999864,
+        "std": 8.180962457285013e-05,
+        "max_residual": 1.1480111e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 20,
+        "mean": 0.2094573295,
+        "range": 0.0003738799999999931,
+        "std": 0.0001014961770449992,
+        "max_residual": 1.1398532e-05
+      },
+      {
+        "iterations": [
+          3000,
+          4000
+        ],
+        "samples": 20,
+        "mean": 0.2093963935,
+        "range": 0.00034285000000000565,
+        "std": 9.334791134647779e-05,
+        "max_residual": 1.1677523e-05
+      },
+      {
+        "iterations": [
+          4000,
+          5000
+        ],
+        "samples": 20,
+        "mean": 0.2093751315,
+        "range": 0.0003639199999999898,
+        "std": 9.169043795701919e-05,
+        "max_residual": 1.1746334e-05
+      },
+      {
+        "iterations": [
+          5000,
+          6000
+        ],
+        "samples": 20,
+        "mean": 0.20941440400000003,
+        "range": 0.0004290999999999878,
+        "std": 0.00010022742510909769,
+        "max_residual": 1.138081e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": null,
+    "passing_checkpoints": 0,
+    "last_checkpoint_passes": false,
+    "passing_checkpoints_after_4000": 0
+  },
+  "speed_85c": {
+    "checkpoints": 22,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 2,
+        "mean": 0.209403005,
+        "range": 8.645000000001568e-05,
+        "std": 4.322500000000784e-05,
+        "max_residual": 1.2230603e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": 1100,
+    "passing_checkpoints": 1,
+    "last_checkpoint_passes": true,
+    "passing_checkpoints_after_4000": 0
+  },
+  "773f64f": {
+    "checkpoints": 22,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 2,
+        "mean": 0.209403005,
+        "range": 8.645000000001568e-05,
+        "std": 4.322500000000784e-05,
+        "max_residual": 1.2230603e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": 1100,
+    "passing_checkpoints": 1,
+    "last_checkpoint_passes": true,
+    "passing_checkpoints_after_4000": 0
+  },
+  "85c489b": {
+    "checkpoints": 22,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 2,
+        "mean": 0.209403005,
+        "range": 8.645000000001568e-05,
+        "std": 4.322500000000784e-05,
+        "max_residual": 1.2230603e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": 1100,
+    "passing_checkpoints": 1,
+    "last_checkpoint_passes": true,
+    "passing_checkpoints_after_4000": 0
+  },
+  "85c489b_continuation": {
+    "checkpoints": 120,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.2093749995,
+        "range": 0.00025488999999997985,
+        "std": 7.0924558685618e-05,
+        "max_residual": 1.2230603e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 20,
+        "mean": 0.20934180000000002,
+        "range": 0.0003040400000000054,
+        "std": 9.157645084845788e-05,
+        "max_residual": 1.1924102e-05
+      },
+      {
+        "iterations": [
+          3000,
+          4000
+        ],
+        "samples": 20,
+        "mean": 0.2093811885,
+        "range": 0.0002966799999999936,
+        "std": 8.915200195592986e-05,
+        "max_residual": 1.2007524e-05
+      },
+      {
+        "iterations": [
+          4000,
+          5000
+        ],
+        "samples": 20,
+        "mean": 0.20943381749999998,
+        "range": 0.00032231999999998706,
+        "std": 9.129643590387128e-05,
+        "max_residual": 1.1443544e-05
+      },
+      {
+        "iterations": [
+          5000,
+          6000
+        ],
+        "samples": 20,
+        "mean": 0.20944821949999998,
+        "range": 0.00039075999999999,
+        "std": 0.00010399613245092108,
+        "max_residual": 1.2321943e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": 1100,
+    "passing_checkpoints": 3,
+    "last_checkpoint_passes": false,
+    "passing_checkpoints_after_4000": 0
+  },
+  "bounded_experiment": {
+    "checkpoints": 120,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.20890313750000003,
+        "range": 0.00036956999999998574,
+        "std": 9.870006843335924e-05,
+        "max_residual": 1.2339624e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 20,
+        "mean": 0.2088710095,
+        "range": 0.0003286299999999964,
+        "std": 9.94755927087118e-05,
+        "max_residual": 1.1743579e-05
+      },
+      {
+        "iterations": [
+          3000,
+          4000
+        ],
+        "samples": 20,
+        "mean": 0.20890183650000002,
+        "range": 0.00029645000000000366,
+        "std": 9.898360931361466e-05,
+        "max_residual": 1.16315e-05
+      },
+      {
+        "iterations": [
+          4000,
+          5000
+        ],
+        "samples": 20,
+        "mean": 0.208960488,
+        "range": 0.0005064399999999969,
+        "std": 0.00012218959941828056,
+        "max_residual": 1.1873949e-05
+      },
+      {
+        "iterations": [
+          5000,
+          6000
+        ],
+        "samples": 20,
+        "mean": 0.20898903350000003,
+        "range": 0.0004174200000000017,
+        "std": 0.00011404201130614384,
+        "max_residual": 1.1745165e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": null,
+    "passing_checkpoints": 0,
+    "last_checkpoint_passes": false,
+    "passing_checkpoints_after_4000": 0
+  },
+  "compensated_experiment": {
+    "checkpoints": 120,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.2093395615,
+        "range": 0.00033273999999999804,
+        "std": 9.69174289937056e-05,
+        "max_residual": 1.2098673e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 20,
+        "mean": 0.209352233,
+        "range": 0.00041006000000001763,
+        "std": 0.00010688956029940493,
+        "max_residual": 1.1681717e-05
+      },
+      {
+        "iterations": [
+          3000,
+          4000
+        ],
+        "samples": 20,
+        "mean": 0.20940638799999997,
+        "range": 0.0003564499999999804,
+        "std": 0.00010182976488237672,
+        "max_residual": 1.2090384e-05
+      },
+      {
+        "iterations": [
+          4000,
+          5000
+        ],
+        "samples": 20,
+        "mean": 0.20943147649999996,
+        "range": 0.00036596999999999325,
+        "std": 0.00010055481451800193,
+        "max_residual": 1.2547566e-05
+      },
+      {
+        "iterations": [
+          5000,
+          6000
+        ],
+        "samples": 20,
+        "mean": 0.2094132445,
+        "range": 0.0003760600000000114,
+        "std": 0.000101819180338237,
+        "max_residual": 1.1213085e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": null,
+    "passing_checkpoints": 0,
+    "last_checkpoint_passes": false,
+    "passing_checkpoints_after_4000": 0
+  },
+  "df59f85": {
+    "checkpoints": 120,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.2094867035,
+        "range": 0.0002508699999999864,
+        "std": 8.180962457285013e-05,
+        "max_residual": 1.1480111e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 20,
+        "mean": 0.2094573295,
+        "range": 0.0003738799999999931,
+        "std": 0.0001014961770449992,
+        "max_residual": 1.1398532e-05
+      },
+      {
+        "iterations": [
+          3000,
+          4000
+        ],
+        "samples": 20,
+        "mean": 0.2093963935,
+        "range": 0.00034285000000000565,
+        "std": 9.334791134647779e-05,
+        "max_residual": 1.1677523e-05
+      },
+      {
+        "iterations": [
+          4000,
+          5000
+        ],
+        "samples": 20,
+        "mean": 0.2093751315,
+        "range": 0.0003639199999999898,
+        "std": 9.169043795701919e-05,
+        "max_residual": 1.1746334e-05
+      },
+      {
+        "iterations": [
+          5000,
+          6000
+        ],
+        "samples": 20,
+        "mean": 0.20941440400000003,
+        "range": 0.0004290999999999878,
+        "std": 0.00010022742510909769,
+        "max_residual": 1.138081e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": null,
+    "passing_checkpoints": 0,
+    "last_checkpoint_passes": false,
+    "passing_checkpoints_after_4000": 0
+  },
+  "e014e36": {
+    "checkpoints": 120,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.2094867035,
+        "range": 0.0002508699999999864,
+        "std": 8.180962457285013e-05,
+        "max_residual": 1.1480111e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 20,
+        "mean": 0.2094573295,
+        "range": 0.0003738799999999931,
+        "std": 0.0001014961770449992,
+        "max_residual": 1.1398532e-05
+      },
+      {
+        "iterations": [
+          3000,
+          4000
+        ],
+        "samples": 20,
+        "mean": 0.2093963935,
+        "range": 0.00034285000000000565,
+        "std": 9.334791134647779e-05,
+        "max_residual": 1.1677523e-05
+      },
+      {
+        "iterations": [
+          4000,
+          5000
+        ],
+        "samples": 20,
+        "mean": 0.2093751315,
+        "range": 0.0003639199999999898,
+        "std": 9.169043795701919e-05,
+        "max_residual": 1.1746334e-05
+      },
+      {
+        "iterations": [
+          5000,
+          6000
+        ],
+        "samples": 20,
+        "mean": 0.20941440400000003,
+        "range": 0.0004290999999999878,
+        "std": 0.00010022742510909769,
+        "max_residual": 1.138081e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": null,
+    "passing_checkpoints": 0,
+    "last_checkpoint_passes": false,
+    "passing_checkpoints_after_4000": 0
+  },
+  "e014e36_momentum_urf05_continuation": {
+    "checkpoints": 80,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.20969739400000004,
+        "range": 0.0003528099999999812,
+        "std": 0.00010466350191924336,
+        "max_residual": 2.0743175e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 20,
+        "mean": 0.20966076399999997,
+        "range": 0.00022568000000000588,
+        "std": 6.03807116884196e-05,
+        "max_residual": 1.0241057e-05
+      },
+      {
+        "iterations": [
+          3000,
+          4000
+        ],
+        "samples": 20,
+        "mean": 0.209684486,
+        "range": 0.00016559999999998798,
+        "std": 4.755668947687666e-05,
+        "max_residual": 1.0247969e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": 2600,
+    "passing_checkpoints": 12,
+    "last_checkpoint_passes": false,
+    "passing_checkpoints_after_4000": 0
+  },
+  "e014e36_pressure_urf05_continuation": {
+    "checkpoints": 120,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.209032295,
+        "range": 0.00010963999999999419,
+        "std": 3.139383562102774e-05,
+        "max_residual": 2.1942538e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 20,
+        "mean": 0.20903285,
+        "range": 0.00015460999999999947,
+        "std": 3.857485307814119e-05,
+        "max_residual": 2.2049868e-05
+      },
+      {
+        "iterations": [
+          3000,
+          4000
+        ],
+        "samples": 20,
+        "mean": 0.2090338755,
+        "range": 0.00010812999999998407,
+        "std": 3.214933443711894e-05,
+        "max_residual": 2.1900742e-05
+      },
+      {
+        "iterations": [
+          4000,
+          5000
+        ],
+        "samples": 20,
+        "mean": 0.20903767950000002,
+        "range": 0.00011964000000000419,
+        "std": 3.1440515497521904e-05,
+        "max_residual": 2.2313223e-05
+      },
+      {
+        "iterations": [
+          5000,
+          6000
+        ],
+        "samples": 20,
+        "mean": 0.20903667300000003,
+        "range": 0.00012574000000001306,
+        "std": 3.276788398722137e-05,
+        "max_residual": 2.1805411e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": 1100,
+    "passing_checkpoints": 85,
+    "last_checkpoint_passes": true,
+    "passing_checkpoints_after_4000": 36
+  },
+  "e014e36_urf05": {
+    "checkpoints": 52,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.20969739400000004,
+        "range": 0.0003528099999999812,
+        "std": 0.00010466350191924336,
+        "max_residual": 2.0743175e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 12,
+        "mean": 0.20965446916666666,
+        "range": 0.00022568000000000588,
+        "std": 6.470612071233347e-05,
+        "max_residual": 1.0241057e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": 2600,
+    "passing_checkpoints": 1,
+    "last_checkpoint_passes": true,
+    "passing_checkpoints_after_4000": 0
+  },
+  "smooth_bounded_experiment": {
+    "checkpoints": 120,
+    "lift_windows": [
+      {
+        "iterations": [
+          1000,
+          2000
+        ],
+        "samples": 20,
+        "mean": 0.209486978,
+        "range": 0.00036585999999999563,
+        "std": 8.895012111290158e-05,
+        "max_residual": 1.1121521e-05
+      },
+      {
+        "iterations": [
+          2000,
+          3000
+        ],
+        "samples": 20,
+        "mean": 0.20949722999999998,
+        "range": 0.0003574300000000197,
+        "std": 8.81054984663296e-05,
+        "max_residual": 1.0726163e-05
+      },
+      {
+        "iterations": [
+          3000,
+          4000
+        ],
+        "samples": 20,
+        "mean": 0.20945447899999997,
+        "range": 0.0003577399999999953,
+        "std": 8.032072135507633e-05,
+        "max_residual": 1.1475913e-05
+      },
+      {
+        "iterations": [
+          4000,
+          5000
+        ],
+        "samples": 20,
+        "mean": 0.2094121565,
+        "range": 0.00031747000000001413,
+        "std": 9.176166178066964e-05,
+        "max_residual": 1.1374312e-05
+      },
+      {
+        "iterations": [
+          5000,
+          6000
+        ],
+        "samples": 20,
+        "mean": 0.209383958,
+        "range": 0.0002942699999999854,
+        "std": 8.52119290709936e-05,
+        "max_residual": 1.1150843e-05
+      }
+    ],
+    "metric_source": "printed checkpoint max residual and maximum of both force-window changes",
+    "first_gate_iteration": null,
+    "passing_checkpoints": 0,
+    "last_checkpoint_passes": false,
+    "passing_checkpoints_after_4000": 0
+  }
+}

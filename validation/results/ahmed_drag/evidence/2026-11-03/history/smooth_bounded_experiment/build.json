@@ -1,0 +1,8 @@
+{
+  "source": "e014e36",
+  "kernel_experiment": {
+    "old": "if(poor[c]!=poor[n]) face[i]=0.5f*(p[c]+p[n]);",
+    "new": "if(poor[c]!=poor[n]) {float mid=0.5f*(p[c]+p[n]),width=0.5f*kabs(p[c]-p[n]),delta=face[i]-mid;float scale=width+kabs(delta);face[i]=scale>0.0f?mid+delta*(width/scale):mid;}"
+  },
+  "binary_sha256": "5796b6d2e65a32e48c56b2922e44340cd4af11dc2d9c65096ce324774c16fd84"
+}

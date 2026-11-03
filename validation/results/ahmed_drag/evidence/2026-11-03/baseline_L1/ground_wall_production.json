@@ -1,0 +1,25 @@
+{
+  "max_matching_error": 5.01599105996883e-09,
+  "regions": {
+    "upstream": {
+      "faces": 36,
+      "cap_active": 36,
+      "raw_over_cap_median": 158.17033917696887,
+      "raw_over_cap_max": 257.60179715068784,
+      "k_mean": 3.8053141326689564e-06,
+      "u_mean": 0.8869484367091205,
+      "cf_mean": 0.0003419806939092846,
+      "yplus_utau_median": 749.332367
+    },
+    "under_body": {
+      "faces": 475,
+      "cap_active": 342,
+      "raw_over_cap_median": 7.892167121301434,
+      "raw_over_cap_max": 118.5861618381243,
+      "k_mean": 0.0007230534055507962,
+      "u_mean": 1.082055022804804,
+      "cf_mean": 0.001801257708815767,
+      "yplus_utau_median": 376.258118
+    }
+  }
+}

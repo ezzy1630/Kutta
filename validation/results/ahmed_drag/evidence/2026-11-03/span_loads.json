@@ -1,0 +1,527 @@
+{
+  "method": "Exact polygon clipping at first40mm in x, then y=0 and equal-width span thirds. Piecewise-constant exported face pressure. Fixed outlet gauge.",
+  "rows": [
+    {
+      "run": "pressure_urf05_L1",
+      "mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e",
+      "loads": {
+        "whole": {
+          "area": 0.08635800000000002,
+          "pressure": 0.1879693462035508
+        },
+        "leading": {
+          "area": 0.018995252601128262,
+          "pressure": 0.05730114717534641
+        },
+        "left": {
+          "area": 0.04317900000000002,
+          "pressure": 0.09342222016561842
+        },
+        "right": {
+          "area": 0.04317900000000002,
+          "pressure": 0.09454712603793236
+        },
+        "leading_left": {
+          "area": 0.009497626300564124,
+          "pressure": 0.02865293038847974
+        },
+        "leading_right": {
+          "area": 0.00949762630056413,
+          "pressure": 0.028648216786866642
+        },
+        "leading_centre": {
+          "area": 0.006331750867042755,
+          "pressure": 0.016404493001638338
+        },
+        "leading_middle_left": {
+          "area": 0.0031658754335213766,
+          "pressure": 0.00881933706502871
+        },
+        "leading_middle_right": {
+          "area": 0.003165875433521376,
+          "pressure": 0.008968683925972271
+        },
+        "leading_outer_left": {
+          "area": 0.0031658754335213753,
+          "pressure": 0.011637723509144179
+        },
+        "leading_outer_right": {
+          "area": 0.0031658754335213758,
+          "pressure": 0.01147090967356289
+        },
+        "leading_middle": {
+          "area": 0.006331750867042752,
+          "pressure": 0.01778802099100098
+        },
+        "leading_outer": {
+          "area": 0.006331750867042751,
+          "pressure": 0.023108633182707068
+        }
+      }
+    },
+    {
+      "run": "edge10_L1",
+      "mesh_sha256": "ed36b2fe05d25c82e1f7294f72a9e1fd831890900d7980a8016b65a030506e70",
+      "loads": {
+        "whole": {
+          "area": 0.08635800000000013,
+          "pressure": 0.18806532234314224
+        },
+        "leading": {
+          "area": 0.01899525260112827,
+          "pressure": 0.0457039216922465
+        },
+        "left": {
+          "area": 0.04317900000000002,
+          "pressure": 0.09398580328302411
+        },
+        "right": {
+          "area": 0.04317900000000008,
+          "pressure": 0.09407951906011817
+        },
+        "leading_left": {
+          "area": 0.009497626300564117,
+          "pressure": 0.02278480837209351
+        },
+        "leading_right": {
+          "area": 0.009497626300564131,
+          "pressure": 0.02291911332015298
+        },
+        "leading_centre": {
+          "area": 0.006331750867042753,
+          "pressure": 0.013749845793423943
+        },
+        "leading_middle_left": {
+          "area": 0.0031658754335213775,
+          "pressure": 0.007284058909847644
+        },
+        "leading_middle_right": {
+          "area": 0.003165875433521376,
+          "pressure": 0.007372765766299885
+        },
+        "leading_outer_left": {
+          "area": 0.003165875433521373,
+          "pressure": 0.008617326130790132
+        },
+        "leading_outer_right": {
+          "area": 0.0031658754335213753,
+          "pressure": 0.008679925091884885
+        },
+        "leading_middle": {
+          "area": 0.006331750867042754,
+          "pressure": 0.01465682467614753
+        },
+        "leading_outer": {
+          "area": 0.006331750867042749,
+          "pressure": 0.017297251222675017
+        }
+      }
+    },
+    {
+      "run": "edge5_L1",
+      "mesh_sha256": "53db34490218709506777dfc12da82875c21672ec4ad91df4b9d1e72eb9ac42a",
+      "loads": {
+        "whole": {
+          "area": 0.08635800000000013,
+          "pressure": 0.18653521633604064
+        },
+        "leading": {
+          "area": 0.01899525260112828,
+          "pressure": 0.04384473702406918
+        },
+        "left": {
+          "area": 0.04317899999999994,
+          "pressure": 0.09280861320452895
+        },
+        "right": {
+          "area": 0.04317899999999996,
+          "pressure": 0.09372660313151171
+        },
+        "leading_left": {
+          "area": 0.009497626300564128,
+          "pressure": 0.021853596088155958
+        },
+        "leading_right": {
+          "area": 0.009497626300564135,
+          "pressure": 0.021991140935913204
+        },
+        "leading_centre": {
+          "area": 0.006331750867042754,
+          "pressure": 0.013364910991964263
+        },
+        "leading_middle_left": {
+          "area": 0.0031658754335213775,
+          "pressure": 0.007074373151602555
+        },
+        "leading_middle_right": {
+          "area": 0.0031658754335213758,
+          "pressure": 0.007181076087188663
+        },
+        "leading_outer_left": {
+          "area": 0.0031658754335213736,
+          "pressure": 0.00808710471290573
+        },
+        "leading_outer_right": {
+          "area": 0.003165875433521376,
+          "pressure": 0.00813727208040795
+        },
+        "leading_middle": {
+          "area": 0.006331750867042753,
+          "pressure": 0.01425544923879122
+        },
+        "leading_outer": {
+          "area": 0.00633175086704275,
+          "pressure": 0.01622437679331368
+        }
+      }
+    },
+    {
+      "run": "plane_layer_L1",
+      "mesh_sha256": "223f608f499914cc3b14fa0ed0b74a1a2f88c8f4a52792d040853ba545d4324a",
+      "loads": {
+        "whole": {
+          "area": 0.08635800000000002,
+          "pressure": 0.18783257574240614
+        },
+        "leading": {
+          "area": 0.018995252601128262,
+          "pressure": 0.05735288773672745
+        },
+        "left": {
+          "area": 0.04317900000000002,
+          "pressure": 0.09333449382850909
+        },
+        "right": {
+          "area": 0.04317900000000002,
+          "pressure": 0.09449808191389686
+        },
+        "leading_left": {
+          "area": 0.009497626300564124,
+          "pressure": 0.028666368118619626
+        },
+        "leading_right": {
+          "area": 0.00949762630056413,
+          "pressure": 0.02868651961810782
+        },
+        "leading_centre": {
+          "area": 0.006331750867042755,
+          "pressure": 0.01645595155705202
+        },
+        "leading_middle_left": {
+          "area": 0.0031658754335213766,
+          "pressure": 0.008833227403841903
+        },
+        "leading_middle_right": {
+          "area": 0.003165875433521376,
+          "pressure": 0.00899418254956358
+        },
+        "leading_outer_left": {
+          "area": 0.0031658754335213753,
+          "pressure": 0.011610450569822815
+        },
+        "leading_outer_right": {
+          "area": 0.0031658754335213758,
+          "pressure": 0.011459075656447128
+        },
+        "leading_middle": {
+          "area": 0.006331750867042752,
+          "pressure": 0.017827409953405482
+        },
+        "leading_outer": {
+          "area": 0.006331750867042751,
+          "pressure": 0.023069526226269944
+        }
+      }
+    },
+    {
+      "run": "differentiable_L1",
+      "mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e",
+      "loads": {
+        "whole": {
+          "area": 0.08635800000000002,
+          "pressure": 0.19024744834429974
+        },
+        "leading": {
+          "area": 0.018995252601128262,
+          "pressure": 0.06025070467038823
+        },
+        "left": {
+          "area": 0.04317900000000002,
+          "pressure": 0.09499800719840111
+        },
+        "right": {
+          "area": 0.04317900000000002,
+          "pressure": 0.09524944114589855
+        },
+        "leading_left": {
+          "area": 0.009497626300564124,
+          "pressure": 0.030417715916677995
+        },
+        "leading_right": {
+          "area": 0.00949762630056413,
+          "pressure": 0.02983298875371025
+        },
+        "leading_centre": {
+          "area": 0.006331750867042755,
+          "pressure": 0.01635118353366462
+        },
+        "leading_middle_left": {
+          "area": 0.0031658754335213766,
+          "pressure": 0.009088130386146193
+        },
+        "leading_middle_right": {
+          "area": 0.003165875433521376,
+          "pressure": 0.00914857642315033
+        },
+        "leading_outer_left": {
+          "area": 0.0031658754335213753,
+          "pressure": 0.013110639736401091
+        },
+        "leading_outer_right": {
+          "area": 0.0031658754335213758,
+          "pressure": 0.012552174591026002
+        },
+        "leading_middle": {
+          "area": 0.006331750867042752,
+          "pressure": 0.018236706809296524
+        },
+        "leading_outer": {
+          "area": 0.006331750867042751,
+          "pressure": 0.02566281432742709
+        }
+      }
+    },
+    {
+      "run": "shear15_L1_pressure05",
+      "mesh_sha256": "19d20fc742dfc3ab995f33b1a80b7e126c0739ce8d85876be14bb08e3bba3e80",
+      "loads": {
+        "whole": {
+          "area": 0.08635800000000002,
+          "pressure": 0.16470787586723523
+        },
+        "leading": {
+          "area": 0.018995252601128262,
+          "pressure": 0.050876294215005856
+        },
+        "left": {
+          "area": 0.04317900000000002,
+          "pressure": 0.08256228862566178
+        },
+        "right": {
+          "area": 0.04317900000000002,
+          "pressure": 0.08214558724157332
+        },
+        "leading_left": {
+          "area": 0.009497626300564124,
+          "pressure": 0.025662668306683557
+        },
+        "leading_right": {
+          "area": 0.00949762630056413,
+          "pressure": 0.0252136259083223
+        },
+        "leading_centre": {
+          "area": 0.006331750867042755,
+          "pressure": 0.015416897046267006
+        },
+        "leading_middle_left": {
+          "area": 0.0031658754335213766,
+          "pressure": 0.008107640167422903
+        },
+        "leading_middle_right": {
+          "area": 0.003165875433521376,
+          "pressure": 0.008062563615842079
+        },
+        "leading_outer_left": {
+          "area": 0.0031658754335213753,
+          "pressure": 0.00976245910285036
+        },
+        "leading_outer_right": {
+          "area": 0.0031658754335213758,
+          "pressure": 0.009526734282623493
+        },
+        "leading_middle": {
+          "area": 0.006331750867042752,
+          "pressure": 0.01617020378326498
+        },
+        "leading_outer": {
+          "area": 0.006331750867042751,
+          "pressure": 0.01928919338547385
+        }
+      }
+    },
+    {
+      "run": "shear10_L1_pressure05",
+      "mesh_sha256": "68e9a20d94652e902417d7af02adcd16a400bcbc36a1bb4d0a8a0531bd7dbc7e",
+      "loads": {
+        "whole": {
+          "area": 0.08635800000000002,
+          "pressure": 0.16359248024416598
+        },
+        "leading": {
+          "area": 0.018995252601128262,
+          "pressure": 0.05052156552031018
+        },
+        "left": {
+          "area": 0.04317900000000002,
+          "pressure": 0.08277149058506093
+        },
+        "right": {
+          "area": 0.04317900000000002,
+          "pressure": 0.08082098965910481
+        },
+        "leading_left": {
+          "area": 0.009497626300564124,
+          "pressure": 0.02569853336626997
+        },
+        "leading_right": {
+          "area": 0.00949762630056413,
+          "pressure": 0.024823032154040237
+        },
+        "leading_centre": {
+          "area": 0.006331750867042755,
+          "pressure": 0.01540825923794824
+        },
+        "leading_middle_left": {
+          "area": 0.0031658754335213766,
+          "pressure": 0.008148579101198167
+        },
+        "leading_middle_right": {
+          "area": 0.003165875433521376,
+          "pressure": 0.0079019743653926
+        },
+        "leading_outer_left": {
+          "area": 0.0031658754335213753,
+          "pressure": 0.009724601080551112
+        },
+        "leading_outer_right": {
+          "area": 0.0031658754335213758,
+          "pressure": 0.009338151735220073
+        },
+        "leading_middle": {
+          "area": 0.006331750867042752,
+          "pressure": 0.016050553466590768
+        },
+        "leading_outer": {
+          "area": 0.006331750867042751,
+          "pressure": 0.019062752815771185
+        }
+      }
+    },
+    {
+      "run": "wake20_L1_pressure05",
+      "mesh_sha256": "0909f5147fa98af8f83cba9da99731d17363169d501dd0a7e48773473af7d285",
+      "loads": {
+        "whole": {
+          "area": 0.08635800000000002,
+          "pressure": 0.18179344432523792
+        },
+        "leading": {
+          "area": 0.018995252601128262,
+          "pressure": 0.05506884995961519
+        },
+        "left": {
+          "area": 0.04317900000000002,
+          "pressure": 0.09131587009354127
+        },
+        "right": {
+          "area": 0.04317900000000002,
+          "pressure": 0.09047757423169678
+        },
+        "leading_left": {
+          "area": 0.009497626300564124,
+          "pressure": 0.0277338609259516
+        },
+        "leading_right": {
+          "area": 0.00949762630056413,
+          "pressure": 0.0273349890336636
+        },
+        "leading_centre": {
+          "area": 0.006331750867042755,
+          "pressure": 0.016190722728126647
+        },
+        "leading_middle_left": {
+          "area": 0.0031658754335213766,
+          "pressure": 0.008539502928386997
+        },
+        "leading_middle_right": {
+          "area": 0.003165875433521376,
+          "pressure": 0.008586139025740533
+        },
+        "leading_outer_left": {
+          "area": 0.0031658754335213753,
+          "pressure": 0.011086709051036016
+        },
+        "leading_outer_right": {
+          "area": 0.0031658754335213758,
+          "pressure": 0.010665776226325013
+        },
+        "leading_middle": {
+          "area": 0.006331750867042752,
+          "pressure": 0.01712564195412753
+        },
+        "leading_outer": {
+          "area": 0.006331750867042751,
+          "pressure": 0.02175248527736103
+        }
+      }
+    },
+    {
+      "run": "shear15_wake25_L1_pressure05",
+      "mesh_sha256": "80ef28971be5084b1a8b602c557c813d5407c82c3e3a4d240a899b1d3cdf9c25",
+      "loads": {
+        "whole": {
+          "area": 0.08635800000000002,
+          "pressure": 0.15948309403287128
+        },
+        "leading": {
+          "area": 0.018995252601128262,
+          "pressure": 0.049353230688639324
+        },
+        "left": {
+          "area": 0.04317900000000002,
+          "pressure": 0.07973810722802639
+        },
+        "right": {
+          "area": 0.04317900000000002,
+          "pressure": 0.07974498680484493
+        },
+        "leading_left": {
+          "area": 0.009497626300564124,
+          "pressure": 0.024876421127577805
+        },
+        "leading_right": {
+          "area": 0.00949762630056413,
+          "pressure": 0.02447680956106151
+        },
+        "leading_centre": {
+          "area": 0.006331750867042755,
+          "pressure": 0.014990967434423687
+        },
+        "leading_middle_left": {
+          "area": 0.0031658754335213766,
+          "pressure": 0.007834746947863513
+        },
+        "leading_middle_right": {
+          "area": 0.003165875433521376,
+          "pressure": 0.007822978565670649
+        },
+        "leading_outer_left": {
+          "area": 0.0031658754335213753,
+          "pressure": 0.009460755145265766
+        },
+        "leading_outer_right": {
+          "area": 0.0031658754335213758,
+          "pressure": 0.009243782595415697
+        },
+        "leading_middle": {
+          "area": 0.006331750867042752,
+          "pressure": 0.015657725513534164
+        },
+        "leading_outer": {
+          "area": 0.006331750867042751,
+          "pressure": 0.01870453774068146
+        }
+      }
+    }
+  ]
+}

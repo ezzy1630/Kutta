@@ -1,0 +1,31 @@
+{
+  "baseline_replay_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e",
+  "cells": 327584,
+  "points": 345019,
+  "outer_volume_hexes_unchanged": 102704,
+  "outer_volume_points_bit_identical": true,
+  "wall_points_bit_identical": true,
+  "cell_and_boundary_connectivity_bit_identical": true,
+  "max_inner_point_displacement": 0.0019122244791399516,
+  "blend": "(1-cumulative_height/total_height)^2; outermost shell fixed",
+  "diagnostics": {
+    "unit": {
+      "leading_triangles": 32,
+      "leading_relative_normal_height_quantiles": [
+        0.4977646430570847,
+        0.9999999999991452,
+        0.999999999999676
+      ],
+      "leading_max_within_triangle_height_spread": 0.5022353569420607
+    },
+    "plane_fixed_outer": {
+      "leading_triangles": 32,
+      "leading_relative_normal_height_quantiles": [
+        0.9991286010315076,
+        0.9999999999991452,
+        0.999999999999676
+      ],
+      "leading_max_within_triangle_height_spread": 0.0008713989676377709
+    }
+  }
+}

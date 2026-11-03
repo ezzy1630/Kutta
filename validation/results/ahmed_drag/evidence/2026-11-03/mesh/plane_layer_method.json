@@ -1,0 +1,7 @@
+{
+  "script_sha256": "8adb25655ba3cfc8a80402d532d9f1fbe012593db396df946ce969b51bc9a170",
+  "restore_path": "<checkout>/runs/ahmed_cause/plane_layer_experiment.py",
+  "baseline_mesh": "<checkout>/runs/ahmed_cause/mesh/compact_L1.msh",
+  "generator_head": "bc81ad8f22731e5f33734c5c68123ca7ceff0f4e",
+  "note": "Archived rejected experiment, not production mesher instrumentation or a new default."
+}

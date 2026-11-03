@@ -1,0 +1,162 @@
+{
+  "code_commit": "bb7f08db1e029023750182dd9a0c6ddd84cd3b5e",
+  "tested_base_commit": "bc81ad8f22731e5f33734c5c68123ca7ceff0f4e",
+  "tested_header_patch_sha256": "24c45377ffd3b8151625af2148e6fce8f3ef17ff2763743efa6aa6f522e37771",
+  "committed_header_patch_matches_tested_source": true,
+  "cli_binary_unchanged_from_six_parity_pairs": true,
+  "target_final_default_parity_pairs": [
+    {
+      "case": "Ahmed compact L1; restored automatic default pressure relaxation1",
+      "backend": "cpu",
+      "iterations": 40,
+      "identical": true,
+      "hashes": {
+        "baseline": {
+          "cells.csv": "2deb1dfb7aa5c7d7468497adb90ee8422f691d4f80f6984db30aae9112e029a8",
+          "walls.csv": "1ca8c13ce44ed65cd5abdc348298dd72e4e7544683b71646ba5226b8db09dc82",
+          "history.csv": "ae8dbf8bff37e0a87b7cace0a4af126d541df1ff416da95db3a6b28c37ae36bf"
+        },
+        "candidate": {
+          "cells.csv": "2deb1dfb7aa5c7d7468497adb90ee8422f691d4f80f6984db30aae9112e029a8",
+          "walls.csv": "1ca8c13ce44ed65cd5abdc348298dd72e4e7544683b71646ba5226b8db09dc82",
+          "history.csv": "ae8dbf8bff37e0a87b7cace0a4af126d541df1ff416da95db3a6b28c37ae36bf"
+        }
+      },
+      "commands": {
+        "baseline": [
+          "<checkout>/runs/ahmed_cause/baseline_binary/bench_fsae_aero",
+          "--mesh",
+          "<checkout>/runs/ahmed_cause/mesh/compact_L1.msh",
+          "--backend",
+          "cpu",
+          "--re",
+          "2.78e6",
+          "--length",
+          "1.044",
+          "--area",
+          ".112032",
+          "--walls",
+          "body",
+          "--lift-z",
+          "--tu",
+          ".01",
+          "--iterations",
+          "40",
+          "--cells",
+          "--out",
+          "<checkout>/runs/ahmed_cause/target_final_default_parity/cpu-baseline"
+        ],
+        "candidate": [
+          "<checkout>/build/bench_fsae_aero",
+          "--mesh",
+          "<checkout>/runs/ahmed_cause/mesh/compact_L1.msh",
+          "--backend",
+          "cpu",
+          "--re",
+          "2.78e6",
+          "--length",
+          "1.044",
+          "--area",
+          ".112032",
+          "--walls",
+          "body",
+          "--lift-z",
+          "--tu",
+          ".01",
+          "--iterations",
+          "40",
+          "--cells",
+          "--out",
+          "<checkout>/runs/ahmed_cause/target_final_default_parity/cpu-candidate"
+        ]
+      },
+      "binary_sha256": {
+        "baseline": "918d9fcb563026a2cd3a8e8803e298b439c0819682b9eee45fbe3d4de2f35e63",
+        "candidate": "baaa076b6bca72c5e767ea0b81b80abec2f4cff85d2de457c086f5d8551eb922"
+      },
+      "mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e"
+    },
+    {
+      "case": "Ahmed compact L1; restored automatic default pressure relaxation1",
+      "backend": "metal",
+      "iterations": 40,
+      "identical": true,
+      "hashes": {
+        "baseline": {
+          "cells.csv": "8e1bcdc139530aa1f5df0e5e33482f30519920a5f4a64130a7da0150db50faf3",
+          "walls.csv": "cf4e36c0d00711a98ee7f44243523b5358057d72ba35710662abd07fc362a886",
+          "history.csv": "eedd78a2f3c2c84e8178f74886ed4942071f6945ca9a3fb287dbd4cfa1857362"
+        },
+        "candidate": {
+          "cells.csv": "8e1bcdc139530aa1f5df0e5e33482f30519920a5f4a64130a7da0150db50faf3",
+          "walls.csv": "cf4e36c0d00711a98ee7f44243523b5358057d72ba35710662abd07fc362a886",
+          "history.csv": "eedd78a2f3c2c84e8178f74886ed4942071f6945ca9a3fb287dbd4cfa1857362"
+        }
+      },
+      "commands": {
+        "baseline": [
+          "<checkout>/runs/ahmed_cause/baseline_binary/bench_fsae_aero",
+          "--mesh",
+          "<checkout>/runs/ahmed_cause/mesh/compact_L1.msh",
+          "--backend",
+          "metal",
+          "--re",
+          "2.78e6",
+          "--length",
+          "1.044",
+          "--area",
+          ".112032",
+          "--walls",
+          "body",
+          "--lift-z",
+          "--tu",
+          ".01",
+          "--iterations",
+          "40",
+          "--cells",
+          "--out",
+          "<checkout>/runs/ahmed_cause/target_final_default_parity/metal-baseline"
+        ],
+        "candidate": [
+          "<checkout>/build/bench_fsae_aero",
+          "--mesh",
+          "<checkout>/runs/ahmed_cause/mesh/compact_L1.msh",
+          "--backend",
+          "metal",
+          "--re",
+          "2.78e6",
+          "--length",
+          "1.044",
+          "--area",
+          ".112032",
+          "--walls",
+          "body",
+          "--lift-z",
+          "--tu",
+          ".01",
+          "--iterations",
+          "40",
+          "--cells",
+          "--out",
+          "<checkout>/runs/ahmed_cause/target_final_default_parity/metal-candidate"
+        ]
+      },
+      "binary_sha256": {
+        "baseline": "918d9fcb563026a2cd3a8e8803e298b439c0819682b9eee45fbe3d4de2f35e63",
+        "candidate": "baaa076b6bca72c5e767ea0b81b80abec2f4cff85d2de457c086f5d8551eb922"
+      },
+      "mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e"
+    }
+  ],
+  "quick": {
+    "command": [
+      "build/kutta-tests",
+      "--test-suite-exclude=slow"
+    ],
+    "binary_sha256": "511c4f949c87ae4f94f9d40b69766936fe3eaef3002a693ad050ed38aa7cd8af",
+    "started_utc": "2026-11-03T16:42:46.168828+00:00",
+    "exit": 0,
+    "peak_footprint_bytes": 1329923968,
+    "finished_utc": "2026-11-03T16:44:42.046449+00:00"
+  }
+}

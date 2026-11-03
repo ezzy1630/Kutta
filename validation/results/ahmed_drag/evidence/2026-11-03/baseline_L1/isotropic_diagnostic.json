@@ -1,0 +1,10 @@
+{
+  "max_matching_error": 5.01523913276851e-09,
+  "hypothetical_isotropic_pressure_conversion_cd": -3.801128728988312e-05,
+  "by_region": {
+    "front": -4.275796344093789e-05,
+    "slant": 1.3679626747223529e-06,
+    "base": 3.3787134763324195e-06
+  },
+  "owner_k_max": 0.000161971548
+}

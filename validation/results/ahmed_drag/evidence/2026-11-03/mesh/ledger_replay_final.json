@@ -1,0 +1,19 @@
+{
+  "mesher_sha256": "00f6bf0416722f9badba6c8e8c2af67806b4503d60be3759b4b6907fb196bbfa",
+  "checks": [
+    {
+      "fixture": "fsae_aero/mesh/ahmed35_L1.msh",
+      "bytes": 71924483,
+      "sha256": "0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609",
+      "reference_sha256": "0363936994da5a77351f39daad4cf0853c5b6d92511a92677e1a33f9a06a4609",
+      "identical": true
+    },
+    {
+      "fixture": "fsae_aero/mesh/ahmed35_L1_first15um.msh",
+      "bytes": 79531248,
+      "sha256": "9f39867109f04f2f0cc2bcc1207e195d7029f68f4d094c3676d67911918cb135",
+      "reference_sha256": "9f39867109f04f2f0cc2bcc1207e195d7029f68f4d094c3676d67911918cb135",
+      "identical": true
+    }
+  ]
+}

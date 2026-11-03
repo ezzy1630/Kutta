@@ -1,0 +1,22 @@
+[
+  {
+    "value": "0",
+    "exit": 2,
+    "rejected_before_mesh": true
+  },
+  {
+    "value": "-1",
+    "exit": 2,
+    "rejected_before_mesh": true
+  },
+  {
+    "value": "nan",
+    "exit": 2,
+    "rejected_before_mesh": true
+  },
+  {
+    "value": "inf",
+    "exit": 2,
+    "rejected_before_mesh": true
+  }
+]

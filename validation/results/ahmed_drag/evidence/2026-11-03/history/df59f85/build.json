@@ -1,0 +1,6 @@
+{
+  "source": "df59f85090d81e251d689774c91e7d03370609cb",
+  "binary_sha256": "958d5105bf6c96b3cc91b3d3ebbff3059f48674a6b699baacddb8d6a643469f1",
+  "embedded_source": "df59f85090d81e251d689774c91e7d03370609cb",
+  "archive_version_override": "CMake explicitly pins archived revision; avoids inheriting enclosing worktree Git HEAD."
+}

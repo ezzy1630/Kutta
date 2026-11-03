@@ -1,0 +1,37 @@
+{
+  "source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "bench_source": "1c36f4de630cf10c3c12f5e8ec7db842583b266e",
+  "option": "diagnostic continue after first gate, same6000budget",
+  "case_patch": {
+    "old": "if (r.residuals_met && r.settled) break;",
+    "new": "if (r.residuals_met && r.settled && !recorded_first_gate) {std::cout << \"GATE_FIRST_MET iteration=\" << r.iterations << std::endl;recorded_first_gate=true;}"
+  },
+  "compile_command": [
+    "c++",
+    "-std=c++20",
+    "-O3",
+    "-DNDEBUG",
+    "-arch",
+    "arm64",
+    "-DKUTTA_HAS_HDF5=1",
+    "-DKUTTA_HAS_METAL=1",
+    "-isystem",
+    "/opt/homebrew/include",
+    "-DKUTTA_BENCH_COMMIT=\"e014e36 ordinary_continuation\"",
+    "-Isrc",
+    "-Ibuild/generated",
+    "<checkout>/runs/ahmed_cause/history/ordinary_continuation/bench.cpp",
+    "build/libkutta.a",
+    "-L/opt/homebrew/lib",
+    "-lhdf5",
+    "-framework",
+    "Metal",
+    "-framework",
+    "Foundation",
+    "-o",
+    "<checkout>/runs/ahmed_cause/history/ordinary_continuation/bench_fsae_aero"
+  ],
+  "library_sha256": "cbb4744b5babc0fefcb56ff71acbc1ef0f6ff1e8ccdc832ab82b98a1df05f726",
+  "binary_sha256": "ed88bbb2c42c501d8d5b372063121cb667b23de52b4f7468edf062051d277425",
+  "case_patch_unified": "--- validation/cases/fsae_aero.hpp\n+++ diagnostic-case.hpp\n@@ -253,6 +253,7 @@\n     history << \"iteration,seconds,lift,drag,drag_pressure,u,v,w,continuity,k,omega,\" << (o.transition ? \"intermit,\" : \"\")\n             << \"max_velocity,continuity_raw\\n\" << std::setprecision(10);\n   }\n+  bool recorded_first_gate=false;\n   while (r.iterations < o.max_iterations) {\n     try {\n       solver.iterate(std::min(o.check_every, o.max_iterations - r.iterations));\n@@ -288,7 +289,7 @@\n       r.failure = \"non-finite forces or residuals\";\n       break;\n     }\n-    if (r.residuals_met && r.settled) break;\n+    if (r.residuals_met && r.settled && !recorded_first_gate) {std::cout << \"GATE_FIRST_MET iteration=\" << r.iterations << std::endl;recorded_first_gate=true;}\n     if (std::chrono::duration<double>(Clock::now() - start).count() >= o.max_seconds) {\n       r.stopped_for_budget = true;\n       break;\n"
+}

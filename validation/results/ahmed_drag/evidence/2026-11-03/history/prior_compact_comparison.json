@@ -1,0 +1,30 @@
+{
+  "comparison": "cross-revision identical numerical mesh, not a one-commit ablation",
+  "old_source": "8866cc0e16df5b0642b2243611099ddccd7f3cd3",
+  "new_source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "mesh_hash_equal": false,
+  "old_mean_cd": 0.36206945253,
+  "new_mean_cd": 0.3620578411175,
+  "old_leading_cp": {
+    "points": 23,
+    "eligible": 42,
+    "reference_mean": -0.268391304347826,
+    "kutta_mean": -0.710069334173913,
+    "rms": 0.54647067649588
+  },
+  "new_leading_cp": {
+    "points": 23,
+    "eligible": 42,
+    "reference_mean": -0.268391304347826,
+    "kutta_mean": -0.7100002959565217,
+    "rms": 0.5465383875643844
+  },
+  "old_mesh_sha256": "2d10f79df43f15bf03319e9b2e8f80d9a47977f2df30d30886bf3776b59ed16e",
+  "new_mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e",
+  "first_comment_replacement": {
+    "from": "(0 \"fsae_aero ahmed 35.0\")",
+    "to": "(0 \"fsae_aero ahmed 35\")"
+  },
+  "hash_after_first_comment_replacement": "2d10f79df43f15bf03319e9b2e8f80d9a47977f2df30d30886bf3776b59ed16e",
+  "numerical_mesh_identity_proven_by_full_file_sha256": true
+}

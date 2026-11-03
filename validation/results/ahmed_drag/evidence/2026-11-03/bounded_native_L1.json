@@ -1,0 +1,93 @@
+{
+  "command": [
+    "<checkout>/runs/ahmed_cause/history/bounded_experiment/build/bench_fsae_aero",
+    "--mesh",
+    "<checkout>/runs/ahmed_cause/mesh/native_L1.msh",
+    "--backend",
+    "metal",
+    "--re",
+    "2.78e6",
+    "--length",
+    "1.044",
+    "--area",
+    "0.112032",
+    "--walls",
+    "body",
+    "--lift-z",
+    "--tu",
+    "0.01",
+    "--window",
+    "1000",
+    "--iterations",
+    "5000",
+    "--cells",
+    "--out",
+    "<checkout>/runs/ahmed_cause/bounded_native_L1"
+  ],
+  "mesh": {
+    "cells": 130331,
+    "faces": 302636,
+    "nodes": 48676,
+    "case": "ahmed",
+    "slant_deg": 35.0,
+    "level": 1.0,
+    "surface_size": 0.03959797974644666,
+    "body_triangles": 3748,
+    "prism_layers": 20,
+    "layer_thickness": 0.017283153809908292,
+    "first_height": 1.5e-05,
+    "growth": 1.35,
+    "tets": 55371,
+    "prisms": 74960,
+    "hexes": 0,
+    "refinement_reach": 3.0,
+    "wake_padding": 2.0,
+    "cell_type": "tet-prism",
+    "domain": {
+      "x": [
+        -4.176,
+        5.220000000000001
+      ],
+      "y": [
+        -0.9396000000000001,
+        0.9396000000000001
+      ],
+      "z": [
+        0,
+        1.2006
+      ],
+      "ground_wall_from_x": -3.132
+    }
+  },
+  "mesh_sha256": "35cee20eaef0052a00b09b2dbabd199b19d26c58a22cb2a6d1d33c97d9f9424e",
+  "binary_sha256": "ee0247b60c640a264482d9a103060c27010fc1d1dcd23af764fb21cfd7d0e3b4",
+  "backend": "metal",
+  "case": "ahmed",
+  "point": "35",
+  "configuration_verified": true,
+  "source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85 bounded-face experiment",
+  "device": "Apple M4 Pro",
+  "pressure_scheme": "second-order",
+  "pressure_boundary_gradient": "extrapolated",
+  "result": {
+    "cells": 130331,
+    "poor_cells": 2709,
+    "iterations": 900,
+    "setup_s": 1.849847,
+    "solve_s": 43.79341225,
+    "lift": 10681.94518,
+    "drag": 279.3947348,
+    "drag_pressure": 272.7804674,
+    "max_residual": 9.536486112,
+    "settle_lift": null,
+    "settle_drag": null,
+    "residuals_met": false,
+    "settled": false,
+    "budget": false,
+    "yplus_max": 0,
+    "yplus_mean": 0,
+    "failure": "solver.cpp:117: solve: nonfinite input vector"
+  },
+  "exit": 2,
+  "peak_footprint_bytes": 417874760
+}

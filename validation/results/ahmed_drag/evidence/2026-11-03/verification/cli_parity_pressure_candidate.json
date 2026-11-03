@@ -1,0 +1,17 @@
+{
+  "command": [
+    "build-py/bin/python",
+    "validation/results/fsae_time_to_solution/parity.py",
+    "--baseline",
+    "runs/ahmed_cause/baseline_binary/kutta",
+    "--candidate",
+    "build/kutta",
+    "--out",
+    "runs/ahmed_cause/final_cli_parity"
+  ],
+  "binary_sha256": "f64cf6322e4f20cd0458aab89c0d332895817bb8f243b943109b6a957582fd5d",
+  "started_utc": "2026-11-03T13:34:41.294270+00:00",
+  "exit": 0,
+  "peak_footprint_bytes": 23052672,
+  "finished_utc": "2026-11-03T13:36:24.488825+00:00"
+}

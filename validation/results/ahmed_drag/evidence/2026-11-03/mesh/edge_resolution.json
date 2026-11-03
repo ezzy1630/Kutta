@@ -1,0 +1,32 @@
+[
+  {
+    "requested": null,
+    "triangles": 3748,
+    "edge_segments": 10,
+    "edge_length_min": 0.03889999999999988,
+    "edge_length_max": 0.03890000000000016,
+    "slant_edge_triangle_altitude_min": 0.02641261331257948,
+    "slant_edge_triangle_altitude_median": 0.033943897040954435,
+    "slant_edge_triangle_altitude_max": 0.036798345808645175
+  },
+  {
+    "requested": 0.01,
+    "triangles": 4444,
+    "edge_segments": 39,
+    "edge_length_min": 0.00996983679827984,
+    "edge_length_max": 0.010000968475378569,
+    "slant_edge_triangle_altitude_min": 0.007103517781760941,
+    "slant_edge_triangle_altitude_median": 0.008859045511123579,
+    "slant_edge_triangle_altitude_max": 0.011894732718890843
+  },
+  {
+    "requested": 0.005,
+    "triangles": 5414,
+    "edge_segments": 76,
+    "edge_length_min": 0.005101957282000857,
+    "edge_length_max": 0.005182832887256739,
+    "slant_edge_triangle_altitude_min": 0.0034091603531275576,
+    "slant_edge_triangle_altitude_median": 0.0045134339842459485,
+    "slant_edge_triangle_altitude_max": 0.006674870738476629
+  }
+]

@@ -1,0 +1,67 @@
+{
+  "command": [
+    "<checkout>/build-py/bin/python",
+    "tools/fsae_aero/ahmed.py",
+    "--slant",
+    "35",
+    "--level",
+    "1",
+    "--first",
+    "1.5e-5",
+    "--refinement-reach",
+    ".6",
+    "--wake-padding",
+    ".3",
+    "--out",
+    "<checkout>/runs/ahmed_cause/mesh/shear15_wake25_L1.msh",
+    "--slant-edge-volume-size",
+    ".015",
+    "--slant-edge-volume-reach",
+    ".25",
+    "--wake-volume-size",
+    ".025"
+  ],
+  "mesher_sha256": "00f6bf0416722f9badba6c8e8c2af67806b4503d60be3759b4b6907fb196bbfa",
+  "mesh_sha256": "80ef28971be5084b1a8b602c557c813d5407c82c3e3a4d240a899b1d3cdf9c25",
+  "baseline_mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e",
+  "boundary_identity": {
+    "body": {
+      "faces": 11244,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "inlet": {
+      "faces": 126,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "outlet": {
+      "faces": 126,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "ground_slip": {
+      "faces": 126,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "ground": {
+      "faces": 4284,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "top": {
+      "faces": 864,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "side": {
+      "faces": 1164,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    }
+  },
+  "cells": 622472,
+  "estimated_peak_bytes": 1906921600,
+  "estimate_is_not_measurement": true
+}

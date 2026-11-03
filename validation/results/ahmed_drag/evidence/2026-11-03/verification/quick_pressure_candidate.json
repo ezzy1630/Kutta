@@ -1,0 +1,11 @@
+{
+  "command": [
+    "build/kutta-tests",
+    "--test-suite-exclude=slow"
+  ],
+  "binary_sha256": "6a328706666626c37375a1560b24c3f8923f9198ba0d06d3b675d13d4a11774a",
+  "started_utc": "2026-11-03T13:27:43.753612+00:00",
+  "exit": 0,
+  "peak_footprint_bytes": 1329514320,
+  "finished_utc": "2026-11-03T13:29:32.138016+00:00"
+}

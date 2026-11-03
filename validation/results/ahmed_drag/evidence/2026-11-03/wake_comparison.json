@@ -1,0 +1,305 @@
+[
+  {
+    "run": "pressure_urf05_L1",
+    "cd_final": 0.3620498765,
+    "pressure_final": 0.3178151994,
+    "friction_final": 0.04423467709999995,
+    "components_final": {
+      "front": {
+        "pressure": -0.0017229620218984498,
+        "friction": 0.008661888951600274,
+        "area": 0.18328569948809997,
+        "cp_area_mean": -0.3878298953589529
+      },
+      "slant": {
+        "pressure": 0.18796934619678618,
+        "friction": -0.0005803175733747254,
+        "area": 0.08635799999399998,
+        "cp_area_mean": -0.425143205870426
+      },
+      "base": {
+        "pressure": 0.13156881701918033,
+        "friction": 1.6064241634436979e-12,
+        "area": 0.0624990861,
+        "cp_area_mean": -0.23584213191067466
+      },
+      "other": {
+        "pressure": 5.571025715539572e-17,
+        "friction": 0.036153105760510576,
+        "area": 1.1842797621681,
+        "cp_area_mean": -0.22308190884754567
+      }
+    },
+    "cp_common": {
+      "experiment slant": {
+        "points": 93,
+        "reference_mean": -0.28894623655913976,
+        "kutta_mean": -0.45350061344086023,
+        "rms": 0.2994537793306598
+      },
+      "experiment base": {
+        "points": 69,
+        "reference_mean": -0.2192898550724638,
+        "kutta_mean": -0.2571260039985507,
+        "rms": 0.154407985371016
+      },
+      "experiment slant_leading_40mm": {
+        "points": 23,
+        "reference_mean": -0.268391304347826,
+        "kutta_mean": -0.7100077434782608,
+        "rms": 0.546545856980417
+      },
+      "experiment slant_remaining": {
+        "points": 70,
+        "reference_mean": -0.2957,
+        "kutta_mean": -0.36921969928571435,
+        "rms": 0.14487255664682344
+      },
+      "CFX-5 SST slant": {
+        "points": 630,
+        "reference_mean": -0.2341509634920635,
+        "kutta_mean": -0.47437233355873015,
+        "rms": 0.33344425956679197
+      },
+      "CFX-5 SST base": {
+        "points": 573,
+        "reference_mean": -0.16729735706806284,
+        "kutta_mean": -0.305232991521466,
+        "rms": 0.213954300867195
+      },
+      "CFX-5 SST slant_leading_40mm": {
+        "points": 205,
+        "reference_mean": -0.23386281463414632,
+        "kutta_mean": -0.6642436048926831,
+        "rms": 0.5236172619314157
+      },
+      "CFX-5 SST slant_remaining": {
+        "points": 425,
+        "reference_mean": -0.23428995294117647,
+        "kutta_mean": -0.38278736738588237,
+        "rms": 0.18046159237124795
+      }
+    },
+    "upstream_turbulence": {
+      "cells": 96,
+      "tu_over_U_inlet": 0.0009741886106996334,
+      "k": 1.4240780136578784e-06,
+      "omega": 3.970173183876407,
+      "mu_t_over_mu": 0.959997269365326,
+      "u": 0.9715502003014117,
+      "cp_outlet_gauge": 0.07914804316515264
+    },
+    "bands": {
+      "run": "pressure_urf05_L1",
+      "mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e",
+      "wall_identity_error_m": 7.936050051520738e-10,
+      "full_slant_area": 0.08635800000000002,
+      "leading_area": 0.018995252601128262,
+      "total_pressure": 0.1879693462035508,
+      "leading_pressure": 0.05730114717534641,
+      "remaining_pressure": 0.1306681990282044
+    }
+  },
+  {
+    "run": "wake25_L1_pressure05",
+    "cd_final": 0.3529875612,
+    "pressure_final": 0.308826064,
+    "friction_final": 0.04416149720000001,
+    "components_final": {
+      "front": {
+        "pressure": -0.001919873208595907,
+        "friction": 0.008661343383161801,
+        "area": 0.1832856994881,
+        "cp_area_mean": -0.38799936186628
+      },
+      "slant": {
+        "pressure": 0.18219728574160846,
+        "friction": -0.0006189981327086834,
+        "area": 0.086357999994,
+        "cp_area_mean": -0.4120881395202824
+      },
+      "base": {
+        "pressure": 0.12854865245110259,
+        "friction": 1.7814340360543756e-12,
+        "area": 0.062499086100000004,
+        "cp_area_mean": -0.2304283715182505
+      },
+      "other": {
+        "pressure": 5.68251396982044e-17,
+        "friction": 0.03611915190777023,
+        "area": 1.1842797621681,
+        "cp_area_mean": -0.2227782402878666
+      }
+    },
+    "cp_common": {
+      "experiment slant": {
+        "points": 93,
+        "reference_mean": -0.28894623655913976,
+        "kutta_mean": -0.44304738613978495,
+        "rms": 0.28681522884273153
+      },
+      "experiment base": {
+        "points": 69,
+        "reference_mean": -0.2192898550724638,
+        "kutta_mean": -0.27579080721449273,
+        "rms": 0.17633391127714934
+      },
+      "experiment slant_leading_40mm": {
+        "points": 23,
+        "reference_mean": -0.268391304347826,
+        "kutta_mean": -0.6884129467391303,
+        "rms": 0.5252722509060541
+      },
+      "experiment slant_remaining": {
+        "points": 70,
+        "reference_mean": -0.2957,
+        "kutta_mean": -0.3624272733714285,
+        "rms": 0.13651295893399887
+      },
+      "CFX-5 SST slant": {
+        "points": 630,
+        "reference_mean": -0.2341509634920635,
+        "kutta_mean": -0.4560858126285714,
+        "rms": 0.3126598401115291
+      },
+      "CFX-5 SST base": {
+        "points": 573,
+        "reference_mean": -0.16729735706806284,
+        "kutta_mean": -0.279960701882548,
+        "rms": 0.19376101504385546
+      },
+      "CFX-5 SST slant_leading_40mm": {
+        "points": 205,
+        "reference_mean": -0.23386281463414632,
+        "kutta_mean": -0.6364814466390244,
+        "rms": 0.49323656022353035
+      },
+      "CFX-5 SST slant_remaining": {
+        "points": 425,
+        "reference_mean": -0.23428995294117647,
+        "kutta_mean": -0.36907144798823527,
+        "rms": 0.1660157203737285
+      }
+    },
+    "upstream_turbulence": {
+      "cells": 96,
+      "tu_over_U_inlet": 0.0009741857927416985,
+      "k": 1.4240699076783258e-06,
+      "omega": 3.970146979780794,
+      "mu_t_over_mu": 0.9599986776844883,
+      "u": 0.9715351739666542,
+      "cp_outlet_gauge": 0.07891684932331584
+    },
+    "bands": {
+      "run": "wake25_L1_pressure05",
+      "mesh_sha256": "1aa59d863697f2cf1cc03d1439172d728c1f0b9e51bbebf7921d8b9d0204409f",
+      "wall_identity_error_m": 7.936050051520738e-10,
+      "full_slant_area": 0.08635800000000002,
+      "leading_area": 0.018995252601128262,
+      "total_pressure": 0.18219728574909475,
+      "leading_pressure": 0.05538975810553389,
+      "remaining_pressure": 0.12680752764356085
+    }
+  },
+  {
+    "run": "wake20_L1_pressure05",
+    "cd_final": 0.3501543057,
+    "pressure_final": 0.3060261916,
+    "friction_final": 0.044128114100000004,
+    "components_final": {
+      "front": {
+        "pressure": -0.0019965750272024074,
+        "friction": 0.008661675808222882,
+        "area": 0.1832856994881,
+        "cp_area_mean": -0.3880624643168217
+      },
+      "slant": {
+        "pressure": 0.1817934443182789,
+        "friction": -0.0006263695284834431,
+        "area": 0.086357999994,
+        "cp_area_mean": -0.41117474358178785
+      },
+      "base": {
+        "pressure": 0.1262293226746463,
+        "friction": 1.5781616305551042e-12,
+        "area": 0.0624990861,
+        "cp_area_mean": -0.22627088426955375
+      },
+      "other": {
+        "pressure": 5.709335001608573e-17,
+        "friction": 0.0360928078641525,
+        "area": 1.1842797621680998,
+        "cp_area_mean": -0.2224404974662755
+      }
+    },
+    "cp_common": {
+      "experiment slant": {
+        "points": 93,
+        "reference_mean": -0.28894623655913976,
+        "kutta_mean": -0.44136042689247296,
+        "rms": 0.2838696358095442
+      },
+      "experiment base": {
+        "points": 69,
+        "reference_mean": -0.2192898550724638,
+        "kutta_mean": -0.2682469280840579,
+        "rms": 0.16911673952906867
+      },
+      "experiment slant_leading_40mm": {
+        "points": 23,
+        "reference_mean": -0.268391304347826,
+        "kutta_mean": -0.6830249670869565,
+        "rms": 0.5196758286639697
+      },
+      "experiment slant_remaining": {
+        "points": 70,
+        "reference_mean": -0.2957,
+        "kutta_mean": -0.3619563636857143,
+        "rms": 0.1353659053864959
+      },
+      "CFX-5 SST slant": {
+        "points": 630,
+        "reference_mean": -0.2341509634920635,
+        "kutta_mean": -0.45346336456507935,
+        "rms": 0.3095342850872938
+      },
+      "CFX-5 SST base": {
+        "points": 573,
+        "reference_mean": -0.16729735706806284,
+        "kutta_mean": -0.2760232236045375,
+        "rms": 0.18828088464258846
+      },
+      "CFX-5 SST slant_leading_40mm": {
+        "points": 205,
+        "reference_mean": -0.23386281463414632,
+        "kutta_mean": -0.632894758190244,
+        "rms": 0.48872435222140775
+      },
+      "CFX-5 SST slant_remaining": {
+        "points": 425,
+        "reference_mean": -0.23428995294117647,
+        "kutta_mean": -0.3669141041105882,
+        "rms": 0.16375499951357192
+      }
+    },
+    "upstream_turbulence": {
+      "cells": 96,
+      "tu_over_U_inlet": 0.0010370785148056281,
+      "k": 1.613966340912919e-06,
+      "omega": 3.9658733175867993,
+      "mu_t_over_mu": 1.0905411955452948,
+      "u": 0.9715384251434074,
+      "cp_outlet_gauge": 0.07883904483779254
+    },
+    "bands": {
+      "run": "wake20_L1_pressure05",
+      "mesh_sha256": "0909f5147fa98af8f83cba9da99731d17363169d501dd0a7e48773473af7d285",
+      "wall_identity_error_m": 7.936050051520738e-10,
+      "full_slant_area": 0.08635800000000002,
+      "leading_area": 0.018995252601128262,
+      "total_pressure": 0.18179344432523792,
+      "leading_pressure": 0.05506884995961519,
+      "remaining_pressure": 0.12672459436562272
+    }
+  }
+]

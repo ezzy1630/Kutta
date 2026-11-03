@@ -1,0 +1,98 @@
+{
+  "command": "git log --reverse --format=%H%x09%s 85c489b..e014e36 -- src/kutta/fv src/kutta/kernels",
+  "commits": [
+    {
+      "sha": "2cdfdba64c6c99164f4e709cc90e5cf2b8f3c9ed",
+      "subject": "Use derivative strain reconstruction for standard k-epsilon production"
+    },
+    {
+      "sha": "a1da1fc8fc397b2b8b99a106231b23a04a3345ab",
+      "subject": "Keep standard k-epsilon derivative strain explicit and opt-in"
+    },
+    {
+      "sha": "c0c543af54350e5e0ff3e3e86eff42b128c7a186",
+      "subject": "Record elbow turbulence isolation and full regression results"
+    },
+    {
+      "sha": "a3fda324732baef5a9fa455f818529285bf25979",
+      "subject": "fv: expose Peclet side face velocity as an opt-in"
+    },
+    {
+      "sha": "df59f85090d81e251d689774c91e7d03370609cb",
+      "subject": "Shield poor prism cells from neighbouring pressure extrapolation"
+    },
+    {
+      "sha": "c8cc008b58dac50f15f95deae9c3b75d8a9d9503",
+      "subject": "Cache fixed Coupled fine-grid edge coefficients per outer solve"
+    },
+    {
+      "sha": "254afa20f3baef9dd05baf7e6404aa9b2e3f3f1a",
+      "subject": "Reuse fixed block smoother inverses across Coupled cycles"
+    },
+    {
+      "sha": "5cf7aed8e352d2dc19476fc7e28a7c224f915f2c",
+      "subject": "Skip zero matrix products at the start of AMG cycles"
+    },
+    {
+      "sha": "6f244a78511cc528d368b44b9547f966ed067add",
+      "subject": "Add opt-in normal-foot symmetry pressure reconstruction"
+    },
+    {
+      "sha": "984e417a696e356fb9c706e804e8d171438d2cf9",
+      "subject": "Reject unsupported normal-foot gradient configurations"
+    },
+    {
+      "sha": "97d2dfe7434cc2617db3d4a6a74555c33027f6b1",
+      "subject": "fix(fv): cover stored pressure boundary observations with normal-foot option"
+    },
+    {
+      "sha": "271b31f7a96bbbc39eda3dd59721c9667d51ff46",
+      "subject": "S1223 transition investigation with documented Fluent model options"
+    },
+    {
+      "sha": "7738484ca8732884840106d6a9059af1ed2ff2a2",
+      "subject": "Preserve momentum assembly remainders in paired solves"
+    },
+    {
+      "sha": "6344a69e9cbb9d0dfae36610ff5e76c294171da4",
+      "subject": "Carry boundary and source products consistently in paired assembly"
+    },
+    {
+      "sha": "2599c39e0f3d48a6c559620fbf0a1638fd23f1d9",
+      "subject": "Keep TMR SA production separate from the strain safeguard"
+    },
+    {
+      "sha": "3497c70da60af4038e2e064e9f96ee9bd642af4c",
+      "subject": "Carry consistent low-word flow operators and scalar defects"
+    },
+    {
+      "sha": "dbf8dde6680ebb92f854ba5a8ab073679d47f359",
+      "subject": "Bound paired face predictors using the complete field"
+    },
+    {
+      "sha": "577fdce9d4ff273205fb59287a7fe5c0fe113970",
+      "subject": "Limit paired gradients with their low-word boundary observations"
+    },
+    {
+      "sha": "7f4a55e58a7f8f635d088b696b235d0648bdd1b6",
+      "subject": "Carry complete paired pressure traces into momentum forces"
+    },
+    {
+      "sha": "1645a31a7896c984e304c8a630e349766706f486",
+      "subject": "Keep compensated flow operators consistent with the physical pair"
+    },
+    {
+      "sha": "355e80b9f0de652513b275d5ed58ef17d081b86f",
+      "subject": "Take constitutive velocity derivatives before rounding paired state"
+    },
+    {
+      "sha": "96d8b34615f88b28fb5db2cefe45baad13cb4446",
+      "subject": "Preserve poor-interface pressure correction in paired reconstruction"
+    },
+    {
+      "sha": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+      "subject": "Use the published TMR SA production form unconditionally"
+    }
+  ],
+  "runtime_boundary": "Both endpoints, the immediate parent 773f64f, and df59f85 were executed. The parent matches all22 gated old checkpoints; df59f85 matches all120 new checkpoints."
+}

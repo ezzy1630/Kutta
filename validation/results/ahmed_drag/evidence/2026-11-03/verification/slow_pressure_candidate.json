@@ -1,0 +1,13 @@
+{
+  "command": [
+    "build/kutta-tests",
+    "-ts=slow",
+    "-r=xml",
+    "--success"
+  ],
+  "binary_sha256": "6a328706666626c37375a1560b24c3f8923f9198ba0d06d3b675d13d4a11774a",
+  "started_utc": "2026-11-03T13:43:55.931873+00:00",
+  "exit": 1,
+  "peak_footprint_bytes": 1809713144,
+  "finished_utc": "2026-11-03T16:14:03.409532+00:00"
+}

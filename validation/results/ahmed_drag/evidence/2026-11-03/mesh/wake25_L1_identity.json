@@ -1,0 +1,60 @@
+{
+  "control": {
+    "size": 0.025,
+    "x": [
+      0.06,
+      0.8
+    ],
+    "y": [
+      -0.25,
+      0.25
+    ],
+    "z": [
+      0.09,
+      0.44
+    ],
+    "thickness": 0.04
+  },
+  "mesh_sha256": "1aa59d863697f2cf1cc03d1439172d728c1f0b9e51bbebf7921d8b9d0204409f",
+  "baseline_mesh_sha256": "b50e98efe6d74d77af51c48386776de773360589e223a7d08c8f25005eca928e",
+  "boundary_identity": {
+    "body": {
+      "faces": 11244,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "inlet": {
+      "faces": 126,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "outlet": {
+      "faces": 126,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "ground_slip": {
+      "faces": 126,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "ground": {
+      "faces": 4284,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "top": {
+      "faces": 864,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    },
+    "side": {
+      "faces": 1164,
+      "face_coordinates_byte_identical": true,
+      "orientations_match": true
+    }
+  },
+  "cells": 473448,
+  "estimated_peak_bytes": 1489654400,
+  "estimate_is_not_measurement": true
+}

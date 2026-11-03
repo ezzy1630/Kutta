@@ -1,0 +1,6 @@
+{
+  "matching_first_gate_trajectory": true,
+  "matching_checkpoints": 22,
+  "first_gate_iteration": 1100,
+  "continuation_finished": true
+}

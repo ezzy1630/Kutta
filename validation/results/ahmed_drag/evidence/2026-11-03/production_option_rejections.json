@@ -1,0 +1,56 @@
+[
+  {
+    "args": [
+      "--sst-production-limiter",
+      "maybe"
+    ],
+    "exit": 1,
+    "correct_boundary_error": true,
+    "output": "bench_fsae_aero.cpp:72: --sst-production-limiter is on or off\n"
+  },
+  {
+    "args": [
+      "--sst-production-clip",
+      "0"
+    ],
+    "exit": 1,
+    "correct_boundary_error": true,
+    "output": "bench_fsae_aero.cpp:77: --sst-production-clip must be positive, finite and representable as float\n"
+  },
+  {
+    "args": [
+      "--sst-production-clip",
+      "-1"
+    ],
+    "exit": 1,
+    "correct_boundary_error": true,
+    "output": "bench_fsae_aero.cpp:77: --sst-production-clip must be positive, finite and representable as float\n"
+  },
+  {
+    "args": [
+      "--sst-production-clip",
+      "1e100"
+    ],
+    "exit": 1,
+    "correct_boundary_error": true,
+    "output": "bench_fsae_aero.cpp:77: --sst-production-clip must be positive, finite and representable as float\n"
+  },
+  {
+    "args": [
+      "--sst-production-clip",
+      "1e-100"
+    ],
+    "exit": 1,
+    "correct_boundary_error": true,
+    "output": "bench_fsae_aero.cpp:77: --sst-production-clip must be positive, finite and representable as float\n"
+  },
+  {
+    "args": [
+      "--sst-production-clip",
+      "nan"
+    ],
+    "exit": 1,
+    "correct_boundary_error": true,
+    "output": "bench_fsae_aero.cpp:35: invalid number for --sst-production-clip\n"
+  }
+]

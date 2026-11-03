@@ -1,0 +1,45 @@
+{
+  "kind": "frozen-state readback; CSV precision and model refresh are included in the discrepancy",
+  "patches": {
+    "body": {
+      "wall_cells": 11244,
+      "relative_error_quantiles": [
+        0.0,
+        1.8698386012921184e-09,
+        1.1116174246235892e-07,
+        1.629304255025625e-07,
+        2.390795624739517e-07
+      ],
+      "over_1e_minus3": 0,
+      "worst": {
+        "xyz": [
+          7.5e-06,
+          0.0925189752,
+          0.127441741
+        ],
+        "omega": 198260.312,
+        "target": 198260.3594
+      }
+    },
+    "ground": {
+      "wall_cells": 4284,
+      "relative_error_quantiles": [
+        0.0,
+        1.0777959311435772e-09,
+        1.0555845457205544e-07,
+        1.9129377192184704e-07,
+        2.652550219872579e-07
+      ],
+      "over_1e_minus3": 0,
+      "worst": {
+        "xyz": [
+          -0.458898158,
+          -0.518730951,
+          0.0249011939
+        ],
+        "omega": 1.36472476,
+        "target": 1.364724398
+      }
+    }
+  }
+}

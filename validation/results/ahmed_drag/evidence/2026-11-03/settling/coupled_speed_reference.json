@@ -1,0 +1,64 @@
+[
+  {
+    "label": "85c489b speed baseline",
+    "source_archive_commit": "8556598",
+    "source_log": "validation/results/fsae_time_to_solution/raw/converge-0-ahmed-L1-coupled-baseline.log",
+    "fresh_run_in_this_lane": false,
+    "reported": {
+      "source": "85c489bbbcd685933f30188272315f9a61702474",
+      "device": "Apple M4 Pro",
+      "backend": "metal",
+      "result": {
+        "cells": 403560,
+        "poor_cells": 10,
+        "iterations": 6000,
+        "setup_s": 10.55007754,
+        "solve_s": 843.320586,
+        "lift": 0.2116777097,
+        "drag": 0.3539833545,
+        "drag_pressure": 0.3070661277,
+        "max_residual": 0.004081575697,
+        "settle_lift": 0.005839628461,
+        "settle_drag": 0.0008537331536,
+        "residuals_met": false,
+        "settled": false,
+        "budget": false,
+        "yplus_max": 7.274547577,
+        "yplus_mean": 3.199319069,
+        "failure": ""
+      }
+    }
+  },
+  {
+    "label": "e014e36 speed baseline",
+    "source_archive_commit": "8556598",
+    "source_log": "validation/results/fsae_time_to_solution/2026-11-03/convergence-0-ahmed-L1-coupled-baseline.log",
+    "fresh_run_in_this_lane": false,
+    "reported": {
+      "source": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+      "device": "Apple M4 Pro",
+      "backend": "metal",
+      "pressure_scheme": "second-order",
+      "pressure_boundary_gradient": "extrapolated",
+      "result": {
+        "cells": 403560,
+        "poor_cells": 10,
+        "iterations": 6000,
+        "setup_s": 24.22979212,
+        "solve_s": 1240.545506,
+        "lift": 0.2126008821,
+        "drag": 0.3540895094,
+        "drag_pressure": 0.3071417234,
+        "max_residual": 0.004148627586,
+        "settle_lift": 0.007046151022,
+        "settle_drag": 0.000694425488,
+        "residuals_met": false,
+        "settled": false,
+        "budget": false,
+        "yplus_max": 7.226652622,
+        "yplus_mean": 3.200976523,
+        "failure": ""
+      }
+    }
+  }
+]

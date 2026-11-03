@@ -1,0 +1,90 @@
+{
+  "run": "plane_layer_L1",
+  "cd_mean_last2000": 0.36319562243750003,
+  "components_final": {
+    "front": {
+      "pressure": -0.0015748588155942433,
+      "friction": 0.008700090226655976,
+      "area": 0.18328569948809997,
+      "cp_area_mean": -0.387626274517758
+    },
+    "slant": {
+      "pressure": 0.18783257573588968,
+      "friction": -0.0005725938821202299,
+      "area": 0.08635799999399998,
+      "cp_area_mean": -0.42483386270681744
+    },
+    "base": {
+      "pressure": 0.13218973310227766,
+      "friction": 2.301193484068741e-12,
+      "area": 0.0624990861,
+      "cp_area_mean": -0.23695514771558193
+    },
+    "other": {
+      "pressure": 5.554899954517255e-17,
+      "friction": 0.036537800085229326,
+      "area": 1.1842797621681,
+      "cp_area_mean": -0.22250356441642094
+    }
+  },
+  "cp_common": {
+    "experiment slant": {
+      "points": 93,
+      "reference_mean": -0.28894623655913976,
+      "kutta_mean": -0.45349404076344085,
+      "rms": 0.2991590645492861
+    },
+    "experiment base": {
+      "points": 69,
+      "reference_mean": -0.2192898550724638,
+      "kutta_mean": -0.25943491750434783,
+      "rms": 0.1637578011054655
+    },
+    "experiment slant_leading_40mm": {
+      "points": 23,
+      "reference_mean": -0.268391304347826,
+      "kutta_mean": -0.7076984968695652,
+      "rms": 0.5439202144845611
+    },
+    "experiment slant_remaining": {
+      "points": 70,
+      "reference_mean": -0.2957,
+      "kutta_mean": -0.36996971947142854,
+      "rms": 0.14729028554975343
+    },
+    "CFX-5 SST slant": {
+      "points": 630,
+      "reference_mean": -0.2341509634920635,
+      "kutta_mean": -0.47495215461269846,
+      "rms": 0.33559714333304774
+    },
+    "CFX-5 SST base": {
+      "points": 573,
+      "reference_mean": -0.16729735706806284,
+      "kutta_mean": -0.3081886781104712,
+      "rms": 0.22173478706300928
+    },
+    "CFX-5 SST slant_leading_40mm": {
+      "points": 205,
+      "reference_mean": -0.23386281463414632,
+      "kutta_mean": -0.6659532044341463,
+      "rms": 0.5263206151794511
+    },
+    "CFX-5 SST slant_remaining": {
+      "points": 425,
+      "reference_mean": -0.23428995294117647,
+      "kutta_mean": -0.38282223646352936,
+      "rms": 0.18257171937425737
+    }
+  },
+  "bands": {
+    "run": "plane_layer_L1",
+    "mesh_sha256": "223f608f499914cc3b14fa0ed0b74a1a2f88c8f4a52792d040853ba545d4324a",
+    "wall_identity_error_m": 7.936050051520738e-10,
+    "full_slant_area": 0.08635800000000002,
+    "leading_area": 0.018995252601128262,
+    "total_pressure": 0.18783257574240614,
+    "leading_pressure": 0.05735288773672745,
+    "remaining_pressure": 0.1304796880056787
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "suspended_pid": 54924,
+  "command": "build/kutta-tests -ts=slow -r=xml --success",
+  "reason": "one priority geometry control; slow tier remains pinned and no simultaneous active own solve",
+  "paused_utc": "2026-11-03T14:05:56.307780+00:00",
+  "solve_exit": 0,
+  "resumed_utc": "2026-11-03T14:12:05.082155+00:00"
+}
