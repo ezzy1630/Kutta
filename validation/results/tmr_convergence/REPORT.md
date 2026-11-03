@@ -942,6 +942,40 @@ regressions or recoveries in that subset. This confirms that the existing TMR
 opt-ins make the global compensation-default experiment numerically unchanged
 on these cases. All 17 convergence failures remain.
 
+### Initial classification of all 17 failures
+
+The exact-main 100-step histories show 15 declining envelopes and two
+plateaus. The ratio below is the maximum defect at step 3,000 divided by
+its value at 2,000. This is an initial classification, not a causal result.
+A declining envelope can contain a superposed two-cycle; a flat envelope
+does not establish an arithmetic residual floor. Per-step diagnostics and
+controlled experiments remain required for every row.
+
+| Failing solve | Terminal maximum defect | Defect ratio, 3,000 / 2,000 | Initial observed shape |
+|---|---:|---:|---|
+| SST plate cpu L2 | 1.90981e-05 | 0.084034 | Slow approach in envelope |
+| SST plate metal L1 | 3.045154e-05 | 1.0019 | Plateau |
+| SST bump cpu L0 | 3.143857e-05 | 0.45292 | Slow approach in envelope |
+| SST bump cpu L1 | 2.308443e-05 | 0.5394 | Slow approach in envelope |
+| SST bump cpu L2 | 2.573423e-05 | 0.34281 | Slow approach in envelope |
+| SST bump metal L0 | 1.991881e-05 | 0.30103 | Slow approach in envelope |
+| SST bump metal L1 | 2.81366e-05 | 0.67352 | Slow approach in envelope |
+| SST bump metal L2 | 2.572706e-05 | 0.34277 | Slow approach in envelope |
+| SA plate cpu L2 | 4.282008e-05 | 0.071949 | Slow approach in envelope |
+| SA plate metal L1 | 2.417789e-05 | 1.0005 | Plateau |
+| SA plate metal L2 | 1.397759e-05 | 0.024291 | Slow approach in envelope |
+| SA bump cpu L0 | 3.439757e-05 | 0.44899 | Slow approach in envelope |
+| SA bump cpu L1 | 4.124983e-05 | 0.65014 | Slow approach in envelope |
+| SA bump cpu L2 | 6.128235e-05 | 0.49282 | Slow approach in envelope |
+| SA bump metal L0 | 5.78428e-05 | 0.70232 | Slow approach in envelope |
+| SA bump metal L1 | 4.124282e-05 | 0.64986 | Slow approach in envelope |
+| SA bump metal L2 | 6.129666e-05 | 0.49293 | Slow approach in envelope |
+
+The cause of each row remains unestablished. No row is declared a stationary
+floor or a two-cycle from even-spaced samples. The complete endpoints,
+including load changes, are in
+[initial-classification.json](initial-classification.json).
+
 ### Exact fine-bump reproduction
 
 The finest SST bump on Metal completes 3,000 steps on exact base `e014e36`.
