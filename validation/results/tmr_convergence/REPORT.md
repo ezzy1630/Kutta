@@ -721,7 +721,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | --- | --- | --- | ---: | --- |
 | Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
 | Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
-| Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
+| Momentum absolute tolerance 1e-20 | Full slow pending; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Active-path paired timing pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
 | Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
@@ -983,6 +983,45 @@ cost run used that same incorrect baseline and is excluded. Both attempts
 are retained privately, and the public receipt identifies the rejected
 baseline. Neither invalid cost run changes the completed slow-tier comparison
 or slack's quick-tier regression.
+
+### Momentum tolerance: measured work, decision still pending
+
+Changing only momentum absolute tolerance from `1e-10` to `1e-20` passes the
+quick tier (307 cases, 7,990,154 assertions). The full slow tier is running.
+The ordinary-control coarse plate uses SIMPLEC, where this tolerance is
+active. Its cumulative momentum work and final maximum defect are:
+
+| Model / backend | Momentum inner iterations, before → after | Maximum defect, before → after |
+|---|---:|---:|
+| SST CPU | 8,974 → 30,084 | 1.487815e-4 → 6.880296e-5 |
+| SST Metal | 9,303 → 32,275 | 1.835793e-4 → 8.711917e-5 |
+| SA CPU | 9,415 → 32,631 | 2.040579e-4 → 1.940796e-4 |
+| SA Metal | 9,750 → 31,136 | 1.830644e-4 → 1.914472e-4 |
+
+All four before/after solves remain unconverged at 3,000 steps. There is no
+direct device allocation increase. These are iteration measurements, not
+paired timing results. Data and binary identities are in
+[momentum-absolute-cost.json](momentum-absolute-cost.json).
+
+The existing four alternating elbow pairs use its saved Coupled scheme.
+That path solves a joint block and does not use the separate momentum
+absolute tolerance. Its CPU time ratio of 0.9984 and Metal ratio of 1.0098
+therefore do not measure this option's active-path cost. They must not hide
+the extra SIMPLEC work above.
+
+`tools/forensics/measure_default_plate_cost.py` adds alternating AB, BA runs
+on this ordinary-control plate, with both turbulence models and backends.
+It retains early convergence and the original 3,000-step budget. It reports
+time to the actual stop and late per-step time only when both runs reach
+3,000; a failed baseline and successful candidate do not imply equal
+accuracy. Every repeated numerical endpoint and inner-work total must
+reproduce the checked receipt exactly before its timing is accepted.
+Binary, receipt and mesh hashes are frozen, and actual controls are checked
+against independent ordinary-setting definitions. Validation accepts the
+three existing corrected receipts and rejects an already-compensated
+baseline despite its claimed checked marker. These paired plate runs are
+queued serially between full-tier variants; no new timing result is claimed
+here yet.
 
 ### Fresh remaining-failure baseline
 

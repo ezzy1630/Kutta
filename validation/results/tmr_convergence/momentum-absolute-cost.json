@@ -1,0 +1,172 @@
+{
+  "status": "Provisional cost measurement; full slow comparison and paired SIMPLEC timing remain pending. No default decision is earned.",
+  "candidate": "Only ordinary momentum absolute tolerance changes from 1e-10 to 1e-20; retained byte-identical SST scratch cleanup is also present. Original Metal runtime.",
+  "baseline_sha256": "982116e6897e571b239d0650104e268c9fa618221d557f6e16dce834046875bd",
+  "candidate_sha256": "5a7f91ec023d1a2b279042d25db897fdd2879c9ba960454cf20210a7027e750d",
+  "coarse_plate_protocol": "Coarse TMR plate geometry and model, ordinary solver controls; original 3000-step convergence budget; iteration counts only, no unpaired timing comparison",
+  "elbow_caveat": "The saved elbow uses Coupled; the separate momentum absolute tolerance is inactive. Its timing is a control, not active-path cost evidence.",
+  "elbow_summary": [
+    {
+      "backend": "cpu",
+      "paired_time_ratio_median": 0.9983816838502639,
+      "paired_time_ratio_range": [
+        0.9931307901667701,
+        1.0000092184173193
+      ],
+      "baseline_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 439
+      },
+      "candidate_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 439
+      },
+      "peak_bytes_baseline": 63930848,
+      "peak_bytes_candidate": 63898104
+    },
+    {
+      "backend": "metal",
+      "paired_time_ratio_median": 1.0098191180121256,
+      "paired_time_ratio_range": [
+        0.5426727548181205,
+        1.0809377499454325
+      ],
+      "baseline_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 438
+      },
+      "candidate_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 438
+      },
+      "peak_bytes_baseline": 205472440,
+      "peak_bytes_candidate": 205472488
+    }
+  ],
+  "plate_rows": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000148781501615,
+      "inner_iterations": {
+        "momentum": 8974,
+        "pressure": 60635,
+        "scalar": 72239
+      },
+      "device_bytes_at_stop": 2110408,
+      "failure": null
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 6.88029645951e-05,
+      "inner_iterations": {
+        "momentum": 30084,
+        "pressure": 58592,
+        "scalar": 72029
+      },
+      "device_bytes_at_stop": 2110408,
+      "failure": null
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000183579331842,
+      "inner_iterations": {
+        "momentum": 9303,
+        "pressure": 58694,
+        "scalar": 73502
+      },
+      "device_bytes_at_stop": 2192328,
+      "failure": null
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 8.71191681727e-05,
+      "inner_iterations": {
+        "momentum": 32275,
+        "pressure": 57887,
+        "scalar": 72011
+      },
+      "device_bytes_at_stop": 2192328,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000204057944461,
+      "inner_iterations": {
+        "momentum": 9415,
+        "pressure": 34727,
+        "scalar": 417
+      },
+      "device_bytes_at_stop": 1905412,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000194079631845,
+      "inner_iterations": {
+        "momentum": 32631,
+        "pressure": 34240,
+        "scalar": 417
+      },
+      "device_bytes_at_stop": 1905412,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000183064395142,
+      "inner_iterations": {
+        "momentum": 9750,
+        "pressure": 34514,
+        "scalar": 417
+      },
+      "device_bytes_at_stop": 1987332,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000191447208371,
+      "inner_iterations": {
+        "momentum": 31136,
+        "pressure": 34201,
+        "scalar": 417
+      },
+      "device_bytes_at_stop": 1987332,
+      "failure": null
+    }
+  ]
+}
