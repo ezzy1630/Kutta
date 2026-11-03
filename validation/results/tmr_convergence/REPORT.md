@@ -696,22 +696,27 @@ before a final assertion comparison can be reported.
 
 The first candidate changes only the default of `compensated_momentum` to
 true. Its quick tier passes 307 cases and 7,990,154 assertions. Its full slow
-tier is running. An earlier attempt was stopped in its first case because
+tier is running, but already establishes that this option must stay opt-in:
+the Fluent standard k-epsilon elbow pressure-drop relative error becomes
+2.00753% on CPU and Metal, failing the unchanged 1.5% gate that main passes.
+These are partial observations, not the completed comparison totals.
+An earlier attempt was stopped in its first case because
 memory profiling appeared in captured CLI assertion context; that interrupted
 XML is excluded. The replacement runs without profiling. The comparator is
 main's unchanged `tools/forensics/compare_slow_assertions.py`.
 
 ### Option decisions and allocation cost
 
-All decisions below remain pending the full slow-tier and iteration-cost
-experiments. Allocation measurements are independent one-step CPU plate
+Except for the rejected compensation default, decisions below remain pending
+the full slow-tier and iteration-cost experiments. Allocation measurements
+precede the unused-fit cleanup below. They are independent one-step CPU plate
 probes, changing one setting at a time from ordinary settings, on 816 cells.
 They are not convergence or timing measurements. The exact data and probe
 hashes are in [default-study-memory.json](default-study-memory.json).
 
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
-| Compensated momentum | Running | Pending | 357.97 / 361.97 | Pending; retain opt-in until earned |
+| Compensated momentum | Two new elbow pressure-drop failures observed; full run pending | Pending | 357.97 / 361.97 | Keep opt-in |
 | Paired-state slack 16 | Pending | Pending | 0 / 0 | Pending |
 | Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
@@ -733,6 +738,36 @@ the TMR scalar controls fixed. With the walk reconstruction active, the SST
 increment is `184*Ncells + 28*Nfaces + 28*Nboundary` bytes; SA also needs a
 four-byte cell mask. This includes the 64 B/cell paired walk scratch allocated
 on its first use, not just the flow fields and assembly carries.
+
+### Remove unused SST fits without changing its solution
+
+The compensated SST path allocated and evaluated three general velocity
+gradient fits. SST instead consumes its dedicated strain fit, which overwrites
+the shared low scratch before using it. The general fits have no consumer on
+this path. Omitting their nine cell arrays saves exactly 36 B/cell and removes
+three unused gradient calls per model-velocity refresh. Other models retain
+their general fits. No time saving is claimed without paired timing runs.
+
+On the fine bump, SST device bytes at solver-ready fall from 179,067,872 to
+177,040,352, a 2,027,520-byte reduction. Compensation's extra device storage
+therefore falls from 352.76 to 316.76 B/cell. SA remains at 163,938,028 bytes
+with compensation active.
+
+The following checks compare exact-main `e014e36` with this cleanup, retaining
+the ordinary defaults. All checks pass on CPU and Metal. Hashes and complete
+comparison results are in [lean-sst-parity.json](lean-sst-parity.json).
+
+| 40-step path | Compared outputs | Result |
+| --- | --- | --- |
+| V6 mixing elbow, `wfgc` | fluxes, forces, loads, VTU, residual columns 1–7 | Identical on both backends |
+| elbow_param, `compressibility,ke-options` | Same five outputs | Identical on both backends |
+| Finest SST bump, compensation active | Cell fields, wall Cf, full history | Identical on both backends |
+| Finest SST and SA bumps, compensation active | Binary downloads of public velocity, pressure, mass flux, boundary pressure, scalars and eddy viscosity | Identical for all four model/backend pairs |
+
+The cleanup's full quick tier passes 307 cases and 7,990,154 assertions, and
+portability lint passes. The full singleton-default experiment continues on
+its original frozen binary; its results will not be attributed to this later
+cleanup. No default was promoted by the byte-parity checks.
 
 ### Exact fine-bump reproduction
 

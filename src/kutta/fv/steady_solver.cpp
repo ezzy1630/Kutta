@@ -269,7 +269,9 @@ struct SteadySolver::Impl {
         if(!settings.sst) {zero_mask=dev.alloc<Index>(n);dev.fill(zero_mask,0);}
         canonical_velocity=vector_field(dev,n);canonical_boundary_velocity=vector_field(dev,nb);
         canonical_mass=dev.alloc<float>(nf);high_face_velocity=vector_field(dev,nf);
-        for(auto& gradient:canonical_gradient) gradient=vector_field(dev,n);
+        // SST consumes its dedicated paired strain fit, not these ordinary
+        // velocity fits. Keep the low scratch for reconstruct_strain().
+        if(!settings.sst) for(auto& gradient:canonical_gradient) gradient=vector_field(dev,n);
         for(auto& gradient:canonical_low_gradient) gradient=vector_field(dev,n);
       }
       reset_paired();
@@ -612,6 +614,7 @@ struct SteadySolver::Impl {
       zone_physics->frame_normal_flux(),mesh.area.x,mesh.area.y,mesh.area.z,b.x,b.y,b.z,
       mesh.n_internal_faces,float(settings.density));
     reconstruct_velocity_lo();
+    if(settings.sst) return;
     const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
     const Buffer<float>* low[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
     const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};

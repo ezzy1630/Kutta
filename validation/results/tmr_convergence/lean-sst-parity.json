@@ -1,0 +1,130 @@
+{
+  "date_utc": "2026-11-03",
+  "baseline_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "change": "Omit unused canonical velocity gradient allocations and fits only in compensated SST. Ordinary defaults unchanged.",
+  "solver_cpp_sha256": "85e7a76fa15cfa67005f241a421d1825036b300fb66598097993e50b4871de33",
+  "cli": [
+    {
+      "case": "mixing_elbow",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      }
+    },
+    {
+      "case": "mixing_elbow",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      }
+    },
+    {
+      "case": "elbow_param",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      }
+    },
+    {
+      "case": "elbow_param",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      }
+    },
+    {
+      "case": "SST TMR finest bump (compensated momentum active)",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "cells.csv": true,
+        "wall_cf.csv": true,
+        "history.csv": true
+      }
+    },
+    {
+      "case": "SST TMR finest bump (compensated momentum active)",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "cells.csv": true,
+        "wall_cf.csv": true,
+        "history.csv": true
+      }
+    }
+  ],
+  "public_state": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "cells": 56320,
+      "iterations": 40,
+      "public_state_identical": true,
+      "device_bytes_before": 179067872,
+      "device_bytes_after": 177040352,
+      "bytes_saved_per_cell": 36.0,
+      "state_sha256": "6fdf06d9aad2f752b6f6c59ab802acd96b61b9a9163eda8f18a714c0a31f34ee"
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "cells": 56320,
+      "iterations": 40,
+      "public_state_identical": true,
+      "device_bytes_before": 179067872,
+      "device_bytes_after": 177040352,
+      "bytes_saved_per_cell": 36.0,
+      "state_sha256": "b13be53d5acc582eccc249c09231dfe12a44c0f9bd7fcda02e3818e5cd5335a9"
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "cells": 56320,
+      "iterations": 40,
+      "public_state_identical": true,
+      "device_bytes_before": 163938028,
+      "device_bytes_after": 163938028,
+      "bytes_saved_per_cell": 0.0,
+      "state_sha256": "2c2f7b10a7ce96b127bd954e5f19c830b3fd9f5b36d0285e8bc59e0c24b2be87"
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "cells": 56320,
+      "iterations": 40,
+      "public_state_identical": true,
+      "device_bytes_before": 163938028,
+      "device_bytes_after": 163938028,
+      "bytes_saved_per_cell": 0.0,
+      "state_sha256": "4363d77fb0cce1b2f99acf1a036715d57ea3eac068dc83be2a05f145449e30e5"
+    }
+  ],
+  "binaries": {
+    "build/exact-main/kutta": "49558155ab98f0619827b0469b4edb6505494c8926141080909cf152939c06f5",
+    "build/tmr-lean/kutta": "d8815e5c1d64686c7c99fb484479b8773e9940cb09099ceece42a0352157c47c",
+    "build/bench_tmr-baseline": "ec88647b403fd5c07ba8b77c93eca9689c1bf5bb2e5b2548b728b73269986eae",
+    "build/tmr-lean/bench_tmr": "1c913182b436e83ad4a172edb2418c1e3d1408860cf4a5dd6fe8d373eab5c1c5",
+    "build/tmr-probe/probe-state-before": "8b35c1a08e77247fd6dc1fc71c3ef79d5b23db5a9a32cb8bb507cf4b84748662",
+    "build/tmr-probe/probe-state-after": "c3e2b418dc78eb5f4a919d8e4bb10afac3e1aba39e83854d0d847816d1cad2dc"
+  }
+}
