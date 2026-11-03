@@ -92,8 +92,11 @@ def summarize(path):
     xs = -.222 * np.cos(phi)
     walls = report.walls(path)
     walls = walls[report.regions(walls, 35)['slant']]
+    down = np.array([np.cos(phi), 0, -np.sin(phi)])
+    reverse = -np.column_stack([walls[k] for k in ('tau_x', 'tau_y', 'tau_z')]) @ down < 0
     tree = cKDTree(np.column_stack([walls[k] for k in ('x', 'y', 'z')]))
     total = leading = area = leading_area = error = 0.
+    reverse_area = leading_reverse_area = 0.
     used = []
     for p in body_polygons(mesh):
         if np.max(np.abs(p[:, 2] - (.338 - (p[:, 0] - xs) * np.tan(phi)))) > 1e-8:
@@ -105,6 +108,9 @@ def summarize(path):
         cut = clipped_area(p, xs + .04)
         area += a
         leading_area += cut
+        if reverse[j]:
+            reverse_area += a
+            leading_reverse_area += cut
         pressure_normal = walls['cp'][j] * walls['nx'][j] / area_ref
         total += a * pressure_normal
         leading += cut * pressure_normal
@@ -115,7 +121,10 @@ def summarize(path):
         raise ValueError('clipped areas do not match the CAD slant')
     return dict(run=path.name, mesh_sha256=digest.hexdigest(), wall_identity_error_m=error,
                 full_slant_area=area, leading_area=leading_area, total_pressure=total,
-                leading_pressure=leading, remaining_pressure=total - leading)
+                leading_pressure=leading, remaining_pressure=total - leading,
+                reversed_fraction=reverse_area / area,
+                leading_reversed_fraction=leading_reverse_area / leading_area,
+                remaining_reversed_fraction=(reverse_area - leading_reverse_area) / (area - leading_area))
 
 
 def main():
