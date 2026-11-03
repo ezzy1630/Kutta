@@ -62,9 +62,10 @@ struct Options {
   // Existing pressure-face fallback; a discretization control, not a force gate.
   double poor_cell_quality = .05;
   // Convergence-path controls only; they do not change the steady fixed point.
-  // Relaxation 0 takes the scheme's Fluent default: SIMPLEC momentum 0.7 and
-  // pressure 1.0 (implicit), Coupled 0.5 and 0.5 (pseudo-transient explicit
-  // relaxation, as saved by Fluent's Coupled cases such as the V6 elbow).
+  // Zero selects SIMPLEC momentum/pressure 0.7/1.0 or Coupled 0.5/0.5.
+  // Pressure 0.5 is an explicit Ahmed settling control; retain the existing
+  // defaults because earlier stopping can change transition averages
+  // (validation/results/ahmed_drag/REPORT.md).
   double pseudo_time_step = 0, pseudo_time_scale = 1, momentum_relaxation = 0, pressure_relaxation = 0;
   int max_iterations = 6000, check_every = 50;
   bool write_cells = false;  // cells.csv with centroid, velocity, pressure, k, omega, mu_t
@@ -85,6 +86,7 @@ struct Result {
   Index cells = 0, poor_cells = 0;
   int iterations = 0;
   double setup_seconds = 0, solve_seconds = 0, lift = 0, drag = 0, drag_pressure = 0;
+  double momentum_relaxation = 0, pressure_relaxation = 0;
   double settle_lift = 0, settle_drag = 0, max_residual = 0;
   double wall_yplus_max = 0, wall_yplus_mean = 0;
   bool residuals_met = false, settled = false, stopped_for_budget = false;
@@ -188,6 +190,9 @@ inline Result run(Device& dev, const Options& o) {
   auto start = Clock::now();
   KUTTA_REQUIRE(std::filesystem::exists(o.mesh), "fsae_aero mesh missing (generate with tools/fsae_aero): " + o.mesh.string());
   KUTTA_REQUIRE(o.reynolds > 0, "fsae_aero: Reynolds number required");
+  KUTTA_REQUIRE(std::isfinite(o.momentum_relaxation) && o.momentum_relaxation >= 0 && o.momentum_relaxation <= 1 &&
+                    std::isfinite(o.pressure_relaxation) && o.pressure_relaxation >= 0 && o.pressure_relaxation <= 1,
+                "fsae_aero: relaxation overrides must lie in [0, 1]; zero selects the case default");
   KUTTA_REQUIRE(o.ground_condition == GroundCondition::Wall || o.moving_ground,
                 "fsae_aero: prescribed ground requires moving ground");
   auto mesh = read_fluent_msh(o.mesh, o.extrusion);
@@ -248,6 +253,8 @@ inline Result run(Device& dev, const Options& o) {
   Result r;
   r.cells = n;
   r.poor_cells = solver.poor_cells();
+  r.momentum_relaxation = s.momentum_relaxation;
+  r.pressure_relaxation = s.pressure_relaxation;
   r.setup_seconds = std::chrono::duration<double>(Clock::now() - start).count();
   start = Clock::now();
   std::ofstream history;
@@ -335,7 +342,8 @@ inline void print(std::ostream& out, const Result& r) {
   // JSON has no infinity; unsettled histories print null.
   const auto num = [&](double v) -> std::ostream& { return std::isfinite(v) ? out << v : out << "null"; };
   out << std::setprecision(10) << "{\"cells\":" << r.cells << ",\"poor_cells\":" << r.poor_cells << ",\"iterations\":" << r.iterations << ",\"setup_s\":" << r.setup_seconds
-      << ",\"solve_s\":" << r.solve_seconds << ",\"lift\":";
+      << ",\"solve_s\":" << r.solve_seconds << ",\"momentum_relaxation\":" << r.momentum_relaxation
+      << ",\"pressure_relaxation\":" << r.pressure_relaxation << ",\"lift\":";
   num(r.lift) << ",\"drag\":";
   num(r.drag) << ",\"drag_pressure\":";
   num(r.drag_pressure) << ",\"max_residual\":";
