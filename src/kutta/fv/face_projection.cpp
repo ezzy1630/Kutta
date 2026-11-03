@@ -2,6 +2,9 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <bit>
+#include <cstring>
+#include <unordered_map>
 #include <cmath>
 #include <map>
 #include <set>
@@ -14,6 +17,31 @@
 namespace kutta::fv {
 using namespace detail;
 namespace {
+// Intern stored float words, not numerically equal rows: signed zero and
+// every mantissa bit participate. Encounter order fixes the dictionary ids.
+struct ExactRows {std::vector<float> values;std::vector<Index> index;};
+template<int Width> ExactRows exact_rows(const std::vector<float>& values) {
+  KUTTA_REQUIRE(values.size()%Width==0 && values.size()/Width<=std::size_t(std::numeric_limits<Index>::max()),
+                "walk row table exceeds signed kernel index range");
+  const auto count=Index(values.size()/Width);
+  const auto hash=[&](Index row) {
+    std::size_t h=2166136261u;
+    for(int k=0;k<Width;++k) h=(h^std::bit_cast<std::uint32_t>(values[std::size_t(row)*Width+k]))*16777619u;
+    return h;
+  };
+  const auto equal=[&](Index a,Index b) {
+    return std::memcmp(values.data()+std::size_t(a)*Width,values.data()+std::size_t(b)*Width,Width*sizeof(float))==0;
+  };
+  std::unordered_map<Index,Index,decltype(hash),decltype(equal)> rows(0,hash,equal);
+  rows.reserve(count);
+  ExactRows out;out.index.reserve(count);
+  for(Index row=0;row<count;++row) {
+    const auto [at,inserted]=rows.emplace(row,Index(out.values.size()/Width));
+    if(inserted) out.values.insert(out.values.end(),values.begin()+std::size_t(row)*Width,values.begin()+std::size_t(row+1)*Width);
+    out.index.push_back(at->second);
+  }
+  return out;
+}
 constexpr int terms=10;
 using Row=std::array<double,terms>;
 using Matrix=std::array<Row,terms>;
@@ -316,7 +344,12 @@ WalkFaceReconstruction::WalkFaceReconstruction(Device& dev,const PolyMesh& mesh,
   for(int level=0;level<=hops;++level) {
     std::vector<float> values(std::size_t(terms)*cells);
     for(Index c=0;c<cells;++c) for(int k=0;k<terms;++k) values[std::size_t(c)*terms+k]=float(level_moments[c][k]);
-    geometry_[level]=dev.upload<float>(values);
+    auto packed=exact_rows<terms>(values);
+    // On irregular geometry a map can cost more than it saves. Keep dense
+    // rows in that case. In particular hop zero's interior row is (0,...,1).
+    indexed_geometry_[level]=packed.values.size()+packed.index.size()<values.size();
+    geometry_[level]=dev.upload<float>(indexed_geometry_[level]?packed.values:values);
+    geometry_rows_[level]=dev.upload<Index>(indexed_geometry_[level]?packed.index:std::vector<Index>{});
     if(level==hops) break;
     for(Index c=0;c<cells;++c) {
       auto m=level_moments[c];
@@ -352,22 +385,22 @@ void WalkFaceReconstruction::moments(const Buffer<float>& field,const Buffer<flo
   for(int level=0;level<hops;++level) {
     const int from=level%2,to=1-from;
     kern::fv_moment_hop(dev_,m.n_cells,m.cell_face_offsets,m.cell_faces,stencil_.adjacent,m.cell_face_sign,
-      m.owner_to_neighbour.x,m.owner_to_neighbour.y,m.owner_to_neighbour.z,field,geometry_[level],
-      moment_[from],moment_[to]);
+      m.owner_to_neighbour.x,m.owner_to_neighbour.y,m.owner_to_neighbour.z,field,geometry_[level],geometry_rows_[level],
+      moment_[from],moment_[to],indexed_geometry_[level]?1:0);
   }
   static_assert(hops%2==1,"moments() leaves the result in the second buffer");
 }
 void WalkFaceReconstruction::diffusion_correction(const Buffer<float>& field,const Buffer<float>& boundary,Buffer<float>& out) const {
   const auto& m=mesh_;moments(field,boundary);
   kern::fv_moment_diffusion(dev_,m.n_faces,m.owner,m.neighbour,slot_,m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
-    m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,field,geometry_[hops],moment_[1],coefficients_,out,m.n_internal_faces);
+    m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,field,geometry_[hops],geometry_rows_[hops],moment_[1],coefficients_,out,m.n_internal_faces,indexed_geometry_[hops]?1:0);
 }
 void WalkFaceReconstruction::momentum_values(const Buffer<float>& field,const Buffer<float>& boundary,
     const Buffer<float>& diagonal,Buffer<float>& out,const Buffer<float>* cell_limiter) const {
   const auto& m=mesh_;moments(field,boundary);
   kern::fv_moment_momentum(dev_,m.n_internal_faces,m.owner,m.neighbour,slot_,m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
-    m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,field,geometry_[hops],moment_[1],coefficients_,
-    diagonal,cell_limiter?*cell_limiter:diagonal,out,m.n_internal_faces,cell_limiter?1:0);
+    m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,field,geometry_[hops],geometry_rows_[hops],moment_[1],coefficients_,
+    diagonal,cell_limiter?*cell_limiter:diagonal,out,m.n_internal_faces,cell_limiter?1:0,indexed_geometry_[hops]?1:0);
 }
 void WalkFaceReconstruction::momentum_increment(const Buffer<float>& high,const Buffer<float>& low,
     const Buffer<float>& boundary_high,const Buffer<float>& boundary_low,const Buffer<float>& diagonal,
@@ -386,11 +419,11 @@ void WalkFaceReconstruction::momentum_increment(const Buffer<float>& high,const 
     const int from=level%2,to=1-from;
     kern::fv_paired_moment_hop(dev_,m.n_cells,m.cell_face_offsets,m.cell_faces,stencil_.adjacent,m.cell_face_sign,
       m.owner_to_neighbour.x,m.owner_to_neighbour.y,m.owner_to_neighbour.z,high,low,boundary_high,boundary_low,
-      geometry_[level],moment_[from],moment_[to],paired_bounds_[from],paired_bounds_[to]);
+      geometry_[level],geometry_rows_[level],moment_[from],moment_[to],paired_bounds_[from],paired_bounds_[to],indexed_geometry_[level]?1:0);
   }
   kern::fv_paired_moment_momentum(dev_,m.n_internal_faces,m.owner,m.neighbour,slot_,
     m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
-    high,low,boundary_high,boundary_low,geometry_[hops],paired_moment_,moment_[1],coefficients_,paired_bounds_[1],
-    diagonal,*cell_limiter,out,m.n_internal_faces);
+    high,low,boundary_high,boundary_low,geometry_[hops],geometry_rows_[hops],paired_moment_,moment_[1],coefficients_,paired_bounds_[1],
+    diagonal,*cell_limiter,out,m.n_internal_faces,indexed_geometry_[hops]?1:0);
 }
 } // namespace kutta::fv

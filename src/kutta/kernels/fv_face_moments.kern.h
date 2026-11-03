@@ -24,8 +24,9 @@ KUTTA_FN kmoment kmoment_shift(kmoment m,float dx,float dy,float dz) {
   return o;
 }
 // Moment of the anchored side, M_s+(q_s-anchor)G_s, moved by (dx,dy,dz).
-KUTTA_FN kmoment kmoment_side(KIn(float) moment,KIn(float) geometry,int s,float offset,float dx,float dy,float dz) {
-  kmoment m;for(int k=0;k<10;++k) m.v[k]=moment[s*KMOMENT_ROW+k]+offset*geometry[s*10+k];
+KUTTA_FN kmoment kmoment_side(KIn(float) moment,KIn(float) geometry,KIn(int) geometry_rows,int s,float offset,float dx,float dy,float dz,int indexed) {
+  int row=indexed!=0?geometry_rows[s]:s;
+  kmoment m;for(int k=0;k<10;++k) m.v[k]=moment[s*KMOMENT_ROW+k]+offset*geometry[row*10+k];
   return kmoment_shift(m,dx,dy,dz);
 }
 KUTTA_FN float kmoment_apply(KIn(float) coefficients,int slot,int functional,kmoment m) {
@@ -53,13 +54,13 @@ KUTTA_KERNEL void fv_moment_seed(int i,KIn(int) offsets,KIn(int) adjacent,KIn(in
 
 // M_c <- M_c + sum_d shift(M_d+(q_d-q_c)G_d, x_d-x_c), in fixed face order.
 KUTTA_KERNEL void fv_moment_hop(int i,KIn(int) offsets,KIn(int) faces,KIn(int) adjacent,KIn(float) sign,
-    KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) field,KIn(float) geometry,
-    KIn(float) moment,KOut(float) next) {
+    KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) field,KIn(float) geometry,KIn(int) geometry_rows,
+    KIn(float) moment,KOut(float) next,int indexed) {
   kmoment m;for(int k=0;k<10;++k) m.v[k]=moment[i*KMOMENT_ROW+k];
   float q=field[i],low=moment[i*KMOMENT_ROW+10],high=moment[i*KMOMENT_ROW+11];
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int d=adjacent[j];if(d<0) continue;int f=faces[j];float s=sign[j];
-    kmoment side=kmoment_side(moment,geometry,d,field[d]-q,s*dx[f],s*dy[f],s*dz[f]);
+    kmoment side=kmoment_side(moment,geometry,geometry_rows,d,field[d]-q,s*dx[f],s*dy[f],s*dz[f],indexed);
     for(int k=0;k<10;++k) m.v[k]+=side.v[k];
     low=kmin(low,moment[d*KMOMENT_ROW+10]);high=kmax(high,moment[d*KMOMENT_ROW+11]);
   }
@@ -69,12 +70,12 @@ KUTTA_KERNEL void fv_moment_hop(int i,KIn(int) offsets,KIn(int) faces,KIn(int) a
 
 KUTTA_FN kmoment kmoment_face(int i,KIn(int) owner,KIn(int) neighbour,
     KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
-    KIn(float) field,KIn(float) geometry,KIn(float) moment,int internal,float anchor) {
+    KIn(float) field,KIn(float) geometry,KIn(int) geometry_rows,KIn(float) moment,int internal,float anchor,int indexed) {
   int p=owner[i];
-  kmoment m=kmoment_side(moment,geometry,p,field[p]-anchor,-px[i],-py[i],-pz[i]);
+  kmoment m=kmoment_side(moment,geometry,geometry_rows,p,field[p]-anchor,-px[i],-py[i],-pz[i],indexed);
   if(i<internal) {
     int n=neighbour[i];
-    kmoment o=kmoment_side(moment,geometry,n,field[n]-anchor,-nx[i],-ny[i],-nz[i]);
+    kmoment o=kmoment_side(moment,geometry,geometry_rows,n,field[n]-anchor,-nx[i],-ny[i],-nz[i],indexed);
     for(int k=0;k<10;++k) m.v[k]+=o.v[k];
   }
   return m;
@@ -84,11 +85,11 @@ KUTTA_FN kmoment kmoment_face(int i,KIn(int) owner,KIn(int) neighbour,
 // diffusivity). Uncorrected faces write zero.
 KUTTA_KERNEL void fv_moment_diffusion(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) slot,
     KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
-    KIn(float) field,KIn(float) geometry,KIn(float) moment,KIn(float) coefficients,
-    KOut(float) correction,int internal) {
+    KIn(float) field,KIn(float) geometry,KIn(int) geometry_rows,KIn(float) moment,KIn(float) coefficients,
+    KOut(float) correction,int internal,int indexed) {
   int s=slot[i];if(s<0) {correction[i]=0.0f;return;}
   int p=owner[i];float anchor=i<internal?0.5f*(field[p]+field[neighbour[i]]):field[p];
-  kmoment m=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,field,geometry,moment,internal,anchor);
+  kmoment m=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,field,geometry,geometry_rows,moment,internal,anchor,indexed);
   correction[i]=kmoment_apply(coefficients,s,0,m);
 }
 
@@ -96,12 +97,12 @@ KUTTA_KERNEL void fv_moment_diffusion(int i,KIn(int) owner,KIn(int) neighbour,KI
 // fv_projected_momentum_faces.
 KUTTA_KERNEL void fv_moment_momentum(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) slot,
     KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
-    KIn(float) field,KIn(float) geometry,KIn(float) moment,KIn(float) coefficients,
-    KIn(float) diagonal,KIn(float) cell_limiter,KOut(float) face,int internal,int limit) {
+    KIn(float) field,KIn(float) geometry,KIn(int) geometry_rows,KIn(float) moment,KIn(float) coefficients,
+    KIn(float) diagonal,KIn(float) cell_limiter,KOut(float) face,int internal,int limit,int indexed) {
   int s=slot[i];if(s<0) return;
   int p=owner[i],n=neighbour[i];float w=diagonal[p]/(diagonal[p]+diagonal[n]);
   float cp=field[p],anchor=0.5f*(cp+field[n]);
-  kmoment m=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,field,geometry,moment,internal,anchor);
+  kmoment m=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,field,geometry,geometry_rows,moment,internal,anchor,indexed);
   float value=w*cp+(1.0f-w)*field[n]+kmoment_apply(coefficients,s,1,m)-(1.0f-w)*kmoment_apply(coefficients,s,2,m);
   if(limit!=0) {
     float theta=kmin(cell_limiter[p],cell_limiter[n]);
@@ -133,8 +134,8 @@ KUTTA_KERNEL void fv_paired_moment_seed(int i,KIn(int) offsets,KIn(int) adjacent
 
 KUTTA_KERNEL void fv_paired_moment_hop(int i,KIn(int) offsets,KIn(int) faces,KIn(int) adjacent,KIn(float) sign,
     KIn(float) dx,KIn(float) dy,KIn(float) dz,KIn(float) hi,KIn(float) lo,KIn(float) boundary_hi,KIn(float) boundary_lo,
-    KIn(float) geometry,KIn(float) moment,KOut(float) next,KIn(int) bounds,KOut(int) next_bounds) {
-  fv_moment_hop(i,offsets,faces,adjacent,sign,dx,dy,dz,lo,geometry,moment,next);
+    KIn(float) geometry,KIn(int) geometry_rows,KIn(float) moment,KOut(float) next,KIn(int) bounds,KOut(int) next_bounds,int indexed) {
+  fv_moment_hop(i,offsets,faces,adjacent,sign,dx,dy,dz,lo,geometry,geometry_rows,moment,next,indexed);
   int lower=bounds[2*i],upper=bounds[2*i+1];
   for(int j=offsets[i];j<offsets[i+1];++j) {
     int d=adjacent[j];if(d<0) continue;
@@ -147,14 +148,14 @@ KUTTA_KERNEL void fv_paired_moment_hop(int i,KIn(int) offsets,KIn(int) faces,KIn
 
 KUTTA_KERNEL void fv_paired_moment_momentum(int i,KIn(int) owner,KIn(int) neighbour,KIn(int) slot,
     KIn(float) px,KIn(float) py,KIn(float) pz,KIn(float) nx,KIn(float) ny,KIn(float) nz,
-    KIn(float) hi,KIn(float) lo,KIn(float) boundary_hi,KIn(float) boundary_lo,KIn(float) geometry,
+    KIn(float) hi,KIn(float) lo,KIn(float) boundary_hi,KIn(float) boundary_lo,KIn(float) geometry,KIn(int) geometry_rows,
     KIn(float) moment_hi,KIn(float) moment_lo,KIn(float) coefficients,KIn(int) bounds,
-    KIn(float) diagonal,KIn(float) cell_limiter,KOut(float) face,int internal) {
+    KIn(float) diagonal,KIn(float) cell_limiter,KOut(float) face,int internal,int indexed) {
   int s=slot[i];if(s<0) return;
   int p=owner[i],n=neighbour[i];float w=diagonal[p]/(diagonal[p]+diagonal[n]);
   float ah=0.5f*(hi[p]+hi[n]),al=0.5f*(lo[p]+lo[n]);
-  kmoment mh=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,hi,geometry,moment_hi,internal,ah);
-  kmoment ml=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,lo,geometry,moment_lo,internal,al);
+  kmoment mh=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,hi,geometry,geometry_rows,moment_hi,internal,ah,indexed);
+  kmoment ml=kmoment_face(i,owner,neighbour,px,py,pz,nx,ny,nz,lo,geometry,geometry_rows,moment_lo,internal,al,indexed);
   float vh=w*hi[p]+(1.0f-w)*hi[n]+kmoment_apply(coefficients,s,1,mh)-(1.0f-w)*kmoment_apply(coefficients,s,2,mh);
   float vl=w*lo[p]+(1.0f-w)*lo[n]+kmoment_apply(coefficients,s,1,ml)-(1.0f-w)*kmoment_apply(coefficients,s,2,ml);
   kpair minimum=kmoment_pair(bounds[2*p],hi,lo,boundary_hi,boundary_lo);

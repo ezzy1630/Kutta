@@ -89,6 +89,8 @@ class WalkFaceReconstruction final : public FaceReconstruction {
   std::vector<Index> observed_host_;
   Buffer<Index> observed_,slot_,mask_;
   Buffer<float> geometry_[hops+1],coefficients_;
+  Buffer<Index> geometry_rows_[hops+1];
+  bool indexed_geometry_[hops+1]{};
   mutable Buffer<float> moment_[2];
   // Allocated once on the first paired request (during solver setup).
   mutable Buffer<float> paired_moment_;
