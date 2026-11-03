@@ -327,8 +327,9 @@ struct SteadySolver::Impl {
       "FV: normal-foot pressure boundary gradients require least-squares gradients");
     // SST's strain and SA's gradients have only been verified with LSQ fits.
     KUTTA_REQUIRE(!green_gauss || (!settings.sst && !settings.sa),"FV: Green-Gauss gradients serve laminar and k-epsilon flows only");
+    auto lsq_workspace=std::make_shared<LeastSquaresWorkspace>();
     const auto fit=[&](std::span<const BoundaryObservation> observations) {
-      return green_gauss?green_gauss_cell(dev,host,geom):boundary_least_squares(dev,host,geom,observations,&stencil);
+      return green_gauss?green_gauss_cell(dev,host,geom):boundary_least_squares(dev,host,geom,observations,&stencil,lsq_workspace);
     };
     // The projected reconstruction is a quadratic least-squares extension of
     // the linear primary/secondary split; a Green-Gauss case keeps Fluent's
@@ -360,8 +361,9 @@ struct SteadySolver::Impl {
     // Resolved SA walls keep it, because their wall traction is the projected
     // wall flux.
     const bool momentum_diffusion=velocity_faces && !settings.sst && !settings.realizable_ke;
+    auto transport_scratch=std::make_shared<TransportWorkspace>(dev,n,nf);
     for(auto& eq:momentum) eq=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
-      momentum_diffusion?velocity_faces:nullptr,krylov_workspace);
+      momentum_diffusion?velocity_faces:nullptr,krylov_workspace,transport_scratch);
     if(paired && settings.compensated_momentum) for(auto& eq:momentum) eq->enable_compensated_assembly();
     memory::phase("transport");
     velocity_lsq=fit(independent_velocity);
@@ -407,15 +409,15 @@ struct SteadySolver::Impl {
                         && settings.gradient==GradientScheme::LeastSquares)) {
       std::vector<BoundaryObservation> strain_rows(nb);
       for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;
-      strain_lsq=boundary_least_squares(dev,host,geom,strain_rows,&stencil);
+      strain_lsq=boundary_least_squares(dev,host,geom,strain_rows,&stencil,lsq_workspace);
       jump_fit=face_jump_least_squares(dev,host,geom);
       for(int k=0;k<3;++k) {strain_base[k]=vector_field(dev,n);strain_gradient[k]=vector_field(dev,n);}
     }
     if(settings.sst) {
       const auto& t=*settings.sst;
       KUTTA_REQUIRE(t.k_relaxation>0 && t.k_relaxation<=1 && t.omega_relaxation>0 && t.omega_relaxation<=1,"FV invalid SST relaxation");
-      k_lsq=boundary_least_squares(dev,host,geom,independent_k,&stencil);
-      omega_lsq=boundary_least_squares(dev,host,geom,independent_omega,&stencil);
+      k_lsq=boundary_least_squares(dev,host,geom,independent_k,&stencil,lsq_workspace);
+      omega_lsq=boundary_least_squares(dev,host,geom,independent_omega,&stencil,lsq_workspace);
       memory::phase("turbulence-lsq");
       kinetic=dev.alloc<float>(n);omega=dev.alloc<float>(n);
       dev.fill(kinetic,t.model.k_floor);dev.fill(omega,t.model.omega_floor);
@@ -449,9 +451,9 @@ struct SteadySolver::Impl {
       for(Index b=0;b<nb;++b) if(kinds[b]==0) omega_observed[b]=Omitted;
       // Projected k diffusion had no measurable effect on V6; omega diffusion
       // on skewed faces was V6's largest turbulent-operator error.
-      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,nullptr,krylov_workspace);
+      k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,nullptr,krylov_workspace,transport_scratch);
       omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
-        walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,omega_observed),krylov_workspace);
+        walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,omega_observed),krylov_workspace,transport_scratch);
       if(t.compensated_transport) {k_equation->enable_compensated_solve();omega_equation->enable_compensated_solve();}
       k_equation->set_steady_tolerance(t.steady_tolerance);
       omega_equation->set_steady_tolerance(t.steady_tolerance);

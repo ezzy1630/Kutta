@@ -279,3 +279,43 @@ TEST_CASE("differentiable limiter bounds at zero threshold and passes small vari
     for(float v:dev->download(psi)) CHECK(v>.97f);
   }
 }
+
+TEST_CASE("FV shared LSQ inverse restores each boundary fit bitwise") {
+  for(const auto& mesh : {make_box_hex(6,5,4,{0,0,0},{1,1,1}),
+                          make_box_tet(5,4,3,{0,0,0},{1,1,1})}) {
+    const auto geometry=compute_geometry(mesh);
+    KUTTA_FOR_EACH_BACKEND(dev) {
+      auto device_mesh=upload_mesh(*dev,mesh,geometry);
+      auto stencil=fv::make_stencil(*dev,mesh,geometry);
+      auto workspace=std::make_shared<fv::LeastSquaresWorkspace>();
+      std::vector<fv::BoundaryLeastSquares> owned,shared;
+      for(const auto observation : {fv::BoundaryObservation::FaceValue,
+                                   fv::BoundaryObservation::Omitted,
+                                   fv::BoundaryObservation::NormalFootValue}) {
+        std::vector<fv::BoundaryObservation> observations(device_mesh.n_boundary_faces(),observation);
+        owned.push_back(fv::boundary_least_squares(*dev,mesh,geometry,observations,&stencil));
+        shared.push_back(fv::boundary_least_squares(*dev,mesh,geometry,observations,&stencil,workspace));
+      }
+      auto cell=dev->alloc<float>(mesh.n_cells),boundary=dev->alloc<float>(device_mesh.n_boundary_faces());
+      std::vector<float> values(mesh.n_cells);
+      for(Index c=0;c<mesh.n_cells;++c) values[c]=float(std::sin(c*.7)*100);
+      dev->upload<float>(cell,values);dev->fill(boundary,-.123f);
+      auto actual=fv::vector_field(*dev,mesh.n_cells),expected=fv::vector_field(*dev,mesh.n_cells);
+      // Alternate fits, including a return to the first one. The shared buffer
+      // must never retain the boundary rows of the preceding consumer.
+      for(auto k : {0,2,1,0,1,2}) {
+        const auto a=dev->download(shared[k].inverse_values(*dev));
+        const auto b=dev->download(owned[k].inverse);
+        REQUIRE(a.size()==b.size());
+        CHECK(std::memcmp(a.data(),b.data(),a.size()*sizeof(float))==0);
+        fv::gradient(*dev,device_mesh,stencil,shared[k],cell,boundary,actual);
+        fv::gradient(*dev,device_mesh,stencil,owned[k],cell,boundary,expected);
+        for(const auto pair : {std::pair{&actual.x,&expected.x},std::pair{&actual.y,&expected.y},
+                               std::pair{&actual.z,&expected.z}}) {
+          const auto x=dev->download(*pair.first),y=dev->download(*pair.second);
+          CHECK(std::memcmp(x.data(),y.data(),x.size()*sizeof(float))==0);
+        }
+      }
+    }
+  }
+}

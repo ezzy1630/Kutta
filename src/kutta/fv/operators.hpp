@@ -28,7 +28,18 @@ Stencil make_stencil(Device& dev, const PolyMesh& mesh, const MeshGeometry& geom
 // and equal Stencil::lsq_delta, so a fit built with a stencil uses the
 // stencil's rows and stores only its boundary-face rows; fits differing only
 // in boundary observations no longer each hold every row.
+// Sequential fits share the unchanged interior inverses. Each fit restores
+// its own boundary-cell rows before use on the ordered Device queue.
+struct LeastSquaresWorkspace {
+  Device* device=nullptr;
+  const PolyMesh* mesh=nullptr;
+  Buffer<float> inverse;
+  Buffer<Index> boundary_cells;
+};
 struct BoundaryLeastSquares {
+  const Buffer<float>& inverse_values(Device&) const;
+  std::shared_ptr<LeastSquaresWorkspace> workspace;
+  Buffer<float> boundary_inverse;
   const DeviceVec3& rows() const { return stencil_rows ? *stencil_rows : delta; }
   DeviceVec3 delta;           // owned entry rows; empty when stencil_rows is set
   DeviceVec3 boundary_delta;  // rows of boundary faces, by boundary face
@@ -41,7 +52,7 @@ enum class BoundaryObservation { Omitted, FaceValue, NormalFootValue };
 // Missing directions receive zero-difference rows in the null space only.
 BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& mesh,
     const MeshGeometry& geometry,std::span<const BoundaryObservation> observations,
-    const Stencil* stencil=nullptr);
+    const Stencil* stencil=nullptr, std::shared_ptr<LeastSquaresWorkspace> workspace={});
 // Per boundary face, sum_j |r_b . M^-1 w_j d_j| over its cell's rows: how far
 // that fit's extrapolation to the face centroid can amplify the neighbour
 // differences. At most 1, the extrapolated value stays within the cell value

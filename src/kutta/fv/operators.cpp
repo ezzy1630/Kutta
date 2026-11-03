@@ -164,7 +164,8 @@ std::vector<double> boundary_extrapolation_gain(const PolyMesh& m,const MeshGeom
 }
 
 BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
-    const MeshGeometry& g,std::span<const BoundaryObservation> observations,const Stencil* stencil) {
+    const MeshGeometry& g,std::span<const BoundaryObservation> observations,const Stencil* stencil,
+    std::shared_ptr<LeastSquaresWorkspace> workspace) {
   KUTTA_REQUIRE(observations.size()==std::size_t(m.n_faces()-m.n_internal_faces()),
                 "FV LSQ boundary mask size mismatch");
   const auto cf=build_cell_faces(m);
@@ -178,7 +179,28 @@ BoundaryLeastSquares boundary_least_squares(Device& dev,const PolyMesh& m,
   }
   BoundaryLeastSquares fit;
   fit.boundary_delta=vectors(dev,boundary_rows(m,cf,delta));
-  fit.inverse=dev.upload<float>(inverse);
+  if(workspace) {
+    KUTTA_REQUIRE((!workspace->device || workspace->device==&dev) &&
+                  (!workspace->mesh || workspace->mesh==&m),"FV LSQ workspace shared across devices or meshes");
+    workspace->device=&dev;workspace->mesh=&m;
+    std::vector<Index> boundary_cells;
+    for(Index c=0;c<m.n_cells;++c) {
+      bool boundary=false;
+      for(Index j=cf.offsets[c];j<cf.offsets[c+1];++j)
+        boundary=boundary || cf.faces[j]>=m.n_internal_faces();
+      if(boundary) boundary_cells.push_back(c);
+    }
+    if(!workspace->inverse.handle()) {
+      workspace->boundary_cells=dev.upload<Index>(boundary_cells);
+      workspace->inverse=dev.upload<float>(inverse);
+    }
+    const auto count=boundary_cells.size();
+    std::vector<float> values(6*count);
+    for(std::size_t b=0;b<count;++b) for(int k=0;k<6;++k)
+      values[b+k*count]=inverse[boundary_cells[b]+k*m.n_cells];
+    fit.boundary_inverse=dev.upload<float>(values);
+    fit.workspace=std::move(workspace);
+  } else fit.inverse=dev.upload<float>(inverse);
   if(stencil) {
     // Internal rows here and in make_stencil are the same double expression
     // (d/|d|^2 between centroids), so the stencil's floats are these rows.
@@ -250,19 +272,27 @@ void paired_jump_corrected_gradient(Device& dev,const DeviceMesh& m,const Stenci
     out.x,out.y,out.z,m.n_cells);
 }
 
+const Buffer<float>& BoundaryLeastSquares::inverse_values(Device& dev) const {
+  if(!workspace) return inverse;
+  const auto count=workspace->boundary_cells.size();
+  kern::fv_lsq_restore_inverse(dev,count,workspace->boundary_cells,boundary_inverse,
+    workspace->inverse,Index(count),Index(workspace->inverse.size()/6));
+  return workspace->inverse;
+}
+
 void gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
     const BoundaryLeastSquares& lsq,const Buffer<float>& cell,
     const Buffer<float>& bc,DeviceVec3& out) {
   const auto& rows=lsq.rows();
   kern::fv_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,rows.x,rows.y,rows.z,
-    lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse,cell,bc,out.x,out.y,out.z,m.n_cells);
+    lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse_values(dev),cell,bc,out.x,out.y,out.z,m.n_cells);
 }
 void paired_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
     const BoundaryLeastSquares& lsq,const Buffer<float>& cell,const Buffer<float>& low,
     const Buffer<float>& bc,const Buffer<float>& bc_low,DeviceVec3& high,DeviceVec3& low_result) {
   const auto& rows=lsq.rows();
   kern::fv_paired_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,rows.x,rows.y,rows.z,
-    lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse,
+    lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse_values(dev),
     cell,low,bc,bc_low,high.x,high.y,high.z,low_result.x,low_result.y,low_result.z,m.n_cells);
 }
 void vector_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
@@ -270,7 +300,7 @@ void vector_gradient(Device& dev,const DeviceMesh& m,const Stencil& s,
     DeviceVec3& u,DeviceVec3& v,DeviceVec3& w) {
   const auto& rows=lsq.rows();
   kern::fv_vector_gradient(dev,m.n_cells,m.cell_face_offsets,s.adjacent,rows.x,rows.y,rows.z,
-    lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse,
+    lsq.boundary_delta.x,lsq.boundary_delta.y,lsq.boundary_delta.z,lsq.inverse_values(dev),
     cell.x,cell.y,cell.z,bc.x,bc.y,bc.z,u.x,u.y,u.z,v.x,v.y,v.z,w.x,w.y,w.z,m.n_cells);
 }
 

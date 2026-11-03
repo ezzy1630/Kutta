@@ -155,7 +155,7 @@ struct CoupledSolver::Impl {
     const auto dx = dev.download(rows.x), dy = dev.download(rows.y), dz = dev.download(rows.z);
     const auto bx = dev.download(lsq.boundary_delta.x), by = dev.download(lsq.boundary_delta.y),
                bz = dev.download(lsq.boundary_delta.z);
-    const auto inverse = dev.download(lsq.inverse);
+    const auto inverse = dev.download(lsq.inverse_values(dev));
     const auto download3 = [&](const DeviceVec3& v) {
       return std::array{dev.download(v.x), dev.download(v.y), dev.download(v.z)};
     };

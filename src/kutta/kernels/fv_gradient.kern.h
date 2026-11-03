@@ -258,3 +258,9 @@ KUTTA_KERNEL void fv_paired_jump_gradient(int i,KIn(int) offsets,KIn(int) faces,
   c=kpair_product_add(c,.5f*inverse[i+5*n],bz.hi);c=kpair_product_add(c,.5f*inverse[i+5*n],bz.lo);
   x[i]=a.hi;y[i]=b.hi;z[i]=c.hi;
 }
+
+// Copy stored inverse words; the arithmetic in the gradient kernels is unchanged.
+KUTTA_KERNEL void fv_lsq_restore_inverse(int i,KIn(int) cells,KIn(float) values,
+    KOut(float) inverse,int count,int n) {
+  for(int k=0;k<6;++k) inverse[cells[i]+k*n]=values[i+k*count];
+}

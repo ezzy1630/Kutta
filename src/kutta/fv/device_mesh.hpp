@@ -45,7 +45,7 @@ struct DeviceMesh {
   DeviceVec3 area;                 // area vector S_f, out of owner
   DeviceVec3 owner_to_face;        // x_f - C_owner
   DeviceVec3 neighbour_to_face;    // x_f - C_neighbour, size n_internal_faces
-  DeviceVec3 owner_to_neighbour;   // C_neighbour - C_owner, size n_internal_faces;
+  DeviceVec3 owner_to_neighbour;   // C_neighbour - C_owner, size n_faces;
                                    // for boundary faces use owner_to_face
   Buffer<float> weight;            // owner interpolation weight w, phi_f = w*phi_P + (1-w)*phi_N,
                                    // size n_internal_faces

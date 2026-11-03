@@ -14,12 +14,14 @@ TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stenc
                                      const PolyMesh&,const MeshGeometry&,
                                      std::shared_ptr<CsrMatrix> shared_matrix,
                                      std::shared_ptr<const FaceReconstruction> diffusion_reconstruction,
-                                     std::shared_ptr<KrylovWorkspace> workspace)
+                                     std::shared_ptr<KrylovWorkspace> workspace,
+                                     std::shared_ptr<TransportWorkspace> scratch)
     :matrix_storage_(shared_matrix?std::move(shared_matrix):std::make_shared<CsrMatrix>(upload(dev,s.pattern))),
+     scratch_(scratch?std::move(scratch):std::make_shared<TransportWorkspace>(dev,m.n_cells,m.n_faces)),
      matrix(*matrix_storage_),rhs(dev.alloc<float>(m.n_cells)),
      diagonal(dev.alloc<float>(m.n_cells)),consistent_inverse(dev.alloc<float>(m.n_cells)),
      grad(vector_field(dev,m.n_cells)),limiter(dev.alloc<float>(m.n_cells)),
-     face_correction(dev.alloc<float>(m.n_faces)),dev_(dev),mesh_(m),stencil_(s) {
+     face_correction(scratch_->face_correction),dev_(dev),mesh_(m),stencil_(s),zero_(scratch_->zero) {
   KUTTA_REQUIRE(matrix.n_rows==m.n_cells && matrix.nnz==s.pattern.nnz(),"FV shared matrix pattern dimensions mismatch");
   // Jacobi/BiCGStab setup needs only a valid pattern and diagonal. Values are
   // refreshed from the assembled device matrix before every solve.
@@ -27,7 +29,8 @@ TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stenc
   for(auto j:s.pattern.diag) initial.val[j]=1;
   SolverOptions options;options.workspace=std::move(workspace);
   solver_=make_solver(transport_solver_kind,dev,initial,options);
-  zero_=dev.alloc<float>(m.n_cells);dev.fill(zero_,0);
+  KUTTA_REQUIRE(scratch_->device==&dev && zero_.size()==std::size_t(m.n_cells) && face_correction.size()==std::size_t(m.n_faces),
+                "FV transport workspace dimensions mismatch");
   set_reconstruction(std::move(diffusion_reconstruction));
 }
 

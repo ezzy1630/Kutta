@@ -36,14 +36,25 @@ struct TransportTerms {
 inline constexpr SolverKind transport_solver_kind=SolverKind::BicgstabJacobi;
 inline constexpr SolverKind pressure_solver_kind=SolverKind::AmgPcg;
 
+// Equation assemblies and physical residuals must execute sequentially on
+// one Device. RHS, diagonals, gradients and limiter fields remain per equation.
+struct TransportWorkspace {
+  TransportWorkspace(Device& dev,Index cells,Index faces)
+      :device(&dev),zero(dev.alloc<float>(cells)),face_correction(dev.alloc<float>(faces)) {dev.fill(zero,0);}
+  Device* device;
+  Buffer<float> zero,face_correction;
+};
+
 class TransportEquation {
   std::shared_ptr<CsrMatrix> matrix_storage_;
+  std::shared_ptr<TransportWorkspace> scratch_;
  public:
   TransportEquation(Device& dev, const DeviceMesh& mesh, const Stencil& stencil,
                     const PolyMesh& host, const MeshGeometry& geometry,
                     std::shared_ptr<CsrMatrix> shared_matrix={},
                     std::shared_ptr<const FaceReconstruction> diffusion_reconstruction={},
-                    std::shared_ptr<KrylovWorkspace> workspace={});
+                    std::shared_ptr<KrylovWorkspace> workspace={},
+                    std::shared_ptr<TransportWorkspace> scratch={});
   void assemble(const Buffer<float>& field, const Buffer<float>& face_values,
                 const Buffer<Index>& boundary_kind, const Buffer<float>& mass_flux,
                 const Buffer<float>& diffusivity, const Buffer<float>& source,
@@ -70,13 +81,14 @@ class TransportEquation {
   CsrMatrix& matrix;
   Buffer<float> rhs, diagonal, consistent_inverse;
   DeviceVec3 grad;
-  Buffer<float> limiter, face_correction;
+  Buffer<float> limiter;
+  Buffer<float>& face_correction;
  private:
   Device& dev_;
   const DeviceMesh& mesh_;
   const Stencil& stencil_;
   std::unique_ptr<LinearSolver> solver_;
-  Buffer<float> zero_;
+  Buffer<float>& zero_;
   Buffer<float> rhs_low_,diagonal_low_,scalar_delta_,scalar_residual_;
   struct SteadyStopping {double tolerance;Buffer<float> residual,absolute,scale;};
   std::optional<SteadyStopping> steady_stopping_;
