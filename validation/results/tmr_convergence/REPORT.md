@@ -867,7 +867,10 @@ These probes use the coarse TMR plate geometry with ordinary solver controls,
 independently of the TMR harness opt-ins. The baseline is rebuilt from exact
 main `e014e36` solver sources, with only the independent diagnostic benchmark
 added; all 165 solver source files match main. Each sample's emitted settings
-are checked. Enabling only compensated momentum gives:
+are checked with
+[`check_solver_controls.py`](../../../tools/forensics/check_solver_controls.py).
+That check accepts the corrected baseline log and rejects the actual mislabeled
+log. Enabling only compensated momentum gives:
 
 | Model/backend | Outer steps, before → after | Momentum inner steps | Pressure inner steps | Scalar inner steps |
 |---|---:|---:|---:|---:|
