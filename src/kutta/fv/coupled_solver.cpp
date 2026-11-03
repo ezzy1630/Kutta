@@ -91,7 +91,7 @@ struct Level {
   Index n = 0, nnz = 0;
   Buffer<Index> rows, cols, diag;
   Buffer<float> a, c, g, h, d;  // g, h: 3*nnz, d: 11n (see fv_coupled.kern.h)
-  Buffer<float> x, b, r, tmp;
+  Buffer<float> x, b, tmp;
 };
 }  // namespace
 
@@ -106,7 +106,7 @@ struct CoupledSolver::Impl {
   // Fine cell blocks and directed-edge coefficients, refreshed once per solve.
   Buffer<float> fine_coefficients;
   Index fine_entries = 0;
-  Buffer<float> cell, coefficient, fine_r, fine_tmp;  // cell: [du|dv|dw|cd|G|H|Q|cs|block inverse], 27n
+  Buffer<float> cell, coefficient, fine_tmp;  // cell: [du|dv|dw|cd|G|H|Q|cs|block inverse], 27n
   std::vector<Transfer> transfers;  // transfers[k]: level k -> k+1
   std::vector<Level> levels;        // coarse levels 1..L, stored at [0..L-1]
   // Krylov workspace over 4n.
@@ -202,7 +202,7 @@ struct CoupledSolver::Impl {
     fine_coefficients = alloc<float>(5 * std::size_t(fine_entries));
     cell = upload(packed);
     coefficient = alloc<float>(nf);
-    fine_r = alloc<float>(4 * std::size_t(n)); fine_tmp = alloc<float>(4 * std::size_t(n));
+    fine_tmp = alloc<float>(4 * std::size_t(n));
     for (auto* v : {&x, &b, &r, &shadow, &p, &q, &s, &t, &z, &zs}) *v = alloc<float>(4 * std::size_t(n));
     scalars = alloc<float>(24); gauge = alloc<float>(2); status = alloc<Index>(3);
     dev.fill(x, 0);
@@ -273,7 +273,7 @@ struct CoupledSolver::Impl {
       level.a = alloc<float>(cols.size()); level.c = alloc<float>(cols.size());
       level.g = alloc<float>(3 * cols.size()); level.h = alloc<float>(3 * cols.size());
       level.d = alloc<float>(11 * std::size_t(count));
-      for (auto* v : {&level.x, &level.b, &level.r, &level.tmp}) *v = alloc<float>(4 * std::size_t(count));
+      for (auto* v : {&level.x, &level.b, &level.tmp}) *v = alloc<float>(4 * std::size_t(count));
       levels.push_back(std::move(level));
       graph = std::move(coarse);
       rows_now = count;
@@ -316,9 +316,11 @@ struct CoupledSolver::Impl {
     }
     auto& c = levels[k + 1];
     coarse_smooth(l, options.pre_sweeps, true);
+    // Restriction consumes tmp before post-smoothing reuses it.
+    KUTTA_REQUIRE(l.x.handle()!=l.tmp.handle(), "coupled: smoother scratch aliases solution");
     kern::coupled_coarse_residual(dev, l.n, l.rows, l.cols, l.diag, l.a, l.c, l.g, l.h, l.d,
-        l.x, l.b, l.r, l.n, l.nnz);
-    kern::coupled_restrict(dev, c.n, transfers[k + 1].member_offsets, transfers[k + 1].members, l.r, c.b, l.n, c.n);
+        l.x, l.b, l.tmp, l.n, l.nnz);
+    kern::coupled_restrict(dev, c.n, transfers[k + 1].member_offsets, transfers[k + 1].members, l.tmp, c.b, l.n, c.n);
     cycle(k + 1);
     kern::coupled_prolong(dev, l.n, transfers[k + 1].aggregate, c.x, l.x, l.n, c.n);
     coarse_smooth(l, options.post_sweeps, false);
@@ -328,8 +330,9 @@ struct CoupledSolver::Impl {
     fine_smooth(out, rhs, options.pre_sweeps, true);
     if (!levels.empty()) {
       auto& c = levels[0];
-      fine_residual(out, rhs, fine_r);
-      kern::coupled_restrict(dev, c.n, transfers[0].member_offsets, transfers[0].members, fine_r, c.b, n, c.n);
+      KUTTA_REQUIRE(out.handle()!=fine_tmp.handle(), "coupled: smoother scratch aliases solution");
+      fine_residual(out, rhs, fine_tmp);
+      kern::coupled_restrict(dev, c.n, transfers[0].member_offsets, transfers[0].members, fine_tmp, c.b, n, c.n);
       cycle(0);
       kern::coupled_prolong(dev, n, transfers[0].aggregate, c.x, out, n, c.n);
     }
