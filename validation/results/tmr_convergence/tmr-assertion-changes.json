@@ -1,0 +1,864 @@
+{
+  "baseline_revision": "8866cc0e16df5b0642b2243611099ddccd7f3cd3",
+  "tested_revision": "96d8b34615f88b28fb5db2cefe45baad13cb4446",
+  "changes": [
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "42",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: cpu",
+          "level: 0"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "42",
+        "CHECK",
+        "r.iterations<=3000",
+        [
+          "backend: cpu",
+          "level: 0"
+        ],
+        0
+      ],
+      "before": "3000 <= 3000",
+      "after": "300 <= 3000",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "42",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: cpu",
+          "level: 1"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "42",
+        "CHECK",
+        "r.iterations<=3000",
+        [
+          "backend: cpu",
+          "level: 1"
+        ],
+        0
+      ],
+      "before": "3000 <= 3000",
+      "after": "800 <= 3000",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "45",
+        "CHECK",
+        "relative(r.values.cf[0],ref_cf)<=.05",
+        [
+          "backend: cpu",
+          "level: 2"
+        ],
+        0
+      ],
+      "before": "0.00853258 <= 0.05",
+      "after": "0.00850031 <= 0.05",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "45",
+        "CHECK",
+        "relative(r.values.drag,ref_cd)<=.07",
+        [
+          "backend: cpu",
+          "level: 2"
+        ],
+        0
+      ],
+      "before": "0.00826578 <= 0.07",
+      "after": "0.00822802 <= 0.07",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "42",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: metal",
+          "level: 0"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "42",
+        "CHECK",
+        "r.iterations<=3000",
+        [
+          "backend: metal",
+          "level: 0"
+        ],
+        0
+      ],
+      "before": "3000 <= 3000",
+      "after": "300 <= 3000",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "42",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: metal",
+          "level: 2"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "45",
+        "CHECK",
+        "relative(r.values.cf[0],ref_cf)<=.05",
+        [
+          "backend: metal",
+          "level: 2"
+        ],
+        0
+      ],
+      "before": "0.0085339 <= 0.05",
+      "after": "0.0084899 <= 0.05",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "45",
+        "CHECK",
+        "relative(r.values.drag,ref_cd)<=.07",
+        [
+          "backend: metal",
+          "level: 2"
+        ],
+        0
+      ],
+      "before": "0.0082646 <= 0.07",
+      "after": "0.00821515 <= 0.07",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.632197"
+        ],
+        0
+      ],
+      "before": "0.0415317 <= 0.1",
+      "after": "0.00993477 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.632197"
+        ],
+        0
+      ],
+      "before": "0.00241247 <= 0.03",
+      "after": "0.000416842 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.75"
+        ],
+        0
+      ],
+      "before": "0.0834435 <= 0.1",
+      "after": "0.0420726 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.75"
+        ],
+        0
+      ],
+      "before": "0.00825975 <= 0.03",
+      "after": "0.0138515 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.867803"
+        ],
+        0
+      ],
+      "before": "0.145326 <= 0.1",
+      "after": "0.0186569 <= 0.1",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "level: 2",
+          "station: 0.867803"
+        ],
+        0
+      ],
+      "before": "0.0105778 <= 0.03",
+      "after": "0.00533853 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: metal",
+          "level: 2",
+          "station: 0.632197"
+        ],
+        0
+      ],
+      "before": "0.0415283 <= 0.1",
+      "after": "0.0099198 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: metal",
+          "level: 2",
+          "station: 0.632197"
+        ],
+        0
+      ],
+      "before": "0.00240916 <= 0.03",
+      "after": "0.000415291 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: metal",
+          "level: 2",
+          "station: 0.75"
+        ],
+        0
+      ],
+      "before": "0.0834492 <= 0.1",
+      "after": "0.0420715 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: metal",
+          "level: 2",
+          "station: 0.75"
+        ],
+        0
+      ],
+      "before": "0.00824959 <= 0.03",
+      "after": "0.0138529 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cf_error<=.1",
+        [
+          "backend: metal",
+          "level: 2",
+          "station: 0.867803"
+        ],
+        0
+      ],
+      "before": "0.145348 <= 0.1",
+      "after": "0.0186643 <= 0.1",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "70",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: metal",
+          "level: 2",
+          "station: 0.867803"
+        ],
+        0
+      ],
+      "before": "0.0106014 <= 0.03",
+      "after": "0.00532336 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "25",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: cpu",
+          "case <pointer-1> level 0"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "25",
+        "CHECK",
+        "r.iterations<=3000",
+        [
+          "backend: cpu",
+          "case <pointer-1> level 0"
+        ],
+        0
+      ],
+      "before": "3000 <= 3000",
+      "after": "400 <= 3000",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "25",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: cpu",
+          "case <pointer-1> level 1"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "25",
+        "CHECK",
+        "r.iterations<=3000",
+        [
+          "backend: cpu",
+          "case <pointer-1> level 1"
+        ],
+        0
+      ],
+      "before": "3000 <= 3000",
+      "after": "900 <= 3000",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "27",
+        "CHECK",
+        "cd_error<=(plate?.07:.1)",
+        [
+          "backend: cpu",
+          "case <pointer-1> level 2"
+        ],
+        0
+      ],
+      "before": "0.0072247 <= 0.07",
+      "after": "0.00728102 <= 0.07",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "31",
+        "CHECK",
+        "cf_error<=(plate?.05:.1)",
+        [
+          "backend: cpu",
+          "case <pointer-1> level 2"
+        ],
+        0
+      ],
+      "before": "0.00784998 <= 0.05",
+      "after": "0.00792135 <= 0.05",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "25",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: metal",
+          "case <pointer-1> level 0"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "25",
+        "CHECK",
+        "r.iterations<=3000",
+        [
+          "backend: metal",
+          "case <pointer-1> level 0"
+        ],
+        0
+      ],
+      "before": "3000 <= 3000",
+      "after": "300 <= 3000",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "27",
+        "CHECK",
+        "cd_error<=(plate?.07:.1)",
+        [
+          "backend: metal",
+          "case <pointer-1> level 2"
+        ],
+        0
+      ],
+      "before": "0.00722311 <= 0.07",
+      "after": "0.00728101 <= 0.07",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "31",
+        "CHECK",
+        "cf_error<=(plate?.05:.1)",
+        [
+          "backend: metal",
+          "case <pointer-1> level 2"
+        ],
+        0
+      ],
+      "before": "0.0078506 <= 0.05",
+      "after": "0.00792135 <= 0.05",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "27",
+        "CHECK",
+        "cd_error<=(plate?.07:.1)",
+        [
+          "backend: cpu",
+          "case <pointer-2> level 2"
+        ],
+        0
+      ],
+      "before": "0.0858659 <= 0.1",
+      "after": "0.012653 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "31",
+        "CHECK",
+        "cf_error<=(plate?.05:.1)",
+        [
+          "backend: cpu",
+          "case <pointer-2> level 2"
+        ],
+        0
+      ],
+      "before": "0.0465827 <= 0.1",
+      "after": "0.00713723 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "34",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "case <pointer-2> level 2"
+        ],
+        0
+      ],
+      "before": "0.00151801 <= 0.03",
+      "after": "0.00015799 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "31",
+        "CHECK",
+        "cf_error<=(plate?.05:.1)",
+        [
+          "backend: cpu",
+          "case <pointer-2> level 2"
+        ],
+        1
+      ],
+      "before": "0.0690553 <= 0.1",
+      "after": "0.0270402 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "34",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "case <pointer-2> level 2"
+        ],
+        1
+      ],
+      "before": "0.0083032 <= 0.03",
+      "after": "0.0133233 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "31",
+        "CHECK",
+        "cf_error<=(plate?.05:.1)",
+        [
+          "backend: cpu",
+          "case <pointer-2> level 2"
+        ],
+        2
+      ],
+      "before": "0.14993 <= 0.1",
+      "after": "0.0145208 <= 0.1",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "34",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: cpu",
+          "case <pointer-2> level 2"
+        ],
+        2
+      ],
+      "before": "0.0080498 <= 0.03",
+      "after": "0.00418225 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "27",
+        "CHECK",
+        "cd_error<=(plate?.07:.1)",
+        [
+          "backend: metal",
+          "case <pointer-2> level 2"
+        ],
+        0
+      ],
+      "before": "0.0858846 <= 0.1",
+      "after": "0.0126414 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "31",
+        "CHECK",
+        "cf_error<=(plate?.05:.1)",
+        [
+          "backend: metal",
+          "case <pointer-2> level 2"
+        ],
+        0
+      ],
+      "before": "0.04656 <= 0.1",
+      "after": "0.00713634 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "34",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: metal",
+          "case <pointer-2> level 2"
+        ],
+        0
+      ],
+      "before": "0.00149651 <= 0.03",
+      "after": "0.000154786 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "31",
+        "CHECK",
+        "cf_error<=(plate?.05:.1)",
+        [
+          "backend: metal",
+          "case <pointer-2> level 2"
+        ],
+        1
+      ],
+      "before": "0.0690407 <= 0.1",
+      "after": "0.0270388 <= 0.1",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "34",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: metal",
+          "case <pointer-2> level 2"
+        ],
+        1
+      ],
+      "before": "0.00830856 <= 0.03",
+      "after": "0.0133239 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "31",
+        "CHECK",
+        "cf_error<=(plate?.05:.1)",
+        [
+          "backend: metal",
+          "case <pointer-2> level 2"
+        ],
+        2
+      ],
+      "before": "0.149882 <= 0.1",
+      "after": "0.0145246 <= 0.1",
+      "baseline_passed": false,
+      "final_passed": true
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "34",
+        "CHECK",
+        "cp_error<=.03",
+        [
+          "backend: metal",
+          "case <pointer-2> level 2"
+        ],
+        2
+      ],
+      "before": "0.00801238 <= 0.03",
+      "after": "0.00418515 <= 0.03",
+      "baseline_passed": true,
+      "final_passed": true
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "main_poor_cell_changed_values": 31,
+  "changed_values": 52,
+  "changed_by_case": {
+    "FSAE aero: Ahmed body 35 deg drag, level 1": 1,
+    "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled": 4,
+    "V5 TMR flat plate SST accuracy and three-grid trend": 11,
+    "V5 TMR bump SST station accuracy and three-grid trend": 12,
+    "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend": 24
+  },
+  "non_tmr_changed_values": 5,
+  "non_tmr_matches_22e65c7": 5,
+  "unexpected_changed_values": 0,
+  "non_tmr": [
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "source": "tests/fv/test_fsae_aero.cpp:132",
+      "occurrence": 0,
+      "assertion_sha256": "eb8726dd1cf8d5765ce1295ab4d37fc51f31290ef680b12b9a5eed4778d68784",
+      "matches_22e65c7": true,
+      "before_sha256": "76047d7caa9f65fa77c8df5e8bebc110c82bd2435064921ad690116bb371d869",
+      "after_sha256": "3a71bc8e11ab0b8ddc7d95cef685cd5694377d146d71cef9b7bfbcb01659c781"
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "source": "tests/fv/test_fsae_aero.cpp:176",
+      "occurrence": 0,
+      "assertion_sha256": "9500d3462f3862ca7a8e4038f668732e6581bdd42c84507c40c763093bdad377",
+      "matches_22e65c7": true,
+      "before_sha256": "c090cfaa7ecb0ca2a664e5882baecffcb3ee917452812dbc5240ee805a87600b",
+      "after_sha256": "311c58128911fd7cdf665cb936ce0a307279c37666255dc4a48e2c3a6bd18602"
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "source": "tests/fv/test_fsae_aero.cpp:178",
+      "occurrence": 0,
+      "assertion_sha256": "6b50ab537474dc580dc79b137c31a61a6bbe6921c7b67c1bfdfe37807f9caa16",
+      "matches_22e65c7": true,
+      "before_sha256": "545d975aed3e0ded4f37f9d5db49cdea2045c577cc5b0033cf2bd1c109632245",
+      "after_sha256": "8c087aa9bbf93196871e9f06d7c471f3d4c832c0feb39a962e00c89e73bdf2e0"
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "source": "tests/fv/test_fsae_aero.cpp:185",
+      "occurrence": 0,
+      "assertion_sha256": "a1fe1f2d3db08efb945775ebcd9175431b1099cfbd9ab58d84f5c5aec9d7b784",
+      "matches_22e65c7": true,
+      "before_sha256": "f74f9d04e1cb09c5d111e0385b817a21a73c5c99efcd1444d779a233d9e01542",
+      "after_sha256": "3f35a4408b20601e30e908fa7e83069d520e4b77c9aa851b31494dec69a79504"
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "source": "tests/fv/test_fsae_aero.cpp:186",
+      "occurrence": 0,
+      "assertion_sha256": "360ec655cdde225692b08859749a6cafaec3225d4540683b5cab693646e3df66",
+      "matches_22e65c7": true,
+      "before_sha256": "d7d06278c61afd5b0fcf2c3d64adc0ab11537ab57cb5cb8a49e57578ac9e2226",
+      "after_sha256": "0a6cf8937148506d0483d35ddcc71721a1c499c05059fa4146c02cc19227deec"
+    }
+  ],
+  "regressions": 0,
+  "recoveries": 11,
+  "missing_assertions": 0,
+  "new_assertions": 0
+}

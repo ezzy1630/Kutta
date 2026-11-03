@@ -1,25 +1,29 @@
 # NASA TMR convergence investigation
 
-This work is incomplete. The final source is `d823d6e`. Its quick tier passes
-299 cases and 7,457,758 assertions, but the user interruption stopped its slow
-run after 23 of 37 cases. Twenty of 24 TMR solves completed: seven converged,
-13 failed convergence, and four were not completed. No complete regression
-comparison exists for this final source.
+The rebased source completes all 37 slow cases and matches all 201,633 assertion
+identities against main `8866cc0`. TMR failures fall from 28 to
+17; total slow failures fall from 62 to 51.
+There are 11 recoveries, zero regressions and zero missing or new
+assertions. All four previously failing TMR accuracy assertions pass.
+The remaining TMR failures are convergence gates; this matrix does not fully pass.
 
-The preceding source `86a665a` completed the entire slow tier. TMR failures
-fell from 28 to 17, and total slow failures from 62 to 51. It recovered all
-four accuracy assertions and seven convergence assertions, with zero
-regressions against main. Those complete results belong to `86a665a`.
-They are not substituted for the unfinished validation of `d823d6e`.
+Quick validation passes 307 cases and 7,990,154 assertions. All six requested
+40-iteration elbow case/backend pairs match main `271b31f` byte for byte across
+five outputs. The standard-k-epsilon JumpCorrected opt-in also matches main on
+CPU and Metal in exported cell fields and wall diagnostics.
 
 ## Protocol and provenance
 
-The starting revision is main `8866cc0e16df5b0642b2243611099ddccd7f3cd3`.
-The final solver source is `d823d6e9c7675aecd10eb74dbd983b6e3206ebde`,
-built from main in twelve focused local commits, including the comparison-tool correction. The report commit changes documentation only. The binary and XML hashes are recorded below. The final slow XML is incomplete.
+The original baseline is main `8866cc0e16df5b0642b2243611099ddccd7f3cd3`.
+The branch is rebased onto `271b31f7a96bbbc39eda3dd59721c9667d51ff46`.
+The final numerical source and validation revision is
+`96d8b34615f88b28fb5db2cefe45baad13cb4446`. It adds the paired poor-interface integration
+correction after the derivative correction in `355e80b`. The concluding commit updates evidence
+only. Binary and XML hashes below bind the completed run to this source.
+
 The machine is an Apple M4 Pro with 24 GB unified memory. CPU is the serial
-reference backend and Metal uses the actual GPU. This lane runs one heavy
-solve at a time. Shared-machine wall times are not performance evidence.
+reference backend and Metal uses the actual GPU. One heavy solve ran at a time.
+Shared-machine wall times are not performance evidence.
 
 Every NASA grid/backend keeps its 3,000-step outer budget. Uniform initialization,
 meshes, freestream data, turbulence formulations, first-order turbulence
@@ -33,7 +37,7 @@ reproduction before that full baseline became available. None converged. The
 full baseline has 28 failing target assertions: 24 convergence and four
 aft-bump Cf accuracy assertions. Every failure is enumerated below.
 All `failure.empty()`, finite-value and load-availability assertions pass;
-there is no reproduced coarse-grid divergence on current main.
+there is no reproduced coarse-grid divergence on starting main `8866cc0`.
 
 | Model/case | Backend | Level | Continuity | Largest transport defect | Load change | Classification of failed convergence assertion |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
@@ -195,113 +199,159 @@ arithmetic behavior; the full matrix determines whether a flow passes.
 | Extremum carried only by the low gradient | Limiter 1 permits an undershoot | Limiter 0; actual low boundary observations retained |
 | Scalar already below inner tolerance; then change its source | Repeated roundoff chasing | Initial hold, followed by a real solve when source changes |
 
-### Final TMR measurements
+## Integrated TMR measurements
 
-The following complete before/after tables are for `86a665a`, the latest
-source with a completed full slow comparison. They do not describe the final
-source's unfinished runs.
+These are the complete final integrated results, compared with the original
+`8866cc0` baseline. Main's poor-cell correction is included in the final source,
+so bump differences combine that change with this lane's retained changes.
+No final field shift is attributed to an individual fix without an isolating
+experiment.
 
 | Model/case | Backend | Level | Converged before -> after | Steps after | Continuity before -> after | Maximum defect before -> after |
 | --- | --- | ---: | --- | ---: | --- | --- |
-| SST plate | cpu | 0 | False -> False | 3000 | 0.0001487815 -> 2.797489e-05 | 0.0001487815 -> 2.797489e-05 |
-| SST plate | cpu | 1 | False -> True | 800 | 0.0004876112 -> 6.156166e-06 | 0.0004876112 -> 6.156166e-06 |
-| SST plate | cpu | 2 | False -> False | 3000 | 0.007514194 -> 3.308411e-05 | 0.007514194 -> 3.308411e-05 |
-| SST plate | metal | 0 | False -> True | 300 | 0.0001835793 -> 5.655623e-06 | 0.0001835793 -> 5.655623e-06 |
-| SST plate | metal | 1 | False -> True | 800 | 0.0004031023 -> 8.894132e-06 | 0.0004031023 -> 8.894132e-06 |
-| SST plate | metal | 2 | False -> False | 3000 | 0.005696822 -> 1.908685e-05 | 0.005696822 -> 1.908685e-05 |
-| SST bump | cpu | 0 | False -> False | 3000 | 2.269245e-05 -> 1.228549e-05 | 0.000208247 -> 2.17146e-05 |
-| SST bump | cpu | 1 | False -> False | 3000 | 1.549432e-05 -> 3.558996e-05 | 3.567575e-05 -> 3.558996e-05 |
-| SST bump | cpu | 2 | False -> False | 3000 | 1.654531e-05 -> 9.009671e-06 | 0.0001197847 -> 2.570007e-05 |
-| SST bump | metal | 0 | False -> False | 3000 | 3.513322e-05 -> 3.460595e-05 | 0.0002082479 -> 3.460595e-05 |
-| SST bump | metal | 1 | False -> False | 3000 | 2.633376e-05 -> 2.467168e-05 | 3.56816e-05 -> 2.467168e-05 |
-| SST bump | metal | 2 | False -> False | 3000 | 1.397719e-05 -> 8.615868e-06 | 0.0001197803 -> 2.579496e-05 |
-| SA plate | cpu | 0 | False -> True | 300 | 0.0002559519 -> 3.318106e-06 | 0.0002559519 -> 3.318106e-06 |
-| SA plate | cpu | 1 | False -> True | 900 | 0.0006237517 -> 3.411298e-06 | 0.0006237517 -> 3.411298e-06 |
-| SA plate | cpu | 2 | False -> False | 3000 | 0.006870226 -> 1.859997e-05 | 0.006870226 -> 1.859997e-05 |
-| SA plate | metal | 0 | False -> True | 300 | 0.0003023776 -> 3.346611e-06 | 0.0003023776 -> 3.346611e-06 |
-| SA plate | metal | 1 | False -> True | 900 | 0.0004093038 -> 4.425867e-06 | 0.0004093038 -> 4.425867e-06 |
-| SA plate | metal | 2 | False -> False | 3000 | 0.005286517 -> 1.645356e-05 | 0.005286517 -> 1.645356e-05 |
-| SA bump | cpu | 0 | False -> False | 3000 | 3.560498e-05 -> 3.381407e-05 | 0.0007388555 -> 3.381407e-05 |
-| SA bump | cpu | 1 | False -> False | 3000 | 1.393743e-05 -> 2.207364e-05 | 0.0002499332 -> 4.116973e-05 |
-| SA bump | cpu | 2 | False -> False | 3000 | 2.786607e-05 -> 1.347539e-05 | 0.0002351986 -> 6.127949e-05 |
-| SA bump | metal | 0 | False -> False | 3000 | 3.013505e-05 -> 2.816948e-05 | 0.0007388047 -> 2.816948e-05 |
-| SA bump | metal | 1 | False -> False | 3000 | 2.966741e-05 -> 3.081602e-05 | 0.0002499212 -> 4.124761e-05 |
-| SA bump | metal | 2 | False -> False | 3000 | 1.204483e-05 -> 1.208387e-05 | 0.0002351449 -> 6.128517e-05 |
+| SST plate | cpu | 0 | False -> True | 300 | 0.0001487815 -> 1.086581e-06 | 0.0001487815 -> 1.086581e-06 |
+| SST plate | cpu | 1 | False -> True | 800 | 0.0004876112 -> 4.278579e-06 | 0.0004876112 -> 4.278579e-06 |
+| SST plate | cpu | 2 | False -> False | 3000 | 0.007514194 -> 1.90981e-05 | 0.007514194 -> 1.90981e-05 |
+| SST plate | metal | 0 | False -> True | 300 | 0.0001835793 -> 1.86489e-06 | 0.0001835793 -> 1.86489e-06 |
+| SST plate | metal | 1 | False -> False | 3000 | 0.0004031023 -> 3.045154e-05 | 0.0004031023 -> 3.045154e-05 |
+| SST plate | metal | 2 | False -> True | 3000 | 0.005696822 -> 7.407654e-06 | 0.005696822 -> 7.407654e-06 |
+| SST bump | cpu | 0 | False -> False | 3000 | 2.269245e-05 -> 3.143857e-05 | 0.000208247 -> 3.143857e-05 |
+| SST bump | cpu | 1 | False -> False | 3000 | 1.549432e-05 -> 2.308443e-05 | 3.567575e-05 -> 2.308443e-05 |
+| SST bump | cpu | 2 | False -> False | 3000 | 1.654531e-05 -> 1.210993e-05 | 0.0001197847 -> 2.573423e-05 |
+| SST bump | metal | 0 | False -> False | 3000 | 3.513322e-05 -> 1.51518e-05 | 0.0002082479 -> 1.991881e-05 |
+| SST bump | metal | 1 | False -> False | 3000 | 2.633376e-05 -> 2.81366e-05 | 3.56816e-05 -> 2.81366e-05 |
+| SST bump | metal | 2 | False -> False | 3000 | 1.397719e-05 -> 1.08788e-05 | 0.0001197803 -> 2.572706e-05 |
+| SA plate | cpu | 0 | False -> True | 400 | 0.0002559519 -> 4.356717e-08 | 0.0002559519 -> 9.231233e-07 |
+| SA plate | cpu | 1 | False -> True | 900 | 0.0006237517 -> 4.993192e-06 | 0.0006237517 -> 4.993192e-06 |
+| SA plate | cpu | 2 | False -> False | 3000 | 0.006870226 -> 4.282008e-05 | 0.006870226 -> 4.282008e-05 |
+| SA plate | metal | 0 | False -> True | 300 | 0.0003023776 -> 2.887325e-06 | 0.0003023776 -> 2.887325e-06 |
+| SA plate | metal | 1 | False -> False | 3000 | 0.0004093038 -> 2.417789e-05 | 0.0004093038 -> 2.417789e-05 |
+| SA plate | metal | 2 | False -> False | 3000 | 0.005286517 -> 1.397759e-05 | 0.005286517 -> 1.397759e-05 |
+| SA bump | cpu | 0 | False -> False | 3000 | 3.560498e-05 -> 3.439757e-05 | 0.0007388555 -> 3.439757e-05 |
+| SA bump | cpu | 1 | False -> False | 3000 | 1.393743e-05 -> 2.368411e-05 | 0.0002499332 -> 4.124983e-05 |
+| SA bump | cpu | 2 | False -> False | 3000 | 2.786607e-05 -> 7.859322e-06 | 0.0002351986 -> 6.128235e-05 |
+| SA bump | metal | 0 | False -> False | 3000 | 3.013505e-05 -> 5.78428e-05 | 0.0007388047 -> 5.78428e-05 |
+| SA bump | metal | 1 | False -> False | 3000 | 2.966741e-05 -> 2.251525e-05 | 0.0002499212 -> 4.124282e-05 |
+| SA bump | metal | 2 | False -> False | 3000 | 1.204483e-05 -> 1.033504e-05 | 0.0002351449 -> 6.129666e-05 |
 
 | SST plate raw continuity | Level | Before | After |
 | --- | ---: | ---: | ---: |
-| cpu | 0 | 2.726211e-08 | 5.122466e-09 |
-| cpu | 1 | 1.33167e-08 | 1.67407e-10 |
-| cpu | 2 | 3.258206e-08 | 1.40184e-10 |
-| metal | 0 | 3.363881e-08 | 1.035619e-09 |
-| metal | 1 | 1.100876e-08 | 2.418615e-10 |
-| metal | 2 | 2.470181e-08 | 8.087481e-11 |
+| cpu | 0 | 2.726211e-08 | 1.989631e-10 |
+| cpu | 1 | 1.33167e-08 | 1.16349e-10 |
+| cpu | 2 | 3.258206e-08 | 8.092247e-11 |
+| metal | 0 | 3.363881e-08 | 3.414859e-10 |
+| metal | 1 | 1.100876e-08 | 8.280803e-10 |
+| metal | 2 | 2.470181e-08 | 3.138772e-11 |
 
 The full slow driver prints raw continuity for SST plates only. Unprinted raw
 values are not inferred from separate representative probes. Complete public
-station values and printed transport defects are in [`measurements-86a665a.json`](measurements-86a665a.json).
+station values and printed transport defects are in [`measurements.json`](measurements.json).
 
 | Plate Cf | Backend | Before | After |
 | --- | --- | ---: | ---: |
-| SST | cpu | 0.002713813 | 0.002713701 |
-| SST | metal | 0.002713817 | 0.002713704 |
+| SST | cpu | 0.002713813 | 0.002713727 |
+| SST | metal | 0.002713817 | 0.002713699 |
 | SA | cpu | 0.002726861 | 0.002727054 |
 | SA | metal | 0.002726862 | 0.002727054 |
 
 | Plate CD | Backend | Before | After |
 | --- | --- | ---: | ---: |
-| SST | cpu | 0.002876909 | 0.002876767 |
-| SST | metal | 0.002876906 | 0.002876771 |
+| SST | cpu | 0.002876909 | 0.002876801 |
+| SST | metal | 0.002876906 | 0.002876764 |
 | SA | cpu | 0.002880514 | 0.002880676 |
 | SA | metal | 0.00288051 | 0.002880676 |
 
 | Bump aft Cf | Backend | Before | After |
 | --- | --- | ---: | ---: |
-| SST | cpu | 0.00298066 | 0.002553875 |
-| SST | metal | 0.002980718 | 0.002553918 |
-| SA | cpu | 0.003079214 | 0.002638856 |
-| SA | metal | 0.003079086 | 0.002638852 |
+| SST | cpu | 0.00298066 | 0.002553902 |
+| SST | metal | 0.002980718 | 0.002553883 |
+| SA | cpu | 0.003079214 | 0.002638858 |
+| SA | metal | 0.003079086 | 0.002638848 |
 
 | Finest bump aft Cf relative error | Backend | Before | After | Frozen limit |
 | --- | --- | ---: | ---: | ---: |
-| SST | cpu | 0.1453259 | 0.01866746 | 0.10 |
-| SST | metal | 0.1453479 | 0.01865085 | 0.10 |
-| SA | cpu | 0.1499296 | 0.01452156 | 0.10 |
-| SA | metal | 0.149882 | 0.01452304 | 0.10 |
+| SST | cpu | 0.1453259 | 0.01865692 | 0.10 |
+| SST | metal | 0.1453479 | 0.01866434 | 0.10 |
+| SA | cpu | 0.1499296 | 0.01452083 | 0.10 |
+| SA | metal | 0.149882 | 0.01452457 | 0.10 |
 
+## Rebase and compatibility
 
-### Final source, interrupted measurements
+The conflict in `update_turbulence()` was resolved around main's shared
+`reconstruct_strain()`. For compensated flow, velocity derivatives and the
+jump correction are formed from both state words before rounding. SST and
+standard k-epsilon JumpCorrected use that same helper. Other standard k-epsilon
+and SA paths consume `model_gradient()`; constitutive velocities, boundary
+velocities and mass fluxes use their corresponding model accessors. When
+compensated momentum is disabled, those accessors return main's original
+buffers and reconstruction follows main's original operators.
 
-These rows belong to `d823d6e`. Pending means no completed solve was recorded.
-The incomplete finest CPU SA bump reached step 300; it is not an endpoint result.
-Full printed measurements are in [`measurements-d823d6e-partial.json`](measurements-d823d6e-partial.json).
+The normal-foot pressure option and its gradient configuration guards from
+main are retained; the TMR setup keeps the default extrapolated mode.
+Main's harmonic-k transition setting and SST molecular omega-production
+parameter are also preserved through the existing settings copies. TMR keeps
+harmonic k disabled and the molecular ratio zero; no new model option is
+enabled by this lane.
+The standard k-epsilon opt-in branch, its variant/LSQ guards, the Péclet option,
+poor-pressure-interface correction and main's performance caches are retained.
+The duplicate comparator commit `6a74dc5` was dropped. The comparison uses
+main's `tools/forensics/compare_slow_assertions.py` unchanged, including its
+existing CLI-context normalization from `971fbb3`.
 
-| Model/case | Backend | Level | Outcome | Steps | Continuity | Maximum defect |
-| --- | --- | ---: | --- | ---: | ---: | ---: |
-| SST plate | cpu | 0 | converged | 300 | 1.086581e-06 | 1.086581e-06 |
-| SST plate | cpu | 1 | converged | 800 | 4.278579e-06 | 4.278579e-06 |
-| SST plate | cpu | 2 | failed convergence | 3000 | 1.90981e-05 | 1.90981e-05 |
-| SST plate | metal | 0 | converged | 300 | 1.86489e-06 | 1.86489e-06 |
-| SST plate | metal | 1 | failed convergence | 3000 | 3.045154e-05 | 3.045154e-05 |
-| SST plate | metal | 2 | converged | 3000 | 7.407654e-06 | 7.407654e-06 |
-| SST bump | cpu | 0 | failed convergence | 3000 | 3.199287e-05 | 3.199287e-05 |
-| SST bump | cpu | 1 | failed convergence | 3000 | 2.765525e-05 | 2.765525e-05 |
-| SST bump | cpu | 2 | failed convergence | 3000 | 1.113483e-05 | 2.579356e-05 |
-| SST bump | metal | 0 | failed convergence | 3000 | 1.249686e-05 | 1.249686e-05 |
-| SST bump | metal | 1 | failed convergence | 3000 | 4.415422e-05 | 4.415422e-05 |
-| SST bump | metal | 2 | failed convergence | 3000 | 7.842514e-06 | 2.590229e-05 |
-| SA plate | cpu | 0 | converged | 400 | 4.356717e-08 | 9.231233e-07 |
-| SA plate | cpu | 1 | converged | 900 | 4.993192e-06 | 4.993192e-06 |
-| SA plate | cpu | 2 | failed convergence | 3000 | 4.282008e-05 | 4.282008e-05 |
-| SA plate | metal | 0 | converged | 300 | 2.887325e-06 | 2.887325e-06 |
-| SA plate | metal | 1 | failed convergence | 3000 | 2.417789e-05 | 2.417789e-05 |
-| SA plate | metal | 2 | failed convergence | 3000 | 1.397759e-05 | 1.397759e-05 |
-| SA bump | cpu | 0 | failed convergence | 3000 | 3.158527e-05 | 3.158527e-05 |
-| SA bump | cpu | 1 | failed convergence | 3000 | 1.867057e-05 | 4.125963e-05 |
-| SA bump | cpu | 2 | pending | not completed | not measured | not measured |
-| SA bump | metal | 0 | pending | not completed | not measured | not measured |
-| SA bump | metal | 1 | pending | not completed | not measured | not measured |
-| SA bump | metal | 2 | pending | not completed | not measured | not measured |
+| Original SHA | On d8e26c7 | On 05ef218 | Final SHA on 271b31f | Change |
+| --- | --- | --- | --- | --- |
+| `deb6781` | `948993f` | `42b0137` | `7738484` | Preserve momentum assembly remainders in paired solves |
+| `6c7c9e9` | `6eaa7f5` | `c26a3fd` | `a6bbb99` | Use compensated paired precision in NASA TMR cases |
+| `4bfb039` | `75a597f` | `2d7d9ee` | `6344a69` | Carry boundary and source products consistently in paired assembly |
+| `9479942` | `8faea41` | `aa9f521` | `2599c39` | Keep TMR SA production separate from the strain safeguard |
+| `180c717` | `60afafb` | `921a0ce` | `3497c70` | Carry consistent low-word flow operators and scalar defects |
+| `a789dc2` | `b2aef1d` | `d5809d7` | `60dd9f4` | Use physical scalar stopping in NASA TMR solves |
+| `a5e8067` | `d594855` | `06899e8` | `dbf8dde` | Bound paired face predictors using the complete field |
+| `3cac7f0` | `4a9067c` | `09a1464` | `577fdce` | Limit paired gradients with their low-word boundary observations |
+| `b62295c` | `72984a2` | `fcb8f65` | `7f4a55e` | Carry complete paired pressure traces into momentum forces |
+| `86a665a` | `c4d1461` | `a55bda8` | `1645a31` | Keep compensated flow operators consistent with the physical pair |
+| `6a74dc5` | dropped | dropped | main supplies normalization | Normalize transient CLI context in slow assertion comparisons |
+| `d823d6e` | `9bc07c2` | `6506725` | `355e80b` | Take constitutive velocity derivatives before rounding paired state |
+| `8bbebfb` | `a50d195` | `681b728` | `8ea334f` | Record TMR convergence results and interrupted final validation |
+| new integration fix | `4cf62d9` | `4a0050a` | `96d8b34` | Preserve poor-interface pressure correction in paired reconstruction |
+
+The integration fix, `96d8b34` (previously `4cf62d9` and `4a0050a`), carries main's poor-interface rule into
+the compensated pressure-face operator. The paired reconstruction previously
+rebuilt face pressure after the default correction and retained the good
+cell's extrapolation at a mixed interface. An isolated check produced 0.75
+or 1.625 instead of the required 1.5 on CPU and Metal: eight assertions
+failed. The corrected operator omits both extrapolations and preserves the
+low-word cell mean; all eight assertions pass without changing an existing
+expected value or threshold. The first rebased slow attempt was stopped
+after this gap was found, and the final complete run was restarted on the
+corrected source. The intermediate `4cf62d9` attempt was then stopped when
+the requested main moved to `05ef218`. Both partial XML files are excluded
+from acceptance evidence. The subsequent `4a0050a` run was also stopped
+when the requested main moved to `271b31f`. A subsequent turn interruption
+terminated the first `96d8b34` attempt; all 37 cases were restarted on its
+unchanged source and binary. Only the complete final run is compared.
+
+The requested CLI checks used the same 40-step budget, initialization,
+approximations and allocator for both binaries. They compared `fluxes.csv`,
+`forces.csv`, `loads.json` and `result.vtu` in full. For `residuals.csv`, only
+`#` comment lines and the `seconds_per_iteration` column were excluded; the
+last recorded iteration was checked to be 40.
+
+| CLI case | Approximation | CPU | Metal |
+| --- | --- | --- | --- |
+| mixing_elbow | `wfgc` | all five outputs identical | all five outputs identical |
+| elbow_param | `compressibility,ke-options` | all five outputs identical | all five outputs identical |
+| mixing_elbow converted to SIMPLEC | `wfgc` | all five outputs identical | all five outputs identical |
+
+The SIMPLEC conversion used `kutta convert --setup` with
+`{"v":1,"overrides":{"methods/pressure-velocity-coupling":"simplec"}}`.
+The separate opt-in check used `bench_elbow_turbulence`, cold initialization,
+40 iterations and `jump` on elbow_param. `cells.csv` and `walls.csv` match main
+on each backend, including strain, production and wall quantities.
+All 30 final output hashes also match the archived 40-step `d8e26c7`
+reference outputs, using the same residual normalization. This preserves the
+original reference comparison alongside the fresh `271b31f` comparison.
+Binary and output hashes are in [`elbow-parity.json`](elbow-parity.json).
 
 ## SA definition audit
 
@@ -370,6 +420,9 @@ The Fluent formula contract and its other section citations are in
 [`car_models.md`](../../../src/kutta/fv/turbulence/car_models.md).
 
 ## What did not work
+
+These isolating experiments predate the rebase. Their numbers belong to the
+configurations named here; the integrated matrix above is the final evidence.
 
 Each exploratory solve used at most 3,000 outer steps. Intermediate variants
 below are not the final solver. The retained operators and TMR controls are described above. Earlier
@@ -480,12 +533,15 @@ by a controlled experiment.
 
 ## Full validation
 
-Completed comparison for `86a665a` against main `8866cc0`:
+The complete final process ran `build/kutta-tests -ts=slow -r=xml --success`
+in the foreground and was polled to completion. All 37 cases executed in one
+process. The nonzero test exit reflects retained failing numerical gates;
+the exact assertion comparison exits zero.
 
-- 37 cases and 201,633 assertions matched in both files.
-- 62 -> 51 failures; 11 recoveries, zero regressions.
-- Zero missing/new cases or assertions after the identity correction.
-- 48 changed expanded values: SST plate 10, SST bump 12, SA 26. Other cases had zero changed expanded values.
+- 201,633 assertions in both baseline and final XML.
+- 62 -> 51 failed assertions; 11 recoveries, zero regressions.
+- Zero missing/new cases or assertions.
+- 52 changed expanded values, all in TMR or already moved by main's poor-cell fix.
 - All 34 off-target failures remain: V6 25, V2 tet eight, V12 one.
 
 | Slow case | Assertions before / after | Failures before -> after | Changed expanded values |
@@ -502,18 +558,18 @@ Completed comparison for `86a665a` against main `8866cc0`:
 | Fluent laminar 2D cylinder matches converged Fluent fields | 207 / 207 | 0 -> 0 | 0 |
 | FV V6 Fluent mixing elbow fixed point and cold start | 2565 / 2565 | 25 -> 25 | 0 |
 | FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega | 28 / 28 | 0 -> 0 | 0 |
-| FSAE aero: Ahmed body 35 deg drag, level 1 | 4 / 4 | 0 -> 0 | 0 |
+| FSAE aero: Ahmed body 35 deg drag, level 1 | 4 / 4 | 0 -> 0 | 1 |
 | FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC | 9 / 9 | 0 -> 0 | 0 |
-| FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled | 8 / 8 | 0 -> 0 | 0 |
+| FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled | 8 / 8 | 0 -> 0 | 4 |
 | FSAE V12 native Fluent polynomial fan import acceptance | 1 / 1 | 1 -> 1 | 0 |
 | V8 realizable KE scalable channel MKM DNS profile and momentum balance | 18 / 18 | 0 -> 0 | 0 |
 | FV V2 manufactured Navier Stokes hex refinement | 16 / 16 | 0 -> 0 | 0 |
 | FV V2 manufactured Navier Stokes tet refinement | 18 / 18 | 8 -> 8 | 0 |
 | FV V1 manufactured scalar diffusion and upwind refinement | 48 / 48 | 0 -> 0 | 0 |
 | FV SIMPLEC develops planar Couette flow with moving and slip walls | 14 / 14 | 0 -> 0 | 0 |
-| V5 TMR flat plate SST accuracy and three-grid trend | 36 / 36 | 6 -> 3 | 10 |
+| V5 TMR flat plate SST accuracy and three-grid trend | 36 / 36 | 6 -> 2 | 11 |
 | V5 TMR bump SST station accuracy and three-grid trend | 47 / 47 | 8 -> 6 | 12 |
-| V7 SA TMR flat plate and bump accuracy convergence and three-grid trend | 70 / 70 | 14 -> 8 | 26 |
+| V7 SA TMR flat plate and bump accuracy convergence and three-grid trend | 70 / 70 | 14 -> 9 | 24 |
 | Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION) | 161470 / 161470 | 0 -> 0 | 0 |
 | Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC | 11 / 11 | 0 -> 0 | 0 |
 | FSAE V7.1 translating-wall Couette hex and poly | 104 / 104 | 0 -> 0 | 0 |
@@ -528,54 +584,71 @@ Completed comparison for `86a665a` against main `8866cc0`:
 | FSAE V9.3 rotation and translation preserve Taylor Couette pressure | 6 / 6 | 0 -> 0 | 0 |
 | Fluent research downloads retain published byte identities | 264 / 264 | 0 -> 0 | 0 |
 
-Final `d823d6e` validation:
+### Changed-value audit
 
-- Quick tier: 299/299 cases, 7,457,758/7,457,758 assertions pass.
-- Focused paired/SA checks: 23/23 cases, 470/470 assertions pass on CPU and Metal.
-- Portability lint passes. Comparison-tool Python tests: three pass.
-- Slow run interrupted after 23 completed cases, during V7 SA finest CPU bump at step 300. The partial XML records 47 failures, but that is not a full-tier failure count or a complete regression comparison.
-- Twenty TMR endpoint records exist. Seven converge and 13 fail convergence; four endpoint records remain absent.
-- CUDA compilation/runtime and integration with the other implementation lanes are unverified.
+There are 5 changed values outside TMR. Each matches
+both the identity and the exact before/after expanded strings in the
+31-value comparison committed with main's `22e65c7`. They are the standard
+Ahmed drag guard and four thin-layer Ahmed guards: SIMPLEC mean y+, SIMPLEC
+drag error, Coupled/SIMPLEC drag agreement and lift agreement. There are no
+other changed-value findings. Counts, identities and hashes are in
+[`changed-value-audit.json`](changed-value-audit.json); restricted expanded
+values remain in local build artifacts. Public TMR assertion changes are in
+[`tmr-assertion-changes.json`](tmr-assertion-changes.json).
+
+| Changed-value case | Count |
+| --- | ---: |
+| FSAE aero: Ahmed body 35 deg drag, level 1 | 1 |
+| FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled | 4 |
+| V5 TMR flat plate SST accuracy and three-grid trend | 11 |
+| V5 TMR bump SST station accuracy and three-grid trend | 12 |
+| V7 SA TMR flat plate and bump accuracy convergence and three-grid trend | 24 |
+
+Relative to the complete `86a665a` candidate, final TMR convergence outcomes
+have 2 gains and 2 losses. This is separate from the required comparison
+against main `8866cc0`; zero regressions against main does not mean every
+historical candidate pass is retained. Compensated momentum remains opt-in;
+the table records this trade-off within its TMR setup.
+
+| TMR case | Backend | Level | Converged at 86a665a -> final | Steps at 86a665a -> final |
+| --- | --- | ---: | --- | --- |
+| SST plate | cpu | 0 | False -> True | 3000 -> 300 |
+| SST plate | metal | 1 | True -> False | 800 -> 3000 |
+| SST plate | metal | 2 | False -> True | 3000 -> 3000 |
+| SA plate | metal | 1 | True -> False | 900 -> 3000 |
+
+
+The historical complete `86a665a` run had 51 total failures, 17 TMR failures,
+11 recoveries and 48 changed values, all in TMR. Its public measurements remain
+in [`measurements-86a665a.json`](measurements-86a665a.json). The interrupted
+`d823d6e` run is superseded by this complete rebased run; its partial historical
+measurements remain explicitly labeled in
+[`measurements-d823d6e-partial.json`](measurements-d823d6e-partial.json).
+No partial XML is used for the final acceptance comparison.
+
+| Evidence | Result |
+| --- | --- |
+| Quick tier | 307/307 cases and 7,990,154/7,990,154 assertions pass |
+| Portability lint | passes |
+| Elbow default CLI byte parity | 30/30 file comparisons pass, six CPU/Metal case pairs |
+| Standard k-epsilon JumpCorrected | CPU/Metal cell fields and wall diagnostics identical to main |
+| Full slow comparison | zero regressions and zero missing/new assertions |
 
 | Artifact | SHA-256 |
 | --- | --- |
 | Main baseline XML | `9e60b5b5c8795f5aaacd4465e94cc67ee7bcccce12f0bf1f848bc70e164ce26a` |
-| Complete `86a665a` binary | `efa401894ff6eb08767c26e726822ac5ea4e6aa055dac69ce3eba10d4638e8f8` |
-| Complete `86a665a` slow XML | `2bd24b1192e2d33a5f8b51708ab27dc5b29227c9c789bc86adbcfa00055345c6` |
-| Final `d823d6e` binary | `394e6e0d4d21cee167e0294835d5d61150dee6c8aef33cceaa2f87046f319332` |
+| Final test binary | `133aed593c8ffe03df9c05b2bb4dd7b296f27355e39b0534cdfc20c90de816b0` |
+| Final slow XML | `5162e44126c63274c64901f87230c9d7d36f26604eccd691c0e06c7969bc378d` |
 
+The final process used `MallocSpaceEfficient=1`, matching the existing CLI
+allocator setup. It recorded 1,253,163,008 bytes maximum RSS and 5,542,384,392 bytes
+peak memory footprint. This exceeds the approximate 3 GB guidance; one heavy process ran at a time.
+Baseline memory was not recorded in the supplied artifact. The earlier
+complete run, before enabling allocator relief, had a 6,075,110,392-byte peak.
+These are resource measurements, not performance claims.
 
-
-The first complete candidate, `86a665a`, ran all 37 slow cases and 201,633
-assertions. Failures fell from 62 to 51, with 11 TMR recoveries and no
-regressions. Its 48 changed expanded values were all in TMR. It recovered
-all four accuracy assertions and seven convergence assertions. The final
-candidate adds the velocity-derivative correction above.
-
-The initial comparison reported 266 missing/new identities in two CLI cases.
-Their INFO fields contained process addresses, temporary MeshTemp IDs and
-captured solve timings. `6a74dc5` normalizes those transient fields while
-preserving every residual column, outcome and expanded value. Three focused
-Python tests check timing/path independence, a genuine regression and a
-changed numerical INFO value. Reprocessing the first run matches every
-assertion, with zero missing/new identities. No numerical gate changed.
-
-The first full run exceeded the requested memory guidance. It recorded
-4,446,978,048 bytes maximum RSS and 6,075,110,392 bytes peak footprint.
-The final run uses `MallocSpaceEfficient=1`, matching the existing
-[CLI allocator setup](../../../src/kutta/app/main.cpp) and
-[memory measurements](../memory_scale/REPORT.md). The final quick run records
-1,777,123,328 bytes maximum RSS and 1,305,249,592 bytes peak footprint.
-The three individual derivative probes record 8,176,048 / 203,506,360 /
-24,887,704 bytes peak footprint for coarse SST plate / fine SA plate /
-coarse SST bump. The final slow process was interrupted before its end-of-process measurement.
-A live measurement in its existing Ahmed y+ approximately one case recorded
-3,724,168,552 bytes footprint. This still exceeded the approximate 3 GB
-guidance. The final full-run peak is unverified; it was at least that large.
-Baseline memory was not recorded in the supplied artifact.
-
-Reproduction from the checkout root, with the read-only fixture environment
-set to the shared corpus and run directories:
+Reproduction from the checkout root, with read-only fixtures linked from the
+shared checkout and the fixture environment set:
 
 ```sh
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -587,36 +660,27 @@ build/kutta-tests -ts=slow -r=xml --success > branch.xml
 python3 tools/forensics/compare_slow_assertions.py "$BASELINE_XML" branch.xml
 ```
 
-`BASELINE_XML` is the completed coordinator baseline for main 8866cc0.
-`KUTTA_FLUENT_EXAMPLES` and `KUTTA_RUNS` select its same fixture sources.
-The full XML, expanded comparison and restricted off-target reference values
-remain local build artifacts and are not committed. The tables in this report
-contain public TMR results and assertion counts.
-
+`BASELINE_XML` is the completed coordinator baseline for main `8866cc0`.
+`KUTTA_FLUENT_EXAMPLES` and `KUTTA_RUNS` select its same read-only fixture
+sources. Full XML, restricted outputs and off-target expanded values are local
+ignored build artifacts. No home-directory paths or restricted data are added
+to the committed evidence.
 
 ## Remaining work
 
-The NASA TMR matrix does not pass. On the latest complete source, all 17
-remaining TMR failures are convergence assertions. On the final source,
-13 completed runs still fail convergence and four endpoint runs are absent.
-The final source has no accepted full slow comparison. Its changed passing
-plate runs include gains on coarse CPU and fine Metal SST, and a loss on
-middle Metal SST relative to `86a665a`. The partial table preserves these
-mixed outcomes.
-
-The remaining nonlinear convergence mechanism is not isolated. The arithmetic
-checks prove specific lost terms and derivatives, not a sufficient fix for
-all floors. The scalar-update probe above also rules out claiming every
-bump failure is an all-cell one-ulp storage stall.
+There are 17 remaining TMR convergence assertions.
+Every solve completed within its unchanged 3,000-step budget. All TMR accuracy
+gates now pass, but the remaining nonlinear convergence mechanism is not
+isolated. The arithmetic checks prove specific lost terms and derivatives;
+they do not prove a sufficient fix for every floor. The scalar-update probe
+also rules out claiming every bump failure is an all-cell one-ulp storage stall.
 
 SA-neg's negative branch and Fluent automatic SA wall treatment remain
-unsupported. These are model-coverage gaps; this investigation did not prove
-them to be causes of the observed convergence failures. The pinned reference
-variant, ft2, numerical gates and 3,000-step budgets remain unchanged.
+unsupported. They are model-coverage gaps; this investigation did not prove
+them to cause the remaining convergence failures. The pinned reference variant,
+ft2, numerical gates and budgets remain unchanged.
 
-After interruption, no lane processes remain running. The owned scratch
-worktree and prototype source files were removed. The lane's fixture
-symlinks were removed after verification; raw evidence remains in the local
-ignored build directory. Resuming requires restoring those read-only fixture
-links and rerunning the final full slow tier and exact baseline comparison.
-No push or PR was made.
+CUDA compilation/runtime is unverified. Default elbow parity and the full
+slow comparison validate integration with main `271b31f` on CPU and Metal.
+After validation, this lane's fixture links and temporary main-source worktree
+were removed. No lane processes remain running. No push or PR was made.
