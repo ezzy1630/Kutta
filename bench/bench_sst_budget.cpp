@@ -189,6 +189,7 @@ int main(int argc,char** argv) {
     w?(variant=="no-cross"?no_cross_source:t.omega_source):t.k_source,settings(w),{w?(variant=="no-cross"?&no_cross_sink:&t.omega_sink):&t.k_sink});
     if(w) kern::fv_fixed_rows(d,nc,eq.matrix.row_ptr,eq.matrix.diag,t.fixed_omega_mask,t.fixed_omega,eq.matrix.val,eq.rhs);};
   std::filesystem::create_directories(out);
+  std::cout<<"APPROXIMATION "<<setup::approximation_notice(problem.approximations)<<'\n';
   std::cout<<std::setprecision(12)<<"IDENTITY commit="<<KUTTA_BENCH_COMMIT<<" case="<<case_hash<<" data="<<data_hash<<" backend="<<backend<<" flux="<<flux_mode<<" variant="<<variant<<" iterations="<<iterations<<'\n';
   update();
   if(variant=="default") {
@@ -211,6 +212,8 @@ int main(int argc,char** argv) {
   add("pk",t.k_source);add("dk",t.k_sink);add("ps",variant=="no-cross"?no_cross_source:t.omega_source);add("ds",variant=="no-cross"?no_cross_sink:t.omega_sink);add("gk",t.diffusivity_k);add("gw",t.diffusivity_omega);add("fixed",t.fixed_omega);
   add("kx",keq.grad.x);add("ky",keq.grad.y);add("kz",keq.grad.z);add("wx",weq.grad.x);add("wy",weq.grad.y);add("wz",weq.grad.z);
   if(variant=="source-jump") {add("source_kx",source_k.x);add("source_ky",source_k.y);add("source_kz",source_k.z);add("source_wx",source_w.x);add("source_wy",source_w.y);add("source_wz",source_w.z);}
+  // Native residuals are b-A*q: exported rk/rw, ck/cw and diffusion
+  // columns have the opposite sign to the outward physical budget.
   for(bool w:{false,true}) {
     auto& eq=w?weq:keq;auto& q=w?omega:k;const auto& qb=w?bw:bk;const auto& diffusion=w?t.face_diffusivity_omega:t.face_diffusivity_k;
     assemble(w);eq.physical_residual(q,residual,w?&t.fixed_omega_mask:nullptr);add(w?"rw":"rk",residual);

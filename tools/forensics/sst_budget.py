@@ -1,4 +1,6 @@
-"""Physical SST budgets from bench_sst_budget's native scalar assembly.
+"""V6 SST budgets from bench_sst_budget's native scalar assembly.
+
+The physical split uses V6's SST beta blend and signed cross clip of 1e6.
 
 All output contains reference-derived values; do not commit it. No source term
 is inferred from a zero residual: the reported 'needed production' also includes

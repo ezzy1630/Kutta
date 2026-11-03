@@ -395,3 +395,251 @@ Raw logs, CSV diagnostics, scratch isolation patch, branch XML and full JSON
 comparison remain uncommitted in `build/elbow-turbulence/`. They contain
 reference-derived fields. No restricted data, mesh, slow XML or fixture link
 is committed. Temporary fixture symlinks are removed at completion.
+
+## 2026-11-03 UTC: native frozen-flow term budget
+
+**V6 is still not matched. No solver default or importer setting changes.**
+The new standalone `bench_sst_budget` reproduces the frozen-flow discrepancy,
+separates the actual generated transport operator into terms, and removes the
+remaining ambiguity about which mass flux that experiment used. It isolates a
+measurable strain-reconstruction error; it does not identify a complete Fluent
+reconstruction or a justified replacement for Kutta's equations.
+
+Numerical base is `e014e36`; tooling is `9bf7ded`. Apple M4 Pro, Release
+AppleClang, CPU and Metal, original case/data hashes recorded above. The probe
+uses `--approximate wfgc`, constant saved velocity, the case's SST options and
+inlet recipes, native wall closure, native compact k diffusion and native walk
+omega diffusion. It never steps momentum or pressure. Its 600 scalar iterations
+are an isolation experiment, not a different V6 iteration allowance. The cold
+and seeded V6 acceptance criteria remain unchanged. Cases run one at a time.
+
+The requested `fluent_reference_cases/REPORT.md` does not exist in this tree;
+its metadata, inspection and saved solve artifacts were read instead. The data
+field inventory was checked directly: there are no saved gradients, production,
+F1, cross-diffusion or per-cell turbulence residuals. `SV_BF_V`, `SV_WALL_V`,
+`SV_WALL_VV` and `SV_WALL_PRORUS_ZONE_FORCE_MEAN` are zero. Temperature/enthalpy,
+viscosities, density, wall distance, boundary turbulence, shear and face flux are
+available. The recorded residual histories are finite-convergence context, not
+an independent oracle for each source term at the final saved fields.
+
+### What is computed, and what is implied
+
+The probe exports the model coefficients and independently assembles convection
+and diffusion with the production `TransportEquation`, supplying zero diffusion
+or zero flux respectively. It also exports the full assembled residual. Its
+initial closure matches `SteadySolver` to relative L2 below 1.7e-9 for strain,
+mu_t and F1. With Kutta's flux, initial k/omega absolute residual sums match the
+solver's monitor to relative differences 5.15e-10 / 4.98e-10 on CPU. This avoids
+substituting the older Python compact diffusion proxy for native walk diffusion.
+
+Define outward convection C and diffusion D, positive production P, physical
+destruction Y, signed blended omega cross-diffusion X, and
+`R = C + D - P + Y - X`. All table entries are sums divided by that region's
+sum of physical destruction. `absR` sums absolute cell residuals. Fixed wall
+omega rows are excluded. Newton's compensating `+Y_omega` on the RHS is removed
+when separating physical omega production; the doubled implicit sink is not
+counted as twice the physical destruction. The split closes against the native
+assembled residual within 5.1e-7 of destruction at the saved state.
+
+| Held fields / equation / region | C/Y | D/Y | P/Y | Y/Y | X/Y | R/Y | absR/Y |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Kutta F, k all | +.054440 | +.000032 | 1.060753 | 1 | 0 | -.006281 | .079018 |
+| Kutta F, k wall | -.000836 | -.022642 | .982432 | 1 | 0 | -.005910 | .021719 |
+| Kutta F, k interior | +.106288 | +.021300 | 1.134216 | 1 | 0 | -.006628 | .132763 |
+| Kutta F, omega interior | +.049708 | -.271785 | .749721 | 1 | +.053037 | -.024835 | .222462 |
+| Fluent F, k all | +.054454 | +.000032 | 1.060753 | 1 | 0 | -.006267 | .063047 |
+| Fluent F, k wall | +.003953 | -.022642 | .982432 | 1 | 0 | -.001121 | .007174 |
+| Fluent F, k interior | +.101823 | +.021300 | 1.134216 | 1 | 0 | -.011094 | .115453 |
+| Fluent F, omega interior | +.040513 | -.271785 | .749721 | 1 | +.053037 | -.034030 | .206439 |
+
+The saved-state physical destruction sums are .000477884 for k over all cells
+and 8.424650 for omega over interior cells. The corresponding Fluent recorded
+absolute residual / destruction ratios remain .000522 / .000228. Even after
+using saved flux, native imbalance is roughly 121 / 905 times those recorded
+ratios. The field file does not establish identical iteration sampling between
+its fields and residual history, so these are scale comparisons.
+
+A balance implies `P_needed = C + D + Y - X` only after choosing C, D and X.
+It cannot separately identify Fluent's P when any of those reconstructions is
+unknown. The small *net* k deficit here hides much larger cancelling cellwise
+errors; neither a fitted production multiplier nor a zero integrated balance
+is evidence of an identified Fluent source formula.
+
+### Each requested term
+
+- **Production and limiter.** Native `mu_t*S^2/(10*rho*.09*k*omega)` peaks at
+  .378103 at the saved state, with zero active cells. The limiter cannot explain
+  the initial disagreement. Wall production uses the documented viscous/log
+  harmonic blend, replacing the interior strain formula. With saved F the
+  wall k absolute imbalance is only .007174 of destruction; the larger
+  discrepancy is interior. This agrees with the existing wall-budget evidence.
+- **Strain versus rotation.** In the 6,756 saved viscosity-limited cells,
+  `S_F = rho*.31*k/(mu_t*F2)` provides an independent rate constraint, conditional
+  on the established strain limiter and F2. Current S has 4.5822% relative L2
+  error there. In 2,561 cells where current strain and rotation differ by more
+  than 20%, median S/S_F is .999813, whereas Omega/S_F is .241778. Replacing
+  strain by vorticity is contradicted by this subset. Supplying S_F only where
+  recoverable reduces frozen-flow k as shown below. This changes both
+  production and the constitutive viscosity, not production alone.
+- **Destruction.** High-Re beta-star is .09, and omega beta blends .075/.0828
+  with F1. The case disables low-Re correction. The physical destruction terms
+  and their linearization agree algebraically with the documented equations;
+  no missing factor is established. Standard k-omega's extra f_beta-star is not
+  part of this SST model. The older experiment rejecting it still applies.
+- **Cross-diffusion.** Positive and negative integrated contributions are
+  +.053323 / -.000287 of omega destruction. The maximum local absolute
+  cross/destruction ratio is 83.624, far below the case's 1e6 clip. Removing
+  cross-diffusion improves the initial absolute residual slightly but severely
+  worsens the solved k field. It is a required equation term, not a removable
+  correction. Negative cross-diffusion remains an implicit sink.
+- **Wall-adjacent treatment and omega.** Fixed wall-cell omega relative L2
+  disagreement is .012371%; saved-state mu_t relative L2 is 1.032625% globally.
+  Substituting saved *face* omega changes the initial omega absR/Y only from
+  .206439 to .206341. It does not change the fixed wall-cell target. A wall
+  Dirichlet transport condition is not substituted for that target.
+- **Diffusion and F1.** Native cell coefficients blend inverse sigmas:
+  `Gamma_k = mu + mu_t*(F1/1.176 + 1-F1)` and
+  `Gamma_omega = mu + mu_t*(F1/2 + (1-F1)/1.168)`, then use distance weights
+  on faces. Saved-state F1 ranges from 1.08e-5 to 1, mean .778151. Turning off
+  projected omega diffusion raises initial absR/Y from .206439 to .218340;
+  the frozen solve below measures its larger accumulated field effect. There
+  is no saved Fluent F1 or face diffusivity to identify their residual error
+  independently of gradients and the scalar diffusion reconstruction.
+- **Gradient reconstruction.** Plain LSQ strain worsens both initial k and
+  omega residuals. Adding a half-jump correction to scalar gradients for F1
+  and cross-diffusion reduces the initial omega residual, but worsens the
+  frozen solution. Thus extending the existing strain correction to scalar
+  source gradients is not a fix. About 75.29% of the initial omega absolute
+  defect with saved F is in wall layers 2–4; that localizes the remaining work
+  without identifying a unique missing formula.
+
+One evidence correction matters: the older wall report says the normal-foot
+symmetry rows also reach projected omega diffusion. They reach the scalar LSQ
+but **WalkFaceReconstruction observes only independently prescribed FaceValue
+samples**; it omits NormalFootValue samples. That is visible in its constructor
+and `observes()`. This does not by itself prove a defect: a quadratic fit cannot
+treat the cell value at the symmetry foot as an exact independent value.
+A symmetry-aware quadratic reconstruction remains a concrete untested avenue;
+no default is changed on the strength of the mistaken earlier description.
+
+### Frozen-flow experiments and rejected alternatives
+
+All rows hold velocity at the same saved values and run 600 scalar iterations
+on Metal. They are sensitivities, not additive contributions to 14.48% k.
+Saved F is the conservative `SV_FLUX`, matched by all node IDs and both cell
+IDs, with orientation and case/data hashes checked; it is rounded to the
+solver's float storage. The reference-data strain substitution is not an
+implementable setting for a new case.
+
+| Flux / one substitution | k L2 % | omega L2 % | wall k L2 % | disposition |
+| --- | ---: | ---: | ---: | --- |
+| Kutta reconstructed F, unchanged equations | 6.498057 | 2.244477 | 3.443720 | reproduces the reported 6.50% |
+| Fluent F, unchanged equations | 6.846215 | 2.179975 | 1.661427 | removes momentum-flux disagreement; k interior worsens |
+| Fluent F, saved-limited strain only | 5.608275 | 2.139734 | 1.188736 | known derivative discrepancy contributes, but most k error remains |
+| Fluent F, half-jump scalar source gradients | 7.318654 | 2.413724 | 1.745468 | worse; no setting retained |
+| Fluent F, remove only cross-diffusion | 16.189749 | 2.097280 | 3.078311 | strongly rejected; required physics |
+| Fluent F, omega denominator mu_t + .001 mu | 6.897236 | 2.206569 | 1.664737 | worse; existing opt-in left unchanged |
+| Fluent F, compact omega diffusion | 6.944252 | 8.728718 | 1.671321 | worse, especially omega; native walk retained |
+
+The cross-diffusion and scalar-gradient experiments demonstrate why choosing a
+formula solely by its initial residual would be misleading. Their initial
+omega absR/Y decreases to .191158 / .194891 respectively, but k gets worse
+at the new fixed point. Native absolute residual / physical destruction at
+600 steps is 2.61e-7–2.71e-7 for k and 3.05e-7–3.13e-7 for interior omega
+across these runs, near the float assembly floor. No coefficient was fitted
+to a field error.
+The molecular-denominator expression is the vendor-authored regularization
+already discussed above; it is not independently demonstrated for this 22.2
+case, and its newly measured frozen-solve result gives no reason to map it.
+
+### Documentation checked
+
+The current public pages were read directly. They describe 2024 R2, while this
+saved pair is 22.2; formula agreement does not erase that version boundary.
+
+- [Theory Guide 4.4.2.2–4.4.2.6](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_turb_kw_bsl.html):
+  transport, diffusivity/F1, omega production, destruction and signed
+  cross-diffusion; SST inherits these pieces.
+- [Theory Guide 4.4.1.4.1](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_turb_kw_std.html):
+  production from the Boussinesq strain definition.
+- [Theory Guide 4.4.3.2](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_turb_kw_sst.html):
+  strain-limited turbulent viscosity and F2.
+- [Theory Guide 4.18.3.2](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/section_kbf_dl4_vvb.html):
+  zero wall k flux, blended wall production and correlation omega. The current
+  2024 R2 page numbers these equations 4-395–402; earlier reports' 4-419–426
+  refer to another numbering and must not be used to locate this page.
+- [Theory Guide 23.3.3](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_eval_derivatives.html)
+  and [User's Guide 36.21.6](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_ug/flu_ug_sec_solve_conv_stab.html):
+  gradients and WFGC. Neither supplies the full proprietary WFGC algorithm.
+
+The measurable cause established here is part of the derivative reconstruction,
+plus a distinct mass-flux contribution, especially in wall cells. The remaining
+k/omega discrepancy cannot be uniquely assigned to production versus diffusion
+from these fields: correcting the recoverable strain subset still leaves
+5.61% k error, and replacing scalar-source gradients does not repair it.
+No new Fluent run or gradient/source export is available. The missing WFGC
+algorithm and symmetry-aware scalar diffusion remain unresolved; they are not
+reported as an established Kutta defect or silently selected importer behavior.
+
+### Verification and reproduction
+
+- Release build and portability lint pass. The new Python controls pass 2 tests,
+  covering physical omega destruction versus Newton compensation, signed cross
+  diffusion, cell permutation, wrong input hashes, duplicate cells and nonfinite
+  fields. Four real native probes also reject wrong flux hashes, truncated face
+  coverage, mismatched cell adjacency and nonfinite flux. The final probe's
+  default CPU cell dump is byte-identical to its pre-documentation dump.
+- The full quick tier passes **307/307 selected cases and 7,990,154 assertions**.
+  The 37 excluded cases are the slow suite; there are no missing-fixture skips.
+  It uses the supplied external fixture/runs roots and the current CLI.
+- Forty-iteration CPU and Metal solves of both V6 (`--approximate wfgc`) and
+  elbow_param (`--approximate compressibility,ke-options`) compare the freshly
+  built e014e36 CLI, saved before edits, with the current CLI. `cmp` passes for
+  fluxes.csv, forces.csv, loads.json, result.vtu, and residuals.csv after keeping
+  non-comment lines and columns 1–7: **20/20 artifact comparisons identical**.
+- No file under src/, tests/, CMakeLists.txt or kernelgen.py differs from
+  e014e36. The test executable's SHA-256 remains
+  `fd1d0f42e4e60880f773bd7b48fa2df22da19b40efdc63bc93284aea1eec05d7`.
+  This change adds a separate diagnostic executable and Python analysis only.
+  **A full slow tier was not run**: there is no numerical/default/importer
+  change to qualify, and the required two-case CPU/Metal parity is exact.
+  No full-tier regression, recovery or changed-value count is claimed from
+  a partial run; the supplied five-hour baseline is not consumed as complete.
+- Focused V6 slow verification executes all four CPU/Metal seeded/cold solves:
+  **2,540 assertions pass and the same 25 known assertions fail**. All solves
+  converge, seeded at 200 iterations and cold at 250. Fresh CPU seeded velocity,
+  k, omega and drop errors are 3.361616%, 14.478205%, 2.775992% and 1.965345%.
+  Metal agrees within 2e-5 percentage points on those errors. No V6 gate is
+  recovered and the requested Fluent match remains unmet.
+- Sampled macOS process counters give quick-tier peak footprint **1,359,136,592
+  bytes (1.36 GB)** and peak RSS **683,786,240 bytes**. The largest timed frozen
+  solve footprint is **316,850,992 bytes (0.317 GB)**. No run exceeded the
+  approximately 3 GB allowance. These are process metrics, not isolated GPU
+  allocation totals. Wall times are contended and are not speed measurements.
+- CUDA build/runtime, the exact Fluent WFGC/high-order flux algorithms and a
+  same-settings Fluent-equivalent V6 solution remain unverified.
+
+```sh
+export KUTTA_FLUENT_EXAMPLES=<fixture-checkout>/validation/fluent_examples
+export KUTTA_RUNS=<fixture-checkout>/runs
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+# Python environment needs numpy, scipy and h5py.
+python -I tools/forensics/sst_budget.py "$KUTTA_FLUENT_EXAMPLES/mixing_elbow" \
+  --cache build/sst-cache --dump-flux build/saved-flux.csv
+build/bench_sst_budget \
+  "$KUTTA_FLUENT_EXAMPLES/mixing_elbow/mixing_elbow.cas.h5" \
+  "$KUTTA_FLUENT_EXAMPLES/mixing_elbow/mixing_elbow.dat.h5" \
+  build/saved-budget metal 0 saved build/saved-flux.csv
+python -I tools/forensics/sst_budget.py "$KUTTA_FLUENT_EXAMPLES/mixing_elbow" \
+  --cache build/sst-cache --diagnostics build/saved-budget
+# Choose a fresh output directory; replace 0 with 600 for a frozen solve.
+# `kutta -` selects Kutta's initially reconstructed flux instead of saved F.
+# Optional variants are listed by the probe's usage error.
+python tools/forensics/test_sst_budget.py
+python3 tools/lint_portability.py
+```
+
+Per-cell dumps, saved-flux CSV, raw logs, machine-readable budgets, process
+memory counters and parity artifacts remain uncommitted in `build/sst-budget/`.
+No restricted field data, slow XML, generated mesh or fixture link is committed.

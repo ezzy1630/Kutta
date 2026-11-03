@@ -511,3 +511,94 @@ cells; its reproducible algorithm is not supplied in that description
 ([User's Guide 36.21.6](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_ug/flu_ug_sec_solve_conv_stab.html)).
 The Péclet construction and the rejected geometric terms above are our
 hypotheses and experiments.
+
+## 2026-11-03 UTC: case-setting check and frozen-flow separation
+
+**No new momentum formula or automatic importer mapping is justified.**
+`FaceVelocityReconstruction::PecletSide` and the differentiable limiter remain
+exactly as the existing opt-ins. The new native SST budget and frozen-flow
+experiments are in the dated section of
+[the elbow turbulence report](../elbow_turbulence/REPORT.md).
+
+The three original case files were re-read, including the legacy cylinder
+file. These are saved settings, not inferred defaults:
+
+| Setting | V6 mixing_elbow | k-epsilon elbow_param | laminar cylinder_tutorial |
+| --- | --- | --- | --- |
+| Momentum | SOU (`mom/scheme 1`) | FOU (`0`) | SOU (`1`) |
+| Pressure | Second Order (`12`) | Standard (`10`) | Standard (`10`) |
+| Coupling | Coupled (`flow/scheme 24`) | SIMPLE (`20`) | Coupled (`24`) |
+| Gradient | LSQ cell | LSQ cell | Green-Gauss cell |
+| WFGC | true | false | false |
+| `pressure/ho-rc-scheme` | 2 | 1 | absent |
+| `recon/lim/type` | 0, Standard | 0, Standard | 0, Standard |
+| `recon/lim/method`, `sigp`, `limit/epsilon` | 6, .05, .01 | 6, .05, .01 | 6, .05, .01 |
+
+The case settings already select the documented transport, pressure,
+reconstruction method and coupling through the importer. Changing a momentum
+face-flux correction is distinct from changing the *advected momentum value*.
+[Theory Guide 23.4.1](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_solver_pb_mom_eq.html)
+uses scalar transport discretization for momentum, so V6 advects the upstream
+second-order reconstruction and the k-epsilon case uses the upstream cell
+value. [23.4.2](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_solver_pb_cont_eq.html)
+describes distance- or momentum-weighted velocity interpolation with a
+high-order correction and Rhie–Chow pressure correction. It does not publish
+that high-order correction or map `ho-rc-scheme` integers to a formula.
+
+The [Text Command List, undo-2019r3-default-changes](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_tcl/x1-1000010.html)
+documents a newer velocity reconstruction for nonuniform meshes. This supports
+investigating a changed reconstruction, but supplies neither PecletSide's
+coefficient nor a connection to the differentiable limiter.
+[Theory Guide 23.3.4](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_grad_limit.html)
+explicitly distinguishes the non-differentiable Standard and smooth
+Differentiable limiters. All three files select Standard. Therefore scheme 2
+cannot be interpreted as permission to replace that saved selection as well.
+
+The Péclet correction is a Kutta consistency construction. Before projection,
+side minus point is
+`.5*(G_P-G_N) dot (w*r_P-(1-w)*r_N)`.
+It changes a curvature contribution, and the advective-diagonal weight suppresses
+it in the viscous refinement limit. The earlier saved-flux measurements show
+that this contribution improves V6's face flux; they do not show a universal
+Fluent correction. The other cases have different gradients, pressure schemes,
+and advected momentum order. There is no reason for the same compensating
+curvature/limiter change to move all three discrete fixed points toward their
+saved fields. The previously measured k-epsilon, cylinder and MMS trade-offs
+remain grounds to leave it opt-in.
+
+The new isolation gives a useful bound on attribution. With velocity fixed,
+replacing only the convecting flux by Fluent's saved conservative flux changes
+k L2 from 6.498057% to 6.846215%, while wall k improves from 3.443720% to
+1.661427%. Thus removing a momentum-flux discrepancy does not remove the SST
+fixed-point discrepancy. Correcting the recoverable strain subset with saved
+flux reduces k to 5.608275%; it still does not determine the missing momentum
+high-order correction. The separate physical budget and rejected scalar
+experiments are reported in full in the turbulence report.
+
+No case-name, model-name, mesh-type or undocumented-rpvar switch was added.
+Default V6 velocity, drop and k therefore remain 3.36%, 1.97% and 14.48%; the
+existing option's earlier 1.39%, .11% and 8.12% results are unchanged historical
+measurements, not a newly earned default.
+
+Fresh focused V6 verification has 2,540 passing assertions and the same 25
+known failures, with all four CPU/Metal seeded/cold solves converged at
+200/250 iterations. CPU seeded results, compared at the prior report's precision:
+
+| Metric, error % | Before, reported default | After, unchanged default |
+| --- | ---: | ---: |
+| Velocity L2 | 3.36162 | 3.36162 |
+| Pressure L2 | 2.65576 | 2.65576 |
+| k L2 | 14.4782 | 14.4782 |
+| omega L2 | 2.77599 | 2.77599 |
+| Pressure drop | 1.96534 | 1.96534 |
+| Elbow shear | 1.64074 | 1.64074 |
+
+The full quick tier passes 307 cases and 7,990,154 assertions. Forty-iteration
+V6 and elbow_param CLI artifacts are byte-identical to the saved e014e36 build
+on CPU and Metal: fluxes, forces, loads, VTU and residual columns 1–7 (20
+comparisons). There is no change under src/, tests/, CMakeLists.txt or
+kernelgen.py. No full slow tier is needed for this diagnostic-only change;
+no unrun full-tier regression/recovery/changed-value counts are asserted.
+Peak process footprint is 1.36 GB for quick verification and .317 GB for the
+largest timed frozen solve. The turbulence report contains the complete
+budget, provenance, commands and remaining limits.
