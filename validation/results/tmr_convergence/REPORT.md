@@ -1059,7 +1059,7 @@ gate. Accelerating k alone has not been shown to cure that component.
 
 [field-motion-classification.json](field-motion-classification.json) records
 all eight component profiles and motion metrics. The causes are still
-unestablished. Nine SA classifications and controlled experiments remain;
+unestablished. The SA classifications follow below. Controlled experiments remain;
 no iteration budget or acceptance criterion has changed.
 
 ### SA plate classification
@@ -1078,8 +1078,44 @@ Transported viscosity and eddy viscosity are unchanged through all final
 201 sampled steps. Continuity remains `2.41778890637e-05`. These observations
 do not establish its cause or a stationary arithmetic floor.
 
-The field-motion receipt now contains 11 of the 17 failing solves. Six SA
-bump classifications and all controlled causal results remain unfinished.
+The six SA bump classifications follow below. Controlled causal results
+remain unfinished.
+
+### All 17 classifications and complete TMR subset proof
+
+The six SA bumps show slow transported-viscosity approach with continuing
+field motion. The final 1,000-step scalar defect ratios and final 201-step
+field-motion ratios are:
+
+| Failing solve | Nu-tilde defect | Continuity defect | Scalar defect, 3,000 / 2,000 | Scalar field lag-two / lag-one |
+|---|---:|---:|---:|---:|
+| SA bump cpu L0 | 2.6725204e-05 | 3.4397567e-05 | 0.44044 | 1.9827 |
+| SA bump cpu L1 | 4.1249825e-05 | 2.3684114e-05 | 0.65014 | 2.0001 |
+| SA bump cpu L2 | 6.1282351e-05 | 7.8593215e-06 | 0.49282 | 2.0002 |
+| SA bump metal L0 | 2.6721403e-05 | 5.78428e-05 | 0.44044 | 1.9826 |
+| SA bump metal L1 | 4.1242816e-05 | 2.2515254e-05 | 0.64986 | 2 |
+| SA bump metal L2 | 6.1296664e-05 | 1.0335044e-05 | 0.49293 | 2.0002 |
+
+The fine CPU SA bump already meets continuity; nu-tilde alone prevents its
+convergence. Fine Metal still misses both components. The coarser cases have
+superposed flow fluctuations, while the transported scalar continues its
+slow approach. No stationary scalar storage stall is demonstrated.
+
+All 17 failing solves now have a per-step temporal classification: 13 slow
+approaches, three plateaus and one near-two-cycle. This does not establish
+their causes or exclude arithmetic contributions. No positive causal
+experiment has run, and no convergence fix is accepted.
+
+The unchanged canonical comparator confirms all 153 TMR assertions retain
+their exact identities, outcomes and expanded values, with zero regressions,
+recoveries, changed values or missing/new identities. All 17 convergence
+failures remain. The full 37-case slack comparison is still running.
+
+The heaviest completed TMR case peaks at 392,692,648 bytes with field-motion
+diagnostics enabled, below 3 GB. These are fresh test-case processes; the
+previous 5.54 GB figure measured the monolithic suite. This observation does
+not claim that monolithic-process retention has been fixed. The byte-identical
+36 B/cell SST cleanup remains the only retained solver memory change.
 
 ### Exact fine-bump reproduction
 

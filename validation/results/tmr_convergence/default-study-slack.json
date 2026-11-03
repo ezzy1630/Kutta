@@ -1055,5 +1055,60 @@
     },
     "baseline_subset_sha256": "a6abb9703224ed1562164fe44fe1b949b433ebeb761f1de6f3669c7c575ab834",
     "candidate_subset_sha256": "aaba7d2fb9a7434d6496904051a895b92ace23a292091861b9172ecbc81193db"
+  },
+  "completed_tmr_subset_comparison": {
+    "scope": "All three TMR slow cases only; the full 37-case comparison remains unfinished.",
+    "cases": 3,
+    "solves": 24,
+    "assertions": 153,
+    "failed_assertions": 17,
+    "comparison": {
+      "cases": 3,
+      "regressions": 0,
+      "recoveries": 0,
+      "changed_values": 0,
+      "missing_assertions": 0,
+      "new_assertions": 0,
+      "missing_cases": 0,
+      "new_cases": 0,
+      "no_new_failures": true
+    },
+    "baseline_subset_sha256": "690aeb8c1285de68d53502c7763dfa0fd2a87420bb23f898f2b23e82a93b2a71",
+    "candidate_subset_sha256": "351b10ba2196bc35eb54492dbe057a8c706436cd5bb209b93609dd1883e329ad",
+    "case_memory": [
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertions": {
+          "successes": 34,
+          "failures": 2
+        },
+        "sampled_peak_bytes": 202228624,
+        "reported_peak_bytes": 202146512,
+        "conservative_peak_bytes": 202228624,
+        "diagnostic_enabled": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertions": {
+          "successes": 41,
+          "failures": 6
+        },
+        "sampled_peak_bytes": 374195088,
+        "reported_peak_bytes": 374670224,
+        "conservative_peak_bytes": 374670224,
+        "diagnostic_enabled": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertions": {
+          "successes": 61,
+          "failures": 9
+        },
+        "sampled_peak_bytes": 392217512,
+        "reported_peak_bytes": 392692648,
+        "conservative_peak_bytes": 392692648,
+        "diagnostic_enabled": true
+      }
+    ]
   }
 }
