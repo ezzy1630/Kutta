@@ -716,7 +716,7 @@ hashes are in [default-study-memory.json](default-study-memory.json).
 
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
-| Compensated momentum | Two new elbow pressure-drop failures observed; full run pending | Pending | 357.97 / 361.97 | Keep opt-in |
+| Compensated momentum | Two new elbow pressure-drop failures observed; full run pending | Startup time/step: CPU 2.91x, Metal 1.22x; full convergence cost pending | 357.97 / 361.97 before cleanup | Keep opt-in |
 | Paired-state slack 16 | Pending | Pending | 0 / 0 | Pending |
 | Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
@@ -768,6 +768,57 @@ The cleanup's full quick tier passes 307 cases and 7,990,154 assertions, and
 portability lint passes. The full singleton-default experiment continues on
 its original frozen binary; its results will not be attributed to this later
 cleanup. No default was promoted by the byte-parity checks.
+
+### Ordinary-solve cost of compensation
+
+Four alternating baseline/candidate pairs per backend (`AB, BA, AB, BA`)
+measure the V6 SST mixing elbow with ordinary settings, a cold start and
+40 outer steps. Only compensated momentum is enabled in the candidate,
+which includes the unused-fit cleanup. Timing uses steps 21–40. The machine
+is contended, so these are short-startup measurements, not an end-to-end
+throughput claim. Raw measurements and binary hashes are in
+[compensation-cost.json](compensation-cost.json).
+
+| Backend | Median baseline ms/step | Median compensation ms/step | Median paired ratio | Paired ratio range |
+| --- | ---: | ---: | ---: | ---: |
+| CPU | 99.40 | 291.89 | 2.906 | 2.575–4.029 |
+| Metal | 63.29 | 77.38 | 1.224 | 1.128–1.294 |
+
+Both binaries use four Coupled block iterations at step 40 in every repeat.
+The option materially increases this ordinary solve's measured startup cost,
+in addition to its pressure-drop regression on the separate k-epsilon case.
+
+Two resource-only experiments did not explain the previous 5.54 GB full-suite
+peak. A single Metal device executing 102,400 launches remains near 111 MB
+with and without an outer autorelease pool. Six create/use/destroy cycles
+remain near 107 MB after destruction in both modes. These probes rule out
+those specific simple lifetime paths; they do not establish that every
+runtime path is free of retention.
+
+A separate replay-buffer allocation prototype rounded each list to native
+pages and reused the smallest adequate completed buffer. Its 40-step public
+states and the required CLI output comparisons were byte-identical. Fine SST
+bump peak footprint fell from 333,562,672 to 324,174,592 bytes; SA fell from
+319,521,536 to 311,722,752. Four alternating ordinary-SST pairs measured a
+Metal paired time ratio of 1.235 (range 0.942–1.432); the CPU control ratio
+was 1.029 (0.891–1.132). These contended measurements do not justify shipping
+the allocation change for a roughly 9 MB saving. The prototype was reverted.
+See [sequence-buffer-experiment.json](sequence-buffer-experiment.json).
+
+The original single-process compensated-default slow run was stopped after
+14 complete cases when its footprint reached 3,852,733,848 bytes. That partial
+run is not a full-tier comparison. The replacement executes all 37 slow test
+cases in fresh processes, with their original assertions and solve budgets.
+It preserves each actual test-case XML element and uses the unchanged main
+comparator. There are no expression or INFO rewrites. This measures individual
+case peaks without allocator/driver retention across unrelated cases. A
+3,000,000,000-byte guard stops the run rather than hiding a resource excess.
+
+The replacement compensation binary includes the byte-identical SST cleanup
+and the since-reverted replay-buffer prototype. Its exact hashes are retained
+in the experiment metadata. Its numerical gate effects are compared, while
+its memory/time results are kept separate from the final source. Future
+option binaries use the retained source only.
 
 ### Exact fine-bump reproduction
 

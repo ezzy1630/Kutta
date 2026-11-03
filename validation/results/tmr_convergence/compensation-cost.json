@@ -1,0 +1,168 @@
+{
+  "case": "V6 SST mixing elbow, cold start, ordinary settings, compensated_momentum alone enabled; after includes unused-fit cleanup",
+  "iterations": 40,
+  "timed_iterations": [
+    21,
+    40
+  ],
+  "pairs": 4,
+  "order": "AB,BA,AB,BA",
+  "contended": true,
+  "rows": [
+    {
+      "backend": "cpu",
+      "pair": 0,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.09821899374999998,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 0,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.25476013750000004,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 1,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.40468885000000004,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 1,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.10043213539999998,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 2,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.098376375,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 2,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.31663871665,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 3,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.26714587500000003,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 3,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.10375161249999998,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 0,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.06384615414999999,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 0,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.07685071460000001,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 1,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.07809229579999999,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 1,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.06272966249999999,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 2,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.0602363,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 2,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.077916125,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 3,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.07425438540000001,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 3,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.0658399083,
+      "inner_u_last": 0,
+      "inner_pressure_last": 4
+    }
+  ],
+  "summary": [
+    {
+      "backend": "cpu",
+      "median_before_s": 0.09940425519999999,
+      "median_after_s": 0.291892295825,
+      "paired_ratio_median": 2.9062214844467995,
+      "paired_ratio_range": [
+        2.574859981091861,
+        4.029475709026895
+      ]
+    },
+    {
+      "backend": "metal",
+      "median_before_s": 0.06328790832499999,
+      "median_after_s": 0.0773834198,
+      "paired_ratio_median": 1.224294050358618,
+      "paired_ratio_range": [
+        1.127802078059699,
+        1.2935078183752986
+      ]
+    }
+  ],
+  "baseline_binary_sha256": "cf08c830dccc241cb612971a53bbc7c04f9b0bc85b03c5f75c7ae18f3dac5e8b",
+  "candidate_binary_sha256": "86ba9df7d9f23fc1972e90e22f156e054f046c0881faba724a0b2017ffd3e03b",
+  "candidate_numerical_source_revision": "a31434fbdc4b425611e5291b7f855ba345a261ba",
+  "candidate_build_head": "939f905a82e3a74c4e56cc95454e6e037c624613",
+  "candidate_build_note": "Solver cleanup was uncommitted when built; its numerical source is identical to a31434f."
+}

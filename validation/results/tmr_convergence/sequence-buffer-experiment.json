@@ -1,0 +1,265 @@
+{
+  "case": "V6 SST mixing elbow, cold start, ordinary settings; compensation off in both; sized Metal sequence buffers after versus original fixed buffer allocation",
+  "iterations": 40,
+  "timed_iterations": [
+    21,
+    40
+  ],
+  "pairs": 4,
+  "order": "AB,BA,AB,BA",
+  "contended": true,
+  "rows": [
+    {
+      "backend": "cpu",
+      "pair": 0,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.1285234042,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 0,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.11457095625,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 1,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.10086670415000001,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 1,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.09577709164999999,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 2,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.09973973544999999,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 2,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.11292308749999998,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 3,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.10116234585000002,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "cpu",
+      "pair": 3,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.10066008124999999,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 0,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.0596457625,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 0,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.06816417500000001,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 1,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.08794680834999999,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 1,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.06141424794999999,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 2,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.06616526249999999,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 2,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.0877992375,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 3,
+      "variant": "after",
+      "seconds_per_iteration_21_40": 0.05603736460000001,
+      "inner_pressure_last": 4
+    },
+    {
+      "backend": "metal",
+      "pair": 3,
+      "variant": "before",
+      "seconds_per_iteration_21_40": 0.059484095849999995,
+      "inner_pressure_last": 4
+    }
+  ],
+  "summary": [
+    {
+      "backend": "cpu",
+      "median_before_s": 0.10019990834999999,
+      "median_after_s": 0.107042716675,
+      "paired_ratio_median": 1.0290649481140455,
+      "paired_ratio_range": [
+        0.8914404108975508,
+        1.1321775317582314
+      ]
+    },
+    {
+      "backend": "metal",
+      "median_before_s": 0.06053000522499999,
+      "median_after_s": 0.07798170625,
+      "paired_ratio_median": 1.2348927516381303,
+      "paired_ratio_range": [
+        0.9420562555293511,
+        1.4320261386511044
+      ]
+    }
+  ],
+  "decision": "Rejected: modest resource saving with materially slower paired Metal measurements. The tested allocation prototype was reverted.",
+  "state_parity": [
+    {
+      "model": "sst",
+      "backend": "metal",
+      "cells": 56320,
+      "iterations": 40,
+      "public_state_identical": true,
+      "device_bytes_before": 177040352,
+      "device_bytes_after": 177040352,
+      "bytes_saved_per_cell": 0.0,
+      "peak_footprint_bytes": [
+        333562672,
+        324174592
+      ],
+      "state_sha256": "b13be53d5acc582eccc249c09231dfe12a44c0f9bd7fcda02e3818e5cd5335a9"
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "cells": 56320,
+      "iterations": 40,
+      "public_state_identical": true,
+      "device_bytes_before": 163938028,
+      "device_bytes_after": 163938028,
+      "bytes_saved_per_cell": 0.0,
+      "peak_footprint_bytes": [
+        319521536,
+        311722752
+      ],
+      "state_sha256": "4363d77fb0cce1b2f99acf1a036715d57ea3eac068dc83be2a05f145449e30e5"
+    }
+  ],
+  "provenance": {
+    "source_base": "a31434fbdc4b425611e5291b7f855ba345a261ba",
+    "native_page_bytes": 16384,
+    "prototype_patch_sha256": "2350ec0f227681916dd74389ef7ea7035ac1b638ebd49fa9e0e98adc2516af23",
+    "benchmark_before_sha256": "8bbe546cb85d2eb3756f5b387908d88fb7f221f39c8a9ab60730efbd63a6fbbd",
+    "benchmark_after_sha256": "cd4194379c1ee0cef286db5080248f78f4819063051505735c40fa46859a723f",
+    "cli_after_sha256": "23b0a9b279eb80875972c6da917b1add686f438e072b3ed4ea50e2360d463bb6",
+    "public_snapshot_before_sha256": "c3e2b418dc78eb5f4a919d8e4bb10afac3e1aba39e83854d0d847816d1cad2dc",
+    "public_snapshot_after_sha256": "831b2fb7369b5fe4c0633166f616068bf13df2411dccc08f9382a9d3aea4decb"
+  },
+  "output_parity": [
+    {
+      "case": "mixing_elbow",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      }
+    },
+    {
+      "case": "mixing_elbow",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      }
+    },
+    {
+      "case": "elbow_param",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      }
+    },
+    {
+      "case": "elbow_param",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      }
+    },
+    {
+      "case": "SST TMR finest bump (compensated momentum active)",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "cells.csv": true,
+        "wall_cf.csv": true,
+        "history.csv": true
+      }
+    },
+    {
+      "case": "SST TMR finest bump (compensated momentum active)",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "cells.csv": true,
+        "wall_cf.csv": true,
+        "history.csv": true
+      }
+    }
+  ],
+  "quick_tier": {
+    "cases": 307,
+    "assertions": 7990154,
+    "failed": 0
+  }
+}
