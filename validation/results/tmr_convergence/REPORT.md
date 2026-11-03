@@ -1004,6 +1004,12 @@ floor or a two-cycle from even-spaced samples. The complete endpoints,
 including load changes, are in
 [initial-classification.json](initial-classification.json).
 
+![Exact-main TMR maximum-defect histories, sampled every 100 steps](baseline-convergence.png)
+
+The plot shows all 24 recorded solves, including the seven that converge.
+A terminal cross means the unchanged convergence gates are not met by step
+3,000; the dashed line shows the maximum-defect gate. Load change also applies.
+
 ### Exact fine-bump reproduction
 
 The finest SST bump on Metal completes 3,000 steps on exact base `e014e36`.
