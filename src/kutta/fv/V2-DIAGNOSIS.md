@@ -2,20 +2,27 @@
 
 ## Current conclusion
 
-The original investigation below is historical. An independent exact-face
-Gauss probe now identifies the operator limit: midpoint-face quadrature gives
-first-order cell-centred pressure gradients on Freudenthal tets even with exact
-face pressure (finest order 0.999409), while opposite-face cancellation gives
-second order on hexes (1.99791). The actual LSQ/Second Order momentum pressure
-force has tet order 1.01406; solver pressure order 0.942387 is within 0.1 of it.
-The former tet pressure ≥1.8 gate was incompatible with the deliberately matched
-Fluent-class discretization. No discretization was changed.
+The original investigation below is historical. The exact-face Gauss probe
+measures first-order local cell-centred pressure-gradient error on Freudenthal
+tets (finest order 0.999409); opposite-face cancellation gives 1.99791 on hexes.
+The actual LSQ/Second Order momentum pressure operator has tet order 1.01406.
+Those local operator measurements do not bound the global pressure-solution
+order. The earlier claim that second-order pressure was unattainable was not
+established by that experiment.
 
-The replacement couples operator consistency with independent, strict ≥1.8
-wall-pressure, viscous and total-force gates. Measured tet orders 0.996464,
-0.874869 and 0.933580 fail those gates, which remain red. See
-[VERIFICATION.md](VERIFICATION.md) for the force integrals, mesh families and
-full results. This diagnosis does not establish second-order tet loads.
+The 2026-11-03 investigation recovers the unchanged V2 tet load gates using
+quadratic interior fluxes and face means, cubic Dirichlet-boundary gradients,
+and normal-foot pressure observations. CPU and Metal give finest pressure/
+viscous/total force orders 3.28712/2.14839/1.99352. These are measured slopes
+on the frozen mesh sequence, not formal orders of the method. The momentum
+pressure operator is unchanged, yet the solved pressure L2 order becomes
+1.91159. Exact-field wall controls and separate diffusion/predictor ablations
+identify defects beyond that operator. A full cubic interior passed V2 but
+became nonfinite on a smooth tet channel; it is not retained.
+
+See the [dated report](../../../validation/results/tet_prism_convergence/REPORT.md#2026-11-03--v2-tet-loads-and-the-remaining-native-mode)
+for the fresh baseline, controls and full-tier qualification. Native SST
+convergence and second-order car loads remain unestablished.
 
 ## Historical bounded investigation
 

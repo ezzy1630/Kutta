@@ -1,3 +1,5 @@
+Updated 2026-11-03: the [new investigation](#2026-11-03--v2-tet-loads-and-the-remaining-native-mode) recovers the V2 tet load gates; native default convergence remains unmet. The earlier investigation below is historical.
+
 Default native tet/prism convergence is **not achieved**. I isolated a numerical
 far-field pressure/velocity cycle and added an opt-in correction with a fast
 CPU/Metal regression. It removes the cycle in an 11-tet problem with a known
@@ -448,3 +450,416 @@ python3 validation/results/tet_prism_convergence/check_elbow_parity.py \
   runs/tet_prism_convergence/repeated_elbows
 python3 tools/lint_portability.py
 ```
+
+## 2026-11-03 — V2 tet loads and the remaining native mode
+
+The native Ahmed convergence target is still unmet. The V2 tet load gates can
+be recovered without changing their thresholds, forcing, reference forces or
+iteration budgets. The two problems share a pressure-boundary observation
+defect, but the recovered laminar reconstruction does not solve the native SST
+case. Its remaining k and force mode needs further work.
+
+This investigation starts from `e014e36c46cd63bd2b9fc52b24247b1e40939f85`.
+All runs use Release builds on the Apple M4 Pro, with CPU and Metal available.
+CUDA runtime and the Qt app are unverified. Heavy solves run serially in this
+lane. Timings are contended and are not performance evidence.
+
+The generated native mesh has the same 130,331 cells: 55,371 tets and 74,960
+prisms. Its unmodified generator output has SHA-256
+`35cee20eaef0052a00b09b2dbabd199b19d26c58a22cb2a6d1d33c97d9f9424e`.
+The earlier report explains the comment-only difference from the retained mesh.
+
+### What the V2 controls establish
+
+Supplying exact cell fields without solving separates reconstruction error
+from errors in the converged flow. With the original pressure observations,
+exact-field tet wall-pressure errors at n=4/8/16 are
+0.0136342/0.00818994/0.00455127: finest order 0.847585. NormalFoot changes these
+to 0.0122102/0.00311976/0.000789512, order 1.98240. The viscous error is unchanged
+and remains first order, 0.0963435/0.0480522/0.0243542, order 0.980428.
+This isolates a pressure-boundary datum error; it does not establish that it
+alone causes the solved load errors.
+
+There is also a wall-normal diffusion defect. For the exact quadratic field
+`u=(0,x+x*x,0)`, the original wall viscous-force error on a 3³ mesh is
+0.166667 on hexes and 0.0833334 on tets. Replacing the compact normal difference
+with the fitted derivative reduces these to 1.41561e-7 and 7.45058e-9.
+The original projected scheme fits tangential shifts but deliberately retains
+the compact one-sided normal difference and its curvature error. The wall
+traction uses that same normal flux; changing only force postprocessing would
+leave the momentum equation inconsistent.
+
+A wall-only quadratic correction is insufficient in the solved MMS. A separate
+scalar diffusion control explains why investigating the rest of the operator
+matters. With exact `q=x³`, full quadratic face reconstruction gives tet
+face-flux RMS errors 0.0433332/0.0131785/0.00331016 at n=2/4/8, but divergence
+L2 errors 0.334436/0.283898/0.159978. The finest divergence order is only 0.827.
+An exact integrated-flux oracle is at double roundoff. Cubic face integration
+reduces the n=8 tet divergence error to 3.28477e-6, consistent with float
+evaluation noise; the hex value is 1.25e-7. This is an operator isolation, not
+a general theorem equating local truncation order with global load order.
+
+The retained reconstruction in `02750a0` uses quadratic interior face fluxes
+and face-average momentum values, with cubic Dirichlet-boundary gradients.
+Interior rows retain the original ten-term quadratic fit; boundary rows use
+20 terms. A four-point triangle rule integrates the polynomial, and the
+boundary gradient used for traction is consistent with the momentum flux.
+The compact primary coefficient stays implicit; fitted corrections are
+deferred. Geometry builds the weights on the host and the existing generated
+kernels evaluate them on the device. Pressure-face interpolation and source
+sampling remain unchanged.
+
+Automatic selection is limited to unlimited laminar LSQ with genuinely
+volumetric cell-centroid clouds and continuous prescribed velocity traces.
+Coplanar clouds, including rotated single-layer extrusions, limited flows,
+and turbulent models retain the original operator. The existing moving-wall
+jump mask and a prescribed inlet/wall trace-jump check protect nonsmooth
+inputs. Explicit `Integrated` is available for laminar, unlimited LSQ only.
+The benchmark/case options expose `--laminar-reconstruction`,
+`--pressure-boundary-gradient` and `--unlimited`. Selection depends on input
+geometry, model, limiter and boundary data, not on coupling scheme or test
+identity. The new synthetic channel test exercises this selection and checks
+that limited Automatic and Projected runs retain bit-identical fields.
+
+### Fresh V2 results and unsuccessful controls
+
+The original tests remain unchanged. The fresh untouched-base result below
+is confirmed by the completed main slow-tier XML. It differs from the older
+historical numbers at the start of VERIFICATION.md.
+
+| V2 tet, finest pair | Untouched e014e36 | NormalFoot alone | Retained Integrated + NormalFoot |
+| --- | ---: | ---: | ---: |
+| Velocity order, gate ≥1.9 | 1.81502 | 1.82267 | 1.94729 |
+| Pressure L2 order | 0.967086 | 0.982269 | 1.91159 |
+| Pressure-force order, gate ≥1.8 | 1.05200 | 1.09741 | 3.28712 |
+| Viscous-force order, gate ≥1.8 | 0.842617 | 0.879720 | 2.14839 |
+| Total-force order, gate ≥1.8 | 0.622970 | 0.636788 | 1.99352 |
+| n=4/8/16 iterations | 80/180/440 | 80/180/440 | 80/180/460 |
+
+CPU and Metal agree to the printed precision. Retained pressure-force errors
+at n=4/8/16 are 0.0562924/0.00599634/0.000614277; viscous errors are
+0.0895733/0.0233575/0.00526862; total errors are
+0.0546121/0.0190128/0.00477457. Velocity L2 errors are
+0.0813247/0.0266607/0.00691321; pressure L2 errors are
+0.127870/0.0479127/0.0127352. The measured pressure-force slope is not a
+formal third-order claim.
+
+| Tet total-force error/span | Untouched e014e36 | Retained |
+| --- | ---: | ---: |
+| n=4 | 0.00629622 | 0.0546121 |
+| n=8 | 0.0328344 | 0.0190128 |
+| n=16 | 0.0213205 | 0.00477457 |
+
+The coarse total error increases. The old n=4 pressure error (0.0958153)
+mostly cancels the viscous x error (0.0937405); its small total error does not
+represent accurate components. The retained finest pressure, viscous and
+total errors all decrease, and all independent frozen gates pass.
+
+Hex results remain unchanged: velocity/pressure orders 1.91640/1.82115,
+pressure/viscous/total force orders 1.91472/1.95917/2.01196, on both backends.
+Its coplanar centroids keep the original reconstruction.
+
+Three direct CPU ablations distinguish the retained ingredients:
+
+| Control | Pressure / viscous / total force orders | Result |
+| --- | --- | --- |
+| Replace cubic boundary gradients with quadratic; retain quadratic interior fluxes/means and NormalFoot | 2.59272 / 2.00597 / 1.75192 | Total gate fails |
+| Retained diffusion and traction, restore old Projected momentum-face predictor | 0.827425 / 0.732388 / 0.743700 | All load gates and velocity order fail |
+| Retained fluxes/means, restore Extrapolated pressure observations | -0.515862 / 2.20054 / 2.31763 | Pressure-force gate fails |
+
+Together with the exact-field pressure and quadratic wall controls, these
+isolate pressure-boundary data, wall-normal derivative and momentum-face
+errors. They do not apportion nonlinear solution error linearly. The scalar
+`x³` operator experiment does not prove cubic interior fluxes are necessary:
+the retained quadratic interior is a counterexample on the solved MMS.
+The unchanged momentum pressure operator has local tet order 1.01406, while
+the recovered global pressure order is 1.91159. The earlier inference that
+this local error made second-order global pressure unattainable was too strong.
+
+Other unsuccessful CPU V2 controls were removed:
+
+| V2 control, with NormalFoot unless stated | Pressure / viscous / total force orders | Result |
+| --- | --- | --- |
+| Quadratic wall-normal correction only | 1.09792 / 0.916321 / 0.803843 | All load gates fail |
+| Quadratic fit with minimum two-ring cloud | 0.064211 / 2.181 / 2.002 | Pressure force and velocity fail |
+| Exact Dirichlet constraints in quadratic fit | 2.60894 / 2.01113 / 1.75858 | Total gate fails |
+| Stationary incompressible wall projection, consistent momentum and traction | -0.571012 / 2.24650 / 2.06907 | Pressure force fails |
+| New quadratic pressure-face interpolation and quadratic fluxes | 2.35805 / 1.98247 / 1.74117 | Total gate fails |
+| Same with wall projection | 0.728677 / 2.30523 / 2.23991 | Pressure force fails |
+| Full cubic faces, new pressure-face interpolation, original source | 0.725052 / 3.00259 / 3.34051 | Pressure force fails |
+| Cell-averaged source alone | 1.02704 / 0.874757 / 0.724985 | Load and velocity gates fail |
+
+Full cubic faces plus source averaging passes, but removing both changes also
+passes. Neither is retained. The wider pressure interpolation becomes nonfinite
+on native SST before the first 50-iteration monitor; the exact rejecting
+iteration is unverified.
+
+A broader candidate (`4fee1ef`) used cubic interior fluxes and means. It passed
+all original V2 checks (force slopes 5.33371/3.63629/3.43786), but became
+nonfinite on a 192-cell CPU tet channel with a smooth `6*y*(1-y)` inlet,
+stationary y walls, z symmetry and a pressure outlet. Thus a boundary-value
+jump was not sufficient to explain or prevent its failure. This smooth-channel
+control is now permanent. On the same 1,200-iteration diagnostic:
+
+| Channel reconstruction | Raw continuity at 1,200 | Result |
+| --- | ---: | --- |
+| Original Projected + NormalFoot | 2.17366e-7 | Finite |
+| Full cubic, limited or unlimited | Nonfinite | Rejected |
+| Cubic diffusion only | Nonfinite | Rejected |
+| Cubic face values only | 0.774623 | Finite, stalled |
+| Cubic interior, quadratic boundary | Nonfinite | Rejected |
+| Quadratic interior, cubic boundary, limited | 0.00126794 | Stalled |
+| Retained quadratic interior, cubic boundary, unlimited SIMPLEC | 1.46620e-7 | Finite |
+| Retained, unlimited classic SIMPLE | 5.46367e-12 | Finite |
+
+A separate existing coupled tet channel gives 9.00396e-12 raw continuity at
+400 with the retained reconstruction. These are stability controls, not
+physical validation of channel loads. The experiment identifies cubic
+interior reconstruction as a trigger; no spectral/coercivity diagnosis was
+performed. The broader candidate's full-tier run was interrupted and does
+not qualify any default.
+
+Global NormalFoot promotion was also rejected early. It changes physical
+40-iteration outputs for V6 mixing_elbow on CPU and Metal; elbow_param remains
+byte-identical. In the first fully completed slow case, the unchanged
+comparator reports zero failed assertions, eight changed expanded values,
+and four missing/four new identities because physical CLI monitor values
+are part of INFO context. `no_new_failures` is false. Both compared prefixes
+end after a completed case. This is an early rejection, not a complete-tier
+comparison or proof of a numerical gate regression; that global-default
+run was interrupted. Global NormalFoot therefore stays opt-in and its full
+corpus accuracy remains unqualified.
+
+The retained scoped default selects NormalFoot only with Integrated laminar
+reconstruction. SST and all original paths retain Extrapolated. Explicit
+Extrapolated can override the integrated pair for controlled experiments.
+Consequently the native default stays unchanged and unconverged. The complete
+slow tier below qualifies only this scoped laminar change.
+
+### Native k and force controls
+
+Native runs retain SIMPLEC, SST, Standard limiter, the original 5,000-iteration
+cap and 1,000-iteration force window. Every scaled residual must be ≤1e-3;
+both relative force changes must be ≤5e-4. All controls start identically and
+the freeze experiments branch only after iteration 1,000.
+
+| Native Metal control | End iteration | Raw continuity | Maximum scaled residual | Lift / drag change |
+| --- | ---: | ---: | ---: | ---: |
+| Final default: original pressure observations | 5000 | 0.8068714 | 0.00825425 | 0.0917024 / 0.0224256 |
+| NormalFoot, fresh full coupled control | 5000 | 0.0477401 | 0.00206879 (k) | 0.201886 / 0.0357136 |
+| Hold flow and mass flux, continue k/omega | 2000 | 0.0446083, held flow | 0.000466028 | Artificially fixed forces |
+| Hold k, continue flow/omega | 5000 | 0.0691732 | 0.0120342, held-k defect | 0.436630 / 0.116911 |
+| Hold omega, continue flow/k | 5000 | 0.0486455 | 0.132602, held-omega defect | 0.0104308 / 0.00241188 |
+| First-order k convection only | 5000 | 0.0788169 | 0.00144922 (k) | 0.379810 / 0.128037 |
+| Existing compensated momentum/scalar precision bundle | 5000 | 0.0436669 | 0.00142942 (k) | 0.0966183 / 0.0455436 |
+| First-order omega convection only | Last monitor 1400 | Nonfinite afterwards | 10.1147 at last monitor | Fails |
+
+All 20 non-timing monitor samples through iteration 1,000 match the NormalFoot
+control in each freeze experiment. All 130,331 exported cells confirm the
+held fields stay unchanged. With flow held, k changes by up to 0.0225663 and
+omega by 636.535 before their scaled residuals reach 0.000171701 and
+5.27655e-6. This is convergence of a reduced scalar problem, not acceptance of
+the full flow. The benchmark stops it at 2,000 because the artificial control
+holds the forces fixed.
+
+Holding k does not remove force variation. Holding omega lowers k's residual
+to 0.000117060 and reduces the final-window relative force changes substantially, but the original force
+gates still fail. Evolving k is not necessary for force variation in these
+controls, and the scalar subproblem can converge at the held flow state.
+Coupling to the evolving flow and omega matters. These observations do not
+rule out another scalar mode at a different flow state, identify a unique
+faulty term, or establish physical wake unsteadiness.
+
+The precision bundle uses existing options: compensated momentum, 16-ulp
+paired-state slack, 1e-20 momentum/pressure/scalar absolute linear floors,
+compensated SST transport, no scalar pseudo-time and a 1e-6 scalar steady
+tolerance. It improves k modestly but fails. It changes no default here.
+
+Further matched controls use a single frozen diagnostic binary. Its
+NormalFoot calibration reproduces all 100 non-timing samples plus the cell
+and wall files byte for byte. The differentiable limiter below applies only
+to velocity; k and omega retain Standard. The original force window, residual
+gates and iteration cap stay unchanged.
+
+| Additional NormalFoot control, Metal | Raw continuity at last monitor | Maximum scaled residual | Lift / drag change |
+| --- | ---: | ---: | ---: |
+| Differentiable velocity, coefficient 0.05 | 0.0224975 | 0.000470226 (k) | 0.00102337 / 0.000394268 |
+| Same, coefficient 0.1 | 0.0474771 | 0.000584885 (k) | 0.0332255 / 0.00695809 |
+| Standard velocity, omega relaxation 0.25 | 0.0517317 | 0.00322181 (omega) | 0.207908 / 0.0576048 |
+| Differentiable 0.05, omega relaxation 0.25 | Nonfinite after monitor 1750 | 0.639491 at last monitor | Fails |
+| Differentiable 0.05, existing precision bundle | 0.0216306 | 0.000670487 (k) | 0.00551016 / 0.00299537 |
+
+The finite runs reach 5,000 iterations. None passes every original gate.
+Increasing the differentiable coefficient worsens force settling. Lowering
+omega relaxation alone also fails; combined with the differentiable limiter
+it ends with `nonfinite input vector`. Its last completed monitor is 1,750;
+the exact rejecting subiteration is unverified. The precision bundle passes
+residual gates with differentiable velocity, but both force gates fail.
+The 0.05 differentiable control repeats the earlier reported near miss; it
+remains an opt-in fixed-point change with the earlier measured Fluent
+trade-off. Smaller residuals do not establish accurate or accepted car loads.
+
+The native SST path does not select the laminar Integrated reconstruction. Thus
+V2 recovery alone is not evidence that real car meshes now converge or that
+SST car loads have second-order accuracy. Native convergence remains the
+unfinished acceptance criterion.
+
+At iterations 3,000–3,099, volume-weighted absolute k updates in the normal
+coupled run are 52.36% far field, 3.48% body and 44.16% wake. The corresponding
+region volumes are 93.41%, 3.75% and 2.83% of the domain. This differs from the
+original continuity two-cycle, which was concentrated in a few far-field tets.
+The top k-update cells in the late window include points near
+`(-0.0492,0.0394,0.3098)` and `(-0.3350,0.1825,0.0500)`. The per-iteration top-five
+selection is sparse; it does not establish a period or rule out a separate
+mode elsewhere.
+
+Pressure dominates the final-window drag fluctuations. Over the 21 monitors
+at iterations 4,000–5,000, population standard deviations of total/pressure/
+viscous drag are 0.00802652/0.00801544/0.0000945378 normally,
+0.0245268/0.0244204/0.000226617 with k held, and
+0.000629187/0.000647145/0.0000470755 with omega held. These are diagnostic
+statistics, not replacement convergence gates. Holding omega changes the flow
+and its force level; it is not a usable solution.
+
+### Direct native wall controls
+
+SST replaces ordinary wall diffusion and transpose stress with its wall-law
+traction. Enabling the laminar reconstruction alone would not test its wall
+forces. A separate diagnostic changes body-wall traction, its momentum RHS
+and wall k production together. It preserves the existing implicit coefficient,
+effective viscosity `coefficient * normal_distance`, u-star and wall-omega law.
+Ground traction stays unchanged. All runs share the first 1,000 iterations;
+the intervention starts on the next step. All 20 preceding monitor samples
+match exactly. The unchanged-law control also matches the NormalFoot control's
+100 samples and final cell/wall files byte for byte.
+
+The fitted normal derivatives pass independent rotated thin-tet polynomial
+controls on all 32 selected faces, with coordinates expressed in the box
+frame. For `q=x+x²+x*y`, the exact wall flux is
+-1.5 and error is 3.72529e-9. For `q=x+x²+x³+x*y²`, the exact flux is -4/3
+and error is 6.08464e-8. These establish the sampled functionals, not general
+SST load accuracy.
+
+The first fit uses normal/tangential coordinates, but its cubic version
+corrects only 1.1% of body area. It cannot test the hypothesis across the body.
+Column normalization of the Gram matrix improves conditioning: with
+`D_ii=1/sqrt(A_ii)`, invert `D*A*D` and transform back. The same functional
+reproduction tolerance remains 1e-7. Cubic coverage rises to 87.0%, quadratic
+to 100%. The polynomial controls still pass, and the conditioned executable's
+40-iteration original-law fields match production exactly. No threshold is
+relaxed to obtain coverage.
+
+| NormalFoot + body-wall normal-gradient control | Corrected body area | Raw continuity | Maximum scaled residual (k) | Lift / drag change |
+| --- | ---: | ---: | ---: | ---: |
+| Original law | 0% | 0.0477401 | 0.00206879 | 0.201886 / 0.0357136 |
+| Quadratic fit | 77.5% | 0.0412003 | 0.00187784 | 0.165283 / 0.0530481 |
+| Cubic fit | 1.1% | 0.0464446 | 0.00182431 | 0.165361 / 0.0293071 |
+| Conditioned quadratic fit | 100% | 0.0427582 | 0.00201370 | 0.207213 / 0.0363706 |
+| Conditioned cubic fit | 87.0% | 0.0374223 | 0.00180686 | 0.0900887 / 0.0474242 |
+
+Every run reaches 5,000 and fails the original gates. At activation, the
+all-body quadratic correction changes the area-integrated stress magnitude
+by -0.27%, with a 4.04% area-weighted absolute change. It is an exercised wall
+operator change, not a force-output-only adjustment. Body y-plus remains
+below 1.93 in that run. The conditioned cubic run reaches y-plus 20.75, so its
+resolved-wall interpretation is no longer valid everywhere; it is rejected.
+Partial cubic coverage also limits any negative causal conclusion.
+
+The all-body quadratic control does not remove the pressure-dominated force
+mode. Over monitors 4,000–5,000, pressure/viscous drag standard deviations are
+0.00824021/0.000112204, versus 0.00801544/0.0000945378 with the original law.
+These are statistics over steady iterations, not physical-time fluctuations.
+Correcting this body-wall normal-gradient approximation alone is insufficient
+to recover native convergence. Other strain, scalar-gradient and coupling
+errors remain possible.
+
+A second set of reduced problems holds the prescribed wall-cell and wall-face
+omega values at their iteration-1,000 values, while interior omega transport,
+k and flow continue. Body, ground and both masks cover 3,748, 3,014 and 6,762
+faces. Each run verifies the held GPU boundary buffers and selected fixed rows
+exactly on 24,480 active model evaluations. All startup samples match the
+control. This tests boundary feedback separately from holding all cell omega.
+
+| Wall-omega values held, diagnostic only | Raw continuity | Maximum modified-system residual (k) | Lift / drag change | Final original-closure relative mismatch |
+| --- | ---: | ---: | ---: | ---: |
+| Body | 0.0483076 | 0.00202389 | 0.132597 / 0.0534953 | 0.0379719 |
+| Ground | 0.0442623 | 0.00186574 | 0.167807 / 0.0432640 | 0.146427 |
+| Both | 0.0370918 | 0.00119640 | 0.0958762 / 0.0321095 | 0.151399 |
+
+All three reach 5,000 without removing force variation. Their nonzero
+original-closure mismatches explicitly prevent treating their reduced-system
+residuals as original SST acceptance. Holding only wall omega does not
+reproduce the much larger reduction observed when all cell omega is held.
+The coupled interior flow/turbulence mode remains unresolved; these controls
+do not identify a unique faulty transport, production or strain term.
+
+None of these diagnostic wall paths is retained. Native default convergence
+and second-order SST car loads remain unestablished. The recovered V2 laminar
+MMS does not close either acceptance criterion.
+
+### Final verification
+
+Implementation `02750a0476e38b2c0d742ad644d9f2a37f16eab5` builds in Release
+with CPU, Metal and HDF5. The rebuilt quick tier passes 312 cases and
+7,990,192 assertions; portability lint passes. Four requested 40-iteration
+CPU/Metal elbow controls
+pass all 20 explicit `cmp` checks: fluxes, forces, loads, VTU and residual
+columns 1–7 with comments removed. The canonical parity script also finds
+exact physical outputs including view data and every non-timing residual.
+
+On the native target, 40-iteration CPU and Metal export probes against
+untouched e014e36 match cells, wall data and mass flux byte for byte, and
+all non-timing history samples exactly. These checks confirm the SST path
+stays unchanged. They are not convergence evidence. The actual default run
+at this build also reaches 5,000 iterations and matches all 100 non-timing
+baseline history samples exactly; it fails the original convergence gates.
+
+The complete slow tier executes the original 37 cases and 201,633 assertions.
+Main has 201,582 passes and 51 failures; the branch has 201,590 passes and 43
+failures. The unchanged canonical comparator reports **zero regressions,
+eight recoveries, twelve changed expanded values, no missing/new assertions
+and no missing/new cases**; `no_new_failures` is true. All twelve changed values
+are in V2 tet refinement: velocity, pressure and three force orders plus the
+finest loop counter, once per backend. The loop counter changes 420→440;
+actual solver iterations change 440→460. Every other assertion expansion
+is unchanged. The [canonical comparator output](evidence/2026-11-03-02750a0-slow-comparison.json)
+and [analytic V2 measurements](evidence/2026-11-03-02750a0-v2.json) are committed;
+the restricted full XML remains outside Git. Recoveries are six force-order
+assertions and two velocity-order assertions.
+
+| Slow case with a baseline failure | Main failures | Branch failures |
+| --- | ---: | ---: |
+| V2 tet refinement | 8 | 0 |
+| V6 mixing elbow | 25 | 25 |
+| V5 TMR plate | 2 | 2 |
+| V5 TMR bump | 6 | 6 |
+| V7 SA | 9 | 9 |
+| V12 native fan | 1 | 1 |
+
+This full-tier process exceeds the resource constraint: peak memory footprint
+is **5,542,367,984 bytes**, with maximum RSS 2,725,216,256 bytes. The original
+harness checked the footprint only after completion, so it failed to enforce
+the requested ~3 GB limit and stopped before the queued native controls.
+The numerical comparison is complete; this run is not resource-compliant.
+The supplied baseline has no peak-memory receipt, so a memory regression or
+its cause is unverified. Remaining native controls use a live physical-footprint
+guard with a 2.8 GB cutoff; the guard is checked against an allocating child
+and a deliberate cutoff control before use.
+
+An isolated, sequential V2 pair using the provided e014e36 test binary and
+the qualified branch binary measures peak footprints 289,751,832→289,981,232
+bytes, with the expected eight→zero failures in the original 34 assertions.
+This does not reproduce or explain the full-process peak; the missing baseline
+full-tier memory receipt still prevents a full memory-regression conclusion.
+Retained numerical source and its four build artifacts remain byte-identical
+to the qualified build.
+
+Peak footprint among later live-guarded native runs is 465,109,904 bytes. The [native-control receipt](evidence/2026-11-03-02750a0-native-controls.json)
+records settings, wall interventions, readbacks and private artifact identities.
+The [verification receipt](evidence/2026-11-03-02750a0-verification.json) binds
+the source, binaries, XML hashes, parity checks and resource measurements.
+No restricted XML, reference data or generated mesh is committed.
+
+All 139 owned fixture symlinks are removed, with no reference-checkout links
+left in this worktree. No owned CFD process remains. Private diagnostic hooks
+are absent from the retained solver. Changes are local; nothing is pushed.

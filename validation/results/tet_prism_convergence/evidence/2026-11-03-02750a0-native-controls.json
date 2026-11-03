@@ -1,0 +1,704 @@
+{
+  "implementation_commit": "02750a0476e38b2c0d742ad644d9f2a37f16eab5",
+  "mesh_sha256": "35cee20eaef0052a00b09b2dbabd199b19d26c58a22cb2a6d1d33c97d9f9424e",
+  "cells": 130331,
+  "tets": 55371,
+  "prisms": 74960,
+  "iteration_cap": 5000,
+  "force_window_iterations": 1000,
+  "scaled_residual_gate": 0.001,
+  "lift_and_drag_relative_change_gate": 0.0005,
+  "normal_foot_control_calibration": {
+    "reference": "native-foot",
+    "candidate": "native-nf-control",
+    "non_timing_history_exact": true,
+    "samples": 100,
+    "files_same_bytes": {
+      "cells.csv": "f06c433c7f111ed0b7047b9c11756d901d111e3812d8a521566466aa4bfa6907",
+      "walls.csv": "d4c69ea9e96b00b738769671e34bc8efe205a09466877562a849ff1ca4a41a7e"
+    }
+  },
+  "default_history_calibration": {
+    "candidate": "native-default-02750a0",
+    "reference": "validation/results/tet_prism_convergence/evidence/base_metal_simplec.history.csv.gz",
+    "non_timing_history_exact": true,
+    "samples": 100,
+    "last": {
+      "iteration": "5000",
+      "lift": "0.575242784",
+      "drag": "0.4576104428",
+      "drag_pressure": "0.4098072394",
+      "u": "0.0004523774252",
+      "v": "0.0004105626963",
+      "w": "0.0009286505266",
+      "continuity": "0.008254250821",
+      "k": "0.002129938267",
+      "omega": "8.528948226e-05",
+      "max_velocity": "2.011115551",
+      "continuity_raw": "0.806871412"
+    }
+  },
+  "settings_controls": [
+    {
+      "control": "native-default-02750a0",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.575242784,
+        "drag": 0.4576104428,
+        "drag_pressure": 0.4098072394,
+        "max_residual": 0.008254250821,
+        "settle_lift": 0.0917024066,
+        "settle_drag": 0.02242564403,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 1.62362349,
+        "yplus_mean": 0.9176445371,
+        "failure": ""
+      },
+      "last_recorded_raw_continuity": 0.806871412,
+      "maximum_residual_field": "continuity",
+      "last_recorded_residuals": {
+        "u": 0.0004523774252,
+        "v": 0.0004105626963,
+        "w": 0.0009286505266,
+        "continuity": 0.008254250821,
+        "k": 0.002129938267,
+        "omega": 8.528948226e-05
+      },
+      "all_benchmark_gates_met": false
+    },
+    {
+      "control": "native-nf-control",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.4569980128,
+        "drag": 0.43381491,
+        "drag_pressure": 0.3866561025,
+        "max_residual": 0.002068787113,
+        "settle_lift": 0.2018860723,
+        "settle_drag": 0.03571357665,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 1.644451857,
+        "yplus_mean": 0.9127484067,
+        "failure": ""
+      },
+      "last_recorded_raw_continuity": 0.04774013081,
+      "maximum_residual_field": "k",
+      "last_recorded_residuals": {
+        "u": 4.929612354e-05,
+        "v": 3.156204203e-05,
+        "w": 3.435547283e-05,
+        "continuity": 0.0004987467034,
+        "k": 0.002068787113,
+        "omega": 7.920189819e-05
+      },
+      "all_benchmark_gates_met": false
+    },
+    {
+      "control": "native-diff-fresh",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.5722259893,
+        "drag": 0.4372533915,
+        "drag_pressure": 0.3910877458,
+        "max_residual": 0.0004702261684,
+        "settle_lift": 0.001023369755,
+        "settle_drag": 0.0003942684044,
+        "residuals_met": true,
+        "settled": false,
+        "yplus_max": 1.63036418,
+        "yplus_mean": 0.8982437413,
+        "failure": ""
+      },
+      "last_recorded_raw_continuity": 0.02249750578,
+      "maximum_residual_field": "k",
+      "last_recorded_residuals": {
+        "u": 2.333085613e-05,
+        "v": 1.728776629e-05,
+        "w": 1.945105814e-05,
+        "continuity": 0.0001903643373,
+        "k": 0.0004702261684,
+        "omega": 5.628360657e-05
+      },
+      "all_benchmark_gates_met": false
+    },
+    {
+      "control": "native-diff-coeff01",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.5257376415,
+        "drag": 0.43367969,
+        "drag_pressure": 0.3849872107,
+        "max_residual": 0.0005848845652,
+        "settle_lift": 0.0332254904,
+        "settle_drag": 0.00695809324,
+        "residuals_met": true,
+        "settled": false,
+        "yplus_max": 1.665527701,
+        "yplus_mean": 0.9180873033,
+        "failure": ""
+      },
+      "last_recorded_raw_continuity": 0.04747711325,
+      "maximum_residual_field": "k",
+      "last_recorded_residuals": {
+        "u": 5.105559648e-05,
+        "v": 4.060527977e-05,
+        "w": 3.966932308e-05,
+        "continuity": 0.0004338519211,
+        "k": 0.0005848845652,
+        "omega": 0.0001373924266
+      },
+      "all_benchmark_gates_met": false
+    },
+    {
+      "control": "native-omega025",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.5666253141,
+        "drag": 0.4525435787,
+        "drag_pressure": 0.4054400906,
+        "max_residual": 0.003221812538,
+        "settle_lift": 0.2079084961,
+        "settle_drag": 0.05760475877,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 1.60594964,
+        "yplus_mean": 0.9115483385,
+        "failure": ""
+      },
+      "last_recorded_raw_continuity": 0.05173167589,
+      "maximum_residual_field": "omega",
+      "last_recorded_residuals": {
+        "u": 4.497519324e-05,
+        "v": 2.884270482e-05,
+        "w": 2.969185513e-05,
+        "continuity": 0.0005502114147,
+        "k": 0.002878563789,
+        "omega": 0.003221812538
+      },
+      "all_benchmark_gates_met": false
+    },
+    {
+      "control": "native-diff-omega025",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 1750,
+        "lift": -3011.877649,
+        "drag": -4.49019666,
+        "drag_pressure": -5.091101827,
+        "max_residual": 0.6394912029,
+        "settle_lift": 1.110676652,
+        "settle_drag": 1.357910526,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 0,
+        "yplus_mean": 0,
+        "failure": "solver.cpp:117: solve: nonfinite input vector"
+      },
+      "last_recorded_raw_continuity": 70.85269732,
+      "maximum_residual_field": "continuity",
+      "last_recorded_residuals": {
+        "u": 0.002780237771,
+        "v": 0.00557521594,
+        "w": 0.01883516826,
+        "continuity": 0.6394912029,
+        "k": 0.04332382029,
+        "omega": 0.1229124579
+      },
+      "all_benchmark_gates_met": false
+    },
+    {
+      "control": "native-diff-precision",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.5824695197,
+        "drag": 0.4353034212,
+        "drag_pressure": 0.389587532,
+        "max_residual": 0.000670486529,
+        "settle_lift": 0.00551015684,
+        "settle_drag": 0.002995372087,
+        "residuals_met": true,
+        "settled": false,
+        "yplus_max": 1.612956405,
+        "yplus_mean": 0.8924379467,
+        "failure": ""
+      },
+      "last_recorded_raw_continuity": 0.02163061052,
+      "maximum_residual_field": "k",
+      "last_recorded_residuals": {
+        "u": 2.511460536e-05,
+        "v": 1.91744901e-05,
+        "w": 1.563282295e-05,
+        "continuity": 0.0001730476222,
+        "k": 0.000670486529,
+        "omega": 6.420651577e-05
+      },
+      "all_benchmark_gates_met": false
+    }
+  ],
+  "wall_controls": [
+    {
+      "label": "native-nf-control",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.4569980128,
+        "drag": 0.43381491,
+        "drag_pressure": 0.3866561025,
+        "max_residual": 0.002068787113,
+        "settle_lift": 0.2018860723,
+        "settle_drag": 0.03571357665,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 1.644451857,
+        "yplus_mean": 0.9127484067,
+        "failure": ""
+      },
+      "last_raw_continuity": 0.04774013081,
+      "maximum_residual_field": "k",
+      "drag_population_std": {
+        "total": 0.008026518147242371,
+        "pressure": 0.008015444194190889,
+        "viscous": 9.453777334313171e-05
+      },
+      "diagnostics": [],
+      "modified_wall_omega_closure": false,
+      "accepted_native_solution": false,
+      "all_benchmark_gates_met": false
+    },
+    {
+      "label": "native-sst-wall-quadratic",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.462053281,
+        "drag": 0.42097088,
+        "drag_pressure": 0.3740763128,
+        "max_residual": 0.001877842133,
+        "settle_lift": 0.1652826091,
+        "settle_drag": 0.05304808525,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 1.929900885,
+        "yplus_mean": 0.915453272,
+        "failure": ""
+      },
+      "last_raw_continuity": 0.04120029022,
+      "maximum_residual_field": "k",
+      "drag_population_std": {
+        "total": 0.007838383839158749,
+        "pressure": 0.00782080098189719,
+        "viscous": 7.99187692570256e-05
+      },
+      "diagnostics": [
+        "SST_WALL_EXPERIMENT mode=cubic corrected=2326 selected=3748 area_fraction=0.774765",
+        "SST_WALL_EXPERIMENT activate after=1000",
+        "SST_WALL_EXPERIMENT first_active yplus_min=0.14672989 yplus_max=1.5410475 new_integrated_tau_over_old=0.99869517 absolute_tau_change_over_old=0.05634621 max_ratio=5.5553679"
+      ],
+      "modified_wall_omega_closure": false,
+      "accepted_native_solution": false,
+      "all_benchmark_gates_met": false
+    },
+    {
+      "label": "native-sst-wall-cubic",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.5284095422,
+        "drag": 0.4311607834,
+        "drag_pressure": 0.3843155551,
+        "max_residual": 0.001824314578,
+        "settle_lift": 0.1653611673,
+        "settle_drag": 0.02930713667,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 2.230941772,
+        "yplus_mean": 0.9178529458,
+        "failure": ""
+      },
+      "last_raw_continuity": 0.04644460288,
+      "maximum_residual_field": "k",
+      "drag_population_std": {
+        "total": 0.007205716458993515,
+        "pressure": 0.0071791454215587485,
+        "viscous": 9.506433721435752e-05
+      },
+      "diagnostics": [
+        "SST_WALL_EXPERIMENT mode=cubic corrected=48 selected=3748 area_fraction=0.011053",
+        "SST_WALL_EXPERIMENT activate after=1000",
+        "SST_WALL_EXPERIMENT first_active yplus_min=0.1792289 yplus_max=1.3488514 new_integrated_tau_over_old=0.5548785 absolute_tau_change_over_old=0.47078504 max_ratio=1.9728925"
+      ],
+      "modified_wall_omega_closure": false,
+      "accepted_native_solution": false,
+      "all_benchmark_gates_met": false
+    },
+    {
+      "label": "native-sst-wall-omega-body",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.4864537626,
+        "drag": 0.4425150666,
+        "drag_pressure": 0.3953659174,
+        "max_residual": 0.002023890102,
+        "settle_lift": 0.1325969497,
+        "settle_drag": 0.05349531506,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 1.64558959,
+        "yplus_mean": 0.9124907397,
+        "failure": ""
+      },
+      "last_raw_continuity": 0.04830759735,
+      "maximum_residual_field": "k",
+      "drag_population_std": {
+        "total": 0.008148139446384687,
+        "pressure": 0.008119650494077051,
+        "viscous": 0.00010631088767230571
+      },
+      "diagnostics": [
+        "SST_WALL_OMEGA_FREEZE patch=body faces=3748",
+        "SST_WALL_EXPERIMENT mode=linear corrected=48 selected=3748 area_fraction=0.011053",
+        "SST_WALL_EXPERIMENT activate after=1000",
+        "SST_WALL_OMEGA_FINAL last_original_closure_relative_difference=0.037971868 worst_original_closure_relative_difference=0.057244153 readback_audits=24480"
+      ],
+      "modified_wall_omega_closure": true,
+      "accepted_native_solution": false,
+      "all_benchmark_gates_met": false
+    },
+    {
+      "label": "native-sst-wall-omega-ground",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.4697224872,
+        "drag": 0.4349157611,
+        "drag_pressure": 0.3878258742,
+        "max_residual": 0.001865743967,
+        "settle_lift": 0.1678066741,
+        "settle_drag": 0.04326396374,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 1.654022336,
+        "yplus_mean": 0.9129345791,
+        "failure": ""
+      },
+      "last_raw_continuity": 0.04426233479,
+      "maximum_residual_field": "k",
+      "drag_population_std": {
+        "total": 0.0075303225308057005,
+        "pressure": 0.007507569824441322,
+        "viscous": 0.00010405329292135148
+      },
+      "diagnostics": [
+        "SST_WALL_OMEGA_FREEZE patch=ground faces=3014",
+        "SST_WALL_EXPERIMENT mode=linear corrected=48 selected=3748 area_fraction=0.011053",
+        "SST_WALL_EXPERIMENT activate after=1000",
+        "SST_WALL_OMEGA_FINAL last_original_closure_relative_difference=0.14642659 worst_original_closure_relative_difference=0.34377886 readback_audits=24480"
+      ],
+      "modified_wall_omega_closure": true,
+      "accepted_native_solution": false,
+      "all_benchmark_gates_met": false
+    },
+    {
+      "label": "native-sst-wall-omega-both",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.4932075219,
+        "drag": 0.4330244142,
+        "drag_pressure": 0.3860053871,
+        "max_residual": 0.001196396762,
+        "settle_lift": 0.09587624235,
+        "settle_drag": 0.03210954819,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 1.650374651,
+        "yplus_mean": 0.9135202921,
+        "failure": ""
+      },
+      "last_raw_continuity": 0.037091786,
+      "maximum_residual_field": "k",
+      "drag_population_std": {
+        "total": 0.007254264197833333,
+        "pressure": 0.0072252884222572065,
+        "viscous": 8.755061530928585e-05
+      },
+      "diagnostics": [
+        "SST_WALL_OMEGA_FREEZE patch=both faces=6762",
+        "SST_WALL_EXPERIMENT mode=linear corrected=48 selected=3748 area_fraction=0.011053",
+        "SST_WALL_EXPERIMENT activate after=1000",
+        "SST_WALL_OMEGA_FINAL last_original_closure_relative_difference=0.15139897 worst_original_closure_relative_difference=0.3418415 readback_audits=24480"
+      ],
+      "modified_wall_omega_closure": true,
+      "accepted_native_solution": false,
+      "all_benchmark_gates_met": false
+    },
+    {
+      "label": "native-sst-wall-equilibrated-degree2",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.4545852514,
+        "drag": 0.431319634,
+        "drag_pressure": 0.3842400653,
+        "max_residual": 0.002013700245,
+        "settle_lift": 0.2072127903,
+        "settle_drag": 0.0363706307,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 1.929970145,
+        "yplus_mean": 0.9165362778,
+        "failure": ""
+      },
+      "last_raw_continuity": 0.04275818535,
+      "maximum_residual_field": "k",
+      "drag_population_std": {
+        "total": 0.008266369583397644,
+        "pressure": 0.008240210383473973,
+        "viscous": 0.00011220370944066753
+      },
+      "diagnostics": [
+        "SST_WALL_EXPERIMENT mode=cubic corrected=3748 selected=3748 area_fraction=1",
+        "SST_WALL_EXPERIMENT activate after=1000",
+        "SST_WALL_EXPERIMENT first_active yplus_min=0.14672989 yplus_max=1.6452581 new_integrated_tau_over_old=0.99730023 absolute_tau_change_over_old=0.040352368 max_ratio=5.5553679"
+      ],
+      "modified_wall_omega_closure": false,
+      "accepted_native_solution": false,
+      "all_benchmark_gates_met": false
+    },
+    {
+      "label": "native-sst-wall-equilibrated-degree3",
+      "result": {
+        "cells": 130331,
+        "poor_cells": 2709,
+        "iterations": 5000,
+        "lift": 0.5135876423,
+        "drag": 0.4358101772,
+        "drag_pressure": 0.3929271351,
+        "max_residual": 0.001806863466,
+        "settle_lift": 0.0900886607,
+        "settle_drag": 0.04742421151,
+        "residuals_met": false,
+        "settled": false,
+        "yplus_max": 20.75451851,
+        "yplus_mean": 1.236095881,
+        "failure": ""
+      },
+      "last_raw_continuity": 0.03742225332,
+      "maximum_residual_field": "k",
+      "drag_population_std": {
+        "total": 0.009056040181123284,
+        "pressure": 0.008994155923871327,
+        "viscous": 0.00015036367614310015
+      },
+      "diagnostics": [
+        "SST_WALL_EXPERIMENT mode=cubic corrected=3195 selected=3748 area_fraction=0.869868",
+        "SST_WALL_EXPERIMENT activate after=1000",
+        "SST_WALL_EXPERIMENT first_active yplus_min=0.14672989 yplus_max=1.6452581 new_integrated_tau_over_old=0.89788598 absolute_tau_change_over_old=0.10565891 max_ratio=5.6842856"
+      ],
+      "modified_wall_omega_closure": false,
+      "accepted_native_solution": false,
+      "all_benchmark_gates_met": false
+    }
+  ],
+  "earlier_field_freeze_readbacks": {
+    "flow": {
+      "prefix_samples": 20,
+      "prefix_exact": true,
+      "cells": 130331,
+      "snapshot_max_changes": {
+        "u": 0.0,
+        "v": 0.0,
+        "w": 0.0,
+        "p": 0.0,
+        "k": 0.0225663372,
+        "omega": 636.5350999999991
+      },
+      "held_columns": [
+        "u",
+        "v",
+        "w",
+        "p"
+      ],
+      "held_exact": true,
+      "last_2000_drag_std": null,
+      "final": {
+        "iteration": "2000",
+        "seconds": "141.2936285",
+        "lift": "0.4955548941",
+        "drag": "0.4368302257",
+        "drag_pressure": "0.3898280861",
+        "u": "4.744574312e-05",
+        "v": "2.911990312e-05",
+        "w": "2.861046871e-05",
+        "continuity": "0.0004660276658",
+        "k": "0.0001717013063",
+        "omega": "5.276548722e-06",
+        "max_velocity": "1.797411323",
+        "continuity_raw": "0.04460825821"
+      }
+    },
+    "k": {
+      "prefix_samples": 20,
+      "prefix_exact": true,
+      "cells": 130331,
+      "snapshot_max_changes": {
+        "u": 0.6691995114,
+        "v": 0.474813372,
+        "w": 0.491418198,
+        "p": 0.20178681599999992,
+        "k": 0.0,
+        "omega": 33303.16380000001
+      },
+      "held_columns": [
+        "k"
+      ],
+      "held_exact": true,
+      "last_2000_drag_std": {
+        "total": 0.022474725019957512,
+        "pressure": 0.022407882869346335,
+        "viscous": 0.00021484018289519093
+      },
+      "final": {
+        "iteration": "5000",
+        "seconds": "430.3980435",
+        "lift": "0.6511067416",
+        "drag": "0.4485143771",
+        "drag_pressure": "0.4016163092",
+        "u": "6.772982407e-05",
+        "v": "4.517698014e-05",
+        "w": "4.871244483e-05",
+        "continuity": "0.0007226601284",
+        "k": "0.01203421374",
+        "omega": "0.000116416536",
+        "max_velocity": "1.816989064",
+        "continuity_raw": "0.06917316711"
+      }
+    },
+    "omega": {
+      "prefix_samples": 20,
+      "prefix_exact": true,
+      "cells": 130331,
+      "snapshot_max_changes": {
+        "u": 2.212649999,
+        "v": 0.506915197,
+        "w": 1.1555772420000001,
+        "p": 0.987906098,
+        "k": 1.5685781431,
+        "omega": 0.0
+      },
+      "held_columns": [
+        "omega"
+      ],
+      "held_exact": true,
+      "last_2000_drag_std": {
+        "total": 0.014994273304641426,
+        "pressure": 0.014929784973221867,
+        "viscous": 0.00015323667456097143
+      },
+      "final": {
+        "iteration": "5000",
+        "seconds": "393.7628294",
+        "lift": "0.6065547849",
+        "drag": "0.5112570968",
+        "drag_pressure": "0.4052557461",
+        "u": "5.869860578e-05",
+        "v": "3.488693614e-05",
+        "w": "3.567560687e-05",
+        "continuity": "0.0005082056408",
+        "k": "0.0001170603054",
+        "omega": "0.1326022668",
+        "max_velocity": "1.876561999",
+        "continuity_raw": "0.04864554212"
+      }
+    },
+    "baseline_drag_std": {
+      "total": 0.008506325529909204,
+      "pressure": 0.008484764476775453,
+      "viscous": 0.00010028015822651377
+    }
+  },
+  "private_artifact_identities": {
+    "existing_settings": {
+      "driver": "native_probe.cpp",
+      "case_setup": "diagnostic_case.hpp",
+      "binary": "native-precision-controls",
+      "note": "SST controls use this single frozen binary; calibration to actual final default + explicit NormalFoot is required.",
+      "sha256": {
+        "native-precision-controls": "fe66fdb49e4696e3aa98a1294d71cff257f6193adbc426ba179cfccabf23d0b2",
+        "native_probe.cpp": "a0ae90caf98999adf8a24a179294ae2a076c62270eee03e1aa1e8e1f4fb70baa",
+        "diagnostic_case.hpp": "3732cdce8bfb1df022505800ba907a0cdf3a005ad6adc2e47d094c15e5b644c2"
+      }
+    },
+    "wall_controls": {
+      "implementation_commit": "02750a0476e38b2c0d742ad644d9f2a37f16eab5",
+      "binary_sha256": "d69176866040900b0658c041f48fc282cb455213c02221e6dad92ac3141cefd8",
+      "files": {
+        "sst_wall_context.hpp": "5bc45976281023cfad0a6f703aac30553263cb5344816f6937fa1318048cfe8f",
+        "steady_solver-sst-wall.cpp": "24e4fd1931cb23940b7e72049e504b99e67b54e7db73f8340bb32e595e9a1f15",
+        "sst-model-wall-experiment.cpp": "69f8510cfbcd2bc9aafaa967c5435c7ad73e45858f8f58fca4286473c33a172f",
+        "face_projection-sst-wall.cpp": "e3570ce5bd28b8993135e63d0f41a14a9dc997b39c34d29f8951f2eba3ceb155",
+        "native-sst-wall.cpp": "90155a8fb268902f1f3d691abb10b22b14c899690a772c57d811d488da5c6dfd"
+      }
+    },
+    "conditioned_wall_controls": {
+      "binary_sha256": "77de7e60a92561af2374423c7e6723df20fd94a1176c0f1e85e0acbb18cb584a",
+      "files": {
+        "face_projection-sst-wall-equilibrated.cpp": "ab35f5901e77e5044f839c8ff6ea9b50fc2b76c852239682e872f79a5ba5fd98",
+        "sst_wall_context.hpp": "5bc45976281023cfad0a6f703aac30553263cb5344816f6937fa1318048cfe8f",
+        "steady_solver-sst-wall.cpp": "24e4fd1931cb23940b7e72049e504b99e67b54e7db73f8340bb32e595e9a1f15",
+        "sst-model-wall-experiment.cpp": "69f8510cfbcd2bc9aafaa967c5435c7ad73e45858f8f58fca4286473c33a172f",
+        "native-sst-wall.cpp": "90155a8fb268902f1f3d691abb10b22b14c899690a772c57d811d488da5c6dfd",
+        "steady_solver-sst-wall-both.cpp": "de64965020e45683faf26a7f311ae5c386a5ea20935ce96530b54152f1538827"
+      },
+      "both_omega_binary_sha256": "47e627516208357a47347a10a5147901efaeaa7bbc09cddd4f97db2d5f9d489b"
+    }
+  },
+  "thin_rotated_tet_polynomial_controls": [
+    {
+      "degree": 2,
+      "output": "corrected=32 selected=32 flux=-1.5 expected=-1.5 abs_error=3.72529e-09 area=1",
+      "exit": 0
+    },
+    {
+      "degree": 3,
+      "output": "corrected=32 selected=32 flux=-1.33333 expected=-1.33333 abs_error=6.08464e-08 area=1",
+      "exit": 0
+    }
+  ],
+  "conditioned_polynomial_controls": [
+    {
+      "degree": 2,
+      "output": "corrected=32 selected=32 flux=-1.5 expected=-1.5 abs_error=3.72529e-09 area=1",
+      "exit": 0
+    },
+    {
+      "degree": 3,
+      "output": "corrected=32 selected=32 flux=-1.33333 expected=-1.33333 abs_error=6.08464e-08 area=1",
+      "exit": 0
+    }
+  ],
+  "note": "Wall-omega holds change the closure and are reduced problems, never native acceptance. Experimental wall paths are not retained."
+}

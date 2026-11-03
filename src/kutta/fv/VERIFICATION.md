@@ -10,12 +10,14 @@ with 0.093% poly pressure error; native rotating walls are enabled. The
 records the operator evidence and full assertion comparison. Existing V1–V6
 acceptance thresholds are unchanged.
 
-This branch preserves the Fluent-class discretization and checks its operator
-consistency separately from integrated-load accuracy. The former tet pointwise
-pressure ≥1.8 gate was mathematically incompatible with that operator. The new
-wall-load ≥1.8 gates remain strict and fail on tets; V2 is therefore **not fully
-passed**. The V3 acceptance criterion is now a refinement study, not agreement
-of a finite grid with rounded grid-converged numbers.
+The [2026-11-03 V2 investigation](../../../validation/results/tet_prism_convergence/REPORT.md#2026-11-03--v2-tet-loads-and-the-remaining-native-mode)
+recovers the unchanged tet wall-load ≥1.8 gates on CPU and Metal with integrated
+laminar face reconstruction and normal-foot pressure observations. The older V2
+tables below record historical failures. First-order local pressure-operator
+error did not establish a mathematical limit on global pressure convergence.
+Native SST convergence and second-order car loads remain unestablished. The
+V3 acceptance criterion is a refinement study, not agreement of a finite grid
+with rounded grid-converged numbers.
 
 The current build/test results below use this worktree, Apple M4 Pro (24 GB),
 macOS 26.6.2, AppleClang 21, C++20 Release (`-O3 -DNDEBUG`), HDF5 and Metal enabled.
@@ -124,9 +126,11 @@ face pressure is exact. Midpoint-face quadrature errors cancel across opposite
 hex faces, giving second order there; tets do not have those opposite pairs.
 Inverse-distance² LSQ and Gauss applied to reconstructed Second Order pressure
 also remain first order on tets. The deliberately matched Fluent-class momentum
-pressure force uses this same Gauss form. Requiring second-order pointwise tet
-pressure from this family was an unattainable gate, not evidence of a Kutta bug.
-No reconstruction, quadrature, limiter or solver discretization was changed.
+pressure force uses this same Gauss form. These are local operator-error
+measurements, not a bound on global pressure convergence. The earlier inference
+that second-order tet pressure was unattainable was too strong: the 2026-11-03
+integrated-face study recovers pressure L2 order 1.91159 without changing this
+pressure operator. See the [dated investigation](../../../validation/results/tet_prism_convergence/REPORT.md#2026-11-03--v2-tet-loads-and-the-remaining-native-mode).
 
 `FV MMS pressure gradient operator convergence` independently computes the
 exact-face Gauss operator in host double precision. It also runs the actual
@@ -183,8 +187,10 @@ cancellation because pressure and viscous forces are also gated separately.
 | Hex | 1.91437 | 1.96517 | 2.02112 | pass |
 | Tet | **0.996464** | **0.874869** | **0.933580** | **all fail** |
 
-The three ≥1.8 tet force assertions fail on each backend. This MMS does not
-establish second-order tet loads for FSAE use, so V2 remains failed.
+These historical results fail the three ≥1.8 tet force assertions on each
+backend. The 2026-11-03 result linked above recovers all V2 gates without
+changing the original tests. It establishes the required loads on this smooth
+laminar MMS; second-order SST car loads remain unverified.
 
 Known failure since `80535e5` (tetrahedral robustness): the tet 8→16 velocity
 order is 1.815 against the unchanged ≥1.9 gate (main had 1.902), on CPU and
