@@ -144,7 +144,7 @@ def layers(points, tris, top_size, first, growth=GROWTH):
 
 def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0, cell_type="hex", *,
           slant_edge_size=None, slant_edge_reach=0.06, slant_edge_volume_size=None, slant_surface_size=None,
-          growth=GROWTH, body_surface_size=None):
+          growth=GROWTH, body_surface_size=None, slant_edge_volume_reach=None):
     import gmsh
     if cell_type not in ("hex", "tet-prism"):
         raise ValueError("cell type must be hex or tet-prism")
@@ -223,10 +223,11 @@ def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0
         # layer beyond the prism stack while retaining the same body triangles.
         edge = f.add("Box")
         xs = -SLANT * math.cos(math.radians(slant))
+        reach = slant_edge_reach if slant_edge_volume_reach is None else slant_edge_volume_reach
         for key, value in {"VIn": slant_edge_volume_size, "VOut": 0.4,
-                           "XMin": xs - slant_edge_reach, "XMax": xs + slant_edge_reach,
+                           "XMin": xs - reach, "XMax": xs + reach,
                            "YMin": -W / 2 - .025, "YMax": W / 2 + .025,
-                           "ZMin": CLEAR + H - slant_edge_reach,
+                           "ZMin": CLEAR + H - reach,
                            "ZMax": CLEAR + H + .1, "Thickness": .04}.items():
             f.setNumber(edge, key, value)
         fields.append(edge)
@@ -286,6 +287,8 @@ def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0
         meta.update(slant_edge_size=slant_edge_size, slant_edge_reach=slant_edge_reach)
     if slant_edge_volume_size is not None:
         meta.update(slant_edge_volume_size=slant_edge_volume_size, slant_edge_reach=slant_edge_reach)
+        if slant_edge_volume_reach is not None:
+            meta.update(slant_edge_volume_reach=slant_edge_volume_reach)
     if slant_surface_size is not None:
         meta.update(slant_surface_size=slant_surface_size, slant_edge_reach=slant_edge_reach)
     if body_surface_size is not None:
@@ -307,9 +310,11 @@ def main():
     ap.add_argument("--slant-surface-size", type=float,
                     help="optional spacing over the whole slant face, m; leaves outer sizing unchanged")
     ap.add_argument("--slant-edge-reach", type=float, default=0.06,
-                    help="surface transition distance and shear-layer box half-length, m")
+                    help="surface transition distance and default volume-box half-length, m")
     ap.add_argument("--slant-edge-volume-size", type=float,
                     help="optional outer-volume spacing in the roof/slant shear-layer box, m")
+    ap.add_argument("--slant-edge-volume-reach", type=float,
+                    help="override volume-box half-length independently of the surface transition, m")
     ap.add_argument("--first", type=float, default=FIRST, help="first prism height, m")
     ap.add_argument("--growth", type=float, default=GROWTH, help="wall-layer height ratio, greater than one")
     ap.add_argument("--refinement-reach", type=float, default=3.0,
@@ -321,7 +326,8 @@ def main():
     a = ap.parse_args()
     if not (math.isfinite(a.slant_edge_reach) and a.slant_edge_reach > 0 and
             all(v is None or (math.isfinite(v) and v > 0)
-                for v in (a.slant_edge_size, a.slant_edge_volume_size, a.slant_surface_size, a.body_surface_size))):
+                for v in (a.slant_edge_size, a.slant_edge_volume_size, a.slant_surface_size,
+                          a.body_surface_size, a.slant_edge_volume_reach))):
         ap.error("local sizes and reach must be positive and finite")
     if not (all(math.isfinite(v) for v in (a.first, a.refinement_reach, a.wake_padding, a.growth)) and
             0 < a.first < 0.4 * CLEAR and a.refinement_reach > 0 and a.wake_padding > 0 and a.growth > 1):
@@ -330,7 +336,8 @@ def main():
     print(json.dumps(build(a.slant, a.level, a.out, a.first, a.refinement_reach, a.wake_padding, a.cell_type,
                            slant_edge_size=a.slant_edge_size, slant_edge_reach=a.slant_edge_reach,
                            slant_edge_volume_size=a.slant_edge_volume_size, slant_surface_size=a.slant_surface_size,
-                           growth=a.growth, body_surface_size=a.body_surface_size)))
+                           growth=a.growth, body_surface_size=a.body_surface_size,
+                           slant_edge_volume_reach=a.slant_edge_volume_reach)))
 
 
 if __name__ == "__main__":
