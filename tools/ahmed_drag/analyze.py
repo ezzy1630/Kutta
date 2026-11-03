@@ -49,7 +49,10 @@ def richardson(spacing, drag):
 
 
 def table(path):
-    """ERCOFTAC ASCII; coordinate VALUES are mm, including BL files labelled m."""
+    """Read ERCOFTAC ASCII columns. Rear Cp/BL/wake coordinates are in mm.
+
+    This reader leaves units unchanged; the separate Inlet.dat uses SI values.
+    """
     rows, names = [], []
     for line in path.read_text(encoding='latin-1').splitlines():
         column = re.match(r'%Column\d+Name\s*=\s*(\S+)', line)
@@ -180,7 +183,8 @@ def summarize(path):
            'yplus_mean': res['yplus_mean'], 'yplus_max': res['yplus_max'],
            'topology': report.centreline_topology(w, slant),
            'reversed_slant_fraction': report.separated_fraction(w, slant)}
-    for key in ('binary_sha256', 'pressure_scheme', 'configuration_verified'):
+    for key in ('binary_sha256', 'pressure_scheme', 'configuration_verified',
+                'sst_production_limiter', 'sst_production_clip'):
         if key in r:
             row[key] = r[key]
     if (path / 'cells.csv').exists():
