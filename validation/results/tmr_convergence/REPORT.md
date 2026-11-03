@@ -686,3 +686,103 @@ CUDA compilation/runtime is unverified. Default elbow parity and the full
 slow comparison validate integration with main `271b31f` on CPU and Metal.
 After validation, this lane's fixture links and temporary main-source worktree
 were removed. No lane processes remain running. No push or PR was made.
+
+## 2026-11-03 UTC: defaults and remaining convergence study
+
+This follow-up is in progress on base `e014e36`. No new default or convergence
+fix has been accepted. The 3,000-step budget, all reference values and every
+outer gate remain unchanged. The shared exact-main slow baseline must finish
+before a final assertion comparison can be reported.
+
+The first candidate changes only the default of `compensated_momentum` to
+true. Its quick tier passes 307 cases and 7,990,154 assertions. Its full slow
+tier is running. An earlier attempt was stopped in its first case because
+memory profiling appeared in captured CLI assertion context; that interrupted
+XML is excluded. The replacement runs without profiling. The comparator is
+main's unchanged `tools/forensics/compare_slow_assertions.py`.
+
+### Option decisions and allocation cost
+
+All decisions below remain pending the full slow-tier and iteration-cost
+experiments. Allocation measurements are independent one-step CPU plate
+probes, changing one setting at a time from ordinary settings, on 816 cells.
+They are not convergence or timing measurements. The exact data and probe
+hashes are in [default-study-memory.json](default-study-memory.json).
+
+| Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
+| --- | --- | --- | ---: | --- |
+| Compensated momentum | Running | Pending | 357.97 / 361.97 | Pending; retain opt-in until earned |
+| Paired-state slack 16 | Pending | Pending | 0 / 0 | Pending |
+| Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
+| Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
+| Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
+| Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
+| Scalar steady tolerance 1e-6 | Pending | Pending | 24 / 12 | Pending |
+| Scalar absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
+| Fixed flow pseudo-time .1 | Pending | Pending | 0 / 0 | Pending |
+
+Momentum relaxation .7 is already the ordinary solver default. The bump
+harness's fixed time step is a separate candidate from its relaxation.
+The planned groups are the three inner absolute tolerances, the four scalar
+controls, and the combined precision controls. A group does not substitute
+for the singleton checks. Any regression leaves the setting opt-in.
+
+On the 56,320-cell bump, compensated momentum adds 19,867,648 device bytes
+for SST (352.76 B/cell) and 20,092,928 for SA (356.76 B/cell). Both probes keep
+the TMR scalar controls fixed. With the walk reconstruction active, the SST
+increment is `184*Ncells + 28*Nfaces + 28*Nboundary` bytes; SA also needs a
+four-byte cell mask. This includes the 64 B/cell paired walk scratch allocated
+on its first use, not just the flow fields and assembly carries.
+
+### Exact fine-bump reproduction
+
+The finest SST bump on Metal completes 3,000 steps on exact base `e014e36`.
+Its printed physical endpoint matches the preceding report: k defect
+`2.57270639969e-5`, omega `8.41965737184e-7`, continuity
+`1.08788010059e-5`, load change `0.000803104893041`, and aft Cf
+`0.00255388300098`. It remains unconverged.
+
+The k defect decreases from `2.61183114633e-4` at step 1,000 to
+`5.95866563549e-5` at 2,200 and `2.57270639969e-5` at 3,000. Its median
+per-step contraction inferred from the last ten 100-step intervals is
+0.998928. This component is a slow approach. Its cause has not yet been
+isolated. It must not be grouped with the plate continuity floors solely
+because both fail the same convergence assertion.
+
+This isolated complete solve peaks at 350,667,544 bytes of process footprint,
+including shared Metal memory, below 3 GB. The preceding report's
+5,542,384,392-byte figure measured the entire slow-suite process. It did not
+isolate one TMR solve. No reduction of that full-suite peak is claimed here.
+
+### Reproducible diagnostics
+
+`bench_convergence` now exposes the compensation, slack, scalar stopping and
+individual absolute-tolerance controls independently. It prints their actual
+values, cumulative inner-iteration work and process/device bytes. Optional
+`--motion-start` samples lag-one and lag-two field movement on every step
+without inserting extra monitor or force calls. Scalar samples are their
+actual storage; flow samples are high words and cannot prove the full pair
+is stationary.
+
+Against the preceding benchmark, coarse-plate CPU and Metal runs preserve
+every printed physical value at 40 steps with motion sampling enabled for
+the last two steps. This checks the diagnostic path; it does not earn a
+solver default. Portability lint passes.
+
+The following command selects the retained SST TMR controls explicitly;
+changing one option makes the corresponding controlled probe. It retains
+the 3,000-step limit and removes the benchmark's exploratory wall-time stop.
+
+```sh
+build/bench_convergence --case bump --model sst --backend metal --level 2 \
+  --iterations 3000 --max-seconds 1000000000 --dt .1 \
+  --momentum-relaxation .7 --pressure-relaxation .3 \
+  --compensated-momentum 1 --paired-state-slack 16 \
+  --absolute-tolerance 1e-20 --scalar-compensation 1 \
+  --scalar-pseudo-time 0 --scalar-steady-tolerance 1e-6 \
+  --motion-start 2700
+```
+
+The full per-option comparisons, cost measurements, classification and
+isolating experiments for all 17 remaining failures, accepted fixes and
+final verification remain unfinished. CUDA runtime remains unavailable.

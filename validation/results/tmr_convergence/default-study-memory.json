@@ -1,0 +1,252 @@
+{
+  "date_utc": "2026-11-03",
+  "source_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "protocol": "Fine bump, CPU, 56320 cells, one outer step. TMR scalar controls fixed; compensated_momentum alone changes. Device bytes at solver-ready; process footprint is lifetime peak. Not a convergence measurement.",
+  "probe_sha256": "941a0cb87fcf63de83bd3d92fbf09c77332c18a70693f7a2c8513b73c29d09db",
+  "rows": [
+    {
+      "model": "sst",
+      "compensated": 0,
+      "cells": 56320,
+      "device_bytes": 159200224,
+      "peak_bytes": 201605696,
+      "exit": 0
+    },
+    {
+      "model": "sst",
+      "compensated": 1,
+      "cells": 56320,
+      "device_bytes": 179067872,
+      "peak_bytes": 224051824,
+      "exit": 0
+    },
+    {
+      "model": "sa",
+      "compensated": 0,
+      "cells": 56320,
+      "device_bytes": 143845100,
+      "peak_bytes": 181568064,
+      "exit": 0
+    },
+    {
+      "model": "sa",
+      "compensated": 1,
+      "cells": 56320,
+      "device_bytes": 163938028,
+      "peak_bytes": 208208424,
+      "exit": 0
+    }
+  ],
+  "deltas": [
+    {
+      "model": "sst",
+      "device_bytes": 19867648,
+      "bytes_per_cell": 352.76363636363635,
+      "peak_footprint_bytes": 22446128
+    },
+    {
+      "model": "sa",
+      "device_bytes": 20092928,
+      "bytes_per_cell": 356.76363636363635,
+      "peak_footprint_bytes": 26640360
+    }
+  ],
+  "full_fine_sst_metal": {
+    "cells": 56320,
+    "iterations": 3000,
+    "converged": false,
+    "peak_footprint_bytes": 350667544,
+    "continuity": 1.08788010059e-05,
+    "k": 2.57270639969e-05,
+    "omega": 8.41965737184e-07,
+    "load_change": 0.000803104893041,
+    "binary_sha256": "ec88647b403fd5c07ba8b77c93eca9689c1bf5bb2e5b2548b728b73269986eae"
+  },
+  "singleton_setup_probe": {
+    "source_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+    "protocol": "CPU plate level0,816cells,oneouterstep. Each option alone against ordinary SstSettings/SaSettings; compensated_momentum explicitly off except its own candidate. Devicebytes at solver-ready; not convergence or iteration-cost evidence.",
+    "binary_sha256": "8bbe546cb85d2eb3756f5b387908d88fb7f221f39c8a9ab60730efbd63a6fbbd",
+    "rows": [
+      {
+        "model": "sst",
+        "option": "baseline",
+        "cells": 816,
+        "device_bytes": 2110408,
+        "peak_footprint_bytes": 4129128,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sst",
+        "option": "momentum-compensation",
+        "cells": 816,
+        "device_bytes": 2402512,
+        "peak_footprint_bytes": 4489576,
+        "exit": 2,
+        "extra_bytes_per_cell": 357.97058823529414
+      },
+      {
+        "model": "sst",
+        "option": "state-slack-16",
+        "cells": 816,
+        "device_bytes": 2110408,
+        "peak_footprint_bytes": 4211048,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sst",
+        "option": "momentum-absolute",
+        "cells": 816,
+        "device_bytes": 2110408,
+        "peak_footprint_bytes": 4227456,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sst",
+        "option": "pressure-absolute",
+        "cells": 816,
+        "device_bytes": 2110408,
+        "peak_footprint_bytes": 4161896,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sst",
+        "option": "scalar-compensation",
+        "cells": 816,
+        "device_bytes": 2136520,
+        "peak_footprint_bytes": 4194664,
+        "exit": 2,
+        "extra_bytes_per_cell": 32.0
+      },
+      {
+        "model": "sst",
+        "option": "scalar-no-pseudotime",
+        "cells": 816,
+        "device_bytes": 2110408,
+        "peak_footprint_bytes": 4129128,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sst",
+        "option": "scalar-steady",
+        "cells": 816,
+        "device_bytes": 2129992,
+        "peak_footprint_bytes": 4243816,
+        "exit": 2,
+        "extra_bytes_per_cell": 24.0
+      },
+      {
+        "model": "sst",
+        "option": "scalar-absolute",
+        "cells": 816,
+        "device_bytes": 2110408,
+        "peak_footprint_bytes": 4178280,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sst",
+        "option": "fixed-flow-time",
+        "cells": 816,
+        "device_bytes": 2110408,
+        "peak_footprint_bytes": 4145512,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sa",
+        "option": "baseline",
+        "cells": 816,
+        "device_bytes": 1905412,
+        "peak_footprint_bytes": 3899752,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sa",
+        "option": "momentum-compensation",
+        "cells": 816,
+        "device_bytes": 2200780,
+        "peak_footprint_bytes": 4276584,
+        "exit": 2,
+        "extra_bytes_per_cell": 361.97058823529414
+      },
+      {
+        "model": "sa",
+        "option": "state-slack-16",
+        "cells": 816,
+        "device_bytes": 1905412,
+        "peak_footprint_bytes": 3932520,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sa",
+        "option": "momentum-absolute",
+        "cells": 816,
+        "device_bytes": 1905412,
+        "peak_footprint_bytes": 3981672,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sa",
+        "option": "pressure-absolute",
+        "cells": 816,
+        "device_bytes": 1905412,
+        "peak_footprint_bytes": 3981672,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sa",
+        "option": "scalar-compensation",
+        "cells": 816,
+        "device_bytes": 1918468,
+        "peak_footprint_bytes": 3965288,
+        "exit": 2,
+        "extra_bytes_per_cell": 16.0
+      },
+      {
+        "model": "sa",
+        "option": "scalar-no-pseudotime",
+        "cells": 816,
+        "device_bytes": 1905412,
+        "peak_footprint_bytes": 3948904,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sa",
+        "option": "scalar-steady",
+        "cells": 816,
+        "device_bytes": 1915204,
+        "peak_footprint_bytes": 3948904,
+        "exit": 2,
+        "extra_bytes_per_cell": 12.0
+      },
+      {
+        "model": "sa",
+        "option": "scalar-absolute",
+        "cells": 816,
+        "device_bytes": 1905412,
+        "peak_footprint_bytes": 3965288,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      },
+      {
+        "model": "sa",
+        "option": "fixed-flow-time",
+        "cells": 816,
+        "device_bytes": 1905412,
+        "peak_footprint_bytes": 3932520,
+        "exit": 2,
+        "extra_bytes_per_cell": 0.0
+      }
+    ]
+  }
+}

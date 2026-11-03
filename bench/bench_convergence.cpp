@@ -2,6 +2,8 @@
 #include <deque>
 #include <set>
 #include <cstdlib>
+#include <cstdint>
+#include "kutta/core/memory.hpp"
 #include "../validation/cases/tmr_sa.hpp"
 #include "sst_channel.hpp"
 #include "kutta/core/parse.hpp"
@@ -16,15 +18,20 @@ int main(int argc,char** argv) {
       "--nx","--ny","--nz","--viscosity","--interval","--dt","--time-scale","--momentum-relaxation",
       "--pressure-relaxation","--momentum-tolerance","--pressure-tolerance","--absolute-tolerance",
       "--turbulence-tolerance","--turbulence-relaxation","--max-seconds","--scheme","--coupled-tolerance",
-      "--coupled-iterations"};
+      "--coupled-iterations","--compensated-momentum","--paired-state-slack",
+      "--scalar-compensation","--scalar-pseudo-time","--scalar-steady-tolerance",
+      "--momentum-absolute-tolerance","--pressure-absolute-tolerance","--scalar-absolute-tolerance",
+      "--motion-start"};
     for(int i=1;i<argc;i+=2) {KUTTA_REQUIRE(i+1<argc,"expected --key value");KUTTA_REQUIRE(keys.contains(argv[i]),"unknown option: "+std::string(argv[i]));KUTTA_REQUIRE(args.emplace(argv[i],argv[i+1]).second,"duplicate option");}
     auto str=[&](const std::string& key,const std::string& fallback) {auto i=args.find(key);return i==args.end()?fallback:i->second;};
     auto number=[&](const std::string& key,double fallback) {auto i=args.find(key);if(i==args.end()) return fallback;auto q=parse_double(i->second);KUTTA_REQUIRE(q && std::isfinite(*q),"invalid number: "+key);return *q;};
     auto integer=[&](const std::string& key,int fallback,int minimum=1) {const auto q=number(key,fallback);KUTTA_REQUIRE(q>=minimum && q<=std::numeric_limits<int>::max() && std::floor(q)==q,"invalid integer: "+key);return int(q);};
+    auto boolean=[&](const std::string& key,bool fallback) {const auto q=integer(key,int(fallback),0);KUTTA_REQUIRE(q<=1,"expected 0 or 1: "+key);return q!=0;};
     const auto name=str("--case","plate"),backend=str("--backend","cpu"),model=str("--model","sst");
     KUTTA_REQUIRE(backend=="cpu" || backend=="metal" || backend=="cuda","invalid backend");
     KUTTA_REQUIRE(model=="sst" || model=="sa","invalid model");
     const int level=integer("--level",0,0),iterations=integer("--iterations",3000);
+    const int motion_start=integer("--motion-start",0,0);
     KUTTA_REQUIRE(level>=0 && level<=2 && iterations>0,"invalid level/iteration count");
     auto dev=Device::create(backend=="cpu"?Backend::Cpu:backend=="metal"?Backend::Metal:Backend::Cuda);
     PolyMesh mesh;std::vector<PatchCondition> bc;SolverSettings s;std::optional<setup::Initialization> initialization;
@@ -71,6 +78,18 @@ int main(int argc,char** argv) {
     s.momentum_linear.abs_tol=number("--absolute-tolerance",s.momentum_linear.abs_tol);s.pressure_linear.abs_tol=number("--absolute-tolerance",s.pressure_linear.abs_tol);
     if(s.sst) {s.sst->k_relaxation=s.sst->omega_relaxation=number("--turbulence-relaxation",s.sst->k_relaxation);s.sst->linear.abs_tol=number("--absolute-tolerance",s.sst->linear.abs_tol);s.sst->linear.rel_tol=number("--turbulence-tolerance",s.sst->linear.rel_tol);}
     if(s.sa) {s.sa->relaxation=number("--turbulence-relaxation",s.sa->relaxation);s.sa->linear.abs_tol=number("--absolute-tolerance",s.sa->linear.abs_tol);s.sa->linear.rel_tol=number("--turbulence-tolerance",s.sa->linear.rel_tol);}
+    s.compensated_momentum=boolean("--compensated-momentum",s.compensated_momentum);
+    s.paired_state_slack_ulps=number("--paired-state-slack",s.paired_state_slack_ulps);
+    s.momentum_linear.abs_tol=number("--momentum-absolute-tolerance",s.momentum_linear.abs_tol);
+    s.pressure_linear.abs_tol=number("--pressure-absolute-tolerance",s.pressure_linear.abs_tol);
+    const auto scalar_controls=[&](auto& t) {
+      t.compensated_transport=boolean("--scalar-compensation",t.compensated_transport);
+      t.pseudo_transient=boolean("--scalar-pseudo-time",t.pseudo_transient);
+      t.steady_tolerance=number("--scalar-steady-tolerance",t.steady_tolerance);
+      t.linear.abs_tol=number("--scalar-absolute-tolerance",t.linear.abs_tol);
+    };
+    if(s.sst) scalar_controls(*s.sst);
+    if(s.sa) scalar_controls(*s.sa);
     // Elbow follows its case's flow/scheme (Coupled) unless --scheme overrides.
     if(const auto scheme=str("--scheme","");!scheme.empty()) {
       KUTTA_REQUIRE(scheme=="simplec" || scheme=="coupled","invalid scheme");
@@ -86,10 +105,50 @@ int main(int argc,char** argv) {
     using Clock=std::chrono::steady_clock;dev->synchronize();const auto start=Clock::now();
     std::cout<<std::setprecision(12)<<"CASE source="<<KUTTA_BENCH_COMMIT<<" name="<<name<<" model="<<model<<" backend="<<backend<<" cells="<<n<<" dt="<<s.pseudo_time_step<<" momentum_relaxation="<<s.momentum_relaxation<<" pressure_relaxation="<<s.pressure_relaxation
       <<" scheme="<<(s.coupling==PressureVelocityCoupling::Coupled?"coupled":"simplec")
+      <<" compensated_momentum="<<s.compensated_momentum<<" paired_state_slack="<<s.paired_state_slack_ulps
+      <<" momentum_absolute="<<s.momentum_linear.abs_tol<<" pressure_absolute="<<s.pressure_linear.abs_tol
+      <<" scalar_compensation="<<(s.sst?s.sst->compensated_transport:s.sa?s.sa->compensated_transport:false)
+      <<" scalar_pseudo_time="<<(s.sst?s.sst->pseudo_transient:s.sa?s.sa->pseudo_transient:false)
+      <<" scalar_steady_tolerance="<<(s.sst?s.sst->steady_tolerance:s.sa?s.sa->steady_tolerance:0)
+      <<" scalar_absolute="<<(s.sst?s.sst->linear.abs_tol:s.sa?s.sa->linear.abs_tol:0)
       <<" coupled_bytes_per_cell="<<double(solver.coupled_solver_bytes())/n<<" continuity_target="<<continuity_target<<std::endl;
     std::deque<std::pair<int,Sample>> window;bool converged=false;
+    std::uint64_t momentum_iterations=0,pressure_iterations=0,scalar_iterations=0;
+    std::vector<std::vector<float>> previous_fields,older_fields;
     while(solver.report().iteration<iterations) {
-      try {solver.iterate(std::min(interval,iterations-solver.report().iteration));}
+      try {
+        const int count=std::min(interval,iterations-solver.report().iteration);
+        for(int step=0;step<count;++step) {
+          solver.iterate(1);
+          const auto& r=solver.report();
+          for(const auto& q:r.momentum) momentum_iterations+=q.iterations;
+          pressure_iterations+=r.pressure.iterations;
+          for(const auto& q:r.turbulence) scalar_iterations+=q.iterations;
+          // Downloads observe the actual scalar storage without introducing
+          // extra monitor/force calls. Lag two distinguishes a two-cycle from
+          // a plateau sampled at the usual even monitor interval. Flow fields
+          // here are high words only; they do not prove the pair is stationary.
+          if(motion_start>0 && r.iteration>=motion_start) {
+            std::vector<const Buffer<float>*> fields{&solver.velocity().x,&solver.velocity().y,&solver.pressure()};
+            if(s.sa) fields.push_back(&solver.modified_viscosity());
+            if(s.sst) {fields.push_back(&solver.kinetic_energy());fields.push_back(&solver.specific_dissipation());}
+            std::vector<std::vector<float>> current;
+            for(const auto* f:fields) current.push_back(dev->download(*f));
+            if(!previous_fields.empty()) for(std::size_t k=0;k<current.size();++k) {
+              double lag1=0,lag2=0,scale=0;std::size_t changed=0;
+              for(std::size_t i=0;i<current[k].size();++i) {
+                const double q=current[k][i],d=q-double(previous_fields[k][i]);
+                lag1+=std::abs(d);scale+=std::abs(q);changed+=d!=0;
+                if(!older_fields.empty()) lag2+=std::abs(q-double(older_fields[k][i]));
+              }
+              std::cout<<"MOTION it="<<r.iteration<<" field="<<k<<" lag1_l1="<<lag1/std::max(scale,1e-30)
+                <<" lag2_l1="<<(older_fields.empty()?std::numeric_limits<double>::quiet_NaN():lag2/std::max(scale,1e-30))
+                <<" changed="<<changed<<std::endl;
+            }
+            older_fields=std::move(previous_fields);previous_fields=std::move(current);
+          }
+        }
+      }
       catch(const Error& e) {
         std::cout<<"FAILURE completed_iterations="<<solver.report().iteration
           <<" seconds="<<std::chrono::duration<double>(Clock::now()-start).count()<<" reason="<<e.what()<<std::endl;
@@ -109,6 +168,9 @@ int main(int argc,char** argv) {
       converged=elbow?(std::max({r.u.scaled,r.v.scaled,r.w.scaled,r.k.scaled,r.omega.scaled})<1e-6 && r.continuity.raw<continuity_target):
         (has_window && d<=1e-5 && delta<=.001);
       std::cout<<"STEP it="<<r.iteration<<" seconds="<<std::chrono::duration<double>(Clock::now()-start).count()<<" defect="<<d<<" continuity="<<r.continuity.scaled<<" raw="<<r.continuity.raw<<" scale="<<r.continuity.fluent_normalization<<" corrected="<<r.corrected_mass_imbalance<<" u="<<r.u.scaled<<" v="<<r.v.scaled<<" k="<<r.k.scaled<<" omega="<<r.omega.scaled<<" sa="<<r.nu_tilde.scaled<<" change="<<delta<<" step_change="<<step_change<<" drag="<<value.drag<<" cf0="<<value.cf[0]<<" cf1="<<value.cf[1]<<" cf2="<<value.cf[2]<<" inner_u="<<r.momentum[0].iterations<<" inner_sa="<<r.turbulence[0].iterations<<" inner_p="<<r.pressure.iterations<<" p_ratio="<<r.pressure.final_residual/std::max(r.pressure.initial_residual,1e-30)<<" converged="<<converged<<std::endl;
+      std::cout<<"WORK it="<<r.iteration<<" momentum="<<momentum_iterations<<" pressure="<<pressure_iterations<<" scalar="<<scalar_iterations<<std::endl;
+      const auto memory=memory::usage();
+      std::cout<<"MEMORY it="<<r.iteration<<" current="<<memory.current<<" peak="<<memory.peak<<" device="<<memory::DeviceBytes::live()<<std::endl;
       if(converged) break;
       if(std::chrono::duration<double>(Clock::now()-start).count()>=max_seconds) {std::cout<<"BUDGET max_seconds="<<max_seconds<<std::endl;break;}
       window.push_back({r.iteration,value});
