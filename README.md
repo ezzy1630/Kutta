@@ -68,7 +68,9 @@ convergence-path changes already allowed by the adapter are printed.
 
 `--coupled-edge-storage recompute` selects the memory-limited Coupled mode: it
 recomputes five edge coefficients instead of caching them, saving device memory
-at a throughput cost. The default is `cached`. Both modes preserve the same
+at a throughput cost. It also shares strain scratch across velocity components,
+including with SIMPLEC; the default keeps the fused vector fit. The default
+is `cached`. Both modes preserve the same
 float rounding and numerical outputs. This run option also applies to Kutta
 case JSON inputs; it is recorded in `summary.json`.
 

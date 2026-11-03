@@ -120,21 +120,23 @@ TEST_CASE("FV Coupled recomputed edges preserve cached field bytes") {
   const auto mesh=make_box_hex(12,6,2,{0,0,0},{1,.5,.1});
   std::vector<PatchCondition> bc;
   for(const auto& patch:mesh.patches) {
-    if(patch.name=="xmin") bc.push_back({patch.name,VelocityInlet{Vec3d{1,0,0}}});
-    else if(patch.name=="xmax") bc.push_back({patch.name,PressureOutlet{0}});
+    if(patch.name=="xmin") bc.push_back({patch.name,VelocityInlet{Vec3d{1,0,0},TurbulenceValues{.0015,10}}});
+    else if(patch.name=="xmax") bc.push_back({patch.name,PressureOutlet{0,NormalBackflow{},BackflowPressure::Static,TurbulenceValues{.0015,10}}});
     else bc.push_back({patch.name,Wall{}});
   }
   KUTTA_FOR_EACH_BACKEND(dev) {
     std::vector<std::vector<float>> reference;
     for(auto storage:{CoupledEdgeStorage::Cached,CoupledEdgeStorage::Recompute}) {
-      SolverSettings settings;settings.viscosity=.01;
+      SolverSettings settings;settings.viscosity=.01;settings.sst=SstSettings{};
       settings.coupling=PressureVelocityCoupling::Coupled;settings.coupled_edge_storage=storage;
       SteadySolver solver(*dev,mesh,bc,settings);
-      solver.initialize([](Vec3d){return Vec3d{1,0,0};},[](Vec3d){return 0.;});
+      solver.initialize_fields(std::vector<Vec3d>(mesh.n_cells,{1,0,0}),std::vector<double>(mesh.n_cells,0),
+                               std::vector<double>(mesh.n_cells,.0015),std::vector<double>(mesh.n_cells,10));
       solver.iterate(40);
       std::vector<std::vector<float>> fields;
       for(const auto* field:{&solver.velocity().x,&solver.velocity().y,&solver.velocity().z,
-                            &solver.pressure(),&solver.mass_flux()}) fields.push_back(dev->download(*field));
+                            &solver.pressure(),&solver.mass_flux(),&solver.kinetic_energy(),
+                            &solver.specific_dissipation(),&solver.turbulence().mu_t}) fields.push_back(dev->download(*field));
       if(storage==CoupledEdgeStorage::Cached) reference=fields;
       else for(std::size_t i=0;i<fields.size();++i) {
         REQUIRE(fields[i].size()==reference[i].size());

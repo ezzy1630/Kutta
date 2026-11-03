@@ -90,7 +90,7 @@ struct SteadySolver::Impl {
   DeviceMesh mesh;
   Stencil stencil;
   BoundaryLeastSquares velocity_lsq,pressure_lsq,k_lsq,omega_lsq,strain_lsq;FaceJumpFit jump_fit;
-  DeviceVec3 strain_base,strain_gradient[3];
+  DeviceVec3 strain_base[3],strain_gradient[3];
   MeshPermutation permutation;
   std::unique_ptr<SstModel> sst;
   std::unique_ptr<SaTransport> sa;
@@ -411,7 +411,10 @@ struct SteadySolver::Impl {
       for(Index b=0;b<nb;++b) strain_rows[b]=kinds[b]!=0?FaceValue:Omitted;
       strain_lsq=boundary_least_squares(dev,host,geom,strain_rows,&stencil,lsq_workspace);
       jump_fit=face_jump_least_squares(dev,host,geom);
-      strain_base=vector_field(dev,n);
+      strain_base[0]=vector_field(dev,n);
+      // The ordinary default keeps its fused vector fit. Memory mode and the
+      // already sequential compensated fit consume each component immediately.
+      if(!compact_strain()) for(int k=1;k<3;++k) strain_base[k]=vector_field(dev,n);
       for(auto& g:strain_gradient) g=vector_field(dev,n);
     }
     if(settings.sst) {
@@ -542,6 +545,9 @@ struct SteadySolver::Impl {
       momentum[0]->matrix.val,physical_diagonal);
   }
   bool compensated_state() const {return paired && settings.compensated_momentum;}
+  bool compact_strain() const {
+    return compensated_state() || settings.coupled_edge_storage==CoupledEdgeStorage::Recompute;
+  }
   const DeviceVec3& model_velocity() const {return compensated_state()?canonical_velocity:velocity;}
   const DeviceVec3& model_boundary_velocity() const {return compensated_state()?canonical_boundary_velocity:boundary_velocity;}
   const Buffer<float>& model_mass() const {return compensated_state()?canonical_mass:mass;}
@@ -587,9 +593,9 @@ struct SteadySolver::Impl {
       const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
       const Buffer<float>* bc_low[]{&boundary_velocity_lo.x,&boundary_velocity_lo.y,&boundary_velocity_lo.z};
       for(int k=0;k<3;++k) {
-        paired_gradient(dev,mesh,stencil,strain_lsq,*q[k],*low[k],*bc[k],*bc_low[k],strain_base,canonical_low_gradient[k]);
+        paired_gradient(dev,mesh,stencil,strain_lsq,*q[k],*low[k],*bc[k],*bc_low[k],strain_base[0],canonical_low_gradient[k]);
         paired_jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*low[k],*bc[k],*bc_low[k],
-          strain_base,canonical_low_gradient[k],strain_gradient[k]);
+          strain_base[0],canonical_low_gradient[k],strain_gradient[k]);
       }
       return;
     }
@@ -598,9 +604,12 @@ struct SteadySolver::Impl {
     const Buffer<float>* bc[]{&b.x,&b.y,&b.z};
     // Each correction gathers only this component's base gradient. Preserve
     // it through that gather, then reuse the three arrays for the next one.
+    if(!compact_strain())
+      vector_gradient(dev,mesh,stencil,strain_lsq,u,b,strain_base[0],strain_base[1],strain_base[2]);
     for(int k=0;k<3;++k) {
-      gradient(dev,mesh,stencil,strain_lsq,*q[k],*bc[k],strain_base);
-      jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],strain_base,strain_gradient[k]);
+      auto& base=strain_base[compact_strain()?0:k];
+      if(compact_strain()) gradient(dev,mesh,stencil,strain_lsq,*q[k],*bc[k],base);
+      jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*bc[k],base,strain_gradient[k]);
     }
   }
   void update_turbulence(bool velocity_changed=true) {

@@ -230,7 +230,8 @@ struct SolverSettings {
   // block Jacobian's implicit relaxation a_P/CFL (CoupledOptions::courant).
   // Convergence path only.
   double coupled_courant=200;
-  // Opt-in memory-limited mode: omit five cached floats per cell-face incidence.
+  // Opt-in memory-limited mode: omit five cached floats per cell-face incidence
+  // and reuse ordinary strain scratch (also with SIMPLEC), adding scalar launches.
   CoupledEdgeStorage coupled_edge_storage=CoupledEdgeStorage::Cached;
   // Coupled block solve: one order of residual reduction per outer
   // iteration, Fluent's default AMG termination criterion.
