@@ -720,7 +720,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
 | Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
-| Paired-state slack 16 | Full slow pending; quick adds two moving-wall failures | Paired elbow time: CPU 1.002x, Metal 1.559x; ordinary plate SST reaches gate at 400 vs baseline fails at 3,000 | 0 / 0 | Keep opt-in |
+| Paired-state slack 16 | Full pending; completed Fluent cavity has 45 regressions, quick adds two moving-wall failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
@@ -860,6 +860,14 @@ The candidate test binary SHA-256 is
 `19b03b060494386aa685a2ec911d51357ad7ef9c953d69fe7444f15141cd0591`.
 Slack 16 stays opt-in. Its requested full slow-tier effect is still running;
 this quick result does not replace it.
+
+The completed Fluent cavity case adds 45 failed assertions comparing
+imported-mesh and equivalent generated-mesh velocity profiles. The unchanged
+canonical comparator confirms, for this one case only: 45 regressions,
+zero recoveries, 715 changed expanded values, and no missing/new assertions
+or cases. Main passes all 763 assertions; the candidate passes 718 and fails
+45. The failures split into u/v counts of 12/11 on CPU and 15/7 on Metal.
+This is a partial comparison; the whole-tier totals remain pending.
 
 The corrected cost run checks every emitted setting against an exact-main
 solver baseline. Four alternating elbow pairs measure median time ratios of

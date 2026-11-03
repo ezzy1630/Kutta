@@ -995,5 +995,31 @@
       }
     ],
     "timing_comparison": null
+  },
+  "completed_single_case_comparison": {
+    "scope": "Only FV V4 Fluent cavity matches its actual grid; not a whole-tier comparison. Baseline is the unchanged selected TestCase element from the supplied exact-main XML.",
+    "assertion_count": 763,
+    "candidate_failed_assertions": 45,
+    "baseline_failed_assertions": 0,
+    "canonical_comparator_sha256": "5fa871f78f491b703b0e7bb052085f0c0b0bbc2b589813867dc7968b4f807c50",
+    "baseline_subset_sha256": "1fc792aa50c25d7ba435f7ef2ef5dff57b997c30497fc517ad7bde72fd0b6ff4",
+    "candidate_shard_sha256": "b3f48d89dc8da4a5e0dd70e23118f2143a82de2e05925a8ea200a4f2bf3fa623",
+    "comparison": {
+      "cases": 1,
+      "regressions": 45,
+      "recoveries": 0,
+      "changed_values": 715,
+      "missing_assertions": 0,
+      "new_assertions": 0,
+      "missing_cases": 0,
+      "new_cases": 0,
+      "no_new_failures": false
+    },
+    "regressions_by_velocity_and_backend": {
+      "u_cpu": 12,
+      "v_cpu": 11,
+      "u_metal": 15,
+      "v_metal": 7
+    }
   }
 }
