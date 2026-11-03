@@ -144,7 +144,7 @@ def layers(points, tris, top_size, first, growth=GROWTH):
 
 def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0, cell_type="hex", *,
           slant_edge_size=None, slant_edge_reach=0.06, slant_edge_volume_size=None, slant_surface_size=None,
-          growth=GROWTH, body_surface_size=None, slant_edge_volume_reach=None):
+          growth=GROWTH, body_surface_size=None, slant_edge_volume_reach=None, wake_volume_size=None):
     import gmsh
     if cell_type not in ("hex", "tet-prism"):
         raise ValueError("cell type must be hex or tet-prism")
@@ -231,6 +231,14 @@ def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0
                            "ZMax": CLEAR + H + .1, "Thickness": .04}.items():
             f.setNumber(edge, key, value)
         fields.append(edge)
+    if wake_volume_size is not None:
+        # Refine the near wake independently of body/ground surface spacing.
+        near_wake = f.add("Box")
+        for key, value in {"VIn": wake_volume_size, "VOut": 0.4,
+                           "XMin": .06, "XMax": .8, "YMin": -.25, "YMax": .25,
+                           "ZMin": .09, "ZMax": .44, "Thickness": .04}.items():
+            f.setNumber(near_wake, key, value)
+        fields.append(near_wake)
     f.setNumbers(fmin, "FieldsList", fields)
     f.setAsBackgroundMesh(fmin)
     # One thread: with eight, gmsh 4.15.2 produced a different mesh on every
@@ -294,6 +302,9 @@ def build(slant, level, out, first=FIRST, refinement_reach=3.0, wake_padding=2.0
     if body_surface_size is not None:
         # --level still controls the outer volume, wake and layer-height cap.
         meta.update(body_surface_size=body_surface_size, outer_level_surface_size=size)
+    if wake_volume_size is not None:
+        meta.update(wake_volume_size=wake_volume_size,
+                    wake_volume_box={"x": [.06, .8], "y": [-.25, .25], "z": [.09, .44], "transition": .04})
     pathlib.Path(str(out) + ".json").write_text(json.dumps(meta, indent=1))
     return meta
 
@@ -321,13 +332,15 @@ def main():
                     help="distance over which body refinement grows to the 0.4 m far-field size, m")
     ap.add_argument("--wake-padding", type=float, default=2.0,
                     help="transition thickness outside the fixed wake refinement box, m")
+    ap.add_argument("--wake-volume-size", type=float,
+                    help="optional near-wake volume spacing, m; keeps body and ground surface sizing")
     ap.add_argument("--cell-type", choices=["hex", "tet-prism"], default="hex",
                     help="hex is the regression mesh; tet-prism is a native-cell diagnostic")
     a = ap.parse_args()
     if not (math.isfinite(a.slant_edge_reach) and a.slant_edge_reach > 0 and
             all(v is None or (math.isfinite(v) and v > 0)
                 for v in (a.slant_edge_size, a.slant_edge_volume_size, a.slant_surface_size,
-                          a.body_surface_size, a.slant_edge_volume_reach))):
+                          a.body_surface_size, a.slant_edge_volume_reach, a.wake_volume_size))):
         ap.error("local sizes and reach must be positive and finite")
     if not (all(math.isfinite(v) for v in (a.first, a.refinement_reach, a.wake_padding, a.growth)) and
             0 < a.first < 0.4 * CLEAR and a.refinement_reach > 0 and a.wake_padding > 0 and a.growth > 1):
@@ -337,7 +350,7 @@ def main():
                            slant_edge_size=a.slant_edge_size, slant_edge_reach=a.slant_edge_reach,
                            slant_edge_volume_size=a.slant_edge_volume_size, slant_surface_size=a.slant_surface_size,
                            growth=a.growth, body_surface_size=a.body_surface_size,
-                           slant_edge_volume_reach=a.slant_edge_volume_reach)))
+                           slant_edge_volume_reach=a.slant_edge_volume_reach, wake_volume_size=a.wake_volume_size)))
 
 
 if __name__ == "__main__":
