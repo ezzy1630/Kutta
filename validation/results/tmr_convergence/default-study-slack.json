@@ -1,0 +1,919 @@
+{
+  "status": "Cost and quick-tier results complete; full slow-tier comparison still running.",
+  "candidate": "Only the ordinary paired-state slack default changes from 1 to 16; retained byte-identical SST cleanup is also present. Metal runtime unchanged.",
+  "source_revision": "65e38ffbd409bf4c041c132a4fe0e02bc7aa82bc",
+  "header_sha256": "4a9e6a96c6ae65d50308348caaece75bf2805e21aa3d102b80c8c44ac54ac70c",
+  "test_binary_sha256": "19b03b060494386aa685a2ec911d51357ad7ef9c953d69fe7444f15141cd0591",
+  "cost": {
+    "variant": "state-slack-16",
+    "settings_checked": true,
+    "case": "V6 SST mixing elbow ordinary settings, 40-step cold start",
+    "candidate_compensation_override": null,
+    "timed_iterations": [
+      21,
+      40
+    ],
+    "contended": true,
+    "pairs": "AB,BA,AB,BA",
+    "baseline_sha256": "982116e6897e571b239d0650104e268c9fa618221d557f6e16dce834046875bd",
+    "candidate_sha256": "5225cbc59d49acea4e5cdbb47024092363746fa9ec11d079e91c65c720797506",
+    "rows": [
+      {
+        "backend": "cpu",
+        "pair": 0,
+        "variant": "baseline",
+        "seconds_per_iteration_21_40": 0.10996826875000001,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 439
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68841612,
+        "reported_peak_bytes": 63816184,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "cpu",
+        "pair": 0,
+        "variant": "candidate",
+        "seconds_per_iteration_21_40": 0.10380082705000002,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68841612,
+        "reported_peak_bytes": 63996384,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "cpu",
+        "pair": 1,
+        "variant": "candidate",
+        "seconds_per_iteration_21_40": 0.10264511664999998,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68841612,
+        "reported_peak_bytes": 63865312,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "cpu",
+        "pair": 1,
+        "variant": "baseline",
+        "seconds_per_iteration_21_40": 0.10026172500000001,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 439
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68841612,
+        "reported_peak_bytes": 63750624,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "cpu",
+        "pair": 2,
+        "variant": "baseline",
+        "seconds_per_iteration_21_40": 0.09957587499999998,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 439
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68841612,
+        "reported_peak_bytes": 63832520,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "cpu",
+        "pair": 2,
+        "variant": "candidate",
+        "seconds_per_iteration_21_40": 0.10267563124999998,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68841612,
+        "reported_peak_bytes": 89965000,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "cpu",
+        "pair": 3,
+        "variant": "candidate",
+        "seconds_per_iteration_21_40": 0.09786141460000002,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68841612,
+        "reported_peak_bytes": 63980000,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "cpu",
+        "pair": 3,
+        "variant": "baseline",
+        "seconds_per_iteration_21_40": 0.09989381665000001,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 439
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68841612,
+        "reported_peak_bytes": 63799776,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "metal",
+        "pair": 0,
+        "variant": "baseline",
+        "seconds_per_iteration_21_40": 0.013582602100000002,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68923532,
+        "reported_peak_bytes": 205324984,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "metal",
+        "pair": 0,
+        "variant": "candidate",
+        "seconds_per_iteration_21_40": 0.015149170849999996,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68923532,
+        "reported_peak_bytes": 205439672,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "metal",
+        "pair": 1,
+        "variant": "candidate",
+        "seconds_per_iteration_21_40": 0.03475560209999999,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68923532,
+        "reported_peak_bytes": 205538000,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "metal",
+        "pair": 1,
+        "variant": "baseline",
+        "seconds_per_iteration_21_40": 0.0139480354,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68923532,
+        "reported_peak_bytes": 205537976,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "metal",
+        "pair": 2,
+        "variant": "baseline",
+        "seconds_per_iteration_21_40": 0.01363134165,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68923532,
+        "reported_peak_bytes": 205472464,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "metal",
+        "pair": 2,
+        "variant": "candidate",
+        "seconds_per_iteration_21_40": 0.018344841699999996,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68923532,
+        "reported_peak_bytes": 205357776,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "metal",
+        "pair": 3,
+        "variant": "candidate",
+        "seconds_per_iteration_21_40": 0.0247677354,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68923532,
+        "reported_peak_bytes": 205292240,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "backend": "metal",
+        "pair": 3,
+        "variant": "baseline",
+        "seconds_per_iteration_21_40": 0.01398264585,
+        "cumulative_inner_iterations_40": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "outer_iterations": 40,
+        "last_step_converged": "0",
+        "device_bytes": 68923532,
+        "reported_peak_bytes": 205177480,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      }
+    ],
+    "summary": [
+      {
+        "backend": "cpu",
+        "paired_time_ratio_median": 1.0017130379264052,
+        "paired_time_ratio_range": [
+          0.9439161699087857,
+          1.0311295908773084
+        ],
+        "baseline_work": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 439
+        },
+        "candidate_work": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "peak_bytes_baseline": 63832520,
+        "peak_bytes_candidate": 89965000
+      },
+      {
+        "backend": "metal",
+        "paired_time_ratio_median": 1.5585518343395801,
+        "paired_time_ratio_range": [
+          1.1153364236444792,
+          2.4917919336511
+        ],
+        "baseline_work": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "candidate_work": {
+          "momentum": 0,
+          "pressure": 162,
+          "scalar": 438
+        },
+        "peak_bytes_baseline": 205537976,
+        "peak_bytes_candidate": 205538000
+      }
+    ],
+    "late_iteration_cost": [
+      {
+        "model": "sst",
+        "backend": "cpu",
+        "variant": "baseline",
+        "exit": 2,
+        "last_monitor": {
+          "it": "3000",
+          "defect": "0.000148781501615",
+          "continuity": "0.000148781501615",
+          "raw": "2.72621111716e-08",
+          "scale": "0.000183235892068",
+          "corrected": "4.42891682919e-11",
+          "u": "3.12212201129e-08",
+          "v": "9.23280423631e-09",
+          "k": "3.47870855952e-07",
+          "omega": "3.95394201519e-08",
+          "sa": "0",
+          "change": "2.61296958798e-07",
+          "step_change": "2.61296958798e-07",
+          "drag": "0.002806309368",
+          "cf0": "0.00264908184733",
+          "cf1": "0",
+          "cf2": "0",
+          "inner_u": "2",
+          "inner_sa": "1",
+          "inner_p": "20",
+          "p_ratio": "0.000703161349775",
+          "converged": "0"
+        },
+        "cumulative_inner_iterations": {
+          "it": "3000",
+          "momentum": "8974",
+          "pressure": "60635",
+          "scalar": "72239"
+        },
+        "failure": null,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "model": "sst",
+        "backend": "cpu",
+        "variant": "candidate",
+        "exit": 0,
+        "last_monitor": {
+          "it": "400",
+          "defect": "3.49233513036e-06",
+          "continuity": "3.49233513036e-06",
+          "raw": "6.40333802258e-10",
+          "scale": "0.000183354053479",
+          "corrected": "1.61183690093e-11",
+          "u": "2.61172673166e-09",
+          "v": "2.16640075878e-09",
+          "k": "1.80813699216e-07",
+          "omega": "2.78155740379e-08",
+          "sa": "0",
+          "change": "1.13224100467e-06",
+          "step_change": "1.13224100467e-06",
+          "drag": "0.00280642292694",
+          "cf0": "0.00264943364324",
+          "cf1": "0",
+          "cf2": "0",
+          "inner_u": "1",
+          "inner_sa": "1",
+          "inner_p": "12",
+          "p_ratio": "0.00676404630093",
+          "converged": "1"
+        },
+        "cumulative_inner_iterations": {
+          "it": "400",
+          "momentum": "1667",
+          "pressure": "7512",
+          "scalar": "7206"
+        },
+        "failure": null,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "model": "sst",
+        "backend": "metal",
+        "variant": "baseline",
+        "exit": 2,
+        "last_monitor": {
+          "it": "3000",
+          "defect": "0.000183579331842",
+          "continuity": "0.000183579331842",
+          "raw": "3.36388121244e-08",
+          "scale": "0.00018323855843",
+          "corrected": "6.54924090339e-11",
+          "u": "4.39660546167e-08",
+          "v": "1.21976371354e-08",
+          "k": "3.38473759752e-07",
+          "omega": "4.02607788113e-08",
+          "sa": "0",
+          "change": "4.20302710479e-07",
+          "step_change": "4.20302710479e-07",
+          "drag": "0.00280631295482",
+          "cf0": "0.00264910139431",
+          "cf1": "0",
+          "cf2": "0",
+          "inner_u": "2",
+          "inner_sa": "1",
+          "inner_p": "20",
+          "p_ratio": "0.000895683015484",
+          "converged": "0"
+        },
+        "cumulative_inner_iterations": {
+          "it": "3000",
+          "momentum": "9303",
+          "pressure": "58694",
+          "scalar": "73502"
+        },
+        "failure": null,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "model": "sst",
+        "backend": "metal",
+        "variant": "candidate",
+        "exit": 0,
+        "last_monitor": {
+          "it": "400",
+          "defect": "1.42520623931e-07",
+          "continuity": "3.756586815e-08",
+          "raw": "6.8878468467e-12",
+          "scale": "0.000183353857795",
+          "corrected": "6.8878468467e-12",
+          "u": "3.20711996153e-09",
+          "v": "1.89786987267e-09",
+          "k": "1.42520623931e-07",
+          "omega": "4.036296568e-08",
+          "sa": "0",
+          "change": "5.34720741915e-07",
+          "step_change": "5.34720741915e-07",
+          "drag": "0.00280644856332",
+          "cf0": "0.00264922187023",
+          "cf1": "0",
+          "cf2": "0",
+          "inner_u": "0",
+          "inner_sa": "0",
+          "inner_p": "0",
+          "p_ratio": "1",
+          "converged": "1"
+        },
+        "cumulative_inner_iterations": {
+          "it": "400",
+          "momentum": "1551",
+          "pressure": "6313",
+          "scalar": "7295"
+        },
+        "failure": null,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "model": "sa",
+        "backend": "cpu",
+        "variant": "baseline",
+        "exit": 2,
+        "last_monitor": {
+          "it": "3000",
+          "defect": "0.000204057944461",
+          "continuity": "0.000204057944461",
+          "raw": "3.78389978745e-08",
+          "scale": "0.000185432613145",
+          "corrected": "3.86744321684e-11",
+          "u": "3.07810800968e-08",
+          "v": "1.3604015621e-08",
+          "k": "0",
+          "omega": "0",
+          "sa": "7.31834879626e-06",
+          "change": "1.98036529969e-06",
+          "step_change": "1.98036529969e-06",
+          "drag": "0.00287983354497",
+          "cf0": "0.00272968461453",
+          "cf1": "0",
+          "cf2": "0",
+          "inner_u": "2",
+          "inner_sa": "0",
+          "inner_p": "12",
+          "p_ratio": "0.00060430875727",
+          "converged": "0"
+        },
+        "cumulative_inner_iterations": {
+          "it": "3000",
+          "momentum": "9415",
+          "pressure": "34727",
+          "scalar": "417"
+        },
+        "failure": null,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "model": "sa",
+        "backend": "cpu",
+        "variant": "candidate",
+        "exit": 2,
+        "last_monitor": {
+          "it": "3000",
+          "defect": "3.10899788299e-05",
+          "continuity": "3.10899788299e-05",
+          "raw": "5.76873483623e-09",
+          "scale": "0.000185549654691",
+          "corrected": "1.11586372432e-11",
+          "u": "3.23029242419e-09",
+          "v": "1.83879927915e-09",
+          "k": "0",
+          "omega": "0",
+          "sa": "1.08153772365e-05",
+          "change": "0",
+          "step_change": "0",
+          "drag": "0.00288012138299",
+          "cf0": "0.00272986860541",
+          "cf1": "0",
+          "cf2": "0",
+          "inner_u": "1",
+          "inner_sa": "0",
+          "inner_p": "9",
+          "p_ratio": "0.000977928975397",
+          "converged": "0"
+        },
+        "cumulative_inner_iterations": {
+          "it": "3000",
+          "momentum": "6271",
+          "pressure": "28728",
+          "scalar": "416"
+        },
+        "failure": null,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "model": "sa",
+        "backend": "metal",
+        "variant": "baseline",
+        "exit": 2,
+        "last_monitor": {
+          "it": "3000",
+          "defect": "0.000183064395142",
+          "continuity": "0.000183064395142",
+          "raw": "3.39461091651e-08",
+          "scale": "0.000185432613145",
+          "corrected": "3.79031684779e-11",
+          "u": "2.01195593206e-08",
+          "v": "8.83678358956e-09",
+          "k": "0",
+          "omega": "0",
+          "sa": "7.37840524641e-06",
+          "change": "2.27678617651e-06",
+          "step_change": "2.27678617651e-06",
+          "drag": "0.00287983423561",
+          "cf0": "0.00272968977023",
+          "cf1": "0",
+          "cf2": "0",
+          "inner_u": "1",
+          "inner_sa": "0",
+          "inner_p": "12",
+          "p_ratio": "0.00061631358677",
+          "converged": "0"
+        },
+        "cumulative_inner_iterations": {
+          "it": "3000",
+          "momentum": "9750",
+          "pressure": "34514",
+          "scalar": "417"
+        },
+        "failure": null,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 1.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      },
+      {
+        "model": "sa",
+        "backend": "metal",
+        "variant": "candidate",
+        "exit": 0,
+        "last_monitor": {
+          "it": "500",
+          "defect": "9.51976931714e-06",
+          "continuity": "9.51976931714e-06",
+          "raw": "1.76638990953e-09",
+          "scale": "0.000185549654691",
+          "corrected": "1.13964388904e-11",
+          "u": "1.9493233924e-09",
+          "v": "2.29814673642e-09",
+          "k": "0",
+          "omega": "0",
+          "sa": "8.03899615774e-06",
+          "change": "4.04594862674e-08",
+          "step_change": "4.04594862674e-08",
+          "drag": "0.00288014059038",
+          "cf0": "0.00273013803713",
+          "cf1": "0",
+          "cf2": "0",
+          "inner_u": "1",
+          "inner_sa": "0",
+          "inner_p": "7",
+          "p_ratio": "0.00344244110806",
+          "converged": "1"
+        },
+        "cumulative_inner_iterations": {
+          "it": "500",
+          "momentum": "2193",
+          "pressure": "5270",
+          "scalar": "419"
+        },
+        "failure": null,
+        "controls": {
+          "scalar_absolute": 1e-12,
+          "dt": 0.0,
+          "compensated_momentum": 0.0,
+          "paired_state_slack": 16.0,
+          "scalar_compensation": 0.0,
+          "scalar_steady_tolerance": 0.0,
+          "scalar_pseudo_time": 1.0,
+          "momentum_absolute": 1e-10,
+          "pressure_absolute": 1e-12
+        }
+      }
+    ],
+    "late_case": "Coarse TMR plate geometry and model, ordinary solver controls; original 3000-step convergence budget; iteration counts only, no unpaired timing comparison"
+  },
+  "quick_tier": {
+    "cases": 307,
+    "passed_cases": 306,
+    "failed_cases": 1,
+    "passed_assertions": 7990154,
+    "failed_assertions": 2,
+    "frozen_error_limit": 1e-05,
+    "moving_wall_uniform_flow_error_cpu": 1.48279e-05,
+    "moving_wall_uniform_flow_error_metal": 1.48278e-05
+  },
+  "diagnostic_parity": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "iterations": 40,
+      "diagnostic_enabled_every_step": true,
+      "public_state_identical": true,
+      "state_sha256": "6fdf06d9aad2f752b6f6c59ab802acd96b61b9a9163eda8f18a714c0a31f34ee"
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "iterations": 40,
+      "diagnostic_enabled_every_step": true,
+      "public_state_identical": true,
+      "state_sha256": "b13be53d5acc582eccc249c09231dfe12a44c0f9bd7fcda02e3818e5cd5335a9"
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "iterations": 40,
+      "diagnostic_enabled_every_step": true,
+      "public_state_identical": true,
+      "state_sha256": "2c2f7b10a7ce96b127bd954e5f19c830b3fd9f5b36d0285e8bc59e0c24b2be87"
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "iterations": 40,
+      "diagnostic_enabled_every_step": true,
+      "public_state_identical": true,
+      "state_sha256": "4363d77fb0cce1b2f99acf1a036715d57ea3eac068dc83be2a05f145449e30e5"
+    }
+  ],
+  "diagnostic_source": {
+    "production_cpp_sha256": "85e7a76fa15cfa67005f241a421d1825036b300fb66598097993e50b4871de33",
+    "instrumented_cpp_sha256": "5ad9847b9bc93fbce64900881ca82a0b3f84901780eaee66b48aeb1dcf46d32e",
+    "helper_sha256": "c5638b0f06fc85077808ebb0dd1e43a8b67d955e4be0e553f34dbc1c5d50bda9",
+    "binary_sha256": "4b55850e24672979bc083037d376ed7e87e9db68ef56a9cd54c2eab1089d85d2",
+    "mode": "Read-only paired-state and scalar downloads after existing steps; no added monitor or force calls. Model coefficients are last assembly values, not refreshed for diagnostics."
+  }
+}

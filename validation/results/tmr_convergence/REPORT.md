@@ -720,7 +720,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
 | Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
-| Paired-state slack 16 | Pending; quick tier adds two moving-wall uniform-flow failures | Pending | 0 / 0 | Keep opt-in |
+| Paired-state slack 16 | Full slow pending; quick adds two moving-wall failures | Paired elbow time: CPU 1.002x, Metal 1.559x; ordinary plate SST reaches gate at 400 vs baseline fails at 3,000 | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
@@ -858,8 +858,33 @@ for the moving-wall variant. The errors are `1.48279e-5` on CPU and
 307 quick cases: 306 pass, with 7,990,154 passing and two failing assertions.
 The candidate test binary SHA-256 is
 `19b03b060494386aa685a2ec911d51357ad7ef9c953d69fe7444f15141cd0591`.
-Slack 16 stays opt-in. Its requested full slow-tier effect and cost measurement
-are still running; this quick result does not replace them.
+Slack 16 stays opt-in. Its requested full slow-tier effect is still running;
+this quick result does not replace it.
+
+The corrected cost run checks every emitted setting against an exact-main
+solver baseline. Four alternating elbow pairs measure median time ratios of
+1.0017 on CPU (range 0.9439–1.0311) and 1.5586 on Metal (1.1153–2.4918).
+The Metal slowdown is observed under contention; no cause is attributed.
+At 40 steps, pressure work is 162 inner iterations for both settings on both
+backends. CPU scalar work is 439 → 438, Metal 438 → 438. Peak footprint is
+63,832,520 → 89,965,000 bytes on CPU and 205,537,976 → 205,538,000 on Metal.
+These process peaks do not establish a setting-specific allocation increase;
+the independent one-setting device measurement is unchanged at zero bytes.
+
+On the ordinary-control coarse plate, SST remains unconverged at 3,000
+baseline steps but converges at 400 with slack 16 on both backends. SA remains
+unconverged on CPU at 3,000, while Metal reaches the gate at 500. These are
+separate ordinary-control probes, not the TMR harness or its 17 failures.
+[default-study-slack.json](default-study-slack.json) preserves the hashes,
+paired measurements, cumulative work and quick-tier rejection.
+
+A private field-motion diagnostic observes the true high-plus-low flow pairs
+and stored scalar fields without extra monitor or force calls. With downloads
+enabled every step, four 40-step finest-bump SST/SA CPU/Metal comparisons keep
+all public state bytes identical. The full slack run uses this instrumented
+binary to gather per-component residuals and lag-one/lag-two field motion.
+The diagnostic data cannot establish a cause until examined and tested with
+an isolating experiment.
 
 ### Corrected ordinary-control iteration cost of compensation
 
