@@ -1010,6 +1010,34 @@ The plot shows all 24 recorded solves, including the seven that converge.
 A terminal cross means the unchanged convergence gates are not met by step
 3,000; the dashed line shows the maximum-defect gate. Load change also applies.
 
+### First per-step classifications
+
+Two failing SST plate solves have completed the field-motion capture so far.
+These observations refine the 100-step envelope classification; they do not
+establish a cause or a fix.
+
+The fine CPU plate is a slow approach with fluctuations. Its endpoint exactly
+reproduces main: continuity `1.9098099621e-5`, k `9.90676677969e-7`, omega
+`4.13604658373e-7`. Over steps 2,800–3,000, median relative streamwise-velocity
+movement is `4.2498073e-9` per step; lag-two movement is `1.9991` times
+lag-one movement. The pressure and mass-flux ratios are `1.3217` and `1.7371`.
+This is continued field motion. Continuity remains the failing component.
+
+The middle Metal plate has a strong pressure–velocity two-cycle with small
+drift. Continuity is `3.04515373356e-5`, raw `8.28080263892e-10`. Median
+lag-two / lag-one movement ratios are `0.006692` for u, `0.004219` for v,
+`0.001978` for pressure and `0.002364` for mass flux. Pressure moves
+`2.00757324e-6` in relative L1 per step, returning almost to its prior value
+after two steps. k, omega and eddy viscosity are bitwise unchanged throughout
+all 201 sampled steps in that window. These are observed field values,
+not a demonstrated stationary arithmetic floor.
+
+[field-motion-classification.json](field-motion-classification.json) records
+the component defects, field-motion metrics and diagnostic hashes. Only two
+of the 17 failure captures are complete in this receipt. The pressure–velocity
+cycle's mechanism still requires an isolating experiment; no causal claim
+is inferred from the cycle alone.
+
 ### Exact fine-bump reproduction
 
 The finest SST bump on Metal completes 3,000 steps on exact base `e014e36`.
