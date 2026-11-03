@@ -22,6 +22,8 @@ CASES = {
     "v6_elbow": (EXAMPLES / "mixing_elbow.cas.h5", "wfgc"),
     "elbow_param": (EXAMPLES / "elbow_param.cas.h5", "compressibility,ke-options"),
     "ahmed_l1": (ROOT / "runs/mesh/ahmed35_L1.cas", "wfgc"),
+    "ahmed_l1_simplec": (ROOT / "runs/mesh/ahmed35_L1_simplec.cas", "wfgc"),
+    "ahmed_l1_aero_simplec": (ROOT / "tools/memory_scale/ahmed_simplec.kutta.json", ""),
 }
 FILES = ("fluxes.csv", "forces.csv", "loads.json", "result.vtu", "residuals.csv")
 
@@ -29,19 +31,25 @@ FILES = ("fluxes.csv", "forces.csv", "loads.json", "result.vtu", "residuals.csv"
 def digest(path):
     data = path.read_bytes()
     if path.name == "residuals.csv":
-        # The last column is seconds per iteration.
-        data = b"\n".join(line.rsplit(b",", 1)[0] for line in data.split(b"\n"))
+        # Match grep -v '^#' | cut -d, -f1-7 from the common brief.
+        data = b"".join(b",".join(line.split(b",")[:7]) + b"\n" for line in data.splitlines()
+                         if not line.startswith(b"#"))
     return hashlib.sha256(data).hexdigest()
 
 
 def run(binary, case, approximate, backend, iterations, out):
     out.mkdir(parents=True, exist_ok=True)
     cmd = [str(binary), "solve", str(case), "--backend", backend, "--iterations", str(iterations),
-           "--out", str(out), "--approximate", approximate]
+           "--out", str(out)]
+    if approximate:
+        cmd += ["--approximate", approximate]
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     (out / "solve.log").write_text(proc.stdout)
     if proc.returncode:
         raise SystemExit(f"{' '.join(cmd)} failed:\n{proc.stdout[-2000:]}")
+    actual = json.loads((out / "loads.json").read_text()).get("iterations")
+    if actual != iterations:
+        raise SystemExit(f"{case.name} on {backend} completed {actual} iterations; expected {iterations}")
     return {name: digest(out / name) for name in FILES}
 
 
@@ -62,6 +70,11 @@ def main():
                                  pathlib.Path(a.out) / f"{name}_{backend}_{label}")
                       for label, binary in (("baseline", a.baseline), ("candidate", a.candidate))}
             diff = [f for f in FILES if hashes["baseline"][f] != hashes["candidate"][f]]
+            for f in FILES[:-1]:
+                directories = [pathlib.Path(a.out) / f"{name}_{backend}_{label}" for label in ("baseline", "candidate")]
+                status = subprocess.run(["cmp", "-s", str(directories[0] / f), str(directories[1] / f)]).returncode
+                if status and f not in diff:
+                    diff.append(f)
             same &= not diff
             print(json.dumps({"case": name, "backend": backend, "iterations": a.iterations,
                               "identical": not diff, "differs": diff, "sha256": hashes["candidate"]}), flush=True)

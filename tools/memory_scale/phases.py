@@ -59,6 +59,7 @@ def main():
         f.write(json.dumps(result) + "\n")
     print(f"{a.label} {result['case']} exit={proc.returncode} peak={result['peak_footprint']} "
           f"({result['peak_footprint_per_cell']} B/cell) wall={result['wall_seconds']}s")
+    raise SystemExit(proc.returncode)
 
 
 if __name__ == "__main__":

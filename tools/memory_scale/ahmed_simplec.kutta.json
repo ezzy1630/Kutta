@@ -1,0 +1,108 @@
+{
+  "kutta_case": 1,
+  "mesh": "../../runs/mesh/ahmed35_L1.msh",
+  "models": {
+    "viscous": "k-omega-sst"
+  },
+  "material": {
+    "name": "air",
+    "density": 1.225,
+    "viscosity": 1.7894e-05
+  },
+  "boundaries": {
+    "body": {
+      "type": "wall"
+    },
+    "ground": {
+      "type": "wall"
+    },
+    "ground_slip": {
+      "type": "symmetry"
+    },
+    "inlet": {
+      "type": "velocity-inlet",
+      "speed": 40,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "turbulence": {
+        "intensity": 0.01,
+        "viscosity_ratio": 10
+      }
+    },
+    "outlet": {
+      "type": "pressure-outlet",
+      "gauge_pressure": 0,
+      "turbulence": {
+        "intensity": 0.01,
+        "viscosity_ratio": 10
+      }
+    },
+    "side": {
+      "type": "symmetry"
+    },
+    "top": {
+      "type": "symmetry"
+    }
+  },
+  "reference_values": {
+    "area": 0.112032,
+    "length": 1.044,
+    "density": 1.225,
+    "velocity": 40
+  },
+  "methods": {
+    "turbulent_kinetic_energy": "second-order-upwind",
+    "specific_dissipation_rate": "second-order-upwind",
+    "pressure_velocity_coupling": "simplec",
+    "pseudo_transient": true,
+    "pressure": "second-order",
+    "momentum": "second-order-upwind"
+  },
+  "reports": {
+    "downforce": {
+      "type": "lift",
+      "zones": [
+        "body"
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ],
+      "coefficient": true
+    },
+    "drag": {
+      "type": "drag",
+      "zones": [
+        "body"
+      ],
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "coefficient": true
+    }
+  },
+  "controls": {
+    "pseudo_time_step": "automatic",
+    "pseudo_relaxation": {
+      "momentum": 0.7,
+      "pressure": 1
+    }
+  },
+  "initialization": {
+    "method": "standard",
+    "velocity": [
+      40,
+      0,
+      0
+    ],
+    "gauge_pressure": 0,
+    "k": 0.24,
+    "omega": 1643.0088297753443
+  }
+}
