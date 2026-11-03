@@ -864,6 +864,31 @@ No timing improvement is claimed. This change remains private while the
 per-option defaults matrix uses a frozen source; it is not yet a retained
 solver saving. The currently retained change still saves 36 B/cell for SST.
 
+Four subsequent alternating AB, BA pairs per model and backend measure the
+same fine-bump configuration for 40 steps, timing only steps 21–40. All 32
+runs reproduce the same physical reports and cumulative inner work within
+each model/backend. The measured additional device saving remains exactly 48
+B/cell for SST and 24 B/cell for SA in every pair.
+
+| Model / backend | Paired time ratio, median (range) |
+|---|---:|
+| SST CPU | 1.0213 (0.9890–1.0303) |
+| SST Metal | 0.9930 (0.9596–1.0907) |
+| SA CPU | 0.9994 (0.9068–1.1303) |
+| SA Metal | 0.9862 (0.9527–1.0054) |
+
+These contended samples establish no speedup. They show a small SST CPU
+median cost, rather than a consistently large penalty in this window.
+Whole-process peaks must remain separate from exact buffer bytes. SST CPU
+peaks span 154.6–198.6 MB before and 154.8–209.8 MB after; SA CPU spans
+155.0–171.2 MB before and 153.5–200.0 MB after. CPU process-peak improvement is
+unproven, and no cause is assigned to that variation. The unchanged baseline
+binary itself has variable peaks. Metal process-peak medians fall from
+323.8 to 320.9 MB for SST and 314.0 to 312.5 MB for SA; each of their four
+pairs falls. The change remains unmerged until the matrix releases the root
+source. Data, controls and frozen input hashes are in
+[gradient-scratch-cost.json](gradient-scratch-cost.json).
+
 ### Complete compensation-default comparison
 
 All 37 slow cases execute with 201,633 assertions. Main has 51 failures;

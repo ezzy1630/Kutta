@@ -1,0 +1,745 @@
+{
+  "complete": true,
+  "protocol": "Fine NASA bump, exact retained TMR controls, SST/SA and CPU/Metal, four alternating AB BA pairs, 40 steps; time21\u201340 only. No acceptance gate or solve budget is changed in validation.",
+  "frozen_inputs_sha256": {
+    "build/tmr-lean/bench_convergence": "ed178ef07fac078608dae6c9e13f64c5b0dc185439761b89f5f9ccc7ff2fe2e1",
+    "build/gradient-scratch/build/bench_convergence": "5272d1ab8b1145da44eea910ba773337a902943a16c3ce9cdb4ed29314a7770e",
+    "build/gradient-scratch/source-origin.json": "2d1afeedc20404f2bf705d1971ac3b9a6585dd4baa56b9699493cf33d6f47d91",
+    "build/gradient-scratch/parity/comparison.json": "4982fb58a18e67735adc3e394cebaf6a33f9a83c5b88f744ca1e0f4a79d664a9",
+    "build/measure_gradient_scratch_cost.py": "3ff70378d73b77db433862a817f31bc9bc835ea31356c0e95d29457b44f97329",
+    "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt": "f59b62b8cb51163e708b6be3f59bbec3eee369a9d667fa0cf48499b9e5a7e2b8"
+  },
+  "rows": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "pair": 0,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.5146626125,
+      "inner_work": {
+        "it": "40",
+        "momentum": "353",
+        "pressure": "1436",
+        "scalar": "361"
+      },
+      "device_bytes": 177040352,
+      "process_peak_bytes": 154567232,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "pair": 0,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.52950479795,
+      "inner_work": {
+        "it": "40",
+        "momentum": "353",
+        "pressure": "1436",
+        "scalar": "361"
+      },
+      "device_bytes": 174336992,
+      "process_peak_bytes": 154780224,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "pair": 1,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.52056327085,
+      "inner_work": {
+        "it": "40",
+        "momentum": "353",
+        "pressure": "1436",
+        "scalar": "361"
+      },
+      "device_bytes": 174336992,
+      "process_peak_bytes": 209814080,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "pair": 1,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.5052611271,
+      "inner_work": {
+        "it": "40",
+        "momentum": "353",
+        "pressure": "1436",
+        "scalar": "361"
+      },
+      "device_bytes": 177040352,
+      "process_peak_bytes": 154698328,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "pair": 2,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.5056797229000001,
+      "inner_work": {
+        "it": "40",
+        "momentum": "353",
+        "pressure": "1436",
+        "scalar": "361"
+      },
+      "device_bytes": 177040352,
+      "process_peak_bytes": 154763864,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "pair": 2,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.51262678955,
+      "inner_work": {
+        "it": "40",
+        "momentum": "353",
+        "pressure": "1436",
+        "scalar": "361"
+      },
+      "device_bytes": 174336992,
+      "process_peak_bytes": 154878528,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "pair": 3,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.5403106000000001,
+      "inner_work": {
+        "it": "40",
+        "momentum": "353",
+        "pressure": "1436",
+        "scalar": "361"
+      },
+      "device_bytes": 174336992,
+      "process_peak_bytes": 208781888,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "pair": 3,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.5463467562500001,
+      "inner_work": {
+        "it": "40",
+        "momentum": "353",
+        "pressure": "1436",
+        "scalar": "361"
+      },
+      "device_bytes": 177040352,
+      "process_peak_bytes": 198591064,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "pair": 0,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.07334112500000001,
+      "inner_work": {
+        "it": "40",
+        "momentum": "317",
+        "pressure": "1418",
+        "scalar": "359"
+      },
+      "device_bytes": 177122272,
+      "process_peak_bytes": 323814168,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "pair": 0,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.07038114164999999,
+      "inner_work": {
+        "it": "40",
+        "momentum": "317",
+        "pressure": "1418",
+        "scalar": "359"
+      },
+      "device_bytes": 174418912,
+      "process_peak_bytes": 320865024,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "pair": 1,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.07150871665,
+      "inner_work": {
+        "it": "40",
+        "momentum": "317",
+        "pressure": "1418",
+        "scalar": "359"
+      },
+      "device_bytes": 174418912,
+      "process_peak_bytes": 320946920,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "pair": 1,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.0722564875,
+      "inner_work": {
+        "it": "40",
+        "momentum": "317",
+        "pressure": "1418",
+        "scalar": "359"
+      },
+      "device_bytes": 177122272,
+      "process_peak_bytes": 323797760,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "pair": 2,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.07492373335,
+      "inner_work": {
+        "it": "40",
+        "momentum": "317",
+        "pressure": "1418",
+        "scalar": "359"
+      },
+      "device_bytes": 177122272,
+      "process_peak_bytes": 323846888,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "pair": 2,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.0746439146,
+      "inner_work": {
+        "it": "40",
+        "momentum": "317",
+        "pressure": "1418",
+        "scalar": "359"
+      },
+      "device_bytes": 174418912,
+      "process_peak_bytes": 321061632,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "pair": 3,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.07758438125000001,
+      "inner_work": {
+        "it": "40",
+        "momentum": "317",
+        "pressure": "1418",
+        "scalar": "359"
+      },
+      "device_bytes": 174418912,
+      "process_peak_bytes": 320914200,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "pair": 3,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.0711333771,
+      "inner_work": {
+        "it": "40",
+        "momentum": "317",
+        "pressure": "1418",
+        "scalar": "359"
+      },
+      "device_bytes": 177122272,
+      "process_peak_bytes": 323846912,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "pair": 0,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.5082188916499999,
+      "inner_work": {
+        "it": "40",
+        "momentum": "361",
+        "pressure": "957",
+        "scalar": "284"
+      },
+      "device_bytes": 163938028,
+      "process_peak_bytes": 155058776,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "pair": 0,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.46085828959999997,
+      "inner_work": {
+        "it": "40",
+        "momentum": "361",
+        "pressure": "957",
+        "scalar": "284"
+      },
+      "device_bytes": 162586348,
+      "process_peak_bytes": 153485912,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "pair": 1,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.45707688334999996,
+      "inner_work": {
+        "it": "40",
+        "momentum": "361",
+        "pressure": "957",
+        "scalar": "284"
+      },
+      "device_bytes": 162586348,
+      "process_peak_bytes": 153502296,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "pair": 1,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.46053094790000004,
+      "inner_work": {
+        "it": "40",
+        "momentum": "361",
+        "pressure": "957",
+        "scalar": "284"
+      },
+      "device_bytes": 163938028,
+      "process_peak_bytes": 155009600,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "pair": 2,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.46215087085000006,
+      "inner_work": {
+        "it": "40",
+        "momentum": "361",
+        "pressure": "957",
+        "scalar": "284"
+      },
+      "device_bytes": 163938028,
+      "process_peak_bytes": 171229736,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "pair": 2,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.4650690771,
+      "inner_work": {
+        "it": "40",
+        "momentum": "361",
+        "pressure": "957",
+        "scalar": "284"
+      },
+      "device_bytes": 162586348,
+      "process_peak_bytes": 200032832,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "pair": 3,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.5177215271,
+      "inner_work": {
+        "it": "40",
+        "momentum": "361",
+        "pressure": "957",
+        "scalar": "284"
+      },
+      "device_bytes": 162586348,
+      "process_peak_bytes": 153453120,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "pair": 3,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.45803632290000007,
+      "inner_work": {
+        "it": "40",
+        "momentum": "361",
+        "pressure": "957",
+        "scalar": "284"
+      },
+      "device_bytes": 163938028,
+      "process_peak_bytes": 154993216,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "pair": 0,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.04860300835000001,
+      "inner_work": {
+        "it": "40",
+        "momentum": "315",
+        "pressure": "953",
+        "scalar": "286"
+      },
+      "device_bytes": 164019948,
+      "process_peak_bytes": 313983744,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "pair": 0,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.047134999999999996,
+      "inner_work": {
+        "it": "40",
+        "momentum": "315",
+        "pressure": "953",
+        "scalar": "286"
+      },
+      "device_bytes": 162668268,
+      "process_peak_bytes": 312410904,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "pair": 1,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.04760004790000001,
+      "inner_work": {
+        "it": "40",
+        "momentum": "315",
+        "pressure": "953",
+        "scalar": "286"
+      },
+      "device_bytes": 162668268,
+      "process_peak_bytes": 312558336,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "pair": 1,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.04747488544999999,
+      "inner_work": {
+        "it": "40",
+        "momentum": "315",
+        "pressure": "953",
+        "scalar": "286"
+      },
+      "device_bytes": 164019948,
+      "process_peak_bytes": 313869008,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "pair": 2,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.046068814599999994,
+      "inner_work": {
+        "it": "40",
+        "momentum": "315",
+        "pressure": "953",
+        "scalar": "286"
+      },
+      "device_bytes": 164019948,
+      "process_peak_bytes": 314016512,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "pair": 2,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.04631550835,
+      "inner_work": {
+        "it": "40",
+        "momentum": "315",
+        "pressure": "953",
+        "scalar": "286"
+      },
+      "device_bytes": 162668268,
+      "process_peak_bytes": 312558336,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "pair": 3,
+      "variant": "candidate",
+      "seconds_per_iteration_21_40": 0.0459914729,
+      "inner_work": {
+        "it": "40",
+        "momentum": "315",
+        "pressure": "953",
+        "scalar": "286"
+      },
+      "device_bytes": 162668268,
+      "process_peak_bytes": 312460008,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "pair": 3,
+      "variant": "baseline",
+      "seconds_per_iteration_21_40": 0.048274191650000006,
+      "inner_work": {
+        "it": "40",
+        "momentum": "315",
+        "pressure": "953",
+        "scalar": "286"
+      },
+      "device_bytes": 164019948,
+      "process_peak_bytes": 313950928,
+      "physical_reports_and_work_identical": true,
+      "controls_verified": true
+    }
+  ],
+  "summary": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "paired_time_ratio_median": 1.0212883733839448,
+      "paired_time_ratio_range": [
+        0.9889517853250731,
+        1.0302856145649444
+      ],
+      "device_saving_bytes_per_cell": 48.0,
+      "peak_baseline_bytes": 198591064,
+      "peak_candidate_bytes": 209814080
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "paired_time_ratio_median": 0.9929582226207183,
+      "paired_time_ratio_range": [
+        0.9596408788384414,
+        1.0906888497776666
+      ],
+      "device_saving_bytes_per_cell": 48.0,
+      "peak_baseline_bytes": 323846912,
+      "peak_candidate_bytes": 321061632
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "paired_time_ratio_median": 0.9994071113496946,
+      "paired_time_ratio_range": [
+        0.9068106226900825,
+        1.1303067054204576
+      ],
+      "device_saving_bytes_per_cell": 24.0,
+      "peak_baseline_bytes": 171229736,
+      "peak_candidate_bytes": 200032832
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "paired_time_ratio_median": 0.9862161646953056,
+      "paired_time_ratio_range": [
+        0.9527134754207737,
+        1.0053548968459893
+      ],
+      "device_saving_bytes_per_cell": 24.0,
+      "peak_baseline_bytes": 314016512,
+      "peak_candidate_bytes": 312558336
+    }
+  ],
+  "status": "Validated privately; not merged while the default matrix freezes root solver source. Device savings are exact. Contended timing does not establish a speedup. CPU whole-process peak saving is unproven.",
+  "controls": {
+    "compensated_momentum": 1,
+    "paired_state_slack": 16,
+    "momentum_absolute": 1e-20,
+    "pressure_absolute": 1e-20,
+    "scalar_compensation": 1,
+    "scalar_pseudo_time": 0,
+    "scalar_steady_tolerance": 1e-06,
+    "scalar_absolute": 1e-20,
+    "dt": 0.1,
+    "momentum_relaxation": 0.7,
+    "pressure_relaxation": 0.3
+  },
+  "process_peak_distributions": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "baseline": {
+        "bytes": [
+          154567232,
+          154698328,
+          154763864,
+          198591064
+        ],
+        "median_bytes": 154731096.0,
+        "range_bytes": [
+          154567232,
+          198591064
+        ]
+      },
+      "candidate": {
+        "bytes": [
+          154780224,
+          209814080,
+          154878528,
+          208781888
+        ],
+        "median_bytes": 181830208.0,
+        "range_bytes": [
+          154780224,
+          209814080
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "baseline": {
+        "bytes": [
+          323814168,
+          323797760,
+          323846888,
+          323846912
+        ],
+        "median_bytes": 323830528.0,
+        "range_bytes": [
+          323797760,
+          323846912
+        ]
+      },
+      "candidate": {
+        "bytes": [
+          320865024,
+          320946920,
+          321061632,
+          320914200
+        ],
+        "median_bytes": 320930560.0,
+        "range_bytes": [
+          320865024,
+          321061632
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "baseline": {
+        "bytes": [
+          155058776,
+          155009600,
+          171229736,
+          154993216
+        ],
+        "median_bytes": 155034188.0,
+        "range_bytes": [
+          154993216,
+          171229736
+        ]
+      },
+      "candidate": {
+        "bytes": [
+          153485912,
+          153502296,
+          200032832,
+          153453120
+        ],
+        "median_bytes": 153494104.0,
+        "range_bytes": [
+          153453120,
+          200032832
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "baseline": {
+        "bytes": [
+          313983744,
+          313869008,
+          314016512,
+          313950928
+        ],
+        "median_bytes": 313967336.0,
+        "range_bytes": [
+          313869008,
+          314016512
+        ]
+      },
+      "candidate": {
+        "bytes": [
+          312410904,
+          312558336,
+          312558336,
+          312460008
+        ],
+        "median_bytes": 312509172.0,
+        "range_bytes": [
+          312410904,
+          312558336
+        ]
+      }
+    }
+  ],
+  "interpretation": "The unchanged baseline binary itself has variable CPU peaks. CPU SST process peaks do not establish an improvement; CPU SA median falls but its largest candidate peak rises. No cause is assigned to these process-footprint variations. All four Metal pairs for each model reduce process peaks. Device-buffer savings remain48/24Bpercell in every pair."
+}
