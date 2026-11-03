@@ -722,7 +722,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
 | Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Late step time, SST / SA: CPU 0.988x / 0.936x, Metal 1.046x / 1.260x; Metal SA total 1.187x, wide contended ranges | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
-| Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
+| Pressure absolute tolerance 1e-20 | Quick passes; full tier running | All four ordinary plates still fail at 3,000. Late time, SST / SA: CPU 1.021x / 1.012x, Metal 1.006x / 0.980x; SA inner work unchanged | 0 / 0 | Pending full comparison |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
 | Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
 | Scalar steady tolerance 1e-6 | Pending | Pending | 24 / 12 | Pending |
@@ -1140,6 +1140,38 @@ pair range is 0.984–1.536. SST Metal's total ratio is 1.087 and late ratio
 The 3.19–3.47x momentum inner-work increase is deterministic. This option
 must not be described as free, nor can these contended timings establish a
 uniform slowdown across ordinary solves. No default has yet been changed.
+
+### Pressure tolerance: cost complete, full comparison pending
+
+Changing only pressure absolute tolerance from `1e-12` to `1e-20` passes the
+quick tier: 307 cases and 7,990,154 assertions. Its complete slow comparison
+is running. No default decision is established by the costs alone.
+
+All four ordinary-control plate probes still fail convergence at 3,000.
+SST CPU pressure inner work changes from 60,635 to 59,608, with final maximum
+defect `1.487815e-4` → `1.485530e-4`. SST Metal changes from 58,694 to 59,039,
+with defect `1.835793e-4` → `1.276474e-4`. Both SA endpoints and all three
+inner-work counters reproduce baseline exactly; all 30 monitor and 30 cumulative-work samples
+are identical. Direct device storage
+is unchanged.
+
+Two alternating AB, BA pairs per model/backend give the following late-step
+time ratios over steps 1,501–3,000. They measure a fixed budget, with both
+solves unconverged, and do not establish costs on other cases.
+
+| Model / backend | Candidate / baseline, median (range) | Total solver time ratio |
+|---|---:|---:|
+| SST CPU | 1.021 (0.982–1.060) | 0.999 |
+| SST Metal | 1.006 (0.929–1.083) | 1.025 |
+| SA CPU | 1.012 (0.994–1.029) | 1.019 |
+| SA Metal | 0.980 (0.962–0.998) | 0.982 |
+
+These shared-machine timing variations accompany unchanged SA numerical work;
+they are not evidence of a pressure-solver speedup. The paired probes peak
+at 152,584,792 process bytes. The earlier elbow timing uses Coupled and its
+separate pressure tolerance is inactive. Checked controls, endpoints, work,
+binary hashes and paired ranges are in
+[pressure-absolute-cost.json](pressure-absolute-cost.json).
 
 ### Fresh remaining-failure baseline
 
