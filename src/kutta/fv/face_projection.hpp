@@ -5,8 +5,7 @@
 #include "kutta/fv/operators.hpp"
 
 namespace kutta::fv {
-// Face functionals that shift both adjacent cell states tangentially onto the
-// face-normal line, preserving the compact two-point normal stencil.
+// Geometry-fitted face functionals for deferred diffusion and momentum values.
 class FaceReconstruction {
  public:
   virtual ~FaceReconstruction()=default;
@@ -24,14 +23,16 @@ class FaceReconstruction {
   virtual std::size_t corrected_faces() const=0;
 };
 
-// Reconstruct tangential shifts to the face-normal line, preserving the compact
-// two-point normal stencil. Geometry-only quadratic weights; device reductions
-// supply diffusion, momentum interpolation and flux-consistent wall gradients.
+// Projected mode retains the compact normal stencil and fits quadratic
+// tangential shifts. Cubic mode integrates the fitted normal derivative and
+// face value. Both use geometry-only weights, evaluated by the same device
+// kernels, and keep wall gradients consistent with the assembled flux.
 class ProjectedFaceReconstruction final : public FaceReconstruction {
  public:
+  enum class Mode { Projected, Cubic };
   ProjectedFaceReconstruction(Device&,const PolyMesh&,const MeshGeometry&,
                         std::span<const BoundaryObservation>,
-                        std::span<const Index> nonsmooth_cells={});
+                        std::span<const Index> nonsmooth_cells={},Mode mode=Mode::Projected);
   void gradient(const Buffer<float>& field,const Buffer<float>& boundary,DeviceVec3& out) const;
   void flux_gradient(const Buffer<float>& field,const Buffer<float>& boundary,const DeviceMesh&,const Stencil&,DeviceVec3& out) const;
   void diffusion_correction(const Buffer<float>& field,const Buffer<float>& boundary,Buffer<float>& out) const override;
@@ -44,6 +45,8 @@ class ProjectedFaceReconstruction final : public FaceReconstruction {
   std::size_t corrected_faces() const override {return corrected_;}
   std::size_t fallback_faces() const {return fallback_;}
  private:
+  template<int Terms> void build(const PolyMesh&,const MeshGeometry&,
+      std::span<const BoundaryObservation>,std::span<const Index>);
   Device& dev_;
   Index faces_,internal_;
   std::size_t corrected_=0,fallback_=0;

@@ -78,9 +78,58 @@ Row product(const Matrix& a,const Row& b) {
   Row out{};for(int i=0;i<terms;++i) for(int j=0;j<terms;++j) out[i]+=a[i][j]*b[j];return out;
 }
 double dot_row(const Row& a,const Row& b) {double out=0;for(int i=0;i<terms;++i) out+=a[i]*b[i];return out;}
+// The ten-term inverse also serves the turbulent walk fit; leave its arithmetic intact.
+template<std::size_t N> std::array<std::array<double,N>,N> inverse(std::array<std::array<double,N>,N> a) {
+  constexpr int terms=int(N);using Matrix=std::array<std::array<double,N>,N>;
+  Matrix q{};for(int i=0;i<terms;++i) q[i][i]=1;
+  for(int iteration=0;iteration<terms*terms*16;++iteration) {
+    int p=0,r=1;double scale=0;
+    for(int i=0;i<terms;++i) {
+      scale=std::max(scale,std::abs(a[i][i]));
+      for(int j=i+1;j<terms;++j) if(std::abs(a[i][j])>std::abs(a[p][r])) {p=i;r=j;}
+    }
+    if(std::abs(a[p][r])<1e-13*scale) break;
+    const double angle=.5*std::atan2(2*a[p][r],a[r][r]-a[p][p]);
+    const double c=std::cos(angle),s=std::sin(angle),app=a[p][p],arr=a[r][r],apr=a[p][r];
+    a[p][p]=c*c*app-2*c*s*apr+s*s*arr;a[r][r]=s*s*app+2*c*s*apr+c*c*arr;a[p][r]=a[r][p]=0;
+    for(int i=0;i<terms;++i) {
+      if(i!=p && i!=r) {const double x=a[i][p],y=a[i][r];a[i][p]=a[p][i]=c*x-s*y;a[i][r]=a[r][i]=s*x+c*y;}
+      const double x=q[i][p],y=q[i][r];q[i][p]=c*x-s*y;q[i][r]=s*x+c*y;
+    }
+  }
+  double largest=0;for(int i=0;i<terms;++i) largest=std::max(largest,a[i][i]);
+  Matrix out{};
+  for(int k=0;k<terms;++k) if(a[k][k]>largest*1e-11)
+    for(int i=0;i<terms;++i) for(int j=0;j<terms;++j) out[i][j]+=q[i][k]*q[j][k]/a[k][k];
+  return out;
 }
-ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyMesh& mesh,const MeshGeometry& g,
-    std::span<const BoundaryObservation> observations,std::span<const Index> nonsmooth_cells):dev_(dev),faces_(mesh.n_faces()),internal_(mesh.n_internal_faces()) {
+template<std::size_t N> std::array<double,N> product(const std::array<std::array<double,N>,N>& a,const std::array<double,N>& b) {
+  std::array<double,N> out{};for(std::size_t i=0;i<N;++i) for(std::size_t j=0;j<N;++j) out[i]+=a[i][j]*b[j];return out;
+}
+template<std::size_t N> double dot_row(const std::array<double,N>& a,const std::array<double,N>& b) {
+  double out=0;for(std::size_t i=0;i<N;++i) out+=a[i]*b[i];return out;
+}
+using CubicRow=std::array<double,20>;
+CubicRow cubic_basis(Vec3d r) {
+  const auto [x,y,z]=r;
+  return {x,y,z,.5*x*x,x*y,x*z,.5*y*y,y*z,.5*z*z,1,
+    x*x*x/6,.5*x*x*y,.5*x*x*z,.5*x*y*y,x*y*z,.5*x*z*z,y*y*y/6,.5*y*y*z,.5*y*z*z,z*z*z/6};
+}
+CubicRow cubic_derivative(Vec3d r,int axis) {
+  const auto [x,y,z]=r;
+  if(axis==0) return {1,0,0,x,y,z,0,0,0,0,.5*x*x,x*y,x*z,.5*y*y,y*z,.5*z*z,0,0,0,0};
+  if(axis==1) return {0,1,0,0,x,0,y,z,0,0,0,.5*x*x,0,x*y,x*z,0,.5*y*y,y*z,.5*z*z,0};
+  return {0,0,1,0,0,x,0,y,z,0,0,0,.5*x*x,0,x*y,x*z,0,.5*y*y,y*z,.5*z*z};
+}
+
+}
+template<int terms>
+void ProjectedFaceReconstruction::build(const PolyMesh& mesh,const MeshGeometry& g,
+    std::span<const BoundaryObservation> observations,std::span<const Index> nonsmooth_cells) {
+  auto& dev=dev_;
+  using Row=std::array<double,terms>;using Matrix=std::array<Row,terms>;
+  const auto row_of=[](Vec3d r) {if constexpr(terms==10) return basis(r);else return cubic_basis(r);};
+
   const auto internal=mesh.n_internal_faces();
   KUTTA_REQUIRE(nonsmooth_cells.empty() || nonsmooth_cells.size()==std::size_t(mesh.n_cells),"face projection smoothness mask mismatch");
   KUTTA_REQUIRE(observations.size()==std::size_t(faces_-internal),"face projection boundary mask mismatch");
@@ -97,7 +146,7 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
     // The original stencil already is the normal projection at roundoff.
     // Include both cells in the coordinate scale so ownership cannot alter it.
     const double roundoff=256*std::numeric_limits<double>::epsilon()*std::max({1.,norm(g.face_centroid[face]),norm(g.cell_centroid[owner]),face<internal?norm(g.cell_centroid[mesh.neighbour[face]]):0.});
-    if(norm(rp-unit_normal*dp)<=roundoff && norm(rn-unit_normal*dn)<=roundoff) {offsets.push_back(Index(points.size()));continue;}
+    if(terms==10 && norm(rp-unit_normal*dp)<=roundoff && norm(rn-unit_normal*dn)<=roundoff) {offsets.push_back(Index(points.size()));continue;}
 
 
     bool accepted=false;
@@ -126,31 +175,53 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
       auto scaled=[&](Vec3d r) {return Vec3d{r.x/scale.x,r.y/scale.y,r.z/scale.z};};
       Matrix a{};std::vector<Row> rows;std::vector<double> weights;
       for(auto i:samples) {
-        const auto r=scaled(point(i)-fit_origin);const auto b=basis(r);const auto sample=point(i),other=face<internal?g.cell_centroid[mesh.neighbour[face]]:g.face_centroid[face];
+        const auto r=scaled(point(i)-fit_origin);const auto b=row_of(r);const auto sample=point(i),other=face<internal?g.cell_centroid[mesh.neighbour[face]]:g.face_centroid[face];
         const double w=1/(dot(sample-g.cell_centroid[owner],sample-g.cell_centroid[owner])+dot(sample-other,sample-other));
         rows.push_back(b);weights.push_back(w);
         for(int k=0;k<terms;++k) for(int j=0;j<terms;++j) a[k][j]+=w*b[k]*b[j];
       }
       const auto inv=inverse(a);const auto r=scaled(g.face_centroid[face]-fit_origin);
-      const Row targets[]{Row{1,0,0,r.x,r.y,r.z,0,0,0},Row{0,1,0,0,r.x,0,r.y,r.z,0},Row{0,0,1,0,0,r.x,0,r.y,r.z}};
+      const auto average_face=[&](auto sample) {
+        const auto point=[&](Index node) {const auto p=mesh.points[node];return p-unit_normal*dot(p-fit_origin,unit_normal);};
+        Row average{};const auto a=point(mesh.face_nodes[mesh.face_offsets[face]]);
+        for(Index j=mesh.face_offsets[face]+1;j+1<mesh.face_offsets[face+1];++j) {
+          const auto b=point(mesh.face_nodes[j]),c=point(mesh.face_nodes[j+1]);
+          const double weight=dot(cross(b-a,c-a),unit_normal)/(2*norm(g.face_area[face]));
+          const auto centroid=sample((a+b+c)/3.);
+          for(int k=0;k<terms;++k) average[k]-=weight*(27./48)*centroid[k];
+          for(const auto q:{a*.6+b*.2+c*.2,a*.2+b*.6+c*.2,a*.2+b*.2+c*.6}) {
+            const auto row=sample(q);for(int k=0;k<terms;++k) average[k]+=weight*(25./48)*row[k];
+          }
+        }
+        return average;
+      };
+      Row targets[]{Row{1,0,0,r.x,r.y,r.z,0,0,0},Row{0,1,0,0,r.x,0,r.y,r.z,0},Row{0,0,1,0,0,r.x,0,r.y,r.z}};
+      if constexpr(terms==20) for(int axis=0;axis<3;++axis)
+        targets[axis]=average_face([&](Vec3d q){return cubic_derivative(scaled(q-fit_origin),axis);});
       const auto area=g.face_area[face];
       const auto link=(face<internal?g.cell_centroid[mesh.neighbour[face]]:g.face_centroid[face])-g.cell_centroid[owner];
       const double alpha=dot(area,area)/dot(area,link);
-      const auto owner_row=basis(scaled(g.cell_centroid[owner]-fit_origin));
-      auto jump=basis(scaled((face<internal?g.cell_centroid[mesh.neighbour[face]]:g.face_centroid[face])-fit_origin));
+      const auto owner_row=row_of(scaled(g.cell_centroid[owner]-fit_origin));
+      auto jump=row_of(scaled((face<internal?g.cell_centroid[mesh.neighbour[face]]:g.face_centroid[face])-fit_origin));
       for(int k=0;k<terms;++k) jump[k]-=owner_row[k];
-      // Project P and N tangentially onto the normal through F. Preserve the
-      // normal finite difference (including its curvature error); reconstruct
-      // only the shifts q(P*)-q(P), q(N*)-q(N). It vanishes on orthogonal faces.
-      auto pfoot=basis(scaled(g.face_centroid[face]-unit_normal*dp-fit_origin));
-      auto nfoot=basis(scaled(g.face_centroid[face]+unit_normal*dn-fit_origin));
+      // Projected mode preserves the compact normal finite difference.
+      // Cubic mode replaces it with the integrated polynomial derivative;
+      // the implicit primary coefficient and its compact coupling remain.
+      auto pfoot=row_of(scaled(g.face_centroid[face]-unit_normal*dp-fit_origin));
+      auto nfoot=row_of(scaled(g.face_centroid[face]+unit_normal*dn-fit_origin));
       for(int k=0;k<terms;++k) {pfoot[k]-=owner_row[k];nfoot[k]-=owner_row[k];}
       Row correction{};for(int k=0;k<terms;++k) correction[k]=alpha*(nfoot[k]-jump[k]-pfoot[k]);
+      if constexpr(terms==20) for(int k=0;k<terms;++k)
+        correction[k]=area.x*targets[0][k]/scale.x+area.y*targets[1][k]/scale.y+area.z*targets[2][k]/scale.z-alpha*jump[k];
       const auto recovered=product(a,product(inv,correction));double error=0,size=0;
       for(int k=0;k<terms;++k) {error=std::max(error,std::abs(recovered[k]-correction[k]));size=std::max(size,std::abs(correction[k]));}
       if(error>1e-7*size) continue;
       Row face_value{};
       for(int k=0;k<terms;++k) face_value[k]=(dn*pfoot[k]+dp*nfoot[k])/(dp+dn);
+      if constexpr(terms==20) {
+        const auto average=average_face([&](Vec3d q){return row_of(scaled(q-fit_origin));});
+        for(int k=0;k<terms;++k) face_value[k]=average[k]-owner_row[k];
+      }
       const auto recovered_value=product(a,product(inv,face_value));
       double value_error=0,value_size=0;
       for(int k=0;k<terms;++k) {value_error=std::max(value_error,std::abs(recovered_value[k]-face_value[k]));value_size=std::max(value_size,std::abs(face_value[k]));}
@@ -186,6 +257,12 @@ ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyM
     diffusion_weights_=dev.upload<float>(wflux);link_weights_=dev.upload<float>(wlink);
     neighbour_=dev.upload<Index>(mesh.neighbour);
   }
+
+}
+ProjectedFaceReconstruction::ProjectedFaceReconstruction(Device& dev,const PolyMesh& mesh,const MeshGeometry& g,
+    std::span<const BoundaryObservation> observations,std::span<const Index> nonsmooth_cells,Mode mode):dev_(dev),faces_(mesh.n_faces()),internal_(mesh.n_internal_faces()) {
+  if(mode==Mode::Cubic) build<20>(mesh,g,observations,nonsmooth_cells);
+  else build<10>(mesh,g,observations,nonsmooth_cells);
 }
 void ProjectedFaceReconstruction::diffusion_correction(const Buffer<float>& field,const Buffer<float>& boundary,Buffer<float>& out) const {
   kern::fv_projected_diffusion_correction(dev_,faces_,offsets_,points_,owner_,neighbour_,diffusion_weights_,field,boundary,out,internal_);

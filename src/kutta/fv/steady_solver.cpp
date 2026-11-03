@@ -35,6 +35,26 @@ void upload_vectors(Device& dev,DeviceVec3& to,const std::vector<Vec3d>& values)
   }
   dev.upload<float>(to.x,x);dev.upload<float>(to.y,y);dev.upload<float>(to.z,z);
 }
+// An affine-hull check avoids constructing unobservable 3-D polynomial fits
+// for single-layer extrusions, including planes rotated away from xy.
+bool volumetric_centroids(const MeshGeometry& geometry) {
+  const auto origin=geometry.cell_centroid.front();Vec3d direction{},normal{};
+  double longest=0,widest=0;
+  for(auto p:geometry.cell_centroid) {
+    const auto d=p-origin;const double size=dot(d,d);
+    if(size>longest) {longest=size;direction=d;}
+  }
+  if(longest==0) return false;
+  const double tolerance=256*std::numeric_limits<double>::epsilon()*std::max({1.,norm(origin),std::sqrt(longest)});
+  for(auto p:geometry.cell_centroid) {
+    const auto n=cross(direction,p-origin);const double size=dot(n,n);
+    if(size>widest) {widest=size;normal=n;}
+  }
+  if(widest<=tolerance*tolerance*longest) return false;
+  normal=normal/std::sqrt(widest);
+  return std::any_of(geometry.cell_centroid.begin(),geometry.cell_centroid.end(),
+    [&](Vec3d p){return std::abs(dot(normal,p-origin))>tolerance;});
+}
 // The cell whose face planes all enclose the point, else the nearest centroid
 // (points outside the domain, or nonconvex cells).
 Index locate_cell(const PolyMesh& mesh,const MeshGeometry& geom,Vec3d point) {
@@ -56,16 +76,22 @@ Index locate_cell(const PolyMesh& mesh,const MeshGeometry& geom,Vec3d point) {
 }
 
 namespace {
-// A quadratic cloud assumes a continuous trace. A moving lid meeting a fixed
-// wall violates that assumption; retain the existing scheme in its support.
+// A polynomial cloud assumes a continuous trace. A moving lid meeting a fixed
+// wall, or an inlet meeting a no-slip wall, violates that assumption.
 std::vector<Index> discontinuous_wall_cells(const PolyMesh& mesh,
-    const std::map<std::string,BoundaryCondition>& conditions,std::span<const RigidFrame> frames) {
+    const std::map<std::string,BoundaryCondition>& conditions,std::span<const RigidFrame> frames,bool include_inlets=false) {
   struct Trace {Index point,cell;Vec3d velocity;};std::vector<Trace> traces;
-  for(const auto& patch:mesh.patches) if(const auto* wall=std::get_if<Wall>(&conditions.at(patch.name)))
+  for(const auto& patch:mesh.patches) {
+    const auto& condition=conditions.at(patch.name);
+    const auto* wall=std::get_if<Wall>(&condition);
+    const auto* inlet=include_inlets?std::get_if<VelocityInlet>(&condition):nullptr;
+    if(!wall && !inlet) continue;
     for(Index f=patch.start;f<patch.start+patch.size;++f) {
       const auto frame=frames.empty()?RigidFrame{}:frames[mesh.owner[f]];
-      for(auto point:detail::nodes(mesh,f)) traces.push_back({point,mesh.owner[f],wall_velocity(*wall,mesh.points[point],frame)});
+      for(auto point:detail::nodes(mesh,f)) traces.push_back({point,mesh.owner[f],
+        wall?wall_velocity(*wall,mesh.points[point],frame):evaluate(inlet->velocity,mesh.points[point])});
     }
+  }
   std::sort(traces.begin(),traces.end(),[](const auto& a,const auto& b){return a.point<b.point;});
   std::vector<Index> cells(mesh.n_cells,0);
   for(std::size_t first=0;first<traces.size();) {
@@ -195,6 +221,9 @@ struct SteadySolver::Impl {
     }
     permutation=renumber_cells_rcm(host);memory::phase("renumber");geom=compute_geometry(host);memory::phase("geometry");
     KUTTA_REQUIRE(host.n_cells>0,"FV steady solver needs a nonempty mesh");
+    const bool laminar_lsq=!settings.sst && !settings.sa && !settings.realizable_ke && settings.gradient==GradientScheme::LeastSquares;
+    KUTTA_REQUIRE(settings.laminar_reconstruction!=LaminarReconstruction::Cubic || laminar_lsq,
+      "FV: cubic laminar reconstruction requires laminar least-squares flow");
     if(!outlet) reference=locate_cell(host,geom,settings.reference_point);
     // A single pin cannot constrain disconnected Neumann components.
     const auto neighbours=build_cell_neighbours(host);
@@ -322,8 +351,22 @@ struct SteadySolver::Impl {
     pressure_matrix=std::make_shared<CsrMatrix>(upload(dev,stencil.pattern));
     krylov_workspace=std::make_shared<KrylovWorkspace>(n);
     const bool green_gauss=settings.gradient==GradientScheme::GreenGaussCell;
-    const bool normal_foot_pressure=settings.pressure_boundary_gradient==PressureBoundaryGradient::NormalFoot;
-    KUTTA_REQUIRE(!green_gauss || settings.pressure_boundary_gradient==PressureBoundaryGradient::Extrapolated,
+    bool cubic_laminar=false;std::vector<Index> nonsmooth;
+    if(laminar_lsq) {
+      cubic_laminar=settings.laminar_reconstruction==LaminarReconstruction::Cubic ||
+        (settings.laminar_reconstruction==LaminarReconstruction::Automatic && volumetric_centroids(geom));
+      nonsmooth=discontinuous_wall_cells(host,boundaries,frames,cubic_laminar);
+      // Cubic diffusion is not monotone. A prescribed velocity jump defeats
+      // its smooth-field accuracy premise and destabilizes even SIMPLEC;
+      // automatic mode retains the original operator throughout that case.
+      if(cubic_laminar && settings.laminar_reconstruction==LaminarReconstruction::Automatic &&
+         std::any_of(nonsmooth.begin(),nonsmooth.end(),[](Index value){return value!=0;})) {
+        cubic_laminar=false;nonsmooth=discontinuous_wall_cells(host,boundaries,frames);
+      }
+    }
+    const bool normal_foot_pressure=settings.pressure_boundary_gradient==PressureBoundaryGradient::NormalFoot ||
+      (settings.pressure_boundary_gradient==PressureBoundaryGradient::Automatic && cubic_laminar);
+    KUTTA_REQUIRE(!green_gauss || settings.pressure_boundary_gradient!=PressureBoundaryGradient::NormalFoot,
       "FV: normal-foot pressure boundary gradients require least-squares gradients");
     // SST's strain and SA's gradients have only been verified with LSQ fits.
     KUTTA_REQUIRE(!green_gauss || (!settings.sst && !settings.sa),"FV: Green-Gauss gradients serve laminar and k-epsilon flows only");
@@ -335,8 +378,8 @@ struct SteadySolver::Impl {
     // the linear primary/secondary split; a Green-Gauss case keeps Fluent's
     // documented split with its own cell gradients.
     if(!settings.sst && !settings.sa && !settings.realizable_ke && !green_gauss) {
-      const auto nonsmooth=discontinuous_wall_cells(host,boundaries,frames);
-      diffusion_reconstruction=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,independent_velocity,nonsmooth);
+      const auto mode=cubic_laminar?ProjectedFaceReconstruction::Mode::Cubic:ProjectedFaceReconstruction::Mode::Projected;
+      diffusion_reconstruction=std::make_shared<ProjectedFaceReconstruction>(dev,host,geom,independent_velocity,nonsmooth,mode);
       if(diffusion_reconstruction->corrected_faces()==0) diffusion_reconstruction.reset();
       velocity_faces=diffusion_reconstruction;
     } else if(!green_gauss) {

@@ -44,11 +44,18 @@ int main(int argc, char** argv) {
     const auto pressure_scheme = text("--pressure-scheme", "second-order");
     KUTTA_REQUIRE(pressure_scheme == "standard" || pressure_scheme == "second-order", "--pressure-scheme is standard or second-order");
     o.pressure_interpolation = pressure_scheme == "standard" ? fv::PressureInterpolation::Standard : fv::PressureInterpolation::SecondOrder;
-    const auto boundary_gradient = text("--pressure-boundary-gradient", "extrapolated");
-    KUTTA_REQUIRE(boundary_gradient == "extrapolated" || boundary_gradient == "normal-foot",
-                  "--pressure-boundary-gradient is extrapolated or normal-foot");
-    o.pressure_boundary_gradient = boundary_gradient == "normal-foot"
-      ? fv::PressureBoundaryGradient::NormalFoot : fv::PressureBoundaryGradient::Extrapolated;
+    const auto boundary_gradient = text("--pressure-boundary-gradient", o.pressure_boundary_gradient == fv::PressureBoundaryGradient::Automatic ? "automatic"
+      : o.pressure_boundary_gradient == fv::PressureBoundaryGradient::NormalFoot ? "normal-foot" : "extrapolated");
+    KUTTA_REQUIRE(boundary_gradient == "automatic" || boundary_gradient == "extrapolated" || boundary_gradient == "normal-foot",
+                  "--pressure-boundary-gradient is automatic, extrapolated or normal-foot");
+    o.pressure_boundary_gradient = boundary_gradient == "normal-foot" ? fv::PressureBoundaryGradient::NormalFoot
+      : boundary_gradient == "extrapolated" ? fv::PressureBoundaryGradient::Extrapolated : fv::PressureBoundaryGradient::Automatic;
+    const auto laminar_reconstruction = text("--laminar-reconstruction", o.laminar_reconstruction == fv::LaminarReconstruction::Automatic ? "automatic"
+      : o.laminar_reconstruction == fv::LaminarReconstruction::Cubic ? "cubic" : "projected");
+    KUTTA_REQUIRE(laminar_reconstruction == "automatic" || laminar_reconstruction == "projected" || laminar_reconstruction == "cubic",
+                  "--laminar-reconstruction is automatic, projected or cubic");
+    o.laminar_reconstruction = laminar_reconstruction == "cubic" ? fv::LaminarReconstruction::Cubic
+      : laminar_reconstruction == "projected" ? fv::LaminarReconstruction::Projected : fv::LaminarReconstruction::Automatic;
     const auto transport = text("--sst-transport", "fluent");
     KUTTA_REQUIRE(transport == "fluent" || transport == "cfl3d", "--sst-transport is fluent or cfl3d");
     if (transport == "cfl3d") {
@@ -88,6 +95,8 @@ int main(int argc, char** argv) {
     o.kato_launder = flag("--kato-launder");
     o.omega_production_molecular_ratio = number("--omega-production-molecular-ratio", 0);
     o.laminar = flag("--laminar");
+    KUTTA_REQUIRE(o.laminar || o.laminar_reconstruction != fv::LaminarReconstruction::Cubic,
+                  "--laminar-reconstruction cubic requires --laminar");
     o.write_cells = flag("--cells");
     if (flag("--downforce")) o.lift_direction = {0, -1, 0};
     if (flag("--lift-z")) o.lift_direction = {0, 0, 1};
@@ -113,7 +122,8 @@ int main(int argc, char** argv) {
     auto dev = Device::create(backend == "cpu" ? Backend::Cpu : backend == "metal" ? Backend::Metal : Backend::Cuda);
     const auto r = run(*dev, o);
     std::cout << "RESULT {\"source\":\"" << KUTTA_BENCH_COMMIT << "\",\"device\":\"" << dev->name() << "\",\"backend\":\"" << backend
-              << "\",\"pressure_scheme\":\"" << pressure_scheme << "\",\"pressure_boundary_gradient\":\"" << boundary_gradient << "\",\"result\":";
+              << "\",\"pressure_scheme\":\"" << pressure_scheme << "\",\"pressure_boundary_gradient\":\"" << boundary_gradient
+              << "\",\"laminar_reconstruction\":\"" << laminar_reconstruction << "\",\"result\":";
     print(std::cout, r);
     std::cout << "}\n";
     return r.failure.empty() ? 0 : 2;

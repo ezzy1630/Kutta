@@ -56,7 +56,8 @@ struct Options {
   Limiter limiter = Limiter::Standard;
   double limiter_coefficient = .05;
   PressureInterpolation pressure_interpolation = PressureInterpolation::SecondOrder;
-  PressureBoundaryGradient pressure_boundary_gradient = PressureBoundaryGradient::Extrapolated;
+  PressureBoundaryGradient pressure_boundary_gradient = SolverSettings{}.pressure_boundary_gradient;
+  LaminarReconstruction laminar_reconstruction = SolverSettings{}.laminar_reconstruction;
   // Existing pressure-face fallback; a discretization control, not a force gate.
   double poor_cell_quality = .05;
   // Convergence-path controls only; they do not change the steady fixed point.
@@ -219,6 +220,7 @@ inline Result run(Device& dev, const Options& o) {
   s.limiter_coefficient = o.limiter_coefficient;
   s.pressure_interpolation = o.pressure_interpolation;
   s.pressure_boundary_gradient = o.pressure_boundary_gradient;
+  s.laminar_reconstruction = o.laminar_reconstruction;
   KUTTA_REQUIRE(std::isfinite(o.poor_cell_quality) && o.poor_cell_quality >= 0 && o.poor_cell_quality <= 1,
                 "fsae_aero: poor cell quality must lie in [0, 1]");
   s.poor_cell_quality = o.poor_cell_quality;

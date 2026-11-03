@@ -159,6 +159,11 @@ enum class PressureInterpolation { SecondOrder, Standard };
 // based, or Green-Gauss cell based (operators.hpp, green_gauss_cell). It
 // changes the fixed point. Green-Gauss serves laminar and k-epsilon flows.
 enum class GradientScheme { LeastSquares, GreenGaussCell };
+// Cubic face integrals for laminar LSQ flow.
+// Automatic selects them for 3-D cell-centroid clouds with continuous
+// prescribed velocity traces. Coplanar centroids cannot determine a 3-D cubic;
+// velocity jumps require the more robust original projected operator.
+enum class LaminarReconstruction { Projected, Cubic, Automatic };
 // Fluent's gradient limiter type (Theory Guide 23.3.4). Standard is
 // Barth-Jespersen. Differentiable is Venkatakrishnan's smooth function with
 // Wang's threshold, limiter_coefficient times the component's global range;
@@ -175,7 +180,7 @@ enum class Limiter { Standard, Differentiable };
 
 // Location of stored cell-pressure observations in the LSQ pressure fit.
 // NormalFoot also supplies symmetry's zero-normal-gradient observations.
-enum class PressureBoundaryGradient { Extrapolated, NormalFoot };
+enum class PressureBoundaryGradient { Extrapolated, NormalFoot, Automatic };
 
 struct SolverSettings {
   double density=1, viscosity=.01;
@@ -193,10 +198,11 @@ struct SolverSettings {
   FaceVelocityWeights face_velocity=FaceVelocityWeights::Momentum;
   FaceVelocityReconstruction face_velocity_reconstruction=FaceVelocityReconstruction::Point;
   PressureInterpolation pressure_interpolation=PressureInterpolation::SecondOrder;
-  // Opt-in: removes tet boundary pressure/velocity cycles, but does not
-  // converge the native Ahmed forces. Defaults stay unchanged until the full
-  // convergence target is met (validation/results/tet_prism_convergence).
-  PressureBoundaryGradient pressure_boundary_gradient=PressureBoundaryGradient::Extrapolated;
+  // Automatic pairs normal-foot pressure observations with Cubic laminar
+  // reconstruction and retains the original treatment on other paths.
+  // Global NormalFoot remains opt-in and requires LSQ.
+  PressureBoundaryGradient pressure_boundary_gradient=PressureBoundaryGradient::Automatic;
+  LaminarReconstruction laminar_reconstruction=LaminarReconstruction::Automatic;
   // Fluent's poor-mesh-numerics quality threshold (solve/set/poor-mesh-numerics/
   // set-quality-threshold; the cell-quality-based value 0.05). Second-order
   // pressure faces incident to cells whose orthogonal quality is at or below
