@@ -1062,6 +1062,25 @@ all eight component profiles and motion metrics. The causes are still
 unestablished. Nine SA classifications and controlled experiments remain;
 no iteration budget or acceptance criterion has changed.
 
+### SA plate classification
+
+All three failing SA plate captures have completed. The fine CPU and Metal
+plates show slow continuity approach: over the final 1,000 steps their
+continuity ratios are `0.07195` and `0.02429`. Streamwise velocity lag-two /
+lag-one movement is `1.9998` and `2.0001`; mass flux gives `1.9778` and
+`1.9780`. Their final continuity defects remain `4.28200779547e-05` on CPU
+and `1.39775922557e-05` on Metal. The transported scalar already meets its gate.
+
+The middle Metal SA plate is a plateau with irregular paired-flow motion,
+not the nearly repeating two-cycle seen in SST. Its pressure lag-two /
+lag-one ratio is `0.9148`, with u `1.2461`, v `1.1657` and mass flux `2.2690`.
+Transported viscosity and eddy viscosity are unchanged through all final
+201 sampled steps. Continuity remains `2.41778890637e-05`. These observations
+do not establish its cause or a stationary arithmetic floor.
+
+The field-motion receipt now contains 11 of the 17 failing solves. Six SA
+bump classifications and all controlled causal results remain unfinished.
+
 ### Exact fine-bump reproduction
 
 The finest SST bump on Metal completes 3,000 steps on exact base `e014e36`.

@@ -1,5 +1,5 @@
 {
-  "status": "All eight SST failure captures complete; nine SA failure captures and all causal attributions remain unfinished.",
+  "status": "All eight SST failures and three SA plate failures classified from completed captures. Six SA bump captures and all causal attributions remain unfinished.",
   "source_revision": "65e38ffbd409bf4c041c132a4fe0e02bc7aa82bc",
   "diagnostic": {
     "production_cpp_sha256": "85e7a76fa15cfa67005f241a421d1825036b300fb66598097993e50b4871de33",
@@ -9,7 +9,7 @@
     "mode": "Read-only paired-state and scalar downloads after existing steps; no added monitor or force calls. Model coefficients are last assembly values, not refreshed for diagnostics."
   },
   "expected_remaining_failures": 17,
-  "classified_failures": 8,
+  "classified_failures": 11,
   "protocol": "Existing monitor observations, final 1000-step residual trend and final 200-step lag-one/lag-two actual field movement. Paired flow sums include both words. No new monitor or force calls. No causal attribution from these summaries.",
   "rows": [
     {
@@ -2199,6 +2199,702 @@
       },
       "classification": "slow approach with fluctuations",
       "reason": "Declining failed-component envelope and continued paired-flow or k-field motion. K on middle/fine bumps has lag-two motion about twice lag-one."
+    },
+    {
+      "model": "sa",
+      "case": "plate",
+      "backend": "cpu",
+      "level": 2,
+      "failure_at_terminal_observed": true,
+      "cause": "Not established by this descriptive analysis.",
+      "terminal_iteration": 3000,
+      "coverage": "complete",
+      "endpoint_components": {
+        "u": 5.38609640224314e-10,
+        "v": 1.0317174260120162e-10,
+        "w": 1.0323282157067465e-18,
+        "k": 0.0,
+        "omega": 0.0,
+        "nu_tilde": 9.558105015970702e-07,
+        "continuity": 4.2820077954672394e-05
+      },
+      "endpoint_raw_continuity": 2.2067953813841403e-10,
+      "continuity_normalization": 5.15364634254091e-06,
+      "components_exceeding_frozen_gate": [
+        "continuity"
+      ],
+      "component_tail": {
+        "u": {
+          "minimum": 5.38609640224314e-10,
+          "maximum": 3.3006123783270564e-08,
+          "start": 3.3006123783270564e-08,
+          "end": 5.38609640224314e-10,
+          "least_squares_per_step_contraction": 0.9958779285223942
+        },
+        "v": {
+          "minimum": 1.0317174260120162e-10,
+          "maximum": 4.448572134451103e-09,
+          "start": 4.448572134451103e-09,
+          "end": 1.0317174260120162e-10,
+          "least_squares_per_step_contraction": 0.9961475403216026
+        },
+        "w": {
+          "minimum": 7.676608312413226e-19,
+          "maximum": 1.0323282157067465e-18,
+          "start": 9.047058649135493e-19,
+          "end": 1.0323282157067465e-18,
+          "least_squares_per_step_contraction": 1.0001096498091362
+        },
+        "k": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "start": 0.0,
+          "end": 0.0,
+          "least_squares_per_step_contraction": null
+        },
+        "omega": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "start": 0.0,
+          "end": 0.0,
+          "least_squares_per_step_contraction": null
+        },
+        "nu_tilde": {
+          "minimum": 9.415061894954131e-07,
+          "maximum": 9.98630159389278e-07,
+          "start": 9.580542792589956e-07,
+          "end": 9.558105015970702e-07,
+          "least_squares_per_step_contraction": 1.0000079476695578
+        },
+        "continuity": {
+          "minimum": 2.8510743377556973e-05,
+          "maximum": 0.0005951489438441979,
+          "start": 0.0005951489438441979,
+          "end": 4.2820077954672394e-05,
+          "least_squares_per_step_contraction": 0.9969266001516849
+        }
+      },
+      "field_motion": {
+        "diffusivity": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 2.2980720715179595e-06,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "fv1": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 3.2887594760294916e-07,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "fv2": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 4.2048703703860943e-07,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "fw": {
+          "samples": 201,
+          "median_lag1_relative_l1": 6.674502158853306e-05,
+          "maximum_lag1_relative_l1": 9.545161040797668e-05,
+          "median_lag2_relative_l1": 0.00013283673717461966,
+          "median_lag2_over_lag1": 1.9975710525670158,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 3084,
+          "elements": 13056
+        },
+        "mass_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 2.968686181406786e-10,
+          "maximum_lag1_relative_l1": 8.010132912328808e-10,
+          "median_lag2_relative_l1": 5.885510502708043e-10,
+          "median_lag2_over_lag1": 1.977770278744793,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 25984,
+          "elements": 52456
+        },
+        "modified_rate": {
+          "samples": 201,
+          "median_lag1_relative_l1": 1.262228064976688e-08,
+          "maximum_lag1_relative_l1": 6.523502355920437e-07,
+          "median_lag2_relative_l1": 2.480943333878614e-08,
+          "median_lag2_over_lag1": 2.0068740731166104,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 6298,
+          "elements": 13056
+        },
+        "mut": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 2.6353044608453673e-06,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "nu_tilde": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 2.403910776963762e-06,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "p_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 1.6211588835950883e-07,
+          "maximum_lag1_relative_l1": 1.3497849152411947e-06,
+          "median_lag2_relative_l1": 2.978954698281941e-07,
+          "median_lag2_over_lag1": 1.7779431409731667,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 13056,
+          "elements": 13056
+        },
+        "sink": {
+          "samples": 201,
+          "median_lag1_relative_l1": 7.958208409571526e-08,
+          "maximum_lag1_relative_l1": 5.98737658809034e-06,
+          "median_lag2_relative_l1": 1.593260252948445e-07,
+          "median_lag2_over_lag1": 2.0178808310765604,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 3238,
+          "elements": 13056
+        },
+        "source": {
+          "samples": 201,
+          "median_lag1_relative_l1": 9.883973549351281e-08,
+          "maximum_lag1_relative_l1": 7.867206934192207e-06,
+          "median_lag2_relative_l1": 2.0900733409766351e-07,
+          "median_lag2_over_lag1": 2.0080733116757483,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 4744,
+          "elements": 13056
+        },
+        "u_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 4.198737157639619e-09,
+          "maximum_lag1_relative_l1": 6.174816880783024e-09,
+          "median_lag2_relative_l1": 8.400939695263039e-09,
+          "median_lag2_over_lag1": 1.9997727583158975,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 13048,
+          "elements": 13056
+        },
+        "v_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 8.526553777934815e-08,
+          "maximum_lag1_relative_l1": 3.8023694566281403e-07,
+          "median_lag2_relative_l1": 1.5943394228569174e-07,
+          "median_lag2_over_lag1": 1.8688047604176614,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 12968,
+          "elements": 13056
+        },
+        "volume": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "w_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.37205241255666927,
+          "maximum_lag1_relative_l1": 0.4487404647866947,
+          "median_lag2_relative_l1": 0.6374669798703896,
+          "median_lag2_over_lag1": 1.709406144030231,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 13056,
+          "elements": 13056
+        }
+      },
+      "classification": "slow approach with fluctuations",
+      "component_classification": {
+        "continuity": "slow approach with fluctuations"
+      },
+      "reason": "Continuity decreases substantially and streamwise velocity/mass-flux lag-two motion is nearly twice lag-one."
+    },
+    {
+      "model": "sa",
+      "case": "plate",
+      "backend": "metal",
+      "level": 1,
+      "failure_at_terminal_observed": true,
+      "cause": "Not established by this descriptive analysis.",
+      "terminal_iteration": 3000,
+      "coverage": "complete",
+      "endpoint_components": {
+        "u": 4.945827620907488e-10,
+        "v": 3.268593818619503e-10,
+        "w": 7.502358818555555e-19,
+        "k": 0.0,
+        "omega": 0.0,
+        "nu_tilde": 9.527633378857062e-07,
+        "continuity": 2.417788906370623e-05
+      },
+      "endpoint_raw_continuity": 6.951282271250639e-10,
+      "continuity_normalization": 2.8750575589683332e-05,
+      "components_exceeding_frozen_gate": [
+        "continuity"
+      ],
+      "component_tail": {
+        "u": {
+          "minimum": 4.945596483682974e-10,
+          "maximum": 4.946193504679154e-10,
+          "start": 4.946103860921601e-10,
+          "end": 4.945827620907488e-10,
+          "least_squares_per_step_contraction": 0.9999999491531382
+        },
+        "v": {
+          "minimum": 3.2673070206599937e-10,
+          "maximum": 3.268723667776283e-10,
+          "start": 3.268473998368844e-10,
+          "end": 3.268593818619503e-10,
+          "least_squares_per_step_contraction": 1.0000000211152154
+        },
+        "w": {
+          "minimum": 6.519930566283072e-19,
+          "maximum": 7.680893770891231e-19,
+          "start": 7.023891315058882e-19,
+          "end": 7.502358818555555e-19,
+          "least_squares_per_step_contraction": 0.9999918280950804
+        },
+        "k": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "start": 0.0,
+          "end": 0.0,
+          "least_squares_per_step_contraction": null
+        },
+        "omega": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "start": 0.0,
+          "end": 0.0,
+          "least_squares_per_step_contraction": null
+        },
+        "nu_tilde": {
+          "minimum": 9.527633231025414e-07,
+          "maximum": 9.527634933981174e-07,
+          "start": 9.527634933981174e-07,
+          "end": 9.527633378857062e-07,
+          "least_squares_per_step_contraction": 0.9999999999036235
+        },
+        "continuity": {
+          "minimum": 2.4151643300748e-05,
+          "maximum": 2.417788906370623e-05,
+          "start": 2.4166903295193813e-05,
+          "end": 2.417788906370623e-05,
+          "least_squares_per_step_contraction": 1.000000465915197
+        }
+      },
+      "field_motion": {
+        "diffusivity": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 3264
+        },
+        "fv1": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 3264
+        },
+        "fv2": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 3264
+        },
+        "fw": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0008520331480801545,
+          "maximum_lag1_relative_l1": 0.002239518131735159,
+          "median_lag2_relative_l1": 0.000857462762472625,
+          "median_lag2_over_lag1": 1.90505409815078,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 464,
+          "elements": 3264
+        },
+        "mass_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 1.5457046368464946e-10,
+          "maximum_lag1_relative_l1": 6.727601684618008e-10,
+          "median_lag2_relative_l1": 2.303829284727996e-10,
+          "median_lag2_over_lag1": 2.269046461352353,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 6501,
+          "elements": 13172
+        },
+        "modified_rate": {
+          "samples": 201,
+          "median_lag1_relative_l1": 4.0009895207381787e-10,
+          "maximum_lag1_relative_l1": 5.941323350015566e-10,
+          "median_lag2_relative_l1": 4.378832027616041e-10,
+          "median_lag2_over_lag1": 1.479126756285373,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 1069,
+          "elements": 3264
+        },
+        "mut": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 3264
+        },
+        "nu_tilde": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 3264
+        },
+        "p_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 6.069636946266911e-07,
+          "maximum_lag1_relative_l1": 1.9187417964260257e-06,
+          "median_lag2_relative_l1": 6.543306589138388e-07,
+          "median_lag2_over_lag1": 0.9148042892946648,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 3264,
+          "elements": 3264
+        },
+        "sink": {
+          "samples": 201,
+          "median_lag1_relative_l1": 1.890917307143382e-10,
+          "maximum_lag1_relative_l1": 9.650765221359213e-10,
+          "median_lag2_relative_l1": 2.2549846067067172e-10,
+          "median_lag2_over_lag1": 1.8860337969333951,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 440,
+          "elements": 3264
+        },
+        "source": {
+          "samples": 201,
+          "median_lag1_relative_l1": 3.9488916949853064e-10,
+          "maximum_lag1_relative_l1": 1.6679731401807655e-09,
+          "median_lag2_relative_l1": 4.88128205372977e-10,
+          "median_lag2_over_lag1": 1.7675534363522976,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 788,
+          "elements": 3264
+        },
+        "u_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 1.6513453920861019e-10,
+          "maximum_lag1_relative_l1": 3.018667346698392e-10,
+          "median_lag2_relative_l1": 1.702003204633899e-10,
+          "median_lag2_over_lag1": 1.246056934537404,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 3249,
+          "elements": 3264
+        },
+        "v_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 1.3665111517316632e-07,
+          "maximum_lag1_relative_l1": 1.8151344944725593e-07,
+          "median_lag2_relative_l1": 1.2889624873298617e-07,
+          "median_lag2_over_lag1": 1.1657013831304388,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 3258,
+          "elements": 3264
+        },
+        "volume": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 3264
+        },
+        "w_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 3264
+        }
+      },
+      "classification": "plateau with irregular flow motion",
+      "component_classification": {
+        "continuity": "plateau with irregular flow motion"
+      },
+      "reason": "Transported and eddy viscosity remain unchanged through all sampled final steps, while paired flow fields continue irregular motion; lag-two does not nearly cancel lag-one as in the SST middle-grid two-cycle."
+    },
+    {
+      "model": "sa",
+      "case": "plate",
+      "backend": "metal",
+      "level": 2,
+      "failure_at_terminal_observed": true,
+      "cause": "Not established by this descriptive analysis.",
+      "terminal_iteration": 3000,
+      "coverage": "complete",
+      "endpoint_components": {
+        "u": 5.241700877989999e-10,
+        "v": 8.514359663424615e-11,
+        "w": 3.4518009282172646e-19,
+        "k": 0.0,
+        "omega": 0.0,
+        "nu_tilde": 9.554319132153626e-07,
+        "continuity": 1.397759225565794e-05
+      },
+      "endpoint_raw_continuity": 7.203551843042974e-11,
+      "continuity_normalization": 5.153642852993565e-06,
+      "components_exceeding_frozen_gate": [
+        "continuity"
+      ],
+      "component_tail": {
+        "u": {
+          "minimum": 5.241700877989999e-10,
+          "maximum": 3.2981360690478175e-08,
+          "start": 3.2981360690478175e-08,
+          "end": 5.241700877989999e-10,
+          "least_squares_per_step_contraction": 0.9958693717361545
+        },
+        "v": {
+          "minimum": 8.514359663424615e-11,
+          "maximum": 4.459648624831815e-09,
+          "start": 4.459648624831815e-09,
+          "end": 8.514359663424615e-11,
+          "least_squares_per_step_contraction": 0.9960542395700824
+        },
+        "w": {
+          "minimum": 3.204168644220028e-19,
+          "maximum": 3.6043191680679557e-19,
+          "start": 3.382543913888422e-19,
+          "end": 3.4518009282172646e-19,
+          "least_squares_per_step_contraction": 0.9999993256174399
+        },
+        "k": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "start": 0.0,
+          "end": 0.0,
+          "least_squares_per_step_contraction": null
+        },
+        "omega": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "start": 0.0,
+          "end": 0.0,
+          "least_squares_per_step_contraction": null
+        },
+        "nu_tilde": {
+          "minimum": 9.412800553428533e-07,
+          "maximum": 9.985277056635735e-07,
+          "start": 9.58000475338546e-07,
+          "end": 9.554319132153626e-07,
+          "least_squares_per_step_contraction": 1.0000076858289608
+        },
+        "continuity": {
+          "minimum": 1.397759225565794e-05,
+          "maximum": 0.0005754173542351388,
+          "start": 0.0005754173542351388,
+          "end": 1.397759225565794e-05,
+          "least_squares_per_step_contraction": 0.9964340374386935
+        }
+      },
+      "field_motion": {
+        "diffusivity": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 2.2970194390716235e-06,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "fv1": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 3.2901084972994156e-07,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "fv2": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 4.212153222164924e-07,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "fw": {
+          "samples": 201,
+          "median_lag1_relative_l1": 6.553325878303783e-05,
+          "maximum_lag1_relative_l1": 8.316269106871746e-05,
+          "median_lag2_relative_l1": 0.00013066589796799962,
+          "median_lag2_over_lag1": 1.9983639705844602,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 3017,
+          "elements": 13056
+        },
+        "mass_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 2.944275299512524e-10,
+          "maximum_lag1_relative_l1": 7.733646491142366e-10,
+          "median_lag2_relative_l1": 5.806525876949736e-10,
+          "median_lag2_over_lag1": 1.9779787043924977,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 25983,
+          "elements": 52456
+        },
+        "modified_rate": {
+          "samples": 201,
+          "median_lag1_relative_l1": 1.247655264853114e-08,
+          "maximum_lag1_relative_l1": 6.526069006143452e-07,
+          "median_lag2_relative_l1": 2.4916867531527426e-08,
+          "median_lag2_over_lag1": 2.0143097134376378,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 6116,
+          "elements": 13056
+        },
+        "mut": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 2.6338666989055807e-06,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "nu_tilde": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 2.4027145217964896e-06,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": 1.0,
+          "zero_lag1_samples": 198,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "p_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 1.6162683469274547e-07,
+          "maximum_lag1_relative_l1": 1.3285114135245602e-06,
+          "median_lag2_relative_l1": 2.8674134123652954e-07,
+          "median_lag2_over_lag1": 1.8297233648443225,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 13056,
+          "elements": 13056
+        },
+        "sink": {
+          "samples": 201,
+          "median_lag1_relative_l1": 7.813956325857408e-08,
+          "maximum_lag1_relative_l1": 5.9795490826852726e-06,
+          "median_lag2_relative_l1": 1.5911950040232185e-07,
+          "median_lag2_over_lag1": 2.0169438523957384,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 3068,
+          "elements": 13056
+        },
+        "source": {
+          "samples": 201,
+          "median_lag1_relative_l1": 1.0231112530415455e-07,
+          "maximum_lag1_relative_l1": 7.850438352206116e-06,
+          "median_lag2_relative_l1": 2.0774699059125804e-07,
+          "median_lag2_over_lag1": 2.0099953499184755,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 4593,
+          "elements": 13056
+        },
+        "u_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 4.194945942289859e-09,
+          "maximum_lag1_relative_l1": 6.125799258274893e-09,
+          "median_lag2_relative_l1": 8.397620166703287e-09,
+          "median_lag2_over_lag1": 2.000132112418318,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 13048,
+          "elements": 13056
+        },
+        "v_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 8.531192780310936e-08,
+          "maximum_lag1_relative_l1": 3.534451139807964e-07,
+          "median_lag2_relative_l1": 1.5795982229567777e-07,
+          "median_lag2_over_lag1": 1.8761921854189216,
+          "zero_lag1_samples": 0,
+          "median_changed_elements": 12960,
+          "elements": 13056
+        },
+        "volume": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 13056
+        },
+        "w_pair": {
+          "samples": 201,
+          "median_lag1_relative_l1": 0.0,
+          "maximum_lag1_relative_l1": 0.0,
+          "median_lag2_relative_l1": 0.0,
+          "median_lag2_over_lag1": null,
+          "zero_lag1_samples": 201,
+          "median_changed_elements": 0,
+          "elements": 13056
+        }
+      },
+      "classification": "slow approach with fluctuations",
+      "component_classification": {
+        "continuity": "slow approach with fluctuations"
+      },
+      "reason": "Continuity decreases substantially and streamwise velocity/mass-flux lag-two motion is nearly twice lag-one."
     }
   ]
 }
