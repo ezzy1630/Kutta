@@ -719,7 +719,7 @@ in [default-study-memory.json](default-study-memory.json) and
 
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
-| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary iteration cost pending (first supplemental comparison invalid) | 316.76 / 356.76, fine bump | Keep opt-in |
+| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
 | Paired-state slack 16 | Pending; quick tier adds two moving-wall uniform-flow failures | Pending | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
@@ -861,23 +861,40 @@ The candidate test binary SHA-256 is
 Slack 16 stays opt-in. Its requested full slow-tier effect and cost measurement
 are still running; this quick result does not replace them.
 
-### Withdrawn iteration-cost comparison
+### Corrected ordinary-control iteration cost of compensation
 
-The first supplemental iteration-cost comparison was invalid: its binary
-labeled baseline already enabled compensated momentum. Its identical work
-counts compared compensation with itself. Those counts do not establish the
-option's iteration cost and are withdrawn. The invalid receipt is explicitly
-marked in [compensation-iteration-cost.json](compensation-iteration-cost.json).
-The interrupted slack cost run used the same incorrect baseline and is also
-excluded. Neither invalid cost run changes the completed slow-tier comparison
+These probes use the coarse TMR plate geometry with ordinary solver controls,
+independently of the TMR harness opt-ins. The baseline is rebuilt from exact
+main `e014e36` solver sources, with only the independent diagnostic benchmark
+added; all 165 solver source files match main. Each sample's emitted settings
+are checked. Enabling only compensated momentum gives:
+
+| Model/backend | Outer steps, before → after | Momentum inner steps | Pressure inner steps | Scalar inner steps |
+|---|---:|---:|---:|---:|
+| SST cpu | 3,000 → 300 | 8,974 → 1,093 | 60,635 → 5,329 | 72,239 → 4,453 |
+| SST metal | 3,000 → 300 | 9,303 → 1,080 | 58,694 → 4,952 | 73,502 → 4,475 |
+| SA cpu | 3,000 → 3,000 | 9,415 → 4,076 | 34,727 → 24,674 | 417 → 416 |
+| SA metal | 3,000 → 3,000 | 9,750 → 9,442 | 34,514 → 24,677 | 417 → 417 |
+
+The SST baseline remains unconverged at 3,000 steps on both backends;
+compensation converges in 300. Both SA variants remain unconverged at 3,000.
+SA's terminal maximum defect drops from `2.04057944461e-4` to
+`1.31528557856e-5` on CPU, and from `1.83064395142e-4` to
+`3.40673138094e-5` on Metal. No unpaired timing comparison is claimed.
+The earlier alternating elbow timings remain a separate experiment.
+
+This is a useful opt-in trade-off, not a universal default: the full slow
+tier adds two elbow failures. Both iteration-cost binaries use the original
+Metal runtime; the candidate includes the byte-identical SST memory cleanup.
+[compensation-iteration-cost.json](compensation-iteration-cost.json) records
+the hashes, controls and endpoints.
+
+The first supplemental comparison mislabeled a compensation-enabled binary
+as baseline. Its equal-work conclusion is withdrawn. The interrupted slack
+cost run used that same incorrect baseline and is excluded. Both attempts
+are retained privately, and the public receipt identifies the rejected
+baseline. Neither invalid cost run changes the completed slow-tier comparison
 or slack's quick-tier regression.
-
-A replacement baseline is being built from exact main `e014e36` solver sources
-with only the independent diagnostic benchmark added. Future cost runs will
-check the emitted settings for both binaries before accepting measurements.
-The earlier four-pair compensation timing experiment used a different,
-ordinary-default main binary and remains separately bound to its recorded
-hash and logs; it is not the withdrawn supplemental comparison.
 
 ### Fresh remaining-failure baseline
 

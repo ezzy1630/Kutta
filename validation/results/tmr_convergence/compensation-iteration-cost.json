@@ -1,7 +1,19 @@
 {
+  "status": "Valid corrected comparison: every emitted control checked against the frozen ordinary baseline and intended option change.",
+  "withdrawn_attempt": {
+    "reason": "The first supplemental baseline already enabled compensated momentum. Its equal work counts were invalid as an option comparison and are withdrawn.",
+    "invalid_baseline_sha256": "8bbe546cb85d2eb3756f5b387908d88fb7f221f39c8a9ab60730efbd63a6fbbd"
+  },
   "protocol": "Coarse TMR plate geometry and model, ordinary solver controls; original 3000-step convergence budget; iteration counts only, no unpaired timing comparison",
   "settings": "Ordinary solver controls, independent of the TMR harness opt-ins. Candidate enables only compensated momentum. Both binaries use the original Metal runtime; the candidate contains the byte-identical 36 bytes per cell SST cleanup.",
-  "baseline_sha256": "8bbe546cb85d2eb3756f5b387908d88fb7f221f39c8a9ab60730efbd63a6fbbd",
+  "baseline_source": {
+    "solver_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+    "solver_sources": "Exact git archive of main e014e36; benchmark diagnostics only copied from current checkout. No solver edits.",
+    "header_sha256": "be4e1bc83d9a393db565f090a3acdb42811d245fc8406ac7c529b19c18ff4abc",
+    "exact_main_solver_files_verified": 165,
+    "binary_sha256": "982116e6897e571b239d0650104e268c9fa618221d557f6e16dce834046875bd"
+  },
+  "baseline_sha256": "982116e6897e571b239d0650104e268c9fa618221d557f6e16dce834046875bd",
   "candidate_sha256": "ed178ef07fac078608dae6c9e13f64c5b0dc185439761b89f5f9ccc7ff2fe2e1",
   "candidate_compensation_override": 1,
   "timing_comparison": null,
@@ -11,15 +23,15 @@
       "backend": "cpu",
       "variant": "baseline",
       "compensated_momentum": false,
-      "outer_iterations": 300,
-      "converged": true,
+      "outer_iterations": 3000,
+      "converged": false,
       "inner_iterations": {
-        "momentum": 1093,
-        "pressure": 5329,
-        "scalar": 4453
+        "momentum": 8974,
+        "pressure": 60635,
+        "scalar": 72239
       },
-      "maximum_defect": 6.01904017753e-06,
-      "load_change": 2.29465019721e-05,
+      "maximum_defect": 0.000148781501615,
+      "load_change": 2.61296958798e-07,
       "failure": null
     },
     {
@@ -43,15 +55,15 @@
       "backend": "metal",
       "variant": "baseline",
       "compensated_momentum": false,
-      "outer_iterations": 300,
-      "converged": true,
+      "outer_iterations": 3000,
+      "converged": false,
       "inner_iterations": {
-        "momentum": 1080,
-        "pressure": 4952,
-        "scalar": 4475
+        "momentum": 9303,
+        "pressure": 58694,
+        "scalar": 73502
       },
-      "maximum_defect": 1.44929994787e-07,
-      "load_change": 2.21970651882e-05,
+      "maximum_defect": 0.000183579331842,
+      "load_change": 4.20302710479e-07,
       "failure": null
     },
     {
@@ -78,44 +90,44 @@
       "outer_iterations": 3000,
       "converged": false,
       "inner_iterations": {
-        "momentum": 4076,
-        "pressure": 24674,
-        "scalar": 416
-      },
-      "maximum_defect": 1.31528557856e-05,
-      "load_change": 0.0,
-      "failure": null
-    },
-    {
-      "model": "sa",
-      "backend": "cpu",
-      "variant": "candidate",
-      "compensated_momentum": true,
-      "outer_iterations": 3000,
-      "converged": false,
-      "inner_iterations": {
-        "momentum": 4076,
-        "pressure": 24674,
-        "scalar": 416
-      },
-      "maximum_defect": 1.31528557856e-05,
-      "load_change": 0.0,
-      "failure": null
-    },
-    {
-      "model": "sa",
-      "backend": "metal",
-      "variant": "baseline",
-      "compensated_momentum": false,
-      "outer_iterations": 3000,
-      "converged": false,
-      "inner_iterations": {
-        "momentum": 9442,
-        "pressure": 24677,
+        "momentum": 9415,
+        "pressure": 34727,
         "scalar": 417
       },
-      "maximum_defect": 3.40673138094e-05,
+      "maximum_defect": 0.000204057944461,
+      "load_change": 1.98036529969e-06,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "variant": "candidate",
+      "compensated_momentum": true,
+      "outer_iterations": 3000,
+      "converged": false,
+      "inner_iterations": {
+        "momentum": 4076,
+        "pressure": 24674,
+        "scalar": 416
+      },
+      "maximum_defect": 1.31528557856e-05,
       "load_change": 0.0,
+      "failure": null
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "variant": "baseline",
+      "compensated_momentum": false,
+      "outer_iterations": 3000,
+      "converged": false,
+      "inner_iterations": {
+        "momentum": 9750,
+        "pressure": 34514,
+        "scalar": 417
+      },
+      "maximum_defect": 0.000183064395142,
+      "load_change": 2.27678617651e-06,
       "failure": null
     },
     {
@@ -134,7 +146,5 @@
       "load_change": 0.0,
       "failure": null
     }
-  ],
-  "status": "INVALID: baseline already enables compensated momentum; not an option comparison. Rerun required.",
-  "rows_are_accepted_evidence": false
+  ]
 }
