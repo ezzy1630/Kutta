@@ -239,7 +239,7 @@ TEST_CASE("FV stored face jumps preserve the cell gather bit for bit") {
         dev->upload<float>(base.x,values(m.n_cells,11));dev->upload<float>(base.y,values(m.n_cells,19));
         dev->upload<float>(base.z,values(m.n_cells,23));
         kern::fv_jump_gradient(*dev,m.n_cells,m.cell_face_offsets,m.cell_faces,s.adjacent,m.cell_face_sign,
-          fit.delta.x,fit.delta.y,fit.delta.z,fit.inverse,s.face_delta.x,s.face_delta.y,s.face_delta.z,
+          fit.delta.x,fit.delta.y,fit.delta.z,fit.inverse,
           m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
           q,bc,base.x,base.y,base.z,old.x,old.y,old.z,m.n_cells);
         fv::jump_corrected_gradient(*dev,m,s,fit,q,bc,base,out);
