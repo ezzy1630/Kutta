@@ -1036,5 +1036,24 @@
     "conservative_peak_bytes": 2215168184,
     "runtime": "Retained original Metal runtime. Global slack16 candidate, compensated momentum remains opt-in.",
     "limit_bytes": 3000000000
+  },
+  "completed_sst_subset_comparison": {
+    "scope": "All SST TMR plate and bump cases only; not whole-tier comparison.",
+    "cases": 2,
+    "assertions": 83,
+    "failures": 8,
+    "comparison": {
+      "cases": 2,
+      "regressions": 0,
+      "recoveries": 0,
+      "changed_values": 0,
+      "missing_assertions": 0,
+      "new_assertions": 0,
+      "missing_cases": 0,
+      "new_cases": 0,
+      "no_new_failures": true
+    },
+    "baseline_subset_sha256": "a6abb9703224ed1562164fe44fe1b949b433ebeb761f1de6f3669c7c575ab834",
+    "candidate_subset_sha256": "aaba7d2fb9a7434d6496904051a895b92ace23a292091861b9172ecbc81193db"
   }
 }
