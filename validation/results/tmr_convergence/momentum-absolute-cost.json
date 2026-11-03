@@ -1,5 +1,5 @@
 {
-  "status": "Full slow comparison passed with zero regressions; active SIMPLEC paired timing and combined-default verification remain pending. No default promoted yet.",
+  "status": "Full slow comparison passed with zero regressions; active SIMPLEC paired timing complete. Promotion awaits the remaining option studies and combined-default verification.",
   "candidate": "Only ordinary momentum absolute tolerance changes from 1e-10 to 1e-20; retained byte-identical SST scratch cleanup is also present. Original Metal runtime.",
   "baseline_sha256": "982116e6897e571b239d0650104e268c9fa618221d557f6e16dce834046875bd",
   "candidate_sha256": "5a7f91ec023d1a2b279042d25db897fdd2879c9ba960454cf20210a7027e750d",
@@ -169,5 +169,84 @@
       "failure": null
     }
   ],
-  "full_study": "default-study-momentum-absolute.json"
+  "full_study": "default-study-momentum-absolute.json",
+  "active_simplec_paired_cost": {
+    "source": "paired-ordinary-plate-cost.json",
+    "summary": [
+      {
+        "model": "sst",
+        "backend": "cpu",
+        "paired_solver_time_to_stop_ratio_median": 1.000995892467778,
+        "paired_solver_time_to_stop_ratio_range": [
+          0.999273515009309,
+          1.0027182699262471
+        ],
+        "paired_late_time_per_iteration_ratio_median": 0.9876741835153946,
+        "paired_late_time_per_iteration_ratio_range": [
+          0.9851716006261344,
+          0.9901767664046549
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      },
+      {
+        "model": "sst",
+        "backend": "metal",
+        "paired_solver_time_to_stop_ratio_median": 1.0870182197956466,
+        "paired_solver_time_to_stop_ratio_range": [
+          0.7942800729984947,
+          1.3797563665927985
+        ],
+        "paired_late_time_per_iteration_ratio_median": 1.0462583424178002,
+        "paired_late_time_per_iteration_ratio_range": [
+          0.7931405753970056,
+          1.2993761094385947
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      },
+      {
+        "model": "sa",
+        "backend": "cpu",
+        "paired_solver_time_to_stop_ratio_median": 0.9750647254018618,
+        "paired_solver_time_to_stop_ratio_range": [
+          0.9742820606032614,
+          0.9758473902004623
+        ],
+        "paired_late_time_per_iteration_ratio_median": 0.9363251267087098,
+        "paired_late_time_per_iteration_ratio_range": [
+          0.9055011688507709,
+          0.9671490845666487
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      },
+      {
+        "model": "sa",
+        "backend": "metal",
+        "paired_solver_time_to_stop_ratio_median": 1.187239740126114,
+        "paired_solver_time_to_stop_ratio_range": [
+          1.115078678736932,
+          1.2594008015152964
+        ],
+        "paired_late_time_per_iteration_ratio_median": 1.2601888517394433,
+        "paired_late_time_per_iteration_ratio_range": [
+          0.9841210800447285,
+          1.536256623434158
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      }
+    ],
+    "caveat": "A failing baseline and passing candidate have different achieved accuracy; their time-to-stop ratio is not an equal-accuracy speedup. Late per-step ratios use steps 1501-3000 only when both runs reach 3000.",
+    "runtime_scope": "Coarse ordinary SIMPLEC plate only. Metal SA total time median increases 18.7%, late-step time 26.0%; wide contended pair ranges do not establish a universal runtime cost."
+  }
 }

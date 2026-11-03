@@ -721,7 +721,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | --- | --- | --- | ---: | --- |
 | Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
 | Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
-| Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Active-path paired timing pending | 0 / 0 | Numerically eligible; promotion pending cost and combined proof |
+| Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Late step time, SST / SA: CPU 0.988x / 0.936x, Metal 1.046x / 1.260x; Metal SA total 1.187x, wide contended ranges | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Pressure absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
 | Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
@@ -1020,7 +1020,7 @@ are retained privately, and the public receipt identifies the rejected
 baseline. Neither invalid cost run changes the completed slow-tier comparison
 or slack's quick-tier regression.
 
-### Momentum tolerance: measured work, decision still pending
+### Momentum tolerance: measured inner work
 
 Changing only momentum absolute tolerance from `1e-10` to `1e-20` passes the
 quick tier (307 cases, 7,990,154 assertions). The full slow tier now passes its
@@ -1056,9 +1056,8 @@ reproduce the checked receipt exactly before its timing is accepted.
 Binary, receipt and mesh hashes are frozen, and actual controls are checked
 against independent ordinary-setting definitions. Validation accepts the
 three existing corrected receipts and rejects an already-compensated
-baseline despite its claimed checked marker. These paired plate runs are
-queued serially between full-tier variants; no new timing result is claimed
-here yet.
+baseline despite its claimed checked marker. The paired plate measurements below are complete for these first three
+options.
 
 ### Complete momentum-tolerance comparison
 
@@ -1068,8 +1067,8 @@ main's 51 failed assertions. Main's unchanged comparator exits zero:
 zero regressions or recoveries, six changed expanded values, and zero
 missing/new assertions or cases. The quick tier also passes all 307 cases
 and 7,990,154 assertions. This candidate qualifies numerically for a default;
-promotion awaits its active-path paired cost and the final combined-default
-proof. The matrix continues with ordinary defaults restored between candidates.
+promotion awaits the remaining option studies and final combined-default
+proof. Its active-path paired cost is recorded below. The matrix continues with ordinary defaults restored between candidates.
 
 All six changed values are passing Re=1,000 cavity checks. Their changed
 quantities are:
@@ -1097,6 +1096,50 @@ exactly. The excluded orphan contributes no assertion to the combined tier.
 Complete per-case counts, source/binary/XML hashes, changed values and the
 cost scope are in
 [default-study-momentum-absolute.json](default-study-momentum-absolute.json).
+
+### Paired ordinary SIMPLEC cost of the first three options
+
+Each row uses two alternating AB, BA pairs on the 816-cell plate, with
+ordinary controls and one changed option. Every endpoint and cumulative
+inner-work total reproduces its earlier checked receipt. Binary, control,
+mesh and receipt hashes are verified before and after the runs. The exact
+rows, process peaks and hashes are in
+[paired-ordinary-plate-cost.json](paired-ordinary-plate-cost.json).
+
+Ratios are candidate / baseline. Late-step ratios cover steps 1,501–3,000
+and exist only when both solves reach 3,000. The machine is shared; ranges
+show both pairs. These small ordinary cases do not bound costs on other
+meshes or models. A failed baseline and passing candidate achieve different
+accuracy, so their time-to-stop ratio is not an equal-accuracy speedup.
+
+| Option | Model / backend | Outer steps, before → after | Converged, before → after | Total solver time ratio | Late-step ratio (range) |
+|---|---|---:|---|---:|---:|
+| Compensated momentum | SST cpu | 3,000 → 300 | no → yes | 0.197 | — |
+| Compensated momentum | SST metal | 3,000 → 300 | no → yes | 0.101 | — |
+| Compensated momentum | SA cpu | 3,000 → 3,000 | no → no | 1.611 | 1.581 (1.580–1.582) |
+| Compensated momentum | SA metal | 3,000 → 3,000 | no → no | 0.895 | 0.853 (0.828–0.879) |
+| Slack 16 | SST cpu | 3,000 → 400 | no → yes | 0.125 | — |
+| Slack 16 | SST metal | 3,000 → 400 | no → yes | 0.123 | — |
+| Slack 16 | SA cpu | 3,000 → 3,000 | no → no | 0.762 | 0.711 (0.656–0.766) |
+| Slack 16 | SA metal | 3,000 → 500 | no → yes | 0.161 | — |
+| Momentum abs 1e-20 | SST cpu | 3,000 → 3,000 | no → no | 1.001 | 0.988 (0.985–0.990) |
+| Momentum abs 1e-20 | SST metal | 3,000 → 3,000 | no → no | 1.087 | 1.046 (0.793–1.299) |
+| Momentum abs 1e-20 | SA cpu | 3,000 → 3,000 | no → no | 0.975 | 0.936 (0.906–0.967) |
+| Momentum abs 1e-20 | SA metal | 3,000 → 3,000 | no → no | 1.187 | 1.260 (0.984–1.536) |
+
+Compensated momentum increases ordinary SA CPU late-step time by 58.1%
+while decreasing it by 14.7% on Metal. It still fails both ordinary SA
+convergence gates at 3,000. Slack 16 changes stopping behavior substantially,
+but its full-tier and quick-tier regressions already reject a default.
+
+The tighter momentum tolerance leaves all four ordinary solves unconverged
+at 3,000, with no direct device allocation increase. In these pairs it adds
+18.7% to SA Metal total time and 26.0% to its late-step time; the late-step
+pair range is 0.984–1.536. SST Metal's total ratio is 1.087 and late ratio
+1.046, also with a wide range. CPU totals are 1.001 for SST and 0.975 for SA.
+The 3.19–3.47x momentum inner-work increase is deterministic. This option
+must not be described as free, nor can these contended timings establish a
+uniform slowdown across ordinary solves. No default has yet been changed.
 
 ### Fresh remaining-failure baseline
 
