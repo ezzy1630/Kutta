@@ -1,5 +1,5 @@
 {
-  "status": "Keep opt-in: quick tier has 7 failed assertions across 4 cases, including 3 numerical cases on both CPU and Metal. Full slow-tier measurement remains running. Both sides of these cost pairs ran on macOS 27.2.",
+  "status": "Keep fixed .1 opt-in: completed full slow tier has 1 regression, 2 recoveries and 940 changed values; quick has 7 failed assertions across 4 cases, including 3 numerical cases on both backends. Both sides of the cost pairs ran on macOS 27.2.",
   "measurement_environment": {
     "system": "Darwin",
     "darwin_release": "27.2.0",
@@ -351,5 +351,8 @@
   ],
   "runtime_scope": "Coarse NASA plate, SST/SA with ordinary SIMPLEC controls and original 3000-step budget. Timings are candidate / baseline on a shared machine. Early-stop differences are retained and are not equal-accuracy speedups. Reduced work on a failed-budget solve is not convergence or accuracy acceptance.",
   "source_scope": "Retained byte-identical 36 B/cell SST cleanup and original Metal runtime. Compiled default-study header differs only by the named control changes. All live paired input hashes, actual controls and reproduced endpoints/work checked before publication.",
-  "quick_tier": "fixed-flow-time-quick.json"
+  "quick_tier": "fixed-flow-time-quick.json",
+  "full_study": "default-study-fixed-flow-time.json",
+  "changed_values": "fixed-flow-time-effects.json",
+  "stopping_iteration_comparison": "fixed-flow-time-iteration-cost.json"
 }

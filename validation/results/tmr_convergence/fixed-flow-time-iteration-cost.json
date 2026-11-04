@@ -1,0 +1,143 @@
+{
+  "variant": "fixed-flow-time",
+  "full_study": "default-study-fixed-flow-time.json",
+  "measurement_environment": {
+    "system": "Darwin",
+    "darwin_release": "27.2.0",
+    "macos_product_version": "27.2",
+    "macos_build": "26B123",
+    "machine": "arm64",
+    "python_version": "3.14.10"
+  },
+  "source_inputs_sha256": {
+    "build/default-matrix/scalar-absolute/shards/case-005.fragment.xml": "e652ffa3b3a2614d81b0c3810db684dba4e08b1244ffb180f1f9bfb39dd72fb7",
+    "build/default-matrix/scalar-absolute/shards/case-011.fragment.xml": "c3f0deb3b7640941c82b90bd7c60bfcd468a4f480d3d860388a42214d6c555c8",
+    "build/default-matrix/scalar-absolute/metadata.json": "bf5e947e5d08d235ec6f25812366f044d45184628a1aa8d8961417fef8aaec61",
+    "build/default-matrix/scalar-absolute/isolated-results.json": "76a2ec9a78ae7f1fab190bfe50149ad5ffdbe4a151ee9db173f234edbae4b1ce",
+    "build/default-matrix/fixed-flow-time/shards/case-005.fragment.xml": "940401bdbbb8470f274589c5b1bbcc4db098bd2e4f6663e13291fc0ab0948c74",
+    "build/default-matrix/fixed-flow-time/shards/case-011.fragment.xml": "a214abcdefc84e9a36d61b1e0207a3a827bc8c71bf8437e09c191a5f57798880",
+    "build/default-matrix/fixed-flow-time/metadata.json": "800afa376f6f0d56d8a0b95c4e6e10c12db8915f37876e1c618e28d627dd4675",
+    "build/default-matrix/fixed-flow-time/isolated-results.json": "fc96cc197c31fa5ba037b7a24097788abb07946d887b68f43e23f7a0a4a86ae7",
+    "validation/results/tmr_convergence/os27-numerical-control.json": "de8cd9af2a1637f20453e5967ac263b04a5ad94169fc4fe959002d75c248727c"
+  },
+  "cavity_control": {
+    "variant": "scalar-absolute",
+    "test_binary_sha256": "1b103f9f84e5b700c1b86041d718c7e2cf40cac7070a6085384ecd93b699fd66",
+    "scope": "New-OS scalar-absolute study changes only SST/SA scalar tolerance. These cavity solves are laminar, retaining original automatic time. Passing expansion values are not inferred from timing."
+  },
+  "candidate_test_binary_sha256": "b3b6b85f59d41bfb8aaef1ade6597e2efa7285fa6f91fadf9adec701c337471d",
+  "cavity_iteration_rows": [
+    {
+      "backend": "cpu",
+      "grid": 65,
+      "before": {
+        "iterations": 600,
+        "converged": true
+      },
+      "after": {
+        "iterations": 1400,
+        "converged": true
+      }
+    },
+    {
+      "backend": "cpu",
+      "grid": 129,
+      "before": {
+        "iterations": 600,
+        "converged": true
+      },
+      "after": {
+        "iterations": 1000,
+        "converged": true
+      }
+    },
+    {
+      "backend": "cpu",
+      "grid": 257,
+      "before": {
+        "iterations": 900,
+        "converged": true
+      },
+      "after": {
+        "iterations": 1200,
+        "converged": true
+      }
+    },
+    {
+      "backend": "metal",
+      "grid": 65,
+      "before": {
+        "iterations": 600,
+        "converged": true
+      },
+      "after": {
+        "iterations": 1400,
+        "converged": true
+      }
+    },
+    {
+      "backend": "metal",
+      "grid": 129,
+      "before": {
+        "iterations": 600,
+        "converged": true
+      },
+      "after": {
+        "iterations": 1000,
+        "converged": true
+      }
+    },
+    {
+      "backend": "metal",
+      "grid": 257,
+      "before": {
+        "iterations": 900,
+        "converged": true
+      },
+      "after": {
+        "iterations": 1200,
+        "converged": true
+      }
+    }
+  ],
+  "v6_control": {
+    "exact_main_binary_sha256": "e317481083fba85dec3cf3e3578c4c421aacf21812480bbdf40400b09fc100de",
+    "control_xml_sha256": "792b0742dc5f559d6dbd26e74074c3fc0639c29dc97e5098bcbc39ab788fa830",
+    "all_canonical_payloads_reproduced": true
+  },
+  "v6_iteration_rows": [
+    {
+      "backend": "cpu",
+      "mode": "cold-hybrid",
+      "before_iterations": 250,
+      "after_iterations": 200,
+      "after_solver_converged": true
+    },
+    {
+      "backend": "cpu",
+      "mode": "seeded",
+      "before_iterations": 200,
+      "after_iterations": 150,
+      "after_solver_converged": true
+    },
+    {
+      "backend": "metal",
+      "mode": "cold-hybrid",
+      "before_iterations": 250,
+      "after_iterations": 200,
+      "after_solver_converged": true
+    },
+    {
+      "backend": "metal",
+      "mode": "seeded",
+      "before_iterations": 200,
+      "after_iterations": 150,
+      "after_solver_converged": true
+    }
+  ],
+  "v6_reference_assertion_failures": {
+    "before": 25,
+    "after": 25
+  },
+  "scope": "Stopping iterations measured on the new OS; no elapsed-time comparison. Cavity slows while V6 stops earlier. Solver convergence does not establish reference accuracy: all 25 V6 accuracy failures remain. Test budgets, thresholds and original canonical identities are unchanged."
+}

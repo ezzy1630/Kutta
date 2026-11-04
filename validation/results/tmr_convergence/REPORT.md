@@ -689,9 +689,10 @@ were removed. No lane processes remain running. No push or PR was made.
 
 ## 2026-11-03–04 UTC: defaults and remaining convergence study
 
-This follow-up is in progress on base `e014e36`. Eight of twelve default
-studies are complete and reviewed. The fixed-time singleton is also rejected
-by quick; its full slow run continues. Momentum compensation and slack 16 regress gates;
+This follow-up is in progress on base `e014e36`. Nine of twelve default
+studies are complete and reviewed. Fixed flow time is rejected by both quick
+and its completed slow comparison. The three-tolerance group is running.
+Momentum compensation and slack 16 regress gates;
 tighter momentum and pressure tolerances preserve every gate. Scalar
 compensation, scalar steady stopping, disabling scalar pseudo-time and tighter
 scalar tolerance also preserve every gate outcome, with passing CLI INFO identity changes retained
@@ -786,7 +787,7 @@ remain historical; old seconds will not enter a new ratio.
 
 Momentum compensation and slack 16 are rejected by their completed full slow tiers;
 slack 16 also fails the quick tier. Fixed flow pseudo-time `.1` fails quick
-with seven assertions across four cases; its full slow tier is still running. Momentum and pressure tolerances preserve
+with seven assertions across four cases and one slow-tier regression. Momentum and pressure tolerances preserve
 all slow gates and pass the quick tier. Scalar compensation also preserves
 all outcomes and passes quick; its canonical comparison retains 76 passing
 missing/new INFO identities. Scalar steady stopping preserves all outcomes
@@ -812,7 +813,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Scalar pseudo-time off | Full: 0 regressions/recoveries, 240 changed values, 76 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar inner work: 72,239→71,700 CPU / 73,502→71,812 Metal; SA 417→495 / 492. New-OS late time, SST / SA: CPU 0.976x / 1.006x, Metal 1.012x / 0.990x | 0 / 0 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar steady tolerance 1e-6 | Full: 0 regressions/recoveries, 234 changed values, 74 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. Late time, SST / SA: CPU 0.820x / 1.000x, Metal 0.629x / 1.014x | 24 / 12 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 43 changed values, 20 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar work: 72,239→155,816 CPU / 73,502→155,771 Metal; SA 417→138,240 / 144,778. New-OS total time, SST / SA: CPU 1.176x / 1.259x, Metal 1.416x / 1.966x | 0 / 0 | Gate outcomes eligible; promotion pending combined proof; material cost disclosed |
-| Fixed flow pseudo-time .1 | Full running; quick adds 7 failed assertions in 4 cases, including 3 numerical cases on CPU and Metal | All four ordinary plates fail at 3,000. SST momentum inner work: 8,974→7,765 CPU / 9,303→7,058 Metal; pressure work rises. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in; full slow comparison pending |
+| Fixed flow pseudo-time .1 | Full: 1 regression, 2 recoveries, 940 changed values, 88 missing / 80 new passing identities; quick adds 7 failures in 4 cases | Cavity steps 600/600/900→1,400/1,000/1,200 on both backends; V6 seeded 200→150 / cold 250→200 but all 25 accuracy failures remain. Four ordinary plates still fail at 3,000. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in |
 | Three inner absolute tolerances together | Pending | Pending | Pending group measurement | Pending |
 | Four scalar controls together | Pending | Pending | Pending group measurement | Pending |
 | Combined precision controls | Pending | Pending | Pending group measurement | Pending |
@@ -1658,11 +1659,94 @@ The Fluent adapter currently relies on default zero when a case explicitly
 requests automatic pseudo-time. A nonzero default would also need that
 explicit automatic choice preserved. No adapter change is made here; the
 independent numerical quick regressions already reject `.1` as a default.
-It remains an opt-in, and its complete slow-tier comparison is running.
+It remains an opt-in; its completed slow-tier comparison follows.
 Quick counts, failures, source and control hashes are in
 [fixed-flow-time-quick.json](fixed-flow-time-quick.json). Cost controls,
 endpoints, allocation deltas and all timing ranges are in
 [fixed-flow-time-cost.json](fixed-flow-time-cost.json).
+
+### Fixed flow time .1: completed full comparison
+
+The ninth study completes all 37 slow cases on macOS 27.2, with 201,625
+assertions and 50 failures versus main's 201,633 assertions and 51 failures.
+The unchanged comparator reports **one regression, two recoveries, 940
+changed values, 88 missing assertions and 80 new assertions**, with no
+missing/new cases. It exits 1 and reports `no_new_failures=false`; its status
+and identity gaps are retained.
+
+All three changed gate outcomes are TMR convergence gates. The lower total
+failure count hides a new failure, so this default is rejected independently
+of its quick-tier counterexamples:
+
+| Solve | Automatic time | Fixed .1 | Outcome |
+|---|---|---|---|
+| SST plate CPU L0 | Pass, 300 steps; continuity 1.08658073802e-6 | Fail, 3,000 steps; continuity 1.7064779633e-5 | Regression |
+| SST plate CPU L2 | Fail, 3,000 steps; continuity 1.9098099621e-5 | Pass, 3,000 steps; continuity 7.47400090404e-6 | Recovery |
+| SA plate Metal L1 | Fail, 3,000 steps | Pass, 900 steps | Recovery |
+
+SST Metal L1 still fails: continuity changes from 3.04515373356e-5 to
+2.93558629639e-5. Both bumps already explicitly use `.1`, and their assertion
+identities, values and outcomes are unchanged. TMR has 14 changed assertion
+values in total, no missing/new identities and 16 remaining failures in this
+**rejected trial**. Production still has the original 17. No grid-specific
+time setting is adopted, and these gate changes establish no mechanism for
+the classified plate failures.
+
+All 88 original missing identities were passing: eight in the general CLI
+case, 72 in native Fluent CLI coverage and eight V6 checkpoint assertions.
+All 80 new identities pass. The first two groups retain different physical
+CLI INFO, not just timings. The eight fewer V6 assertions match its four
+solves each stopping one 50-step checkpoint earlier; every checkpoint makes
+a finite-residual and maximum-speed assertion. They are not removed or
+rematched. All 25 V6 accuracy failures remain. The existing eight V2 tet
+failures and single fan failure also remain.
+
+The 940 changed values comprise 150 passing serialized-output equality
+assertions, 787 numeric derived pairs and the three boolean convergence
+changes above. The numeric pairs include 688 passing imported/generated
+cavity differences. Among those changed pairs, maximum u difference falls
+from 1.90735e-6 to 2.68221e-7 and v from 1.81049e-6 to 3.57628e-7; all stay
+under 2e-6. All other changed passing accuracy, force and refinement gates
+remain passing. The 22 changed existing failed V6 metrics split 16 better /
+six worse, with maximum absolute printed change 2.362e-5. Eight changed
+failed tet refinement orders split four better / four worse, at most
+0.00023. Refinement orders are better upward; error norms are better
+downward. Boolean changes are excluded from those numeric counts. No
+overall accuracy improvement is claimed. Every changed numeric derived
+pair and boolean gate is recorded in
+[fixed-flow-time-effects.json](fixed-flow-time-effects.json); restricted
+serialized output fields and raw reference values are not republished.
+
+Stopping iterations also cut both ways on the new OS:
+
+| Solve, both CPU and Metal | Automatic time | Fixed .1 |
+|---|---:|---:|
+| Re1000 cavity, grid 65 | 600 | 1,400 |
+| Re1000 cavity, grid 129 | 600 | 1,000 |
+| Re1000 cavity, grid 257 | 900 | 1,200 |
+| V6 seeded | 200 | 150 |
+| V6 cold start | 250 | 200 |
+
+All these solver convergence checks pass, while V6's reference errors still
+fail. The cavity control is the preceding new-OS scalar-tolerance study:
+its scalar setting is unused by these laminar solves. V6's control is the
+frozen exact-main new-OS replay. These are iteration comparisons, with no
+elapsed-time pairing across the OS change. See
+[fixed-flow-time-iteration-cost.json](fixed-flow-time-iteration-cost.json).
+
+Six aero cases explicitly assign their Options time setting and therefore
+retain automatic time despite the changed header. Their 161,530 assertions
+reproduce exact-main's identities, outcomes and expanded values, with every
+canonical difference category zero. They cover Tyrrell, both Ahmed paths,
+both S1223 paths and T3A. This adds numerical OS-control coverage; it is not
+a universal byte-parity claim.
+
+The heaviest completed case peaks at 2,202,126,568 process bytes, and the
+heaviest TMR case at 388,269,064 bytes. Both are isolated-case measurements,
+not a reduction of monolithic retention. The guarded comparison publication
+peaks separately at 1,707,083,480 bytes and is not a CFD run. Full counts,
+binary/source hashes, per-case resources and control comparisons are in
+[default-study-fixed-flow-time.json](default-study-fixed-flow-time.json).
 
 ### Fresh remaining-failure baseline
 
