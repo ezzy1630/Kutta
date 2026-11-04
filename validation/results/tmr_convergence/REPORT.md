@@ -1243,7 +1243,7 @@ numerically; promotion awaits the remaining studies and combined-default
 proof. The matrix continues to restore ordinary defaults between candidates.
 
 The heaviest completed case peaks at 2,201,946,248 bytes; the heaviest TMR
-case peaks at 388,137,872 bytes. Both stay below the 3 GB guard. Full per-case
+case peaks at 388,613,008 bytes. Both stay below the 3 GB guard. Full per-case
 counts and source, binary, XML and comparator hashes are in
 [default-study-pressure-absolute.json](default-study-pressure-absolute.json).
 
@@ -1325,7 +1325,7 @@ values, not new accuracy acceptance. V6 still takes 200 seeded and 250
 cold-start steps on both backends; T3A still takes its original 6,000 steps.
 
 The heaviest completed case peaks at 2,216,233,072 bytes; the heaviest TMR
-case peaks at 396,608,424 bytes. These fresh case processes stay below the
+case peaks at 397,050,792 bytes. These fresh case processes stay below the
 3 GB guard. They do not prove a monolithic-suite retention fix.
 
 All four ordinary-control plate solves still miss convergence at 3,000.
@@ -1352,6 +1352,11 @@ includes both faster and slower steps, so its measured median is not a
 uniform slowdown claim. The paired runs peak at 152,126,040 process bytes.
 Actual settings, numerical endpoints, inner work, binary/receipt hashes and
 ranges are in [scalar-compensation-cost.json](scalar-compensation-cost.json).
+
+Pressure and scalar-compensation peaks above use the larger of the live
+sample and final process-footprint receipt. Earlier text quoted only their
+live samples, 388,137,872 and 396,608,424 bytes respectively. The full-suite
+case maxima are unchanged; this correction claims no memory improvement.
 
 ### Scalar steady tolerance: cost complete, full comparison running
 
@@ -1542,8 +1547,8 @@ their exact identities, outcomes and expanded values, with zero regressions,
 recoveries, changed values or missing/new identities. All 17 convergence
 failures remain. The complete 37-case slack comparison is reported above.
 
-The heaviest completed TMR case peaks at 392,692,648 bytes with field-motion
-diagnostics enabled, below 3 GB. These are fresh test-case processes; the
+In this field-motion diagnostic comparison, the heaviest TMR case peaks at
+392,692,648 bytes, below 3 GB. These are fresh test-case processes; the
 previous 5.54 GB figure measured the monolithic suite. This observation does
 not claim that monolithic-process retention has been fixed. The byte-identical
 36 B/cell SST cleanup remains the only retained solver memory change.
