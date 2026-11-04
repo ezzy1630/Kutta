@@ -787,12 +787,16 @@ The planned groups are the three inner absolute tolerances, the four scalar
 controls, and the combined precision controls. A group does not substitute
 for the singleton checks. Any regression leaves the setting opt-in.
 
-On the 56,320-cell bump, compensated momentum adds 19,867,648 device bytes
-for SST (352.76 B/cell) and 20,092,928 for SA (356.76 B/cell). Both probes keep
-the TMR scalar controls fixed. With the walk reconstruction active, the SST
-increment is `184*Ncells + 28*Nfaces + 28*Nboundary` bytes; SA also needs a
-four-byte cell mask. This includes the 64 B/cell paired walk scratch allocated
-on its first use, not just the flow fields and assembly carries.
+After the retained cleanup below, compensated momentum adds 17,840,128
+device bytes on the 56,320-cell SST bump (316.76 B/cell). SA adds 20,092,928
+bytes (356.76 B/cell). These deltas keep the TMR scalar controls fixed. With
+walk reconstruction active, the increments are
+`148*Ncells + 28*Nfaces + 28*Nboundary` for SST and
+`188*Ncells + 28*Nfaces + 28*Nboundary` for SA. They include the 64 B/cell
+paired walk scratch allocated on first use. The original allocation receipt
+records SST before that cleanup: 19,867,648 bytes (352.76 B/cell); the linked
+parity receipt records its exact 2,027,520-byte reduction. These are device
+allocation deltas, not process-footprint savings.
 
 ### Remove unused SST fits without changing its solution
 
