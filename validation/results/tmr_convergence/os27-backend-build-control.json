@@ -1,0 +1,159 @@
+{
+  "measurement_environment": {
+    "system": "Darwin",
+    "darwin_release": "27.2.0",
+    "macos_product_version": "27.2",
+    "macos_build": "26B123",
+    "machine": "arm64",
+    "python_version": "3.14.10"
+  },
+  "baseline_benchmark_sha256": "8fed216cc5bcf73ce8149a6497ebc728484c58bce96f490365201aa155694673",
+  "baseline_linked_build_version": {
+    "platform": "MACOS",
+    "minos": "26.5",
+    "sdk": "26.5",
+    "tool": "LD",
+    "version": "1267.0"
+  },
+  "candidate_build_method": "Incremental rebuild/link on the new OS; unchanged CPU/Metal backend and generated-kernel objects retained from the old OS. This is not a clean rebuild of every candidate object.",
+  "candidates": [
+    {
+      "variant": "scalar-no-pseudotime",
+      "benchmark_sha256": "99396a87bef4cab55bca1d4a8e149b263b05a2e0501fc6961d4adaca30e23179",
+      "linked_build_version": {
+        "platform": "MACOS",
+        "minos": "26.5",
+        "sdk": "26.5",
+        "tool": "LD",
+        "version": "1267.0"
+      }
+    },
+    {
+      "variant": "scalar-absolute",
+      "benchmark_sha256": "59703367a528ab0bfb95b32d1de4cbfe4b251796d9a0238ae9911f6e8f2134ee",
+      "linked_build_version": {
+        "platform": "MACOS",
+        "minos": "26.5",
+        "sdk": "26.5",
+        "tool": "LD",
+        "version": "1267.0"
+      }
+    },
+    {
+      "variant": "fixed-flow-time",
+      "benchmark_sha256": "5d8f6c160b058ba0b905b4dfc96c6817007dcced9bd280eda34e1442fd4c6504",
+      "linked_build_version": {
+        "platform": "MACOS",
+        "minos": "26.5",
+        "sdk": "26.5",
+        "tool": "LD",
+        "version": "1267.0"
+      }
+    },
+    {
+      "variant": "inner-absolute-group",
+      "benchmark_sha256": "bac7b969ffc72cfe641d80b862c12778a99d8a081b2cda766d85c03de2c07e89",
+      "linked_build_version": {
+        "platform": "MACOS",
+        "minos": "26.5",
+        "sdk": "26.5",
+        "tool": "LD",
+        "version": "1267.0"
+      }
+    },
+    {
+      "variant": "scalar-group",
+      "benchmark_sha256": "e4af216fa194751414f25a3a06c5066d341bbdbea48292e048eed3bbd2de4c04",
+      "linked_build_version": {
+        "platform": "MACOS",
+        "minos": "26.5",
+        "sdk": "26.5",
+        "tool": "LD",
+        "version": "1267.0"
+      }
+    }
+  ],
+  "checked_objects": [
+    {
+      "object": "src/kutta/runtime/metal/metal_device.mm.o",
+      "retained_object_sha256": "aa075b755716d797e3b532922fe74b1f6b90062b057313dc1aa2b96a0928b362",
+      "retained_object_mtime_utc": "2026-11-03T13:41:40.442918+00:00",
+      "clean_baseline_object_sha256": "8dbc9845d6c335b9c6bcfac82fe813f463c26cfc57607306b2f53f8c30d1e60a",
+      "changed_instructions": 19,
+      "all_differing_instructions_source_filename_lengths": true,
+      "cstring_identical_after_only_source_root_replacement": true,
+      "exception_tables_and_numeric_constants_identical": true
+    },
+    {
+      "object": "src/kutta/runtime/cpu/cpu_device.cpp.o",
+      "retained_object_sha256": "c53a06bf839dfb1f9c93be1d8dd761830ad8b96c642e82a2cda3ec9210904217",
+      "retained_object_mtime_utc": "2026-11-03T07:11:28.655765+00:00",
+      "clean_baseline_object_sha256": "b6bda057444d837dcc72716db5ffdda14e249523da2ec553a369bacd0476ee70",
+      "changed_instructions": 6,
+      "all_differing_instructions_source_filename_lengths": true,
+      "cstring_identical_after_only_source_root_replacement": true,
+      "exception_tables_and_numeric_constants_identical": true
+    },
+    {
+      "object": "generated/kernels_cpu.cpp.o",
+      "retained_object_sha256": "96d48de11c96e6e61272f9c643a02b19210eaf2aaefa10dad5ec0f1d62023c9d",
+      "clean_baseline_object_sha256": "5b805ad67616121aaeddf0c9cdddee95e74755c0ac1a05316564697be91613c0",
+      "all_text_sections_identical": true,
+      "sections": {
+        "__TEXT/__text": {
+          "bytes": 156724,
+          "sha256": "0508c36d18b1040b58852700751c8fc73f719d1130015706367c9ffc424986ff"
+        },
+        "__TEXT/__literal16": {
+          "bytes": 112,
+          "sha256": "df2b108feee5ca5c7ad73a24e625b4a3f0811f5fb04c21d55404acfeb4e0dcc7"
+        },
+        "__TEXT/__literal8": {
+          "bytes": 8,
+          "sha256": "434b26042aff3fb844a4c4c6be0d81a079b0ce84cfb8190679024404e5dc4822"
+        },
+        "__TEXT/__eh_frame": {
+          "bytes": 240,
+          "sha256": "129f30914c053a417e4bd5c9ccff6d8ef52cc2f886a8aabcb711c537f9ba55d5"
+        }
+      }
+    },
+    {
+      "object": "generated/kernels_metal.cpp.o",
+      "retained_object_sha256": "18e5d7b4165e4c656b0837350d7ccba9c426b9fdcb511e584eb343bd93b8eb9e",
+      "clean_baseline_object_sha256": "cc829d53022365345a4203731536190ec2036ea5462fbf1d904195f06a3b79dc",
+      "all_text_sections_identical": true,
+      "sections": {
+        "__TEXT/__text": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "__TEXT/__cstring": {
+          "bytes": 454389,
+          "sha256": "939005bb4f6c63c86ac0edd59b0f51c87aed27fd0fe64ea8705182c0f50b2fa5"
+        },
+        "__TEXT/__const": {
+          "bytes": 8,
+          "sha256": "6cc16abd70eefb90dc0ba0d14fb088630873b2c6ad943f7442356735984c35a3"
+        }
+      }
+    },
+    {
+      "object": "generated/kernels_host.cpp.o",
+      "retained_object_sha256": "f97f8a5fd98b132af8ba6226608531cd3de65a4be76e06417c1934c629ffd5de",
+      "clean_baseline_object_sha256": "ff6ea61f41b56f8dce0167875c3e0d294db9eb03837475b54b417f376bb641bf",
+      "all_text_sections_identical": true,
+      "sections": {
+        "__TEXT/__text": {
+          "bytes": 74732,
+          "sha256": "761209da1312343df2ba25d4264524b4cf872c0228c0087284e762b8fb26106b"
+        },
+        "__TEXT/__cstring": {
+          "bytes": 4042,
+          "sha256": "1e139d912dbe7ba6555de7072beec5f26ab8cdd2c77f065fd00db02faa10a5c1"
+        }
+      }
+    }
+  ],
+  "scope": "Read-only checks of cached backend and generated-kernel objects against the clean new-OS exact-main cost build. Generated CPU instructions/constants, generated host code/metadata and embedded Metal source bytes match. Native backend instruction differences are confined to source_filename diagnostic path-length arguments; other diagnostic string differences are only the checkout root. This is not full linked-binary identity or a claim that every cached object was compared. No physical outputs, assertions or gates were normalized. All timing pairs run both binaries on the new OS; full numerical trace/work controls remain separately recorded."
+}

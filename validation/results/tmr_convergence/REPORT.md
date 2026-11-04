@@ -779,10 +779,28 @@ A separate exact-main cost baseline is now rebuilt on the new OS from 165
 verified solver files and the unchanged diagnostic benchmark. All 30 physical
 report samples, all 30 inner-work samples, actual controls and exit status
 reproduce for each ordinary SST/SA CPU/Metal control. The scalar-pseudo-time
-pairs below use this build and a candidate compiled on the same new OS.
+pairs below use this build and a candidate incrementally rebuilt and linked on the new OS.
 Options 1–6 will also have their SIMPLEC timing pairs replayed on the new OS,
 using both frozen old-build artifacts in each pair. Their old-OS timings
 remain historical; old seconds will not enter a new ratio.
+
+The candidate builds are incremental: unchanged CPU/Metal backend and
+kernel objects compiled before the reboot were retained. They are not clean
+rebuilds of every object. A read-only check against the clean new-OS cost
+baseline finds the generated CPU instructions/constants, host dispatch code
+and metadata, and embedded Metal shader source byte-identical. The native
+backend instruction differences are confined to diagnostic `source_filename`
+path-length arguments: 19 Metal instructions and six CPU instructions.
+Other backend string differences are only the checkout root; numeric
+constants and exception tables match. No solver output or assertion is
+normalized by this object inspection.
+
+The checked archived new-OS cost candidates and baseline also record the same
+linked minimum OS 26.5, SDK 26.5 and linker 1267.0. Both sides of every pair
+run on macOS 27.2. This check covers the stated objects, not full linked-binary
+identity or every cached object. The separate numerical/work controls still
+apply. Hashes and scope are in
+[os27-backend-build-control.json](os27-backend-build-control.json).
 
 ### Option decisions and allocation cost
 

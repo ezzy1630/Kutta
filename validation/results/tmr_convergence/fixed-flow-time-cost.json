@@ -354,5 +354,6 @@
   "quick_tier": "fixed-flow-time-quick.json",
   "full_study": "default-study-fixed-flow-time.json",
   "changed_values": "fixed-flow-time-effects.json",
-  "stopping_iteration_comparison": "fixed-flow-time-iteration-cost.json"
+  "stopping_iteration_comparison": "fixed-flow-time-iteration-cost.json",
+  "incremental_backend_build_control": "os27-backend-build-control.json"
 }

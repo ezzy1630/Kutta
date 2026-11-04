@@ -352,5 +352,6 @@
   "runtime_scope": "Coarse NASA plate, SST/SA with ordinary SIMPLEC controls and original 3000-step budget. Timings are candidate / baseline on a shared machine. Early-stop differences are retained and are not equal-accuracy speedups. Reduced work on a failed-budget solve is not convergence or accuracy acceptance.",
   "source_scope": "Retained byte-identical 36 B/cell SST cleanup and original Metal runtime. Compiled default-study header differs only by the named control changes. All live paired input hashes, actual controls and reproduced endpoints/work checked before publication.",
   "full_study": "default-study-scalar-absolute.json",
-  "changed_values": "scalar-absolute-effects.json"
+  "changed_values": "scalar-absolute-effects.json",
+  "incremental_backend_build_control": "os27-backend-build-control.json"
 }
