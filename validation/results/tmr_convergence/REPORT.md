@@ -726,7 +726,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Late step time, SST / SA: CPU 0.988x / 0.936x, Metal 1.046x / 1.260x; Metal SA total 1.187x; larger T3A whole case 1.027x (1.006–1.048) | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates still fail at 3,000. Late time, SST / SA: CPU 1.021x / 1.012x, Metal 1.006x / 0.980x; SA inner work unchanged | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
-| Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
+| Compensated scalar transport | Full study running; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→10,677 CPU / 73,502→10,910 Metal; SA unchanged. Late time, SST / SA: CPU 0.845x / 0.992x, Metal 0.634x / 1.079x | 32 / 16 | Pending |
 | Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
 | Scalar steady tolerance 1e-6 | Pending | Pending | 24 / 12 | Pending |
 | Scalar absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
@@ -1222,6 +1222,37 @@ at 152,584,792 process bytes. The earlier elbow timing uses Coupled and its
 separate pressure tolerance is inactive. Checked controls, endpoints, work,
 binary hashes and paired ranges are in
 [pressure-absolute-cost.json](pressure-absolute-cost.json).
+
+### Scalar compensation: cost measured, numerical decision pending
+
+The fifth singleton enables compensated scalar transport for SST and SA.
+Its quick tier passes 307 cases and 7,990,154 assertions; the full slow
+comparison remains in progress. These costs do not qualify a default.
+
+All four ordinary-control plate solves still miss convergence at 3,000.
+SST scalar inner work falls from 72,239 to 10,677 on CPU and from 73,502
+to 10,910 on Metal. SA scalar work remains 417 on both backends. Device
+storage increases by 32 B/cell for SST and 16 B/cell for SA. This is scalar
+storage alone, separate from compensated momentum's larger allocation.
+
+Two alternating AB, BA pairs per model/backend measure late-step time over
+steps 1,501–3,000. Candidate/baseline median ratios are:
+
+| Model / backend | Late time ratio, median (range) | Total solver time ratio |
+|---|---:|---:|
+| SST CPU | 0.845 (0.841–0.849) | 0.855 |
+| SST Metal | 0.634 (0.633–0.634) | 0.626 |
+| SA CPU | 0.992 (0.982–1.002) | 0.996 |
+| SA Metal | 1.079 (0.967–1.190) | 1.048 |
+
+SST CPU's final maximum defect worsens from `1.487815e-4` to `1.649299e-4`;
+SST Metal improves from `1.835793e-4` to `7.874356e-5`. Neither meets the
+unchanged gate. Reduced inner work and faster failed-budget runs do not
+establish a convergence or accuracy improvement. SA's paired Metal spread
+includes both faster and slower steps, so its measured median is not a
+uniform slowdown claim. The paired runs peak at 152,126,040 process bytes.
+Actual settings, numerical endpoints, inner work, binary/receipt hashes and
+ranges are in [scalar-compensation-cost.json](scalar-compensation-cost.json).
 
 ### Fresh remaining-failure baseline
 
