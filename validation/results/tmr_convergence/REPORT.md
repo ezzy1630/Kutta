@@ -687,11 +687,13 @@ slow comparison validate integration with main `271b31f` on CPU and Metal.
 After validation, this lane's fixture links and temporary main-source worktree
 were removed. No lane processes remain running. No push or PR was made.
 
-## 2026-11-03 UTC: defaults and remaining convergence study
+## 2026-11-03–04 UTC: defaults and remaining convergence study
 
-This follow-up is in progress on base `e014e36`. Four of twelve default
-studies are complete. Compensation and slack 16 regress gates; tighter
-momentum and pressure tolerances qualify numerically. No new default or
+This follow-up is in progress on base `e014e36`. Five of twelve default
+studies are complete. Momentum compensation and slack 16 regress gates;
+tighter momentum and pressure tolerances preserve every gate. Scalar
+compensation also preserves every gate outcome, with passing CLI INFO
+identity changes retained in the comparison. No new default or
 convergence fix has been accepted. The 3,000-step budget, all reference values and every
 outer gate remain unchanged. The shared exact-main baseline and the first
 complete default-candidate comparison are recorded below. Other candidates
@@ -709,9 +711,11 @@ main's unchanged `tools/forensics/compare_slow_assertions.py`.
 
 ### Option decisions and allocation cost
 
-Compensation and slack 16 are rejected by their completed full slow tiers;
+Momentum compensation and slack 16 are rejected by their completed full slow tiers;
 slack 16 also fails the quick tier. Momentum and pressure tolerances preserve
-all slow gates and pass the quick tier. Their promotion awaits the remaining
+all slow gates and pass the quick tier. Scalar compensation also preserves
+all outcomes and passes quick; its canonical comparison retains 76 passing
+missing/new INFO identities. Promotion awaits the remaining
 studies and combined-default proof. Other decisions remain pending. Allocation measurements
 come from independent one-step CPU plate probes, changing one setting at a
 time from ordinary settings, on 816 cells. The compensation row instead uses
@@ -726,7 +730,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Late step time, SST / SA: CPU 0.988x / 0.936x, Metal 1.046x / 1.260x; Metal SA total 1.187x; larger T3A whole case 1.027x (1.006–1.048) | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates still fail at 3,000. Late time, SST / SA: CPU 1.021x / 1.012x, Metal 1.006x / 0.980x; SA inner work unchanged | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
-| Compensated scalar transport | Full study running; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→10,677 CPU / 73,502→10,910 Metal; SA unchanged. Late time, SST / SA: CPU 0.845x / 0.992x, Metal 0.634x / 1.079x | 32 / 16 | Pending |
+| Compensated scalar transport | Full: 0 regressions/recoveries, 231 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→10,677 CPU / 73,502→10,910 Metal; SA unchanged. Late time, SST / SA: CPU 0.845x / 0.992x, Metal 0.634x / 1.079x | 32 / 16 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
 | Scalar steady tolerance 1e-6 | Pending | Pending | 24 / 12 | Pending |
 | Scalar absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
@@ -1223,11 +1227,60 @@ separate pressure tolerance is inactive. Checked controls, endpoints, work,
 binary hashes and paired ranges are in
 [pressure-absolute-cost.json](pressure-absolute-cost.json).
 
-### Scalar compensation: cost measured, numerical decision pending
+### Scalar compensation: complete comparison and cost
 
 The fifth singleton enables compensated scalar transport for SST and SA.
-Its quick tier passes 307 cases and 7,990,154 assertions; the full slow
-comparison remains in progress. These costs do not qualify a default.
+Its quick tier passes 307 cases and 7,990,154 assertions. The full slow tier
+completes all 37 cases and 201,633 assertions, retaining main's 51 failures.
+The unchanged canonical comparator reports zero regressions and recoveries,
+231 changed expanded values, 76 missing and 76 new assertion identities,
+and no missing/new cases. It exits **one**, because the 76 passing CLI
+assertions carry changed physical solver histories in INFO. All 76 original
+missing identities pass in baseline; all 76 new identities pass. No identity
+is normalized or paired with a different one to turn that result green.
+
+Every gate retains its outcome. All 153 TMR assertion identities and values
+match exactly, so the 17 convergence failures remain. Scalar compensation
+qualifies on gate outcomes, with the identity gaps disclosed; promotion still
+awaits the remaining studies and combined-default proof. Full source,
+binary and comparator identities are in
+[default-study-scalar-compensation.json](default-study-scalar-compensation.json).
+
+The 231 changes comprise 119 serialized-output equality assertions, 48
+interpolation-bound assertions and 64 derived metrics. The first two groups
+remain passing. The equality checks still confirm identical donor/converted
+outputs within each candidate run; the output contents change across the
+default study. Their full fields and interpolation reference endpoints stay
+in the ignored local canonical comparison. All 64 remaining changed metric
+pairs are in [scalar-compensation-effects.json](scalar-compensation-effects.json).
+
+| Case | Changed expanded values |
+|---|---:|
+| Native Fluent physics conversion | 103 |
+| T3A transition | 55 |
+| V6 mixing elbow | 24 |
+| General Fluent/Kutta conversion | 16 |
+| Standard k-epsilon elbow / SST nozzle | 11 |
+| SST moving-wall/frame invariance | 5 |
+| Thin-wall Ahmed SIMPLEC/Coupled | 4 |
+| SST pressure/mass inlets | 4 |
+| Tyrrell lift | 3 |
+| S1223 transition | 3 |
+| S1223 without transition | 2 |
+| Ahmed drag | 1 |
+
+Eighteen existing failed V6 metrics change: ten improve and eight worsen.
+Their largest absolute movement in the printed metrics is `1e-6`; none
+recovers or introduces a failed gate. The maximum field L2 error is
+`0.144782` → `0.144783` on both backends and still fails. T3A's verified
+laminar/turbulent Cf errors change from `0.0169599` / `0.0134799` to
+`0.0169701` / `0.0134984`, retaining their `0.03` gates. These are changed
+values, not new accuracy acceptance. V6 still takes 200 seeded and 250
+cold-start steps on both backends; T3A still takes its original 6,000 steps.
+
+The heaviest completed case peaks at 2,216,233,072 bytes; the heaviest TMR
+case peaks at 396,608,424 bytes. These fresh case processes stay below the
+3 GB guard. They do not prove a monolithic-suite retention fix.
 
 All four ordinary-control plate solves still miss convergence at 3,000.
 SST scalar inner work falls from 72,239 to 10,677 on CPU and from 73,502

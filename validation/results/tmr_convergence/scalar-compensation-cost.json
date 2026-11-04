@@ -1,5 +1,5 @@
 {
-  "status": "Cost checks complete; full slow-tier study is still running. This receipt does not qualify or change a default.",
+  "status": "Full slow tier preserves every gate outcome: zero regressions/recoveries, 231 changed values and 76 missing/new passing INFO identities. Canonical comparator exits one on identity gaps. Quick and costs complete; promotion awaits remaining studies and combined proof.",
   "candidate": "Only SST and SA compensated_transport changes from false to true, with retained byte-identical SST unused-fit cleanup and original Metal runtime.",
   "baseline_sha256": "982116e6897e571b239d0650104e268c9fa618221d557f6e16dce834046875bd",
   "candidate_sha256": "94ea48ca6523b811698e570abc54c91c880577a5429b4d2bdf4d1ae9103f94e7",
@@ -245,5 +245,7 @@
       "peak_bytes_candidate": 207241936
     }
   ],
-  "runtime_scope": "Coarse ordinary SIMPLEC plate, original 3000-step budget. All eight baseline/candidate outcomes remain unconverged. Ratios are candidate / baseline; shared-machine ranges do not establish costs on other cases. Reduced inner work does not by itself establish a physical-convergence or accuracy improvement."
+  "runtime_scope": "Coarse ordinary SIMPLEC plate, original 3000-step budget. All eight baseline/candidate outcomes remain unconverged. Ratios are candidate / baseline; shared-machine ranges do not establish costs on other cases. Reduced inner work does not by itself establish a physical-convergence or accuracy improvement.",
+  "full_study": "default-study-scalar-compensation.json",
+  "changed_values": "scalar-compensation-effects.json"
 }
