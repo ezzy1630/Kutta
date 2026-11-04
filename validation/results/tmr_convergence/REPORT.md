@@ -814,7 +814,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Scalar steady tolerance 1e-6 | Full: 0 regressions/recoveries, 234 changed values, 74 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. Late time, SST / SA: CPU 0.820x / 1.000x, Metal 0.629x / 1.014x | 24 / 12 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 43 changed values, 20 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar work: 72,239→155,816 CPU / 73,502→155,771 Metal; SA 417→138,240 / 144,778. New-OS total time, SST / SA: CPU 1.176x / 1.259x, Metal 1.416x / 1.966x | 0 / 0 | Gate outcomes eligible; promotion pending combined proof; material cost disclosed |
 | Fixed flow pseudo-time .1 | Full: 1 regression, 2 recoveries, 940 changed values, 88 missing / 80 new passing identities; quick adds 7 failures in 4 cases | Cavity steps 600/600/900→1,400/1,000/1,200 on both backends; V6 seeded 200→150 / cold 250→200 but all 25 accuracy failures remain. Four ordinary plates still fail at 3,000. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in |
-| Three inner absolute tolerances together | Pending | Pending | Pending group measurement | Pending |
+| Three inner absolute tolerances together | Full running; quick passes | All four ordinary plates fail at 3,000. Momentum work 3.32–3.60x; SST scalar work 2.12–2.17x, SA 317–324x. New-OS total time, SST / SA: CPU 1.173x / 1.268x, Metal 1.445x / 2.031x | 0 / 0 | Decision pending full comparison; material cost disclosed |
 | Four scalar controls together | Pending | Pending | Pending group measurement | Pending |
 | Combined precision controls | Pending | Pending | Pending group measurement | Pending |
 
@@ -1747,6 +1747,51 @@ not a reduction of monolithic retention. The guarded comparison publication
 peaks separately at 1,707,083,480 bytes and is not a CFD run. Full counts,
 binary/source hashes, per-case resources and control comparisons are in
 [default-study-fixed-flow-time.json](default-study-fixed-flow-time.json).
+
+### Three inner tolerances: grouped new-OS cost
+
+The tenth study sets momentum, pressure and SST/SA scalar absolute
+tolerances to `1e-20` together. Quick passes all 307 cases and 7,990,154
+assertions. Its full 37-case slow run is in progress; no default decision
+is made from the cost probes.
+
+All four ordinary plate probes still miss convergence at 3,000. Their
+actual inner work is:
+
+| Model / backend | Before: momentum / pressure / scalar | After |
+|---|---:|---:|
+| SST CPU | 8,974 / 60,635 / 72,239 | 31,712 / 57,299 / 156,968 |
+| SST Metal | 9,303 / 58,694 / 73,502 | 33,204 / 57,573 / 155,965 |
+| SA CPU | 9,415 / 34,727 / 417 | 33,864 / 33,856 / 135,290 |
+| SA Metal | 9,750 / 34,514 / 417 | 32,392 / 34,330 / 132,229 |
+
+Momentum work rises 3.32–3.60x, SST scalar work 2.12–2.17x and SA scalar
+work 317–324x. Maximum defects improve for SST on both backends and SA on
+CPU, but worsen for SA on Metal. None reaches its unchanged convergence
+gate. No counted device storage is added on either backend.
+
+Both sides of two alternating AB, BA pairs run on macOS 27.2:
+
+| Model / backend | Late time ratio, median (range) | Total solver time ratio, median (range) |
+|---|---:|---:|
+| SST CPU | 1.171 (1.168–1.174) | 1.173 (1.172–1.174) |
+| SST Metal | 1.467 (1.465–1.470) | 1.445 (1.444–1.447) |
+| SA CPU | 1.281 (1.277–1.284) | 1.268 (1.267–1.269) |
+| SA Metal | 2.087 (2.084–2.089) | 2.031 (2.023–2.038) |
+
+Late means steps 1,501–3,000. The grouped tolerances retain a material
+ordinary-solve penalty, reaching about twice the SA Metal solver time.
+No ordinary iteration-count or convergence benefit offsets it in these
+probes. These are costs of failed-budget solves, not timings at equal
+accepted accuracy. The peak process footprint among the plate pairs is
+149,537,440 bytes.
+
+In the separate 40-step Coupled elbow startup, block and scalar work are
+unchanged. Four alternating pairs give late-step ratios 1.003
+(1.001–1.007) on CPU and 0.999 (0.990–1.006) on Metal. This different path
+does not erase the SIMPLEC cost. Actual controls, new-OS baseline build
+proof, complete endpoints/work, direct allocation deltas and paired ranges
+are in [inner-absolute-group-cost.json](inner-absolute-group-cost.json).
 
 ### Fresh remaining-failure baseline
 
