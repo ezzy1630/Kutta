@@ -1,0 +1,940 @@
+{
+  "variant": "inner-absolute-group",
+  "full_slow_complete": true,
+  "baseline_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "source": {
+    "variant": "inner-absolute-group",
+    "base": "e014e36",
+    "source_head": "e3b9cbf2ab36b6d9e2f856ade8378766c0d96bfb",
+    "header_sha256": "2a27014fca735e553383f4ef546311b64a7b3fe03ecc51c1eb65ae37f088a91a",
+    "solver_cpp_sha256": "85e7a76fa15cfa67005f241a421d1825036b300fb66598097993e50b4871de33",
+    "metal_cpp_sha256": "6159ac4c86068449a641a833d8c092c7c05dc3de9859a9ddc59313bdefa0b186",
+    "binary_sha256": "ab41552d155ad1df32c69e5b9ef1e5ff3af8bc7b0a4d9f3f15ee992b9340ac9d",
+    "cli_sha256": "51cb0d9475b4783a0fca29950ee638f17f1367e465e3b7ff0c4bcc6f1c866c8e",
+    "benchmark_sha256": "bac7b969ffc72cfe641d80b862c12778a99d8a081b2cda766d85c03de2c07e89",
+    "measurement_environment": {
+      "system": "Darwin",
+      "darwin_release": "27.2.0",
+      "macos_product_version": "27.2",
+      "macos_build": "26B123",
+      "machine": "arm64",
+      "python_version": "3.14.10"
+    },
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "quick_exit": 0,
+    "slow_exit": 1,
+    "comparison_exit": 1
+  },
+  "baseline_xml_sha256": "aa01955caa4f6601b141ca32cb154644bfdfee56fd498bb53d88aae90264b522",
+  "candidate_xml_sha256": "8a367e8322d2b072b2fb34acef307926d614f92d7d3945acd8c68da9c7970ddb",
+  "comparator_sha256": "5fa871f78f491b703b0e7bb052085f0c0b0bbc2b589813867dc7968b4f807c50",
+  "canonical_comparator_exit": 1,
+  "canonical_no_new_failures": false,
+  "quick_exit": 0,
+  "counts": {
+    "regressions": 0,
+    "recoveries": 0,
+    "changed_values": 49,
+    "missing_assertions": 20,
+    "new_assertions": 20,
+    "missing_cases": 0,
+    "new_cases": 0
+  },
+  "cases": [
+    {
+      "case": "Kutta cases converted from Fluent cases solve to the same bytes on every backend",
+      "baseline_assertions": 68,
+      "final_assertions": 68,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "The NACA ground-effect wing from a bare mesh and a Kutta case solves like its donor Fluent case",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs",
+      "baseline_assertions": 477,
+      "final_assertions": 477,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Corpus FSAE physics preserve strict solver holds or convert with identical outputs",
+      "baseline_assertions": 0,
+      "final_assertions": 0,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re100 and Re400 cavity reported deviations",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V4 Fluent cavity matches its actual grid",
+      "baseline_assertions": 763,
+      "final_assertions": 763,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "baseline_assertions": 17044,
+      "final_assertions": 17044,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent k-epsilon elbow converges with second-order pressure",
+      "baseline_assertions": 11220,
+      "final_assertions": 11220,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent laminar 2D cylinder matches converged Fluent fields",
+      "baseline_assertions": 207,
+      "final_assertions": 207,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "baseline_assertions": 2565,
+      "final_assertions": 2565,
+      "baseline_failed": 25,
+      "final_failed": 25
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "baseline_assertions": 28,
+      "final_assertions": 28,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 9,
+      "final_assertions": 9,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "baseline_assertions": 8,
+      "final_assertions": 8,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V12 native Fluent polynomial fan import acceptance",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 1,
+      "final_failed": 1
+    },
+    {
+      "case": "V8 realizable KE scalable channel MKM DNS profile and momentum balance",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes hex refinement",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes tet refinement",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 8,
+      "final_failed": 8
+    },
+    {
+      "case": "FV V1 manufactured scalar diffusion and upwind refinement",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV SIMPLEC develops planar Couette flow with moving and slip walls",
+      "baseline_assertions": 14,
+      "final_assertions": 14,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "baseline_assertions": 36,
+      "final_assertions": 36,
+      "baseline_failed": 2,
+      "final_failed": 2
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "baseline_assertions": 47,
+      "final_assertions": 47,
+      "baseline_failed": 6,
+      "final_failed": 6
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "baseline_assertions": 70,
+      "final_assertions": 70,
+      "baseline_failed": 9,
+      "final_failed": 9
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "baseline_assertions": 161470,
+      "final_assertions": 161470,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 11,
+      "final_assertions": 11,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.1 translating-wall Couette hex and poly",
+      "baseline_assertions": 104,
+      "final_assertions": 104,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.2 rotating-wall Taylor Couette hex and poly",
+      "baseline_assertions": 6668,
+      "final_assertions": 6668,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V8 Darcy Forchheimer pressure drop and oblique directions",
+      "baseline_assertions": 24,
+      "final_assertions": 24,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10 incompressible pressure and mass-flow inlets",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V11 internal fan polynomial and porous jump pressure discontinuity",
+      "baseline_assertions": 312,
+      "final_assertions": 312,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.3 rotation and translation preserve Taylor Couette pressure",
+      "baseline_assertions": 6,
+      "final_assertions": 6,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent research downloads retain published byte identities",
+      "baseline_assertions": 264,
+      "final_assertions": 264,
+      "baseline_failed": 0,
+      "final_failed": 0
+    }
+  ],
+  "slow_assertions": {
+    "baseline": 201633,
+    "candidate": 201633,
+    "baseline_failures": 51,
+    "candidate_failures": 51
+  },
+  "peak_completed_case_bytes": 2202143000,
+  "completed_case_resources": [
+    {
+      "index": 1,
+      "case": "Kutta cases converted from Fluent cases solve to the same bytes on every backend",
+      "sampled_peak_bytes": 259033104,
+      "reported_peak_bytes": 174277424,
+      "peak_bytes": 259033104
+    },
+    {
+      "index": 2,
+      "case": "The NACA ground-effect wing from a bare mesh and a Kutta case solves like its donor Fluent case",
+      "sampled_peak_bytes": 1147096,
+      "reported_peak_bytes": 1900952,
+      "peak_bytes": 1900952
+    },
+    {
+      "index": 3,
+      "case": "Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs",
+      "sampled_peak_bytes": 121538384,
+      "reported_peak_bytes": 10502792,
+      "peak_bytes": 121538384
+    },
+    {
+      "index": 4,
+      "case": "Corpus FSAE physics preserve strict solver holds or convert with identical outputs",
+      "sampled_peak_bytes": 722944984,
+      "reported_peak_bytes": 722944984,
+      "peak_bytes": 722944984
+    },
+    {
+      "index": 5,
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "sampled_peak_bytes": 265012280,
+      "reported_peak_bytes": 263865184,
+      "peak_bytes": 265012280
+    },
+    {
+      "index": 6,
+      "case": "FV V3 Re100 and Re400 cavity reported deviations",
+      "sampled_peak_bytes": 164201408,
+      "reported_peak_bytes": 163054312,
+      "peak_bytes": 164201408
+    },
+    {
+      "index": 7,
+      "case": "FV V4 Fluent cavity matches its actual grid",
+      "sampled_peak_bytes": 144622528,
+      "reported_peak_bytes": 143475432,
+      "peak_bytes": 144622528
+    },
+    {
+      "index": 8,
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "sampled_peak_bytes": 270451768,
+      "reported_peak_bytes": 274056032,
+      "peak_bytes": 274056032
+    },
+    {
+      "index": 9,
+      "case": "Fluent k-epsilon elbow converges with second-order pressure",
+      "sampled_peak_bytes": 229033016,
+      "reported_peak_bytes": 232604512,
+      "peak_bytes": 232604512
+    },
+    {
+      "index": 10,
+      "case": "Fluent laminar 2D cylinder matches converged Fluent fields",
+      "sampled_peak_bytes": 171737856,
+      "reported_peak_bytes": 175145728,
+      "peak_bytes": 175145728
+    },
+    {
+      "index": 11,
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "sampled_peak_bytes": 268010552,
+      "reported_peak_bytes": 266945376,
+      "peak_bytes": 268010552
+    },
+    {
+      "index": 12,
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "sampled_peak_bytes": 1396688528,
+      "reported_peak_bytes": 1398130320,
+      "peak_bytes": 1398130320
+    },
+    {
+      "index": 13,
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "sampled_peak_bytes": 1233061616,
+      "reported_peak_bytes": 1235191320,
+      "peak_bytes": 1235191320
+    },
+    {
+      "index": 14,
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "sampled_peak_bytes": 731743408,
+      "reported_peak_bytes": 733234352,
+      "peak_bytes": 733234352
+    },
+    {
+      "index": 15,
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "sampled_peak_bytes": 2200029680,
+      "reported_peak_bytes": 2202143000,
+      "peak_bytes": 2202143000
+    },
+    {
+      "index": 16,
+      "case": "FSAE V12 native Fluent polynomial fan import acceptance",
+      "sampled_peak_bytes": 1147096,
+      "reported_peak_bytes": 1917360,
+      "peak_bytes": 1917360
+    },
+    {
+      "index": 17,
+      "case": "V8 realizable KE scalable channel MKM DNS profile and momentum balance",
+      "sampled_peak_bytes": 109871944,
+      "reported_peak_bytes": 108741232,
+      "peak_bytes": 109871944
+    },
+    {
+      "index": 18,
+      "case": "FV V2 manufactured Navier Stokes hex refinement",
+      "sampled_peak_bytes": 149341048,
+      "reported_peak_bytes": 149373600,
+      "peak_bytes": 149373600
+    },
+    {
+      "index": 19,
+      "case": "FV V2 manufactured Navier Stokes tet refinement",
+      "sampled_peak_bytes": 287359840,
+      "reported_peak_bytes": 287359840,
+      "peak_bytes": 287359840
+    },
+    {
+      "index": 20,
+      "case": "FV V1 manufactured scalar diffusion and upwind refinement",
+      "sampled_peak_bytes": 571671632,
+      "reported_peak_bytes": 571671632,
+      "peak_bytes": 571671632
+    },
+    {
+      "index": 21,
+      "case": "FV SIMPLEC develops planar Couette flow with moving and slip walls",
+      "sampled_peak_bytes": 109232992,
+      "reported_peak_bytes": 108167816,
+      "peak_bytes": 109232992
+    },
+    {
+      "index": 22,
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "sampled_peak_bytes": 202327000,
+      "reported_peak_bytes": 201868032,
+      "peak_bytes": 202327000
+    },
+    {
+      "index": 23,
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "sampled_peak_bytes": 371672000,
+      "reported_peak_bytes": 372130752,
+      "peak_bytes": 372130752
+    },
+    {
+      "index": 24,
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "sampled_peak_bytes": 397951984,
+      "reported_peak_bytes": 397951984,
+      "peak_bytes": 397951984
+    },
+    {
+      "index": 25,
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "sampled_peak_bytes": 355615560,
+      "reported_peak_bytes": 355615560,
+      "peak_bytes": 355615560
+    },
+    {
+      "index": 26,
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "sampled_peak_bytes": 891864360,
+      "reported_peak_bytes": 900842792,
+      "peak_bytes": 900842792
+    },
+    {
+      "index": 27,
+      "case": "FSAE V7.1 translating-wall Couette hex and poly",
+      "sampled_peak_bytes": 114344800,
+      "reported_peak_bytes": 113197704,
+      "peak_bytes": 114344800
+    },
+    {
+      "index": 28,
+      "case": "FSAE V7.2 rotating-wall Taylor Couette hex and poly",
+      "sampled_peak_bytes": 160449448,
+      "reported_peak_bytes": 159318736,
+      "peak_bytes": 160449448
+    },
+    {
+      "index": 29,
+      "case": "FSAE V8 Darcy Forchheimer pressure drop and oblique directions",
+      "sampled_peak_bytes": 110314360,
+      "reported_peak_bytes": 109167264,
+      "peak_bytes": 110314360
+    },
+    {
+      "index": 30,
+      "case": "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance",
+      "sampled_peak_bytes": 157877136,
+      "reported_peak_bytes": 156779192,
+      "peak_bytes": 157877136
+    },
+    {
+      "index": 31,
+      "case": "FSAE V10 incompressible pressure and mass-flow inlets",
+      "sampled_peak_bytes": 113755000,
+      "reported_peak_bytes": 112624288,
+      "peak_bytes": 113755000
+    },
+    {
+      "index": 32,
+      "case": "FSAE V11 internal fan polynomial and porous jump pressure discontinuity",
+      "sampled_peak_bytes": 112444304,
+      "reported_peak_bytes": 111329976,
+      "peak_bytes": 112444304
+    },
+    {
+      "index": 33,
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "sampled_peak_bytes": 110216056,
+      "reported_peak_bytes": 109150904,
+      "peak_bytes": 110216056
+    },
+    {
+      "index": 34,
+      "case": "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette",
+      "sampled_peak_bytes": 148341648,
+      "reported_peak_bytes": 147210936,
+      "peak_bytes": 148341648
+    },
+    {
+      "index": 35,
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "sampled_peak_bytes": 110216056,
+      "reported_peak_bytes": 109249184,
+      "peak_bytes": 110216056
+    },
+    {
+      "index": 36,
+      "case": "FSAE V9.3 rotation and translation preserve Taylor Couette pressure",
+      "sampled_peak_bytes": 148161424,
+      "reported_peak_bytes": 147014328,
+      "peak_bytes": 148161424
+    },
+    {
+      "index": 37,
+      "case": "Fluent research downloads retain published byte identities",
+      "sampled_peak_bytes": 3015280,
+      "reported_peak_bytes": 1917360,
+      "peak_bytes": 3015280
+    }
+  ],
+  "peak_completed_tmr_case_bytes": 397951984,
+  "executed_slow_test_binary_sha256": "ab41552d155ad1df32c69e5b9ef1e5ff3af8bc7b0a4d9f3f15ee992b9340ac9d",
+  "executed_frozen_binary_sha256": {
+    "kutta-tests": "ab41552d155ad1df32c69e5b9ef1e5ff3af8bc7b0a4d9f3f15ee992b9340ac9d",
+    "kutta": "51cb0d9475b4783a0fca29950ee638f17f1367e465e3b7ff0c4bcc6f1c866c8e"
+  },
+  "tmr_cases": [
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "baseline_assertions": 36,
+      "final_assertions": 36,
+      "baseline_failed": 2,
+      "final_failed": 2
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "baseline_assertions": 47,
+      "final_assertions": 47,
+      "baseline_failed": 6,
+      "final_failed": 6
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "baseline_assertions": 70,
+      "final_assertions": 70,
+      "baseline_failed": 9,
+      "final_failed": 9
+    }
+  ],
+  "tmr_identity_and_value_changes": {
+    "regressions": 0,
+    "recoveries": 0,
+    "changed_values": 0,
+    "missing_assertions": 0,
+    "new_assertions": 0
+  },
+  "regressions_by_case": {},
+  "canonical_missing_identity_original_outcomes": {
+    "Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs": {
+      "passed": 20,
+      "failed": 0
+    }
+  },
+  "canonical_new_identity_outcomes": {
+    "passed": 20,
+    "failed": 0
+  },
+  "cost_measurement_environment": {
+    "system": "Darwin",
+    "darwin_release": "27.2.0",
+    "macos_product_version": "27.2",
+    "macos_build": "26B123",
+    "machine": "arm64",
+    "python_version": "3.14.10"
+  },
+  "cost_binaries_sha256": {
+    "baseline_sha256": "8fed216cc5bcf73ce8149a6497ebc728484c58bce96f490365201aa155694673",
+    "candidate_sha256": "bac7b969ffc72cfe641d80b862c12778a99d8a081b2cda766d85c03de2c07e89"
+  },
+  "cost_baseline_build_control": {
+    "exact_main_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+    "exact_solver_files_verified": 165,
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "measurement_environment": {
+      "system": "Darwin",
+      "darwin_release": "27.2.0",
+      "macos_product_version": "27.2",
+      "macos_build": "26B123",
+      "machine": "arm64",
+      "python_version": "3.14.10"
+    },
+    "control_receipt_sha256": "dfff4b9428d7e56df4b8ba60674fe17a032b9efc5c405f2fbed605c5805007d9",
+    "reproduction_controls": [
+      {
+        "model": "sst",
+        "backend": "cpu",
+        "checks": {
+          "exit": true,
+          "physical_reports": true,
+          "all_inner_work": true,
+          "actual_controls": true
+        },
+        "actual_wait_status": 2,
+        "physical_report_samples": 30,
+        "work_samples": 30
+      },
+      {
+        "model": "sst",
+        "backend": "metal",
+        "checks": {
+          "exit": true,
+          "physical_reports": true,
+          "all_inner_work": true,
+          "actual_controls": true
+        },
+        "actual_wait_status": 2,
+        "physical_report_samples": 30,
+        "work_samples": 30
+      },
+      {
+        "model": "sa",
+        "backend": "cpu",
+        "checks": {
+          "exit": true,
+          "physical_reports": true,
+          "all_inner_work": true,
+          "actual_controls": true
+        },
+        "actual_wait_status": 2,
+        "physical_report_samples": 30,
+        "work_samples": 30
+      },
+      {
+        "model": "sa",
+        "backend": "metal",
+        "checks": {
+          "exit": true,
+          "physical_reports": true,
+          "all_inner_work": true,
+          "actual_controls": true
+        },
+        "actual_wait_status": 2,
+        "physical_report_samples": 30,
+        "work_samples": 30
+      }
+    ]
+  },
+  "cost_work_semantics": {
+    "momentum": "Sum of separate momentum-component iterations; zero for coupled block.",
+    "pressure": "SIMPLEC pressure correction or coupled momentum/pressure block, following IterationReport.pressure.",
+    "scalar": "Sum of turbulence-scalar inner iterations."
+  },
+  "early_coupled_elbow_cost_summary": [
+    {
+      "backend": "cpu",
+      "paired_time_ratio_median": 1.0032431495948937,
+      "paired_time_ratio_range": [
+        1.000614859178026,
+        1.0066165611794398
+      ],
+      "baseline_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 439
+      },
+      "candidate_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 439
+      },
+      "peak_bytes_baseline": 64193040,
+      "peak_bytes_candidate": 64160272
+    },
+    {
+      "backend": "metal",
+      "paired_time_ratio_median": 0.9989539623802949,
+      "paired_time_ratio_range": [
+        0.9897586148329611,
+        1.005868192969187
+      ],
+      "baseline_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 438
+      },
+      "candidate_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 438
+      },
+      "peak_bytes_baseline": 206750440,
+      "peak_bytes_candidate": 206504704
+    }
+  ],
+  "ordinary_simplec_plate_iteration_cost": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000148781501615,
+      "inner_work": {
+        "momentum": 8974,
+        "pressure": 60635,
+        "scalar": 72239
+      },
+      "device_bytes_at_stop": 2110408
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000147194249065,
+      "inner_work": {
+        "momentum": 31712,
+        "pressure": 57299,
+        "scalar": 156968
+      },
+      "device_bytes_at_stop": 2110408
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000183579331842,
+      "inner_work": {
+        "momentum": 9303,
+        "pressure": 58694,
+        "scalar": 73502
+      },
+      "device_bytes_at_stop": 2192328
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000100786761065,
+      "inner_work": {
+        "momentum": 33204,
+        "pressure": 57573,
+        "scalar": 155965
+      },
+      "device_bytes_at_stop": 2192328
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000204057944461,
+      "inner_work": {
+        "momentum": 9415,
+        "pressure": 34727,
+        "scalar": 417
+      },
+      "device_bytes_at_stop": 1905412
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000121671248728,
+      "inner_work": {
+        "momentum": 33864,
+        "pressure": 33856,
+        "scalar": 135290
+      },
+      "device_bytes_at_stop": 1905412
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000183064395142,
+      "inner_work": {
+        "momentum": 9750,
+        "pressure": 34514,
+        "scalar": 417
+      },
+      "device_bytes_at_stop": 1987332
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000231559146833,
+      "inner_work": {
+        "momentum": 32392,
+        "pressure": 34330,
+        "scalar": 132229
+      },
+      "device_bytes_at_stop": 1987332
+    }
+  ],
+  "paired_simplec_plate_cost": {
+    "protocol": "Coarse NASA plate, SST/SA, ordinary SIMPLEC controls; solver-loop time. Early convergence is retained; both status and iteration count are reported. Late per-iteration timing is available only when both runs reach step3000.",
+    "pairs": 2,
+    "summary": [
+      {
+        "model": "sst",
+        "backend": "cpu",
+        "paired_solver_time_to_stop_ratio_median": 1.172651063422374,
+        "paired_solver_time_to_stop_ratio_range": [
+          1.1716716490294363,
+          1.1736304778153115
+        ],
+        "paired_late_time_per_iteration_ratio_median": 1.1709053092608168,
+        "paired_late_time_per_iteration_ratio_range": [
+          1.1678542019565203,
+          1.1739564165651133
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      },
+      {
+        "model": "sst",
+        "backend": "metal",
+        "paired_solver_time_to_stop_ratio_median": 1.4453684615939963,
+        "paired_solver_time_to_stop_ratio_range": [
+          1.444050058265505,
+          1.4466868649224878
+        ],
+        "paired_late_time_per_iteration_ratio_median": 1.4674714462824077,
+        "paired_late_time_per_iteration_ratio_range": [
+          1.465186381127169,
+          1.4697565114376463
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      },
+      {
+        "model": "sa",
+        "backend": "cpu",
+        "paired_solver_time_to_stop_ratio_median": 1.2679608765611983,
+        "paired_solver_time_to_stop_ratio_range": [
+          1.267038698645471,
+          1.2688830544769256
+        ],
+        "paired_late_time_per_iteration_ratio_median": 1.2807488477235345,
+        "paired_late_time_per_iteration_ratio_range": [
+          1.2770109870459463,
+          1.2844867084011227
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      },
+      {
+        "model": "sa",
+        "backend": "metal",
+        "paired_solver_time_to_stop_ratio_median": 2.030579646923849,
+        "paired_solver_time_to_stop_ratio_range": [
+          2.022905620180566,
+          2.0382536736671315
+        ],
+        "paired_late_time_per_iteration_ratio_median": 2.086512552498004,
+        "paired_late_time_per_iteration_ratio_range": [
+          2.0842364931633433,
+          2.088788611832665
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      }
+    ],
+    "peak_process_bytes": 149537440
+  },
+  "decision": "All gate outcomes preserved, with 49 changed values and 20 missing/20 new passing native CLI INFO identities. Canonical comparator exits nonzero and no_new_failures remains false. Eligible on outcomes, with material ordinary-solve cost disclosed; promotion awaits the remaining groups and actual combined-default qualification."
+}

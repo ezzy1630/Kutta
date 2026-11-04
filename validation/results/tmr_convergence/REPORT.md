@@ -689,9 +689,10 @@ were removed. No lane processes remain running. No push or PR was made.
 
 ## 2026-11-03–04 UTC: defaults and remaining convergence study
 
-This follow-up is in progress on base `e014e36`. Nine of twelve default
+This follow-up is in progress on base `e014e36`. Ten of twelve default
 studies are complete and reviewed. Fixed flow time is rejected by both quick
-and its completed slow comparison. The three-tolerance group is running.
+and its completed slow comparison. The three-tolerance group preserves all
+gate outcomes; the scalar group is running.
 Momentum compensation and slack 16 regress gates;
 tighter momentum and pressure tolerances preserve every gate. Scalar
 compensation, scalar steady stopping, disabling scalar pseudo-time and tighter
@@ -814,7 +815,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Scalar steady tolerance 1e-6 | Full: 0 regressions/recoveries, 234 changed values, 74 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. Late time, SST / SA: CPU 0.820x / 1.000x, Metal 0.629x / 1.014x | 24 / 12 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 43 changed values, 20 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar work: 72,239→155,816 CPU / 73,502→155,771 Metal; SA 417→138,240 / 144,778. New-OS total time, SST / SA: CPU 1.176x / 1.259x, Metal 1.416x / 1.966x | 0 / 0 | Gate outcomes eligible; promotion pending combined proof; material cost disclosed |
 | Fixed flow pseudo-time .1 | Full: 1 regression, 2 recoveries, 940 changed values, 88 missing / 80 new passing identities; quick adds 7 failures in 4 cases | Cavity steps 600/600/900→1,400/1,000/1,200 on both backends; V6 seeded 200→150 / cold 250→200 but all 25 accuracy failures remain. Four ordinary plates still fail at 3,000. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in |
-| Three inner absolute tolerances together | Full running; quick passes | All four ordinary plates fail at 3,000. Momentum work 3.32–3.60x; SST scalar work 2.12–2.17x, SA 317–324x. New-OS total time, SST / SA: CPU 1.173x / 1.268x, Metal 1.445x / 2.031x | 0 / 0 | Decision pending full comparison; material cost disclosed |
+| Three inner absolute tolerances together | Full: 0 regressions/recoveries, 49 changed values, 20 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. Momentum work 3.32–3.60x; SST scalar work 2.12–2.17x, SA 317–324x. New-OS total time, SST / SA: CPU 1.173x / 1.268x, Metal 1.445x / 2.031x | 0 / 0 | Gate outcomes eligible; promotion pending remaining groups and actual combined proof; material cost disclosed |
 | Four scalar controls together | Pending | Pending | Pending group measurement | Pending |
 | Combined precision controls | Pending | Pending | Pending group measurement | Pending |
 
@@ -1752,8 +1753,8 @@ binary/source hashes, per-case resources and control comparisons are in
 
 The tenth study sets momentum, pressure and SST/SA scalar absolute
 tolerances to `1e-20` together. Quick passes all 307 cases and 7,990,154
-assertions. Its full 37-case slow run is in progress; no default decision
-is made from the cost probes.
+assertions. Its full 37-case comparison is complete, as reported below;
+no default is promoted from the cost probes alone.
 
 All four ordinary plate probes still miss convergence at 3,000. Their
 actual inner work is:
@@ -1792,6 +1793,53 @@ unchanged. Four alternating pairs give late-step ratios 1.003
 does not erase the SIMPLEC cost. Actual controls, new-OS baseline build
 proof, complete endpoints/work, direct allocation deltas and paired ranges
 are in [inner-absolute-group-cost.json](inner-absolute-group-cost.json).
+
+### Three inner tolerances: completed full comparison
+
+All 37 slow cases complete on macOS 27.2 with 201,633 assertions and 51
+failures. Main's unchanged comparator reports **zero regressions, zero
+recoveries, 49 changed values, 20 missing assertions and 20 new assertions**,
+with no missing/new cases. Its exit remains 1 and `no_new_failures=false`;
+those identity gaps are retained. All 20 original missing identities and
+all 20 new identities pass. They are native Fluent CLI assertions whose
+physical INFO changed, not assertions omitted or normalized by this study.
+
+The group preserves every gate outcome and passes quick. It is numerically
+eligible, with the substantial ordinary-solve cost above disclosed.
+Promotion still requires the remaining groups and the actual combination
+of selected defaults. This result does not qualify momentum compensation,
+slack 16 or fixed flow time, whose singleton regressions remain.
+
+The 49 changed values comprise ten passing serialized-output equality
+assertions and 39 numeric derived pairs, with no changed boolean outcomes
+or interpolation-bound assertions. Six derived pairs are passing cavity
+error/refinement values. Thirteen are existing failed V6 metrics: eight
+improve and five worsen, with maximum absolute printed change 4.6e-7.
+All 25 V6 failures remain. The other 20 derived pairs cover passing Fluent
+elbow/nozzle accuracy, V6 speed/wall-force and T3A checks. Every derived
+pair, including passing changes, is listed in
+[inner-absolute-group-effects.json](inner-absolute-group-effects.json).
+No overall accuracy improvement or full-state byte identity is inferred.
+
+T3A drag settling changes from 6.06069e-7 to 3.5306e-6, below 5e-4.
+Its documented-equation turbulent Cf error changes from 0.0134799 to
+0.0134804, below 0.03. T3A still uses all 6,000 steps and passes all
+161,470 assertions. Its continuity stall is explicitly not gated by that
+test, so this is not a claim of fully converged T3A flow. V6 still stops at
+200 seeded / 250 cold-start steps on both backends. The cavity grids still
+stop at 600 / 600 / 900 on both backends. Thus none of those recorded outer
+counts offsets the extra inner work measured above.
+
+All 153 TMR assertions reproduce main's exact identities, outcomes and
+expanded values, with no regressions, recoveries, changed values or gaps.
+All 17 TMR convergence failures remain, as do the eight tet failures and
+single fan failure. The heaviest completed isolated case peaks at
+2,202,143,000 process bytes; the heaviest TMR case at 397,951,984 bytes.
+These are per-case measurements, not a monolithic retention fix. The
+separate guarded comparison publication peaks at 1,333,872,728 bytes and
+is not a CFD run. Complete counts, frozen binary/source hashes, costs and
+per-case resources are in
+[default-study-inner-absolute-group.json](default-study-inner-absolute-group.json).
 
 ### Fresh remaining-failure baseline
 
