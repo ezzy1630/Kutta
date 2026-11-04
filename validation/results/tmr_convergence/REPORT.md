@@ -732,7 +732,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates still fail at 3,000. Late time, SST / SA: CPU 1.021x / 1.012x, Metal 1.006x / 0.980x; SA inner work unchanged | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Compensated scalar transport | Full: 0 regressions/recoveries, 231 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→10,677 CPU / 73,502→10,910 Metal; SA unchanged. Late time, SST / SA: CPU 0.845x / 0.992x, Metal 0.634x / 1.079x | 32 / 16 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
-| Scalar steady tolerance 1e-6 | Pending | Pending | 24 / 12 | Pending |
+| Scalar steady tolerance 1e-6 | Full study running; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. Late time, SST / SA: CPU 0.820x / 1.000x, Metal 0.629x / 1.014x | 24 / 12 | Pending |
 | Scalar absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Fixed flow pseudo-time .1 | Pending | Pending | 0 / 0 | Pending |
 | Three inner absolute tolerances together | Pending | Pending | Pending group measurement | Pending |
@@ -1306,6 +1306,39 @@ includes both faster and slower steps, so its measured median is not a
 uniform slowdown claim. The paired runs peak at 152,126,040 process bytes.
 Actual settings, numerical endpoints, inner work, binary/receipt hashes and
 ranges are in [scalar-compensation-cost.json](scalar-compensation-cost.json).
+
+### Scalar steady tolerance: cost complete, full comparison running
+
+The sixth singleton changes SST and SA scalar steady tolerance from zero to
+`1e-6`. Quick passes 307 cases and 7,990,154 assertions. Its full slow tier
+is running, so no numerical default decision is made yet.
+
+On the ordinary-control plate, all four solves still miss convergence at
+3,000. SST scalar inner work falls from 72,239 to 4,677 on CPU and from
+73,502 to 4,530 on Metal. SA remains at 417; its terminal printed physical
+monitors and all three inner-work totals match baseline on both backends.
+This is printed-observation agreement, not full-state byte proof. Extra
+device storage is 24 B/cell for SST and 12 B/cell for SA.
+
+Two alternating AB, BA pairs per model/backend measure:
+
+| Model / backend | Late time ratio, median (range) | Total solver time ratio |
+|---|---:|---:|
+| SST CPU | 0.820 (0.812–0.828) | 0.836 |
+| SST Metal | 0.629 (0.619–0.638) | 0.650 |
+| SA CPU | 1.000 (0.999–1.002) | 1.002 |
+| SA Metal | 1.014 (1.011–1.017) | 1.014 |
+
+Late means steps 1,501–3,000. Both baseline and candidate remain unconverged,
+so reduced work and time are not convergence acceptance. In the separate
+40-step Coupled elbow startup, scalar work increases from 439 / 438 to 464
+on CPU / Metal. Four alternating pairs give late-step ratios of 1.012
+(0.999–1.017) on CPU and 1.032 (1.023–1.045) on Metal. These shared-machine
+measurements do not establish costs on other cases.
+
+The paired plate runs peak at 149,570,088 process bytes. Actual controls,
+reproduced endpoints/work, allocation deltas, hashes and all ranges are in
+[scalar-steady-cost.json](scalar-steady-cost.json).
 
 ### Fresh remaining-failure baseline
 
