@@ -835,7 +835,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Fixed flow pseudo-time .1 | Full: 1 regression, 2 recoveries, 940 changed values, 88 missing / 80 new passing identities; quick adds 7 failures in 4 cases | Cavity steps 600/600/900→1,400/1,000/1,200 on both backends; V6 seeded 200→150 / cold 250→200 but all 25 accuracy failures remain. Four ordinary plates still fail at 3,000. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in |
 | Three inner absolute tolerances together | Full: 0 regressions/recoveries, 49 changed values, 20 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. Momentum work 3.32–3.60x; SST scalar work 2.12–2.17x, SA 317–324x. New-OS total time, SST / SA: CPU 1.173x / 1.268x, Metal 1.445x / 2.031x | 0 / 0 | Gate outcomes eligible; promotion pending remaining groups and actual combined proof; material cost disclosed |
 | Four scalar controls together | Full: 0 regressions/recoveries, 258 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239/73,502→8,076/7,907; SA 417→1,322/1,325. New-OS total time, SST / SA: CPU 0.773x / 1.007x, Metal 0.654x / 1.015x. Coupled startup CPU 1.069x / Metal 1.020x | 56 / 28 | Gate outcomes eligible; promotion pending final group and actual combined proof; path-dependent cost disclosed |
-| Combined precision controls | Full running; quick passes | Ordinary plates: all baseline failures at 3,000 → SST converged at 300 both, SA converged at 400 CPU / 300 Metal. New-OS time to stop, SST / SA: CPU 0.190x / 0.240x, Metal 0.069x / 0.114x. Coupled startup CPU 2.526x / Metal 1.175x | 377.97 / 389.97, coarse plate | Full decision pending; material Coupled cost disclosed |
+| Combined precision controls | Full: 2 regressions, 0 recoveries, 1,239 changed values, 88 missing/new passing identities; quick passes | Ordinary plates: all baseline failures at 3,000 → SST converged at 300 both, SA converged at 400 CPU / 300 Metal. New-OS time to stop, SST / SA: CPU 0.190x / 0.240x, Metal 0.069x / 0.114x. Coupled startup CPU 2.526x / Metal 1.175x | 377.97 / 389.97, coarse plate | Keep opt-in; material Coupled cost disclosed |
 
 Momentum relaxation .7 is already the ordinary solver default. The bump
 harness's fixed time step is a separate candidate from its relaxation.
@@ -1971,9 +1971,7 @@ The final planned group combines compensated momentum, slack 16, the three
 inner absolute tolerances and the four scalar controls; scalar absolute
 tolerance appears in both smaller groups and is counted once. Fixed flow
 time `.1` is excluded. Quick passes all 307 cases and 7,990,154 assertions,
-including the checks that failed with slack 16 alone. The full slow tier is
-running; the singleton regressions and the group's full comparison still
-need to be considered before deciding its default status.
+including the checks that failed with slack 16 alone. The completed full slow comparison below rejects this bundle as a global default.
 
 All 16 alternating new-OS ordinary SIMPLEC timing runs reproduce their
 checked controls, numerical endpoints and cumulative inner work. Both
@@ -2014,8 +2012,59 @@ ordinary solver path.
 
 No default is promoted from these cost results. Complete controls, binary
 hashes, work, allocation deltas and paired ranges are in
-[precision-group-cost.json](precision-group-cost.json). Full slow review and
-the actual chosen default qualification remain pending.
+[precision-group-cost.json](precision-group-cost.json). The actual chosen
+default combination still requires its own qualification.
+
+### Eight precision controls: complete slow-tier rejection
+
+The final planned study completes all **37 slow cases, 201,633 assertions
+and 53 failures**, against main's 51 failures. The unchanged canonical
+comparator reports **2 regressions, 0 recoveries, 1,239 changed values,
+88 missing assertions and 88 new assertions**, with no missing or new
+cases. All 37 assertion counts match main. The canonical exit is 1 and
+`no_new_failures` is false; neither is rewritten.
+
+Both regressions are standard k-epsilon elbow pressure-drop error: CPU
+**0.0101201 → 0.0200742**, Metal **0.0101167 → 0.0200752**, against the frozen
+`<0.015` gate. The group therefore **stays opt-in**, even though its quick
+tier passes and its ordinary plate controls converge sooner. This is an
+observed bundle result; it does not establish which interaction caused it.
+
+All 88 missing identities originally pass: 16 general CLI and 72 native
+FSAE CLI assertions. All 88 new identities pass. These physical-output INFO
+identity changes remain in the canonical comparison. The 1,239 changed
+values comprise 158 passing file-equality assertions, 96 passing
+interpolation bounds, and **985 numeric derived metrics**. Every numeric
+pair is in [precision-group-effects.json](precision-group-effects.json);
+serialized output fields and raw reference endpoints are not republished.
+The 32 changed already-failed metrics improve 14 times and worsen 18 times;
+the largest printed absolute change is 0.00055 (tet velocity refinement
+order, upward is better). V6 and tet failures remain failures.
+
+Passing errors also move. The inlet k/omega differences rise from
+1.68922e-6 / 1.00763e-6 to 1.55842e-5 / 1.55457e-5, below 1e-4.
+Transition S1223 lift error rises 0.0988863→0.0989593, below 0.10.
+T3A turbulent Cf error changes 0.0134799→0.0147854 against the documented
+equations (limit 0.03), and 0.0694313→0.0662534 against experiment (0.075).
+Cylinder pressure-drop error reaches 0.00611863, below 0.0076.
+Imported/generated cavity differences retain the 2e-6 bound. The public
+pairs also include every changed analytic moving-wall, porous, MRF,
+inlet, force and refinement value; those gates pass.
+
+**All 153 TMR identities, outcomes and expanded values are exact.** The
+17 production failures remain: SST plate 2, SST bump 6, SA 9. V6 seeded/cold
+stopping counts remain 200/250 on both backends. The maximum completed-case
+footprint is **2,338,883,864 bytes**, and maximum TMR case **397,952,008
+bytes**. Isolated process peaks do not prove monolithic retention is fixed.
+The guarded summary/effects publications return actual zero statuses and
+peak at 1,908,066,104 / 943,948,928 bytes. Full provenance, per-case counts
+and resource receipts are in
+[default-study-precision-group.json](default-study-precision-group.json).
+
+All nine singleton and three grouped slow studies are now complete and
+reviewed. No default is promoted yet. The six individually nonregressing
+controls still require qualification together, including removal of their
+TMR overrides, after fresh new-OS cost replays and actual-root memory parity.
 
 ### Fresh remaining-failure baseline
 

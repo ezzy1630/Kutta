@@ -1,5 +1,5 @@
 {
-  "status": "Cost checks complete; full slow-tier decision pending. This receipt changes no default.",
+  "status": "Full 37-case slow-tier review complete: reject global default, two pressure-drop regressions, zero recoveries. Keep opt-in; costs remain valid.",
   "measurement_environment": {
     "system": "Darwin",
     "darwin_release": "27.2.0",
@@ -346,5 +346,7 @@
   ],
   "runtime_scope": "Coarse NASA plate, SST/SA with ordinary SIMPLEC controls and original 3000-step budget. Timings are candidate / baseline on a shared machine. Early-stop differences are retained and are not equal-accuracy speedups. Reduced work on a failed-budget solve is not convergence or accuracy acceptance.",
   "source_scope": "Retained byte-identical 36 B/cell SST cleanup and original Metal runtime. Compiled default-study header differs only by the named control changes. All live paired input hashes, actual controls and reproduced endpoints/work checked before publication.",
-  "incremental_backend_build_control": "os27-backend-build-control.json"
+  "incremental_backend_build_control": "os27-backend-build-control.json",
+  "full_study": "default-study-precision-group.json",
+  "effects": "precision-group-effects.json"
 }
