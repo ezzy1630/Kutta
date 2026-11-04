@@ -834,7 +834,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Scalar absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 43 changed values, 20 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar work: 72,239→155,816 CPU / 73,502→155,771 Metal; SA 417→138,240 / 144,778. New-OS total time, SST / SA: CPU 1.176x / 1.259x, Metal 1.416x / 1.966x | 0 / 0 | Gate outcomes eligible; promotion pending combined proof; material cost disclosed |
 | Fixed flow pseudo-time .1 | Full: 1 regression, 2 recoveries, 940 changed values, 88 missing / 80 new passing identities; quick adds 7 failures in 4 cases | Cavity steps 600/600/900→1,400/1,000/1,200 on both backends; V6 seeded 200→150 / cold 250→200 but all 25 accuracy failures remain. Four ordinary plates still fail at 3,000. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in |
 | Three inner absolute tolerances together | Full: 0 regressions/recoveries, 49 changed values, 20 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. Momentum work 3.32–3.60x; SST scalar work 2.12–2.17x, SA 317–324x. New-OS total time, SST / SA: CPU 1.173x / 1.268x, Metal 1.445x / 2.031x | 0 / 0 | Gate outcomes eligible; promotion pending remaining groups and actual combined proof; material cost disclosed |
-| Four scalar controls together | Full running; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239/73,502→8,076/7,907; SA 417→1,322/1,325. New-OS total time, SST / SA: CPU 0.773x / 1.007x, Metal 0.654x / 1.015x. Coupled startup CPU 1.069x / Metal 1.020x | 56 / 28 | Decision pending full comparison; path-dependent cost disclosed |
+| Four scalar controls together | Full: 0 regressions/recoveries, 258 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239/73,502→8,076/7,907; SA 417→1,322/1,325. New-OS total time, SST / SA: CPU 0.773x / 1.007x, Metal 0.654x / 1.015x. Coupled startup CPU 1.069x / Metal 1.020x | 56 / 28 | Gate outcomes eligible; promotion pending final group and actual combined proof; path-dependent cost disclosed |
 | Combined precision controls | Pending | Pending | Pending group measurement | Pending |
 
 Momentum relaxation .7 is already the ordinary solver default. The bump
@@ -1907,6 +1907,63 @@ That measured startup penalty is not erased by the SIMPLEC plate savings.
 Actual controls, complete endpoints/work, new-OS build provenance, allocation
 deltas and all paired ranges are in
 [scalar-group-cost.json](scalar-group-cost.json).
+
+### Four scalar controls: completed full comparison
+
+The four-control scalar group completes all 37 slow cases and 201,633
+assertions, retaining the baseline's 51 failed assertions. The unchanged
+canonical comparator reports **0 regressions, 0 recoveries, 258 changed
+values, 76 missing assertions and 76 new assertions**, with no missing or
+new cases. Every case retains its baseline assertion count. The quick tier
+passes all 307 cases and 7,990,154 assertions.
+
+The canonical exit remains 1 and `no_new_failures` remains false. All 76
+missing identities originally passed: eight in general Fluent-to-Kutta CLI
+coverage and 68 in native FSAE CLI coverage. All 76 new identities pass.
+These are physical-output INFO identity changes. No assertion identities or
+payloads were normalized or rematched to obtain a green comparison.
+
+Of the 258 changed values, 138 are passing file-equality assertions, 48 are
+passing interpolation-bound assertions, and 72 are numeric derived metrics.
+The equality checks still compare the two import paths within each candidate
+run; their common output can differ from main. All 72 numeric pairs are in
+[scalar-group-effects.json](scalar-group-effects.json). The 22 changed
+already-failed V6 metrics improve five times and worsen 17 times; the largest
+absolute change in the printed metric is 8e-6. The V6 accuracy failures are
+not recovered.
+
+The following changed errors all remain inside their frozen gates:
+
+| Passing metric | Main → scalar group | Frozen limit |
+| --- | ---: | ---: |
+| Ahmed Coupled/SIMPLEC relative lift difference | 0.0100257 → 0.00416406 | <=0.03 |
+| Transition S1223 absolute lift error | 0.0988863 → 0.0988877 | <=0.10 |
+| Inlet transport k difference, CPU and Metal | 1.68922e-6 → 1.61967e-5 | <1e-4 |
+| Inlet transport omega difference, CPU and Metal | 1.00763e-6 → 1.54297e-5 | <1e-4 |
+| T3A turbulent Cf error against documented-equation reference | 0.0134799 → 0.0146874 | <=0.03 |
+| T3A turbulent Cf error against experiment | 0.0694313 → 0.0662699 | <=0.075 |
+
+All **153 TMR assertion identities, outcomes and expanded values are exact**
+against main. The two SST plate, six SST bump and nine SA convergence failures
+remain. V6 still stops at 200 seeded and 250 cold-hybrid steps on each
+backend. T3A and transition S1223 still reach 6,000 steps and pass their
+existing guards; this does not establish complete flow/load convergence
+beyond the specific checks those tests assert.
+
+The maximum completed-case footprint is **2,227,112,144 bytes**; the maximum
+TMR case is **394,052,832 bytes**. These remain isolated case processes, so
+neither number establishes that monolithic-suite retention is fixed. The
+summary and effects publications themselves were guarded below 3 GB, peaked
+at 1,704,560,296 and 739,902,448 bytes, and returned actual status zero. They
+ran after the next option's timing pairs ended.
+
+The group is eligible on gate outcomes. Promotion still awaits the final
+precision-group review and the actual chosen default combination. The
+previous subsection's 56/28 B/cell allocation cost and 6.85% CPU / 1.99%
+Metal Coupled startup penalties remain part of that decision. No solver
+default or TMR override changes in this publication. Full counts, source and
+binary hashes, per-case assertions and memory are in
+[default-study-scalar-group.json](default-study-scalar-group.json).
 
 ### Fresh remaining-failure baseline
 
