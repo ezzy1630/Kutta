@@ -1,0 +1,28 @@
+{
+  "complete": true,
+  "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+  "canonical_exit": 0,
+  "canonical_counts": {
+    "regressions": 0,
+    "recoveries": 0,
+    "changed_values": 0,
+    "missing_assertions": 0,
+    "new_assertions": 0,
+    "missing_cases": 0,
+    "new_cases": 0
+  },
+  "cases": [
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "baseline_assertions": 70,
+      "final_assertions": 70,
+      "baseline_failed": 9,
+      "final_failed": 9
+    }
+  ],
+  "peak_new_os_bytes": 385418416,
+  "baseline_xml_sha256": "aa01955caa4f6601b141ca32cb154644bfdfee56fd498bb53d88aae90264b522",
+  "candidate_fragment_sha256": "33368167c5b9ae8dd638af574f9440ccf0117f0c1e042400121cc9e2374cce37",
+  "comparator_sha256": "5fa871f78f491b703b0e7bb052085f0c0b0bbc2b589813867dc7968b4f807c50",
+  "scope": "Completed new-OS C6 SA case, whose TMR settings were already explicit, compared with the old-OS exact-main archive. No new CFD run or timing comparison."
+}

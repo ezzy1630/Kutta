@@ -689,8 +689,8 @@ were removed. No lane processes remain running. No push or PR was made.
 
 ## 2026-11-03–04 UTC: defaults and remaining convergence study
 
-This follow-up is in progress on base `e014e36`. Five of twelve default
-studies are complete. Momentum compensation and slack 16 regress gates;
+This follow-up is in progress on base `e014e36`. Six of twelve default
+full runs are complete; the sixth comparison is awaiting detailed review. Momentum compensation and slack 16 regress gates;
 tighter momentum and pressure tolerances preserve every gate. Scalar
 compensation also preserves every gate outcome, with passing CLI INFO
 identity changes retained in the comparison. No new default or
@@ -742,7 +742,7 @@ separate measurement segments. The controls support this numerical reuse;
 they do not establish universal OS parity. A later failure to reproduce an
 otherwise unchanged case requires a fresh comparison, not mixed values.
 
-All cost pairs recorded so far (options 1–6) belong entirely to the old OS.
+The completed cost pairs for options 1–6 belong entirely to the old OS.
 They remain historical measurements. Future timing pairs run **both sides
 on the new OS**, using a fresh OS-specific baseline cache while preserving
 the old cache. No timing ratio crosses the OS change. Process-memory
@@ -756,8 +756,22 @@ Its 47 assertions reproduce exact-main's archived identities, outcomes and
 expanded values with all seven canonical difference counts zero. Its six
 known convergence failures remain, and its new-OS peak is 372,294,640 bytes.
 This compares the completed case already needed by the study; no additional
-solve or timing pair was run. The SA case and full comparison remain pending.
-See [os27-bump-followup-control.json](os27-bump-followup-control.json).
+solve or timing pair was run. The SA case then reproduces all 70 assertions exactly, including its nine
+known failures, with a 385,418,416-byte new-OS peak. Together with the plate
+control, these cover all 153 TMR assertions and all 24 solves on the new OS.
+The full scalar-steady run completes 37 cases with 51 failures; its detailed
+comparison review remains pending. See
+[os27-bump-followup-control.json](os27-bump-followup-control.json) and
+[os27-sa-followup-control.json](os27-sa-followup-control.json).
+
+A separate exact-main cost baseline is now rebuilt on the new OS from 165
+verified solver files and the unchanged diagnostic benchmark. All 30 physical
+report samples, all 30 inner-work samples, actual controls and exit status
+reproduce for each ordinary SST/SA CPU/Metal control. The scalar-pseudo-time
+pairs below use this build and a candidate compiled on the same new OS.
+Options 1–6 will also have their SIMPLEC timing pairs replayed on the new OS,
+using both frozen old-build artifacts in each pair. Their old-OS timings
+remain historical; old seconds will not enter a new ratio.
 
 ### Option decisions and allocation cost
 
@@ -781,8 +795,8 @@ in [default-study-memory.json](default-study-memory.json) and
 | Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Late step time, SST / SA: CPU 0.988x / 0.936x, Metal 1.046x / 1.260x; Metal SA total 1.187x; larger T3A whole case 1.027x (1.006–1.048) | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates still fail at 3,000. Late time, SST / SA: CPU 1.021x / 1.012x, Metal 1.006x / 0.980x; SA inner work unchanged | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Compensated scalar transport | Full: 0 regressions/recoveries, 231 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→10,677 CPU / 73,502→10,910 Metal; SA unchanged. Late time, SST / SA: CPU 0.845x / 0.992x, Metal 0.634x / 1.079x | 32 / 16 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
-| Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
-| Scalar steady tolerance 1e-6 | Full study running; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. Late time, SST / SA: CPU 0.820x / 1.000x, Metal 0.629x / 1.014x | 24 / 12 | Pending |
+| Scalar pseudo-time off | Full running; quick passes | Ordinary plates all fail at 3,000. SST scalar inner work: 72,239→71,700 CPU / 73,502→71,812 Metal; SA 417→495 / 492. New-OS late time, SST / SA: CPU 0.976x / 1.006x, Metal 1.012x / 0.990x | 0 / 0 | Pending |
+| Scalar steady tolerance 1e-6 | Full run complete; detailed comparison review pending; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. Late time, SST / SA: CPU 0.820x / 1.000x, Metal 0.629x / 1.014x | 24 / 12 | Pending |
 | Scalar absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
 | Fixed flow pseudo-time .1 | Pending | Pending | 0 / 0 | Pending |
 | Three inner absolute tolerances together | Pending | Pending | Pending group measurement | Pending |
@@ -1366,11 +1380,13 @@ sample and final process-footprint receipt. Earlier text quoted only their
 live samples, 388,137,872 and 396,608,424 bytes respectively. The full-suite
 case maxima are unchanged; this correction claims no memory improvement.
 
-### Scalar steady tolerance: cost complete, full comparison running
+### Scalar steady tolerance: run complete, comparison review pending
 
 The sixth singleton changes SST and SA scalar steady tolerance from zero to
-`1e-6`. Quick passes 307 cases and 7,990,154 assertions. Its full slow tier
-is running, so no numerical default decision is made yet.
+`1e-6`. Quick passes 307 cases and 7,990,154 assertions. The full slow run
+completes 37 cases with 51 failures. Detailed comparison review is pending,
+so no numerical default decision is made yet. The cost pairs below belong
+to the old OS and will be replayed on the new OS.
 
 On the ordinary-control plate, all four solves still miss convergence at
 3,000. SST scalar inner work falls from 72,239 to 4,677 on CPU and from
@@ -1398,6 +1414,41 @@ measurements do not establish costs on other cases.
 The paired plate runs peak at 149,570,088 process bytes. Actual controls,
 reproduced endpoints/work, allocation deltas, hashes and all ranges are in
 [scalar-steady-cost.json](scalar-steady-cost.json).
+
+### Scalar pseudo-time off: new-OS cost, full comparison running
+
+The seventh singleton disables pseudo-time only in SST and SA scalar
+transport. Quick passes 307 cases and 7,990,154 assertions. All four ordinary plate runs still fail convergence
+at 3,000 steps. SST scalar inner work changes from 72,239 to 71,700 on CPU
+and 73,502 to 71,812 on Metal. SA changes from 417 to 495 / 492 respectively.
+Momentum and pressure work also change; all actual totals are in the receipt.
+No device storage is added on either backend for either model.
+
+The CPU SST maximum defect worsens from `1.48782e-4` to `3.25658e-4`, while
+Metal SST improves from `1.83579e-4` to `1.00840e-4`. Both SA maximum defects
+worsen. All remain unconverged, so these timings establish neither accuracy
+improvement nor faster convergence.
+
+Both sides of two alternating AB, BA pairs run on macOS 27.2:
+
+| Model / backend | Late time ratio, median (range) | Total solver time ratio |
+|---|---:|---:|
+| SST CPU | 0.976 (0.971–0.981) | 0.982 |
+| SST Metal | 1.012 (0.992–1.033) | 1.018 |
+| SA CPU | 1.006 (1.005–1.007) | 1.002 |
+| SA Metal | 0.990 (0.990–0.991) | 0.994 |
+
+Late means steps 1,501–3,000. In the separate 40-step Coupled elbow startup,
+scalar work rises from 439 / 438 to 552 on CPU / Metal and block work falls
+from 162 to 160. Four alternating pairs give late-step ratios 1.004
+(1.000–1.005) on CPU and 1.010 (1.007–1.015) on Metal. The paired plate peak
+is 149,488,288 process bytes. These are shared-machine observations on the
+named cases, not a cost guarantee for other solves.
+
+The full slow tier is running; no default decision is made. Binary and
+receipt hashes, new-OS build controls, physical/work reproduction, allocations
+and all timing ranges are in
+[scalar-no-pseudotime-cost.json](scalar-no-pseudotime-cost.json).
 
 ### Fresh remaining-failure baseline
 
