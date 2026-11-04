@@ -835,7 +835,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Fixed flow pseudo-time .1 | Full: 1 regression, 2 recoveries, 940 changed values, 88 missing / 80 new passing identities; quick adds 7 failures in 4 cases | Cavity steps 600/600/900→1,400/1,000/1,200 on both backends; V6 seeded 200→150 / cold 250→200 but all 25 accuracy failures remain. Four ordinary plates still fail at 3,000. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in |
 | Three inner absolute tolerances together | Full: 0 regressions/recoveries, 49 changed values, 20 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. Momentum work 3.32–3.60x; SST scalar work 2.12–2.17x, SA 317–324x. New-OS total time, SST / SA: CPU 1.173x / 1.268x, Metal 1.445x / 2.031x | 0 / 0 | Gate outcomes eligible; promotion pending remaining groups and actual combined proof; material cost disclosed |
 | Four scalar controls together | Full: 0 regressions/recoveries, 258 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239/73,502→8,076/7,907; SA 417→1,322/1,325. New-OS total time, SST / SA: CPU 0.773x / 1.007x, Metal 0.654x / 1.015x. Coupled startup CPU 1.069x / Metal 1.020x | 56 / 28 | Gate outcomes eligible; promotion pending final group and actual combined proof; path-dependent cost disclosed |
-| Combined precision controls | Pending | Pending | Pending group measurement | Pending |
+| Combined precision controls | Full running; quick passes | Ordinary plates: all baseline failures at 3,000 → SST converged at 300 both, SA converged at 400 CPU / 300 Metal. New-OS time to stop, SST / SA: CPU 0.190x / 0.240x, Metal 0.069x / 0.114x. Coupled startup CPU 2.526x / Metal 1.175x | 377.97 / 389.97, coarse plate | Full decision pending; material Coupled cost disclosed |
 
 Momentum relaxation .7 is already the ordinary solver default. The bump
 harness's fixed time step is a separate candidate from its relaxation.
@@ -1964,6 +1964,58 @@ Metal Coupled startup penalties remain part of that decision. No solver
 default or TMR override changes in this publication. Full counts, source and
 binary hashes, per-case assertions and memory are in
 [default-study-scalar-group.json](default-study-scalar-group.json).
+
+### Eight precision controls: grouped new-OS cost
+
+The final planned group combines compensated momentum, slack 16, the three
+inner absolute tolerances and the four scalar controls; scalar absolute
+tolerance appears in both smaller groups and is counted once. Fixed flow
+time `.1` is excluded. Quick passes all 307 cases and 7,990,154 assertions,
+including the checks that failed with slack 16 alone. The full slow tier is
+running; the singleton regressions and the group's full comparison still
+need to be considered before deciding its default status.
+
+All 16 alternating new-OS ordinary SIMPLEC timing runs reproduce their
+checked controls, numerical endpoints and cumulative inner work. Both
+binaries execute on macOS 27.2. The candidate's linked SDK, deployment target
+and linker metadata match the rebuilt exact-main cost control, and all five
+checked cached backend objects retain their pinned hashes. The sixth
+candidate entry is added to
+[os27-backend-build-control.json](os27-backend-build-control.json).
+
+| Model/backend | Outer steps and status, main → group | Momentum / pressure / scalar inner iterations, main → group | Paired solver time to stop, group/main, median (range) |
+| --- | --- | --- | --- |
+| SST CPU | 3,000 failed → 300 converged | 8,974 / 60,635 / 72,239 → 2,201 / 5,646 / 1,163 | 0.190039 (0.189047–0.191031) |
+| SST Metal | 3,000 failed → 300 converged | 9,303 / 58,694 / 73,502 → 1,567 / 5,464 / 1,165 | 0.068577 (0.068104–0.069049) |
+| SA CPU | 3,000 failed → 400 converged | 9,415 / 34,727 / 417 → 3,042 / 4,045 / 1,174 | 0.240478 (0.239783–0.241172) |
+| SA Metal | 3,000 failed → 300 converged | 9,750 / 34,514 / 417 → 1,637 / 2,962 / 1,171 | 0.114281 (0.111940–0.116622) |
+
+Final maximum defects are 1.0865807e-6 / 1.8648895e-6 for SST CPU / Metal,
+and 9.2312331e-7 / 2.8873253e-6 for SA CPU / Metal. All four baseline controls
+remain unconverged at the unchanged 3,000-step limit. These are actual times
+to their respective stopping points. They are not an equal-accuracy speedup
+comparison with four converged baseline solutions. Late per-iteration ratios
+are null because the candidate never reaches step 3,000; null is not zero.
+
+The group adds 308,424 device bytes for SST and 318,216 for SA on this
+816-cell plate: **377.97 / 389.97 B/cell**. CPU and Metal agree on those
+allocation deltas. The maximum process peak in the 16 paired plate runs is
+152,208,032 bytes. Allocation deltas and process footprints measure different
+things.
+
+**The bundle has a material Coupled startup cost.** At elbow steps 21–40,
+its paired CPU time ratio is **2.526331** (2.316322–2.573860); Metal is
+**1.175059** (1.151276–1.188162). The block inner counter changes 162→160 and
+the scalar counter 439→585 on CPU / 438→585 on Metal. The momentum counter is
+zero for Coupled because its block work is reported under pressure. These
+40-step samples do not establish a fully converged elbow solution. The faster
+stopping of the SIMPLEC plate does not remove this measured cost on another
+ordinary solver path.
+
+No default is promoted from these cost results. Complete controls, binary
+hashes, work, allocation deltas and paired ranges are in
+[precision-group-cost.json](precision-group-cost.json). Full slow review and
+the actual chosen default qualification remain pending.
 
 ### Fresh remaining-failure baseline
 

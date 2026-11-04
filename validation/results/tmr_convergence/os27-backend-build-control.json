@@ -71,6 +71,17 @@
         "tool": "LD",
         "version": "1267.0"
       }
+    },
+    {
+      "variant": "precision-group",
+      "benchmark_sha256": "f044cde560b637f389d6f7d1f0dcf529a15f8ad6b3020e435d781a90de0d2a20",
+      "linked_build_version": {
+        "platform": "MACOS",
+        "minos": "26.5",
+        "sdk": "26.5",
+        "tool": "LD",
+        "version": "1267.0"
+      }
     }
   ],
   "checked_objects": [
