@@ -751,6 +751,14 @@ claimed as solver memory savings. Control hashes, complete comparison
 counts, CPU/Metal iteration samples and new-OS peaks are in
 [os27-numerical-control.json](os27-numerical-control.json).
 
+The restarted SST bump case subsequently completes all six CPU/Metal grids.
+Its 47 assertions reproduce exact-main's archived identities, outcomes and
+expanded values with all seven canonical difference counts zero. Its six
+known convergence failures remain, and its new-OS peak is 372,294,640 bytes.
+This compares the completed case already needed by the study; no additional
+solve or timing pair was run. The SA case and full comparison remain pending.
+See [os27-bump-followup-control.json](os27-bump-followup-control.json).
+
 ### Option decisions and allocation cost
 
 Momentum compensation and slack 16 are rejected by their completed full slow tiers;
