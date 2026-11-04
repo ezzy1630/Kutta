@@ -780,7 +780,8 @@ slack 16 also fails the quick tier. Momentum and pressure tolerances preserve
 all slow gates and pass the quick tier. Scalar compensation also preserves
 all outcomes and passes quick; its canonical comparison retains 76 passing
 missing/new INFO identities. Scalar steady stopping preserves all outcomes
-and passes quick with 74 such identity changes. Promotion awaits the remaining
+and passes quick with 74 such identity changes. Disabling scalar pseudo-time also
+preserves all outcomes and passes quick, with 76 such identity changes. Promotion awaits the remaining
 studies and combined-default proof. Other decisions remain pending. Allocation measurements
 come from independent one-step CPU plate probes, changing one setting at a
 time from ordinary settings, on 816 cells. The compensation row instead uses
@@ -796,7 +797,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Late step time, SST / SA: CPU 0.988x / 0.936x, Metal 1.046x / 1.260x; Metal SA total 1.187x; larger T3A whole case 1.027x (1.006–1.048) | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates still fail at 3,000. Late time, SST / SA: CPU 1.021x / 1.012x, Metal 1.006x / 0.980x; SA inner work unchanged | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Compensated scalar transport | Full: 0 regressions/recoveries, 231 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→10,677 CPU / 73,502→10,910 Metal; SA unchanged. Late time, SST / SA: CPU 0.845x / 0.992x, Metal 0.634x / 1.079x | 32 / 16 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
-| Scalar pseudo-time off | Full running; quick passes | Ordinary plates all fail at 3,000. SST scalar inner work: 72,239→71,700 CPU / 73,502→71,812 Metal; SA 417→495 / 492. New-OS late time, SST / SA: CPU 0.976x / 1.006x, Metal 1.012x / 0.990x | 0 / 0 | Pending |
+| Scalar pseudo-time off | Full: 0 regressions/recoveries, 240 changed values, 76 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar inner work: 72,239→71,700 CPU / 73,502→71,812 Metal; SA 417→495 / 492. New-OS late time, SST / SA: CPU 0.976x / 1.006x, Metal 1.012x / 0.990x | 0 / 0 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar steady tolerance 1e-6 | Full: 0 regressions/recoveries, 234 changed values, 74 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. Late time, SST / SA: CPU 0.820x / 1.000x, Metal 0.629x / 1.014x | 24 / 12 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar absolute tolerance 1e-20 | Full running; quick passes | Ordinary plates all fail at 3,000. SST scalar work: 72,239→155,816 CPU / 73,502→155,771 Metal; SA 417→138,240 / 144,778. New-OS total time, SST / SA: CPU 1.176x / 1.259x, Metal 1.416x / 1.966x | 0 / 0 | Pending; material ordinary-solve cost |
 | Fixed flow pseudo-time .1 | Pending | Pending | 0 / 0 | Pending |
@@ -1455,7 +1456,7 @@ The paired plate runs peak at 149,570,088 process bytes. Actual controls,
 reproduced endpoints/work, allocation deltas, hashes and all ranges are in
 [scalar-steady-cost.json](scalar-steady-cost.json).
 
-### Scalar pseudo-time off: new-OS cost, full comparison running
+### Scalar pseudo-time off: complete comparison and new-OS cost
 
 The seventh singleton disables pseudo-time only in SST and SA scalar
 transport. Quick passes 307 cases and 7,990,154 assertions. All four ordinary plate runs still fail convergence
@@ -1485,9 +1486,39 @@ from 162 to 160. Four alternating pairs give late-step ratios 1.004
 is 149,488,288 process bytes. These are shared-machine observations on the
 named cases, not a cost guarantee for other solves.
 
-The full slow tier is running; no default decision is made. Binary and
-receipt hashes, new-OS build controls, physical/work reproduction, allocations
-and all timing ranges are in
+The full run completes all 37 cases, 201,633 assertions and 51 failures.
+The unchanged canonical comparator finds zero regressions, zero recoveries,
+240 changed values, 76 missing and 76 new assertion identities, and no
+missing/new cases. Its exit remains **1** and `no_new_failures` remains false
+because of those identity gaps. All 76 missing original assertions pass
+(eight general-conversion and 68 native-conversion INFO contexts), as do all
+76 new assertions. Nothing is rematched or normalized.
+
+Of the changed values, 122 are passing serialized-output equality assertions
+and 48 are passing interpolation bounds. All other 70 derived metric pairs
+are published. Twenty-two already failing V6 metrics move: five improve and
+17 worsen, by at most `4.5e-6` in printed absolute value. Passing metrics
+also move. Resolved-wall Ahmed Coupled/SIMPLEC lift difference rises from
+`0.0100257` to `0.0186965` against its unchanged `0.03` gate; its drag
+difference rises from `0.000414598` to `0.000807311` against `0.01`. T3A's
+turbulent Cf error versus documented equations rises from `0.0134799` to
+`0.0134882` against `0.03`. These outcomes establish no accuracy improvement.
+
+V6 still takes 200 seeded and 250 cold-start steps on both backends. T3A
+still reaches 6,000 steps and all 161,470 assertions pass. All 153 TMR
+identities, outcomes and expanded values reproduce exactly; all 17
+convergence failures remain. The candidate qualifies on gate outcomes;
+promotion awaits the remaining studies and actual combined-default proof.
+
+The full run, entirely on the new OS, peaks at 2,201,995,472 process bytes.
+Its heaviest TMR case peaks at 384,926,728 bytes. These isolated-process
+measurements do not establish a monolithic-suite memory fix. Complete counts,
+resources and frozen source/binary hashes are in
+[default-study-scalar-no-pseudotime.json](default-study-scalar-no-pseudotime.json);
+all derived changes are in
+[scalar-no-pseudotime-effects.json](scalar-no-pseudotime-effects.json).
+New-OS build controls, physical/work reproduction, allocation deltas and
+all timing ranges are in
 [scalar-no-pseudotime-cost.json](scalar-no-pseudotime-cost.json).
 
 ### Scalar absolute tolerance: new-OS cost, full comparison running
