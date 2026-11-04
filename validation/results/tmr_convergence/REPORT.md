@@ -798,7 +798,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Compensated scalar transport | Full: 0 regressions/recoveries, 231 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→10,677 CPU / 73,502→10,910 Metal; SA unchanged. Late time, SST / SA: CPU 0.845x / 0.992x, Metal 0.634x / 1.079x | 32 / 16 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar pseudo-time off | Full running; quick passes | Ordinary plates all fail at 3,000. SST scalar inner work: 72,239→71,700 CPU / 73,502→71,812 Metal; SA 417→495 / 492. New-OS late time, SST / SA: CPU 0.976x / 1.006x, Metal 1.012x / 0.990x | 0 / 0 | Pending |
 | Scalar steady tolerance 1e-6 | Full: 0 regressions/recoveries, 234 changed values, 74 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. Late time, SST / SA: CPU 0.820x / 1.000x, Metal 0.629x / 1.014x | 24 / 12 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
-| Scalar absolute tolerance 1e-20 | Pending | Pending | 0 / 0 | Pending |
+| Scalar absolute tolerance 1e-20 | Full running; quick passes | Ordinary plates all fail at 3,000. SST scalar work: 72,239→155,816 CPU / 73,502→155,771 Metal; SA 417→138,240 / 144,778. New-OS total time, SST / SA: CPU 1.176x / 1.259x, Metal 1.416x / 1.966x | 0 / 0 | Pending; material ordinary-solve cost |
 | Fixed flow pseudo-time .1 | Pending | Pending | 0 / 0 | Pending |
 | Three inner absolute tolerances together | Pending | Pending | Pending group measurement | Pending |
 | Four scalar controls together | Pending | Pending | Pending group measurement | Pending |
@@ -1489,6 +1489,44 @@ The full slow tier is running; no default decision is made. Binary and
 receipt hashes, new-OS build controls, physical/work reproduction, allocations
 and all timing ranges are in
 [scalar-no-pseudotime-cost.json](scalar-no-pseudotime-cost.json).
+
+### Scalar absolute tolerance: new-OS cost, full comparison running
+
+The eighth singleton changes SST and SA scalar linear absolute tolerance to
+`1e-20`. Quick passes 307 cases and 7,990,154 assertions. Every ordinary
+plate run still misses convergence at 3,000. Scalar inner iterations rise:
+
+| Model / backend | Before | After |
+|---|---:|---:|
+| SST CPU | 72,239 | 155,816 |
+| SST Metal | 73,502 | 155,771 |
+| SA CPU | 417 | 138,240 |
+| SA Metal | 417 | 144,778 |
+
+SA scalar work increases by more than 330 times. Its terminal maximum defect
+also worsens on both backends, while SST's improves; none reaches its frozen
+gate. No device storage is added. Both sides of two alternating AB, BA pairs
+run on macOS 27.2:
+
+| Model / backend | Late time ratio, median (range) | Total solver time ratio |
+|---|---:|---:|
+| SST CPU | 1.173 (1.167–1.179) | 1.176 |
+| SST Metal | 1.428 (1.425–1.431) | 1.416 |
+| SA CPU | 1.270 (1.269–1.271) | 1.259 |
+| SA Metal | 2.045 (2.039–2.052) | 1.966 |
+
+Late means steps 1,501–3,000. This setting has a material cost on these
+ordinary solves, especially SA on Metal. The separate 40-step Coupled elbow
+startup retains its original scalar and block work; four alternating pairs
+give late-step ratios 1.002 (1.000–1.005) on CPU and 0.989 (0.979–1.003) on
+Metal. The plate pairs peak at 149,619,336 process bytes. These observations
+show case dependence; they do not establish a cause for any remaining TMR
+failure. TMR already explicitly uses tighter tolerance with compensated
+scalar transport and steady stopping.
+
+The full slow-tier decision remains pending. Actual controls, full endpoint
+and work totals, new-OS build provenance, allocation deltas and timing ranges
+are in [scalar-absolute-cost.json](scalar-absolute-cost.json).
 
 ### Fresh remaining-failure baseline
 
