@@ -1,5 +1,5 @@
 {
-  "status": "Full slow comparison passed with zero regressions; active SIMPLEC paired timing complete. Promotion awaits the remaining option studies and combined-default verification.",
+  "status": "Full slow and quick comparisons passed with zero regressions; active coarse-plate and larger T3A paired costs complete. Promotion awaits the remaining studies and combined-default verification.",
   "candidate": "Only ordinary momentum absolute tolerance changes from 1e-10 to 1e-20; retained byte-identical SST scratch cleanup is also present. Original Metal runtime.",
   "baseline_sha256": "982116e6897e571b239d0650104e268c9fa618221d557f6e16dce834046875bd",
   "candidate_sha256": "5a7f91ec023d1a2b279042d25db897fdd2879c9ba960454cf20210a7027e750d",
@@ -248,5 +248,20 @@
     ],
     "caveat": "A failing baseline and passing candidate have different achieved accuracy; their time-to-stop ratio is not an equal-accuracy speedup. Late per-step ratios use steps 1501-3000 only when both runs reach 3000.",
     "runtime_scope": "Coarse ordinary SIMPLEC plate only. Metal SA total time median increases 18.7%, late-step time 26.0%; wide contended pair ranges do not establish a universal runtime cost."
+  },
+  "larger_ordinary_t3a_cost": {
+    "source": "momentum-t3a-cost.json",
+    "summary": {
+      "paired_whole_test_time_ratio_median": 1.0270680008536848,
+      "paired_whole_test_time_ratio_range": [
+        1.0064299920987385,
+        1.047706009608631
+      ],
+      "all_four_runs_at_original_6000_budget": true,
+      "canonical_changed_assertion_payloads": 0
+    },
+    "protocol": "Existing T3A whole-test elapsed time, two alternating AB, BA pairs. Direct solver API, original 6000-step case budget and all original assertions. Includes setup, output and assertions; not solver-loop-only time. Shared machine.",
+    "baseline_test_binary_sha256": "e317481083fba85dec3cf3e3578c4c421aacf21812480bbdf40400b09fc100de",
+    "candidate_test_binary_sha256": "3aed240670003411f196d0c03789649a3e70355a9b1c85527d84b14c9ced4d4b"
   }
 }

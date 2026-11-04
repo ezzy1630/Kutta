@@ -724,7 +724,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | --- | --- | --- | ---: | --- |
 | Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | Startup time/step: CPU 2.91x, Metal 1.22x; ordinary SST plate: unconverged at 3,000 → converged at 300; SA still fails at 3,000 | 316.76 / 356.76, fine bump | Keep opt-in |
 | Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | Paired elbow time: CPU 1.002x, Metal 1.559x; finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
-| Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Late step time, SST / SA: CPU 0.988x / 0.936x, Metal 1.046x / 1.260x; Metal SA total 1.187x, wide contended ranges | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
+| Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Ordinary SIMPLEC plate momentum inner work: 3.19–3.47x; all four solves still fail at 3,000. Late step time, SST / SA: CPU 0.988x / 0.936x, Metal 1.046x / 1.260x; Metal SA total 1.187x; larger T3A whole case 1.027x (1.006–1.048) | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates still fail at 3,000. Late time, SST / SA: CPU 1.021x / 1.012x, Metal 1.006x / 0.980x; SA inner work unchanged | 0 / 0 | Numerically eligible; promotion pending remaining studies and combined proof |
 | Compensated scalar transport | Pending | Pending | 32 / 16 | Pending |
 | Scalar pseudo-time off | Pending | Pending | 0 / 0 | Pending |
@@ -1143,6 +1143,42 @@ pair range is 0.984–1.536. SST Metal's total ratio is 1.087 and late ratio
 The 3.19–3.47x momentum inner-work increase is deterministic. This option
 must not be described as free, nor can these contended timings establish a
 uniform slowdown across ordinary solves. No default has yet been changed.
+
+### Momentum tolerance on a larger ordinary solve
+
+The existing T3A transition case uses SIMPLEC, whose momentum solves read
+this tolerance. Two alternating AB, BA pairs compare the frozen exact
+main test binary with the archived momentum-tolerance candidate. All other
+settings and runtime inputs match. This is the original T3A budget of 6,000;
+the TMR budget remains 3,000. All four runs use Metal, reach 6,000 steps,
+and reproduce all 161,470 original assertion payloads through the unchanged
+canonical comparator.
+
+| Pair and order | Baseline elapsed seconds | Candidate elapsed seconds | Candidate / baseline |
+|---|---:|---:|---:|
+| 0, AB | 367.03 | 369.39 | 1.0064 |
+| 1, BA | 355.93 | 372.91 | 1.0477 |
+
+The median paired increase is 2.7%, with a 0.6–4.8% pair range. These are
+whole-test times including setup, output and assertions, on the shared
+machine. They do not establish a cost bound on other cases. The candidate
+peaks at 340,706,024 process bytes; baseline peaks vary from 340,443,856 to
+355,762,920. No direct device allocation changes, and that process-peak
+variation is not attributed to the tolerance. T3A's documented continuity
+stall is not gated here; passing these unchanged assertions does not claim
+physical convergence.
+
+The donor checkout has advanced since `e014e36`. The baseline here is its
+frozen copied binary, with its embedded runtime paths checked and its data,
+mesh, ledger and independent equation reference matched to the candidate's
+inputs. Its current C++ source and current build are not substituted. This
+case calls the solver API and does not invoke the current root CLI. Protocol,
+input and binary hashes, all four receipts and the scope limits are in
+[momentum-t3a-cost.json](momentum-t3a-cost.json).
+
+The ordinary SA plate's 18.7% total and 26.0% late-step Metal increases above
+remain part of the decision. The larger SST transition result does not make
+the option free across ordinary solves.
 
 ### Pressure tolerance: complete comparison and cost
 

@@ -1,0 +1,100 @@
+{
+  "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+  "protocol": "Existing T3A whole-test elapsed time, two alternating AB, BA pairs. Direct solver API, original 6000-step case budget and all original assertions. Includes setup, output and assertions; not solver-loop-only time. Shared machine.",
+  "baseline_binary_sha256": "e317481083fba85dec3cf3e3578c4c421aacf21812480bbdf40400b09fc100de",
+  "candidate_binary_sha256": "3aed240670003411f196d0c03789649a3e70355a9b1c85527d84b14c9ced4d4b",
+  "compiled_harness_revision": "e014e36",
+  "compiled_harness_source_sha256": {
+    "validation/cases/fsae_aero.hpp": "079d130b1bb73e368809df6286bba86327b4f35e529fd70c0d273ce4fdc1936f",
+    "tests/fv/test_transition_validation.cpp": "e04db350fd38c7e59897368910e08ddb8c0e8ae4f0dbd2b970065b3ab68de4d6",
+    "tests/generated_fixtures.hpp": "c7b1575da48df3f594f08ebe9cc1137de73e1d38349fd05e92da4fc24d818fb8"
+  },
+  "rows": [
+    {
+      "pair": 0,
+      "variant": "baseline",
+      "test_real_seconds": 367.03,
+      "outer_iterations": 6000,
+      "backend": "metal",
+      "assertions": 161470,
+      "failed_assertions": 0,
+      "maximum_process_peak_bytes": 340443856,
+      "exit": 0,
+      "canonical_all_assertion_payloads_identical": true,
+      "xml_sha256": "69ae11d5c6fb4d1ff239127965fe5ef6ca122282ffeae23740509c100fa236c0",
+      "stderr_sha256": "82d3e53d96fa9a5dc588238033a1d20e239464fee3903f9eef93f151f0219e3b"
+    },
+    {
+      "pair": 0,
+      "variant": "candidate",
+      "test_real_seconds": 369.39,
+      "outer_iterations": 6000,
+      "backend": "metal",
+      "assertions": 161470,
+      "failed_assertions": 0,
+      "maximum_process_peak_bytes": 340640488,
+      "exit": 0,
+      "canonical_all_assertion_payloads_identical": true,
+      "xml_sha256": "8b0e837900e0097414f4d2503b37d40ac187856f6d07d9c061fe25b54bdf69d5",
+      "stderr_sha256": "be620df996de04cf7b6e12c8d10f947aa66fb0846ba9c98f5fa5cf380c74bfd3"
+    },
+    {
+      "pair": 1,
+      "variant": "candidate",
+      "test_real_seconds": 372.91,
+      "outer_iterations": 6000,
+      "backend": "metal",
+      "assertions": 161470,
+      "failed_assertions": 0,
+      "maximum_process_peak_bytes": 340706024,
+      "exit": 0,
+      "canonical_all_assertion_payloads_identical": true,
+      "xml_sha256": "8b0e837900e0097414f4d2503b37d40ac187856f6d07d9c061fe25b54bdf69d5",
+      "stderr_sha256": "43332767332415920ad88f3c052663841d8912761f186a5634aca291e7b70ec0"
+    },
+    {
+      "pair": 1,
+      "variant": "baseline",
+      "test_real_seconds": 355.93,
+      "outer_iterations": 6000,
+      "backend": "metal",
+      "assertions": 161470,
+      "failed_assertions": 0,
+      "maximum_process_peak_bytes": 355762920,
+      "exit": 0,
+      "canonical_all_assertion_payloads_identical": true,
+      "xml_sha256": "69ae11d5c6fb4d1ff239127965fe5ef6ca122282ffeae23740509c100fa236c0",
+      "stderr_sha256": "479d6dbe103f8b8e4422ecb55ccf8b41f94238c0eb0d3e6a40725c9706967040"
+    }
+  ],
+  "summary": {
+    "paired_whole_test_time_ratio_median": 1.0270680008536848,
+    "paired_whole_test_time_ratio_range": [
+      1.0064299920987385,
+      1.047706009608631
+    ],
+    "all_four_runs_at_original_6000_budget": true,
+    "canonical_changed_assertion_payloads": 0
+  },
+  "complete": true,
+  "raw_receipt_sha256": "e700f74c7aefa368f0eb1bc257e074d98d0dae57f5ab8150de07eb4e0b6f3f75",
+  "verified_at_measurement": "The executed driver verifies frozen input hashes before each run and after all four runs; each row requires actual exit 0, resource receipt, original step count and unchanged canonical comparator equality.",
+  "input_sha256": {
+    "restricted_experiment_summary": "61b15b27511fb940409bab20b67c4776c170f2a1679e4a369a6536ab9043e8cc",
+    "generated_mesh": "ee19378ebf31b910e2aa515ee30df1404dc1060526b920ff4809a8aed92e7b74",
+    "fixture_ledger": "6e4570ec66fe48bddae49ba3e03b0c4daee3caaacd86783621f099349e5d0b64",
+    "independent_equations_reference": "a5741cb3fd521946eb2ff29ddba358f7077aaaf77d50386abab47c31a713e8dc",
+    "canonical_comparator": "5fa871f78f491b703b0e7bb052085f0c0b0bbc2b589813867dc7968b4f807c50",
+    "baseline_full_xml": "aa01955caa4f6601b141ca32cb154644bfdfee56fd498bb53d88aae90264b522",
+    "timing_driver": "e7f0d056ba3efd2294bc9c25e91c13c12fb23db92c90643378f18b5402bc4240",
+    "resource_sampler": "90b96e87df7a6148f07a13281cced7dc052fa009ef55d8d482ffd6cfc399a3d0"
+  },
+  "source_boundary": "The donor checkout has advanced. This uses the frozen exact-e014e36 copied baseline binary, not its current C++ source or current build. Own compiled harness files match e014e36. Both binaries runtime data prefixes were inspected; the two runtime datasets, ledgers and equation references have identical bytes. This test calls the solver API directly and does not invoke the current root CLI.",
+  "caveats": [
+    "Whole existing test elapsed time includes setup, output and assertions; this is not solver-loop-only timing.",
+    "Shared-machine AB,BA paired results do not bound all ordinary solves.",
+    "All four reach the existing T3A budget of 6,000; its documented continuity stall is not gated. Passing these unchanged assertions does not claim physical convergence.",
+    "No direct device allocation change is introduced by this tolerance. Repeated process peaks vary; their difference is not attributed to the option.",
+    "This larger case records outer steps, gate payloads and elapsed time, without inner-iteration counters. It does not establish when the absolute stopping term binds or separate a small timing difference from contention. Coarse-plate inner-work counts are recorded separately."
+  ]
+}
