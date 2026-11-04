@@ -689,11 +689,12 @@ were removed. No lane processes remain running. No push or PR was made.
 
 ## 2026-11-03–04 UTC: defaults and remaining convergence study
 
-This follow-up is in progress on base `e014e36`. Six of twelve default
-studies are complete. Momentum compensation and slack 16 regress gates;
+This follow-up is in progress on base `e014e36`. Seven of twelve default
+studies are complete and reviewed. Momentum compensation and slack 16 regress gates;
 tighter momentum and pressure tolerances preserve every gate. Scalar
-compensation and scalar steady stopping also preserve every gate outcome,
-with passing CLI INFO identity changes retained in the comparisons. No new default or
+compensation, scalar steady stopping and disabling scalar pseudo-time also
+preserve every gate outcome, with passing CLI INFO identity changes retained
+in the comparisons. No new default or
 convergence fix has been accepted. The 3,000-step budget, all reference values and every
 outer gate remain unchanged. The shared exact-main baseline and the first
 complete default-candidate comparison are recorded below. Other candidates
@@ -708,6 +709,13 @@ An earlier attempt was stopped in its first case because
 memory profiling appeared in captured CLI assertion context; that interrupted
 XML is excluded. The replacement runs without profiling. The comparator is
 main's unchanged `tools/forensics/compare_slow_assertions.py`.
+
+Each study executes all 37 slow cases in fresh test-case processes with its
+frozen test and CLI binaries, then merges their XML for that comparator.
+Nothing is skipped. This bounds process memory while retaining the entire
+assertion comparison. Its maximum case footprint is a different measurement
+from the earlier monolithic-suite peak; it establishes no fix for retention
+across cases in one process.
 
 ### Reboot and OS control, 2026-11-04 UTC
 
