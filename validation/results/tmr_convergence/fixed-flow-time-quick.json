@@ -1,0 +1,94 @@
+{
+  "variant": "fixed-flow-time",
+  "decision": "Keep opt-in: quick-tier regressions. Full slow-tier measurement remains running.",
+  "measurement_environment": {
+    "system": "Darwin",
+    "darwin_release": "27.2.0",
+    "macos_product_version": "27.2",
+    "macos_build": "26B123",
+    "machine": "arm64",
+    "python_version": "3.14.10"
+  },
+  "candidate_test_binary_sha256": "b3b6b85f59d41bfb8aaef1ade6597e2efa7285fa6f91fadf9adec701c337471d",
+  "candidate_header_sha256": "90e69d82ffeb6afbb4430392fae9d222b4ce1de505960ede88564b98574439dc",
+  "candidate_quick_log_sha256": "d6f55a4b46444bc8cb895781b9f2f02f69c475a94cb63aa7083617037a18b98b",
+  "candidate_counts": {
+    "test_cases": 307,
+    "passed_cases": 303,
+    "failed_cases": 4,
+    "assertions": 7990047,
+    "passed_assertions": 7990040,
+    "failed_assertions": 7
+  },
+  "new_os_control": {
+    "variant": "scalar-absolute",
+    "test_binary_sha256": "1b103f9f84e5b700c1b86041d718c7e2cf40cac7070a6085384ecd93b699fd66",
+    "quick_log_sha256": "4a0123a2f2cb3c1569640e2db221bc6b49d3428db03e0bbd4057204913e068aa",
+    "test_cases": 307,
+    "assertions": 7990154,
+    "failed_cases": 0,
+    "failed_assertions": 0,
+    "scope": "This immediately preceding new-OS candidate changes only SST/SA scalar absolute tolerance. It leaves the laminar numerical tests and the first laminar monitor-cadence check at original automatic pseudo-time. It is not labeled an exact-main quick replay."
+  },
+  "failure_groups": [
+    {
+      "case": "Monitor interval does not change the solution for any turbulence model",
+      "source_file": "tests/fv/test_monitor_cadence.cpp",
+      "source_line": 36,
+      "assertion": "s.pseudo_time_step==0",
+      "candidate_expanded": "0.1 == 0",
+      "backends": [
+        "cpu"
+      ],
+      "kind": "default-contract REQUIRE; aborts this test before subsequent checks",
+      "baseline_passed": true,
+      "baseline_expanded": null
+    },
+    {
+      "case": "FV symmetry constrains normal velocity in a closed box",
+      "source_file": "tests/fv/test_steady.cpp",
+      "source_line": 18,
+      "iterations": 100,
+      "assertion": "solver.report().maximum_velocity<1e-5",
+      "candidate_expanded": "0.0715005 < 1e-5",
+      "backends": [
+        "cpu",
+        "metal"
+      ],
+      "kind": "numerical",
+      "baseline_passed": true,
+      "baseline_expanded": null
+    },
+    {
+      "case": "FV pressure outlet defaults to flux-consistent normal backflow",
+      "source_file": "tests/fv/test_steady.cpp",
+      "source_line": 99,
+      "iterations": 10,
+      "assertion": "dev->max_abs(solver.pressure(),mesh.n_cells)<1e-6",
+      "candidate_expanded": "1.05209e-6 < 1e-6",
+      "backends": [
+        "cpu",
+        "metal"
+      ],
+      "kind": "numerical",
+      "baseline_passed": true,
+      "baseline_expanded": null
+    },
+    {
+      "case": "FV SIMPLEC float-pair state falls below the float32 continuity floor",
+      "source_file": "tests/fv/test_steady.cpp",
+      "source_line": 150,
+      "iterations": 200,
+      "assertion": "continuity[1]<1e-7",
+      "candidate_expanded": "2.63454e-7 < 1e-7",
+      "backends": [
+        "cpu",
+        "metal"
+      ],
+      "kind": "numerical",
+      "baseline_passed": true,
+      "baseline_expanded": null
+    }
+  ],
+  "scope": "All numerical counterexamples use direct laminar SolverSettings. They do not depend on the Fluent automatic-time adapter. Missing baseline expansions mean the passing quick log did not print those values; null is not zero. Test setups, thresholds and budgets are unchanged. The assertion total is 107 lower, and the fatal REQUIRE ends the monitor-cadence test before its subsequent checks. Nothing was intentionally skipped."
+}

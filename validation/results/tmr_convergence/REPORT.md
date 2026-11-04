@@ -690,7 +690,8 @@ were removed. No lane processes remain running. No push or PR was made.
 ## 2026-11-03–04 UTC: defaults and remaining convergence study
 
 This follow-up is in progress on base `e014e36`. Eight of twelve default
-studies are complete and reviewed. Momentum compensation and slack 16 regress gates;
+studies are complete and reviewed. The fixed-time singleton is also rejected
+by quick; its full slow run continues. Momentum compensation and slack 16 regress gates;
 tighter momentum and pressure tolerances preserve every gate. Scalar
 compensation, scalar steady stopping, disabling scalar pseudo-time and tighter
 scalar tolerance also preserve every gate outcome, with passing CLI INFO identity changes retained
@@ -784,7 +785,8 @@ remain historical; old seconds will not enter a new ratio.
 ### Option decisions and allocation cost
 
 Momentum compensation and slack 16 are rejected by their completed full slow tiers;
-slack 16 also fails the quick tier. Momentum and pressure tolerances preserve
+slack 16 also fails the quick tier. Fixed flow pseudo-time `.1` fails quick
+with seven assertions across four cases; its full slow tier is still running. Momentum and pressure tolerances preserve
 all slow gates and pass the quick tier. Scalar compensation also preserves
 all outcomes and passes quick; its canonical comparison retains 76 passing
 missing/new INFO identities. Scalar steady stopping preserves all outcomes
@@ -810,7 +812,7 @@ in [default-study-memory.json](default-study-memory.json) and
 | Scalar pseudo-time off | Full: 0 regressions/recoveries, 240 changed values, 76 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar inner work: 72,239→71,700 CPU / 73,502→71,812 Metal; SA 417→495 / 492. New-OS late time, SST / SA: CPU 0.976x / 1.006x, Metal 1.012x / 0.990x | 0 / 0 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar steady tolerance 1e-6 | Full: 0 regressions/recoveries, 234 changed values, 74 missing/new passing INFO identities; quick passes | All four ordinary plates still fail at 3,000. SST scalar inner work: 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. Late time, SST / SA: CPU 0.820x / 1.000x, Metal 0.629x / 1.014x | 24 / 12 | Gate outcomes eligible; promotion pending remaining studies and combined proof, with identity gaps disclosed |
 | Scalar absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 43 changed values, 20 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar work: 72,239→155,816 CPU / 73,502→155,771 Metal; SA 417→138,240 / 144,778. New-OS total time, SST / SA: CPU 1.176x / 1.259x, Metal 1.416x / 1.966x | 0 / 0 | Gate outcomes eligible; promotion pending combined proof; material cost disclosed |
-| Fixed flow pseudo-time .1 | Pending | Pending | 0 / 0 | Pending |
+| Fixed flow pseudo-time .1 | Full running; quick adds 7 failed assertions in 4 cases, including 3 numerical cases on CPU and Metal | All four ordinary plates fail at 3,000. SST momentum inner work: 8,974→7,765 CPU / 9,303→7,058 Metal; pressure work rises. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in; full slow comparison pending |
 | Three inner absolute tolerances together | Pending | Pending | Pending group measurement | Pending |
 | Four scalar controls together | Pending | Pending | Pending group measurement | Pending |
 | Combined precision controls | Pending | Pending | Pending group measurement | Pending |
@@ -1599,6 +1601,68 @@ scalar transport and steady stopping.
 Actual controls, full endpoint and work totals, new-OS build provenance,
 allocation deltas and timing ranges are in
 [scalar-absolute-cost.json](scalar-absolute-cost.json).
+
+### Fixed flow time .1: quick rejection and new-OS cost
+
+The ninth singleton changes the flow default from automatic time stepping
+(`0`) to a fixed `.1`. Quick completes 307 cases: 303 pass and four fail,
+with seven failed assertions out of 7,990,047. The assertion count is 107
+lower than green; a fatal default-contract REQUIRE ends the monitor-cadence
+test before its later checks. No test is intentionally skipped or weakened.
+
+Three independent numerical cases fail on both CPU and Metal:
+
+| Case | Frozen steps | Automatic-time control | Fixed .1, both backends | Unchanged gate |
+|---|---:|---|---:|---:|
+| Closed-box symmetry | 100 | Pass | max velocity 0.0715005 | < 1e-5 |
+| Pressure-outlet backflow | 10 | Pass | max absolute pressure 1.05209e-6 | < 1e-6 |
+| Float-pair channel continuity | 200 | Pass | continuity 2.63454e-7 | < 1e-7 |
+
+The preceding new-OS scalar-tolerance quick run passes all 307 cases and
+7,990,154 assertions. It changes only SST/SA scalar tolerance, leaving these
+laminar cases at the original automatic time control. Its passing log does
+not retain their expanded values; “Pass” above is not an invented zero.
+The additional failed monitor-cadence REQUIRE expects automatic time (`0`)
+and receives `.1`. The three numerical counterexamples reject this default
+independently of that contract check and the imported-case issue below.
+
+All four ordinary plate probes still miss convergence at 3,000. Their inner
+work changes as follows; triples are momentum / pressure / scalar iterations:
+
+| Model / backend | Before | After |
+|---|---:|---:|
+| SST CPU | 8,974 / 60,635 / 72,239 | 7,765 / 61,136 / 72,603 |
+| SST Metal | 9,303 / 58,694 / 73,502 | 7,058 / 64,196 / 72,220 |
+| SA CPU | 9,415 / 34,727 / 417 | 7,639 / 36,236 / 404 |
+| SA Metal | 9,750 / 34,514 / 417 | 8,572 / 35,412 / 404 |
+
+SST maximum defects improve on both backends. SA improves on CPU and worsens
+on Metal. None converges; less inner work is not convergence acceptance.
+No counted solver device storage is added. Both sides of two alternating
+AB, BA pairs run on macOS 27.2:
+
+| Model / backend | Late time ratio, median (range) | Total solver time ratio |
+|---|---:|---:|
+| SST CPU | 0.993 (0.989–0.996) | 0.990 |
+| SST Metal | 1.024 (1.023–1.025) | 1.018 |
+| SA CPU | 1.015 (1.012–1.019) | 1.009 |
+| SA Metal | 0.997 (0.995–0.999) | 1.001 |
+
+Late means steps 1,501–3,000. The paired plate peak is 149,586,616 process
+bytes. In the separate 40-step Coupled elbow startup, block work rises from
+162 to 174 and scalar work from 439 / 438 to 491 on CPU / Metal. Four
+alternating pairs give late-step ratios 1.010 (1.009–1.014) on CPU and 1.006
+(1.002–1.009) on Metal. These are case-specific costs on a shared machine.
+
+The Fluent adapter currently relies on default zero when a case explicitly
+requests automatic pseudo-time. A nonzero default would also need that
+explicit automatic choice preserved. No adapter change is made here; the
+independent numerical quick regressions already reject `.1` as a default.
+It remains an opt-in, and its complete slow-tier comparison is running.
+Quick counts, failures, source and control hashes are in
+[fixed-flow-time-quick.json](fixed-flow-time-quick.json). Cost controls,
+endpoints, allocation deltas and all timing ranges are in
+[fixed-flow-time-cost.json](fixed-flow-time-cost.json).
 
 ### Fresh remaining-failure baseline
 
