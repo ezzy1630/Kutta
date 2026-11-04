@@ -709,6 +709,48 @@ memory profiling appeared in captured CLI assertion context; that interrupted
 XML is excluded. The replacement runs without profiling. The comparator is
 main's unchanged `tools/forensics/compare_slow_assertions.py`.
 
+### Reboot and OS control, 2026-11-04 UTC
+
+The owner paused this work. The Mac subsequently rebooted and changed from
+Darwin 25.6.0 (recorded macOS 26.6.2) to macOS 27.2, build 26B123,
+Darwin 27.2.0. The matrix controllers were gone on resumption; this agent
+did not kill those CFD processes. The scalar-steady study had 22 complete,
+receipted cases. Case 23 was interrupted and has no completed receipt.
+The remaining six option/group studies had not run. The uncommitted
+scalar-steady candidate header remained intact.
+
+The frozen exact-main binary still loads and matches its archived hash.
+Before reusing any completed case, it replayed V6's CPU/Metal seeded and
+cold-start solves and all six SST flat-plate solves on the new OS. A third
+control replayed the frozen scalar-steady candidate's V6 case against its
+own archived result. Main's unchanged canonical comparator reports zero
+regressions, recoveries, changed values, missing/new assertions or
+missing/new cases for **all three controls**. Their iteration counts also
+reproduce. The known convergence/accuracy failures remain; these controls
+prove reproduction, not recovery. No binary rebuild was needed.
+
+The scalar-steady candidate's quick tier also passes again on the new OS:
+307 cases and 7,990,154 assertions. Its measured new-OS process peak is
+1,331,791,768 bytes, below the guard.
+
+The resume validator separately verifies all 22 complete cases against their
+frozen test/CLI hashes, commands, resource receipts, manifest and original
+assertion fragments. The interrupted case-23 XML and stderr are preserved
+in a reboot archive and excluded. Case 23 restarts in full on the new OS.
+The resumed study records old-OS cases 1–22 and new-OS cases 23–37 as
+separate measurement segments. The controls support this numerical reuse;
+they do not establish universal OS parity. A later failure to reproduce an
+otherwise unchanged case requires a fresh comparison, not mixed values.
+
+All cost pairs recorded so far (options 1–6) belong entirely to the old OS.
+They remain historical measurements. Future timing pairs run **both sides
+on the new OS**, using a fresh OS-specific baseline cache while preserving
+the old cache. No timing ratio crosses the OS change. Process-memory
+samples also retain their OS labels; an OS-related footprint change is not
+claimed as solver memory savings. Control hashes, complete comparison
+counts, CPU/Metal iteration samples and new-OS peaks are in
+[os27-numerical-control.json](os27-numerical-control.json).
+
 ### Option decisions and allocation cost
 
 Momentum compensation and slack 16 are rejected by their completed full slow tiers;

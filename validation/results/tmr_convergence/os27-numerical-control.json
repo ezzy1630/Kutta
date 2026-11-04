@@ -1,0 +1,231 @@
+{
+  "date_utc": "2026-11-04T07:06:17.572214+00:00",
+  "old_environment": {
+    "darwin": "25.6.0",
+    "macos": "26.6.2"
+  },
+  "new_environment": {
+    "system": "Darwin",
+    "darwin_release": "27.2.0",
+    "macos_product_version": "27.2",
+    "macos_build": "26B123",
+    "machine": "arm64",
+    "python_version": "3.14.10"
+  },
+  "cpu": "Apple M4 Pro",
+  "ram_bytes": 25769803776,
+  "compiler": "Apple clang 21.0.0 (clang-2100.1.1.101); target now arm64-apple-darwin27.2.0",
+  "baseline_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "baseline_binary_sha256": "e317481083fba85dec3cf3e3578c4c421aacf21812480bbdf40400b09fc100de",
+  "baseline_xml_sha256": "aa01955caa4f6601b141ca32cb154644bfdfee56fd498bb53d88aae90264b522",
+  "canonical_comparator_sha256": "5fa871f78f491b703b0e7bb052085f0c0b0bbc2b589813867dc7968b4f807c50",
+  "private_bridge_receipt_sha256": "2c6d2769d7bcf06aaf7bc0554cbebde9216574b6ce292aa32fc3b261f01321d4",
+  "all_controls_reproduced": true,
+  "controls": [
+    {
+      "name": "main-v6",
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "binary_sha256": "e317481083fba85dec3cf3e3578c4c421aacf21812480bbdf40400b09fc100de",
+      "actual_wait_status": 1,
+      "peak_bytes_new_os": 268076112,
+      "cpu_and_metal_samples": [
+        [
+          "cpu",
+          "seeded",
+          "200"
+        ],
+        [
+          "cpu",
+          "cold-hybrid",
+          "250"
+        ],
+        [
+          "metal",
+          "seeded",
+          "200"
+        ],
+        [
+          "metal",
+          "cold-hybrid",
+          "250"
+        ]
+      ],
+      "comparison_exit": 0,
+      "canonical_counts": {
+        "regressions": 0,
+        "recoveries": 0,
+        "changed_values": 0,
+        "missing_assertions": 0,
+        "new_assertions": 0,
+        "missing_cases": 0,
+        "new_cases": 0
+      },
+      "all_assertion_payloads_reproduced": true,
+      "xml_sha256": "792b0742dc5f559d6dbd26e74074c3fc0639c29dc97e5098bcbc39ab788fa830",
+      "comparison_sha256": "52eeedd0f06a075e3e1ba7b1d198f5ef8a46c5e55f8359c0d6a8973e912900a9",
+      "assertion_counts": {
+        "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+        "baseline_assertions": 2565,
+        "final_assertions": 2565,
+        "baseline_failed": 25,
+        "final_failed": 25
+      }
+    },
+    {
+      "name": "main-tmr-plate",
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "binary_sha256": "e317481083fba85dec3cf3e3578c4c421aacf21812480bbdf40400b09fc100de",
+      "actual_wait_status": 1,
+      "peak_bytes_new_os": 205554624,
+      "cpu_and_metal_samples": [
+        [
+          "cpu",
+          "816",
+          "300"
+        ],
+        [
+          "cpu",
+          "3264",
+          "800"
+        ],
+        [
+          "cpu",
+          "13056",
+          "3000"
+        ],
+        [
+          "metal",
+          "816",
+          "300"
+        ],
+        [
+          "metal",
+          "3264",
+          "3000"
+        ],
+        [
+          "metal",
+          "13056",
+          "3000"
+        ]
+      ],
+      "comparison_exit": 0,
+      "canonical_counts": {
+        "regressions": 0,
+        "recoveries": 0,
+        "changed_values": 0,
+        "missing_assertions": 0,
+        "new_assertions": 0,
+        "missing_cases": 0,
+        "new_cases": 0
+      },
+      "all_assertion_payloads_reproduced": true,
+      "xml_sha256": "57f11e43c8ca88c97d14a7134d6ed9742f56e4f0df65e49ab23647c6e84a8c29",
+      "comparison_sha256": "0d2b71cfd37b2150d62f48584c0e1a3fc143d2d179f4d05ab832136fa937b43f",
+      "assertion_counts": {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "baseline_assertions": 36,
+        "final_assertions": 36,
+        "baseline_failed": 2,
+        "final_failed": 2
+      }
+    },
+    {
+      "name": "scalar-steady-v6",
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "binary_sha256": "2232843cf14219dd9059605241c2e2937ec15fcad4f8caf232242864bd854e4b",
+      "actual_wait_status": 1,
+      "peak_bytes_new_os": 268518456,
+      "cpu_and_metal_samples": [
+        [
+          "cpu",
+          "seeded",
+          "200"
+        ],
+        [
+          "cpu",
+          "cold-hybrid",
+          "250"
+        ],
+        [
+          "metal",
+          "seeded",
+          "200"
+        ],
+        [
+          "metal",
+          "cold-hybrid",
+          "250"
+        ]
+      ],
+      "comparison_exit": 0,
+      "canonical_counts": {
+        "regressions": 0,
+        "recoveries": 0,
+        "changed_values": 0,
+        "missing_assertions": 0,
+        "new_assertions": 0,
+        "missing_cases": 0,
+        "new_cases": 0
+      },
+      "all_assertion_payloads_reproduced": true,
+      "xml_sha256": "d82230ccc55cda83845c5e957bb9d9ed09378af4ea190a8da16310149498afee",
+      "comparison_sha256": "52eeedd0f06a075e3e1ba7b1d198f5ef8a46c5e55f8359c0d6a8973e912900a9",
+      "assertion_counts": {
+        "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+        "baseline_assertions": 2565,
+        "final_assertions": 2565,
+        "baseline_failed": 25,
+        "final_failed": 25
+      }
+    }
+  ],
+  "candidate_rebuilt": false,
+  "verified_completed_scalar_steady_cases": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22
+  ],
+  "interrupted_case": 23,
+  "interrupted_case_reused": false,
+  "stop_reason": "Owner pause, followed by Mac reboot and OS change; the agent did not kill those CFD processes.",
+  "reuse_scope": "Controls support resuming the 22 verified completed scalar-steady cases; case23 restarts whole. This is numerical compatibility evidence for these controls, not a claim of complete OS parity.",
+  "timing_policy": "Existing timing pairs for options1\u20136 were measured entirely on Darwin25.6 and remain historical. New pairs measure both sides on Darwin27.2. The old cache is preserved; future cached numerical controls use a separate late-cost-baseline-darwin27.2 directory. No cross-OS timing ratios.",
+  "memory_policy": "Process peaks are labelled by measurement OS; differences across the OS change are not claimed as solver memory savings.",
+  "new_os_candidate_quick": {
+    "exit": 0,
+    "cases": 307,
+    "assertions": 7990154,
+    "log_sha256": "6bad18b71e1782fbafb56ac3ace4b9e51ec8f4407b43d867887427b4b63514fd",
+    "resource": {
+      "actual_wait_status": 0,
+      "continuously_guarded": true,
+      "limit_bytes": 3000000000,
+      "resource_limit_exceeded": false,
+      "sampled_and_reported_peak_bytes": 1331791768,
+      "reported_peak_bytes": 1331791768
+    }
+  },
+  "resumption_started": true,
+  "old_verified_cases_reused": 22,
+  "case23_partial_archive": "build/default-matrix/scalar-steady/reboot-darwin27.2"
+}
