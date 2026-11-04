@@ -1,0 +1,357 @@
+{
+  "status": "Cost checks complete; full slow-tier decision pending. This receipt changes no default.",
+  "measurement_environment": {
+    "system": "Darwin",
+    "darwin_release": "27.2.0",
+    "macos_product_version": "27.2",
+    "macos_build": "26B123",
+    "machine": "arm64",
+    "python_version": "3.14.10"
+  },
+  "candidate_control_changes_from_ordinary": {
+    "scalar_compensation": 1.0,
+    "scalar_pseudo_time": 0.0,
+    "scalar_steady_tolerance": 1e-06,
+    "scalar_absolute": 1e-20
+  },
+  "baseline_sha256": "8fed216cc5bcf73ce8149a6497ebc728484c58bce96f490365201aa155694673",
+  "candidate_sha256": "e4af216fa194751414f25a3a06c5066d341bbdbea48292e048eed3bbd2de4c04",
+  "baseline_build_control": {
+    "exact_main_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+    "exact_solver_files_verified": 165,
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "measurement_environment": {
+      "system": "Darwin",
+      "darwin_release": "27.2.0",
+      "macos_product_version": "27.2",
+      "macos_build": "26B123",
+      "machine": "arm64",
+      "python_version": "3.14.10"
+    },
+    "control_receipt_sha256": "dfff4b9428d7e56df4b8ba60674fe17a032b9efc5c405f2fbed605c5805007d9",
+    "reproduction_controls": [
+      {
+        "model": "sst",
+        "backend": "cpu",
+        "checks": {
+          "exit": true,
+          "physical_reports": true,
+          "all_inner_work": true,
+          "actual_controls": true
+        },
+        "actual_wait_status": 2,
+        "physical_report_samples": 30,
+        "work_samples": 30
+      },
+      {
+        "model": "sst",
+        "backend": "metal",
+        "checks": {
+          "exit": true,
+          "physical_reports": true,
+          "all_inner_work": true,
+          "actual_controls": true
+        },
+        "actual_wait_status": 2,
+        "physical_report_samples": 30,
+        "work_samples": 30
+      },
+      {
+        "model": "sa",
+        "backend": "cpu",
+        "checks": {
+          "exit": true,
+          "physical_reports": true,
+          "all_inner_work": true,
+          "actual_controls": true
+        },
+        "actual_wait_status": 2,
+        "physical_report_samples": 30,
+        "work_samples": 30
+      },
+      {
+        "model": "sa",
+        "backend": "metal",
+        "checks": {
+          "exit": true,
+          "physical_reports": true,
+          "all_inner_work": true,
+          "actual_controls": true
+        },
+        "actual_wait_status": 2,
+        "physical_report_samples": 30,
+        "work_samples": 30
+      }
+    ]
+  },
+  "cost_receipt_sha256": "27fba22bf43c4fe294d137e1e5e1151dac6eb06925f2e2ced409eb6979a7de08",
+  "paired_cost_receipt_sha256": "a7ab98c987bfdb0def739595f60d3452da7101f020f265be4db851801f015908",
+  "ordinary_plate_rows": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000148781501615,
+      "inner_work": {
+        "momentum": 8974,
+        "pressure": 60635,
+        "scalar": 72239
+      },
+      "device_bytes_at_stop": 2110408
+    },
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000192664188675,
+      "inner_work": {
+        "momentum": 9115,
+        "pressure": 59270,
+        "scalar": 8076
+      },
+      "device_bytes_at_stop": 2156104
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000183579331842,
+      "inner_work": {
+        "momentum": 9303,
+        "pressure": 58694,
+        "scalar": 73502
+      },
+      "device_bytes_at_stop": 2192328
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000119488139434,
+      "inner_work": {
+        "momentum": 9282,
+        "pressure": 59551,
+        "scalar": 7907
+      },
+      "device_bytes_at_stop": 2238024
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000204057944461,
+      "inner_work": {
+        "momentum": 9415,
+        "pressure": 34727,
+        "scalar": 417
+      },
+      "device_bytes_at_stop": 1905412
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000244573779618,
+      "inner_work": {
+        "momentum": 9583,
+        "pressure": 34580,
+        "scalar": 1322
+      },
+      "device_bytes_at_stop": 1928260
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "variant": "baseline",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000183064395142,
+      "inner_work": {
+        "momentum": 9750,
+        "pressure": 34514,
+        "scalar": 417
+      },
+      "device_bytes_at_stop": 1987332
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "variant": "candidate",
+      "outer_iterations": 3000,
+      "converged": false,
+      "maximum_defect": 0.000129191934409,
+      "inner_work": {
+        "momentum": 9633,
+        "pressure": 34277,
+        "scalar": 1325
+      },
+      "device_bytes_at_stop": 2010180
+    }
+  ],
+  "direct_allocation_deltas": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "cells": 816,
+      "extra_device_bytes": 45696,
+      "extra_device_bytes_per_cell": 56.0
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "cells": 816,
+      "extra_device_bytes": 45696,
+      "extra_device_bytes_per_cell": 56.0
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "cells": 816,
+      "extra_device_bytes": 22848,
+      "extra_device_bytes_per_cell": 28.0
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "cells": 816,
+      "extra_device_bytes": 22848,
+      "extra_device_bytes_per_cell": 28.0
+    }
+  ],
+  "paired_simplec_plate_cost": {
+    "protocol": "Coarse NASA plate, SST/SA, ordinary SIMPLEC controls; solver-loop time. Early convergence is retained; both status and iteration count are reported. Late per-iteration timing is available only when both runs reach step3000.",
+    "pairs": 2,
+    "order": "AB, BA",
+    "summary": [
+      {
+        "model": "sst",
+        "backend": "cpu",
+        "paired_solver_time_to_stop_ratio_median": 0.7731936841596064,
+        "paired_solver_time_to_stop_ratio_range": [
+          0.7278084147033924,
+          0.8185789536158204
+        ],
+        "paired_late_time_per_iteration_ratio_median": 0.7393393430701896,
+        "paired_late_time_per_iteration_ratio_range": [
+          0.6624673118843922,
+          0.816211374255987
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      },
+      {
+        "model": "sst",
+        "backend": "metal",
+        "paired_solver_time_to_stop_ratio_median": 0.6538474644815746,
+        "paired_solver_time_to_stop_ratio_range": [
+          0.6529775645017193,
+          0.65471736446143
+        ],
+        "paired_late_time_per_iteration_ratio_median": 0.651363988584102,
+        "paired_late_time_per_iteration_ratio_range": [
+          0.64358824238746,
+          0.6591397347807442
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      },
+      {
+        "model": "sa",
+        "backend": "cpu",
+        "paired_solver_time_to_stop_ratio_median": 1.0073986273085858,
+        "paired_solver_time_to_stop_ratio_range": [
+          1.0057604131579103,
+          1.0090368414592612
+        ],
+        "paired_late_time_per_iteration_ratio_median": 1.0044175916229494,
+        "paired_late_time_per_iteration_ratio_range": [
+          1.0016444893849528,
+          1.0071906938609463
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      },
+      {
+        "model": "sa",
+        "backend": "metal",
+        "paired_solver_time_to_stop_ratio_median": 1.0150942611977434,
+        "paired_solver_time_to_stop_ratio_range": [
+          1.0136904669282993,
+          1.0164980554671872
+        ],
+        "paired_late_time_per_iteration_ratio_median": 1.0119756860651425,
+        "paired_late_time_per_iteration_ratio_range": [
+          1.0089241549483885,
+          1.0150272171818964
+        ],
+        "baseline_outer_iterations": 3000,
+        "candidate_outer_iterations": 3000,
+        "baseline_converged": false,
+        "candidate_converged": false
+      }
+    ],
+    "maximum_process_peak_bytes": 149734072
+  },
+  "early_coupled_elbow_cost_summary": [
+    {
+      "backend": "cpu",
+      "paired_time_ratio_median": 1.068516952173519,
+      "paired_time_ratio_range": [
+        1.0373791986907186,
+        1.110401819619938
+      ],
+      "baseline_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 439
+      },
+      "candidate_work": {
+        "momentum": 0,
+        "pressure": 160,
+        "scalar": 585
+      },
+      "peak_bytes_baseline": 90980856,
+      "peak_bytes_candidate": 65208824
+    },
+    {
+      "backend": "metal",
+      "paired_time_ratio_median": 1.019945369860439,
+      "paired_time_ratio_range": [
+        1.0111932681753246,
+        1.0659060765912503
+      ],
+      "baseline_work": {
+        "momentum": 0,
+        "pressure": 162,
+        "scalar": 438
+      },
+      "candidate_work": {
+        "momentum": 0,
+        "pressure": 160,
+        "scalar": 585
+      },
+      "peak_bytes_baseline": 206947072,
+      "peak_bytes_candidate": 207569664
+    }
+  ],
+  "runtime_scope": "Coarse NASA plate, SST/SA with ordinary SIMPLEC controls and original 3000-step budget. Timings are candidate / baseline on a shared machine. Early-stop differences are retained and are not equal-accuracy speedups. Reduced work on a failed-budget solve is not convergence or accuracy acceptance.",
+  "source_scope": "Retained byte-identical 36 B/cell SST cleanup and original Metal runtime. Compiled default-study header differs only by the named control changes. All live paired input hashes, actual controls and reproduced endpoints/work checked before publication."
+}
