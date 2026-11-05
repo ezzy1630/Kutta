@@ -55,6 +55,10 @@ VARIANTS["precision-group"] = {
     **VARIANTS["momentum-compensation"], **VARIANTS["state-slack-16"],
     **VARIANTS["inner-absolute-group"], **VARIANTS["scalar-group"],
 }
+# Qualify the six individually eligible defaults together.
+VARIANTS["eligible-defaults"] = {
+    **VARIANTS["inner-absolute-group"], **VARIANTS["scalar-group"],
+}
 
 
 def sha(path):
