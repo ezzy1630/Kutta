@@ -168,7 +168,7 @@ struct SteadySolver::Impl {
   DeviceVec3 velocity_lo,pressure_gradient_lo;
   Buffer<float> pressure_lo,mass_lo,previous_mass,pressure_boundary_lo,imbalance,momentum_delta;
   DeviceVec3 pressure_force_lo,boundary_velocity_lo;
-  DeviceVec3 canonical_velocity,canonical_boundary_velocity,canonical_gradient[3],canonical_low_gradient[3],high_face_velocity;
+  DeviceVec3 canonical_velocity,canonical_boundary_velocity,canonical_gradient[3],canonical_low_gradient,high_face_velocity;
   Buffer<float> canonical_mass;
   Buffer<float> face_pressure_lo;
   Buffer<float> paired_diffusion_work,paired_advection_work;
@@ -272,7 +272,7 @@ struct SteadySolver::Impl {
         // SST consumes its dedicated paired strain fit, not these ordinary
         // velocity fits. Keep the low scratch for reconstruct_strain().
         if(!settings.sst) for(auto& gradient:canonical_gradient) gradient=vector_field(dev,n);
-        for(auto& gradient:canonical_low_gradient) gradient=vector_field(dev,n);
+        canonical_low_gradient=vector_field(dev,n);
       }
       reset_paired();
     }
@@ -620,7 +620,7 @@ struct SteadySolver::Impl {
     const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
     const Buffer<float>* bc_low[]{&boundary_velocity_lo.x,&boundary_velocity_lo.y,&boundary_velocity_lo.z};
     for(int k=0;k<3;++k)
-      paired_gradient(dev,mesh,stencil,velocity_lsq,*q[k],*low[k],*bc[k],*bc_low[k],canonical_gradient[k],canonical_low_gradient[k]);
+      paired_gradient(dev,mesh,stencil,velocity_lsq,*q[k],*low[k],*bc[k],*bc_low[k],canonical_gradient[k],canonical_low_gradient);
   }
   void turbulence_boundaries() {
     kern::fv_turbulence_boundary(dev,mesh.n_boundary_faces(),mesh.owner,boundary_kind,turbulence_spec,
@@ -639,10 +639,12 @@ struct SteadySolver::Impl {
       const Buffer<float>* low[]{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z};
       const Buffer<float>* bc[]{&boundary_velocity.x,&boundary_velocity.y,&boundary_velocity.z};
       const Buffer<float>* bc_low[]{&boundary_velocity_lo.x,&boundary_velocity_lo.y,&boundary_velocity_lo.z};
+      // Each paired fit and jump correction completes before the next
+      // component overwrites their common base and low-word scratch.
       for(int k=0;k<3;++k) {
-        paired_gradient(dev,mesh,stencil,strain_lsq,*q[k],*low[k],*bc[k],*bc_low[k],strain_base[0],canonical_low_gradient[k]);
+        paired_gradient(dev,mesh,stencil,strain_lsq,*q[k],*low[k],*bc[k],*bc_low[k],strain_base[0],canonical_low_gradient);
         paired_jump_corrected_gradient(dev,mesh,stencil,jump_fit,*q[k],*low[k],*bc[k],*bc_low[k],
-          strain_base[0],canonical_low_gradient[k],strain_gradient[k]);
+          strain_base[0],canonical_low_gradient,strain_gradient[k]);
       }
       return;
     }

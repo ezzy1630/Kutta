@@ -856,14 +856,15 @@ the two smaller groups preserve outcomes. Promotion of the six individually
 nonregressing controls awaits their actual combined-default proof. Allocation measurements
 come from independent one-step CPU plate probes, changing one setting at a
 time from ordinary settings, on 816 cells. The compensation row instead uses
-the measured fine-bump delta after the cleanup below. These allocations are
+the current actual-root fine-bump delta after both cleanups below. These allocations are
 not convergence or timing measurements. The exact data and probe hashes are
 in [default-study-memory.json](default-study-memory.json) and
-[lean-sst-parity.json](lean-sst-parity.json).
+[lean-sst-parity.json](lean-sst-parity.json), and
+[root-gradient-scratch-os27-parity.json](root-gradient-scratch-os27-parity.json).
 
 | Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
 | --- | --- | --- | ---: | --- |
-| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | New-OS ordinary SST plate: unconverged 3,000 → converged 300 both. SA remains failed at 3,000; total time CPU 1.594x / Metal 1.061x | 316.76 / 356.76, fine bump | Keep opt-in |
+| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | New-OS ordinary SST plate: unconverged 3,000 → converged 300 both. SA remains failed at 3,000; total time CPU 1.594x / Metal 1.061x | 268.76 / 332.76, current fine bump | Keep opt-in |
 | Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | New-OS ordinary SST stops at 400 both; SA CPU fails at 3,000 / Metal converges 500. Finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
 | Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Momentum inner work 3.19–3.47x; all four ordinary plates fail at 3,000. New-OS total time SST / SA: CPU 0.975x / 1.201x, Metal 1.068x / 1.045x | 0 / 0 | Numerically eligible; promotion pending actual combined proof |
 | Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates fail at 3,000. New-OS total time SST / SA: CPU 0.907x / 1.021x, Metal 1.496x / 0.930x; SST Metal late 1.660x | 0 / 0 | Numerically eligible; promotion pending actual combined proof |
@@ -990,7 +991,7 @@ assertion completeness, and exact agreement between each original XML case
 and its saved fragment. Resume validation accepts that prefix and rejects a
 different CLI binary before starting a solve. Gates and budgets are unchanged.
 
-### Additional scratch reuse, validated privately
+### Additional scratch reuse: historical private-build proof
 
 An isolated source variant reuses the low-word gradient scratch across
 sequential component fits, and the base scratch across paired strain fits.
@@ -1007,9 +1008,10 @@ The required 40-step CPU/Metal common-case comparisons keep all 20 file
 checks identical against main. Six finest-SST-bump CSV comparisons and four
 SST/SA public-state comparisons also remain byte-identical. These checks are
 recorded in [gradient-scratch-parity.json](gradient-scratch-parity.json).
-No timing improvement is claimed. This change remains private while the
-per-option defaults matrix uses a frozen source; it is not yet a retained
-solver saving. The currently retained change still saves 36 B/cell for SST.
+No timing improvement is claimed. This was a private-build proof while the
+per-option matrix held a frozen source. Only the 36 B/cell SST cleanup was
+retained at that point; the separate current-OS actual-root proof below
+qualifies the additional change.
 
 Four subsequent alternating AB, BA pairs per model and backend measure the
 same fine-bump configuration for 40 steps, timing only steps 21–40. All 32
@@ -1032,9 +1034,62 @@ peaks span 154.6–198.6 MB before and 154.8–209.8 MB after; SA CPU spans
 unproven, and no cause is assigned to that variation. The unchanged baseline
 binary itself has variable peaks. Metal process-peak medians fall from
 323.8 to 320.9 MB for SST and 314.0 to 312.5 MB for SA; each of their four
-pairs falls. The change remains unmerged until the matrix releases the root
-source. Data, controls and frozen input hashes are in
+pairs falls. These were old-OS private-build timings while the matrix held the root
+source. They are not current-OS timing measurements. Data, controls and
+frozen input hashes are in
 [gradient-scratch-cost.json](gradient-scratch-cost.json).
+
+### Scratch reuse: actual-root acceptance on macOS 27.2, 2026-11-05 UTC
+
+The additional scratch change is now qualified on the **actual root build**
+with original numerical defaults and original TMR settings. It reuses two
+low-word gradient vectors across sequential component fits and two strain
+bases in paired SST strain reconstruction. Kernel calls and their order are
+unchanged. Each previous consumer runs before a later component overwrites
+its scratch.
+
+All ten numerical comparison pairs pass against frozen exact-main artifacts:
+
+- CPU and Metal, 40 steps each, for `mixing_elbow --approximate wfgc` and
+  `elbow_param --approximate compressibility,ke-options`: all 20 `cmp` checks
+  of `fluxes.csv`, `forces.csv`, `loads.json`, `result.vtu` and non-comment
+  residual columns 1–7 pass.
+- Six CSV `cmp` checks for the finest SST bump pass across CPU and Metal.
+- Four finest-bump SST/SA public-state comparisons pass byte-for-byte.
+
+| Model, both backends | Frozen main device bytes → actual root | Total saving versus main | Additional saving beyond the retained cleanup |
+| --- | ---: | ---: | ---: |
+| SST, 56,320 cells | 179,067,872 → 174,336,992 | 4,730,880 bytes / **84 B/cell** | 2,703,360 bytes / 48 B/cell |
+| SA, 56,320 cells | 163,938,028 → 162,586,348 | 1,351,680 bytes / **24 B/cell** | 1,351,680 bytes / 24 B/cell |
+
+Separate one-step off/on probes hold the TMR scalar settings fixed and
+measure compensated momentum's remaining cost directly. CPU and Metal
+agree: SST **159,200,224 → 174,336,992 bytes**, adding **15,136,768 bytes /
+268.76 B/cell**; SA **143,845,100 → 162,586,348 bytes**, adding **18,741,248
+bytes / 332.76 B/cell**. These are measured on this finest-bump topology,
+not universal per-cell constants or convergence evidence.
+
+An allocation bookkeeping assertion initially mistyped the predicted SST
+difference as 15,136,608. The measured subtraction is 15,136,768. The
+incomplete receipt is preserved; all eight resource profiles were rerun,
+and the ten already-passed numerical pairs were retained only after every
+original input hash was verified unchanged. No numerical gate or resource
+limit changed. The published receipt records this correction explicitly.
+
+Quick passes **307 cases and 7,990,154 assertions**, with actual status zero
+and peak **1,341,376,456 bytes**. Portability lint passes. The largest
+individual parity/resource run peaks at **335,364,936 bytes**; publication
+returns zero and peaks at 37,192,208 bytes. Exact device allocation savings
+remain separate from process footprint. No current-OS timing improvement is
+claimed, and these results do not fix or explain the previous monolithic
+suite's retention. CUDA remains unbuilt on this machine.
+
+This source change is byte-identical on the mandated CPU/Metal paths, so a
+separate full slow tier is not needed to claim these allocation savings.
+The next selected-default qualification will execute all 37 slow cases with
+this root change integrated. Source, binary and probe hashes, every file
+check, allocation profiles and quick results are in
+[root-gradient-scratch-os27-parity.json](root-gradient-scratch-os27-parity.json).
 
 ### Complete compensation-default comparison
 

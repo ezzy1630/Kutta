@@ -1,0 +1,580 @@
+{
+  "quick_tier": {
+    "complete": true,
+    "measurement_environment": {
+      "system": "Darwin",
+      "darwin_release": "27.2.0",
+      "macos_product_version": "27.2",
+      "macos_build": "26B123",
+      "machine": "arm64",
+      "python_version": "3.14.10"
+    },
+    "binary_sha256": "bb6379e1c687a763c5f9606bccb81830b36dfb94aee24d887171d16e5b61f7e9",
+    "actual_wait_status": 0,
+    "test_cases": [
+      307,
+      307,
+      0
+    ],
+    "assertions": [
+      7990154,
+      7990154,
+      0
+    ],
+    "resource": {
+      "actual_wait_status": 0,
+      "continuously_guarded": true,
+      "limit_bytes": 3000000000,
+      "resource_limit_exceeded": false,
+      "sampled_and_reported_peak_bytes": 1341376456,
+      "reported_peak_bytes": 1341376456,
+      "interrupted": false,
+      "completed_wait_and_final_footprint": true
+    },
+    "log_sha256": "7771c239c4698f49556d768be721fff0a4b9e5cccacafea54005ae5ee37436df"
+  },
+  "date_utc": "2026-11-05",
+  "complete": true,
+  "baseline_revision": "e014e36c46cd63bd2b9fc52b24247b1e40939f85",
+  "measurement_environment": {
+    "system": "Darwin",
+    "darwin_release": "27.2.0",
+    "macos_product_version": "27.2",
+    "macos_build": "26B123",
+    "machine": "arm64",
+    "python_version": "3.14.10"
+  },
+  "root_head_during_candidate_proof": "1bd74b374fff4b9a2d8297c01f735718bd5a2e73",
+  "candidate_source_and_binaries_sha256": {
+    "src/kutta/fv/steady_solver.cpp": "4ed3c8002fe96e55811453bfebd92853e62f890489e93d2da130d71cb2e73254",
+    "src/kutta/fv/steady_solver.hpp": "be4e1bc83d9a393db565f090a3acdb42811d245fc8406ac7c529b19c18ff4abc",
+    "src/kutta/runtime/metal/metal_device.mm": "6159ac4c86068449a641a833d8c092c7c05dc3de9859a9ddc59313bdefa0b186",
+    "build/kutta": "c2294a2512e7531b2e26d6c1e63453d968d2d4465783f9af27a695579ddf410c",
+    "build/bench_tmr": "7f8c828d44d410c6eb442efcec3cc51874db835c5d10f72845604337470d39bf",
+    "build/libkutta.a": "62be8d9e35b8eddfbc4a4047ea17e85e66a34adf53c14f4657d2cb56d403ef2c",
+    "build/tmr-probe/probe.cpp": "2608768aca8a2dd6034a7333ef2f2ccc4f7aebbf7dbee50ad8d3d7eba88fd6e3",
+    "validation/cases/tmr.hpp": "2ccdf056da3250945874fadfac9a958d96420270e9ab3be8161d886f78925d14",
+    "validation/cases/tmr_sa.hpp": "4d30b7e4927497d817d6518c1fa71e0681aa4565aad6e17da3e881ef5c037102",
+    "build/root-gradient-scratch-os27/probe": "e1dd8b16906df8ec72606c8133c0f39bbaac7f7c53ef0e209ce5fdff8eb62c88"
+  },
+  "baseline_artifact_sha256": {
+    "build/exact-main/kutta": "49558155ab98f0619827b0469b4edb6505494c8926141080909cf152939c06f5",
+    "build/bench_tmr-baseline": "ec88647b403fd5c07ba8b77c93eca9689c1bf5bb2e5b2548b728b73269986eae",
+    "build/tmr-probe/probe-state-before": "8b35c1a08e77247fd6dc1fc71c3ef79d5b23db5a9a32cb8bb507cf4b84748662"
+  },
+  "allocation_completion": {
+    "reason": "Original SST expected difference15136608 was an arithmetic typo:174336992-159200224=15136768. The ten numerical pairs passed before this resource-accounting assertion. Numerical sources, budgets, gates, frozen binaries and all original proof inputs remain unchanged. Original incomplete receipt preserved; all eight resource profiles rerun separately.",
+    "original_incomplete_receipt_sha256": "96cc1ef48000f17b36beaa71dbd5ff4c460e838b9b88688c036ccd8982e71832",
+    "completion_script_sha256": "0fc4093cc476af26cd445bb903abb2e3e7247254aa3b43ff01a9b56eff7daa54",
+    "origin_memory_receipt_sha256": "a7acc92714701f7a9ad44307525710fc9cac0d3cf45e43ba80342a0c4e4127d3",
+    "original_numerical_pair_count": 10,
+    "expected_additional_device_bytes": {
+      "sst": 15136768,
+      "sa": 18741248
+    },
+    "all_original_frozen_inputs_unchanged": true
+  },
+  "private_receipt_sha256": "cdced55c9a872f29c8c801b2546e6ec14c0a36cce8ff205f488f988225aef842",
+  "parity_rows": [
+    {
+      "case": "mixing_elbow",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 76890856,
+          "reported_peak_bytes": 76530192,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 76481040,
+          "reported_peak_bytes": 76481040,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ]
+    },
+    {
+      "case": "mixing_elbow",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 225657576,
+          "reported_peak_bytes": 225657576,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 226034456,
+          "reported_peak_bytes": 226034456,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ]
+    },
+    {
+      "case": "elbow_param",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 84902440,
+          "reported_peak_bytes": 84902440,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 85082664,
+          "reported_peak_bytes": 85082664,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ]
+    },
+    {
+      "case": "elbow_param",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "fluxes.csv": true,
+        "forces.csv": true,
+        "loads.json": true,
+        "result.vtu": true,
+        "residuals_columns_1_7": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 242254808,
+          "reported_peak_bytes": 241337088,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 241845256,
+          "reported_peak_bytes": 240960304,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ]
+    },
+    {
+      "case": "SST finest TMR bump CSV",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "cells.csv": true,
+        "wall_cf.csv": true,
+        "history.csv": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 2,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 160514672,
+          "reported_peak_bytes": 160514672,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 2,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 212648584,
+          "reported_peak_bytes": 212648584,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ]
+    },
+    {
+      "case": "SST finest TMR bump CSV",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "cells.csv": true,
+        "wall_cf.csv": true,
+        "history.csv": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 2,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 326206328,
+          "reported_peak_bytes": 326206328,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 2,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 321323896,
+          "reported_peak_bytes": 321323896,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ]
+    },
+    {
+      "case": "sst finest TMR bump public state",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "state.bin": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 160809608,
+          "reported_peak_bytes": 160809608,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 154878576,
+          "reported_peak_bytes": 154878576,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ],
+      "device_bytes_main": 179067872,
+      "device_bytes_root": 174336992,
+      "device_bytes_saved_per_cell": 84.0,
+      "state_sha256": "6fdf06d9aad2f752b6f6c59ab802acd96b61b9a9163eda8f18a714c0a31f34ee"
+    },
+    {
+      "case": "sst finest TMR bump public state",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "state.bin": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 335364936,
+          "reported_peak_bytes": 335364936,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 321454920,
+          "reported_peak_bytes": 321454920,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ],
+      "device_bytes_main": 179067872,
+      "device_bytes_root": 174336992,
+      "device_bytes_saved_per_cell": 84.0,
+      "state_sha256": "b13be53d5acc582eccc249c09231dfe12a44c0f9bd7fcda02e3818e5cd5335a9"
+    },
+    {
+      "case": "sa finest TMR bump public state",
+      "backend": "cpu",
+      "iterations": 40,
+      "checks": {
+        "state.bin": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 201687664,
+          "reported_peak_bytes": 201687664,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 200360560,
+          "reported_peak_bytes": 200360560,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ],
+      "device_bytes_main": 163938028,
+      "device_bytes_root": 162586348,
+      "device_bytes_saved_per_cell": 24.0,
+      "state_sha256": "2c2f7b10a7ce96b127bd954e5f19c830b3fd9f5b36d0285e8bc59e0c24b2be87"
+    },
+    {
+      "case": "sa finest TMR bump public state",
+      "backend": "metal",
+      "iterations": 40,
+      "checks": {
+        "state.bin": true
+      },
+      "resources": [
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 322356064,
+          "reported_peak_bytes": 322356064,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 313115512,
+          "reported_peak_bytes": 313115512,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      ],
+      "device_bytes_main": 163938028,
+      "device_bytes_root": 162586348,
+      "device_bytes_saved_per_cell": 24.0,
+      "state_sha256": "4363d77fb0cce1b2f99acf1a036715d57ea3eac068dc83be2a05f145449e30e5"
+    }
+  ],
+  "compensated_momentum_allocation_profiles": [
+    {
+      "model": "sst",
+      "backend": "cpu",
+      "cells": 56320,
+      "outer_steps": 1,
+      "profiles": [
+        {
+          "compensated_momentum": false,
+          "device_bytes": 159200224,
+          "resource": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 201556616,
+            "reported_peak_bytes": 201556616,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "log_sha256": "67f5d5710084cfd36e5143c4e5a0e868dcb79f818ec0b3f2b9741138c7bb6f74"
+        },
+        {
+          "compensated_momentum": true,
+          "device_bytes": 174336992,
+          "resource": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 212910728,
+            "reported_peak_bytes": 212910728,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "log_sha256": "a74a0d6d0eb439681b6e6be5de7721fdc63942fb0406b231127c90cc692e8fa7"
+        }
+      ],
+      "additional_device_bytes": 15136768,
+      "additional_device_bytes_per_cell": 268.76363636363635
+    },
+    {
+      "model": "sst",
+      "backend": "metal",
+      "cells": 56320,
+      "outer_steps": 1,
+      "profiles": [
+        {
+          "compensated_momentum": false,
+          "device_bytes": 159200224,
+          "resource": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 312443768,
+            "reported_peak_bytes": 312443768,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "log_sha256": "f924a572784d322fba957e246f60f614cb8d46b71366b0468bf5709542534a31"
+        },
+        {
+          "compensated_momentum": true,
+          "device_bytes": 174336992,
+          "resource": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 327762808,
+            "reported_peak_bytes": 327762808,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "log_sha256": "994a21a1544eca44f9cb987ff4168cde4d3a054daf05f95876135367e2b44335"
+        }
+      ],
+      "additional_device_bytes": 15136768,
+      "additional_device_bytes_per_cell": 268.76363636363635
+    },
+    {
+      "model": "sa",
+      "backend": "cpu",
+      "cells": 56320,
+      "outer_steps": 1,
+      "profiles": [
+        {
+          "compensated_momentum": false,
+          "device_bytes": 143845100,
+          "resource": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 181387864,
+            "reported_peak_bytes": 181387864,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "log_sha256": "bd1fdb621caebbd3980da5dc86797b917d070138f6bd5b0ab28c984b0bee48c7"
+        },
+        {
+          "compensated_momentum": true,
+          "device_bytes": 162586348,
+          "resource": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 200491632,
+            "reported_peak_bytes": 200491632,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "log_sha256": "c3eebfcc544d79e2791b47e2781ed6020a6961b2f242a520c11cf7557be5ceec"
+        }
+      ],
+      "additional_device_bytes": 18741248,
+      "additional_device_bytes_per_cell": 332.76363636363635
+    },
+    {
+      "model": "sa",
+      "backend": "metal",
+      "cells": 56320,
+      "outer_steps": 1,
+      "profiles": [
+        {
+          "compensated_momentum": false,
+          "device_bytes": 143845100,
+          "resource": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 299877192,
+            "reported_peak_bytes": 299877192,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "log_sha256": "afd079281f5afd6f81ed9ea8138795349fb60c5bee91362b8d41a973d4c31fcf"
+        },
+        {
+          "compensated_momentum": true,
+          "device_bytes": 162586348,
+          "resource": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 319128440,
+            "reported_peak_bytes": 319128440,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "log_sha256": "69d61ff4589859b576eb334effcb1cf06220e5f1698b47a645778d892c078889"
+        }
+      ],
+      "additional_device_bytes": 18741248,
+      "additional_device_bytes_per_cell": 332.76363636363635
+    }
+  ],
+  "maximum_guarded_run_peak_bytes": 335364936,
+  "scope": "Actual root built with the gradient scratch change, original numerical defaults and TMR settings, on the current OS. Four CPU/Metal CLI40 pairs use frozen exact-main mixing_elbow (wfgc) and elbow_param (compressibility,ke-options): cmp fluxes.csv, forces.csv, loads.json and result.vtu, plus residual non-comment columns1-7. Two TMR CSV pairs and four finest-bump public-state pairs are byte-identical. Total device saving versus exact-main is84 SST/24 SA B/cell with compensated momentum. Four separate off/on allocation pairs measure the opt-in cost directly with TMR scalar settings fixed, one outer step. No resource-only transient is convergence evidence; no timing or whole-process-footprint saving is claimed."
+}
