@@ -82,6 +82,17 @@
         "tool": "LD",
         "version": "1267.0"
       }
+    },
+    {
+      "variant": "eligible-defaults",
+      "benchmark_sha256": "8a4486ce68195eaf9a6b68416013713db03ab75630f3b38b3e8647a407bbae79",
+      "linked_build_version": {
+        "platform": "MACOS",
+        "minos": "26.5",
+        "sdk": "26.5",
+        "tool": "LD",
+        "version": "1267.0"
+      }
     }
   ],
   "checked_objects": [

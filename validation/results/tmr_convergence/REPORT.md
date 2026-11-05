@@ -876,6 +876,8 @@ in [default-study-memory.json](default-study-memory.json) and
 | Three inner absolute tolerances together | Full: 0 regressions/recoveries, 49 changed values, 20 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. Momentum work 3.32–3.60x; SST scalar work 2.12–2.17x, SA 317–324x. New-OS total time, SST / SA: CPU 1.173x / 1.268x, Metal 1.445x / 2.031x | 0 / 0 | Gate outcomes eligible; promotion pending actual combined proof; material cost disclosed |
 | Four scalar controls together | Full: 0 regressions/recoveries, 258 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239/73,502→8,076/7,907; SA 417→1,322/1,325. New-OS total time, SST / SA: CPU 0.773x / 1.007x, Metal 0.654x / 1.015x. Coupled startup CPU 1.069x / Metal 1.020x | 56 / 28 | Gate outcomes eligible; promotion pending actual combined proof; path-dependent cost disclosed |
 | Combined precision controls | Full: 2 regressions, 0 recoveries, 1,239 changed values, 88 missing/new passing identities; quick passes | Ordinary plates: all baseline failures at 3,000 → SST converged at 300 both, SA converged at 400 CPU / 300 Metal. New-OS time to stop, SST / SA: CPU 0.190x / 0.240x, Metal 0.069x / 0.114x. Coupled startup CPU 2.526x / Metal 1.175x | 377.97 / 389.97, coarse plate | Keep opt-in; material Coupled cost disclosed |
+| Actual selected six controls | Joint full tier running; quick passes 307/7,990,154 | All four ordinary plates fail at 3,000. M/P/scalar work and paired ranges below. New-OS total time SST / SA: CPU 0.812x / 1.038x, Metal 0.652x / 1.266x. Early Coupled CPU 1.318x / Metal 1.089x, wide ranges | 56 / 28 | Promotion pending joint full review; material SA Metal cost disclosed |
+
 Momentum relaxation .7 is already the ordinary solver default. The bump
 harness's fixed time step is a separate candidate from its relaxation.
 The planned groups are the three inner absolute tolerances, the four scalar
@@ -2158,6 +2160,34 @@ All nine singleton and three grouped slow studies are now complete and
 reviewed. No default is promoted yet. The six individually nonregressing
 controls still require qualification together, including removal of their
 TMR overrides, after fresh new-OS cost replays and actual-root memory parity.
+
+### Selected six: joint quick and current-OS cost checks
+
+The actual selected combination is built and running its full 37-case slow qualification. It combines momentum and pressure absolute tolerances 1e-20 with compensated SST/SA scalar transport, scalar steady stopping at 1e-6, scalar pseudo-time off and scalar absolute tolerance 1e-20. Both TMR harnesses remove those six explicit assignments and redundant momentum relaxation .7 before this qualifying build. Every byte outside their settings blocks is unchanged. Compensated momentum, slack 16 and the bump flow-time opt-ins remain explicit.
+
+Quick passes **307 cases and 7,990,154 assertions**. Both compiled harnesses are archived and hashed with the candidate. All **16 ordinary SIMPLEC timing runs** reproduce checked controls, numerical endpoints and inner work, with both binaries running on macOS 27.2. The linked SDK/minimum OS/linker metadata and five cached backend objects match the recorded incremental-build cohort; this is not a clean rebuild of every object.
+
+| Model/backend | Maximum defect, main → candidate | Momentum / pressure / scalar inner work, main → candidate | Solver time to stop, candidate/main, median (range) | Late time per iteration, median (range) |
+| --- | --- | --- | --- | --- |
+| SST cpu | 0.0001487815 → 9.0192605e-05 | 8,974 / 60,635 / 72,239 → 32,003 / 58,254 / 7,570 | 0.811941 (0.777106–0.846775) | 0.786107 (0.703275–0.868939) |
+| SST metal | 0.00018357933 → 8.423389e-05 | 9,303 / 58,694 / 73,502 → 33,330 / 57,067 / 8,126 | 0.651839 (0.575386–0.728291) | 0.659806 (0.603817–0.715794) |
+| SA cpu | 0.00020405794 → 0.00017301074 | 9,415 / 34,727 / 417 → 31,051 / 34,623 / 1,260 | 1.037784 (1.025396–1.050171) | 1.026592 (0.993236–1.059948) |
+| SA metal | 0.0001830644 → 8.9688337e-05 | 9,750 / 34,514 / 417 → 31,512 / 34,163 / 1,335 | 1.265877 (1.205673–1.326081) | 1.345728 (1.160875–1.530582) |
+
+All four final maximum defects improve, but **all four before/after solves remain unconverged at 3,000 steps**. These are measured costs at failed-budget endpoints, not equal-accuracy speedups between accepted steady solutions. SST scalar work falls about 89–90%; the tighter momentum solve increases momentum work about 3.2–3.6 times.
+
+**The ordinary SA Metal control is materially slower:** its time ratio is **1.265877** (1.205673–1.326081), and its late per-iteration ratio is **1.345728** (1.160875–1.530582). SA CPU takes 1.037784× (1.025396–1.050171). SST takes 0.811941× CPU / 0.651839× Metal, with the complete ranges above. The default decision must disclose the SA penalty rather than present only the SST reduction.
+
+The group adds **56 device B/cell for SST and 28 B/cell for SA** with compensated momentum off: 45,696 / 22,848 bytes on this 816-cell plate. The separate gradient-scratch saving applies to compensated momentum, so it does not offset this ordinary-setting allocation increase. The largest paired plate footprint is **152,421,048 bytes**.
+
+| Early Coupled elbow backend | Paired step-21–40 time ratio, median (range) | Block inner work | Scalar inner work |
+| --- | --- | --- | --- |
+| CPU | 1.318065 (0.503650–3.131248) | 162 → 160 | 439 → 585 |
+| Metal | 1.089006 (0.741930–1.414002) | 162 → 160 | 438 → 585 |
+
+The Coupled ranges are wide under contention; the measured median CPU penalty is 31.8% and Metal 8.9%, without evidence for a uniform intrinsic timing overhead. All four repeats per backend/configuration have the same work counters. Coupled block work is reported under pressure, so its separate momentum counter is zero. These 40-step startup samples do not establish a converged elbow solution.
+
+The guarded publication returns zero and peaks at 18,203,104 bytes. The full slow decision remains pending and no default is promoted from these cost results. Exact controls, candidate and baseline hashes, compiled-harness hashes, root-memory proof and paired ranges are in [eligible-defaults-cost.json](eligible-defaults-cost.json) and [os27-backend-build-control.json](os27-backend-build-control.json).
 
 ### Fresh remaining-failure baseline
 
