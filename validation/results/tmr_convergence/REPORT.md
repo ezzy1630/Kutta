@@ -2185,6 +2185,8 @@ The group adds **56 device B/cell for SST and 28 B/cell for SA** with compensate
 | CPU | 1.318065 (0.503650–3.131248) | 162 → 160 | 439 → 585 |
 | Metal | 1.089006 (0.741930–1.414002) | 162 → 160 | 438 → 585 |
 
+The timing comparison is also shown in [the paired-cost chart](eligible-defaults-cost.svg), including the observed ranges.
+
 The Coupled ranges are wide under contention; the measured median CPU penalty is 31.8% and Metal 8.9%, without evidence for a uniform intrinsic timing overhead. All four repeats per backend/configuration have the same work counters. Coupled block work is reported under pressure, so its separate momentum counter is zero. These 40-step startup samples do not establish a converged elbow solution.
 
 The guarded publication returns zero and peaks at 18,203,104 bytes. The full slow decision remains pending and no default is promoted from these cost results. Exact controls, candidate and baseline hashes, compiled-harness hashes, root-memory proof and paired ranges are in [eligible-defaults-cost.json](eligible-defaults-cost.json) and [os27-backend-build-control.json](os27-backend-build-control.json).
