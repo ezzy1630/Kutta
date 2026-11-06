@@ -2941,3 +2941,29 @@ steady tolerance remains 1e-6; the existing zero setting stays opt-in.
 raw residuals, prefixes, source/binary hashes, work and resources. Its observer
 off-control passes the same twenty CLI file checks, four target state-byte
 comparisons and six scalar-monitor sum checks. Production still has 17 failures.
+
+### General flow-time ramp experiment, 2026-11-06 UTC
+
+A bounded exponential ramp tests the startup/late-time explanation without a
+special switch iteration. It starts from the configured .1 step, increases
+by a fixed factor per outer step and caps at 1. The value depends on absolute
+iteration; monitoring does not advance it. All cohorts use scalar AMG and
+full SA relaxation from startup, with the same original limits and gates.
+The fresh baseline reproduces every archived field word and residual report.
+
+| Growth per outer step | Stopping result | Continuity | Nu-tilde | Load change | Momentum / pressure / scalar work |
+|---|---|---:|---:|---:|---:|
+| No ramp | Fails at 3,000 | 3.601779e-6 | 9.749870e-7 | .001650236 | 24,991 / 72,551 / 20,159 |
+| 1.001, cap 1 | Private convergence passes at 2,500 | 2.688035e-6 | 8.952137e-7 | .000957993 | 22,814 / 69,929 / 19,775 |
+| 1.002, cap 1 | Fails at 3,000 | 3.295410e-6 | 7.234690e-7 | .001074781 | 29,193 / 93,802 / 19,741 |
+
+The passing ramp's first-five continuity scale changes by only 0.0114%.
+Its raw continuity improvement is therefore not a large-normalization effect.
+The faster ramp is retained as a negative result; increasing time more quickly
+is not uniformly better. Passing-run Cf is .00523741196 and Cd .00364900156.
+The peak is 372,704,096 B. These are private convergence results, not full
+NASA accuracy/trend qualification or paired timing measurements.
+[time-ramp-control.json](time-ramp-control.json) records actual ramp readbacks,
+normalization ratios, raw defects, clipping observations, work and resources.
+Production still has 17 failures; the public ramp API and complete physical
+reference checks are separate pending work.
