@@ -2578,3 +2578,66 @@ failing plates and the full slow-tier effect must be checked before choosing
 a production pressure change. Complete source/binary/fixture hashes,
 normalization, applied controls, prefix checks, work and memory are in
 [middle-plate-controlled-causes.json](middle-plate-controlled-causes.json).
+
+### Startup and scalar controls, 2026-11-06 UTC
+
+These nine completed studies change no production code. Every fresh baseline
+reproduces the archived complete 3,000-step residual history and every captured
+high/low float32 word, including signed zeros, on macOS 27.2. The private
+settings-readback probe also passes four CPU/Metal SST/SA 40-step state-byte
+controls. The 3,000-step budget, first-five continuity normalization rule and
+all gates remain unchanged. The complete results, actual waits, resources,
+source/binary hashes and normalization observations are in
+[post-default-controls.json](post-default-controls.json).
+
+Starting pressure relaxation at .7 gives the following actual continuity
+results. All baselines fail at 3,000; all candidates except the first still
+fail at 3,000.
+
+| Plate | Baseline scaled continuity | Startup .7 scaled continuity | Baseline raw → candidate raw | Candidate steps |
+|---|---:|---:|---:|---:|
+| SST Metal L1 | 3.045154e-5 | 3.468712e-6 | 8.280803e-10 → 4.002956e-11 | 800, passes |
+| SA Metal L1 | 2.417789e-5 | 5.659728e-5 | 6.951282e-10 → 6.054570e-10 | 3,000 |
+| SA Metal L2 | 1.397759e-5 | 3.305705e-5 | 7.203552e-11 → 4.124452e-11 | 3,000 |
+| SST CPU L2 | 1.909810e-5 | 3.248591e-5 | 8.092247e-11 → 4.069825e-11 | 3,000 |
+| SA CPU L2 | 4.282008e-5 | 7.056140e-5 | 2.206795e-10 → 8.803784e-11 | 3,000 |
+
+The middle SST recovery is supported by a smaller raw defect, despite its
+stricter startup normalization. The other four cases do not recover. Their
+candidate normalization is 24–37% of baseline, which explains why an improved
+raw defect can accompany a worse scaled result. This observation does not
+permit substituting the baseline normalization in the gate. Constant .7 is
+not accepted as a general fix or a new default.
+
+On the coarse Metal SST bump, matching the current high/low source frame after
+2,000 identical steps changes omega defect from 1.991881e-5 to 1.138255e-5;
+holding both halves at the old frame gives 1.337407e-5. Neither passes. The
+held-old case worsens continuity from 1.515180e-5 to 3.446090e-5; the current-frame
+case ends at 1.409740e-5. Existing-monitor cell sums show three cells at the
+omega floor contribute 32.43% of baseline raw omega defect and 56.69% after
+current-frame matching. Their absolute contribution changes little. Removing
+that contribution alone would still leave the baseline above its gate, and
+excluding clipped cells from the gate is not a fix. These are contributions
+to inspect, not proof of a source-frame or boundary-condition cause. All active
+u/v, pressure and scalar inner solves converge; the negligible out-of-plane w
+component has 437/459 missed inner terminations in baseline/current-frame runs.
+
+Full scalar relaxation is rejected. On the fine Metal SA bump it changes
+nu-tilde defect from 6.129666e-5 to 1.292294e-4 and scalar inner work from
+10,928 to 272,223 iterations, with 2,999 missed scalar terminations versus zero.
+Neither field has cells at the zero floor. Simple scalar overdamping is not
+established as the cause.
+
+On the fine Metal SST bump, full k relaxation superficially recovers the
+convergence gate at step 3,000: k defect 2.572706e-5 → 5.448136e-6 and continuity
+1.087880e-5 → 7.675492e-6. But raw k defect grows 1.249615e-7 → 2.944195e-7,
+its normalization grows 0.00485720 → 0.0540404, and 3,764 cells hit the k floor
+versus zero. Scalar inner work grows 25,051 → 292,157, with 2,986 missed k
+terminations versus zero. At the baseline denominator the candidate k defect
+would be 6.061507e-5. That auxiliary observation does not replace the real gate;
+it explains why this gate recovery is insufficient evidence of a sound fix.
+The candidate is not promoted. Both scalar studies peak below 369 MB.
+
+Production still has all 17 failures. The temporal classifications above remain
+valid; only the middle SST plate currently has an experimentally established
+pressure-gain contribution. The other causes require further isolation.
