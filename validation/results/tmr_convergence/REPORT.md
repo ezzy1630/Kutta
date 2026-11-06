@@ -2919,3 +2919,25 @@ have not yet been run on this intervention. No timing claim is made.
 [delayed-time-control.json](delayed-time-control.json) records the controls,
 exact prefixes, actual settings, normalization, work and resources.
 The production TMR failure count remains 17.
+
+### Scalar steady-threshold control, 2026-11-06 UTC
+
+The AMG/full-update fine SA run holds nu-tilde fixed in 307 of 309 sampled
+late solves. Two samples perform substantial scalar updates. Disabling only
+the scalar physical steady tolerance after an identical 2,000-step prefix
+reduces final nu-tilde defect 9.749870e-7 → 2.852608e-8 and load change
+.001650236 → .001209580. Continuity rises 3.601779e-6 → 6.505012e-6, remaining
+below its gate. Both complete 3,000 steps, and the candidate still fails load.
+Captured fields, reports and work are exact before activation at step 2,001.
+This establishes a contribution from the threshold's hold/release behavior
+on this conditional case; it does not establish a sole cause or a full fix.
+
+Scalar work grows 20,159 → 62,276 and missed scalar terminations grow two →
+eight. Momentum/pressure work is 25,063/72,525 versus 24,991/72,551. All original
+inner caps remain unchanged. The candidate peaks at 359,662,456 B, Cf is
+.00522482435 and Cd .00363105134. No timing claim is made. The default physical
+steady tolerance remains 1e-6; the existing zero setting stays opt-in.
+[scalar-hold-control.json](scalar-hold-control.json) records the actual waits,
+raw residuals, prefixes, source/binary hashes, work and resources. Its observer
+off-control passes the same twenty CLI file checks, four target state-byte
+comparisons and six scalar-monitor sum checks. Production still has 17 failures.
