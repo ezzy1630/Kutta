@@ -1,0 +1,2821 @@
+{
+  "recorded_at_utc": "2026-11-06T19:33:35.126304+00:00",
+  "production_revision_unchanged": "9cb377891429549f54a9c590f93c870e4ffe68f6",
+  "case": "SST flat plate, Metal, level1,3264cells",
+  "outer_budget": 3000,
+  "interventions_after_identical_prefix_steps": 2000,
+  "gate_unchanged": true,
+  "production_change": false,
+  "kernel_rounding_observation": {
+    "actual_wait_status_observed": 0,
+    "observed_stdout": "actual_high_source=0 exact_integrated_high_input_source=2.9802322387695312e-08 missing=2.9802322387695312e-08",
+    "source_sha256": "89f902b3c2aaeee536186e287e6cc1fcded862eac2f29d49773e05e6c75f522c",
+    "binary_sha256": "9eb9d602d100ace732379a71ccdb8100a9e869ca57941dcf7752c0febcd62c92",
+    "linked_library_sha256": "f84afb6d810afc81e7bad865993c039aed2c6cc0e3b897e19b67ab2add592533",
+    "kernel_sha256": "62778bc5806b242477e626b824c8bbca99c01d2ea2eba9a3aad4ecbaa9ef8792",
+    "scope": "One tiny CPU kernel call using actual fv_stress_source. No CFD solve, no causal attribution to a TMR failure, no resource or timing claim."
+  },
+  "studies": [
+    {
+      "study": "source-time-levels",
+      "private_receipt": "<checkout>/build/cause-frame-sst-plate-metal-L1/comparison.json",
+      "private_receipt_sha256": "0fa9a6bfe8133494b87c55e604193fb2fa5fc420db61d3b44be83d41f20ae469",
+      "measurement_environment": {
+        "system": "Darwin",
+        "darwin_release": "27.2.0",
+        "macos_product_version": "27.2",
+        "macos_build": "26B123",
+        "machine": "arm64",
+        "python_version": "3.14.10"
+      },
+      "frozen_inputs_sha256": {
+        "build/velocity-low-frame/source/src/kutta/fv/steady_solver.cpp": "5c4157de154c3b4aab5d9e312a361c9dadfef6280f51c030cc6f4a4a109cb58f",
+        "build/velocity-low-frame/source/src/kutta/fv/steady_solver.hpp": "be4e1bc83d9a393db565f090a3acdb42811d245fc8406ac7c529b19c18ff4abc",
+        "build/cycle-preprojection/motion.hpp": "2cdc709ece0162b9e102535d84a748bf0d2ef5562c002491ed108485854871e7",
+        "build/velocity-low-frame/source/src/kutta/fv/turbulence/sa_transport.hpp": "b40ac91912edf35d17b6a845d22a5b9fbfeea3ed8245c62dcab28fa93b994102",
+        "build/check_velocity_frame_zero_parity.py": "a4941a8b083f5f093d6718d3af419d24e1a1c55bda1051b1e69f7f64a650dc49",
+        "build/scalar_cell_diagnostic.py": "298b04d31a6d8366510450a29490d875fcc3d1309e7194c34acbb6d1c6786eed",
+        "build/velocity-low-frame/source-origin.json": "367b741ebd6c41b8fc79f3af9084b74f3428c534c968ee2795cefec3748151a6",
+        "build/velocity-low-frame/build/libkutta.a": "ab4c1a522c0467825b8b67243cdbbc9a35cb346e77c1b0e7c03f17dc21dba59f",
+        "build/velocity-low-frame/build/kutta": "742a0cbef645e018f656ad339a6f1504c95fd716231f3d3bdcc9d1d7b56c97d6",
+        "build/exact-main/kutta": "49558155ab98f0619827b0469b4edb6505494c8926141080909cf152939c06f5",
+        "build/tmr-probe/probe-state-before": "8b35c1a08e77247fd6dc1fc71c3ef79d5b23db5a9a32cb8bb507cf4b84748662",
+        "build/preprojection-cause-probe.cpp": "f0ffadfd4aef0c5a64afb2767d7420c798c0359a4cca96eed30ffdba2838991d",
+        "build/tmr-probe/tmr.hpp": "033c7603f38e1bbddc3b70613308b4e0e05bf524eec29a451d124ab5bb98aaac",
+        "build/tmr-probe/tmr_sa.hpp": "58fcbe1197b2d9db1ffd2c532c517be11781d16d7ed468a196010e3ec16e58bd",
+        "build/tmr_fixture_inputs.py": "c051225613e0a0e7157226423ba0073b1a2a52cf14b5acb0a82857404448f0c1",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.nmf": "13685315a88529465a0f52d85f97cdd5a8e671972d9791130260e6b11c9fea07",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt": "f59b62b8cb51163e708b6be3f59bbec3eee369a9d667fa0cf48499b9e5a7e2b8",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt.gz": "e0b49f79da69ff2cdab2f0d7f8628af2a7823b6afb0e1d48d587af0186ba6689",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_3levelsdown_177x81.nmf": "cb58faf80a271522d31cc2d91153d5dd39db86b30975119f586c765ecb278050",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt": "0f11cf2818516326be73b4523d84b7132f395df354b300aa1caf3971bff16902",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_4levelsdown_89x41.nmf": "91b7da7261d0b22891a362b8829124f53c673a754e7784612d3ebf5456d922d1",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt": "0ce600d67ef2dced8c14ee936f3f68578767541deeafa718ce32cabefd7486ba",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cf_bump.dat": "85dd51f5bdb13f80ca2815b8e618ef9f237f5fec9d17ea5698523781bbb41c54",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cf_convergence_sa.dat": "b3d3fc28a7adf8eece328a94fddff22bd0a64266d9ea8566b16c626dad65559c",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cfl3d_typical.inp": "22a398dd8af3713f36d10cde5175b86fe1e12c3a41db206b9814d97f7aefcbd8",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cp_bump.dat": "482ec6ca03757293e2ddd8dc11a217f8a948fe6e292e5345c823381a034479ef",
+        "validation/data/nasa_tmr/2DBC_bump/sa/force_convergence.dat": "18efb5c53ec48ffdadfd3eff04a2a57ad18c74148b34997bfb8bfa2faf756f5a",
+        "validation/data/nasa_tmr/2DBC_bump/sst/bump_u_sst.dat": "78532273b8bb1d0ec25726d609393fd1145b47b5217a18d8bd5fa459b6ee48e0",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_bump_sst.dat": "a50ef4603a7cabf4f79c4b492fc86316dc310a27162560348629ad18a62a4bb7",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst.dat": "792ba3d94315bc35524ee8069417c3fa935d7a63f5a3d30b5d7accf634648989",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst_overflow.dat": "0a4eab5a64d2f084b1bc8a407ac901d21aa589753d1eec35c9ca13128169683b",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst_tau.dat": "05c0fcf30dd50af74979b72ab1669a863db8b0ca796ec1a8dfde745dc2fa2028",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cfl3d_typical.inp": "6a6ecb6fbda08a8531bac890ef264092e8ac64517c7c54c0fdfd62d53ce55d07",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cp_bump_sst.dat": "a449db9c7b7c54ab54888a6413494367a6f0dfe3c1f3b327a819b2ef51cc1f2e",
+        "validation/data/nasa_tmr/2DBC_bump/sst/find_peak_mut_sst.dat": "2f6e5099b5044ca7fcbf712541de009c2060123e7e5647a87a8c9ade35b1468e",
+        "validation/data/nasa_tmr/2DBC_bump/sst/force_convergence_sst.dat": "2ba8fd025b1f9998e407fbfc2514672b139cc760d9a1b2aa907a92c13786a264",
+        "validation/data/nasa_tmr/2DBC_bump/sst/fun3d.info": "1dc4811607fc6ad537fbe44d5d5dc9e5f14390ed9f0c8c12a0f72c225f69154f",
+        "validation/data/nasa_tmr/2DBC_bump/sst/fun3d.nml_typical": "276c2785d8ae9ef3e1fc8cba62e8bfbd4fb99719c4e4a2a0cc4a3e5872b97b0c",
+        "validation/data/nasa_tmr/2DBC_bump/sst/mut_0.75_sst.dat": "36fd4de96d7ad3ce7560c3fcf3843f6f02855d2741f63e830afbaaa80653414a",
+        "validation/data/nasa_tmr/2DBC_bump/sst/sst_omega_k.dat": "408f91ef1b650a1d0b26fecb019199eb23383b3cb0c70b40325bd97175026eb3",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cf_bump_sst2003.dat": "a21194119a1adf9464bac5dfd027a088b7727b57cecf99b70fb6152c994c7a0d",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cf_convergence_sst2003.dat": "62dd94da029a9acf09884b24dbad211f09f00b89fcd31b086cca2dfb857e687c",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cfl3d_typical.inp": "88ed4034c179bff333a188c96e5f731e685eed21e5582f614c7730e1b33051d4",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cp_bump_sst2003.dat": "3453b6b1498a4cae56e8a56f9d05c879ec5a98a5865861df96bf2d68d9ef9c06",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/force_convergence_sst2003.dat": "e8a860067263d6b82122c347859c0de8c9c8a7abd3e1286d7388b1e592860b92",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/mut_0.75_sst2003.dat": "20aa6a7e5eb3f4c847bf5920525f7bf100f404f6e79cddd72f10e98ec83ae78c",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/bump_u_sstv.dat": "af868ef77a92898e3260f7da6d3dd72486d909dacc29800815551d8776a0acf1",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cf_bump_sstv.dat": "77dc70c4861827007ac09819120bc0c1084b7660ff64bc52947abf5aed60d414",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cf_convergence_sstv.dat": "5d32fbf03043eba666558628849c6133582c80199dfefdbd23b9308fa6c818a0",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cfl3d_typical.inp": "0c675d4e4cd9bfedc2907afad90632326751d44d7f89cbbdfc11e3d74e2900c8",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cp_bump_sstv.dat": "343921427e50d8fcc4be77f4e36bc8832d6009c34cc3d4c0bb8d81de6403544c",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/force_convergence_sstv.dat": "a94857862d753fae88a07a4c2e6658d7a80e23653f796857a59263b1830ef26f",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/mut_0.75_sstv.dat": "40eff8cb43a3725e6570695b55d97fe37a6f5263c26e44c6494f15dd8d4ca493",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.abbottdata.cd.dat": "21321fe22883672c344f3cd1369c69cdaf045ed8496cd0a976b741645c79e3d9",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.abbottdata.cl.dat": "3ee6a0c198f6402c9fc5fd8affc1115c1e87ff943b8b02775df86a7cfa3c55f3",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.mccroskeydata.cl.dat": "bf5848c235cedffef4e307f5cb52be1e7146bd5e480c202824a59d6d9754924e",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CLCD_Ladson_expdata.dat": "78cd2f6aa4968e80f44cbf6c96f699bd9c6e45681d958ec528a10cf72ed23357",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CL_Gregory_expdata.dat": "0b7381a45412de50fcf0e0dddf67f1e8e35ba1a278bd4734fb7f16ad08df1f74",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CP_Gregory_expdata.dat": "38d8474bc67661c3cef5e4cd9eeddb95d4a436d06abc1f58a8518066f510647c",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CP_Ladson.dat": "547e022634a360cd7697813543348cd447ee0038cdbc8f00a5296c7822ec7af8",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_113-33.nmf": "597865103baf72a0c78d0e42a7e2d09688ea78b6a20f8fbcac2baa936d1445a1",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_113-33.p2dfmt": "669fff259b59ac4df557ad3bfef6be0794ac5eacc0f45ec1ce9715f75dfd1654",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_225-65.nmf": "c6c32668f19bbd1a89510dfeb3a43c924137ae90afa7772eeb83875f9d9b34b0",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_225-65.p2dfmt": "66817d6bbc9353cb0ca9867f958da1bcce6485f7d68ec7038362a341bdb0fa8c",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_449-129.nmf": "648e7b4c368db4479db3cdcb3d0209590da991ad00e59865398330cbc4b45880",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_449-129.p2dfmt.gz": "6d60dfa6ef9c7544ee156276fcc5487d7eacddadbdf6e81cc6f10e78fb03eff8",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_897-257.nmf": "ec897e29363eb72546730a83048f142f8219d33397407b9f8cf474f94fe10365",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_897-257.p2dfmt.gz": "c603ea77017ae8b97af581237b81a8251fd2d3af1c49c8c6f2cd2687aafcb28e",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012points_superbig_clust_fix.dat": "74e147db4fa052be7ab79465a756c55b39b1786bfd7141a86257e89586728ae1",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/fun3d.nml_typical_sst_2": "c5c40ffe4834e1485c840c7a594d96738441ebef96d0eeeb376e1fc232193bb8",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012_cfl3d_typical_sst.inp": "e3d1b4e7c9600d03f90e5e6b5cd7a10d01ad041f704e3d60de4cacd57cb375a4",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cf_cfl3d_sst.dat": "d8001cd09d0c573de63475f8e0e02a2a989216133af74b84876eba5c328da8be",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cf_cfl3d_sstv.dat": "7f0d7d4da9b2a977e620c29eed733e1e06745d291ab54d1888f7137886e05728",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012clcd_cfl3d_sst.dat": "373dc142018816628b7b53ad278327db731162988ba35a166cd9fdc131a7fd7a",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012clcd_cfl3d_sstv.dat": "5165603932574c1f03fc164fdf96ae71c57643cfdeea12a56c2d7c870cb8ec5b",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cp_cfl3d_sst.dat": "378f9dcd058ffbe900081f213ee5c7e24dfaec0d6a9e02f366f96e8d76bf179d",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cp_cfl3d_sstv.dat": "46af599e6c920f143c18aa4bf588228646277f4182c2d051d3f72ee9c113f8dc",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.nmf": "a96ea21baa762e2d5a4f5d0447ae2ebaf2fb5323f1a0f20c36c32e5c0740f498",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.p2dfmt.gz": "40be4c0a92b75892189263a5c3efb63fa112030912480427e1e0787c6cb97955",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.nmf": "4e2d2e8d5a0076754c06a310f6b7790096a59d5c02319452f81234865f13887d",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt": "55ae965f2151e5644e3c7c1b6fecea7ce0a16cf4c34eae6997f27683a4e2ac44",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.nmf": "9117aaa4a80c97aa0be8a558db4c3582b7ec89d0b0214c61158ce51fad248a64",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt": "18c1d1c82cf91bdad89b2c2963129fc992fcd8b98fda4b3e79b7397ee52ba223",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.nmf": "cae0d171eb6e62843f8f954205d7edca688b1ddc1737145acdc6bf85b0e6dab6",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt": "41c409f49afca8affaafd4a0a49c6ba934eca9007da502fe0c20afbd091500b0",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/cf_convergence.dat": "966a9f9c8036c3c6d8a1f2c4f1744b6a79f395f5986c8a2b37941803faf67695",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/cf_plate.dat": "f2995d18cb4f5d603f63ecfe609044844ef45fb3af3a7373923048eb3d364577",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/cfl3d_typical.inp": "3c6b5e1ce3283dff4c7ee902290916289cd91b710f53aacd962a3a960dbb4171",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/drag_convergence.dat": "c665787fdcd2257da8552973fe373e2f037e055d39e0d148c21f473d5a46bc39",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_convergence_fun3d_sstv_tri.dat": "fc9392568cb0d5612552d5414af21e1bda98b3a999f6154b510159a884bcc004",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_convergence_sstv.dat": "e5cde959873804d9b37a83640535309e18d5f1bc269b7bb6a46c460c40cd2a30",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_incomp_results_sstv.dat": "65bbdbae974af5297db4387d67f2f9ac8d3c46750815d684e108a52e850647b9",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_plate_fun3d_sstv_tri.dat": "8a95c87fb3877d5a239f7ac06fd94870a3310d401ced832cdbb7d3ab29419b44",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_plate_sstv.dat": "a56bd2d16818456af015b13839f0a991b4b85bfa6c18242e7c331a2c7a4d40e8",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cfl3d_typical.inp": "ddebda5abf2fb31faa8650ccb6f753eaf377fe35512e26ec4e6883d5183d8c41",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/drag_convergence_fun3d_sstv_tri.dat": "f915bef096c37a4f135b6c77fad5bce10ccb6ef54e3b1c26f0191b9b12a547fa",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/drag_convergence_sstv.dat": "85fdc40fdacb447f954cac6704d6722cbdcb5ef5717acdfba4f76b1a7cba1f05",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/find_peak_mut_sstv.dat": "5b1207c6da015ac35e9a2a868880be9f032f29cabbb6480d7185b2aef53f341e",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/flatplate_u+y+_sstv.dat": "4a5bf0bcd8a3888bd313d67fd4a78f5cbde826fa0b00c62ac68d342197a534b2",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/flatplate_u_sstv.dat": "4e1e17a24ffb64708ce805e978cf83a3b4391585e0ded7d14dd9be6e059b1d5f",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/fun3d.nml_typical_2013": "3d67e465596822811ecb18c3dc559ce5287f84e924a52b90b7736ba145733b0c",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/mut_0.97_sstv.dat": "9378362512c4e805772ac5a0d752dc92dbfe1daf17711013b896516aa95163c2",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/sstv_f1f2_function.dat": "aaec944650609a32e12a18578a9a3473a669922a9adb85c2983cd255eb396096",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/sstv_omega_k.dat": "caf7254a3c21195bef90a109ea98b8a7187bec959410a56387cd6c21410085bc",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/u+y+theory.dat": "e4439ae7f484cf63599e053dfa03e6746d4c4519b47d1345644db4010afc6e69",
+        "validation/data/nasa_tmr/SOURCE.md": "ed27de0b6abfc0aebaabab0c53e8d12e7a75d015385e8bb7fd59d7e79976d68d",
+        "validation/data/nasa_tmr/model_docs/noteonrunning.html": "30979bfc7284dd3855a6299190ccf1b5f095ad7aa9ca776d30bb7f8f2b3a4fc1",
+        "validation/data/nasa_tmr/model_docs/sst.html": "ccc4bc8d999444104e4e41f2c610dc9de7e7cb213d3e8b7bdb1997c4b8d6ee9f",
+        "build/guard_tmr_experiment.py": "81db555c3a7b0ac158784934c3986e6212a81f735bdbf5f3860c27e428ca1d31",
+        "build/default-matrix/pressure-absolute/footprint-pid": "90b96e87df7a6148f07a13281cced7dc052fa009ef55d8d482ffd6cfc399a3d0",
+        "tools/forensics/run_slow_isolated.py": "c88d9c2aeb348af4809a5e85c7aba991969a82e80f3269f68f0e6ea274c555af",
+        "build/scalar_storage_diagnostic.py": "198327cd5222bba7756b45a2d27b47f84478ddb3d3e3b82038e00ddca9175639",
+        "build/measurement_environment.py": "64847938d4e628e156be2fd4314925d0a968d59ac2a7035e78f70e640aa0b868",
+        "build/pressure_gain_diagnostic.py": "a456504596b8fb3eec4b0be722b22c741d230267e59a95797b4e38a0269568b3",
+        "build/read_tmr_snapshot.py": "f0cf73919fabd19c27e2ab65b06a805849f96f4e20fc5c4f193208965c48b56f",
+        "build/tmr_snapshot_bits.py": "e02f78855d6869671d24b7eea3dcb44ea2d5b00c040a47fe1b491a7d7d3582f5",
+        "build/velocity-low-frame/zero-parity/probe": "d2a5b51048c75fa88daedb1d3a2fd24bac8ee9665c51ae9f0648d68b49b25b2c",
+        "build/run_velocity_frame_cause.py": "b19efb09c90c43b8b7cf2a81db064d37ef2e1720847842e5f10c100fa5fdcad7",
+        "build/default-matrix/state-slack-16/field-motion/sst-plate-metal-3264-3000.bin": "f8c52df48ede5e5a49cf60e68cceb4ed73c9209ae69fdcf4d2d7717d835daf08",
+        "build/default-matrix/state-slack-16/field-motion/sst-plate-metal-3264-residuals.csv": "301f3cd39befb20e5247811d635707b4a1feabb06d1f74324b74e5485efbda96"
+      },
+      "rows": [
+        {
+          "name": "baseline",
+          "controls": {},
+          "applied_control_readback": [],
+          "steps": 3000,
+          "converged": false,
+          "result": {
+            "converged": "0",
+            "cells": "3264",
+            "steps": "3000",
+            "u": "2.04145393589e-10",
+            "v": "1.02514016293e-10",
+            "continuity": "3.04515373356e-05",
+            "k": "9.30681874008e-07",
+            "omega": "5.83558724562e-07",
+            "nu_tilde": "0",
+            "load_change": "0",
+            "cf": "0.00269534848485",
+            "cd": "0.00285633548316",
+            "failure": "",
+            "device_bytes": "81920"
+          },
+          "peak_bytes": 139346664,
+          "resource_receipt": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 139346664,
+            "reported_peak_bytes": 139346664,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "terminal_snapshot_sha256": "58270bc0ace04b7322306f0e0459918ba05a9ed0dd4729cf69eab161701707b4",
+          "terminal_motion": {
+            "p_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.0075625853327694e-06,
+              "lag2_over_lag1_median": 0.0019793808330743137,
+              "high_changed_max": 1838,
+              "low_changed_max": 3264
+            },
+            "u_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.423728935330761e-10,
+              "lag2_over_lag1_median": 0.006700098262210008,
+              "high_changed_max": 0,
+              "low_changed_max": 3251
+            },
+            "v_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 1.328802815990553e-07,
+              "lag2_over_lag1_median": 0.004220370564009776,
+              "high_changed_max": 0,
+              "low_changed_max": 3261
+            },
+            "mass_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.740012507478033e-10,
+              "lag2_over_lag1_median": 0.0023651051230664795,
+              "high_changed_max": 0,
+              "low_changed_max": 6512
+            },
+            "k": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            },
+            "omega": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            }
+          },
+          "per_step_preprojection_continuity": {
+            "source": "Host sum of existing downloaded provisional_continuity buffer; no extra assembly, force or monitor calls.",
+            "fixed_first_five_normalization": 2.719338123275807e-05,
+            "tail_iteration_range": [
+              2801,
+              3000
+            ],
+            "tail_samples": 200,
+            "tail_raw_minimum": 8.255029888826204e-10,
+            "tail_raw_maximum": 8.288521645286387e-10,
+            "tail_scaled_minimum": 3.0356761515489344e-05,
+            "tail_scaled_maximum": 3.0479922942799596e-05,
+            "auxiliary_tail_steps_above_existing_1e_minus5_gate": 200,
+            "diagnostic_vs_existing_monitor_max_relative_error": 0.0,
+            "note": "Auxiliary non-monitor samples characterize phase behavior; actual validation acceptance remains the unchanged original monitor gate."
+          },
+          "captured_update_modes": {
+            "before_switch": {
+              "iterations": [
+                1998,
+                1999,
+                2000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9992616985648827,
+                  "update_norm_ratio": 0.999263672116343,
+                  "update_cosine": -0.9999980249942879
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999204914818431,
+                  "update_norm_ratio": 0.999934734559037,
+                  "update_cosine": -0.9999857559931649
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.9986082428719331,
+                  "update_norm_ratio": 0.9986260587141492,
+                  "update_cosine": -0.999982159646185
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.9999503377950943,
+                  "update_norm_ratio": 0.9999518064217998,
+                  "update_cosine": -0.9999985313025127
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "immediately_after_switch": {
+              "iterations": [
+                2000,
+                2001,
+                2002
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.999922181827847,
+                  "update_norm_ratio": 0.9999229744797649,
+                  "update_cosine": -0.999999207287023
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999876038308186,
+                  "update_norm_ratio": 0.9999951648126582,
+                  "update_cosine": -0.9999924389816016
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0006736429049763,
+                  "update_norm_ratio": 1.0006930045656526,
+                  "update_cosine": -0.9999806517477507
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000426623157517,
+                  "update_norm_ratio": 1.0000438036824109,
+                  "update_cosine": -0.9999988586833346
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "at_3000": {
+              "iterations": [
+                2998,
+                2999,
+                3000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9997352513399325,
+                  "update_norm_ratio": 0.9997360535635468,
+                  "update_cosine": -0.9999991975645857
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999784502072419,
+                  "update_norm_ratio": 0.9999870766525657,
+                  "update_cosine": -0.9999913734431922
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0013021733879368,
+                  "update_norm_ratio": 1.0013192901008312,
+                  "update_cosine": -0.9999829058392629
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000937173762836,
+                  "update_norm_ratio": 1.0000941039209188,
+                  "update_cosine": -0.9999996134917368
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            }
+          },
+          "terminal_linear": {
+            "iteration": "3000",
+            "momentum_work": "32997",
+            "pressure_work": "45118",
+            "scalar_work": "4245",
+            "pressure_it": "15",
+            "pressure_converged": "1",
+            "pressure_initial": "1.4164735502809031e-10",
+            "pressure_final": "8.8827356547650889e-14",
+            "momentum_u_it": "6",
+            "momentum_u_converged": "1",
+            "momentum_u_initial": "3.4693322353338222e-11",
+            "momentum_u_final": "3.1104670621358153e-13",
+            "momentum_v_it": "6",
+            "momentum_v_converged": "1",
+            "momentum_v_initial": "5.971248602505253e-12",
+            "momentum_v_final": "4.483540643012345e-14",
+            "momentum_w_it": "0",
+            "momentum_w_converged": "1",
+            "momentum_w_initial": "0",
+            "momentum_w_final": "0",
+            "scalar0_it": "0",
+            "scalar0_converged": "1",
+            "scalar0_initial": "9.9630707810970351e-12",
+            "scalar0_final": "9.9630707810970351e-12",
+            "scalar1_it": "0",
+            "scalar1_converged": "1",
+            "scalar1_initial": "0.00026449523621218849",
+            "scalar1_final": "0.00026449523621218849",
+            "last_monitor_dt": "0.085556976497173309",
+            "momentum_u_unconverged": "0",
+            "momentum_v_unconverged": "0",
+            "momentum_w_unconverged": "0",
+            "pressure_unconverged": "0",
+            "scalar0_unconverged": "0",
+            "scalar1_unconverged": "0"
+          },
+          "actual_exit": 0,
+          "original_baseline_field_bits_reproduced": {
+            "u_pair": true,
+            "v_pair": true,
+            "w_pair": true,
+            "p_pair": true,
+            "mass_pair": true,
+            "k": true,
+            "omega": true,
+            "mut": true,
+            "k_source": true,
+            "k_sink": true,
+            "omega_source": true,
+            "omega_sink": true,
+            "k_diagonal": true,
+            "omega_diagonal": true,
+            "volume": true,
+            "strain": true,
+            "f2": true,
+            "diffusivity_k": true,
+            "diffusivity_omega": true
+          },
+          "original_baseline_physical_reports_reproduced": true,
+          "original_baseline_report_columns_reproduced": [
+            "iteration",
+            "u",
+            "v",
+            "w",
+            "k",
+            "omega",
+            "nu_tilde",
+            "continuity",
+            "continuity_raw",
+            "continuity_scale",
+            "corrected_mass"
+          ],
+          "pressure_gain_at_first_post_switch_step": [
+            {
+              "iteration": 2001,
+              "configured_ceiling": 1.0,
+              "local_cap_minimum_median_maximum": [
+                0.2605462968349457,
+                1.2319087982177734,
+                1.9463001489639282
+              ],
+              "effective_gain_minimum_median_maximum": [
+                0.2605462968349457,
+                1.0,
+                1.0
+              ],
+              "cells_below_configured_ceiling": 907,
+              "cells_changed_by_ceiling_at_these_same_coefficients": 0,
+              "volume_fraction_changed_by_ceiling_at_these_same_coefficients": 0.0
+            }
+          ],
+          "terminal_physical_report": {
+            "continuity": "3.0451537335642659e-05",
+            "continuity_raw": "8.2808026389169682e-10",
+            "continuity_scale": "2.7193381232758072e-05",
+            "k": "9.3068187400830901e-07",
+            "omega": "5.8355872456208915e-07"
+          }
+        },
+        {
+          "name": "held-old-frame",
+          "controls": {
+            "LOW_FRAME_AFTER": "2000"
+          },
+          "applied_control_readback": [
+            {
+              "_marker": "PRIVATE_LOW_FRAME_APPLIED",
+              "after": "2000",
+              "iteration": "2001",
+              "hold": "1"
+            }
+          ],
+          "steps": 3000,
+          "converged": false,
+          "result": {
+            "converged": "0",
+            "cells": "3264",
+            "steps": "3000",
+            "u": "2.0412113044e-10",
+            "v": "1.02540345137e-10",
+            "continuity": "3.04328308772e-05",
+            "k": "9.31104573919e-07",
+            "omega": "5.83572720987e-07",
+            "nu_tilde": "0",
+            "load_change": "0",
+            "cf": "0.00269534848485",
+            "cd": "0.00285633548032",
+            "failure": "",
+            "device_bytes": "81920"
+          },
+          "peak_bytes": 138740408,
+          "resource_receipt": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 138740408,
+            "reported_peak_bytes": 138740408,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "terminal_snapshot_sha256": "6e7405ab2bac5559722dc45593abfdd5c2db1f4486473d3815e4a69f60391462",
+          "terminal_motion": {
+            "p_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.007795394166125e-06,
+              "lag2_over_lag1_median": 0.0020927875153101943,
+              "high_changed_max": 1869,
+              "low_changed_max": 3264
+            },
+            "u_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.423838145406276e-10,
+              "lag2_over_lag1_median": 0.006993158171357329,
+              "high_changed_max": 0,
+              "low_changed_max": 3249
+            },
+            "v_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 1.3287656286105037e-07,
+              "lag2_over_lag1_median": 0.0048976913051473805,
+              "high_changed_max": 0,
+              "low_changed_max": 3262
+            },
+            "mass_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.7403324995059295e-10,
+              "lag2_over_lag1_median": 0.0024619957858664438,
+              "high_changed_max": 0,
+              "low_changed_max": 6516
+            },
+            "k": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            },
+            "omega": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            }
+          },
+          "per_step_preprojection_continuity": {
+            "source": "Host sum of existing downloaded provisional_continuity buffer; no extra assembly, force or monitor calls.",
+            "fixed_first_five_normalization": 2.719338123275807e-05,
+            "tail_iteration_range": [
+              2801,
+              3000
+            ],
+            "tail_samples": 200,
+            "tail_raw_minimum": 8.250799665883435e-10,
+            "tail_raw_maximum": 8.290786575473148e-10,
+            "tail_scaled_minimum": 3.0341205439889326e-05,
+            "tail_scaled_maximum": 3.0488251918763912e-05,
+            "auxiliary_tail_steps_above_existing_1e_minus5_gate": 200,
+            "diagnostic_vs_existing_monitor_max_relative_error": 0.0,
+            "note": "Auxiliary non-monitor samples characterize phase behavior; actual validation acceptance remains the unchanged original monitor gate."
+          },
+          "captured_update_modes": {
+            "before_switch": {
+              "iterations": [
+                1998,
+                1999,
+                2000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9992616985648827,
+                  "update_norm_ratio": 0.999263672116343,
+                  "update_cosine": -0.9999980249942879
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999204914818431,
+                  "update_norm_ratio": 0.999934734559037,
+                  "update_cosine": -0.9999857559931649
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.9986082428719331,
+                  "update_norm_ratio": 0.9986260587141492,
+                  "update_cosine": -0.999982159646185
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.9999503377950943,
+                  "update_norm_ratio": 0.9999518064217998,
+                  "update_cosine": -0.9999985313025127
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "immediately_after_switch": {
+              "iterations": [
+                2000,
+                2001,
+                2002
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -1.00008053366429,
+                  "update_norm_ratio": 1.0000814352278022,
+                  "update_cosine": -0.9999990985099008
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999577441105335,
+                  "update_norm_ratio": 0.9999656382980516,
+                  "update_cosine": -0.9999921055412148
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0006791407385587,
+                  "update_norm_ratio": 1.0006985393706245,
+                  "update_cosine": -0.9999806149091833
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000389996797425,
+                  "update_norm_ratio": 1.0000401490632407,
+                  "update_cosine": -0.9999988506626466
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "at_3000": {
+              "iterations": [
+                2998,
+                2999,
+                3000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -1.0011193443251134,
+                  "update_norm_ratio": 1.0011214610431574,
+                  "update_cosine": -0.9999978856531135
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999292780193101,
+                  "update_norm_ratio": 0.9999450126903947,
+                  "update_cosine": -0.9999842644636605
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0003446839283894,
+                  "update_norm_ratio": 1.0003541393575437,
+                  "update_cosine": -0.9999905479181999
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.999903873511739,
+                  "update_norm_ratio": 0.9999042732499502,
+                  "update_cosine": -0.9999996002235195
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            }
+          },
+          "terminal_linear": {
+            "iteration": "3000",
+            "momentum_work": "33000",
+            "pressure_work": "45113",
+            "scalar_work": "4245",
+            "pressure_it": "15",
+            "pressure_converged": "1",
+            "pressure_initial": "1.4160762961357917e-10",
+            "pressure_final": "8.8809581719869146e-14",
+            "momentum_u_it": "6",
+            "momentum_u_converged": "1",
+            "momentum_u_initial": "3.4692899219142696e-11",
+            "momentum_u_final": "2.2573396549239908e-13",
+            "momentum_v_it": "6",
+            "momentum_v_converged": "1",
+            "momentum_v_initial": "5.9709772828763751e-12",
+            "momentum_v_final": "4.1654225313643442e-14",
+            "momentum_w_it": "0",
+            "momentum_w_converged": "1",
+            "momentum_w_initial": "0",
+            "momentum_w_final": "0",
+            "scalar0_it": "0",
+            "scalar0_converged": "1",
+            "scalar0_initial": "9.9649813675143331e-12",
+            "scalar0_final": "9.9649813675143331e-12",
+            "scalar1_it": "0",
+            "scalar1_converged": "1",
+            "scalar1_initial": "0.00026449512443388817",
+            "scalar1_final": "0.00026449512443388817",
+            "last_monitor_dt": "0.085556976497173309",
+            "momentum_u_unconverged": "2",
+            "momentum_v_unconverged": "0",
+            "momentum_w_unconverged": "0",
+            "pressure_unconverged": "0",
+            "scalar0_unconverged": "0",
+            "scalar1_unconverged": "0"
+          },
+          "actual_exit": 0,
+          "identical_captured_prefix": {
+            "1998": "e32d707b2b085f29c61fdd7ca3f08d91915cdc578e6e2047469e40ac893babd5",
+            "1999": "67c2acd6f005380a4f63b30fdc2434cc504eaa2ffb3106a5d866b09ae62637ef",
+            "2000": "e752e05fd01afc42eb4bf1813cc2299057d538406c8d99e0576ba46c98d93679"
+          },
+          "reported_and_linear_prefix_identical": true,
+          "pressure_gain_at_first_post_switch_step": [
+            {
+              "iteration": 2001,
+              "configured_ceiling": 1.0,
+              "local_cap_minimum_median_maximum": [
+                0.2605462968349457,
+                1.2319087982177734,
+                1.9463001489639282
+              ],
+              "effective_gain_minimum_median_maximum": [
+                0.2605462968349457,
+                1.0,
+                1.0
+              ],
+              "cells_below_configured_ceiling": 907,
+              "cells_changed_by_ceiling_at_these_same_coefficients": 0,
+              "volume_fraction_changed_by_ceiling_at_these_same_coefficients": 0.0
+            }
+          ],
+          "terminal_physical_report": {
+            "continuity": "3.0432830877158168e-05",
+            "continuity_raw": "8.2757157203461329e-10",
+            "continuity_scale": "2.7193381232758072e-05",
+            "k": "9.3110457391917224e-07",
+            "omega": "5.8357272098663017e-07"
+          }
+        },
+        {
+          "name": "current-frame",
+          "controls": {
+            "CURRENT_FRAME_AFTER": "2000"
+          },
+          "applied_control_readback": [
+            {
+              "_marker": "PRIVATE_CURRENT_FRAME_APPLIED",
+              "after": "2000",
+              "iteration": "2001",
+              "refresh": "1"
+            }
+          ],
+          "steps": 3000,
+          "converged": false,
+          "result": {
+            "converged": "0",
+            "cells": "3264",
+            "steps": "3000",
+            "u": "2.04145393589e-10",
+            "v": "1.02514016293e-10",
+            "continuity": "3.04515373356e-05",
+            "k": "9.30681874008e-07",
+            "omega": "5.83558724562e-07",
+            "nu_tilde": "0",
+            "load_change": "0",
+            "cf": "0.00269534848485",
+            "cd": "0.00285633548316",
+            "failure": "",
+            "device_bytes": "81920"
+          },
+          "peak_bytes": 139379408,
+          "resource_receipt": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 139379408,
+            "reported_peak_bytes": 139379408,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "terminal_snapshot_sha256": "58270bc0ace04b7322306f0e0459918ba05a9ed0dd4729cf69eab161701707b4",
+          "terminal_motion": {
+            "p_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.0075625853327694e-06,
+              "lag2_over_lag1_median": 0.0019793808330743137,
+              "high_changed_max": 1838,
+              "low_changed_max": 3264
+            },
+            "u_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.423728935330761e-10,
+              "lag2_over_lag1_median": 0.006700098262210008,
+              "high_changed_max": 0,
+              "low_changed_max": 3251
+            },
+            "v_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 1.328802815990553e-07,
+              "lag2_over_lag1_median": 0.004220370564009776,
+              "high_changed_max": 0,
+              "low_changed_max": 3261
+            },
+            "mass_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.740012507478033e-10,
+              "lag2_over_lag1_median": 0.0023651051230664795,
+              "high_changed_max": 0,
+              "low_changed_max": 6512
+            },
+            "k": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            },
+            "omega": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            }
+          },
+          "per_step_preprojection_continuity": {
+            "source": "Host sum of existing downloaded provisional_continuity buffer; no extra assembly, force or monitor calls.",
+            "fixed_first_five_normalization": 2.719338123275807e-05,
+            "tail_iteration_range": [
+              2801,
+              3000
+            ],
+            "tail_samples": 200,
+            "tail_raw_minimum": 8.255029888826204e-10,
+            "tail_raw_maximum": 8.288521645286387e-10,
+            "tail_scaled_minimum": 3.0356761515489344e-05,
+            "tail_scaled_maximum": 3.0479922942799596e-05,
+            "auxiliary_tail_steps_above_existing_1e_minus5_gate": 200,
+            "diagnostic_vs_existing_monitor_max_relative_error": 0.0,
+            "note": "Auxiliary non-monitor samples characterize phase behavior; actual validation acceptance remains the unchanged original monitor gate."
+          },
+          "captured_update_modes": {
+            "before_switch": {
+              "iterations": [
+                1998,
+                1999,
+                2000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9992616985648827,
+                  "update_norm_ratio": 0.999263672116343,
+                  "update_cosine": -0.9999980249942879
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999204914818431,
+                  "update_norm_ratio": 0.999934734559037,
+                  "update_cosine": -0.9999857559931649
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.9986082428719331,
+                  "update_norm_ratio": 0.9986260587141492,
+                  "update_cosine": -0.999982159646185
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.9999503377950943,
+                  "update_norm_ratio": 0.9999518064217998,
+                  "update_cosine": -0.9999985313025127
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "immediately_after_switch": {
+              "iterations": [
+                2000,
+                2001,
+                2002
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.999922181827847,
+                  "update_norm_ratio": 0.9999229744797649,
+                  "update_cosine": -0.999999207287023
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999876038308186,
+                  "update_norm_ratio": 0.9999951648126582,
+                  "update_cosine": -0.9999924389816016
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0006736429049763,
+                  "update_norm_ratio": 1.0006930045656526,
+                  "update_cosine": -0.9999806517477507
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000426623157517,
+                  "update_norm_ratio": 1.0000438036824109,
+                  "update_cosine": -0.9999988586833346
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "at_3000": {
+              "iterations": [
+                2998,
+                2999,
+                3000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9997352513399325,
+                  "update_norm_ratio": 0.9997360535635468,
+                  "update_cosine": -0.9999991975645857
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999784502072419,
+                  "update_norm_ratio": 0.9999870766525657,
+                  "update_cosine": -0.9999913734431922
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0013021733879368,
+                  "update_norm_ratio": 1.0013192901008312,
+                  "update_cosine": -0.9999829058392629
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000937173762836,
+                  "update_norm_ratio": 1.0000941039209188,
+                  "update_cosine": -0.9999996134917368
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            }
+          },
+          "terminal_linear": {
+            "iteration": "3000",
+            "momentum_work": "32997",
+            "pressure_work": "45118",
+            "scalar_work": "4245",
+            "pressure_it": "15",
+            "pressure_converged": "1",
+            "pressure_initial": "1.4164735502809031e-10",
+            "pressure_final": "8.8827356547650889e-14",
+            "momentum_u_it": "6",
+            "momentum_u_converged": "1",
+            "momentum_u_initial": "3.4693322353338222e-11",
+            "momentum_u_final": "3.1104670621358153e-13",
+            "momentum_v_it": "6",
+            "momentum_v_converged": "1",
+            "momentum_v_initial": "5.971248602505253e-12",
+            "momentum_v_final": "4.483540643012345e-14",
+            "momentum_w_it": "0",
+            "momentum_w_converged": "1",
+            "momentum_w_initial": "0",
+            "momentum_w_final": "0",
+            "scalar0_it": "0",
+            "scalar0_converged": "1",
+            "scalar0_initial": "9.9630707810970351e-12",
+            "scalar0_final": "9.9630707810970351e-12",
+            "scalar1_it": "0",
+            "scalar1_converged": "1",
+            "scalar1_initial": "0.00026449523621218849",
+            "scalar1_final": "0.00026449523621218849",
+            "last_monitor_dt": "0.085556976497173309",
+            "momentum_u_unconverged": "0",
+            "momentum_v_unconverged": "0",
+            "momentum_w_unconverged": "0",
+            "pressure_unconverged": "0",
+            "scalar0_unconverged": "0",
+            "scalar1_unconverged": "0"
+          },
+          "actual_exit": 0,
+          "identical_captured_prefix": {
+            "1998": "e32d707b2b085f29c61fdd7ca3f08d91915cdc578e6e2047469e40ac893babd5",
+            "1999": "67c2acd6f005380a4f63b30fdc2434cc504eaa2ffb3106a5d866b09ae62637ef",
+            "2000": "e752e05fd01afc42eb4bf1813cc2299057d538406c8d99e0576ba46c98d93679"
+          },
+          "reported_and_linear_prefix_identical": true,
+          "pressure_gain_at_first_post_switch_step": [
+            {
+              "iteration": 2001,
+              "configured_ceiling": 1.0,
+              "local_cap_minimum_median_maximum": [
+                0.2605462968349457,
+                1.2319087982177734,
+                1.9463001489639282
+              ],
+              "effective_gain_minimum_median_maximum": [
+                0.2605462968349457,
+                1.0,
+                1.0
+              ],
+              "cells_below_configured_ceiling": 907,
+              "cells_changed_by_ceiling_at_these_same_coefficients": 0,
+              "volume_fraction_changed_by_ceiling_at_these_same_coefficients": 0.0
+            }
+          ],
+          "terminal_physical_report": {
+            "continuity": "3.0451537335642659e-05",
+            "continuity_raw": "8.2808026389169682e-10",
+            "continuity_scale": "2.7193381232758072e-05",
+            "k": "9.3068187400830901e-07",
+            "omega": "5.8355872456208915e-07"
+          }
+        }
+      ]
+    },
+    {
+      "study": "stress-source-rounding",
+      "private_receipt": "<checkout>/build/cause-stress-source-sst-plate-metal-L1/comparison.json",
+      "private_receipt_sha256": "399f7a6df47f0d4b6c1419450e40beb229cc370dceeb17acd085a755e6167857",
+      "measurement_environment": {
+        "system": "Darwin",
+        "darwin_release": "27.2.0",
+        "macos_product_version": "27.2",
+        "macos_build": "26B123",
+        "machine": "arm64",
+        "python_version": "3.14.10"
+      },
+      "frozen_inputs_sha256": {
+        "build/velocity-low-frame/source/src/kutta/fv/steady_solver.cpp": "5c4157de154c3b4aab5d9e312a361c9dadfef6280f51c030cc6f4a4a109cb58f",
+        "build/velocity-low-frame/source/src/kutta/fv/steady_solver.hpp": "be4e1bc83d9a393db565f090a3acdb42811d245fc8406ac7c529b19c18ff4abc",
+        "build/cycle-preprojection/motion.hpp": "2cdc709ece0162b9e102535d84a748bf0d2ef5562c002491ed108485854871e7",
+        "build/velocity-low-frame/source/src/kutta/fv/turbulence/sa_transport.hpp": "b40ac91912edf35d17b6a845d22a5b9fbfeea3ed8245c62dcab28fa93b994102",
+        "build/check_velocity_frame_zero_parity.py": "a4941a8b083f5f093d6718d3af419d24e1a1c55bda1051b1e69f7f64a650dc49",
+        "build/scalar_cell_diagnostic.py": "298b04d31a6d8366510450a29490d875fcc3d1309e7194c34acbb6d1c6786eed",
+        "build/velocity-low-frame/source-origin.json": "367b741ebd6c41b8fc79f3af9084b74f3428c534c968ee2795cefec3748151a6",
+        "build/velocity-low-frame/build/libkutta.a": "ab4c1a522c0467825b8b67243cdbbc9a35cb346e77c1b0e7c03f17dc21dba59f",
+        "build/velocity-low-frame/build/kutta": "742a0cbef645e018f656ad339a6f1504c95fd716231f3d3bdcc9d1d7b56c97d6",
+        "build/exact-main/kutta": "49558155ab98f0619827b0469b4edb6505494c8926141080909cf152939c06f5",
+        "build/tmr-probe/probe-state-before": "8b35c1a08e77247fd6dc1fc71c3ef79d5b23db5a9a32cb8bb507cf4b84748662",
+        "build/preprojection-cause-probe.cpp": "f0ffadfd4aef0c5a64afb2767d7420c798c0359a4cca96eed30ffdba2838991d",
+        "build/tmr-probe/tmr.hpp": "033c7603f38e1bbddc3b70613308b4e0e05bf524eec29a451d124ab5bb98aaac",
+        "build/tmr-probe/tmr_sa.hpp": "58fcbe1197b2d9db1ffd2c532c517be11781d16d7ed468a196010e3ec16e58bd",
+        "build/tmr_fixture_inputs.py": "c051225613e0a0e7157226423ba0073b1a2a52cf14b5acb0a82857404448f0c1",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.nmf": "13685315a88529465a0f52d85f97cdd5a8e671972d9791130260e6b11c9fea07",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt": "f59b62b8cb51163e708b6be3f59bbec3eee369a9d667fa0cf48499b9e5a7e2b8",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt.gz": "e0b49f79da69ff2cdab2f0d7f8628af2a7823b6afb0e1d48d587af0186ba6689",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_3levelsdown_177x81.nmf": "cb58faf80a271522d31cc2d91153d5dd39db86b30975119f586c765ecb278050",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt": "0f11cf2818516326be73b4523d84b7132f395df354b300aa1caf3971bff16902",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_4levelsdown_89x41.nmf": "91b7da7261d0b22891a362b8829124f53c673a754e7784612d3ebf5456d922d1",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt": "0ce600d67ef2dced8c14ee936f3f68578767541deeafa718ce32cabefd7486ba",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cf_bump.dat": "85dd51f5bdb13f80ca2815b8e618ef9f237f5fec9d17ea5698523781bbb41c54",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cf_convergence_sa.dat": "b3d3fc28a7adf8eece328a94fddff22bd0a64266d9ea8566b16c626dad65559c",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cfl3d_typical.inp": "22a398dd8af3713f36d10cde5175b86fe1e12c3a41db206b9814d97f7aefcbd8",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cp_bump.dat": "482ec6ca03757293e2ddd8dc11a217f8a948fe6e292e5345c823381a034479ef",
+        "validation/data/nasa_tmr/2DBC_bump/sa/force_convergence.dat": "18efb5c53ec48ffdadfd3eff04a2a57ad18c74148b34997bfb8bfa2faf756f5a",
+        "validation/data/nasa_tmr/2DBC_bump/sst/bump_u_sst.dat": "78532273b8bb1d0ec25726d609393fd1145b47b5217a18d8bd5fa459b6ee48e0",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_bump_sst.dat": "a50ef4603a7cabf4f79c4b492fc86316dc310a27162560348629ad18a62a4bb7",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst.dat": "792ba3d94315bc35524ee8069417c3fa935d7a63f5a3d30b5d7accf634648989",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst_overflow.dat": "0a4eab5a64d2f084b1bc8a407ac901d21aa589753d1eec35c9ca13128169683b",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst_tau.dat": "05c0fcf30dd50af74979b72ab1669a863db8b0ca796ec1a8dfde745dc2fa2028",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cfl3d_typical.inp": "6a6ecb6fbda08a8531bac890ef264092e8ac64517c7c54c0fdfd62d53ce55d07",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cp_bump_sst.dat": "a449db9c7b7c54ab54888a6413494367a6f0dfe3c1f3b327a819b2ef51cc1f2e",
+        "validation/data/nasa_tmr/2DBC_bump/sst/find_peak_mut_sst.dat": "2f6e5099b5044ca7fcbf712541de009c2060123e7e5647a87a8c9ade35b1468e",
+        "validation/data/nasa_tmr/2DBC_bump/sst/force_convergence_sst.dat": "2ba8fd025b1f9998e407fbfc2514672b139cc760d9a1b2aa907a92c13786a264",
+        "validation/data/nasa_tmr/2DBC_bump/sst/fun3d.info": "1dc4811607fc6ad537fbe44d5d5dc9e5f14390ed9f0c8c12a0f72c225f69154f",
+        "validation/data/nasa_tmr/2DBC_bump/sst/fun3d.nml_typical": "276c2785d8ae9ef3e1fc8cba62e8bfbd4fb99719c4e4a2a0cc4a3e5872b97b0c",
+        "validation/data/nasa_tmr/2DBC_bump/sst/mut_0.75_sst.dat": "36fd4de96d7ad3ce7560c3fcf3843f6f02855d2741f63e830afbaaa80653414a",
+        "validation/data/nasa_tmr/2DBC_bump/sst/sst_omega_k.dat": "408f91ef1b650a1d0b26fecb019199eb23383b3cb0c70b40325bd97175026eb3",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cf_bump_sst2003.dat": "a21194119a1adf9464bac5dfd027a088b7727b57cecf99b70fb6152c994c7a0d",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cf_convergence_sst2003.dat": "62dd94da029a9acf09884b24dbad211f09f00b89fcd31b086cca2dfb857e687c",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cfl3d_typical.inp": "88ed4034c179bff333a188c96e5f731e685eed21e5582f614c7730e1b33051d4",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cp_bump_sst2003.dat": "3453b6b1498a4cae56e8a56f9d05c879ec5a98a5865861df96bf2d68d9ef9c06",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/force_convergence_sst2003.dat": "e8a860067263d6b82122c347859c0de8c9c8a7abd3e1286d7388b1e592860b92",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/mut_0.75_sst2003.dat": "20aa6a7e5eb3f4c847bf5920525f7bf100f404f6e79cddd72f10e98ec83ae78c",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/bump_u_sstv.dat": "af868ef77a92898e3260f7da6d3dd72486d909dacc29800815551d8776a0acf1",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cf_bump_sstv.dat": "77dc70c4861827007ac09819120bc0c1084b7660ff64bc52947abf5aed60d414",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cf_convergence_sstv.dat": "5d32fbf03043eba666558628849c6133582c80199dfefdbd23b9308fa6c818a0",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cfl3d_typical.inp": "0c675d4e4cd9bfedc2907afad90632326751d44d7f89cbbdfc11e3d74e2900c8",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cp_bump_sstv.dat": "343921427e50d8fcc4be77f4e36bc8832d6009c34cc3d4c0bb8d81de6403544c",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/force_convergence_sstv.dat": "a94857862d753fae88a07a4c2e6658d7a80e23653f796857a59263b1830ef26f",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/mut_0.75_sstv.dat": "40eff8cb43a3725e6570695b55d97fe37a6f5263c26e44c6494f15dd8d4ca493",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.abbottdata.cd.dat": "21321fe22883672c344f3cd1369c69cdaf045ed8496cd0a976b741645c79e3d9",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.abbottdata.cl.dat": "3ee6a0c198f6402c9fc5fd8affc1115c1e87ff943b8b02775df86a7cfa3c55f3",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.mccroskeydata.cl.dat": "bf5848c235cedffef4e307f5cb52be1e7146bd5e480c202824a59d6d9754924e",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CLCD_Ladson_expdata.dat": "78cd2f6aa4968e80f44cbf6c96f699bd9c6e45681d958ec528a10cf72ed23357",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CL_Gregory_expdata.dat": "0b7381a45412de50fcf0e0dddf67f1e8e35ba1a278bd4734fb7f16ad08df1f74",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CP_Gregory_expdata.dat": "38d8474bc67661c3cef5e4cd9eeddb95d4a436d06abc1f58a8518066f510647c",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CP_Ladson.dat": "547e022634a360cd7697813543348cd447ee0038cdbc8f00a5296c7822ec7af8",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_113-33.nmf": "597865103baf72a0c78d0e42a7e2d09688ea78b6a20f8fbcac2baa936d1445a1",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_113-33.p2dfmt": "669fff259b59ac4df557ad3bfef6be0794ac5eacc0f45ec1ce9715f75dfd1654",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_225-65.nmf": "c6c32668f19bbd1a89510dfeb3a43c924137ae90afa7772eeb83875f9d9b34b0",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_225-65.p2dfmt": "66817d6bbc9353cb0ca9867f958da1bcce6485f7d68ec7038362a341bdb0fa8c",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_449-129.nmf": "648e7b4c368db4479db3cdcb3d0209590da991ad00e59865398330cbc4b45880",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_449-129.p2dfmt.gz": "6d60dfa6ef9c7544ee156276fcc5487d7eacddadbdf6e81cc6f10e78fb03eff8",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_897-257.nmf": "ec897e29363eb72546730a83048f142f8219d33397407b9f8cf474f94fe10365",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_897-257.p2dfmt.gz": "c603ea77017ae8b97af581237b81a8251fd2d3af1c49c8c6f2cd2687aafcb28e",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012points_superbig_clust_fix.dat": "74e147db4fa052be7ab79465a756c55b39b1786bfd7141a86257e89586728ae1",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/fun3d.nml_typical_sst_2": "c5c40ffe4834e1485c840c7a594d96738441ebef96d0eeeb376e1fc232193bb8",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012_cfl3d_typical_sst.inp": "e3d1b4e7c9600d03f90e5e6b5cd7a10d01ad041f704e3d60de4cacd57cb375a4",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cf_cfl3d_sst.dat": "d8001cd09d0c573de63475f8e0e02a2a989216133af74b84876eba5c328da8be",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cf_cfl3d_sstv.dat": "7f0d7d4da9b2a977e620c29eed733e1e06745d291ab54d1888f7137886e05728",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012clcd_cfl3d_sst.dat": "373dc142018816628b7b53ad278327db731162988ba35a166cd9fdc131a7fd7a",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012clcd_cfl3d_sstv.dat": "5165603932574c1f03fc164fdf96ae71c57643cfdeea12a56c2d7c870cb8ec5b",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cp_cfl3d_sst.dat": "378f9dcd058ffbe900081f213ee5c7e24dfaec0d6a9e02f366f96e8d76bf179d",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cp_cfl3d_sstv.dat": "46af599e6c920f143c18aa4bf588228646277f4182c2d051d3f72ee9c113f8dc",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.nmf": "a96ea21baa762e2d5a4f5d0447ae2ebaf2fb5323f1a0f20c36c32e5c0740f498",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.p2dfmt.gz": "40be4c0a92b75892189263a5c3efb63fa112030912480427e1e0787c6cb97955",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.nmf": "4e2d2e8d5a0076754c06a310f6b7790096a59d5c02319452f81234865f13887d",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt": "55ae965f2151e5644e3c7c1b6fecea7ce0a16cf4c34eae6997f27683a4e2ac44",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.nmf": "9117aaa4a80c97aa0be8a558db4c3582b7ec89d0b0214c61158ce51fad248a64",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt": "18c1d1c82cf91bdad89b2c2963129fc992fcd8b98fda4b3e79b7397ee52ba223",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.nmf": "cae0d171eb6e62843f8f954205d7edca688b1ddc1737145acdc6bf85b0e6dab6",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt": "41c409f49afca8affaafd4a0a49c6ba934eca9007da502fe0c20afbd091500b0",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/cf_convergence.dat": "966a9f9c8036c3c6d8a1f2c4f1744b6a79f395f5986c8a2b37941803faf67695",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/cf_plate.dat": "f2995d18cb4f5d603f63ecfe609044844ef45fb3af3a7373923048eb3d364577",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/cfl3d_typical.inp": "3c6b5e1ce3283dff4c7ee902290916289cd91b710f53aacd962a3a960dbb4171",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/drag_convergence.dat": "c665787fdcd2257da8552973fe373e2f037e055d39e0d148c21f473d5a46bc39",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_convergence_fun3d_sstv_tri.dat": "fc9392568cb0d5612552d5414af21e1bda98b3a999f6154b510159a884bcc004",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_convergence_sstv.dat": "e5cde959873804d9b37a83640535309e18d5f1bc269b7bb6a46c460c40cd2a30",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_incomp_results_sstv.dat": "65bbdbae974af5297db4387d67f2f9ac8d3c46750815d684e108a52e850647b9",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_plate_fun3d_sstv_tri.dat": "8a95c87fb3877d5a239f7ac06fd94870a3310d401ced832cdbb7d3ab29419b44",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_plate_sstv.dat": "a56bd2d16818456af015b13839f0a991b4b85bfa6c18242e7c331a2c7a4d40e8",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cfl3d_typical.inp": "ddebda5abf2fb31faa8650ccb6f753eaf377fe35512e26ec4e6883d5183d8c41",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/drag_convergence_fun3d_sstv_tri.dat": "f915bef096c37a4f135b6c77fad5bce10ccb6ef54e3b1c26f0191b9b12a547fa",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/drag_convergence_sstv.dat": "85fdc40fdacb447f954cac6704d6722cbdcb5ef5717acdfba4f76b1a7cba1f05",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/find_peak_mut_sstv.dat": "5b1207c6da015ac35e9a2a868880be9f032f29cabbb6480d7185b2aef53f341e",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/flatplate_u+y+_sstv.dat": "4a5bf0bcd8a3888bd313d67fd4a78f5cbde826fa0b00c62ac68d342197a534b2",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/flatplate_u_sstv.dat": "4e1e17a24ffb64708ce805e978cf83a3b4391585e0ded7d14dd9be6e059b1d5f",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/fun3d.nml_typical_2013": "3d67e465596822811ecb18c3dc559ce5287f84e924a52b90b7736ba145733b0c",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/mut_0.97_sstv.dat": "9378362512c4e805772ac5a0d752dc92dbfe1daf17711013b896516aa95163c2",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/sstv_f1f2_function.dat": "aaec944650609a32e12a18578a9a3473a669922a9adb85c2983cd255eb396096",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/sstv_omega_k.dat": "caf7254a3c21195bef90a109ea98b8a7187bec959410a56387cd6c21410085bc",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/u+y+theory.dat": "e4439ae7f484cf63599e053dfa03e6746d4c4519b47d1345644db4010afc6e69",
+        "validation/data/nasa_tmr/SOURCE.md": "ed27de0b6abfc0aebaabab0c53e8d12e7a75d015385e8bb7fd59d7e79976d68d",
+        "validation/data/nasa_tmr/model_docs/noteonrunning.html": "30979bfc7284dd3855a6299190ccf1b5f095ad7aa9ca776d30bb7f8f2b3a4fc1",
+        "validation/data/nasa_tmr/model_docs/sst.html": "ccc4bc8d999444104e4e41f2c610dc9de7e7cb213d3e8b7bdb1997c4b8d6ee9f",
+        "build/guard_tmr_experiment.py": "81db555c3a7b0ac158784934c3986e6212a81f735bdbf5f3860c27e428ca1d31",
+        "build/default-matrix/pressure-absolute/footprint-pid": "90b96e87df7a6148f07a13281cced7dc052fa009ef55d8d482ffd6cfc399a3d0",
+        "tools/forensics/run_slow_isolated.py": "c88d9c2aeb348af4809a5e85c7aba991969a82e80f3269f68f0e6ea274c555af",
+        "build/scalar_storage_diagnostic.py": "198327cd5222bba7756b45a2d27b47f84478ddb3d3e3b82038e00ddca9175639",
+        "build/measurement_environment.py": "64847938d4e628e156be2fd4314925d0a968d59ac2a7035e78f70e640aa0b868",
+        "build/pressure_gain_diagnostic.py": "a456504596b8fb3eec4b0be722b22c741d230267e59a95797b4e38a0269568b3",
+        "build/read_tmr_snapshot.py": "f0cf73919fabd19c27e2ab65b06a805849f96f4e20fc5c4f193208965c48b56f",
+        "build/tmr_snapshot_bits.py": "e02f78855d6869671d24b7eea3dcb44ea2d5b00c040a47fe1b491a7d7d3582f5",
+        "build/velocity-low-frame/zero-parity/probe": "d2a5b51048c75fa88daedb1d3a2fd24bac8ee9665c51ae9f0648d68b49b25b2c",
+        "build/run_velocity_frame_cause.py": "b19efb09c90c43b8b7cf2a81db064d37ef2e1720847842e5f10c100fa5fdcad7",
+        "build/default-matrix/state-slack-16/field-motion/sst-plate-metal-3264-3000.bin": "f8c52df48ede5e5a49cf60e68cceb4ed73c9209ae69fdcf4d2d7717d835daf08",
+        "build/default-matrix/state-slack-16/field-motion/sst-plate-metal-3264-residuals.csv": "301f3cd39befb20e5247811d635707b4a1feabb06d1f74324b74e5485efbda96"
+      },
+      "rows": [
+        {
+          "name": "baseline",
+          "controls": {
+            "STRESS_OBSERVE_AFTER": "2000",
+            "STRESS_APPLY": "0"
+          },
+          "applied_control_readback": [
+            {
+              "activation": {
+                "after": "2000",
+                "iteration": "2001",
+                "apply": "0"
+              },
+              "first_source_observations": [
+                {
+                  "component": "0",
+                  "after": "2000",
+                  "applied": "0",
+                  "absolute": "7.3135873793037265e-07",
+                  "maximum": "1.4526478527823458e-08",
+                  "nonzero": "3264"
+                },
+                {
+                  "component": "1",
+                  "after": "2000",
+                  "applied": "0",
+                  "absolute": "4.1168854330825479e-06",
+                  "maximum": "1.6559473639056066e-07",
+                  "nonzero": "3264"
+                },
+                {
+                  "component": "2",
+                  "after": "2000",
+                  "applied": "0",
+                  "absolute": "0",
+                  "maximum": "0",
+                  "nonzero": "0"
+                }
+              ]
+            }
+          ],
+          "steps": 3000,
+          "converged": false,
+          "result": {
+            "converged": "0",
+            "cells": "3264",
+            "steps": "3000",
+            "u": "2.04145393589e-10",
+            "v": "1.02514016293e-10",
+            "continuity": "3.04515373356e-05",
+            "k": "9.30681874008e-07",
+            "omega": "5.83558724562e-07",
+            "nu_tilde": "0",
+            "load_change": "0",
+            "cf": "0.00269534848485",
+            "cd": "0.00285633548316",
+            "failure": "",
+            "device_bytes": "81920"
+          },
+          "peak_bytes": 139100880,
+          "resource_receipt": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 139100880,
+            "reported_peak_bytes": 139100880,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "terminal_snapshot_sha256": "58270bc0ace04b7322306f0e0459918ba05a9ed0dd4729cf69eab161701707b4",
+          "terminal_motion": {
+            "p_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.0075625853327694e-06,
+              "lag2_over_lag1_median": 0.0019793808330743137,
+              "high_changed_max": 1838,
+              "low_changed_max": 3264
+            },
+            "u_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.423728935330761e-10,
+              "lag2_over_lag1_median": 0.006700098262210008,
+              "high_changed_max": 0,
+              "low_changed_max": 3251
+            },
+            "v_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 1.328802815990553e-07,
+              "lag2_over_lag1_median": 0.004220370564009776,
+              "high_changed_max": 0,
+              "low_changed_max": 3261
+            },
+            "mass_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.740012507478033e-10,
+              "lag2_over_lag1_median": 0.0023651051230664795,
+              "high_changed_max": 0,
+              "low_changed_max": 6512
+            },
+            "k": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            },
+            "omega": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            }
+          },
+          "per_step_preprojection_continuity": {
+            "source": "Host sum of existing downloaded provisional_continuity buffer; no extra assembly, force or monitor calls.",
+            "fixed_first_five_normalization": 2.719338123275807e-05,
+            "tail_iteration_range": [
+              2801,
+              3000
+            ],
+            "tail_samples": 200,
+            "tail_raw_minimum": 8.255029888826204e-10,
+            "tail_raw_maximum": 8.288521645286387e-10,
+            "tail_scaled_minimum": 3.0356761515489344e-05,
+            "tail_scaled_maximum": 3.0479922942799596e-05,
+            "auxiliary_tail_steps_above_existing_1e_minus5_gate": 200,
+            "diagnostic_vs_existing_monitor_max_relative_error": 0.0,
+            "note": "Auxiliary non-monitor samples characterize phase behavior; actual validation acceptance remains the unchanged original monitor gate."
+          },
+          "captured_update_modes": {
+            "before_switch": {
+              "iterations": [
+                1998,
+                1999,
+                2000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9992616985648827,
+                  "update_norm_ratio": 0.999263672116343,
+                  "update_cosine": -0.9999980249942879
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999204914818431,
+                  "update_norm_ratio": 0.999934734559037,
+                  "update_cosine": -0.9999857559931649
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.9986082428719331,
+                  "update_norm_ratio": 0.9986260587141492,
+                  "update_cosine": -0.999982159646185
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.9999503377950943,
+                  "update_norm_ratio": 0.9999518064217998,
+                  "update_cosine": -0.9999985313025127
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "immediately_after_switch": {
+              "iterations": [
+                2000,
+                2001,
+                2002
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.999922181827847,
+                  "update_norm_ratio": 0.9999229744797649,
+                  "update_cosine": -0.999999207287023
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999876038308186,
+                  "update_norm_ratio": 0.9999951648126582,
+                  "update_cosine": -0.9999924389816016
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0006736429049763,
+                  "update_norm_ratio": 1.0006930045656526,
+                  "update_cosine": -0.9999806517477507
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000426623157517,
+                  "update_norm_ratio": 1.0000438036824109,
+                  "update_cosine": -0.9999988586833346
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "at_3000": {
+              "iterations": [
+                2998,
+                2999,
+                3000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9997352513399325,
+                  "update_norm_ratio": 0.9997360535635468,
+                  "update_cosine": -0.9999991975645857
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999784502072419,
+                  "update_norm_ratio": 0.9999870766525657,
+                  "update_cosine": -0.9999913734431922
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0013021733879368,
+                  "update_norm_ratio": 1.0013192901008312,
+                  "update_cosine": -0.9999829058392629
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000937173762836,
+                  "update_norm_ratio": 1.0000941039209188,
+                  "update_cosine": -0.9999996134917368
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            }
+          },
+          "terminal_linear": {
+            "iteration": "3000",
+            "momentum_work": "32997",
+            "pressure_work": "45118",
+            "scalar_work": "4245",
+            "pressure_it": "15",
+            "pressure_converged": "1",
+            "pressure_initial": "1.4164735502809031e-10",
+            "pressure_final": "8.8827356547650889e-14",
+            "momentum_u_it": "6",
+            "momentum_u_converged": "1",
+            "momentum_u_initial": "3.4693322353338222e-11",
+            "momentum_u_final": "3.1104670621358153e-13",
+            "momentum_v_it": "6",
+            "momentum_v_converged": "1",
+            "momentum_v_initial": "5.971248602505253e-12",
+            "momentum_v_final": "4.483540643012345e-14",
+            "momentum_w_it": "0",
+            "momentum_w_converged": "1",
+            "momentum_w_initial": "0",
+            "momentum_w_final": "0",
+            "scalar0_it": "0",
+            "scalar0_converged": "1",
+            "scalar0_initial": "9.9630707810970351e-12",
+            "scalar0_final": "9.9630707810970351e-12",
+            "scalar1_it": "0",
+            "scalar1_converged": "1",
+            "scalar1_initial": "0.00026449523621218849",
+            "scalar1_final": "0.00026449523621218849",
+            "last_monitor_dt": "0.085556976497173309",
+            "momentum_u_unconverged": "0",
+            "momentum_v_unconverged": "0",
+            "momentum_w_unconverged": "0",
+            "pressure_unconverged": "0",
+            "scalar0_unconverged": "0",
+            "scalar1_unconverged": "0"
+          },
+          "actual_exit": 0,
+          "original_baseline_field_bits_reproduced": {
+            "u_pair": true,
+            "v_pair": true,
+            "w_pair": true,
+            "p_pair": true,
+            "mass_pair": true,
+            "k": true,
+            "omega": true,
+            "mut": true,
+            "k_source": true,
+            "k_sink": true,
+            "omega_source": true,
+            "omega_sink": true,
+            "k_diagonal": true,
+            "omega_diagonal": true,
+            "volume": true,
+            "strain": true,
+            "f2": true,
+            "diffusivity_k": true,
+            "diffusivity_omega": true
+          },
+          "original_baseline_physical_reports_reproduced": true,
+          "original_baseline_report_columns_reproduced": [
+            "iteration",
+            "u",
+            "v",
+            "w",
+            "k",
+            "omega",
+            "nu_tilde",
+            "continuity",
+            "continuity_raw",
+            "continuity_scale",
+            "corrected_mass"
+          ],
+          "pressure_gain_at_first_post_switch_step": [
+            {
+              "iteration": 2001,
+              "configured_ceiling": 1.0,
+              "local_cap_minimum_median_maximum": [
+                0.2605462968349457,
+                1.2319087982177734,
+                1.9463001489639282
+              ],
+              "effective_gain_minimum_median_maximum": [
+                0.2605462968349457,
+                1.0,
+                1.0
+              ],
+              "cells_below_configured_ceiling": 907,
+              "cells_changed_by_ceiling_at_these_same_coefficients": 0,
+              "volume_fraction_changed_by_ceiling_at_these_same_coefficients": 0.0
+            }
+          ],
+          "terminal_physical_report": {
+            "continuity": "3.0451537335642659e-05",
+            "continuity_raw": "8.2808026389169682e-10",
+            "continuity_scale": "2.7193381232758072e-05",
+            "k": "9.3068187400830901e-07",
+            "omega": "5.8355872456208915e-07"
+          }
+        },
+        {
+          "name": "stress-source-carry",
+          "controls": {
+            "STRESS_OBSERVE_AFTER": "2000",
+            "STRESS_APPLY": "1"
+          },
+          "applied_control_readback": [
+            {
+              "activation": {
+                "after": "2000",
+                "iteration": "2001",
+                "apply": "1"
+              },
+              "first_source_observations": [
+                {
+                  "component": "0",
+                  "after": "2000",
+                  "applied": "1",
+                  "absolute": "7.3135873793037265e-07",
+                  "maximum": "1.4526478527823458e-08",
+                  "nonzero": "3264"
+                },
+                {
+                  "component": "1",
+                  "after": "2000",
+                  "applied": "1",
+                  "absolute": "4.1168854330825479e-06",
+                  "maximum": "1.6559473639056066e-07",
+                  "nonzero": "3264"
+                },
+                {
+                  "component": "2",
+                  "after": "2000",
+                  "applied": "1",
+                  "absolute": "0",
+                  "maximum": "0",
+                  "nonzero": "0"
+                }
+              ]
+            }
+          ],
+          "steps": 3000,
+          "converged": false,
+          "result": {
+            "converged": "0",
+            "cells": "3264",
+            "steps": "3000",
+            "u": "2.0414612572e-10",
+            "v": "1.02502882826e-10",
+            "continuity": "3.04408905108e-05",
+            "k": "9.31114041703e-07",
+            "omega": "5.83569917253e-07",
+            "nu_tilde": "0",
+            "load_change": "0",
+            "cf": "0.00269534848485",
+            "cd": "0.00285633548032",
+            "failure": "",
+            "device_bytes": "81920"
+          },
+          "peak_bytes": 138773200,
+          "resource_receipt": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 138773200,
+            "reported_peak_bytes": 138773200,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "terminal_snapshot_sha256": "54931cd6e20b10d919511459b346730c3e096423d184dd4d54e3c762962b92bf",
+          "terminal_motion": {
+            "p_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.0073165524725416e-06,
+              "lag2_over_lag1_median": 0.002026743350075107,
+              "high_changed_max": 1819,
+              "low_changed_max": 3264
+            },
+            "u_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.423452550033863e-10,
+              "lag2_over_lag1_median": 0.007219421503615401,
+              "high_changed_max": 0,
+              "low_changed_max": 3249
+            },
+            "v_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 1.3281425733955663e-07,
+              "lag2_over_lag1_median": 0.005029307135081013,
+              "high_changed_max": 0,
+              "low_changed_max": 3262
+            },
+            "mass_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.739917786098754e-10,
+              "lag2_over_lag1_median": 0.0024651877818210885,
+              "high_changed_max": 0,
+              "low_changed_max": 6517
+            },
+            "k": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            },
+            "omega": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            }
+          },
+          "per_step_preprojection_continuity": {
+            "source": "Host sum of existing downloaded provisional_continuity buffer; no extra assembly, force or monitor calls.",
+            "fixed_first_five_normalization": 2.719338123275807e-05,
+            "tail_iteration_range": [
+              2801,
+              3000
+            ],
+            "tail_samples": 200,
+            "tail_raw_minimum": 8.25610764812728e-10,
+            "tail_raw_maximum": 8.290544547666931e-10,
+            "tail_scaled_minimum": 3.03607248302822e-05,
+            "tail_scaled_maximum": 3.0487361894076854e-05,
+            "auxiliary_tail_steps_above_existing_1e_minus5_gate": 200,
+            "diagnostic_vs_existing_monitor_max_relative_error": 0.0,
+            "note": "Auxiliary non-monitor samples characterize phase behavior; actual validation acceptance remains the unchanged original monitor gate."
+          },
+          "captured_update_modes": {
+            "before_switch": {
+              "iterations": [
+                1998,
+                1999,
+                2000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9992616985648827,
+                  "update_norm_ratio": 0.999263672116343,
+                  "update_cosine": -0.9999980249942879
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999204914818431,
+                  "update_norm_ratio": 0.999934734559037,
+                  "update_cosine": -0.9999857559931649
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.9986082428719331,
+                  "update_norm_ratio": 0.9986260587141492,
+                  "update_cosine": -0.999982159646185
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.9999503377950943,
+                  "update_norm_ratio": 0.9999518064217998,
+                  "update_cosine": -0.9999985313025127
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "immediately_after_switch": {
+              "iterations": [
+                2000,
+                2001,
+                2002
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -1.0001234613088537,
+                  "update_norm_ratio": 1.0001244596264323,
+                  "update_cosine": -0.999999001806656
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -1.000001257270138,
+                  "update_norm_ratio": 1.000019581454193,
+                  "update_cosine": -0.999981676174752
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0003964930954605,
+                  "update_norm_ratio": 1.0004433668954926,
+                  "update_cosine": -0.999953146973049
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000129911148898,
+                  "update_norm_ratio": 1.000014386597838,
+                  "update_cosine": -0.9999986045371279
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "at_3000": {
+              "iterations": [
+                2998,
+                2999,
+                3000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.999892800315561,
+                  "update_norm_ratio": 0.999893566574438,
+                  "update_cosine": -0.9999992336595589
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -1.0000045619996698,
+                  "update_norm_ratio": 1.000012225383861,
+                  "update_cosine": -0.9999923367094954
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0007254350354993,
+                  "update_norm_ratio": 1.000756456858228,
+                  "update_cosine": -0.9999690016262038
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000765782557723,
+                  "update_norm_ratio": 1.0000769452515057,
+                  "update_cosine": -0.999999633032503
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            }
+          },
+          "terminal_linear": {
+            "iteration": "3000",
+            "momentum_work": "33005",
+            "pressure_work": "45118",
+            "scalar_work": "4245",
+            "pressure_it": "15",
+            "pressure_converged": "1",
+            "pressure_initial": "1.4161950437631442e-10",
+            "pressure_final": "8.8846118298374053e-14",
+            "momentum_u_it": "6",
+            "momentum_u_converged": "1",
+            "momentum_u_initial": "3.4692299418398967e-11",
+            "momentum_u_final": "3.2625589888105265e-13",
+            "momentum_v_it": "6",
+            "momentum_v_converged": "1",
+            "momentum_v_initial": "5.9711705887661532e-12",
+            "momentum_v_final": "4.5104042682923578e-14",
+            "momentum_w_it": "0",
+            "momentum_w_converged": "1",
+            "momentum_w_initial": "0",
+            "momentum_w_final": "0",
+            "scalar0_it": "0",
+            "scalar0_converged": "1",
+            "scalar0_initial": "9.9649863234993028e-12",
+            "scalar0_final": "9.9649863234993028e-12",
+            "scalar1_it": "0",
+            "scalar1_converged": "1",
+            "scalar1_initial": "0.00026449527718396741",
+            "scalar1_final": "0.00026449527718396741",
+            "last_monitor_dt": "0.085556976497173309",
+            "momentum_u_unconverged": "0",
+            "momentum_v_unconverged": "0",
+            "momentum_w_unconverged": "0",
+            "pressure_unconverged": "0",
+            "scalar0_unconverged": "0",
+            "scalar1_unconverged": "0"
+          },
+          "actual_exit": 0,
+          "identical_captured_prefix": {
+            "1998": "e32d707b2b085f29c61fdd7ca3f08d91915cdc578e6e2047469e40ac893babd5",
+            "1999": "67c2acd6f005380a4f63b30fdc2434cc504eaa2ffb3106a5d866b09ae62637ef",
+            "2000": "e752e05fd01afc42eb4bf1813cc2299057d538406c8d99e0576ba46c98d93679"
+          },
+          "reported_and_linear_prefix_identical": true,
+          "pressure_gain_at_first_post_switch_step": [
+            {
+              "iteration": 2001,
+              "configured_ceiling": 1.0,
+              "local_cap_minimum_median_maximum": [
+                0.2605462968349457,
+                1.2319087982177734,
+                1.9463001489639282
+              ],
+              "effective_gain_minimum_median_maximum": [
+                0.2605462968349457,
+                1.0,
+                1.0
+              ],
+              "cells_below_configured_ceiling": 907,
+              "cells_changed_by_ceiling_at_these_same_coefficients": 0,
+              "volume_fraction_changed_by_ceiling_at_these_same_coefficients": 0.0
+            }
+          ],
+          "terminal_physical_report": {
+            "continuity": "3.044089051082505e-05",
+            "continuity_raw": "8.2779074072551317e-10",
+            "continuity_scale": "2.7193381232758072e-05",
+            "k": "9.3111404170334691e-07",
+            "omega": "5.8356991725300868e-07"
+          }
+        }
+      ]
+    },
+    {
+      "study": "pressure-gain",
+      "private_receipt": "<checkout>/build/cause-pressure-sst-plate-metal-L1/comparison.json",
+      "private_receipt_sha256": "46575dfaf7d39ad6bf1b17bbaeba5a05762b0b359f252a91b766ffd11edec696",
+      "measurement_environment": {
+        "system": "Darwin",
+        "darwin_release": "27.2.0",
+        "macos_product_version": "27.2",
+        "macos_build": "26B123",
+        "machine": "arm64",
+        "python_version": "3.14.10"
+      },
+      "frozen_inputs_sha256": {
+        "build/cycle-preprojection/source/src/kutta/fv/steady_solver.cpp": "3143ee539379a5cb2e381cbb1b0af43230274d8f1cab59dc418c60cbf089f9a9",
+        "build/cycle-preprojection/source/src/kutta/fv/steady_solver.hpp": "be4e1bc83d9a393db565f090a3acdb42811d245fc8406ac7c529b19c18ff4abc",
+        "build/cycle-preprojection/motion.hpp": "2cdc709ece0162b9e102535d84a748bf0d2ef5562c002491ed108485854871e7",
+        "build/cycle-preprojection/source/src/kutta/fv/turbulence/sa_transport.hpp": "b40ac91912edf35d17b6a845d22a5b9fbfeea3ed8245c62dcab28fa93b994102",
+        "build/check_preprojection_zero_parity.py": "7c6d52ed35c717d291a48934179246aaa595827be542c8f5c589547d3b4e7a05",
+        "build/cycle-preprojection/build/libkutta.a": "ae2ecf3596884ec732e241bb90bf38455a3fba505df6d3c84f8f2f9044fe32e3",
+        "build/cycle-preprojection/build/kutta": "06e3266f633052bfb5f2c3674e081c8754eddd5773272479a8d9972d90659f67",
+        "build/exact-main/kutta": "49558155ab98f0619827b0469b4edb6505494c8926141080909cf152939c06f5",
+        "build/tmr-probe/probe-state-before-sequence": "c3e2b418dc78eb5f4a919d8e4bb10afac3e1aba39e83854d0d847816d1cad2dc",
+        "build/preprojection-cause-probe.cpp": "f0ffadfd4aef0c5a64afb2767d7420c798c0359a4cca96eed30ffdba2838991d",
+        "build/tmr-probe/tmr.hpp": "033c7603f38e1bbddc3b70613308b4e0e05bf524eec29a451d124ab5bb98aaac",
+        "build/tmr-probe/tmr_sa.hpp": "58fcbe1197b2d9db1ffd2c532c517be11781d16d7ed468a196010e3ec16e58bd",
+        "build/guard_tmr_experiment.py": "81db555c3a7b0ac158784934c3986e6212a81f735bdbf5f3860c27e428ca1d31",
+        "build/default-matrix/pressure-absolute/footprint-pid": "90b96e87df7a6148f07a13281cced7dc052fa009ef55d8d482ffd6cfc399a3d0",
+        "tools/forensics/run_slow_isolated.py": "c88d9c2aeb348af4809a5e85c7aba991969a82e80f3269f68f0e6ea274c555af",
+        "build/scalar_storage_diagnostic.py": "198327cd5222bba7756b45a2d27b47f84478ddb3d3e3b82038e00ddca9175639",
+        "build/measurement_environment.py": "64847938d4e628e156be2fd4314925d0a968d59ac2a7035e78f70e640aa0b868",
+        "build/pressure_gain_diagnostic.py": "a456504596b8fb3eec4b0be722b22c741d230267e59a95797b4e38a0269568b3",
+        "build/read_tmr_snapshot.py": "f0cf73919fabd19c27e2ab65b06a805849f96f4e20fc5c4f193208965c48b56f",
+        "build/tmr_snapshot_bits.py": "e02f78855d6869671d24b7eea3dcb44ea2d5b00c040a47fe1b491a7d7d3582f5",
+        "build/cycle-preprojection/zero-parity/probe": "6aa403ffdefc5fe9cfbb4e1c228b821d1e4c8c8e126b1287ab70c2662ab7d8fb",
+        "build/run_cycle_cause.py": "def60c29989e8ee7b1393857238765645ee6d8a088ffe00f8367abd4479bded4",
+        "build/default-matrix/state-slack-16/field-motion/sst-plate-metal-3264-3000.bin": "f8c52df48ede5e5a49cf60e68cceb4ed73c9209ae69fdcf4d2d7717d835daf08",
+        "build/default-matrix/state-slack-16/field-motion/sst-plate-metal-3264-residuals.csv": "301f3cd39befb20e5247811d635707b4a1feabb06d1f74324b74e5485efbda96",
+        "build/tmr_fixture_inputs.py": "c051225613e0a0e7157226423ba0073b1a2a52cf14b5acb0a82857404448f0c1",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.nmf": "13685315a88529465a0f52d85f97cdd5a8e671972d9791130260e6b11c9fea07",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt": "f59b62b8cb51163e708b6be3f59bbec3eee369a9d667fa0cf48499b9e5a7e2b8",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt.gz": "e0b49f79da69ff2cdab2f0d7f8628af2a7823b6afb0e1d48d587af0186ba6689",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_3levelsdown_177x81.nmf": "cb58faf80a271522d31cc2d91153d5dd39db86b30975119f586c765ecb278050",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt": "0f11cf2818516326be73b4523d84b7132f395df354b300aa1caf3971bff16902",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_4levelsdown_89x41.nmf": "91b7da7261d0b22891a362b8829124f53c673a754e7784612d3ebf5456d922d1",
+        "validation/data/nasa_tmr/2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt": "0ce600d67ef2dced8c14ee936f3f68578767541deeafa718ce32cabefd7486ba",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cf_bump.dat": "85dd51f5bdb13f80ca2815b8e618ef9f237f5fec9d17ea5698523781bbb41c54",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cf_convergence_sa.dat": "b3d3fc28a7adf8eece328a94fddff22bd0a64266d9ea8566b16c626dad65559c",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cfl3d_typical.inp": "22a398dd8af3713f36d10cde5175b86fe1e12c3a41db206b9814d97f7aefcbd8",
+        "validation/data/nasa_tmr/2DBC_bump/sa/cp_bump.dat": "482ec6ca03757293e2ddd8dc11a217f8a948fe6e292e5345c823381a034479ef",
+        "validation/data/nasa_tmr/2DBC_bump/sa/force_convergence.dat": "18efb5c53ec48ffdadfd3eff04a2a57ad18c74148b34997bfb8bfa2faf756f5a",
+        "validation/data/nasa_tmr/2DBC_bump/sst/bump_u_sst.dat": "78532273b8bb1d0ec25726d609393fd1145b47b5217a18d8bd5fa459b6ee48e0",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_bump_sst.dat": "a50ef4603a7cabf4f79c4b492fc86316dc310a27162560348629ad18a62a4bb7",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst.dat": "792ba3d94315bc35524ee8069417c3fa935d7a63f5a3d30b5d7accf634648989",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst_overflow.dat": "0a4eab5a64d2f084b1bc8a407ac901d21aa589753d1eec35c9ca13128169683b",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst_tau.dat": "05c0fcf30dd50af74979b72ab1669a863db8b0ca796ec1a8dfde745dc2fa2028",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cfl3d_typical.inp": "6a6ecb6fbda08a8531bac890ef264092e8ac64517c7c54c0fdfd62d53ce55d07",
+        "validation/data/nasa_tmr/2DBC_bump/sst/cp_bump_sst.dat": "a449db9c7b7c54ab54888a6413494367a6f0dfe3c1f3b327a819b2ef51cc1f2e",
+        "validation/data/nasa_tmr/2DBC_bump/sst/find_peak_mut_sst.dat": "2f6e5099b5044ca7fcbf712541de009c2060123e7e5647a87a8c9ade35b1468e",
+        "validation/data/nasa_tmr/2DBC_bump/sst/force_convergence_sst.dat": "2ba8fd025b1f9998e407fbfc2514672b139cc760d9a1b2aa907a92c13786a264",
+        "validation/data/nasa_tmr/2DBC_bump/sst/fun3d.info": "1dc4811607fc6ad537fbe44d5d5dc9e5f14390ed9f0c8c12a0f72c225f69154f",
+        "validation/data/nasa_tmr/2DBC_bump/sst/fun3d.nml_typical": "276c2785d8ae9ef3e1fc8cba62e8bfbd4fb99719c4e4a2a0cc4a3e5872b97b0c",
+        "validation/data/nasa_tmr/2DBC_bump/sst/mut_0.75_sst.dat": "36fd4de96d7ad3ce7560c3fcf3843f6f02855d2741f63e830afbaaa80653414a",
+        "validation/data/nasa_tmr/2DBC_bump/sst/sst_omega_k.dat": "408f91ef1b650a1d0b26fecb019199eb23383b3cb0c70b40325bd97175026eb3",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cf_bump_sst2003.dat": "a21194119a1adf9464bac5dfd027a088b7727b57cecf99b70fb6152c994c7a0d",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cf_convergence_sst2003.dat": "62dd94da029a9acf09884b24dbad211f09f00b89fcd31b086cca2dfb857e687c",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cfl3d_typical.inp": "88ed4034c179bff333a188c96e5f731e685eed21e5582f614c7730e1b33051d4",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/cp_bump_sst2003.dat": "3453b6b1498a4cae56e8a56f9d05c879ec5a98a5865861df96bf2d68d9ef9c06",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/force_convergence_sst2003.dat": "e8a860067263d6b82122c347859c0de8c9c8a7abd3e1286d7388b1e592860b92",
+        "validation/data/nasa_tmr/2DBC_bump/sst2003/mut_0.75_sst2003.dat": "20aa6a7e5eb3f4c847bf5920525f7bf100f404f6e79cddd72f10e98ec83ae78c",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/bump_u_sstv.dat": "af868ef77a92898e3260f7da6d3dd72486d909dacc29800815551d8776a0acf1",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cf_bump_sstv.dat": "77dc70c4861827007ac09819120bc0c1084b7660ff64bc52947abf5aed60d414",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cf_convergence_sstv.dat": "5d32fbf03043eba666558628849c6133582c80199dfefdbd23b9308fa6c818a0",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cfl3d_typical.inp": "0c675d4e4cd9bfedc2907afad90632326751d44d7f89cbbdfc11e3d74e2900c8",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/cp_bump_sstv.dat": "343921427e50d8fcc4be77f4e36bc8832d6009c34cc3d4c0bb8d81de6403544c",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/force_convergence_sstv.dat": "a94857862d753fae88a07a4c2e6658d7a80e23653f796857a59263b1830ef26f",
+        "validation/data/nasa_tmr/2DBC_bump/sstv/mut_0.75_sstv.dat": "40eff8cb43a3725e6570695b55d97fe37a6f5263c26e44c6494f15dd8d4ca493",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.abbottdata.cd.dat": "21321fe22883672c344f3cd1369c69cdaf045ed8496cd0a976b741645c79e3d9",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.abbottdata.cl.dat": "3ee6a0c198f6402c9fc5fd8affc1115c1e87ff943b8b02775df86a7cfa3c55f3",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.mccroskeydata.cl.dat": "bf5848c235cedffef4e307f5cb52be1e7146bd5e480c202824a59d6d9754924e",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CLCD_Ladson_expdata.dat": "78cd2f6aa4968e80f44cbf6c96f699bd9c6e45681d958ec528a10cf72ed23357",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CL_Gregory_expdata.dat": "0b7381a45412de50fcf0e0dddf67f1e8e35ba1a278bd4734fb7f16ad08df1f74",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CP_Gregory_expdata.dat": "38d8474bc67661c3cef5e4cd9eeddb95d4a436d06abc1f58a8518066f510647c",
+        "validation/data/nasa_tmr/2DN00_naca0012/experiment/CP_Ladson.dat": "547e022634a360cd7697813543348cd447ee0038cdbc8f00a5296c7822ec7af8",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_113-33.nmf": "597865103baf72a0c78d0e42a7e2d09688ea78b6a20f8fbcac2baa936d1445a1",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_113-33.p2dfmt": "669fff259b59ac4df557ad3bfef6be0794ac5eacc0f45ec1ce9715f75dfd1654",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_225-65.nmf": "c6c32668f19bbd1a89510dfeb3a43c924137ae90afa7772eeb83875f9d9b34b0",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_225-65.p2dfmt": "66817d6bbc9353cb0ca9867f958da1bcce6485f7d68ec7038362a341bdb0fa8c",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_449-129.nmf": "648e7b4c368db4479db3cdcb3d0209590da991ad00e59865398330cbc4b45880",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_449-129.p2dfmt.gz": "6d60dfa6ef9c7544ee156276fcc5487d7eacddadbdf6e81cc6f10e78fb03eff8",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_897-257.nmf": "ec897e29363eb72546730a83048f142f8219d33397407b9f8cf474f94fe10365",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_897-257.p2dfmt.gz": "c603ea77017ae8b97af581237b81a8251fd2d3af1c49c8c6f2cd2687aafcb28e",
+        "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012points_superbig_clust_fix.dat": "74e147db4fa052be7ab79465a756c55b39b1786bfd7141a86257e89586728ae1",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/fun3d.nml_typical_sst_2": "c5c40ffe4834e1485c840c7a594d96738441ebef96d0eeeb376e1fc232193bb8",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012_cfl3d_typical_sst.inp": "e3d1b4e7c9600d03f90e5e6b5cd7a10d01ad041f704e3d60de4cacd57cb375a4",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cf_cfl3d_sst.dat": "d8001cd09d0c573de63475f8e0e02a2a989216133af74b84876eba5c328da8be",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cf_cfl3d_sstv.dat": "7f0d7d4da9b2a977e620c29eed733e1e06745d291ab54d1888f7137886e05728",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012clcd_cfl3d_sst.dat": "373dc142018816628b7b53ad278327db731162988ba35a166cd9fdc131a7fd7a",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012clcd_cfl3d_sstv.dat": "5165603932574c1f03fc164fdf96ae71c57643cfdeea12a56c2d7c870cb8ec5b",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cp_cfl3d_sst.dat": "378f9dcd058ffbe900081f213ee5c7e24dfaec0d6a9e02f366f96e8d76bf179d",
+        "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cp_cfl3d_sstv.dat": "46af599e6c920f143c18aa4bf588228646277f4182c2d051d3f72ee9c113f8dc",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.nmf": "a96ea21baa762e2d5a4f5d0447ae2ebaf2fb5323f1a0f20c36c32e5c0740f498",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.p2dfmt.gz": "40be4c0a92b75892189263a5c3efb63fa112030912480427e1e0787c6cb97955",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.nmf": "4e2d2e8d5a0076754c06a310f6b7790096a59d5c02319452f81234865f13887d",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt": "55ae965f2151e5644e3c7c1b6fecea7ce0a16cf4c34eae6997f27683a4e2ac44",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.nmf": "9117aaa4a80c97aa0be8a558db4c3582b7ec89d0b0214c61158ce51fad248a64",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt": "18c1d1c82cf91bdad89b2c2963129fc992fcd8b98fda4b3e79b7397ee52ba223",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.nmf": "cae0d171eb6e62843f8f954205d7edca688b1ddc1737145acdc6bf85b0e6dab6",
+        "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt": "41c409f49afca8affaafd4a0a49c6ba934eca9007da502fe0c20afbd091500b0",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/cf_convergence.dat": "966a9f9c8036c3c6d8a1f2c4f1744b6a79f395f5986c8a2b37941803faf67695",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/cf_plate.dat": "f2995d18cb4f5d603f63ecfe609044844ef45fb3af3a7373923048eb3d364577",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/cfl3d_typical.inp": "3c6b5e1ce3283dff4c7ee902290916289cd91b710f53aacd962a3a960dbb4171",
+        "validation/data/nasa_tmr/2DZP_flatplate/sa/drag_convergence.dat": "c665787fdcd2257da8552973fe373e2f037e055d39e0d148c21f473d5a46bc39",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_convergence_fun3d_sstv_tri.dat": "fc9392568cb0d5612552d5414af21e1bda98b3a999f6154b510159a884bcc004",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_convergence_sstv.dat": "e5cde959873804d9b37a83640535309e18d5f1bc269b7bb6a46c460c40cd2a30",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_incomp_results_sstv.dat": "65bbdbae974af5297db4387d67f2f9ac8d3c46750815d684e108a52e850647b9",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_plate_fun3d_sstv_tri.dat": "8a95c87fb3877d5a239f7ac06fd94870a3310d401ced832cdbb7d3ab29419b44",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_plate_sstv.dat": "a56bd2d16818456af015b13839f0a991b4b85bfa6c18242e7c331a2c7a4d40e8",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/cfl3d_typical.inp": "ddebda5abf2fb31faa8650ccb6f753eaf377fe35512e26ec4e6883d5183d8c41",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/drag_convergence_fun3d_sstv_tri.dat": "f915bef096c37a4f135b6c77fad5bce10ccb6ef54e3b1c26f0191b9b12a547fa",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/drag_convergence_sstv.dat": "85fdc40fdacb447f954cac6704d6722cbdcb5ef5717acdfba4f76b1a7cba1f05",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/find_peak_mut_sstv.dat": "5b1207c6da015ac35e9a2a868880be9f032f29cabbb6480d7185b2aef53f341e",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/flatplate_u+y+_sstv.dat": "4a5bf0bcd8a3888bd313d67fd4a78f5cbde826fa0b00c62ac68d342197a534b2",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/flatplate_u_sstv.dat": "4e1e17a24ffb64708ce805e978cf83a3b4391585e0ded7d14dd9be6e059b1d5f",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/fun3d.nml_typical_2013": "3d67e465596822811ecb18c3dc559ce5287f84e924a52b90b7736ba145733b0c",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/mut_0.97_sstv.dat": "9378362512c4e805772ac5a0d752dc92dbfe1daf17711013b896516aa95163c2",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/sstv_f1f2_function.dat": "aaec944650609a32e12a18578a9a3473a669922a9adb85c2983cd255eb396096",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/sstv_omega_k.dat": "caf7254a3c21195bef90a109ea98b8a7187bec959410a56387cd6c21410085bc",
+        "validation/data/nasa_tmr/2DZP_flatplate/sst/u+y+theory.dat": "e4439ae7f484cf63599e053dfa03e6746d4c4519b47d1345644db4010afc6e69",
+        "validation/data/nasa_tmr/SOURCE.md": "ed27de0b6abfc0aebaabab0c53e8d12e7a75d015385e8bb7fd59d7e79976d68d",
+        "validation/data/nasa_tmr/model_docs/noteonrunning.html": "30979bfc7284dd3855a6299190ccf1b5f095ad7aa9ca776d30bb7f8f2b3a4fc1",
+        "validation/data/nasa_tmr/model_docs/sst.html": "ccc4bc8d999444104e4e41f2c610dc9de7e7cb213d3e8b7bdb1997c4b8d6ee9f"
+      },
+      "rows": [
+        {
+          "name": "baseline",
+          "controls": {},
+          "applied_control_readback": [],
+          "steps": 3000,
+          "converged": false,
+          "result": {
+            "converged": "0",
+            "cells": "3264",
+            "steps": "3000",
+            "u": "2.04145393589e-10",
+            "v": "1.02514016293e-10",
+            "continuity": "3.04515373356e-05",
+            "k": "9.30681874008e-07",
+            "omega": "5.83558724562e-07",
+            "nu_tilde": "0",
+            "load_change": "0",
+            "cf": "0.00269534848485",
+            "cd": "0.00285633548316",
+            "failure": "",
+            "device_bytes": "81920"
+          },
+          "peak_bytes": 134185608,
+          "resource_receipt": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 134185608,
+            "reported_peak_bytes": 134185608,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "terminal_snapshot_sha256": "58270bc0ace04b7322306f0e0459918ba05a9ed0dd4729cf69eab161701707b4",
+          "terminal_motion": {
+            "p_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.0075625853327694e-06,
+              "lag2_over_lag1_median": 0.0019793808330743137,
+              "high_changed_max": 1838,
+              "low_changed_max": 3264
+            },
+            "u_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.423728935330761e-10,
+              "lag2_over_lag1_median": 0.006700098262210008,
+              "high_changed_max": 0,
+              "low_changed_max": 3251
+            },
+            "v_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 1.328802815990553e-07,
+              "lag2_over_lag1_median": 0.004220370564009776,
+              "high_changed_max": 0,
+              "low_changed_max": 3261
+            },
+            "mass_pair": {
+              "samples": 200,
+              "lag1_relative_l1_median": 2.740012507478033e-10,
+              "lag2_over_lag1_median": 0.0023651051230664795,
+              "high_changed_max": 0,
+              "low_changed_max": 6512
+            },
+            "k": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            },
+            "omega": {
+              "samples": 200,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            }
+          },
+          "per_step_preprojection_continuity": {
+            "source": "Host sum of existing downloaded provisional_continuity buffer; no extra assembly, force or monitor calls.",
+            "fixed_first_five_normalization": 2.719338123275807e-05,
+            "tail_iteration_range": [
+              2801,
+              3000
+            ],
+            "tail_samples": 200,
+            "tail_raw_minimum": 8.255029888826204e-10,
+            "tail_raw_maximum": 8.288521645286387e-10,
+            "tail_scaled_minimum": 3.0356761515489344e-05,
+            "tail_scaled_maximum": 3.0479922942799596e-05,
+            "auxiliary_tail_steps_above_existing_1e_minus5_gate": 200,
+            "diagnostic_vs_existing_monitor_max_relative_error": 0.0,
+            "note": "Auxiliary non-monitor samples characterize phase behavior; actual validation acceptance remains the unchanged original monitor gate."
+          },
+          "captured_update_modes": {
+            "before_switch": {
+              "iterations": [
+                1998,
+                1999,
+                2000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9992616985648827,
+                  "update_norm_ratio": 0.999263672116343,
+                  "update_cosine": -0.9999980249942879
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999204914818431,
+                  "update_norm_ratio": 0.999934734559037,
+                  "update_cosine": -0.9999857559931649
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.9986082428719331,
+                  "update_norm_ratio": 0.9986260587141492,
+                  "update_cosine": -0.999982159646185
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.9999503377950943,
+                  "update_norm_ratio": 0.9999518064217998,
+                  "update_cosine": -0.9999985313025127
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "immediately_after_switch": {
+              "iterations": [
+                2000,
+                2001,
+                2002
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.999922181827847,
+                  "update_norm_ratio": 0.9999229744797649,
+                  "update_cosine": -0.999999207287023
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999876038308186,
+                  "update_norm_ratio": 0.9999951648126582,
+                  "update_cosine": -0.9999924389816016
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0006736429049763,
+                  "update_norm_ratio": 1.0006930045656526,
+                  "update_cosine": -0.9999806517477507
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000426623157517,
+                  "update_norm_ratio": 1.0000438036824109,
+                  "update_cosine": -0.9999988586833346
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "at_3000": {
+              "iterations": [
+                2998,
+                2999,
+                3000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9997352513399325,
+                  "update_norm_ratio": 0.9997360535635468,
+                  "update_cosine": -0.9999991975645857
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999784502072419,
+                  "update_norm_ratio": 0.9999870766525657,
+                  "update_cosine": -0.9999913734431922
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -1.0013021733879368,
+                  "update_norm_ratio": 1.0013192901008312,
+                  "update_cosine": -0.9999829058392629
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000937173762836,
+                  "update_norm_ratio": 1.0000941039209188,
+                  "update_cosine": -0.9999996134917368
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            }
+          },
+          "terminal_linear": {
+            "iteration": "3000",
+            "momentum_work": "32997",
+            "pressure_work": "45118",
+            "scalar_work": "4245",
+            "pressure_it": "15",
+            "pressure_converged": "1",
+            "pressure_initial": "1.4164735502809031e-10",
+            "pressure_final": "8.8827356547650889e-14",
+            "momentum_u_it": "6",
+            "momentum_u_converged": "1",
+            "momentum_u_initial": "3.4693322353338222e-11",
+            "momentum_u_final": "3.1104670621358153e-13",
+            "momentum_v_it": "6",
+            "momentum_v_converged": "1",
+            "momentum_v_initial": "5.971248602505253e-12",
+            "momentum_v_final": "4.483540643012345e-14",
+            "momentum_w_it": "0",
+            "momentum_w_converged": "1",
+            "momentum_w_initial": "0",
+            "momentum_w_final": "0",
+            "scalar0_it": "0",
+            "scalar0_converged": "1",
+            "scalar0_initial": "9.9630707810970351e-12",
+            "scalar0_final": "9.9630707810970351e-12",
+            "scalar1_it": "0",
+            "scalar1_converged": "1",
+            "scalar1_initial": "0.00026449523621218849",
+            "scalar1_final": "0.00026449523621218849",
+            "last_monitor_dt": "0.085556976497173309",
+            "momentum_u_unconverged": "0",
+            "momentum_v_unconverged": "0",
+            "momentum_w_unconverged": "0",
+            "pressure_unconverged": "0",
+            "scalar0_unconverged": "0",
+            "scalar1_unconverged": "0"
+          },
+          "actual_exit": 0,
+          "original_baseline_field_bits_reproduced": {
+            "u_pair": true,
+            "v_pair": true,
+            "w_pair": true,
+            "p_pair": true,
+            "mass_pair": true,
+            "k": true,
+            "omega": true,
+            "mut": true,
+            "k_source": true,
+            "k_sink": true,
+            "omega_source": true,
+            "omega_sink": true,
+            "k_diagonal": true,
+            "omega_diagonal": true,
+            "volume": true,
+            "strain": true,
+            "f2": true,
+            "diffusivity_k": true,
+            "diffusivity_omega": true
+          },
+          "original_baseline_physical_reports_reproduced": true,
+          "original_baseline_report_columns_reproduced": [
+            "iteration",
+            "u",
+            "v",
+            "w",
+            "k",
+            "omega",
+            "nu_tilde",
+            "continuity",
+            "continuity_raw",
+            "continuity_scale",
+            "corrected_mass"
+          ],
+          "pressure_gain_at_first_post_switch_step": [
+            {
+              "iteration": 2001,
+              "configured_ceiling": 1.0,
+              "local_cap_minimum_median_maximum": [
+                0.2605462968349457,
+                1.2319087982177734,
+                1.9463001489639282
+              ],
+              "effective_gain_minimum_median_maximum": [
+                0.2605462968349457,
+                1.0,
+                1.0
+              ],
+              "cells_below_configured_ceiling": 907,
+              "cells_changed_by_ceiling_at_these_same_coefficients": 0,
+              "volume_fraction_changed_by_ceiling_at_these_same_coefficients": 0.0
+            }
+          ],
+          "terminal_physical_report": {
+            "continuity": "3.0451537335642659e-05",
+            "continuity_raw": "8.2808026389169682e-10",
+            "continuity_scale": "2.7193381232758072e-05",
+            "k": "9.3068187400830901e-07",
+            "omega": "5.8355872456208915e-07"
+          }
+        },
+        {
+          "name": "pressure-.5",
+          "controls": {
+            "PRESSURE_ALPHA": ".5"
+          },
+          "applied_control_readback": [
+            {
+              "name": "PRESSURE",
+              "after": "2000",
+              "alpha": "0.5"
+            }
+          ],
+          "steps": 2100,
+          "converged": true,
+          "result": {
+            "converged": "1",
+            "cells": "3264",
+            "steps": "2100",
+            "u": "1.69789351881e-10",
+            "v": "6.19108809927e-11",
+            "continuity": "6.06489092452e-06",
+            "k": "9.31015062963e-07",
+            "omega": "5.83588938109e-07",
+            "nu_tilde": "0",
+            "load_change": "0",
+            "cf": "0.00269534848485",
+            "cd": "0.00285633548316",
+            "failure": "",
+            "device_bytes": "81920"
+          },
+          "peak_bytes": 134251144,
+          "resource_receipt": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 134251144,
+            "reported_peak_bytes": 134251144,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "terminal_snapshot_sha256": "b10702fc898dda74724275ef4fe0bc2372498a56af78b2710ae48fdacca9e1ca",
+          "terminal_motion": {
+            "p_pair": {
+              "samples": 99,
+              "lag1_relative_l1_median": 6.407962794257347e-07,
+              "lag2_over_lag1_median": 1.2404388278945953,
+              "high_changed_max": 906,
+              "low_changed_max": 3264
+            },
+            "u_pair": {
+              "samples": 99,
+              "lag1_relative_l1_median": 2.104571554999428e-10,
+              "lag2_over_lag1_median": 0.9954461367366393,
+              "high_changed_max": 0,
+              "low_changed_max": 3250
+            },
+            "v_pair": {
+              "samples": 99,
+              "lag1_relative_l1_median": 5.9069511788459605e-08,
+              "lag2_over_lag1_median": 1.0668309801099456,
+              "high_changed_max": 0,
+              "low_changed_max": 3261
+            },
+            "mass_pair": {
+              "samples": 99,
+              "lag1_relative_l1_median": 2.5410181125621115e-10,
+              "lag2_over_lag1_median": 1.07309228292164,
+              "high_changed_max": 0,
+              "low_changed_max": 6501
+            },
+            "k": {
+              "samples": 99,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            },
+            "omega": {
+              "samples": 99,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            }
+          },
+          "per_step_preprojection_continuity": {
+            "source": "Host sum of existing downloaded provisional_continuity buffer; no extra assembly, force or monitor calls.",
+            "fixed_first_five_normalization": 2.719338123275807e-05,
+            "tail_iteration_range": [
+              2001,
+              2100
+            ],
+            "tail_samples": 100,
+            "tail_raw_minimum": 1.5091627201938886e-10,
+            "tail_raw_maximum": 8.262236053066833e-10,
+            "tail_scaled_minimum": 5.549742811592329e-06,
+            "tail_scaled_maximum": 3.0383261214732143e-05,
+            "auxiliary_tail_steps_above_existing_1e_minus5_gate": 4,
+            "diagnostic_vs_existing_monitor_max_relative_error": 0.0,
+            "note": "Auxiliary non-monitor samples characterize phase behavior; actual validation acceptance remains the unchanged original monitor gate."
+          },
+          "captured_update_modes": {
+            "before_switch": {
+              "iterations": [
+                1998,
+                1999,
+                2000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9992616985648827,
+                  "update_norm_ratio": 0.999263672116343,
+                  "update_cosine": -0.9999980249942879
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999204914818431,
+                  "update_norm_ratio": 0.999934734559037,
+                  "update_cosine": -0.9999857559931649
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.9986082428719331,
+                  "update_norm_ratio": 0.9986260587141492,
+                  "update_cosine": -0.999982159646185
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.9999503377950943,
+                  "update_norm_ratio": 0.9999518064217998,
+                  "update_cosine": -0.9999985313025127
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "immediately_after_switch": {
+              "iterations": [
+                2000,
+                2001,
+                2002
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.5697030352415037,
+                  "update_norm_ratio": 0.591127707073531,
+                  "update_cosine": -0.9637562719939259
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9631497446551257,
+                  "update_norm_ratio": 0.9639040507201626,
+                  "update_cosine": -0.9992174469393781
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.2520243204517543,
+                  "update_norm_ratio": 0.4495119458908867,
+                  "update_cosine": -0.5606621197847542
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.9991027688083264,
+                  "update_norm_ratio": 1.000076821220959,
+                  "update_cosine": -0.999026022409515
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "at_3000": null
+          },
+          "terminal_linear": {
+            "iteration": "2100",
+            "momentum_work": "21958",
+            "pressure_work": "31520",
+            "scalar_work": "4245",
+            "pressure_it": "14",
+            "pressure_converged": "1",
+            "pressure_initial": "8.8317159101936355e-11",
+            "pressure_final": "6.7315090283623918e-14",
+            "momentum_u_it": "5",
+            "momentum_u_converged": "1",
+            "momentum_u_initial": "2.2111336694643671e-11",
+            "momentum_u_final": "1.4930814650233624e-13",
+            "momentum_v_it": "7",
+            "momentum_v_converged": "1",
+            "momentum_v_initial": "2.9010276788929915e-12",
+            "momentum_v_final": "1.5624792681457625e-14",
+            "momentum_w_it": "0",
+            "momentum_w_converged": "1",
+            "momentum_w_initial": "0",
+            "momentum_w_final": "0",
+            "scalar0_it": "0",
+            "scalar0_converged": "1",
+            "scalar0_initial": "9.9647929131542377e-12",
+            "scalar0_final": "9.9647929131542377e-12",
+            "scalar1_it": "0",
+            "scalar1_converged": "1",
+            "scalar1_initial": "0.00026449533617701364",
+            "scalar1_final": "0.00026449533617701364",
+            "last_monitor_dt": "0.085556976497173309",
+            "momentum_u_unconverged": "0",
+            "momentum_v_unconverged": "0",
+            "momentum_w_unconverged": "0",
+            "pressure_unconverged": "0",
+            "scalar0_unconverged": "0",
+            "scalar1_unconverged": "0"
+          },
+          "actual_exit": 0,
+          "identical_captured_prefix": {
+            "1998": "e32d707b2b085f29c61fdd7ca3f08d91915cdc578e6e2047469e40ac893babd5",
+            "1999": "67c2acd6f005380a4f63b30fdc2434cc504eaa2ffb3106a5d866b09ae62637ef",
+            "2000": "e752e05fd01afc42eb4bf1813cc2299057d538406c8d99e0576ba46c98d93679"
+          },
+          "reported_and_linear_prefix_identical": true,
+          "pressure_gain_at_first_post_switch_step": [
+            {
+              "iteration": 2001,
+              "configured_ceiling": 0.5,
+              "local_cap_minimum_median_maximum": [
+                0.2605462968349457,
+                1.2319087982177734,
+                1.9463001489639282
+              ],
+              "effective_gain_minimum_median_maximum": [
+                0.2605462968349457,
+                0.5,
+                0.5
+              ],
+              "cells_below_configured_ceiling": 310,
+              "cells_changed_by_ceiling_at_these_same_coefficients": 2954,
+              "volume_fraction_changed_by_ceiling_at_these_same_coefficients": 0.42253997171815083
+            }
+          ],
+          "terminal_physical_report": {
+            "continuity": "6.064890924516003e-06",
+            "continuity_raw": "1.6492489104545822e-10",
+            "continuity_scale": "2.7193381232758072e-05",
+            "k": "9.3101506296327749e-07",
+            "omega": "5.8358893810892316e-07"
+          }
+        },
+        {
+          "name": "pressure-.7",
+          "controls": {
+            "PRESSURE_ALPHA": ".7"
+          },
+          "applied_control_readback": [
+            {
+              "name": "PRESSURE",
+              "after": "2000",
+              "alpha": "0.69999999999999996"
+            }
+          ],
+          "steps": 2100,
+          "converged": true,
+          "result": {
+            "converged": "1",
+            "cells": "3264",
+            "steps": "2100",
+            "u": "2.01842384323e-10",
+            "v": "8.41054929628e-11",
+            "continuity": "7.00228784772e-06",
+            "k": "9.31023052356e-07",
+            "omega": "5.83588411752e-07",
+            "nu_tilde": "0",
+            "load_change": "0",
+            "cf": "0.00269534848485",
+            "cd": "0.00285633548316",
+            "failure": "",
+            "device_bytes": "81920"
+          },
+          "peak_bytes": 134316704,
+          "resource_receipt": {
+            "actual_wait_status": 0,
+            "continuously_guarded": true,
+            "limit_bytes": 3000000000,
+            "resource_limit_exceeded": false,
+            "sampled_and_reported_peak_bytes": 134316704,
+            "reported_peak_bytes": 134316704,
+            "interrupted": false,
+            "completed_wait_and_final_footprint": true
+          },
+          "terminal_snapshot_sha256": "a1de951da9cb2ca8dc9794cf9b8da8e49ae9683898ba06df11f75b15aa1e2d37",
+          "terminal_motion": {
+            "p_pair": {
+              "samples": 99,
+              "lag1_relative_l1_median": 8.822343406187062e-07,
+              "lag2_over_lag1_median": 1.417608597271626,
+              "high_changed_max": 1550,
+              "low_changed_max": 3264
+            },
+            "u_pair": {
+              "samples": 99,
+              "lag1_relative_l1_median": 2.1250248087897515e-10,
+              "lag2_over_lag1_median": 1.0134438308978841,
+              "high_changed_max": 0,
+              "low_changed_max": 3249
+            },
+            "v_pair": {
+              "samples": 99,
+              "lag1_relative_l1_median": 6.646212375471701e-08,
+              "lag2_over_lag1_median": 1.0929588551569691,
+              "high_changed_max": 0,
+              "low_changed_max": 3262
+            },
+            "mass_pair": {
+              "samples": 99,
+              "lag1_relative_l1_median": 2.548020085752994e-10,
+              "lag2_over_lag1_median": 1.0741684800971272,
+              "high_changed_max": 1,
+              "low_changed_max": 6507
+            },
+            "k": {
+              "samples": 99,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            },
+            "omega": {
+              "samples": 99,
+              "lag1_relative_l1_median": 0.0,
+              "lag2_over_lag1_median": null,
+              "high_changed_max": 0,
+              "low_changed_max": 0
+            }
+          },
+          "per_step_preprojection_continuity": {
+            "source": "Host sum of existing downloaded provisional_continuity buffer; no extra assembly, force or monitor calls.",
+            "fixed_first_five_normalization": 2.719338123275807e-05,
+            "tail_iteration_range": [
+              2001,
+              2100
+            ],
+            "tail_samples": 100,
+            "tail_raw_minimum": 1.897482641930598e-10,
+            "tail_raw_maximum": 8.262236053066833e-10,
+            "tail_scaled_minimum": 6.977737066565396e-06,
+            "tail_scaled_maximum": 3.0383261214732143e-05,
+            "auxiliary_tail_steps_above_existing_1e_minus5_gate": 67,
+            "diagnostic_vs_existing_monitor_max_relative_error": 0.0,
+            "note": "Auxiliary non-monitor samples characterize phase behavior; actual validation acceptance remains the unchanged original monitor gate."
+          },
+          "captured_update_modes": {
+            "before_switch": {
+              "iterations": [
+                1998,
+                1999,
+                2000
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.9992616985648827,
+                  "update_norm_ratio": 0.999263672116343,
+                  "update_cosine": -0.9999980249942879
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9999204914818431,
+                  "update_norm_ratio": 0.999934734559037,
+                  "update_cosine": -0.9999857559931649
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.9986082428719331,
+                  "update_norm_ratio": 0.9986260587141492,
+                  "update_cosine": -0.999982159646185
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -0.9999503377950943,
+                  "update_norm_ratio": 0.9999518064217998,
+                  "update_cosine": -0.9999985313025127
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "immediately_after_switch": {
+              "iterations": [
+                2000,
+                2001,
+                2002
+              ],
+              "fields": {
+                "p_pair": {
+                  "signed_least_squares_update_ratio": -0.7449713335871443,
+                  "update_norm_ratio": 0.7522118325397239,
+                  "update_cosine": -0.9903743883845417
+                },
+                "u_pair": {
+                  "signed_least_squares_update_ratio": -0.9778208802869109,
+                  "update_norm_ratio": 0.9780972454059546,
+                  "update_cosine": -0.9997174461738424
+                },
+                "v_pair": {
+                  "signed_least_squares_update_ratio": -0.33443160310116266,
+                  "update_norm_ratio": 0.5502549043489281,
+                  "update_cosine": -0.6077757789308
+                },
+                "mass_pair": {
+                  "signed_least_squares_update_ratio": -1.0000318908047856,
+                  "update_norm_ratio": 1.000400795699771,
+                  "update_cosine": -0.999631242901274
+                },
+                "k": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                },
+                "omega": {
+                  "signed_least_squares_update_ratio": null,
+                  "update_norm_ratio": null,
+                  "update_cosine": null
+                }
+              }
+            },
+            "at_3000": null
+          },
+          "terminal_linear": {
+            "iteration": "2100",
+            "momentum_work": "21957",
+            "pressure_work": "31551",
+            "scalar_work": "4245",
+            "pressure_it": "14",
+            "pressure_converged": "1",
+            "pressure_initial": "9.2802214894878409e-11",
+            "pressure_final": "6.9605795815126325e-14",
+            "momentum_u_it": "5",
+            "momentum_u_converged": "1",
+            "momentum_u_initial": "2.2438926171601086e-11",
+            "momentum_u_final": "1.8557384463727678e-13",
+            "momentum_v_it": "6",
+            "momentum_v_converged": "1",
+            "momentum_v_initial": "3.0313797379991799e-12",
+            "momentum_v_final": "1.8321902665247773e-14",
+            "momentum_w_it": "0",
+            "momentum_w_converged": "1",
+            "momentum_w_initial": "0",
+            "momentum_w_final": "0",
+            "scalar0_it": "0",
+            "scalar0_converged": "1",
+            "scalar0_initial": "9.9649798782378549e-12",
+            "scalar0_final": "9.9649798782378549e-12",
+            "scalar1_it": "0",
+            "scalar1_converged": "1",
+            "scalar1_initial": "0.00026449534034871027",
+            "scalar1_final": "0.00026449534034871027",
+            "last_monitor_dt": "0.085556976497173309",
+            "momentum_u_unconverged": "0",
+            "momentum_v_unconverged": "0",
+            "momentum_w_unconverged": "0",
+            "pressure_unconverged": "0",
+            "scalar0_unconverged": "0",
+            "scalar1_unconverged": "0"
+          },
+          "actual_exit": 0,
+          "identical_captured_prefix": {
+            "1998": "e32d707b2b085f29c61fdd7ca3f08d91915cdc578e6e2047469e40ac893babd5",
+            "1999": "67c2acd6f005380a4f63b30fdc2434cc504eaa2ffb3106a5d866b09ae62637ef",
+            "2000": "e752e05fd01afc42eb4bf1813cc2299057d538406c8d99e0576ba46c98d93679"
+          },
+          "reported_and_linear_prefix_identical": true,
+          "pressure_gain_at_first_post_switch_step": [
+            {
+              "iteration": 2001,
+              "configured_ceiling": 0.699999988079071,
+              "local_cap_minimum_median_maximum": [
+                0.2605462968349457,
+                1.2319087982177734,
+                1.9463001489639282
+              ],
+              "effective_gain_minimum_median_maximum": [
+                0.2605462968349457,
+                0.699999988079071,
+                0.699999988079071
+              ],
+              "cells_below_configured_ceiling": 498,
+              "cells_changed_by_ceiling_at_these_same_coefficients": 2766,
+              "volume_fraction_changed_by_ceiling_at_these_same_coefficients": 0.291219065575917
+            }
+          ],
+          "terminal_physical_report": {
+            "continuity": "7.0022878477245557e-06",
+            "continuity_raw": "1.9041588294468285e-10",
+            "continuity_scale": "2.7193381232758072e-05",
+            "k": "9.3102305235620461e-07",
+            "omega": "5.8358841175155794e-07"
+          }
+        }
+      ]
+    }
+  ],
+  "conclusion": "On this case, pressure-only gain reductions from1 to.5/.7 contract the observed alternating update and recover the unchanged gate at2100 with identical first-five normalization. The update projection is temporal evidence, not an exact Jacobian eigenvalue. Held-old/current source time-level controls and high-stress reduction/source-add carry alone do not resolve the failure. Startup, other cases and a production fix are not yet verified. No CFD wall-time comparison is claimed."
+}

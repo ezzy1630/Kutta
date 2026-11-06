@@ -2520,3 +2520,61 @@ The per-option comparisons, cost measurements and selected-six default
 qualification are complete above. Classification covers all 17 remaining
 failures, but their controlled causal experiments, convergence fixes and
 final verification remain unfinished. CUDA runtime remains unavailable.
+
+### Controlled middle-plate experiments, 2026-11-06 UTC
+
+The first controlled case is the middle SST flat plate on Metal. Its fresh
+3,000-step baseline reproduces the complete archived physical residual
+history and every stored high/low field word exactly on macOS 27.2.
+All interventions below retain the same first 2,000 steps: snapshots at
+1,998/1,999/2,000, residual reports and cumulative inner work match exactly.
+Actual setting changes are read back. The original gates and 3,000-step
+budget stay fixed.
+
+| Intervention after step 2,000 | Stop | Continuity | Converged |
+| --- | ---: | ---: | --- |
+| Original baseline | 3,000 | 3.04515373356e-5 | No |
+| Hold both momentum source halves at the old iterate | 3,000 | 3.04328308772e-5 | No |
+| Refresh both source halves at the current component state | 3,000 | 3.04515373356e-5 | No |
+| Restore high-stress reduction/source-addition remainder | 3,000 | 3.04408905108e-5 | No |
+| Pressure relaxation 1 → .5 | 2,100 | 6.06489092452e-6 | Yes |
+| Pressure relaxation 1 → .7 | 2,100 | 7.00228784772e-6 | Yes |
+
+The matched-current-state endpoint is byte-identical to the baseline's
+complete terminal snapshot. Holding the old source state changes the result
+slightly but leaves the near-two-cycle; it also adds two missed momentum
+inner terminations. Neither source-time-level intervention establishes a
+fix on this case.
+
+A separate one-cell CPU call to the actual stress-source kernel shows a
+rounding gap: initial source 1 plus face terms `[-1, 2^-25]` returns zero,
+where the exact input sum is `2^-25 = 2.9802322387695312e-8`. The diagnostic
+intervention restores only the high-face reduction and source-addition
+remainder, while retaining the existing face operator. Observe/apply cohorts
+perform matching reads/uploads, and the observe-only baseline reproduces
+the original words and history. This correction alone does not remove the
+TMR cycle. The kernel property is proven; this controlled correction does not resolve
+the failure on the tested case. No production rounding patch is accepted.
+
+The pressure controls do resolve the cycle. Their first-five continuity
+normalization remains exactly `2.7193381232758072e-5`. Raw continuity falls
+from `8.28080263892e-10` to `1.64924891045e-10` at .5 or
+`1.90415882945e-10` at .7. The recovery is not a changed denominator.
+The projected pressure-update ratio in the first two post-switch updates
+changes from about `-.999922` to `-.569703` or `-.744971`. These are observed
+temporal projections, not exact Jacobian eigenvalues. Pressure-update gain
+therefore contributes to the alternating mode on this case. This establishes
+no universal pressure-kernel error or safe default gain.
+
+At .7, cumulative momentum/pressure/scalar inner work is
+21,957/31,551/4,245 at step 2,100, versus 32,997/45,118/4,245 at the baseline's
+step 3,000. All baseline momentum and pressure inner solves terminate;
+exhausting their inner budgets does not explain this cycle. These are
+iteration counts from delayed controls, not startup or wall-time speedups.
+The largest process peak is 139,379,408 bytes across these studies.
+
+The production solver still has 17 failures. Startup behavior, the other
+failing plates and the full slow-tier effect must be checked before choosing
+a production pressure change. Complete source/binary/fixture hashes,
+normalization, applied controls, prefix checks, work and memory are in
+[middle-plate-controlled-causes.json](middle-plate-controlled-causes.json).
