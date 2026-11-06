@@ -2693,3 +2693,40 @@ workloads. No timing improvement is claimed.
 cohorts, actual-root resources, sixteen parity pairs, current OS, source/library/
 binary hashes and the quick/lint receipts. The 17 production convergence
 failures remain unchanged by this memory-only fix.
+
+### Further arithmetic and scalar attribution, 2026-11-06 UTC
+
+The flux-only paired-velocity-gradient experiment is negative on the middle
+Metal SST plate. After an identical 2,000-step prefix, it computes the true
+paired LSQ gradient, retaining its remainder relative to the unchanged ordinary
+high gradient for flux reconstruction and its limiter. Model and momentum
+assembly gradients remain unchanged. The implementation uses host downloads
+and subtraction as a diagnostic; it is not proposed as a production path.
+
+Continuity changes 3.04515373356e-5 → 3.04417427985e-5 and still fails at 3,000.
+Pressure lag-two/lag-one movement remains near a two-cycle: 0.00197938 →
+0.00196115. The baseline reproduces the complete archived residual history and
+all field words; the candidate's captured prefix, reports and work match the
+baseline exactly before activation. The actual activation is read back at step
+2,001. Maximum peak footprint is 139,510,432 B. This rejects that arithmetic
+correction alone as this case's remedy; it does not test the independently
+assembled momentum-gradient remainder.
+
+A read-only observer on the existing SA scalar monitor also reproduces the
+fine Metal bump's complete archived history and all 15 captured field arrays.
+Its cell residual and normalization sums agree with the existing monitor to
+less than 1e-10 relative error. At 3,000, raw nu-tilde defect is 2.730639e-8,
+normalization 0.0004454792, and scaled defect 6.129666e-5. No cells are at the
+zero floor. The largest residual cells lie downstream near the wall, around
+x=3 and y=1e-4, rather than at a few clipped cells. All scalar inner solves meet
+their stopping criterion. One pressure solve and 480 negligible out-of-plane
+momentum solves miss theirs; this is not an all-inner-solves-pass claim.
+The peak is 348,062,560 B. This excludes clipping as an explanation for this
+particular scalar failure, while leaving nonlinear coefficient coupling and
+flow drift to be isolated.
+
+Both private observers pass the required off-control 40-step V6/elbow file
+checks, four SST/SA state-byte comparisons, and six existing-monitor cell-sum
+checks. Results and frozen inputs are in
+[flux-gradient-and-sa-observer.json](flux-gradient-and-sa-observer.json).
+No numerical production change or new default follows from these experiments.
