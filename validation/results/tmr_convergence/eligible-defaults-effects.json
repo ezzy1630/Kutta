@@ -1,0 +1,1099 @@
+{
+  "variant": "eligible-defaults",
+  "full_study": "default-study-eligible-defaults.json",
+  "canonical_comparison_sha256": "930a26eeea5e92bdec0fc33fdee6824a0d331936971190aa4fff787a9dbfaa0f",
+  "canonical_counts": {
+    "regressions": 0,
+    "recoveries": 0,
+    "changed_values": 264,
+    "missing_assertions": 76,
+    "new_assertions": 76,
+    "missing_cases": 0,
+    "new_cases": 0
+  },
+  "changed_values_by_case": {
+    "Kutta cases converted from Fluent cases solve to the same bytes on every backend": 16,
+    "Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs": 122,
+    "FV V3 Re1000 cavity refinement against Erturk": 6,
+    "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields": 11,
+    "FV V6 Fluent mixing elbow fixed point and cold start": 32,
+    "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega": 3,
+    "FSAE aero: Ahmed body 35 deg drag, level 1": 1,
+    "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC": 2,
+    "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled": 4,
+    "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)": 55,
+    "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC": 3,
+    "FSAE V7.3 SST moving-wall and translating-frame invariance": 5,
+    "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport": 4
+  },
+  "changed_output_file_equality_assertions": 138,
+  "changed_interpolation_bound_assertions": 48,
+  "changed_derived_metric_assertions": 78,
+  "changed_boolean_gate_assertions": 0,
+  "changed_existing_failed_metric_assertions": 22,
+  "existing_failed_metrics_improved": 5,
+  "existing_failed_metrics_worsened": 17,
+  "maximum_absolute_printed_existing_failed_metric_change": 8.000000000008e-06,
+  "derived_metric_changes": [
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "metric": "Cavity finest/medium velocity-v errors",
+      "source_file": "tests/fv/test_cavity.cpp",
+      "source_line": 60,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00109511 <  0.00711187",
+      "after": "0.00109511 <  0.00711191",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "metric": "Cavity velocity-v refinement order",
+      "source_file": "tests/fv/test_cavity.cpp",
+      "source_line": 62,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "2.71436 >= 1.6",
+      "after": "2.71437 >= 1.6",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "metric": "Cavity finest/medium velocity-u errors",
+      "source_file": "tests/fv/test_cavity.cpp",
+      "source_line": 60,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.000600169 <  0.00435289",
+      "after": "0.000600169 <  0.004353",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "metric": "Cavity finest/medium velocity-v errors",
+      "source_file": "tests/fv/test_cavity.cpp",
+      "source_line": 60,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.00109499 <  0.00711203",
+      "after": "0.00109499 <  0.00711196",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "metric": "Cavity velocity-u refinement order",
+      "source_file": "tests/fv/test_cavity.cpp",
+      "source_line": 61,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "2.87464 >= 1.6",
+      "after": "2.87468 >= 1.6",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "metric": "Cavity velocity-v refinement order",
+      "source_file": "tests/fv/test_cavity.cpp",
+      "source_line": 62,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "2.71455 >= 1.6",
+      "after": "2.71454 >= 1.6",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative velocity L2 error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 223,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.0160344 <  0.025",
+      "after": "0.0160346 <  0.025",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative pressure L2 error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 223,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00527002 <  0.009",
+      "after": "0.00527006 <  0.009",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative kinetic-energy L2 error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 223,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.0491907 <  0.08",
+      "after": "0.0491915 <  0.08",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative second turbulence-field L2 error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 223,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.0551839 <  0.085",
+      "after": "0.0551843 <  0.085",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative pressure-drop error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 224,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00462074 <  0.008",
+      "after": "0.00462078 <  0.008",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 224,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00565543 <  0.01",
+      "after": "0.00565547 <  0.01",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative velocity L2 error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 223,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.0160345 <  0.025",
+      "after": "0.0160346 <  0.025",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative kinetic-energy L2 error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 223,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.0491926 <  0.08",
+      "after": "0.049191 <  0.08",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative second turbulence-field L2 error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 223,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.0551843 <  0.085",
+      "after": "0.0551839 <  0.085",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative pressure-drop error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 224,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.00462077 <  0.008",
+      "after": "0.00462076 <  0.008",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_coverage.cpp",
+      "source_line": 224,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.00565544 <  0.01",
+      "after": "0.00565545 <  0.01",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Maximum speed",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 182,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "1.6674 <  100",
+      "after": "1.66741 <  100",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative velocity L2 error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 196,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.0336162 <  0.005",
+      "after": "0.0336168 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Maximum relative velocity/pressure/k/omega L2 error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 197,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.144782 <  0.001",
+      "after": "0.14479 <  0.001",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.0164074 <  0.005",
+      "after": "0.0164082 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00602388 <  0.005",
+      "after": "0.00602065 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 2,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00152385 <  0.005",
+      "after": "0.00152361 <  0.005",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 3,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00533844 <  0.005",
+      "after": "0.00534137 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative pressure-drop error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 218,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.0196534 <  0.005",
+      "after": "0.0196579 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Maximum speed",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 182,
+      "canonical_occurrence": 4,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "1.66621 <  100",
+      "after": "1.666 <  100",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Maximum speed",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 182,
+      "canonical_occurrence": 5,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "1.66755 <  100",
+      "after": "1.66754 <  100",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Maximum speed",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 182,
+      "canonical_occurrence": 8,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "1.66753 <  100",
+      "after": "1.66754 <  100",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative velocity L2 error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 196,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.0336165 <  0.005",
+      "after": "0.0336167 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 4,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.0163789 <  0.005",
+      "after": "0.0163787 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 5,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00600064 <  0.005",
+      "after": "0.00599891 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 6,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00150671 <  0.005",
+      "after": "0.00150634 <  0.005",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 7,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.00529181 <  0.005",
+      "after": "0.0052932 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative pressure-drop error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 218,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "0.0196604 <  0.005",
+      "after": "0.0196628 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Maximum speed",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 182,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "1.6674 <  100",
+      "after": "1.66741 <  100",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative velocity L2 error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 196,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.0336162 <  0.005",
+      "after": "0.0336168 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Maximum relative velocity/pressure/k/omega L2 error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 197,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.144782 <  0.001",
+      "after": "0.14479 <  0.001",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.0164075 <  0.005",
+      "after": "0.0164082 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.00602378 <  0.005",
+      "after": "0.00602047 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 2,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.00152363 <  0.005",
+      "after": "0.00152339 <  0.005",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 3,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.00533839 <  0.005",
+      "after": "0.00534151 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative pressure-drop error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 218,
+      "canonical_occurrence": 0,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.0196533 <  0.005",
+      "after": "0.0196581 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Maximum speed",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 182,
+      "canonical_occurrence": 4,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "1.66621 <  100",
+      "after": "1.66599 <  100",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative velocity L2 error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 196,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.0336165 <  0.005",
+      "after": "0.0336168 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 4,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.0163787 <  0.005",
+      "after": "0.0163788 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 5,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.00600094 <  0.005",
+      "after": "0.0059984 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 6,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.00150632 <  0.005",
+      "after": "0.00150662 <  0.005",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative wall-force error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 212,
+      "canonical_occurrence": 7,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.00529174 <  0.005",
+      "after": "0.00529327 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "metric": "Relative pressure-drop error",
+      "source_file": "tests/fv/test_fluent_elbow.cpp",
+      "source_line": 218,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "0.0196604 <  0.005",
+      "after": "0.0196632 <  0.005",
+      "baseline_passed": false,
+      "candidate_passed": false
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "metric": "Tyrrell relative lift error versus thesis solution",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 104,
+      "canonical_occurrence": 0,
+      "context": [
+        "p.hc := freestream"
+      ],
+      "before": "0.0123559 <= 0.05",
+      "after": "0.0123564 <= 0.05",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "metric": "Tyrrell relative lift error versus thesis solution",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 104,
+      "canonical_occurrence": 0,
+      "context": [
+        "p.hc := 0.224"
+      ],
+      "before": "0.0365731 <= 0.05",
+      "after": "0.0365954 <= 0.05",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "metric": "Tyrrell relative lift error versus regression guard",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 108,
+      "canonical_occurrence": 0,
+      "context": [
+        "p.hc := 0.090"
+      ],
+      "before": "8.28407e-05 <= 0.01",
+      "after": "0.000186516 <= 0.01",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "metric": "Ahmed relative drag error",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 132,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.00012109 <= 0.02",
+      "after": "3.44749e-05 <= 0.02",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "metric": "S1223 absolute lift-coefficient error",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 152,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.0747029 <= 0.1",
+      "after": "0.0748179 <= 0.1",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "metric": "S1223 relative drag error",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 153,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.227273 <= 0.25",
+      "after": "0.227345 <= 0.25",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "metric": "SIMPLEC mean wall y-plus",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 176,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.879503 <  1.5",
+      "after": "0.879511 <  1.5",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "metric": "SIMPLEC Ahmed relative drag error",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 178,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.000114572 <= 0.02",
+      "after": "0.000108563 <= 0.02",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "metric": "Coupled/SIMPLEC relative drag difference",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 185,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.000414598 <= 0.01",
+      "after": "0.000432451 <= 0.01",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "metric": "Coupled/SIMPLEC relative lift difference",
+      "source_file": "tests/fv/test_fsae_aero.cpp",
+      "source_line": 186,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.0100257 <= 0.03",
+      "after": "0.00416406 <= 0.03",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "metric": "Relative drag settling change",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 122,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "6.06069e-07 <= 0.0005",
+      "after": "3.13787e-07 <= 0.0005",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "metric": "Relative onset error versus experiment",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 160,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.118214 <= 0.13",
+      "after": "0.118229 <= 0.13",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "metric": "Laminar-region relative Cf error versus experiment",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 161,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.120958 <= 0.13",
+      "after": "0.120372 <= 0.13",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "metric": "Turbulent-region relative Cf error versus experiment",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 162,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.0694313 <= 0.075",
+      "after": "0.0662699 <= 0.075",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "metric": "Relative onset error versus documented-equation reference",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 183,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.0246644 <= 0.05",
+      "after": "0.0246774 <= 0.05",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "metric": "Laminar-region relative Cf error versus documented-equation reference",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 184,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.0169599 <= 0.03",
+      "after": "0.0164284 <= 0.03",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "metric": "Turbulent-region relative Cf error versus documented-equation reference",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 185,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.0134799 <= 0.03",
+      "after": "0.0146874 <= 0.03",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "metric": "Relative lift settling change",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 220,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "7.39032e-05 <= 0.0005",
+      "after": "7.61309e-05 <= 0.0005",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "metric": "S1223 absolute lift-coefficient error",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 222,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.0988863 <= 0.1",
+      "after": "0.0988877 <= 0.1",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "metric": "S1223 relative drag error",
+      "source_file": "tests/fv/test_transition_validation.cpp",
+      "source_line": 223,
+      "canonical_occurrence": 0,
+      "context": [],
+      "before": "0.162312 <= 0.25",
+      "after": "0.162334 <= 0.25",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "metric": "Moving-wall/frame velocity difference",
+      "source_file": "tests/fv/test_zone_physics.cpp",
+      "source_line": 278,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "5.36442e-07 <  0.0002",
+      "after": "4.17233e-07 <  0.0002",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "metric": "Moving-wall/frame kinetic-energy difference",
+      "source_file": "tests/fv/test_zone_physics.cpp",
+      "source_line": 278,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "4.54747e-13 <  2e-07",
+      "after": "3.63798e-12 <  2e-07",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "metric": "Moving-wall/frame omega difference",
+      "source_file": "tests/fv/test_zone_physics.cpp",
+      "source_line": 278,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "1.15395e-07 <  0.0002",
+      "after": "2.01146e-07 <  0.0002",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "metric": "Moving-wall/frame velocity difference",
+      "source_file": "tests/fv/test_zone_physics.cpp",
+      "source_line": 278,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "3.27826e-07 <  0.0002",
+      "after": "4.76837e-07 <  0.0002",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "metric": "Moving-wall/frame omega difference",
+      "source_file": "tests/fv/test_zone_physics.cpp",
+      "source_line": 278,
+      "canonical_occurrence": 1,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "1.28642e-07 <  0.0002",
+      "after": "3.21606e-07 <  0.0002",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "metric": "Inlet transport kinetic-energy difference",
+      "source_file": "tests/fv/test_zone_physics.cpp",
+      "source_line": 329,
+      "canonical_occurrence": 2,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "1.68922e-06 <  0.0001",
+      "after": "1.61967e-05 <  0.0001",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "metric": "Inlet transport omega difference",
+      "source_file": "tests/fv/test_zone_physics.cpp",
+      "source_line": 329,
+      "canonical_occurrence": 2,
+      "context": [
+        "backend: cpu"
+      ],
+      "before": "1.00763e-06 <  0.0001",
+      "after": "1.54297e-05 <  0.0001",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "metric": "Inlet transport kinetic-energy difference",
+      "source_file": "tests/fv/test_zone_physics.cpp",
+      "source_line": 329,
+      "canonical_occurrence": 2,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "1.68922e-06 <  0.0001",
+      "after": "1.61967e-05 <  0.0001",
+      "baseline_passed": true,
+      "candidate_passed": true
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "metric": "Inlet transport omega difference",
+      "source_file": "tests/fv/test_zone_physics.cpp",
+      "source_line": 329,
+      "canonical_occurrence": 2,
+      "context": [
+        "backend: metal"
+      ],
+      "before": "1.00763e-06 <  0.0001",
+      "after": "1.54297e-05 <  0.0001",
+      "baseline_passed": true,
+      "candidate_passed": true
+    }
+  ],
+  "boolean_gate_changes": [],
+  "scope": "Only the unchanged canonical comparison is used. No assertions are rematched or normalized. Output-file equality assertions and interpolation bounds counted here remain passing. Their serialized fields and raw reference endpoints are not republished. Every other changed numeric derived metric and reviewed boolean gate is listed separately. Boolean outcomes are excluded from numeric improvement statistics. The complete canonical pairs remain in <checkout>/build/default-matrix/eligible-defaults/comparison.json."
+}

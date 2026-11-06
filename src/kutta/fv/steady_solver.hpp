@@ -107,23 +107,23 @@ struct SstSettings {
   ConvectionScheme k_convection=ConvectionScheme::SecondOrderUpwind;
   ConvectionScheme omega_convection=ConvectionScheme::SecondOrderUpwind;
   double k_relaxation=.75,omega_relaxation=.75;
-  SolveControl linear{1e-3,1e-12,100};
-  // Optional inner stopping on sum|physical defect| / sum|aP q|.
-  // Zero retains the linear solver's ordinary termination.
-  double steady_tolerance=0;
-  bool compensated_transport=false; // Delta solve from the carried assembly defect.
-  bool pseudo_transient=true;       // False omits time damping from scalar transport.
+  SolveControl linear{1e-3,1e-20,100};
+  // Skip an inner solve below sum|physical defect| / sum|aP q|.
+  // Zero uses only the linear solver's requested termination.
+  double steady_tolerance=1e-6;
+  bool compensated_transport=true; // Delta solve from the carried assembly defect.
+  bool pseudo_transient=false;       // False omits time damping from scalar transport.
 };
 struct SaSettings {
   SaOptions model;
   ConvectionScheme convection=ConvectionScheme::SecondOrderUpwind;
   double relaxation=.75;
-  SolveControl linear{1e-3,1e-12,100};
-  // Optional inner stopping on sum|physical defect| / sum|aP q|.
-  // Zero retains the linear solver's ordinary termination.
-  double steady_tolerance=0;
-  bool compensated_transport=false; // Delta solve from the carried assembly defect.
-  bool pseudo_transient=true;       // False omits time damping from scalar transport.
+  SolveControl linear{1e-3,1e-20,100};
+  // Skip an inner solve below sum|physical defect| / sum|aP q|.
+  // Zero uses only the linear solver's requested termination.
+  double steady_tolerance=1e-6;
+  bool compensated_transport=true; // Delta solve from the carried assembly defect.
+  bool pseudo_transient=false;       // False omits time damping from scalar transport.
 };
 enum class KeStrainReconstruction { CellGradient, JumpCorrected };
 struct RealizableKeSettings {
@@ -228,10 +228,11 @@ struct SolverSettings {
   // Larger values can settle roundoff cycles but delay nonlinear updates.
   double paired_state_slack_ulps=1;
   // Carry assembly remainders and consistent low-word face operators in
-  // paired momentum. Opt-in: the full TMR convergence matrix still fails.
+  // paired momentum. Opt-in: changes standard k-epsilon elbow pressure
+  // agreement; see validation/results/tmr_convergence/REPORT.md.
   bool compensated_momentum=false;
-  SolveControl momentum_linear{1e-2,1e-10,100};
-  SolveControl pressure_linear{1e-3,1e-12,300};
+  SolveControl momentum_linear{1e-2,1e-20,100};
+  SolveControl pressure_linear{1e-3,1e-20,300};
   // Fluent's flow Courant number (Solution Controls, Coupled): the Coupled
   // block Jacobian's implicit relaxation a_P/CFL (CoupledOptions::courant).
   // Convergence path only.
