@@ -2773,3 +2773,84 @@ observations, source/library hashes and resource receipts. The off-control
 passes the same twenty CLI file checks, four target state-byte pairs and six
 monitor-cell sum checks. This remains private experimental code; production
 still has 17 convergence failures and no new numerical default.
+
+### Scalar AMG and boundary-fit controls, 2026-11-06 UTC
+
+The finest Metal SST bump has the same factorial comparison. AMG alone at the
+original .75 relaxation changes k defect only 2.572706e-5 → 2.563151e-5;
+raw defect changes 1.249615e-7 → 1.243452e-7. With AMG and full k updates
+(omega relaxation remains .75), the private iterative gate passes at 3,000:
+k 9.328278e-7, omega 8.846953e-7, continuity 3.391092e-6 and load change
+0.000901276. This has no k-floor cells, compared with 3,764 in the rejected
+full-k/Jacobi control. However, raw k defect improves only 22%, to 9.707553e-8,
+while its normalization grows 21.4 times. At the baseline denominator it would
+be 1.998590e-5. That auxiliary calculation does not replace the real gate,
+but prevents claiming a normalization-independent k recovery. There are 48
+missed k inner terminations, zero omega misses, and 37,943 scalar iterations
+versus 25,051; an AMG V-cycle iteration has a different cost from Jacobi.
+The candidate peaks at 404,325,288 B. Full NASA station and grid-trend gates
+have not yet been run on this candidate, so this is not a production recovery.
+
+The field change merits an independent physical check: maximum k and eddy
+viscosity rise in the far wake. At x=.75, the published SST-2003m profiles give
+eddy-viscosity relative L2 errors of 7.164% → 6.830% against CFL3D and
+7.486% → 7.146% against FUN3D; k errors are 1.360% → 1.350% and
+1.353% → 1.347%. Omega errors remain large, 58.50% and 60.59%, and nearly
+unchanged. These diagnostics cover common supported points, with no
+extrapolation or new acceptance limit. They use the model-specific
+[SST-2003m source](https://tmbwg.github.io/turbmodels/bump_sst2003.html),
+not the different SSTm data. They do not validate the downstream maximum.
+The receipt records unit conversions, support exclusions and wall-coordinate
+interpolation; the original reference files and frozen fixture tree are unchanged.
+
+A separate coarse-bump experiment changes only omega's quadratic face fit in
+clouds touching same-facing mixed wall/symmetry junctions. Shared edges and
+face normals identify four seed cells out of 3,520; perpendicular extrusion
+caps do not qualify. The number of corrected faces falls from 6,950 to 6,864.
+After an identical 2,000-step prefix, both backends improve omega substantially:
+
+| Backend | Omega defect before → after | Continuity before → after | Full convergence gate |
+|---|---:|---:|---|
+| CPU | 1.444100e-5 → 1.339571e-6 | 3.143857e-5 → 1.270629e-5 | Still fails |
+| Metal | 1.991881e-5 → 1.453059e-6 | 1.515180e-5 → 1.409024e-5 | Still fails |
+
+On Metal, raw omega defect falls 0.0168037 → 0.00122590. Floor-cell count
+rises from three to eight, while their absolute residual contribution falls
+0.005449 → 0.0005375. Count alone would misdescribe the result. This
+establishes a local reconstruction contribution to these omega plateaus;
+it does not establish the cause of the remaining flow defect. K and momentum
+fits are unchanged. This spatial change remains private pending startup,
+accuracy and cross-case qualification. Peaks are 143,196,904 B on Metal and
+22,725,040 B on CPU.
+
+Further fine-SA controls do not recover the full gate. All use scalar AMG and
+full nu-tilde relaxation; the baseline for the delayed-pressure controls has
+those options from the start in every cohort.
+
+| Flow intervention | Continuity | Load change | Observation |
+|---|---:|---:|---|
+| Original momentum .7, pressure .3, time .1 | 3.601779e-6 | .001650236 | Load still fails |
+| Pressure .5 after identical 2,000-step prefix | 3.529332e-6 | .001561960 | Still fails |
+| Pressure .7 after identical 2,000-step prefix | 4.035039e-6 | .001478273 | Still fails |
+| Momentum .9 from startup | 4.052726e-5 | .02053544 | Worsens flow and load |
+| Momentum 1 from startup | Unavailable | Unavailable | Nonfinite failure at step 8 |
+| Automatic time from startup, late time about .325 | 7.791986e-6 | .001112854 | Load still fails |
+| Fixed time 1 from startup | 4.957974e-5 | .003417785 | Still fails |
+| Existing Coupled solver, Courant 200 | .07552272 | .04349275 | Strongly worsens flow |
+
+Startup time controls change the first-five normalization: fixed time 1 has
+continuity raw defect 4.003436e-7 with scale .008074742, versus original
+1.862838e-6 with scale .18024485. A worse scaled result alone therefore does
+not establish worse raw continuity. Load change also worsens. Delayed time
+controls are needed to isolate damping while preserving normalization.
+The Coupled control is worse even in raw continuity, 1.570148e-4. Its reported
+pressure work is block-solver work, with momentum work stored in that block;
+zero separate momentum counts do not mean omitted momentum equations.
+The nonfinite control's printed zero placeholders are not measured residuals.
+No new momentum, pressure or time default follows from these experiments.
+
+[scalar-amg-and-junction-controls.json](scalar-amg-and-junction-controls.json)
+contains the positive and negative controls, exact baseline/prefix checks,
+actual setting readbacks, raw residuals, inner work, profiles and resources.
+The production failure count remains 17. Only the diagnosed contributions
+above are established; the remaining mechanisms and full fixes remain open.
