@@ -2641,3 +2641,55 @@ The candidate is not promoted. Both scalar studies peak below 369 MB.
 Production still has all 17 failures. The temporal classifications above remain
 valid; only the middle SST plate currently has an experimentally established
 pressure-gain contribution. The other causes require further isolation.
+
+### Metal transfer lifetime fix, 2026-11-06 UTC
+
+The repeated-solve resource experiment establishes avoidable retention on the
+Metal host-transfer path. Six fresh Device/solver lifetimes of the same
+40-step finest SST bump peak at 781 MB without an outer autorelease pool and
+324 MB with one. Allocator pressure relief does not remove the growth. All
+19 physical endpoint double bit patterns agree across all six cycles and
+all four pool/relief cohorts. These are resource transients, not convergence
+runs or full-state identity proofs.
+
+Fifteen additional controls isolate the path. Changing ARC return conventions,
+adding allocation/destruction pools, pooling encoder entries or pooling copies
+does not remove the growth. A pool around host reductions does not help.
+Pooling uploads alone gives 327 MB; pooling downloads alone gives 772 MB;
+pooling both gives 324 MB. This establishes the transfer-boundary contribution,
+without identifying a particular internal driver object. The production fix
+adds those two pool scopes. Synchronization and memcpy ordering are preserved;
+no solver storage, arithmetic, setting, iteration budget or gate changes.
+
+The final experiment uses the actual root libraries before and after that
+change, with the same six earned defaults and the same current TMR harness:
+
+| Six repeated finest-bump solves, Metal | Peak before → after | Footprint after sixth destruction, before → after |
+|---|---:|---:|
+| SST | 779,142,320 → 321,176,416 B | 562,070,704 → 5,407,512 B |
+| SA | 747,488,432 → 312,787,832 B | 521,618,608 → 5,292,824 B |
+
+All six and cross-cohort endpoint bit patterns agree for both models. The
+current-root before/after comparison also passes every required 40-step CPU
+and Metal V6 and elbow_param file check: fluxes.csv, forces.csv, loads.json,
+result.vtu, and residuals.csv columns 1–7 after comments are removed. Four
+finest-bump SST/SA public-state pairs match byte for byte. A separate build
+with the original numerical defaults passes the same files and target states
+against the frozen exact-main binaries. This separates the earlier intentional
+default changes from the transfer-only byte-parity proof: sixteen comparison
+pairs pass in total.
+
+Quick passes all 307 cases and 7,990,154 assertions; the 37 slow cases are
+excluded by the quick-tier selector. Its guarded peak is 905,955,176 B.
+Portability lint passes. The full slow comparison for the six earned defaults
+remains the 37-case result above: zero regressed or recovered gates, 264 changed
+values and the disclosed passing identity gaps. The transfer change's evidence
+is byte parity, not a fresh full-slow numerical comparison. Its full monolithic
+suite peak has not yet been measured. The earlier 5.54 GB monolithic peak must
+not be presented as having fallen to 321 MB: those measurements cover different
+workloads. No timing improvement is claimed.
+
+[transfer-pool-memory.json](transfer-pool-memory.json) records all 19 discovery
+cohorts, actual-root resources, sixteen parity pairs, current OS, source/library/
+binary hashes and the quick/lint receipts. The 17 production convergence
+failures remain unchanged by this memory-only fix.

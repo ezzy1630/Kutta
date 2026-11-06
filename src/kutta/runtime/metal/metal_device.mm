@@ -395,13 +395,19 @@ class MetalDevice final : public Device {
   }
   void upload_bytes(BufferHandle& dst, const void* src, std::size_t bytes) override {
     if (!bytes) return;
-    // Shared host writes must wait for prior GPU readers as well as writers.
-    synchronize();
-    std::memcpy(metal(dst).contents, src, bytes);
+    // Plain C++ callers need a pool around shared-storage access too: temporary
+    // Metal objects can otherwise retain transferred buffers across solves.
+    @autoreleasepool {
+      // Shared host writes must wait for prior GPU readers as well as writers.
+      synchronize();
+      std::memcpy(metal(dst).contents, src, bytes);
+    }
   }
   void download_bytes(const BufferHandle& src, void* dst, std::size_t bytes) override {
-    synchronize();
-    if (bytes) std::memcpy(dst, metal(src).contents, bytes);
+    @autoreleasepool {
+      synchronize();
+      if (bytes) std::memcpy(dst, metal(src).contents, bytes);
+    }
   }
   void copy_bytes(BufferHandle& dst, const BufferHandle& src, std::size_t bytes) override {
     if (!bytes || &dst == &src) return;
