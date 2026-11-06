@@ -205,6 +205,14 @@ struct SteadySolver::Impl {
       "FV invalid steady solver settings");
     KUTTA_REQUIRE(!settings.compensated_momentum || settings.paired_state_slack_ulps*double(std::numeric_limits<float>::epsilon())<1,
       "FV compensated pressure relative slack must be below one");
+    if(settings.pseudo_time_ramp) {
+      const auto& ramp=*settings.pseudo_time_ramp;
+      KUTTA_REQUIRE(settings.pseudo_transient && std::isfinite(settings.pseudo_time_step) &&
+        settings.pseudo_time_step>=std::numeric_limits<float>::min() && std::isfinite(ramp.maximum_step) &&
+        ramp.maximum_step>=settings.pseudo_time_step && ramp.maximum_step<=std::numeric_limits<float>::max() &&
+        std::isfinite(ramp.growth_factor) && ramp.growth_factor>=1,
+        "FV pseudo-time ramp requires representable positive fixed time, bounded maximum and growth at least one");
+    }
     for(auto& bc:conditions)
       KUTTA_REQUIRE(boundaries.emplace(bc.patch,std::move(bc.condition)).second,"FV duplicate patch condition");
     KUTTA_REQUIRE(boundaries.size()==host.patches.size(),"FV supply exactly one condition per patch");
@@ -793,6 +801,14 @@ struct SteadySolver::Impl {
   // the differentiable limiter's velocity ranges join the same reduction, so
   // that limiter adds no host wait to a step.
   void refresh_time_step(bool limiter_thresholds=false) {
+    if(limiter_thresholds && settings.pseudo_time_ramp) {
+      const auto& ramp=*settings.pseudo_time_ramp;
+      // Absolute iteration makes repeated measurements idempotent. Clamp the
+      // exponent before evaluating exp so a long run cannot overflow.
+      const double exponent=double(report.iteration)*std::log(ramp.growth_factor);
+      time_step=float(exponent>=std::log(ramp.maximum_step/settings.pseudo_time_step)?ramp.maximum_step:
+        settings.pseudo_time_step*std::exp(exponent));
+    }
     if(limiter_thresholds && !limiter_scratch.empty()) {refresh_time_step_and_thresholds();return;}
     if(settings.pseudo_time_step>0 || !settings.pseudo_transient) return;
     kern::fv_speed(dev,mesh.n_cells,velocity.x,velocity.y,velocity.z,speed);

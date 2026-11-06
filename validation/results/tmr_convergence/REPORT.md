@@ -2967,3 +2967,30 @@ NASA accuracy/trend qualification or paired timing measurements.
 normalization ratios, raw defects, clipping observations, work and resources.
 Production still has 17 failures; the public ramp API and complete physical
 reference checks are separate pending work.
+
+### Public opt-in ramp and byte verification, 2026-11-06 UTC
+
+`SolverSettings::pseudo_time_ramp` now accepts `PseudoTimeRamp{maximum_step,
+growth_factor}` alongside a positive fixed `pseudo_time_step`. It is absent
+by default. The solver computes the capped exponential value from absolute
+outer iteration, during the step; monitoring does not advance it. The initial
+and maximum must be representable as positive device time values. No extra
+solve or device storage is introduced.
+
+The final implementation passes twelve 40-step byte-comparison pairs: four
+CPU/Metal V6/elbow file comparisons, four default target state pairs and four
+ramped/full-scalar AMG target state comparisons against the private prototype.
+The ordinary fixed and automatic paths retain their prior values. The expanded
+monitor-cadence test passes 196 assertions, including SST/SA SIMPLEC and SST
+Coupled on both backends. Before the implementation, eight new cap assertions
+failed because the requested ramp stayed at .1. Two boundary checks also fail
+before the representability guard and pass afterward. No existing physical
+gate or reference is changed.
+
+Quick is green: 309 cases, 7,990,218 assertions, actual exit zero and peak
+900,826,744 B. Portability lint passes.
+[time-ramp-api.json](time-ramp-api.json) records the source/binary bindings,
+byte checks and test receipts. The root TMR harness has not yet selected the
+new option. Full TMR station/drag/trend qualification runs separately; a private
+fine-case convergence pass does not establish those results. No new default
+or timing improvement is claimed.

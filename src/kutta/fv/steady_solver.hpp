@@ -184,6 +184,11 @@ enum class Limiter { Standard, Differentiable };
 // NormalFoot also supplies symmetry's zero-normal-gradient observations.
 enum class PressureBoundaryGradient { Extrapolated, NormalFoot, Automatic };
 
+struct PseudoTimeRamp {
+  double maximum_step=0;
+  double growth_factor=1.001;
+};
+
 struct SolverSettings {
   double density=1, viscosity=.01;
   PressureVelocityCoupling coupling=PressureVelocityCoupling::Simplec;
@@ -217,6 +222,10 @@ struct SolverSettings {
   // iteration from the current flow. Its velocity scale is the mean cell
   // speed for Coupled (Fluent TG 23-103) and the maximum for SIMPLE/SIMPLEC.
   double pseudo_time_step=0;
+  // Optional growth from a positive fixed initial step to a bounded maximum.
+  // Each outer step uses initial * growth_factor^iteration, independent of
+  // monitoring. Disabled for the ordinary fixed/automatic stepping paths.
+  std::optional<PseudoTimeRamp> pseudo_time_ramp;
   // The pressure-velocity algorithms carry velocity, pressure and face mass flux as
   // float pairs hi + lo, so the continuity residual can fall below the
   // float32 rounding floor to criteria set for Fluent's double-precision runs
