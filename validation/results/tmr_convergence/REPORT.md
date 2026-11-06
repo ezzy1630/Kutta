@@ -2890,3 +2890,32 @@ Quick passes 308 cases and 7,990,158 assertions; actual exit is zero, peak
 [scalar-preconditioner-api.json](scalar-preconditioner-api.json) binds the
 checks to their sources, libraries, binaries and current OS. No opt-in timing
 claim or production TMR recovery is made.
+
+### Delayed flow-time control, 2026-11-06 UTC
+
+On the fine Metal SA bump with AMG and full scalar relaxation already active
+from startup, increasing the flow time step from .1 to 1 after an identical
+2,000-step prefix passes the private convergence gate at 2,900. Continuity is
+2.739711e-6, nu-tilde 7.452494e-7 and load change .000647587. The baseline
+still fails at 3,000 with load change .001650236. The raw continuity defect
+falls 6.462512e-7 → 4.915742e-7; both use exactly the same first-five scale
+.1794255614. Complete captured fields, reported residuals and inner work agree
+before the switch, with the actual time step read back as 1 at step 2,001.
+The gain therefore does not come from changing startup normalization.
+
+This is conditional evidence for conservative startup followed by less late
+flow damping. Fixed time 1 from startup had failed; delayed automatic time
+(about .325) also fails, with load change .002835072 despite continuity
+2.713569e-6. A larger step alone is not a universally established remedy.
+The diagnostic's hardcoded switch at 2,000 is not proposed as production
+policy. A general bounded ramp needs its own qualification.
+
+The passing private solve has momentum/pressure/scalar work
+25,770/78,022/20,262 versus baseline 24,991/72,551/20,159. Pressure inner
+misses rise from one to eighteen; the original 300-inner limit is unchanged.
+Scalar misses remain two. Its peak is 359,678,888 B. Cf .00522174519 and
+Cd .00362709430 are observed endpoints; the full station and trend gates
+have not yet been run on this intervention. No timing claim is made.
+[delayed-time-control.json](delayed-time-control.json) records the controls,
+exact prefixes, actual settings, normalization, work and resources.
+The production TMR failure count remains 17.
