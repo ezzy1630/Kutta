@@ -10,6 +10,7 @@ namespace kutta::fv {
 
 enum class ConvectionScheme { FirstOrderUpwind, SecondOrderUpwind };
 enum class ScalarBoundary : Index { FixedValue=0, ZeroGradient=1 };
+enum class TransportPreconditioner { Jacobi, Amg };
 
 struct TransportSettings {
   ConvectionScheme convection=ConvectionScheme::SecondOrderUpwind;
@@ -66,6 +67,9 @@ class TransportEquation {
                 const TransportSettings& settings,TransportTerms terms={});
   // Null restores the compact secondary-gradient diffusion.
   void set_reconstruction(std::shared_ptr<const FaceReconstruction> reconstruction);
+  // Rebuild at the next solve from its assembled operator, then refresh values
+  // on later solves. Both choices use nonsymmetric BiCGStab.
+  void set_preconditioner(TransportPreconditioner preconditioner);
   // Call before assembling a paired momentum equation. No iteration-time
   // allocation; ordinary scalar solves retain their existing float path.
   void enable_compensated_assembly();
@@ -88,6 +92,8 @@ class TransportEquation {
   const DeviceMesh& mesh_;
   const Stencil& stencil_;
   std::unique_ptr<LinearSolver> solver_;
+  std::shared_ptr<KrylovWorkspace> workspace_;
+  std::optional<TransportPreconditioner> pending_preconditioner_;
   Buffer<float>& zero_;
   Buffer<float> rhs_low_,diagonal_low_,scalar_delta_,scalar_residual_;
   struct SteadyStopping {double tolerance;Buffer<float> residual,absolute,scale;};

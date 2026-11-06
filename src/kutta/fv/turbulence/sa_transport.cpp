@@ -11,6 +11,8 @@ SaTransport::SaTransport(Device& d,const DeviceMesh& m,const Stencil& s,const Po
     model_(d,m,settings_.model),equation_(d,m,s,h,g,std::move(matrix)) {
   KUTTA_REQUIRE(std::isfinite(settings_.relaxation) && settings_.relaxation>0 && settings_.relaxation<=1,"SA: invalid relaxation");
   if(settings_.compensated_transport) equation_.enable_compensated_solve();
+  if(settings_.linear_preconditioner!=TransportPreconditioner::Jacobi)
+    equation_.set_preconditioner(settings_.linear_preconditioner);
   equation_.set_steady_tolerance(settings_.steady_tolerance);
   const auto n=m.n_cells,nb=m.n_boundary_faces();
   for(auto* b:{&q_,&rho_cell_,&mu_cell_,&strain_,&rotation_,&residual_,&absolute_,&scale_,&fluent_scale_}) *b=d.alloc<float>(n);

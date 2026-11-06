@@ -108,6 +108,7 @@ struct SstSettings {
   ConvectionScheme omega_convection=ConvectionScheme::SecondOrderUpwind;
   double k_relaxation=.75,omega_relaxation=.75;
   SolveControl linear{1e-3,1e-20,100};
+  TransportPreconditioner linear_preconditioner=TransportPreconditioner::Jacobi;
   // Skip an inner solve below sum|physical defect| / sum|aP q|.
   // Zero uses only the linear solver's requested termination.
   double steady_tolerance=1e-6;
@@ -119,6 +120,7 @@ struct SaSettings {
   ConvectionScheme convection=ConvectionScheme::SecondOrderUpwind;
   double relaxation=.75;
   SolveControl linear{1e-3,1e-20,100};
+  TransportPreconditioner linear_preconditioner=TransportPreconditioner::Jacobi;
   // Skip an inner solve below sum|physical defect| / sum|aP q|.
   // Zero uses only the linear solver's requested termination.
   double steady_tolerance=1e-6;

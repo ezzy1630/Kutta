@@ -106,3 +106,41 @@ TEST_CASE("FV equations share one uploaded CSR pattern and value workspace") {
     CHECK(a.matrix.val.handle()==b.matrix.val.handle());
   }
 }
+
+TEST_CASE("FV scalar preconditioning resolves an anisotropic operator and refreshes its values") {
+  auto mesh=make_box_hex(64,16,1,{0,0,0},{1,.02,1});
+  const auto geometry=compute_geometry(mesh);
+  std::vector<Index> kinds;std::vector<float> boundary;
+  for(Index f=mesh.n_internal_faces();f<mesh.n_faces();++f) {
+    kinds.push_back(std::abs(geometry.face_area[f].x)>0?0:1);
+    boundary.push_back(float(geometry.face_centroid[f].x));
+  }
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    const auto m=upload_mesh(*dev,mesh,geometry);
+    const auto stencil=fv::make_stencil(*dev,mesh,geometry);
+    auto workspace=std::make_shared<KrylovWorkspace>(m.n_cells);
+    fv::TransportEquation equation(*dev,m,stencil,mesh,geometry,{}, {},workspace);
+    equation.set_preconditioner(fv::TransportPreconditioner::Amg);
+    equation.enable_compensated_solve();
+    auto field=dev->alloc<float>(m.n_cells),mass=dev->alloc<float>(m.n_faces);
+    auto mu=dev->alloc<float>(m.n_faces),source=dev->alloc<float>(m.n_cells);
+    auto bc=dev->upload<float>(boundary);auto kind=dev->upload<Index>(kinds);
+    dev->fill(mass,0);dev->fill(source,0);
+    fv::TransportSettings settings;settings.limit=false;
+    // The exact steady solution is x, with zero transverse derivative. A new
+    // diffusivity exercises value refresh on the retained hierarchy.
+    for(float diffusivity:{1.f,2.f}) {
+      dev->fill(field,0);dev->fill(mu,diffusivity);
+      for(int correction=0;correction<3;++correction) {
+        equation.assemble(field,bc,kind,mass,mu,source,settings);
+        // Acceptance is the physical solution after bounded defect corrections;
+        // a float inner solve can return its best iterate at a residual floor.
+        equation.solve(field,{1e-3,1e-20,100});
+      }
+      const auto values=dev->download(field);double error=0;
+      for(Index c=0;c<m.n_cells;++c)
+        error=std::max(error,std::abs(double(values[c])-geometry.cell_centroid[c].x));
+      CHECK(error<2e-4);
+    }
+  }
+}

@@ -2854,3 +2854,39 @@ contains the positive and negative controls, exact baseline/prefix checks,
 actual setting readbacks, raw residuals, inner work, profiles and resources.
 The production failure count remains 17. Only the diagnosed contributions
 above are established; the remaining mechanisms and full fixes remain open.
+
+### Reusable scalar preconditioner opt-in, 2026-11-06 UTC
+
+SST and SA now expose `linear_preconditioner=TransportPreconditioner::Amg`.
+Jacobi remains the default. Both choices use nonsymmetric BiCGStab; the AMG
+option uses General operator structure and builds its hierarchy from the first
+actual assembled scalar matrix, then refreshes its values on subsequent
+solves. It retains the existing shared outer Krylov workspace. Ordinary solves
+make no new device allocations or extra matrix downloads on this path.
+The TMR harness has not yet enabled this option.
+
+Twelve 40-step comparison pairs pass: default V6 and elbow_param CPU/Metal
+file comparisons, four default SST/SA target state-byte comparisons, and four
+selected-AMG target state comparisons against the controlled private AMG
+implementation. The earlier separate original-numerical-default parity against
+exact main remains recorded in transfer-pool-memory.json. No additional global
+numerical default follows from this opt-in API; the qualified six-default
+full slow comparison above remains applicable.
+
+A new manufactured anisotropic transport regression checks the physical linear
+solution after three bounded compensated defect corrections, then repeats with
+changed diffusivity. With identical controls and the same 2e-4 physical error
+criterion, Jacobi fails all four CPU/Metal checks (maximum errors .459–.501)
+and AMG passes all four. The first draft also required every inner solve to
+report convergence at a newly chosen relative tolerance of 1e-6. That demand
+hit float roundoff even when the physical solution was accurate. The final
+new test uses the existing SST/SA 1e-3 inner tolerance and accepts the physical
+solution after the bounded corrections; it does not promise an inner status
+that the float solver cannot always supply. Both red and green were rerun on
+that final physical criterion. No existing test or frozen gate was changed.
+
+Quick passes 308 cases and 7,990,158 assertions; actual exit is zero, peak
+897,042,064 B. Portability lint passes.
+[scalar-preconditioner-api.json](scalar-preconditioner-api.json) binds the
+checks to their sources, libraries, binaries and current OS. No opt-in timing
+claim or production TMR recovery is made.

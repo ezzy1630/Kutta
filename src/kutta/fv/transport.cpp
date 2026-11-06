@@ -5,6 +5,7 @@
 #include <limits>
 
 #include "kernels.hpp"
+#include "kutta/linalg/amg.hpp"
 #include "kutta/mesh/detail.hpp"
 #include "kutta/mesh/topology.hpp"
 
@@ -27,11 +28,18 @@ TransportEquation::TransportEquation(Device& dev,const DeviceMesh& m,const Stenc
   // refreshed from the assembled device matrix before every solve.
   CsrMatrixHost initial{s.pattern,std::vector<double>(s.pattern.nnz(),0)};
   for(auto j:s.pattern.diag) initial.val[j]=1;
-  SolverOptions options;options.workspace=std::move(workspace);
+  workspace_=workspace?std::move(workspace):std::make_shared<KrylovWorkspace>(m.n_cells);
+  SolverOptions options;options.workspace=workspace_;
   solver_=make_solver(transport_solver_kind,dev,initial,options);
   KUTTA_REQUIRE(scratch_->device==&dev && zero_.size()==std::size_t(m.n_cells) && face_correction.size()==std::size_t(m.n_faces),
                 "FV transport workspace dimensions mismatch");
   set_reconstruction(std::move(diffusion_reconstruction));
+}
+
+void TransportEquation::set_preconditioner(TransportPreconditioner preconditioner) {
+  KUTTA_REQUIRE(preconditioner==TransportPreconditioner::Jacobi ||
+    preconditioner==TransportPreconditioner::Amg,"FV invalid transport preconditioner");
+  pending_preconditioner_=preconditioner;
 }
 
 void TransportEquation::set_reconstruction(std::shared_ptr<const FaceReconstruction> reconstruction) {
@@ -113,6 +121,20 @@ void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const 
 }
 
 SolveStats TransportEquation::solve(Buffer<float>& field,const SolveControl& requested,const Buffer<Index>* excluded) {
+  if(pending_preconditioner_) {
+    // Aggregation needs the physical operator: the constructor's identity
+    // placeholder has no useful strength graph for an anisotropic equation.
+    const auto values=dev_.download(matrix.val);
+    CsrMatrixHost assembled{stencil_.pattern,std::vector<double>(values.begin(),values.end())};
+    if(*pending_preconditioner_==TransportPreconditioner::Amg) {
+      AmgOptions options;options.workspace=workspace_;
+      solver_=make_amg_solver(SolverKind::AmgBicgstab,dev_,assembled,options);
+    } else {
+      SolverOptions options;options.workspace=workspace_;
+      solver_=make_solver(transport_solver_kind,dev_,assembled,options);
+    }
+    pending_preconditioner_.reset();
+  }
   auto control=requested;
   if(!scalar_delta_.empty()) physical_residual(field,scalar_residual_,excluded);
   if(steady_stopping_) {

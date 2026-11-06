@@ -504,6 +504,10 @@ struct SteadySolver::Impl {
       k_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,nullptr,krylov_workspace,transport_scratch);
       omega_equation=std::make_unique<TransportEquation>(dev,mesh,stencil,host,geom,pressure_matrix,
         walk_reconstruction(turbulent_faces,dev,host,geom,mesh,stencil,omega_observed),krylov_workspace,transport_scratch);
+      if(t.linear_preconditioner!=TransportPreconditioner::Jacobi) {
+        k_equation->set_preconditioner(t.linear_preconditioner);
+        omega_equation->set_preconditioner(t.linear_preconditioner);
+      }
       if(t.compensated_transport) {k_equation->enable_compensated_solve();omega_equation->enable_compensated_solve();}
       k_equation->set_steady_tolerance(t.steady_tolerance);
       omega_equation->set_steady_tolerance(t.steady_tolerance);
