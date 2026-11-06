@@ -12,6 +12,29 @@ Quick validation passes 307 cases and 7,990,154 assertions. All six requested
 five outputs. The standard-k-epsilon JumpCorrected opt-in also matches main on
 CPU and Metal in exported cell fields and wall diagnostics.
 
+## 2026-11-06: qualification resumed after owner pause
+
+The owner stopped the active selected-default qualification with SIGSTOP on
+November 4 at 17:48 PST and continued it on November 6 at about 09:33 PST.
+The Mac did not reboot during this pause; both sides ran on macOS 27.2
+(Darwin 27.2.0). This pause is separate from the earlier OS migration and its
+reproduction controls documented below.
+
+The isolated runner retained its solver state and advanced from case 21 to
+case 22 after continuation. Case 21 completed with all 14 assertions passing.
+The candidate source and binary hashes still match the frozen qualification
+plan. No second solve was started. Case 21's elapsed time and the whole-run
+elapsed span include about 40 hours of pause; neither is used as a timing or
+iteration-cost figure. The earlier alternating cost pairs were completed on
+the same OS before this pause and remain separate measurements.
+
+The outer qualification driver exited, while the isolated runner and its
+per-case footprint guard remained alive. Its lost whole-run wait status will
+not be represented as an observed exit code. The completed shard receipts and
+unchanged canonical comparator will determine the numerical comparison.
+Qualification is still in progress; this entry promotes no default or
+convergence fix.
+
 ## Protocol and provenance
 
 The original baseline is main `8866cc0e16df5b0642b2243611099ddccd7f3cd3`.
