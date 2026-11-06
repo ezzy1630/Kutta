@@ -2730,3 +2730,46 @@ checks, four SST/SA state-byte comparisons, and six existing-monitor cell-sum
 checks. Results and frozen inputs are in
 [flux-gradient-and-sa-observer.json](flux-gradient-and-sa-observer.json).
 No numerical production change or new default follows from these experiments.
+
+### SA relaxation and preconditioner factorial control, 2026-11-06 UTC
+
+The finest Metal SA bump now has separate preconditioner and relaxation
+controls. Each fresh baseline reproduces the archived complete 3,000-step
+history and every captured field word. The private AMG path uses BiCGStab with
+a General operator, initializes its hierarchy from the first actual assembled
+scalar matrix, and retains the original 100 scalar-inner and 3,000 outer limits.
+It changes no model equation, reference, normalization rule or gate.
+
+| Scalar relaxation / preconditioner | Nu-tilde defect | Raw nu-tilde defect | Scalar inner iterations | Missed scalar terminations |
+|---|---:|---:|---:|---:|
+| .75 / Jacobi | 6.129666e-5 | 2.730639e-8 | 10,928 | 0 |
+| 1 / Jacobi | 1.292294e-4 | 4.447927e-8 | 272,223 | 2,999 |
+| .75 / AMG | 6.128469e-5 | 2.730196e-8 | 3,000 | 0 |
+| 1 / AMG | 9.749870e-7 | 2.167043e-9 | 20,159 | 2 |
+
+AMG alone leaves the slow nonlinear approach essentially unchanged. Removing
+scalar underrelaxation with the existing Jacobi solver makes the linear solves
+unreliable. Combining full scalar updates with the stronger preconditioner
+reduces the raw defect by 12.6 times. At the baseline normalization its defect
+would be 4.864521e-6, also below the unchanged 1e-5 gate; the improvement is not
+solely a larger normalization. Neither AMG candidate has clipped scalar cells.
+This establishes the interaction between scalar underrelaxation and inner-solve
+capability as a contributing algorithmic bottleneck on this particular case.
+It does not isolate every nonlinear coefficient or establish every SA failure's
+cause.
+
+The combined candidate also reduces continuity 1.033504e-5 → 3.601779e-6, but
+load change grows 0.000927413 → 0.001650236 and misses its 0.001 gate. The full
+solve still fails at step 3,000. Cf changes 0.00522218073 → 0.00522093520 and Cd
+0.00361754189 → 0.00362485913. Momentum/pressure inner work changes
+26,098/72,222 → 24,991/72,551. AMG uses a six-level V-cycle with operator
+complexity 1.186, so its scalar iteration count is not comparable in cost to
+one Jacobi-preconditioned iteration. The combined run peaks at 374,735,760 B;
+the AMG-only run peaks at 380,371,880 B. No paired timing claim is made.
+
+[sa-relaxation-preconditioner-controls.json](sa-relaxation-preconditioner-controls.json)
+contains the factorial results, actual hierarchy readbacks, raw/common-denominator
+observations, source/library hashes and resource receipts. The off-control
+passes the same twenty CLI file checks, four target state-byte pairs and six
+monitor-cell sum checks. This remains private experimental code; production
+still has 17 convergence failures and no new numerical default.
