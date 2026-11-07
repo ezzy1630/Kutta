@@ -1955,6 +1955,20 @@ over solve fields. Nothing was pushed.
 
 ## V5 NASA TMR SST verification
 
+Current numerical-control evidence (2026-11-07) is in
+[`tmr_convergence/REPORT.md`](../../../validation/results/tmr_convergence/REPORT.md).
+Momentum/pressure absolute tolerances `1e-20` and the four SST/SA scalar
+controls (compensated transport, no scalar pseudo-time, steady tolerance
+`1e-6`, absolute tolerance `1e-20`) are now solver defaults after separate
+and combined full slow-tier studies. Their cost is measured there, including
+the ordinary SA Metal penalty. Momentum compensation and slack 16 remain
+opt-in after regressions elsewhere. Scalar AMG and a bounded flow-time ramp
+are separate opt-ins; the TMR bump setup selects them, while plates retain
+their original pressure/scalar/time controls. The dated studies below are
+historical measurements; the report distinguishes complete qualification
+from private causal controls and unresolved convergence failures. Automated
+TMR tests retain the fixed 3,000-step budget without a wall-clock cutoff.
+
 ### Protocol frozen before Kutta measurements (2026-10-29)
 
 These are external-code verification comparisons, not experimental validation.
@@ -2826,6 +2840,12 @@ was pushed or released.
 
 
 ## V7 SA and V8 realizable k-epsilon (2026-10-30)
+
+The later SST/SA numerical defaults and TMR convergence studies are linked
+in [V5](#v5-nasa-tmr-sst-verification). The SA bump selects scalar AMG, full
+scalar relaxation and the bounded flow-time ramp; these are opt-ins rather
+than global SA defaults. No realizable k-epsilon setting is changed by that
+selection. Historical measurements below retain their original settings.
 
 **Fluent model acceptance is incomplete; the case allowlist remains closed.**
 Experimental resolved-wall SA and scalable-wall realizable k-epsilon have
