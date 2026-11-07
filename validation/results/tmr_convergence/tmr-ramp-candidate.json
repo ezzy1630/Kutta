@@ -1,0 +1,2940 @@
+{
+  "scope": "Private three-case NASA TMR qualification only: all24solves/all153unchangedassertions. No full37slow claim. Group is not applied to root; plate regression excludes it there.",
+  "configuration": {
+    "scalar_preconditioner": "AMG",
+    "sst_k_relaxation": 1,
+    "sst_omega_relaxation": 0.75,
+    "sa_relaxation": 1,
+    "plate_pressure_relaxation": 0.7,
+    "bump_pressure_relaxation": 0.3,
+    "bump_time_initial": 0.1,
+    "bump_time_cap": 1,
+    "bump_time_growth": 1.001,
+    "momentum_relaxation": 0.7,
+    "outer_budget": 3000,
+    "scalar_inner_cap": 100,
+    "momentum_inner_cap": 100,
+    "pressure_inner_cap": 300
+  },
+  "qualification": {
+    "complete": true,
+    "measurement_environment": {
+      "system": "Darwin",
+      "darwin_release": "27.2.0",
+      "macos_product_version": "27.2",
+      "macos_build": "26B123",
+      "machine": "arm64",
+      "python_version": "3.14.10"
+    },
+    "frozen_inputs_sha256": {
+      "build/tmr_fixture_inputs.py": "c051225613e0a0e7157226423ba0073b1a2a52cf14b5acb0a82857404448f0c1",
+      "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.nmf": "13685315a88529465a0f52d85f97cdd5a8e671972d9791130260e6b11c9fea07",
+      "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt": "f59b62b8cb51163e708b6be3f59bbec3eee369a9d667fa0cf48499b9e5a7e2b8",
+      "validation/data/nasa_tmr/2DBC_bump/grids/bump_2levelsdown_353x161.p2dfmt.gz": "e0b49f79da69ff2cdab2f0d7f8628af2a7823b6afb0e1d48d587af0186ba6689",
+      "validation/data/nasa_tmr/2DBC_bump/grids/bump_3levelsdown_177x81.nmf": "cb58faf80a271522d31cc2d91153d5dd39db86b30975119f586c765ecb278050",
+      "validation/data/nasa_tmr/2DBC_bump/grids/bump_3levelsdown_177x81.p2dfmt": "0f11cf2818516326be73b4523d84b7132f395df354b300aa1caf3971bff16902",
+      "validation/data/nasa_tmr/2DBC_bump/grids/bump_4levelsdown_89x41.nmf": "91b7da7261d0b22891a362b8829124f53c673a754e7784612d3ebf5456d922d1",
+      "validation/data/nasa_tmr/2DBC_bump/grids/bump_4levelsdown_89x41.p2dfmt": "0ce600d67ef2dced8c14ee936f3f68578767541deeafa718ce32cabefd7486ba",
+      "validation/data/nasa_tmr/2DBC_bump/sa/cf_bump.dat": "85dd51f5bdb13f80ca2815b8e618ef9f237f5fec9d17ea5698523781bbb41c54",
+      "validation/data/nasa_tmr/2DBC_bump/sa/cf_convergence_sa.dat": "b3d3fc28a7adf8eece328a94fddff22bd0a64266d9ea8566b16c626dad65559c",
+      "validation/data/nasa_tmr/2DBC_bump/sa/cfl3d_typical.inp": "22a398dd8af3713f36d10cde5175b86fe1e12c3a41db206b9814d97f7aefcbd8",
+      "validation/data/nasa_tmr/2DBC_bump/sa/cp_bump.dat": "482ec6ca03757293e2ddd8dc11a217f8a948fe6e292e5345c823381a034479ef",
+      "validation/data/nasa_tmr/2DBC_bump/sa/force_convergence.dat": "18efb5c53ec48ffdadfd3eff04a2a57ad18c74148b34997bfb8bfa2faf756f5a",
+      "validation/data/nasa_tmr/2DBC_bump/sst/bump_u_sst.dat": "78532273b8bb1d0ec25726d609393fd1145b47b5217a18d8bd5fa459b6ee48e0",
+      "validation/data/nasa_tmr/2DBC_bump/sst/cf_bump_sst.dat": "a50ef4603a7cabf4f79c4b492fc86316dc310a27162560348629ad18a62a4bb7",
+      "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst.dat": "792ba3d94315bc35524ee8069417c3fa935d7a63f5a3d30b5d7accf634648989",
+      "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst_overflow.dat": "0a4eab5a64d2f084b1bc8a407ac901d21aa589753d1eec35c9ca13128169683b",
+      "validation/data/nasa_tmr/2DBC_bump/sst/cf_convergence_sst_tau.dat": "05c0fcf30dd50af74979b72ab1669a863db8b0ca796ec1a8dfde745dc2fa2028",
+      "validation/data/nasa_tmr/2DBC_bump/sst/cfl3d_typical.inp": "6a6ecb6fbda08a8531bac890ef264092e8ac64517c7c54c0fdfd62d53ce55d07",
+      "validation/data/nasa_tmr/2DBC_bump/sst/cp_bump_sst.dat": "a449db9c7b7c54ab54888a6413494367a6f0dfe3c1f3b327a819b2ef51cc1f2e",
+      "validation/data/nasa_tmr/2DBC_bump/sst/find_peak_mut_sst.dat": "2f6e5099b5044ca7fcbf712541de009c2060123e7e5647a87a8c9ade35b1468e",
+      "validation/data/nasa_tmr/2DBC_bump/sst/force_convergence_sst.dat": "2ba8fd025b1f9998e407fbfc2514672b139cc760d9a1b2aa907a92c13786a264",
+      "validation/data/nasa_tmr/2DBC_bump/sst/fun3d.info": "1dc4811607fc6ad537fbe44d5d5dc9e5f14390ed9f0c8c12a0f72c225f69154f",
+      "validation/data/nasa_tmr/2DBC_bump/sst/fun3d.nml_typical": "276c2785d8ae9ef3e1fc8cba62e8bfbd4fb99719c4e4a2a0cc4a3e5872b97b0c",
+      "validation/data/nasa_tmr/2DBC_bump/sst/mut_0.75_sst.dat": "36fd4de96d7ad3ce7560c3fcf3843f6f02855d2741f63e830afbaaa80653414a",
+      "validation/data/nasa_tmr/2DBC_bump/sst/sst_omega_k.dat": "408f91ef1b650a1d0b26fecb019199eb23383b3cb0c70b40325bd97175026eb3",
+      "validation/data/nasa_tmr/2DBC_bump/sst2003/cf_bump_sst2003.dat": "a21194119a1adf9464bac5dfd027a088b7727b57cecf99b70fb6152c994c7a0d",
+      "validation/data/nasa_tmr/2DBC_bump/sst2003/cf_convergence_sst2003.dat": "62dd94da029a9acf09884b24dbad211f09f00b89fcd31b086cca2dfb857e687c",
+      "validation/data/nasa_tmr/2DBC_bump/sst2003/cfl3d_typical.inp": "88ed4034c179bff333a188c96e5f731e685eed21e5582f614c7730e1b33051d4",
+      "validation/data/nasa_tmr/2DBC_bump/sst2003/cp_bump_sst2003.dat": "3453b6b1498a4cae56e8a56f9d05c879ec5a98a5865861df96bf2d68d9ef9c06",
+      "validation/data/nasa_tmr/2DBC_bump/sst2003/force_convergence_sst2003.dat": "e8a860067263d6b82122c347859c0de8c9c8a7abd3e1286d7388b1e592860b92",
+      "validation/data/nasa_tmr/2DBC_bump/sst2003/mut_0.75_sst2003.dat": "20aa6a7e5eb3f4c847bf5920525f7bf100f404f6e79cddd72f10e98ec83ae78c",
+      "validation/data/nasa_tmr/2DBC_bump/sstv/bump_u_sstv.dat": "af868ef77a92898e3260f7da6d3dd72486d909dacc29800815551d8776a0acf1",
+      "validation/data/nasa_tmr/2DBC_bump/sstv/cf_bump_sstv.dat": "77dc70c4861827007ac09819120bc0c1084b7660ff64bc52947abf5aed60d414",
+      "validation/data/nasa_tmr/2DBC_bump/sstv/cf_convergence_sstv.dat": "5d32fbf03043eba666558628849c6133582c80199dfefdbd23b9308fa6c818a0",
+      "validation/data/nasa_tmr/2DBC_bump/sstv/cfl3d_typical.inp": "0c675d4e4cd9bfedc2907afad90632326751d44d7f89cbbdfc11e3d74e2900c8",
+      "validation/data/nasa_tmr/2DBC_bump/sstv/cp_bump_sstv.dat": "343921427e50d8fcc4be77f4e36bc8832d6009c34cc3d4c0bb8d81de6403544c",
+      "validation/data/nasa_tmr/2DBC_bump/sstv/force_convergence_sstv.dat": "a94857862d753fae88a07a4c2e6658d7a80e23653f796857a59263b1830ef26f",
+      "validation/data/nasa_tmr/2DBC_bump/sstv/mut_0.75_sstv.dat": "40eff8cb43a3725e6570695b55d97fe37a6f5263c26e44c6494f15dd8d4ca493",
+      "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.abbottdata.cd.dat": "21321fe22883672c344f3cd1369c69cdaf045ed8496cd0a976b741645c79e3d9",
+      "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.abbottdata.cl.dat": "3ee6a0c198f6402c9fc5fd8affc1115c1e87ff943b8b02775df86a7cfa3c55f3",
+      "validation/data/nasa_tmr/2DN00_naca0012/experiment/0012.mccroskeydata.cl.dat": "bf5848c235cedffef4e307f5cb52be1e7146bd5e480c202824a59d6d9754924e",
+      "validation/data/nasa_tmr/2DN00_naca0012/experiment/CLCD_Ladson_expdata.dat": "78cd2f6aa4968e80f44cbf6c96f699bd9c6e45681d958ec528a10cf72ed23357",
+      "validation/data/nasa_tmr/2DN00_naca0012/experiment/CL_Gregory_expdata.dat": "0b7381a45412de50fcf0e0dddf67f1e8e35ba1a278bd4734fb7f16ad08df1f74",
+      "validation/data/nasa_tmr/2DN00_naca0012/experiment/CP_Gregory_expdata.dat": "38d8474bc67661c3cef5e4cd9eeddb95d4a436d06abc1f58a8518066f510647c",
+      "validation/data/nasa_tmr/2DN00_naca0012/experiment/CP_Ladson.dat": "547e022634a360cd7697813543348cd447ee0038cdbc8f00a5296c7822ec7af8",
+      "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_113-33.nmf": "597865103baf72a0c78d0e42a7e2d09688ea78b6a20f8fbcac2baa936d1445a1",
+      "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_113-33.p2dfmt": "669fff259b59ac4df557ad3bfef6be0794ac5eacc0f45ec1ce9715f75dfd1654",
+      "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_225-65.nmf": "c6c32668f19bbd1a89510dfeb3a43c924137ae90afa7772eeb83875f9d9b34b0",
+      "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_225-65.p2dfmt": "66817d6bbc9353cb0ca9867f958da1bcce6485f7d68ec7038362a341bdb0fa8c",
+      "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_449-129.nmf": "648e7b4c368db4479db3cdcb3d0209590da991ad00e59865398330cbc4b45880",
+      "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_449-129.p2dfmt.gz": "6d60dfa6ef9c7544ee156276fcc5487d7eacddadbdf6e81cc6f10e78fb03eff8",
+      "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_897-257.nmf": "ec897e29363eb72546730a83048f142f8219d33397407b9f8cf474f94fe10365",
+      "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012_897-257.p2dfmt.gz": "c603ea77017ae8b97af581237b81a8251fd2d3af1c49c8c6f2cd2687aafcb28e",
+      "validation/data/nasa_tmr/2DN00_naca0012/grids/n0012points_superbig_clust_fix.dat": "74e147db4fa052be7ab79465a756c55b39b1786bfd7141a86257e89586728ae1",
+      "validation/data/nasa_tmr/2DN00_naca0012/sst/fun3d.nml_typical_sst_2": "c5c40ffe4834e1485c840c7a594d96738441ebef96d0eeeb376e1fc232193bb8",
+      "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012_cfl3d_typical_sst.inp": "e3d1b4e7c9600d03f90e5e6b5cd7a10d01ad041f704e3d60de4cacd57cb375a4",
+      "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cf_cfl3d_sst.dat": "d8001cd09d0c573de63475f8e0e02a2a989216133af74b84876eba5c328da8be",
+      "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cf_cfl3d_sstv.dat": "7f0d7d4da9b2a977e620c29eed733e1e06745d291ab54d1888f7137886e05728",
+      "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012clcd_cfl3d_sst.dat": "373dc142018816628b7b53ad278327db731162988ba35a166cd9fdc131a7fd7a",
+      "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012clcd_cfl3d_sstv.dat": "5165603932574c1f03fc164fdf96ae71c57643cfdeea12a56c2d7c870cb8ec5b",
+      "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cp_cfl3d_sst.dat": "378f9dcd058ffbe900081f213ee5c7e24dfaec0d6a9e02f366f96e8d76bf179d",
+      "validation/data/nasa_tmr/2DN00_naca0012/sst/n0012cp_cfl3d_sstv.dat": "46af599e6c920f143c18aa4bf588228646277f4182c2d051d3f72ee9c113f8dc",
+      "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.nmf": "a96ea21baa762e2d5a4f5d0447ae2ebaf2fb5323f1a0f20c36c32e5c0740f498",
+      "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_1leveldown_273x193.p2dfmt.gz": "40be4c0a92b75892189263a5c3efb63fa112030912480427e1e0787c6cb97955",
+      "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.nmf": "4e2d2e8d5a0076754c06a310f6b7790096a59d5c02319452f81234865f13887d",
+      "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_2levelsdown_137x97.p2dfmt": "55ae965f2151e5644e3c7c1b6fecea7ce0a16cf4c34eae6997f27683a4e2ac44",
+      "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.nmf": "9117aaa4a80c97aa0be8a558db4c3582b7ec89d0b0214c61158ce51fad248a64",
+      "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_3levelsdown_69x49.p2dfmt": "18c1d1c82cf91bdad89b2c2963129fc992fcd8b98fda4b3e79b7397ee52ba223",
+      "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.nmf": "cae0d171eb6e62843f8f954205d7edca688b1ddc1737145acdc6bf85b0e6dab6",
+      "validation/data/nasa_tmr/2DZP_flatplate/grids/flatplate_clust2_4levelsdown_35x25.p2dfmt": "41c409f49afca8affaafd4a0a49c6ba934eca9007da502fe0c20afbd091500b0",
+      "validation/data/nasa_tmr/2DZP_flatplate/sa/cf_convergence.dat": "966a9f9c8036c3c6d8a1f2c4f1744b6a79f395f5986c8a2b37941803faf67695",
+      "validation/data/nasa_tmr/2DZP_flatplate/sa/cf_plate.dat": "f2995d18cb4f5d603f63ecfe609044844ef45fb3af3a7373923048eb3d364577",
+      "validation/data/nasa_tmr/2DZP_flatplate/sa/cfl3d_typical.inp": "3c6b5e1ce3283dff4c7ee902290916289cd91b710f53aacd962a3a960dbb4171",
+      "validation/data/nasa_tmr/2DZP_flatplate/sa/drag_convergence.dat": "c665787fdcd2257da8552973fe373e2f037e055d39e0d148c21f473d5a46bc39",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_convergence_fun3d_sstv_tri.dat": "fc9392568cb0d5612552d5414af21e1bda98b3a999f6154b510159a884bcc004",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_convergence_sstv.dat": "e5cde959873804d9b37a83640535309e18d5f1bc269b7bb6a46c460c40cd2a30",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_incomp_results_sstv.dat": "65bbdbae974af5297db4387d67f2f9ac8d3c46750815d684e108a52e850647b9",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_plate_fun3d_sstv_tri.dat": "8a95c87fb3877d5a239f7ac06fd94870a3310d401ced832cdbb7d3ab29419b44",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/cf_plate_sstv.dat": "a56bd2d16818456af015b13839f0a991b4b85bfa6c18242e7c331a2c7a4d40e8",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/cfl3d_typical.inp": "ddebda5abf2fb31faa8650ccb6f753eaf377fe35512e26ec4e6883d5183d8c41",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/drag_convergence_fun3d_sstv_tri.dat": "f915bef096c37a4f135b6c77fad5bce10ccb6ef54e3b1c26f0191b9b12a547fa",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/drag_convergence_sstv.dat": "85fdc40fdacb447f954cac6704d6722cbdcb5ef5717acdfba4f76b1a7cba1f05",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/find_peak_mut_sstv.dat": "5b1207c6da015ac35e9a2a868880be9f032f29cabbb6480d7185b2aef53f341e",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/flatplate_u+y+_sstv.dat": "4a5bf0bcd8a3888bd313d67fd4a78f5cbde826fa0b00c62ac68d342197a534b2",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/flatplate_u_sstv.dat": "4e1e17a24ffb64708ce805e978cf83a3b4391585e0ded7d14dd9be6e059b1d5f",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/fun3d.nml_typical_2013": "3d67e465596822811ecb18c3dc559ce5287f84e924a52b90b7736ba145733b0c",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/mut_0.97_sstv.dat": "9378362512c4e805772ac5a0d752dc92dbfe1daf17711013b896516aa95163c2",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/sstv_f1f2_function.dat": "aaec944650609a32e12a18578a9a3473a669922a9adb85c2983cd255eb396096",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/sstv_omega_k.dat": "caf7254a3c21195bef90a109ea98b8a7187bec959410a56387cd6c21410085bc",
+      "validation/data/nasa_tmr/2DZP_flatplate/sst/u+y+theory.dat": "e4439ae7f484cf63599e053dfa03e6746d4c4519b47d1345644db4010afc6e69",
+      "validation/data/nasa_tmr/SOURCE.md": "ed27de0b6abfc0aebaabab0c53e8d12e7a75d015385e8bb7fd59d7e79976d68d",
+      "validation/data/nasa_tmr/model_docs/noteonrunning.html": "30979bfc7284dd3855a6299190ccf1b5f095ad7aa9ca776d30bb7f8f2b3a4fc1",
+      "validation/data/nasa_tmr/model_docs/sst.html": "ccc4bc8d999444104e4e41f2c610dc9de7e7cb213d3e8b7bdb1997c4b8d6ee9f",
+      "build/tmr-ramp-candidate/test_tmr.cpp.o": "1d2133a2431ca751f4c14b64a68f8fae6e3d80fa485efd7053d071c4cec2a6b6",
+      "build/tmr-ramp-candidate/test_tmr_sa.cpp.o": "eaeef1c94cdd702f1b97c1bc19afc9be2bfbff255d762803ed6a50c1e057f856",
+      "build/CMakeFiles/kutta-tests.dir/tests/app/test_aero.cpp.o": "e4e2205888f1c518567523c35886e1ff732cdf2cd87234f9068b1bfd2bb6b2dd",
+      "build/CMakeFiles/kutta-tests.dir/tests/app/test_inspect.cpp.o": "49179ab88e1b09daa45cfb431d7cbf873268bc33187fd21ebbd45dd4ed0838a0",
+      "build/CMakeFiles/kutta-tests.dir/tests/app/test_kutta_case_cli.cpp.o": "d774994a5b603ece8ff0b210cd37c3cc1b831608f733cd6d3f8444a9e5ec7783",
+      "build/CMakeFiles/kutta-tests.dir/tests/app/test_solve.cpp.o": "6d88f7f79325543c264c20f8e1a3f9c2325b93a16ccb67320e982e8e69ce1f70",
+      "build/CMakeFiles/kutta-tests.dir/tests/case/test_case.cpp.o": "5bf2c2f04e1e34adfcf4961569c4f98ed6ce3583ecf664d3c93122753dd29711",
+      "build/CMakeFiles/kutta-tests.dir/tests/case/test_data.cpp.o": "27e66661fc966331124142abde402f0cf8c59369074fcf3de1b8272540e6a587",
+      "build/CMakeFiles/kutta-tests.dir/tests/case/test_fsae_case.cpp.o": "c52fa8ff85911163ea5b536ecad8ee17d6271de4c6a25e14c1dcd0ffe327fca6",
+      "build/CMakeFiles/kutta-tests.dir/tests/case/test_legacy_data.cpp.o": "bfdf362c99552f17fc0b9e3ccb97588cebc3aad2e6b1fa5b4ae11c1eec6bed4b",
+      "build/CMakeFiles/kutta-tests.dir/tests/case/test_real_data.cpp.o": "b82b70db36d076cdca6b9e87b568023bfef1c263cd9515fcf57da22c1f6aaf46",
+      "build/CMakeFiles/kutta-tests.dir/tests/case/test_sexpr.cpp.o": "3c827af3b63e447b6385499a52a8e6c3cb609e2e3474c33dc0ba2b464959ef46",
+      "build/CMakeFiles/kutta-tests.dir/tests/core/test_json.cpp.o": "a8981d8e632d2c5d59cebe508abef7d29d43b3818e17250857aed4d5a963488e",
+      "build/CMakeFiles/kutta-tests.dir/tests/core/test_parse.cpp.o": "34095fb53c1e130071e97b0ebf502dba5065bbd8e7d2a269e3df52c61eabe655",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_cavity.cpp.o": "b3a7aeaeafe5c334a42d26d43f8234cb3cde7c081c6f0b6396d959a2a56f9ecb",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_coupled.cpp.o": "588f5317ff0185c05db9bb79cb2ece33717fb83431498ee8e23a8a5a72eeaac8",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_device_mesh.cpp.o": "b4a0881801e47d57a02d5098b4f4327316486ef2f16fcf85cdb894c20f041a61",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_flow_kernels.cpp.o": "04dd425a094d427aa3f3fe915a4396a6164605ee6ba42db3983177ac379481ac",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_fluent_coverage.cpp.o": "0ce7182d6e8e9e6afae3bd86e65d06962185517516b2b88f5eab728c99244a04",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_fluent_elbow.cpp.o": "de4ddb72b94ed0c00a4b81e6c97b4e76aa65dd05c22aaa3b93370d84fa8caf32",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_fluent_schemes.cpp.o": "aa89f3d0a832679ec2640bf81fd0dffe0fe6d5296600666c9a51c0b352142d02",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_fsae_aero.cpp.o": "f7eb3d406d09b8635afc350100b3eba6b86120fdbb6d5e901aea36ccc638adae",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_fsae_native_gate.cpp.o": "eae2e83c2dd761c0d02a83aca97a47bc0783502591b902420a36ca86196a0dfd",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_fsae_setup.cpp.o": "7f10b0d05e2ab2e7836a8f7b21741820d74095877e8896f875e343a7274dcab4",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_gradient.cpp.o": "6c574028b1f5f4ebca3b47b6185816aa79427a2a716556a803b4037ed37dd28a",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_green_gauss.cpp.o": "87b40abee12592c00131673aa85e60c04ec4e6a5b9e901c60acf7e3e9eff6d5d",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_hybrid.cpp.o": "7ec9cdf55af9d0688e0728f681c84bbceaa81c4413ba45a5a8616dc55b186926",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_ke_channel.cpp.o": "4c1309b9a9053e1e6ea6cf862cf503fb23937b5817d38890041c72e3e7fa4556",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_monitor_cadence.cpp.o": "bce8144eb44647b9f58bd6a2318a2a635f0545f0c665c63ad9761f285d35a609",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_native_farfield.cpp.o": "8199e4a64dd9b36a0152fb512e2cb5387508725760def8f7fb1d0e978bd9c824",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_navier_stokes.cpp.o": "88a954befade6886fd239052198544c6643ca118c53698b4396071fc7a4a4a39",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_paired_precision.cpp.o": "32f2fcc7e635c94fa08b00c7c0d36c4644e50584b35190b45aefc7498b08939d",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_paired_projection.cpp.o": "7d7d6d720e6bb5fd5b595a698c3faed7272596553660c6e4ec5458513fa848af",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_peclet_face_velocity.cpp.o": "edb3327ffdcd110ebead7ab98d137d6810621e74d680c8aa5c49ac6cfd327a66",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_poly_pressure.cpp.o": "6cc674467bd5656bf49ad8c10807ee1b7d47e60644f61e19fb6b99f49cc1b9aa",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_pressure_gradient.cpp.o": "f039952552cb04e3c7d673150810e27054e41be4c22fa9a95d96046eebd2bc76",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_pressure_matrix.cpp.o": "a71436a029145ef42e3bc4559871c891f20f7e2c5fce6d4134daf12a4f2af06d",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_rans.cpp.o": "4d8535f02c7d50533c941a77a906b6928b789d5fa21fadd5876b66dd4020c948",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_scalar.cpp.o": "dacfbd19990d2079f2846829526ea6764bc979b287beb6fa84e0585b8de7c1b6",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_steady.cpp.o": "ee68263be2a13cc5cb215df1f7bc121f8dcedcacd954cdcc84227896e16ea9f1",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_transition_validation.cpp.o": "d758749bf2bb0c04da9814a2be78c8a1ac4c9c52cb32a57bd5664a3e267fab3d",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_walk_projection.cpp.o": "bd43810a5ba73f37ea932536bd82358959b1377868b738dfe698c3cc4d3d5e94",
+      "build/CMakeFiles/kutta-tests.dir/tests/fv/test_zone_physics.cpp.o": "5fe5d40dded642eca9b6971222ec6edf9a733ed28d5b2a6e5d3a4c95a802ddbe",
+      "build/CMakeFiles/kutta-tests.dir/tests/io/test_cff.cpp.o": "e70cbdedc508eae1deea122f2958d463d755962674cdef2a71739a9797b9125c",
+      "build/CMakeFiles/kutta-tests.dir/tests/io/test_fluent_real.cpp.o": "8fc85297b30f9d71402a015034df4c88e43f05a58f9befd6cb8028528e26a658",
+      "build/CMakeFiles/kutta-tests.dir/tests/io/test_fluent_reference_inventory.cpp.o": "44b845d73ea5c1f9cb3bb34dd55173813f228f4487168241bfdfe521eaeae716",
+      "build/CMakeFiles/kutta-tests.dir/tests/io/test_io.cpp.o": "119988f33ab0674c5e6d936e0dadb56b499f803fbfd86c06b21cc2a11cfdeedf",
+      "build/CMakeFiles/kutta-tests.dir/tests/io/test_live_view.cpp.o": "e0b82e5dad19045741b10fa7d0622d4ee32c5e48b4dea5f78fd3d50c07dc19c9",
+      "build/CMakeFiles/kutta-tests.dir/tests/io/test_plot3d_nmf.cpp.o": "17965ccf46a0c4985d2c517db152bc894d2ee42cfe50e06d8b0552cb567ed932",
+      "build/CMakeFiles/kutta-tests.dir/tests/io/test_view.cpp.o": "a6fd2e4506b432846071dcfebd55540ba871a5bf8de77345bf991d16fd4a9264",
+      "build/CMakeFiles/kutta-tests.dir/tests/linalg/test_amg_zero.cpp.o": "2e65baa9d8ab2b37600271e06f395cb9182ffc02c4403be1102cbd6860944c49",
+      "build/CMakeFiles/kutta-tests.dir/tests/linalg/test_kernels.cpp.o": "c97eab191248df7975e62feb8d8c8f67119060a0dd90c77a70bfcb6e660c15e9",
+      "build/CMakeFiles/kutta-tests.dir/tests/linalg/test_predicted_exit.cpp.o": "17189a159c970a371309494394efbf568d2d292d7da35540dc64cc5d9ca7a65f",
+      "build/CMakeFiles/kutta-tests.dir/tests/linalg/test_solvers.cpp.o": "b95d76cdd38d2261c60b1927a4ba8e6ce8f0b18d33a68a6e93fa976f0c95d64b",
+      "build/CMakeFiles/kutta-tests.dir/tests/main.cpp.o": "ae3596c467940d158206eb96c5241fcb4188016e582e7d32151e7f93d23c7eb6",
+      "build/CMakeFiles/kutta-tests.dir/tests/mesh/test_mesh.cpp.o": "24ac83cc1bd5ff6a2e5f0ecb25bfe55f917c615cd8328e95bb395de68b65e1d6",
+      "build/CMakeFiles/kutta-tests.dir/tests/post/test_aero.cpp.o": "1fc1d6246a0a1a9b5988808da39e3a4276ed6e3bf18ddf1ac5a2a73b2e34c92c",
+      "build/CMakeFiles/kutta-tests.dir/tests/post/test_cli.cpp.o": "cbcec5153194dc727bfbb4dceb2c1a607c00fb831ef8edb66a865f6277dd867b",
+      "build/CMakeFiles/kutta-tests.dir/tests/post/test_elbow.cpp.o": "a3153da6b8fbe4eab3c0f55750c0e681e781b11a43cbcf04b39b4ac911dc67f1",
+      "build/CMakeFiles/kutta-tests.dir/tests/post/test_integrals.cpp.o": "a7ae8ac78c318e1b36ea8e90e069ffdfd8ca4218e5bd73b12b17330a716398c4",
+      "build/CMakeFiles/kutta-tests.dir/tests/post/test_iso_probe.cpp.o": "e984c3179f4b242f086d487ecd456ba5a4e4e2a378797ea8a7b2a1c0d73d09bb",
+      "build/CMakeFiles/kutta-tests.dir/tests/post/test_trace.cpp.o": "e8875f483900819fa9fa5f5ce32c37e0185ec76038621aaf52481ad5a0f34ed9",
+      "build/CMakeFiles/kutta-tests.dir/tests/post/test_volume.cpp.o": "1411be4e296991071bb3dfad2da16ea89835509be3af48f2e9666c672a6f3e59",
+      "build/CMakeFiles/kutta-tests.dir/tests/runtime/test_backends.cpp.o": "f4e734c8f47d32430f584920c3b85f71cd64535875dffaad0833c2be4fc240c5",
+      "build/CMakeFiles/kutta-tests.dir/tests/runtime/test_device.cpp.o": "c24ccb42ca36bd477e09323fe300176122458fd2d66bd4f8692f117a00307eab",
+      "build/CMakeFiles/kutta-tests.dir/tests/setup/test_convergence.cpp.o": "ecccfb0b78d981119dced9de075d088cba1ac8ea5d026e05b51a41b1f5109b37",
+      "build/CMakeFiles/kutta-tests.dir/tests/setup/test_kutta_case.cpp.o": "ecec82d332328df120de8a83aed37a00d76640f29e7cc74b10744d06a802128b",
+      "build/CMakeFiles/kutta-tests.dir/tests/setup/test_settings.cpp.o": "48aae7f0efec6413602dee007f58a248eb81996eeb599d082d54b0fd729f3474",
+      "build/CMakeFiles/kutta-tests.dir/tests/turbulence/test_fluent_sst.cpp.o": "a0b726c3c6882094d4853c29118a7c3a1d9a3e57a31da49d45509c3944ee78c8",
+      "build/CMakeFiles/kutta-tests.dir/tests/turbulence/test_realizable_ke.cpp.o": "a11245ac80538612b4a03f067066454fe55613e2b42ea48442890cbc20b89de6",
+      "build/CMakeFiles/kutta-tests.dir/tests/turbulence/test_sa.cpp.o": "2d494de25a93d71a3410ee7853f68304350870ecf10a8bc1fecbbed717e85791",
+      "build/CMakeFiles/kutta-tests.dir/tests/turbulence/test_sa_tmr.cpp.o": "646455b3d106220722f943c3a1eea37ffac9b79e7d5efe1521c683fcb95b74e9",
+      "build/CMakeFiles/kutta-tests.dir/tests/turbulence/test_sst.cpp.o": "0644cf7e3e959678dfc4f3d00e3dd1fbcd771cab162f429e8f7bdfd0fa2cef1d",
+      "build/CMakeFiles/kutta-tests.dir/tests/turbulence/test_transition.cpp.o": "4485ea307099956189f942c80d4016ce5e26c07973b58705cf3d7ae5168874bb",
+      "build/libkutta.a": "20d185f278654d0de3c4b48c8a7977fd293b3b6d72499f232d7aac1f64f7ba9e",
+      "build/tmr-ramp-candidate/kutta-tests": "a212efce9bbd607b3dccf8f4223a045fc3a19ef6f8d1da7e67176618178dd79f",
+      "build/tmr-ramp-candidate/validation/cases/tmr.hpp": "1f66612b94f14700759aa8c2ad68639d732d893f104a0e1e672cfa2dc55842ce",
+      "build/tmr-ramp-candidate/validation/cases/tmr_sa.hpp": "c81f498727ae94ce1affda00794458311718de64611ebdb241028a61b662c2f9",
+      "build/prepare_tmr_ramp_candidate.py": "3b33fcfbcdabe93f0b1eb72c9d57517275cd27a0845b37b91bde713bad46af93",
+      "build/run_tmr_ramp_candidate.py": "40b13baffb2ad42f53379162421dcf6e1988147944e9d41aed5fca42dcc9aa38",
+      "tools/forensics/compare_slow_assertions.py": "5fa871f78f491b703b0e7bb052085f0c0b0bbc2b589813867dc7968b4f807c50"
+    },
+    "scope": "Three TMR slow cases only,24 solves and all153 unchanged assertions; other34slowcases not run by this target qualification. Same budgets and acceptance. Private harness options, not applied to root.",
+    "rows": [
+      {
+        "phase": "startup",
+        "actual_wait_status": 0,
+        "resource": {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 141247400,
+          "reported_peak_bytes": 140329680,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      },
+      {
+        "phase": "all-TMR-gates",
+        "actual_wait_status": 1,
+        "resource": {
+          "actual_wait_status": 1,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 342803440,
+          "reported_peak_bytes": 342803440,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        }
+      }
+    ],
+    "canonical_comparator_actual_exit": 1,
+    "comparison_sha256": "08414b7af0494eaa0141bb21b7ddd54b4e45b59fa084f11702c875ee17e7e1e8",
+    "baseline_full_sha256": "aa01955caa4f6601b141ca32cb154644bfdfee56fd498bb53d88aae90264b522"
+  },
+  "canonical_comparison": {
+    "cases": [
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "baseline_assertions": 36,
+        "final_assertions": 36,
+        "baseline_failed": 2,
+        "final_failed": 2
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "baseline_assertions": 47,
+        "final_assertions": 47,
+        "baseline_failed": 6,
+        "final_failed": 2
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "baseline_assertions": 70,
+        "final_assertions": 70,
+        "baseline_failed": 9,
+        "final_failed": 6
+      }
+    ],
+    "regressions": [
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "42",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "true",
+        "after": "false"
+      }
+    ],
+    "recoveries": [
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "42",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true"
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: cpu",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true"
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: cpu",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true"
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true"
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true"
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true"
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "case <pointer-2> level 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true"
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true"
+      }
+    ],
+    "changed_values": [
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "42",
+          "CHECK",
+          "r.iterations<=3000",
+          [
+            "backend: cpu",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "800 <= 3000",
+        "after": "900 <= 3000",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "45",
+          "CHECK",
+          "relative(r.values.cf[0],ref_cf)<=.05",
+          [
+            "backend: cpu",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "0.00850031 <= 0.05",
+        "after": "0.00850973 <= 0.05",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "45",
+          "CHECK",
+          "relative(r.values.drag,ref_cd)<=.07",
+          [
+            "backend: cpu",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "0.00822802 <= 0.07",
+        "after": "0.00823917 <= 0.07",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "42",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true",
+        "baseline_passed": false,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "42",
+          "CHECK",
+          "r.iterations<=3000",
+          [
+            "backend: metal",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "3000 <= 3000",
+        "after": "900 <= 3000",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "42",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "true",
+        "after": "false",
+        "baseline_passed": true,
+        "final_passed": false
+      },
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "45",
+          "CHECK",
+          "relative(r.values.cf[0],ref_cf)<=.05",
+          [
+            "backend: metal",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "0.0084899 <= 0.05",
+        "after": "0.00851181 <= 0.05",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "45",
+          "CHECK",
+          "relative(r.values.drag,ref_cd)<=.07",
+          [
+            "backend: metal",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "0.00821515 <= 0.07",
+        "after": "0.00824307 <= 0.07",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: cpu",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true",
+        "baseline_passed": false,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.iterations<=3000",
+          [
+            "backend: cpu",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "3000 <= 3000",
+        "after": "2400 <= 3000",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: cpu",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true",
+        "baseline_passed": false,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cf_error<=.1",
+          [
+            "backend: cpu",
+            "level: 2",
+            "station: 0.632197"
+          ],
+          0
+        ],
+        "before": "0.00993477 <= 0.1",
+        "after": "0.00988927 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: cpu",
+            "level: 2",
+            "station: 0.632197"
+          ],
+          0
+        ],
+        "before": "0.000416842 <= 0.03",
+        "after": "0.00138617 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cf_error<=.1",
+          [
+            "backend: cpu",
+            "level: 2",
+            "station: 0.75"
+          ],
+          0
+        ],
+        "before": "0.0420726 <= 0.1",
+        "after": "0.0423411 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: cpu",
+            "level: 2",
+            "station: 0.75"
+          ],
+          0
+        ],
+        "before": "0.0138515 <= 0.03",
+        "after": "0.012409 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cf_error<=.1",
+          [
+            "backend: cpu",
+            "level: 2",
+            "station: 0.867803"
+          ],
+          0
+        ],
+        "before": "0.0186569 <= 0.1",
+        "after": "0.0199077 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: cpu",
+            "level: 2",
+            "station: 0.867803"
+          ],
+          0
+        ],
+        "before": "0.00533853 <= 0.03",
+        "after": "0.0067223 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true",
+        "baseline_passed": false,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.iterations<=3000",
+          [
+            "backend: metal",
+            "level: 1"
+          ],
+          0
+        ],
+        "before": "3000 <= 3000",
+        "after": "2300 <= 3000",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "64",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "level: 2"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true",
+        "baseline_passed": false,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cf_error<=.1",
+          [
+            "backend: metal",
+            "level: 2",
+            "station: 0.632197"
+          ],
+          0
+        ],
+        "before": "0.0099198 <= 0.1",
+        "after": "0.00988532 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: metal",
+            "level: 2",
+            "station: 0.632197"
+          ],
+          0
+        ],
+        "before": "0.000415291 <= 0.03",
+        "after": "0.00137882 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cf_error<=.1",
+          [
+            "backend: metal",
+            "level: 2",
+            "station: 0.75"
+          ],
+          0
+        ],
+        "before": "0.0420715 <= 0.1",
+        "after": "0.0423621 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: metal",
+            "level: 2",
+            "station: 0.75"
+          ],
+          0
+        ],
+        "before": "0.0138529 <= 0.03",
+        "after": "0.0124061 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cf_error<=.1",
+          [
+            "backend: metal",
+            "level: 2",
+            "station: 0.867803"
+          ],
+          0
+        ],
+        "before": "0.0186643 <= 0.1",
+        "after": "0.0198544 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V5 TMR bump SST station accuracy and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr.cpp",
+          "70",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: metal",
+            "level: 2",
+            "station: 0.867803"
+          ],
+          0
+        ],
+        "before": "0.00532336 <= 0.03",
+        "after": "0.00672418 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.iterations<=3000",
+          [
+            "backend: cpu",
+            "case <pointer-1> level 0"
+          ],
+          0
+        ],
+        "before": "400 <= 3000",
+        "after": "300 <= 3000",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.iterations<=3000",
+          [
+            "backend: cpu",
+            "case <pointer-1> level 1"
+          ],
+          0
+        ],
+        "before": "900 <= 3000",
+        "after": "1000 <= 3000",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "27",
+          "CHECK",
+          "cd_error<=(plate?.07:.1)",
+          [
+            "backend: cpu",
+            "case <pointer-1> level 2"
+          ],
+          0
+        ],
+        "before": "0.00728102 <= 0.07",
+        "after": "0.0072871 <= 0.07",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "31",
+          "CHECK",
+          "cf_error<=(plate?.05:.1)",
+          [
+            "backend: cpu",
+            "case <pointer-1> level 2"
+          ],
+          0
+        ],
+        "before": "0.00792135 <= 0.05",
+        "after": "0.00792611 <= 0.05",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "27",
+          "CHECK",
+          "cd_error<=(plate?.07:.1)",
+          [
+            "backend: metal",
+            "case <pointer-1> level 2"
+          ],
+          0
+        ],
+        "before": "0.00728101 <= 0.07",
+        "after": "0.00728675 <= 0.07",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "31",
+          "CHECK",
+          "cf_error<=(plate?.05:.1)",
+          [
+            "backend: metal",
+            "case <pointer-1> level 2"
+          ],
+          0
+        ],
+        "before": "0.00792135 <= 0.05",
+        "after": "0.00792646 <= 0.05",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true",
+        "baseline_passed": false,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.iterations<=3000",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 1"
+          ],
+          0
+        ],
+        "before": "3000 <= 3000",
+        "after": "2400 <= 3000",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "27",
+          "CHECK",
+          "cd_error<=(plate?.07:.1)",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 2"
+          ],
+          0
+        ],
+        "before": "0.012653 <= 0.1",
+        "after": "0.0147884 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "31",
+          "CHECK",
+          "cf_error<=(plate?.05:.1)",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 2"
+          ],
+          0
+        ],
+        "before": "0.00713723 <= 0.1",
+        "after": "0.00701663 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "34",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 2"
+          ],
+          0
+        ],
+        "before": "0.00015799 <= 0.03",
+        "after": "0.00046171 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "31",
+          "CHECK",
+          "cf_error<=(plate?.05:.1)",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 2"
+          ],
+          1
+        ],
+        "before": "0.0270402 <= 0.1",
+        "after": "0.0274169 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "34",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 2"
+          ],
+          1
+        ],
+        "before": "0.0133233 <= 0.03",
+        "after": "0.0124418 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "31",
+          "CHECK",
+          "cf_error<=(plate?.05:.1)",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 2"
+          ],
+          2
+        ],
+        "before": "0.0145208 <= 0.1",
+        "after": "0.015486 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "34",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: cpu",
+            "case <pointer-2> level 2"
+          ],
+          2
+        ],
+        "before": "0.00418225 <= 0.03",
+        "after": "0.00510675 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "case <pointer-2> level 1"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true",
+        "baseline_passed": false,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.iterations<=3000",
+          [
+            "backend: metal",
+            "case <pointer-2> level 1"
+          ],
+          0
+        ],
+        "before": "3000 <= 3000",
+        "after": "2200 <= 3000",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.converged",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          0
+        ],
+        "before": "false",
+        "after": "true",
+        "baseline_passed": false,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "25",
+          "CHECK",
+          "r.iterations<=3000",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          0
+        ],
+        "before": "3000 <= 3000",
+        "after": "2500 <= 3000",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "27",
+          "CHECK",
+          "cd_error<=(plate?.07:.1)",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          0
+        ],
+        "before": "0.0126414 <= 0.1",
+        "after": "0.0214478 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "31",
+          "CHECK",
+          "cf_error<=(plate?.05:.1)",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          0
+        ],
+        "before": "0.00713634 <= 0.1",
+        "after": "0.0100738 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "34",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          0
+        ],
+        "before": "0.000154786 <= 0.03",
+        "after": "0.000566052 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "31",
+          "CHECK",
+          "cf_error<=(plate?.05:.1)",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          1
+        ],
+        "before": "0.0270388 <= 0.1",
+        "after": "0.030862 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "34",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          1
+        ],
+        "before": "0.0133239 <= 0.03",
+        "after": "0.0121458 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "31",
+          "CHECK",
+          "cf_error<=(plate?.05:.1)",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          2
+        ],
+        "before": "0.0145246 <= 0.1",
+        "after": "0.00106791 <= 0.1",
+        "baseline_passed": true,
+        "final_passed": true
+      },
+      {
+        "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+        "assertion": [
+          "tests/fv/test_tmr_sa.cpp",
+          "34",
+          "CHECK",
+          "cp_error<=.03",
+          [
+            "backend: metal",
+            "case <pointer-2> level 2"
+          ],
+          2
+        ],
+        "before": "0.00418515 <= 0.03",
+        "after": "0.0053246 <= 0.03",
+        "baseline_passed": true,
+        "final_passed": true
+      }
+    ],
+    "missing_assertions": [],
+    "new_assertions": [],
+    "missing_cases": [],
+    "new_cases": [],
+    "no_new_failures": false
+  },
+  "canonical_counts": {
+    "regressions": 1,
+    "recoveries": 8,
+    "changed_values": 52,
+    "missing_assertions": 0,
+    "new_assertions": 0,
+    "missing_cases": 0,
+    "new_cases": 0
+  },
+  "rows": [
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 0,
+      "baseline_steps": 300,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 1.08658073802e-06,
+      "baseline_load_change": 3.16705721536e-05,
+      "candidate_steps": 300,
+      "candidate_maximum_defect": 7.89607214727e-07,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "816"
+        ],
+        "iterations": [
+          "300"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "6.66802316681e-05"
+        ],
+        "error": [
+          "0.0164753790987"
+        ],
+        "cf": [
+          "0.00264910139252"
+        ],
+        "drag": [
+          "0.0028063143759"
+        ],
+        "continuity": [
+          "5.12816501437e-07"
+        ],
+        "continuity_raw": [
+          "4.98597174832e-11"
+        ],
+        "corrected_mass": [
+          "9.96528163807e-14"
+        ],
+        "ru": [
+          "2.04126025927e-10"
+        ],
+        "rv": [
+          "2.29074767918e-10"
+        ],
+        "rk": [
+          "5.17449372475e-07"
+        ],
+        "rw": [
+          "7.89607214727e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 1,
+      "baseline_steps": 800,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 4.27857860586e-06,
+      "baseline_load_change": 6.86213612579e-07,
+      "candidate_steps": 900,
+      "candidate_maximum_defect": 4.48233810012e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "3264"
+        ],
+        "iterations": [
+          "900"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "7.70604899249e-06"
+        ],
+        "error": [
+          "0.00167306668586"
+        ],
+        "cf": [
+          "0.00269535552743"
+        ],
+        "drag": [
+          "0.00285635257313"
+        ],
+        "continuity": [
+          "4.48233810012e-06"
+        ],
+        "continuity_raw": [
+          "4.65184916954e-11"
+        ],
+        "corrected_mass": [
+          "1.47092516119e-13"
+        ],
+        "ru": [
+          "1.38550793611e-10"
+        ],
+        "rv": [
+          "6.13543611925e-11"
+        ],
+        "rk": [
+          "6.29592702711e-07"
+        ],
+        "rw": [
+          "4.59585659213e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 1.9098099621e-05,
+      "baseline_load_change": 2.9349888398e-06,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 1.29081281828e-05,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "13056"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "4.82120240534e-07"
+        ],
+        "error": [
+          "0.00850973498569"
+        ],
+        "cf": [
+          "0.0027137520006"
+        ],
+        "drag": [
+          "0.00287683300471"
+        ],
+        "continuity": [
+          "1.29081281828e-05"
+        ],
+        "continuity_raw": [
+          "1.61830427802e-11"
+        ],
+        "corrected_mass": [
+          "1.24224117321e-13"
+        ],
+        "ru": [
+          "5.8085308235e-11"
+        ],
+        "rv": [
+          "9.99949381347e-12"
+        ],
+        "rk": [
+          "6.25482219842e-07"
+        ],
+        "rw": [
+          "9.00105046236e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 0,
+      "baseline_steps": 300,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 1.86488954371e-06,
+      "baseline_load_change": 3.17232355992e-05,
+      "candidate_steps": 300,
+      "candidate_maximum_defect": 9.43430071184e-07,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "816"
+        ],
+        "iterations": [
+          "300"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "6.65607126449e-05"
+        ],
+        "error": [
+          "0.0164752117554"
+        ],
+        "cf": [
+          "0.00264910175218"
+        ],
+        "drag": [
+          "0.00280631485339"
+        ],
+        "continuity": [
+          "9.43430071184e-07"
+        ],
+        "continuity_raw": [
+          "9.1718610693e-11"
+        ],
+        "corrected_mass": [
+          "1.72757993891e-13"
+        ],
+        "ru": [
+          "2.71010066375e-10"
+        ],
+        "rv": [
+          "2.60673267746e-10"
+        ],
+        "rk": [
+          "2.9651452023e-07"
+        ],
+        "rw": [
+          "4.03145823044e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 3.04515373356e-05,
+      "baseline_load_change": 0.0,
+      "candidate_steps": 900,
+      "candidate_maximum_defect": 2.84237690943e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "3264"
+        ],
+        "iterations": [
+          "900"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "6.01947777334e-06"
+        ],
+        "error": [
+          "0.00167217028545"
+        ],
+        "cf": [
+          "0.00269535311535"
+        ],
+        "drag": [
+          "0.00285634630899"
+        ],
+        "continuity": [
+          "2.84237690943e-06"
+        ],
+        "continuity_raw": [
+          "2.94986848533e-11"
+        ],
+        "corrected_mass": [
+          "8.86250166136e-14"
+        ],
+        "ru": [
+          "1.09953319913e-10"
+        ],
+        "rv": [
+          "4.06618322003e-11"
+        ],
+        "rk": [
+          "4.90791401833e-07"
+        ],
+        "rw": [
+          "5.54560613753e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 7.40765424044e-06,
+      "baseline_load_change": 1.26287885206e-06,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 0.000561432051097,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "13056"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "1.71310095847e-06"
+        ],
+        "error": [
+          "0.00851180579679"
+        ],
+        "cf": [
+          "0.00271375757285"
+        ],
+        "drag": [
+          "0.00287684411759"
+        ],
+        "continuity": [
+          "0.000561432051097"
+        ],
+        "continuity_raw": [
+          "7.03872689707e-10"
+        ],
+        "corrected_mass": [
+          "2.21284449098e-12"
+        ],
+        "ru": [
+          "1.74504013614e-09"
+        ],
+        "rv": [
+          "5.42382490272e-10"
+        ],
+        "rk": [
+          "7.69102942276e-07"
+        ],
+        "rw": [
+          "8.18248266687e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 0,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 3.14385728337e-05,
+      "baseline_load_change": 4.79683619736e-05,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 2.80601533804e-05,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "3520"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "2.64342064315e-05"
+        ],
+        "error": [
+          "2.05415523434"
+        ],
+        "drag": [
+          "0.00436592257412"
+        ],
+        "cf": [
+          "0.0048744967639",
+          "0.00588610195565",
+          "0.00296086917462"
+        ],
+        "cp": [
+          "-0.218508478189",
+          "-0.60824534297",
+          "-0.263466853217"
+        ],
+        "continuity": [
+          "2.80601533804e-05"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.30844266492e-05,
+      "baseline_load_change": 0.000109985227325,
+      "candidate_steps": 2400,
+      "candidate_maximum_defect": 9.06748079278e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "14080"
+        ],
+        "iterations": [
+          "2400"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "0.000195254610449"
+        ],
+        "error": [
+          "0.88108615462"
+        ],
+        "drag": [
+          "0.00367230553794"
+        ],
+        "cf": [
+          "0.00507913963283",
+          "0.00623961012584",
+          "0.00263218068533"
+        ],
+        "cp": [
+          "-0.23785713952",
+          "-0.643437415361",
+          "-0.256450379452"
+        ],
+        "continuity": [
+          "9.06748079278e-06"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.57342260198e-05,
+      "baseline_load_change": 0.00080014620876,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 1.99180334391e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "56320"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "0.00086160476091"
+        ],
+        "error": [
+          "0.413631760915"
+        ],
+        "drag": [
+          "0.00365716846486"
+        ],
+        "cf": [
+          "0.00507440324636",
+          "0.0061845049855",
+          "0.00255064721078"
+        ],
+        "cp": [
+          "-0.251953783884",
+          "-0.657461047173",
+          "-0.253360518724"
+        ],
+        "continuity": [
+          "1.99180334391e-06"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 0,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 1.99188050291e-05,
+      "baseline_load_change": 0.000120502689492,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 2.07176994315e-05,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "3520"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "2.52948584361e-05"
+        ],
+        "error": [
+          "2.05404794598"
+        ],
+        "drag": [
+          "0.00436588439872"
+        ],
+        "cf": [
+          "0.00487451832848",
+          "0.00588612342845",
+          "0.00296088526781"
+        ],
+        "cp": [
+          "-0.218507684798",
+          "-0.608248561621",
+          "-0.263469738672"
+        ],
+        "continuity": [
+          "1.74815965357e-05"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.81366024514e-05,
+      "baseline_load_change": 0.000112066029761,
+      "candidate_steps": 2300,
+      "candidate_maximum_defect": 9.21583110972e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "14080"
+        ],
+        "iterations": [
+          "2300"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "0.000199492603072"
+        ],
+        "error": [
+          "0.879568223"
+        ],
+        "drag": [
+          "0.00367302185174"
+        ],
+        "cf": [
+          "0.00507922261908",
+          "0.00623974921585",
+          "0.00263229408624"
+        ],
+        "cp": [
+          "-0.23788770681",
+          "-0.64348295331",
+          "-0.256495762916"
+        ],
+        "continuity": [
+          "9.21583110972e-06"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.57270639969e-05,
+      "baseline_load_change": 0.000803104893041,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 2.19010892384e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "56320"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "0.000839465915497"
+        ],
+        "error": [
+          "0.413535400073"
+        ],
+        "drag": [
+          "0.00365728563325"
+        ],
+        "cf": [
+          "0.00507438341053",
+          "0.00618462957038",
+          "0.00255078600918"
+        ],
+        "cp": [
+          "-0.251946436112",
+          "-0.657463937998",
+          "-0.253362396517"
+        ],
+        "continuity": [
+          "2.19010892384e-06"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 0,
+      "baseline_steps": 400,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 9.23123312827e-07,
+      "baseline_load_change": 4.72940158892e-07,
+      "candidate_steps": 300,
+      "candidate_maximum_defect": 6.35538306102e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "0"
+        ],
+        "cells": [
+          "816"
+        ],
+        "steps": [
+          "300"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.000237361572971"
+        ],
+        "error": [
+          "0.00890380603747"
+        ],
+        "Cd": [
+          "0.00287983433225"
+        ],
+        "Cf": [
+          "0.00272971185931",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000225233426219",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "6.35538306102e-06"
+        ],
+        "u": [
+          "1.05106002885e-09"
+        ],
+        "v": [
+          "1.05489865909e-09"
+        ],
+        "nu_tilde": [
+          "5.17611557156e-07"
+        ],
+        "max_yplus": [
+          "1.18750071526"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 1,
+      "baseline_steps": 900,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 4.99319219744e-06,
+      "baseline_load_change": 7.23281923771e-06,
+      "candidate_steps": 1000,
+      "candidate_maximum_defect": 1.20956965865e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "1"
+        ],
+        "cells": [
+          "3264"
+        ],
+        "steps": [
+          "1000"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "3.89981230809e-06"
+        ],
+        "error": [
+          "0.00751597254516"
+        ],
+        "Cd": [
+          "0.00287838317661"
+        ],
+        "Cf": [
+          "0.00272595690714",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000195416504383",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "1.20956965865e-06"
+        ],
+        "u": [
+          "1.43205715141e-10"
+        ],
+        "v": [
+          "2.35614533227e-11"
+        ],
+        "nu_tilde": [
+          "2.31783336987e-07"
+        ],
+        "max_yplus": [
+          "0.642625331879"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 4.28200779547e-05,
+      "baseline_load_change": 4.36018004445e-06,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 7.37820045908e-05,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "2"
+        ],
+        "cells": [
+          "13056"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "4.95435016594e-06"
+        ],
+        "error": [
+          "0.00792611273717"
+        ],
+        "Cd": [
+          "0.00288069290875"
+        ],
+        "Cf": [
+          "0.00272706659127",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000191245380437",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "7.37820045908e-05"
+        ],
+        "u": [
+          "8.2516244988e-10"
+        ],
+        "v": [
+          "1.08833682964e-10"
+        ],
+        "nu_tilde": [
+          "6.98453014335e-07"
+        ],
+        "max_yplus": [
+          "0.370397120714"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 0,
+      "baseline_steps": 300,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 2.88732530877e-06,
+      "baseline_load_change": 0.000186977425748,
+      "candidate_steps": 300,
+      "candidate_maximum_defect": 4.61921229825e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "0"
+        ],
+        "cells": [
+          "816"
+        ],
+        "steps": [
+          "300"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.000237551147975"
+        ],
+        "error": [
+          "0.00890376686143"
+        ],
+        "Cd": [
+          "0.00287983328917"
+        ],
+        "Cf": [
+          "0.00272971175332",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000225194658185",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "4.61921229825e-06"
+        ],
+        "u": [
+          "9.76552873855e-10"
+        ],
+        "v": [
+          "1.07381393401e-09"
+        ],
+        "nu_tilde": [
+          "3.31837157151e-07"
+        ],
+        "max_yplus": [
+          "1.18750107288"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.41778890637e-05,
+      "baseline_load_change": 0.0,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 5.35336320274e-05,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "1"
+        ],
+        "cells": [
+          "3264"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0"
+        ],
+        "error": [
+          "0.0075164792207"
+        ],
+        "Cd": [
+          "0.00287838575161"
+        ],
+        "Cf": [
+          "0.00272595827801",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000195399551063",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "5.35336320274e-05"
+        ],
+        "u": [
+          "4.6413791281e-10"
+        ],
+        "v": [
+          "1.68304214321e-10"
+        ],
+        "nu_tilde": [
+          "2.57209086887e-07"
+        ],
+        "max_yplus": [
+          "0.642624557018"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 1.39775922557e-05,
+      "baseline_load_change": 4.3562335481e-06,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 9.33729384863e-05,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "2"
+        ],
+        "cells": [
+          "13056"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "4.59669926624e-06"
+        ],
+        "error": [
+          "0.00792645695478"
+        ],
+        "Cd": [
+          "0.00288069191754"
+        ],
+        "Cf": [
+          "0.00272706752259",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000191242290207",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "9.33729384863e-05"
+        ],
+        "u": [
+          "8.00807987345e-10"
+        ],
+        "v": [
+          "1.28249032666e-10"
+        ],
+        "nu_tilde": [
+          "5.85141841055e-07"
+        ],
+        "max_yplus": [
+          "0.370396763086"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 0,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 3.43975672022e-05,
+      "baseline_load_change": 4.55523787382e-05,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 2.92949451484e-05,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "0"
+        ],
+        "cells": [
+          "3520"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "9.82966799337e-05"
+        ],
+        "error": [
+          "2.07377771407"
+        ],
+        "Cd": [
+          "0.00439026021085"
+        ],
+        "Cf": [
+          "0.00513927344208",
+          "0.00618968208079",
+          "0.00326787428646"
+        ],
+        "Cp": [
+          "-0.218507875093",
+          "-0.609016686678",
+          "-0.265193584243"
+        ],
+        "continuity": [
+          "2.92949451484e-05"
+        ],
+        "u": [
+          "5.92547503845e-07"
+        ],
+        "v": [
+          "4.99200987352e-08"
+        ],
+        "nu_tilde": [
+          "9.95057247378e-07"
+        ],
+        "max_yplus": [
+          "0.766736149788"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 4.12498250169e-05,
+      "baseline_load_change": 0.000113970731325,
+      "candidate_steps": 2400,
+      "candidate_maximum_defect": 9.75252087784e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "1"
+        ],
+        "cells": [
+          "14080"
+        ],
+        "steps": [
+          "2400"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.000606434536033"
+        ],
+        "error": [
+          "0.922810036635"
+        ],
+        "Cd": [
+          "0.0036696643822"
+        ],
+        "Cf": [
+          "0.0052000377161",
+          "0.00647535790217",
+          "0.00274915064846"
+        ],
+        "Cp": [
+          "-0.237958771416",
+          "-0.643545717001",
+          "-0.255809697359"
+        ],
+        "continuity": [
+          "9.75252087784e-06"
+        ],
+        "u": [
+          "1.72598944158e-06"
+        ],
+        "v": [
+          "1.79463897331e-08"
+        ],
+        "nu_tilde": [
+          "6.70337044561e-07"
+        ],
+        "max_yplus": [
+          "0.441540509462"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 6.12823509099e-05,
+      "baseline_load_change": 0.000925772890975,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 2.40792233697e-06,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "2"
+        ],
+        "cells": [
+          "56320"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.00276431603219"
+        ],
+        "error": [
+          "0.414727130229"
+        ],
+        "Cd": [
+          "0.00362521182777"
+        ],
+        "Cf": [
+          "0.00522156002985",
+          "0.00631796234437",
+          "0.00263627365108"
+        ],
+        "Cp": [
+          "-0.251589292773",
+          "-0.658788204193",
+          "-0.253644912598"
+        ],
+        "continuity": [
+          "2.40792233697e-06"
+        ],
+        "u": [
+          "8.04938441248e-07"
+        ],
+        "v": [
+          "6.19108232557e-09"
+        ],
+        "nu_tilde": [
+          "9.04608782464e-07"
+        ],
+        "max_yplus": [
+          "0.260503798723"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 0,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 5.78428002807e-05,
+      "baseline_load_change": 3.97250444738e-05,
+      "candidate_steps": 3000,
+      "candidate_maximum_defect": 3.80084473176e-05,
+      "candidate_converged": false,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "0"
+        ],
+        "cells": [
+          "3520"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.000101066563385"
+        ],
+        "error": [
+          "2.07379360864"
+        ],
+        "Cd": [
+          "0.00439025728121"
+        ],
+        "Cf": [
+          "0.00513920230789",
+          "0.00618965570915",
+          "0.00326784941589"
+        ],
+        "Cp": [
+          "-0.218509494627",
+          "-0.609016209841",
+          "-0.265192981882"
+        ],
+        "continuity": [
+          "3.80084473176e-05"
+        ],
+        "u": [
+          "5.82338615106e-07"
+        ],
+        "v": [
+          "4.85322039873e-08"
+        ],
+        "nu_tilde": [
+          "8.96834771223e-07"
+        ],
+        "max_yplus": [
+          "0.766868174076"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 4.12428160127e-05,
+      "baseline_load_change": 0.000106065966228,
+      "candidate_steps": 2200,
+      "candidate_maximum_defect": 8.43305076745e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "1"
+        ],
+        "cells": [
+          "14080"
+        ],
+        "steps": [
+          "2200"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.000260337700891"
+        ],
+        "error": [
+          "0.920160610174"
+        ],
+        "Cd": [
+          "0.00367001980129"
+        ],
+        "Cf": [
+          "0.00520018970611",
+          "0.00647560177256",
+          "0.00274322160716"
+        ],
+        "Cp": [
+          "-0.238015636128",
+          "-0.643625199795",
+          "-0.25589829102"
+        ],
+        "continuity": [
+          "8.43305076745e-06"
+        ],
+        "u": [
+          "1.7639787965e-06"
+        ],
+        "v": [
+          "1.70628924766e-08"
+        ],
+        "nu_tilde": [
+          "9.3424512207e-07"
+        ],
+        "max_yplus": [
+          "0.441548854113"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 6.12966637979e-05,
+      "baseline_load_change": 0.000927412913962,
+      "candidate_steps": 2500,
+      "candidate_maximum_defect": 2.68803457343e-06,
+      "candidate_converged": true,
+      "candidate_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "2"
+        ],
+        "cells": [
+          "56320"
+        ],
+        "steps": [
+          "2500"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.00095799344494"
+        ],
+        "error": [
+          "0.404859581287"
+        ],
+        "Cd": [
+          "0.00364900156342"
+        ],
+        "Cf": [
+          "0.00523741195906",
+          "0.00633914752497",
+          "0.00267488163432"
+        ],
+        "Cp": [
+          "-0.251693634197",
+          "-0.659084230661",
+          "-0.253862757062"
+        ],
+        "continuity": [
+          "2.68803457343e-06"
+        ],
+        "u": [
+          "8.13761605811e-07"
+        ],
+        "v": [
+          "5.91872354579e-09"
+        ],
+        "nu_tilde": [
+          "8.95213738752e-07"
+        ],
+        "max_yplus": [
+          "0.260820358992"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    }
+  ],
+  "baseline_failure_count": 17,
+  "candidate_failure_count": 10,
+  "timing_claim": false,
+  "production_failure_count": 17,
+  "normalization_caveat": "Startup pressure/scalar changes alter the original first-five or scalar normalization. Fine Metal SST plate continuity raw defect worsens22.4x; its regression is real. Fine SST bump k raw reduction is much smaller than its scaled reduction; old-denominator and far-wake mu/k observations remain in the isolated factorial report. Gate recoveries are actual unchanged harness checks, not evidence of every causal mechanism.",
+  "receipt_sha256": {
+    "build/tmr-ramp-candidate/qualification.json": "1821a6ca2221c9c771a968ded4e200ee941aa951320cac2bd451151c9352827d",
+    "build/tmr-ramp-candidate/comparison.json": "08414b7af0494eaa0141bb21b7ddd54b4e45b59fa084f11702c875ee17e7e1e8",
+    "build/tmr-ramp-candidate/build-receipt.json": "1133c6b439da4ee9bb38716da247a095fb28a6f87f061d36e2be6da10d1552e9",
+    "build/tmr-ramp-candidate/tmr.log": "96a4ea876acf73c3f63798c8f4d675c88c08d50ddb999fe34826dd93b482354d",
+    "build/tmr-ramp-candidate/tmr.xml": "96ab987e9ce1d1e7ac0e39edeb313e2812f0de2d4dc712956cb27ebc1fde9796"
+  }
+}

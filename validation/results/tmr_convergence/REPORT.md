@@ -3004,3 +3004,65 @@ compensation, slack 16 and fixed flow time .1 remain opt-in. The original 17
 TMR convergence failures remain in the root harness. The private ramp/AMG
 qualification is still running, with a plate regression already observed;
 its complete canonical comparison and remaining flow controls follow separately.
+
+### Complete ramp/AMG target qualification, 2026-11-07 UTC
+
+The private configuration completes all 24 TMR solves and all 153 original
+assertions. It uses scalar AMG, k relaxation 1 with omega .75, SA relaxation
+1, plate pressure relaxation .7, and the bump time ramp .1 → 1 at growth
+1.001. All other original controls, inner caps and the 3,000-step limit hold.
+The unchanged canonical comparator reports **eight recoveries, one regression,
+52 changed expanded values and no missing/new identities or cases**. Its
+actual exit is 1. SST plate remains two failed gates, SST bump falls six →
+two, and SA falls nine → six. Every station, drag and refinement gate passes.
+The other 34 slow cases are not executed by this target qualification.
+
+The table covers every original failure and the new finest-Metal plate
+regression. Maximum defect alone is insufficient: load change must also be
+below its unchanged .001 gate.
+
+| Solve | Maximum defect, original → candidate | Candidate load change | Candidate steps | Candidate stopping gate |
+|---|---:|---:|---:|---|
+| SST plate CPU L2 | 1.90981e-5 → 1.290813e-5 | 4.821202e-7 | 3,000 | Fails |
+| SST plate Metal L1 | 3.045154e-5 → 2.842377e-6 | 6.019478e-6 | 900 | Passes |
+| SST plate Metal L2, originally passing | 7.407654e-6 → .0005614321 | 1.713101e-6 | 3,000 | Regresses |
+| SST bump CPU L0 | 3.143857e-5 → 2.806015e-5 | 2.643421e-5 | 3,000 | Fails |
+| SST bump CPU L1 | 2.308443e-5 → 9.067481e-6 | .000195255 | 2,400 | Passes |
+| SST bump CPU L2 | 2.573423e-5 → 1.991803e-6 | .000861605 | 3,000 | Passes |
+| SST bump Metal L0 | 1.991881e-5 → 2.071770e-5 | 2.529486e-5 | 3,000 | Fails |
+| SST bump Metal L1 | 2.813660e-5 → 9.215831e-6 | .000199493 | 2,300 | Passes |
+| SST bump Metal L2 | 2.572706e-5 → 2.190109e-6 | .000839466 | 3,000 | Passes |
+| SA plate CPU L2 | 4.282008e-5 → 7.378200e-5 | 4.954350e-6 | 3,000 | Fails |
+| SA plate Metal L1 | 2.417789e-5 → 5.353363e-5 | 0 | 3,000 | Fails |
+| SA plate Metal L2 | 1.397759e-5 → 9.337294e-5 | 4.596699e-6 | 3,000 | Fails |
+| SA bump CPU L0 | 3.439757e-5 → 2.929495e-5 | 9.829668e-5 | 3,000 | Fails |
+| SA bump CPU L1 | 4.124983e-5 → 9.752521e-6 | .000606435 | 2,400 | Passes |
+| SA bump CPU L2 | 6.128235e-5 → 2.407922e-6 | .002764316 | 3,000 | Fails load |
+| SA bump Metal L0 | 5.784280e-5 → 3.800845e-5 | .000101067 | 3,000 | Fails |
+| SA bump Metal L1 | 4.124282e-5 → 8.433051e-6 | .000260338 | 2,200 | Passes |
+| SA bump Metal L2 | 6.129666e-5 → 2.688035e-6 | .000957993 | 2,500 | Passes |
+
+This whole group is rejected for the plates. The finest Metal SST plate's
+raw continuity worsens 3.138772e-11 → 7.038727e-10, by 22.4 times. Its
+regression is therefore not just a smaller startup denominator. The fine
+CPU SA bump is also still a real failure: its scalar and flow residuals
+pass, while load changes rise again late in the run. The earlier fine Metal
+factorial and ramp experiments do not establish a complete CPU remedy.
+All 25 printed fine Metal SA progress reports reproduce the archived private
+ramp trajectory exactly through its actual stop at 2,500.
+
+The earlier raw-k/common-denominator and far-wake caveats still apply to the
+SST scalar intervention. Passing the frozen physical reference checks does
+not independently establish the far-wake field or a cause for each newly
+passing row. The separate pressure, scalar-preconditioner, time and boundary
+controls provide the causal evidence; this grouped qualification measures
+their actual combined gates and trade-off.
+
+The actual single process containing all three target cases peaks at
+**342,803,440 B**, including shared Metal memory. It finishes naturally under
+the continuous 3 GB guard. This is not the full 37-case monolithic process,
+whose peak remains unmeasured. No paired timing comparison is made.
+[tmr-ramp-candidate.json](tmr-ramp-candidate.json) contains every endpoint,
+the unchanged canonical comparison, source/binary/input hashes and actual
+resource/wait receipts. The root harness has not selected this group;
+production still has 17 convergence failures at this checkpoint.
