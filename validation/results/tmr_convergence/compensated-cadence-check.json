@@ -1,0 +1,36 @@
+{
+  "scope": "Tiny24-cell12-stepcheckonly: monitor1vs5 for SST/SA, CMtrue, slack16, CPU/Metal. Not full TMR-path or long-run proof. No timing claim.",
+  "rows": [
+    "cpu model=sst changed=0 max_difference=0",
+    "cpu model=sa changed=0 max_difference=0",
+    "metal model=sst changed=0 max_difference=0",
+    "metal model=sa changed=0 max_difference=0"
+  ],
+  "source_and_binary_sha256": {
+    "build/compensated_cadence_check.cpp": "3d757ff37c4da797072a92104457952071bbbc95994463c43a9e5db13a777bb1",
+    "build/compensated-cadence-check": "1219417cb97c2ac84a132e52312d2642bc4312e2b72b39afa525a1c75d6b758c",
+    "build/compensated-cadence-check.log": "f0a30bee1e01468b433fad3b5cd35c12c1029384dbe17ab0959047fb21424f91",
+    "build/libkutta.a": "20d185f278654d0de3c4b48c8a7977fd293b3b6d72499f232d7aac1f64f7ba9e"
+  },
+  "actual_wait_status": 0,
+  "compared_fields": {
+    "sst": [
+      "u_hi",
+      "v_hi",
+      "w_hi",
+      "p_hi",
+      "mass_hi",
+      "k",
+      "omega"
+    ],
+    "sa": [
+      "u_hi",
+      "v_hi",
+      "w_hi",
+      "p_hi",
+      "mass_hi",
+      "nu_tilde"
+    ]
+  },
+  "low_word_field_comparison": "not_collected_by_this_public_API_check"
+}

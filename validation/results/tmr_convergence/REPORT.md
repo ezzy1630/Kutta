@@ -3210,3 +3210,53 @@ not a full slow-tier or NASA station/trend qualification of scalar release.
 [ramp-scalar-release-controls.json](ramp-scalar-release-controls.json) contains
 raw defects, exact-prefix proofs, common-window work, settings and source/input
 bindings with actual wait/resource receipts.
+
+### Pair representation witnesses and controlled TMR effects, 2026-11-07 UTC
+
+Two algebraic CPU/Metal checks expose representation sensitivity. In a
+single-cell advective balance with both low words 2^-20, omitting the
+low-flux × low-velocity term gives -1.9073486328125e-6 instead of
+-1.9073495423072018e-6. Adding that term matches both the rebased encoding
+and the exact rounded physical balance. Separately, an affine paired field
+on 108 tetrahedral cells gives a maximum quadratic face-value difference
+7.551152e-8 between two encodings of the same full field. A host-double
+restoration reduces that difference to 2.842171e-14 across 174 corrected
+internal faces, identically on both backends. These are unit-scale witnesses;
+they do not establish the cause of a TMR convergence failure.
+
+The actual middle Metal SST plate controls each reproduce the complete
+original 3,000-step field words and residual history. They then keep an exact
+2,000-step captured-field/report/work prefix and intervene independently:
+
+| Arithmetic intervention | Continuity, original → candidate | Raw imbalance ratio | Candidate stopping outcome |
+|---|---:|---:|---|
+| Low-flux times low-velocity convection | 3.045154e-05 → 3.040571e-05 | 0.9984951 | Fails at 3,000 |
+| Quadratic face predictor arithmetic | 3.045154e-05 → 2.788436e-05 | 0.9156963 | Fails at 3,000 |
+
+The first uses the same low-word boundary trace, gradients, limiter and upwind
+sign as the existing low transport operator. Both shadow and apply cohorts
+compute the extra term. The second recomputes the stored Walk moment operator,
+diagonal weights, clipping and interpolation blend in host double from the
+full paired fields. It preserves the original high/low unprojected predictor
+frames and actual old high face. It does not refit geometry or change scalar
+or momentum diffusion, cell gradients, physical diagonals or limiters.
+Both cohorts perform the same reads, calculations and upload; only the
+candidate restores the low face word.
+
+Neither intervention reaches the frozen gate. The first changes raw imbalance
+by only .15%; the broader face restoration lowers it by 8.43%. Pressure and
+flux updates remain alternating in the captured final steps. Those signed
+update observations are not Jacobian eigenvalues. Neither result justifies
+a production precision patch as the missing TMR remedy. Both libraries pass
+twenty elbow file checks, four target states and six monitor-sum off controls.
+The controlled runs peak below 141 MB. The host implementation is a diagnostic,
+not a performance proposal; no paired timing or full NASA reference qualification
+is claimed. Detailed work, memory, witnesses, prefixes and source/binary/input
+bindings are in [pair-arithmetic-controls.json](pair-arithmetic-controls.json).
+
+An additional 24-cell, 12-step check compares monitoring every step versus
+every fifth step with compensated momentum and slack 16 enabled. All compared high-word flow and scalar
+fields match exactly for SST and SA on CPU and Metal. This cheap check does
+not establish long-run or all-grid cadence invariance, but it does not support
+monitoring as a cause on that geometry. Its bound source and actual results
+are in [compensated-cadence-check.json](compensated-cadence-check.json).
