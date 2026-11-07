@@ -1,5 +1,231 @@
 # NASA TMR convergence investigation
 
+## 2026-11-07 UTC: final retained branch qualification
+
+Six controls are earned defaults. The retained bump scalar/time changes recover
+7 convergence gates: TMR failures fall 17 → 10, and all slow failures
+fall 51 → 44. No frozen gate, reference, mesh, formulation, initialization
+or 3,000-step TMR budget changes. All TMR station, drag and refinement gates pass.
+The goal of fixing every remaining convergence failure is **not achieved**:
+10 remain, and several complete causes are still unestablished.
+
+The actual branch completes all 37 slow cases in **one process**, using the
+default allocator environment and a continuous 3,000,000,000-byte process-group
+guard. Its measured process-group peak is **2,329,807,152 B (2.330 GB)**. This is the requested monolithic
+qualification, separate from the earlier isolated-case studies. The canonical
+comparison against frozen exact main `e014e36` gives:
+
+| Full slow comparison | Observed result |
+|---|---:|
+| Cases, baseline / final | 37 / 37 |
+| Assertions, baseline / final | 201,633 / 201,633 |
+| Failed assertions, baseline → final | 51 → 44 |
+| Gate regressions / recoveries | 0 / 7 |
+| Changed expanded values | 302 |
+| Missing / new INFO identities | 76 / 76 |
+| Missing / new cases | 0 / 0 |
+| Actual test / canonical comparator exits | 1 / 1 |
+
+All 76 missing and all 76 new INFO identities pass. The unchanged comparator reports
+`no_new_failures=false`; its nonzero result is not converted into a
+strict clean comparison. The physical CLI INFO changes, all actual gate
+outcomes and every changed value remain in the ignored full comparison.
+No failed assertion is removed or marked expected.
+
+A second invocation of the **same unchanged comparator**, against the completed
+six-default qualification, returns 0. Across non-TMR cases it finds zero regressions,
+recoveries, changed values or identity gaps. All their canonical assertion
+identities, outcomes and expanded values match. This separates the retained bump changes
+from the earlier measured effects of the six defaults. Full counts, recoveries,
+per-case changes, actual 24 TMR endpoints and source/binary/XML/resource hashes
+are in [final-full-slow.json](final-full-slow.json). Restricted XML is not committed.
+
+Fresh quick validation passes **309 cases / 7,990,218 assertions**, with actual
+exit 0; portability lint exits 0.
+[final-verification.json](final-verification.json) binds these checks to the same
+source and binaries. CUDA compilation/runtime remains unverified.
+
+### Option decisions and allocation cost
+
+Each row retains its own frozen study/cost cohort. The selected-six quick count
+predates the two new API tests; the final combined quick count is above.
+
+Momentum compensation and slack 16 are rejected by their completed full slow tiers;
+slack 16 also fails the quick tier. Fixed flow pseudo-time `.1` fails quick
+with seven assertions across four cases and one slow-tier regression. Momentum and pressure tolerances preserve
+all slow gates and pass the quick tier. Scalar compensation also preserves
+all outcomes and passes quick; its canonical comparison retains 76 passing
+missing/new INFO identities. Scalar steady stopping preserves all outcomes
+and passes quick with 74 such identity changes. Disabling scalar pseudo-time also
+preserves all outcomes and passes quick, with 76 such identity changes. Scalar
+absolute tolerance preserves outcomes with 20 such identity changes and a
+material ordinary-solve cost. All nine singleton and three group studies
+are complete. The combined precision group is rejected by two new failures;
+the two smaller groups preserve outcomes. The six individually nonregressing controls now pass their actual combined
+default qualification and are promoted; its identity gaps and costs are
+reported below. Allocation measurements
+come from independent one-step CPU plate probes, changing one setting at a
+time from ordinary settings, on 816 cells. The compensation row instead uses
+the current actual-root fine-bump delta after both cleanups below. These allocations are
+not convergence or timing measurements. The exact data and probe hashes are
+in [default-study-memory.json](default-study-memory.json) and
+[lean-sst-parity.json](lean-sst-parity.json), and
+[root-gradient-scratch-os27-parity.json](root-gradient-scratch-os27-parity.json).
+
+| Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
+| --- | --- | --- | ---: | --- |
+| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | New-OS ordinary SST plate: unconverged 3,000 → converged 300 both. SA remains failed at 3,000. New-OS time to stop, SST / SA: CPU 0.197x / 1.594x, Metal 0.083x / 1.061x | 268.76 / 332.76, current fine bump | Keep opt-in |
+| Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | New-OS ordinary SST stops at 400 both; SA CPU fails at 3,000 / Metal converges 500. Finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
+| Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Momentum inner work 3.19–3.47x; all four ordinary plates fail at 3,000. New-OS total time SST / SA: CPU 0.975x / 1.201x, Metal 1.068x / 1.045x | 0 / 0 | Default; exact combined qualification reviewed |
+| Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates fail at 3,000. New-OS total time SST / SA: CPU 0.907x / 1.021x, Metal 1.496x / 0.930x; SST Metal late 1.660x | 0 / 0 | Default; exact combined qualification reviewed |
+| Compensated scalar transport | Full: 0 regressions/recoveries, 231 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239→10,677 CPU / 73,502→10,910 Metal; SA unchanged. New-OS total time SST / SA: CPU 1.013x / 1.028x, Metal 0.689x / 0.929x | 32 / 16 | Default; combined qualification and identity gaps reviewed |
+| Scalar pseudo-time off | Full: 0 regressions/recoveries, 240 changed values, 76 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar inner work: 72,239→71,700 CPU / 73,502→71,812 Metal; SA 417→495 / 492. New-OS late time, SST / SA: CPU 0.976x / 1.006x, Metal 1.012x / 0.990x | 0 / 0 | Default; combined qualification and identity gaps reviewed |
+| Scalar steady tolerance 1e-6 | Full: 0 regressions/recoveries, 234 changed values, 74 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. New-OS total time SST / SA: CPU 0.835x / 1.001x, Metal 0.663x / 1.018x | 24 / 12 | Default; combined qualification and identity gaps reviewed |
+| Scalar absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 43 changed values, 20 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar work: 72,239→155,816 CPU / 73,502→155,771 Metal; SA 417→138,240 / 144,778. New-OS total time, SST / SA: CPU 1.176x / 1.259x, Metal 1.416x / 1.966x | 0 / 0 | Default; combined qualification and material cost disclosed |
+| Fixed flow pseudo-time .1 | Full: 1 regression, 2 recoveries, 940 changed values, 88 missing / 80 new passing identities; quick adds 7 failures in 4 cases | Cavity steps 600/600/900→1,400/1,000/1,200 on both backends; V6 seeded 200→150 / cold 250→200 but all 25 accuracy failures remain. Four ordinary plates still fail at 3,000. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in |
+| Three inner absolute tolerances together | Full: 0 regressions/recoveries, 49 changed values, 20 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. Momentum work 3.32–3.60x; SST scalar work 2.12–2.17x, SA 317–324x. New-OS total time, SST / SA: CPU 1.173x / 1.268x, Metal 1.445x / 2.031x | 0 / 0 | Included in the six defaults; combined qualification and cost reviewed |
+| Four scalar controls together | Full: 0 regressions/recoveries, 258 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239/73,502→8,076/7,907; SA 417→1,322/1,325. New-OS total time, SST / SA: CPU 0.773x / 1.007x, Metal 0.654x / 1.015x. Coupled startup CPU 1.069x / Metal 1.020x | 56 / 28 | Included in the six defaults; combined qualification and cost reviewed |
+| Combined precision controls | Full: 2 regressions, 0 recoveries, 1,239 changed values, 88 missing/new passing identities; quick passes | Ordinary plates: all baseline failures at 3,000 → SST converged at 300 both, SA converged at 400 CPU / 300 Metal. New-OS time to stop, SST / SA: CPU 0.190x / 0.240x, Metal 0.069x / 0.114x. Coupled startup CPU 2.526x / Metal 1.175x | 377.97 / 389.97, coarse plate | Keep opt-in; material Coupled cost disclosed |
+| Actual selected six controls | Full: 0 regressions/recoveries, 264 changed values, 76 missing/new passing INFO identities; quick 307/7,990,154 passes | All four ordinary plates fail at 3,000. M/P/scalar work and paired ranges below. New-OS total time SST / SA: CPU 0.812x / 1.038x, Metal 0.652x / 1.266x. Early Coupled CPU 1.318x / Metal 1.089x, wide ranges | 56 / 28 | Default; full joint review complete; SA Metal cost disclosed |
+
+Momentum relaxation .7 is already the ordinary solver default. The bump
+harness's fixed time step is a separate candidate from its relaxation.
+The completed groups are the three inner absolute tolerances, the four scalar
+controls, and the combined precision controls. A group does not substitute
+for the singleton checks. Any regression leaves the setting opt-in.
+
+After the first 36 B/cell SST cleanup, before the additional scratch reuse
+documented below, compensated momentum added 17,840,128 device bytes on the
+56,320-cell SST bump (316.76 B/cell). SA added 20,092,928 bytes (356.76 B/cell).
+The table above uses the later actual-root measurements, 268.76 / 332.76 B/cell. These deltas keep the TMR scalar controls fixed. With
+walk reconstruction active, the increments are
+`100*Ncells + 28*Nfaces + 28*Nboundary` for SST and
+`164*Ncells + 28*Nfaces + 28*Nboundary` for SA, after both scratch cleanups.
+Here `Nfaces` includes boundary faces. On the measured grid, `Ncells=56,320`,
+`Nfaces=225,792` and `Nboundary=113,664`; these formulas reproduce all four
+CPU/Metal on-minus-off allocation deltas exactly. They include the 64 B/cell
+paired walk scratch allocated on first use. The original allocation receipt
+records SST before that cleanup: 19,867,648 bytes (352.76 B/cell); the linked
+parity receipt records its exact 2,027,520-byte reduction. These are device
+allocation deltas, not process-footprint savings.
+
+
+### Every original remaining failure
+
+The initial per-step evidence classifies all 17 original failures as 13 slow
+approaches, three plateaus and one near-two-cycle. A stationary arithmetic
+floor is not established for any of them. The classifications precede the
+retained convergence selection and remain tied to the original baseline;
+the final columns below come from the actual branch qualification. A failed
+load gate remains failed even when all residual components pass.
+
+| Original failing solve | Observed mode | Maximum defect, before → final | Load change, before → final | Steps, before → final / gate | Cause evidence and limit |
+|---|---|---:|---:|---|---|
+| SST plate cpu L2 | slow approach | 1.90981e-05 → 1.90981e-05 | 2.934989e-06 → 2.934989e-06 | 3,000 → 3,000 / fail | Slow flow response; no cause-specific remedy established. Pressure and boundary controls do not recover this gate. |
+| SST plate metal L1 | two-cycle | 3.045154e-05 → 3.045154e-05 | 0 → 0 | 3,000 → 3,000 / fail | Pressure gain participates in the two-cycle: delayed .7 recovers with the exact first 2,000 steps. Symmetry rows also recover it but regress the fine guard; neither general policy is retained. |
+| SST bump cpu L0 | plateau | 3.143857e-05 → 2.806015e-05 | 4.796836e-05 → 2.643421e-05 | 3,000 → 3,000 / fail | Omega fit has a measured mixed-boundary contribution. Continuing flow remains unresolved; scalar/flow interaction is not a complete established cause. |
+| SST bump cpu L1 | slow approach | 2.308443e-05 → 9.067481e-06 | 0.0001099852 → 0.0001952546 | 3,000 → 2,400 / pass | Joint scalar AMG/full-k and time-ramp recovery. Independent anisotropic-scalar evidence supports conditioning; sole cause on this grid is not isolated. |
+| SST bump cpu L2 | slow approach | 2.573423e-05 → 1.991803e-06 | 0.0008001462 → 0.0008616048 | 3,000 → 3,000 / pass | Joint scalar/ramp recovery. The separate fine-Metal k control improves raw defect only 22% while changing its normalization 21.4 times; that caveat is not waived. |
+| SST bump metal L0 | plateau | 1.991881e-05 → 2.07177e-05 | 0.0001205027 → 2.529486e-05 | 3,000 → 3,000 / fail | Omega fit has a measured mixed-boundary contribution. Original late scalar solves perform nonzero work, so a complete scalar hold is not its demonstrated cause. |
+| SST bump metal L1 | slow approach | 2.81366e-05 → 9.215831e-06 | 0.000112066 → 0.0001994926 | 3,000 → 2,300 / pass | Joint scalar/ramp recovery; no claim that a single isolated mechanism has been proven on this grid. |
+| SST bump metal L2 | slow approach | 2.572706e-05 → 2.190109e-06 | 0.0008031049 → 0.0008394659 | 3,000 → 3,000 / pass | AMG enables a full k update without the failed Jacobi/floor behavior. Raw-k improvement and normalization change are both reported; the grouped gate recovery alone is not sole-cause proof. |
+| SA plate cpu L2 | slow approach | 4.282008e-05 → 4.282008e-05 | 4.36018e-06 → 4.36018e-06 | 3,000 → 3,000 / fail | Slow flow response; scalar already passes. Startup pressure and boundary controls do not establish a safe remedy. |
+| SA plate metal L1 | plateau | 2.417789e-05 → 2.417789e-05 | 0 → 0 | 3,000 → 3,000 / fail | Pressure-fit treatment recovers at 900 steps, but the same general treatment regresses the fine SST guard. Complete cause and a safe retained remedy remain open. |
+| SA plate metal L2 | slow approach | 1.397759e-05 → 1.397759e-05 | 4.356234e-06 → 4.356234e-06 | 3,000 → 3,000 / fail | Slow flow response; scalar already passes. Its complete flow cause remains unresolved; no tested general plate pressure or boundary policy safely clears all plate guards. |
+| SA bump cpu L0 | slow approach | 3.439757e-05 → 2.929495e-05 | 4.555238e-05 → 9.829668e-05 | 3,000 → 3,000 / fail | Full scalar update with AMG clears its original scalar defect; flow is now limiting. Remaining flow cause is unestablished. |
+| SA bump cpu L1 | slow approach | 4.124983e-05 → 9.752521e-06 | 0.0001139707 → 0.0006064345 | 3,000 → 2,400 / pass | Joint scalar/ramp recovery. The relaxation/preconditioner factorial isolates their interaction on fine Metal, rather than proving every coarse-grid mechanism. |
+| SA bump cpu L2 | slow approach | 6.128235e-05 → 2.407922e-06 | 0.0009257729 → 0.002764316 | 3,000 → 3,000 / fail | Scalar/ramp clears residual gates, but late load change fails. Tight release and minimal correction improve scalar accuracy without a demonstrated complete load remedy. |
+| SA bump metal L0 | slow approach | 5.78428e-05 → 3.800845e-05 | 3.972504e-05 → 0.0001010666 | 3,000 → 3,000 / fail | Full scalar update with AMG clears its original scalar defect; flow is now limiting. Velocity fallback does not resolve it. |
+| SA bump metal L1 | slow approach | 4.124282e-05 → 8.433051e-06 | 0.000106066 → 0.0002603377 | 3,000 → 2,200 / pass | Joint scalar/ramp recovery; per-grid sole-cause isolation is incomplete. |
+| SA bump metal L2 | slow approach | 6.129666e-05 → 2.688035e-06 | 0.0009274129 → 0.0009579934 | 3,000 → 2,500 / pass | Matched factorial proves relaxation/preconditioner interaction; exact-prefix delayed-time control proves a flow-damping contribution. The bounded startup ramp then passes at 2,500 steps. |
+
+The 7 bump recoveries qualify the combined configuration, rather than
+proving a unique cause on every grid. The strongest separate attribution is
+the fine Metal SA relaxation/preconditioner factorial, followed by its exact-prefix
+flow-time control. The middle Metal SST plate has a measured pressure-gain
+contribution. Boundary and arithmetic witnesses do not establish safe remedies
+for all other failures. The raw-k/common-denominator and far-wake caveats in
+the earlier scalar controls remain; passing wall stations is not independent
+verification of that far-wake field.
+
+### Retained choices, rejected controls and cost
+
+The six defaults are momentum/pressure absolute tolerances `1e-20`, and SST/SA
+compensated scalar transport, no scalar pseudo-time, steady tolerance `1e-6`
+and scalar absolute tolerance `1e-20`. TMR inherits them. Momentum compensation,
+slack 16 and fixed flow time .1 remain opt-in after their regressions. The bump
+selects scalar AMG, full k or SA updates and the bounded .1 → 1 flow-time ramp;
+plates keep their original controls. Other solves retain Jacobi and fixed or
+automatic flow-time stepping.
+
+These defaults have a measured ordinary SA Metal penalty of **26.6%**, range
+20.6–32.6%, on the defined unconverged 3,000-step benchmark. The short Coupled
+CPU startup comparison is 1.318x, with the wide paired range documented below.
+Both sides of every retained timing ratio ran on macOS 27.2; no cross-OS,
+paused-case or whole-paused-run elapsed value is used as cost evidence.
+Allocation increases for ordinary SST/SA are 56/28 device B/cell. On the
+specified fine-bump compensation probe, compensation itself adds 268.76/332.76
+device B/cell; these are topology/setup-specific, not universal constants.
+
+The controlled failures remain part of the result. Scalar full updates with
+Jacobi fail inner convergence and can produce misleading normalized passes;
+AMG is required by the selected full-update experiment. Uniform lower plate
+pressure, adaptive pressure and NormalFoot/symmetry changes recover middle
+cases but lose the fine guard. Source-frame, stress arithmetic, low-low
+convection and host-double face witnesses do not fix the middle-plate gate.
+Velocity fallback is ineffective on the tested plate fits and harms coarse
+SST flow. Tight or minimal scalar contraction, delayed or from startup, improves
+raw scalar accuracy but does not fix late SA load change and loses a Metal pass.
+The final omega-fit controls also fail the coupled stopping gate with the
+retained scalar/time settings. No additional root precision, pressure,
+geometry or holding-policy patch from those controls is selected.
+
+The memory fix is separately controlled: matched six-device, 40-step fine-bump
+sequences preserve all 19 compared physical endpoint double bit patterns while
+SST peak falls 779,142,320 → 321,176,416 B and SA 747,488,432 → 312,787,832 B.
+Required CPU/Metal 40-step elbow files and target states match at fixed numerical
+settings; the detailed proofs are [transfer-pool-memory.json](transfer-pool-memory.json)
+and [root-gradient-scratch-os27-parity.json](root-gradient-scratch-os27-parity.json).
+The historical 5,542,384,392-byte full-suite peak belongs to a different
+source/allocator cohort. The fresh full-suite peak above proves the current
+3 GB budget; it is not represented as a pure paired OS-independent pool saving.
+
+### Remaining limits and reproducibility
+
+The remaining 10 gates need safe cause-specific fixes. The original fine plate
+slow approaches, middle SA plateau, coarse bump flow/omega behavior and CPU
+fine-SA load transient are not solved by the rejected controls. The report
+retains successful contributions, negative experiments and unknown causes
+separately. No Fluent license or new Fluent runs are used, and none of these
+numerical controls is claimed to reproduce an undocumented Fluent algorithm.
+
+The execution source revision is `d9015a218060301c07cf263861b1881bbfa9abfb`. The artifacts bind the
+actual binaries and numerical inputs; later report-only commits do not alter
+those tested numerical files. The earlier Darwin 25.6 → 27.2 migration is
+recorded with exact-main CPU/Metal reproduction controls. It is separate from
+the November 4–6 owner SIGSTOP/SIGCONT pause, during which the Mac did not
+reboot. Paused case 21 and the whole paused span remain excluded from timing.
+The original retained process completed; it was not duplicated or killed.
+Both final qualification processes finished. After the checks, all 268 owned
+temporary fixture symlinks were removed; their main-checkout targets were untouched.
+
+The full run uses the original test suite and assertions; reporter output is
+separated from solver progress without rewriting either stream:
+
+```sh
+export KUTTA_FLUENT_EXAMPLES="<fixtures>/validation/fluent_examples"
+export KUTTA_RUNS="<fixtures>/runs"
+build/kutta-tests -ts=slow -r=xml --success --out=branch.xml >slow.log 2>&1
+python3 tools/forensics/compare_slow_assertions.py "<baseline>/slow.xml" branch.xml
+build/kutta-tests --test-suite-exclude=slow
+python3 tools/lint_portability.py
+```
+
+## Prior lane and chronological experiment record
+
+The sections below preserve the outcome and qualification state at each dated
+checkpoint; earlier counts and pending statements are historical.
+
 The rebased source completes all 37 slow cases and matches all 201,633 assertion
 identities against main `8866cc0`. TMR failures fall from 28 to
 17; total slow failures fall from 62 to 51.
@@ -876,66 +1102,10 @@ The largest individual paired-run footprint is **152,879,752 bytes**. Every coho
 
 The earlier old-OS timing sections remain historical measurements. No cross-OS timing difference is claimed. Earlier Coupled startup and larger T3A timings are not replayed here; the actual selected six-default combination still needs its own new-OS ordinary/Coupled costs and full qualification.
 
-### Option decisions and allocation cost
+### Archived option-study notes
 
-Momentum compensation and slack 16 are rejected by their completed full slow tiers;
-slack 16 also fails the quick tier. Fixed flow pseudo-time `.1` fails quick
-with seven assertions across four cases and one slow-tier regression. Momentum and pressure tolerances preserve
-all slow gates and pass the quick tier. Scalar compensation also preserves
-all outcomes and passes quick; its canonical comparison retains 76 passing
-missing/new INFO identities. Scalar steady stopping preserves all outcomes
-and passes quick with 74 such identity changes. Disabling scalar pseudo-time also
-preserves all outcomes and passes quick, with 76 such identity changes. Scalar
-absolute tolerance preserves outcomes with 20 such identity changes and a
-material ordinary-solve cost. All nine singleton and three group studies
-are complete. The combined precision group is rejected by two new failures;
-the two smaller groups preserve outcomes. The six individually nonregressing controls now pass their actual combined
-default qualification and are promoted; its identity gaps and costs are
-reported below. Allocation measurements
-come from independent one-step CPU plate probes, changing one setting at a
-time from ordinary settings, on 816 cells. The compensation row instead uses
-the current actual-root fine-bump delta after both cleanups below. These allocations are
-not convergence or timing measurements. The exact data and probe hashes are
-in [default-study-memory.json](default-study-memory.json) and
-[lean-sst-parity.json](lean-sst-parity.json), and
-[root-gradient-scratch-os27-parity.json](root-gradient-scratch-os27-parity.json).
-
-| Candidate | Slow-tier effect | Iteration cost | Extra device B/cell, SST / SA | Decision |
-| --- | --- | --- | ---: | --- |
-| Compensated momentum | Full: 2 new elbow failures, 0 recoveries; 1,173 changed values, 84 missing/new INFO identities | New-OS ordinary SST plate: unconverged 3,000 → converged 300 both. SA remains failed at 3,000; total time CPU 1.594x / Metal 1.061x | 268.76 / 332.76, current fine bump | Keep opt-in |
-| Paired-state slack 16 | Full: 45 regressions, 0 recoveries, 1,237 changed values; 84 missing / 88 new identities; quick adds two failures | New-OS ordinary SST stops at 400 both; SA CPU fails at 3,000 / Metal converges 500. Finest cavity steps: 900 → 2,800 CPU / 4,400 Metal | 0 / 0 | Keep opt-in |
-| Momentum absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 6 changed cavity values, 0 missing/new identities; quick passes | Momentum inner work 3.19–3.47x; all four ordinary plates fail at 3,000. New-OS total time SST / SA: CPU 0.975x / 1.201x, Metal 1.068x / 1.045x | 0 / 0 | Default; exact combined qualification reviewed |
-| Pressure absolute tolerance 1e-20 | Full: 0 regressions/recoveries/changed values, 0 missing/new identities; quick passes | All four ordinary plates fail at 3,000. New-OS total time SST / SA: CPU 0.907x / 1.021x, Metal 1.496x / 0.930x; SST Metal late 1.660x | 0 / 0 | Default; exact combined qualification reviewed |
-| Compensated scalar transport | Full: 0 regressions/recoveries, 231 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239→10,677 CPU / 73,502→10,910 Metal; SA unchanged. New-OS total time SST / SA: CPU 1.013x / 1.028x, Metal 0.689x / 0.929x | 32 / 16 | Default; combined qualification and identity gaps reviewed |
-| Scalar pseudo-time off | Full: 0 regressions/recoveries, 240 changed values, 76 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar inner work: 72,239→71,700 CPU / 73,502→71,812 Metal; SA 417→495 / 492. New-OS late time, SST / SA: CPU 0.976x / 1.006x, Metal 1.012x / 0.990x | 0 / 0 | Default; combined qualification and identity gaps reviewed |
-| Scalar steady tolerance 1e-6 | Full: 0 regressions/recoveries, 234 changed values, 74 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239→4,677 CPU / 73,502→4,530 Metal; SA unchanged. New-OS total time SST / SA: CPU 0.835x / 1.001x, Metal 0.663x / 1.018x | 24 / 12 | Default; combined qualification and identity gaps reviewed |
-| Scalar absolute tolerance 1e-20 | Full: 0 regressions/recoveries, 43 changed values, 20 missing/new passing INFO identities; quick passes | Ordinary plates all fail at 3,000. SST scalar work: 72,239→155,816 CPU / 73,502→155,771 Metal; SA 417→138,240 / 144,778. New-OS total time, SST / SA: CPU 1.176x / 1.259x, Metal 1.416x / 1.966x | 0 / 0 | Default; combined qualification and material cost disclosed |
-| Fixed flow pseudo-time .1 | Full: 1 regression, 2 recoveries, 940 changed values, 88 missing / 80 new passing identities; quick adds 7 failures in 4 cases | Cavity steps 600/600/900→1,400/1,000/1,200 on both backends; V6 seeded 200→150 / cold 250→200 but all 25 accuracy failures remain. Four ordinary plates still fail at 3,000. New-OS total time, SST / SA: CPU 0.990x / 1.009x, Metal 1.018x / 1.001x | 0 / 0 | Keep opt-in |
-| Three inner absolute tolerances together | Full: 0 regressions/recoveries, 49 changed values, 20 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. Momentum work 3.32–3.60x; SST scalar work 2.12–2.17x, SA 317–324x. New-OS total time, SST / SA: CPU 1.173x / 1.268x, Metal 1.445x / 2.031x | 0 / 0 | Included in the six defaults; combined qualification and cost reviewed |
-| Four scalar controls together | Full: 0 regressions/recoveries, 258 changed values, 76 missing/new passing INFO identities; quick passes | All four ordinary plates fail at 3,000. SST scalar work 72,239/73,502→8,076/7,907; SA 417→1,322/1,325. New-OS total time, SST / SA: CPU 0.773x / 1.007x, Metal 0.654x / 1.015x. Coupled startup CPU 1.069x / Metal 1.020x | 56 / 28 | Included in the six defaults; combined qualification and cost reviewed |
-| Combined precision controls | Full: 2 regressions, 0 recoveries, 1,239 changed values, 88 missing/new passing identities; quick passes | Ordinary plates: all baseline failures at 3,000 → SST converged at 300 both, SA converged at 400 CPU / 300 Metal. New-OS time to stop, SST / SA: CPU 0.190x / 0.240x, Metal 0.069x / 0.114x. Coupled startup CPU 2.526x / Metal 1.175x | 377.97 / 389.97, coarse plate | Keep opt-in; material Coupled cost disclosed |
-| Actual selected six controls | Full: 0 regressions/recoveries, 264 changed values, 76 missing/new passing INFO identities; quick 307/7,990,154 passes | All four ordinary plates fail at 3,000. M/P/scalar work and paired ranges below. New-OS total time SST / SA: CPU 0.812x / 1.038x, Metal 0.652x / 1.266x. Early Coupled CPU 1.318x / Metal 1.089x, wide ranges | 56 / 28 | Default; full joint review complete; SA Metal cost disclosed |
-
-Momentum relaxation .7 is already the ordinary solver default. The bump
-harness's fixed time step is a separate candidate from its relaxation.
-The completed groups are the three inner absolute tolerances, the four scalar
-controls, and the combined precision controls. A group does not substitute
-for the singleton checks. Any regression leaves the setting opt-in.
-
-After the first 36 B/cell SST cleanup, before the additional scratch reuse
-documented below, compensated momentum added 17,840,128 device bytes on the
-56,320-cell SST bump (316.76 B/cell). SA added 20,092,928 bytes (356.76 B/cell).
-The table above uses the later actual-root measurements, 268.76 / 332.76 B/cell. These deltas keep the TMR scalar controls fixed. With
-walk reconstruction active, the increments are
-`100*Ncells + 28*Nfaces + 28*Nboundary` for SST and
-`164*Ncells + 28*Nfaces + 28*Nboundary` for SA, after both scratch cleanups.
-Here `Nfaces` includes boundary faces. On the measured grid, `Ncells=56,320`,
-`Nfaces=225,792` and `Nboundary=113,664`; these formulas reproduce all four
-CPU/Metal on-minus-off allocation deltas exactly. They include the 64 B/cell
-paired walk scratch allocated on first use. The original allocation receipt
-records SST before that cleanup: 19,867,648 bytes (352.76 B/cell); the linked
-parity receipt records its exact 2,027,520-byte reduction. These are device
-allocation deltas, not process-footprint savings.
+The final [option decision table](#option-decisions-and-allocation-cost) is above.
+The allocation and parity studies below retain their original cohorts.
 
 ### Remove unused SST fits without changing its solution
 
@@ -3519,7 +3689,7 @@ All original 3,000 outer and 100/300/100 inner caps and physical gates hold.
 | Metal / from startup | 2.201740e-5 | 1.561906e-6 | 3.776942e-5 | Fails 3,000 |
 
 Continuity normalization is unchanged in the delayed controls and differs
-by less than 8e-13 relatively in the startup controls. Delayed raw omega
+by less than 1e-12 relatively in the startup controls. Delayed raw omega
 falls to .438984 of observe on CPU and .588842 on Metal. From startup,
 Metal raw omega falls to .0753904, but raw continuity worsens by 25.9%.
 CPU startup raw omega instead rises by 3.36%, while raw continuity improves

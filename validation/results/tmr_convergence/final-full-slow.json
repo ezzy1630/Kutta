@@ -1,0 +1,2401 @@
+{
+  "scope": "Actual root single-process full slow tier: all37cases,201633assertions, unchanged canonical comparator. No stitched XML, no gate/reference/budget change. Only numerical gate outcomes and TMR published-reference metrics are copied; restricted XML remains ignored.",
+  "git_head_at_execution": "d9015a218060301c07cf263861b1881bbfa9abfb",
+  "full_slow_command": [
+    "/usr/bin/time",
+    "-l",
+    "<checkout>/build/kutta-tests",
+    "-ts=slow",
+    "-r=xml",
+    "--success",
+    "--out=<checkout>/build/final-retained-slow-os27/branch.xml"
+  ],
+  "measurement_environment": {
+    "system": "Darwin",
+    "darwin_release": "27.2.0",
+    "macos_product_version": "27.2",
+    "macos_build": "26B123",
+    "machine": "arm64",
+    "python_version": "3.14.10"
+  },
+  "canonical_counts": {
+    "cases": 37,
+    "regressions": 0,
+    "recoveries": 7,
+    "changed_values": 302,
+    "missing_assertions": 76,
+    "new_assertions": 76,
+    "missing_cases": 0,
+    "new_cases": 0,
+    "baseline_failures": 51,
+    "final_failures": 44
+  },
+  "comparison_against_completed_six_defaults": {
+    "complete": true,
+    "scope": "Use the unchanged canonical comparator to isolate final post-default effects.",
+    "canonical_comparator_actual_exit": 0,
+    "canonical_no_new_failures": true,
+    "counts": {
+      "cases": 37,
+      "regressions": 0,
+      "recoveries": 7,
+      "changed_values": 38,
+      "missing_assertions": 0,
+      "new_assertions": 0,
+      "missing_cases": 0,
+      "new_cases": 0
+    },
+    "non_tmr_counts": {
+      "regressions": 0,
+      "recoveries": 0,
+      "changed_values": 0,
+      "missing_assertions": 0,
+      "new_assertions": 0
+    },
+    "non_tmr_cases_identical": true,
+    "baseline_xml_sha256": "3f677addedff36ff1a58e08b29a2c8b189db1416c788e5257a0c1902ba30bd30",
+    "final_xml_sha256": "c5f31503b54fb7fdb3bb91a0e3b39c97cccac29769464f9865494f841cfb76ff",
+    "comparison_sha256": "6398c27c4f516809dc0cd53b876ac90cbc6516fa529607db0ceee7b201671b75",
+    "canonical_comparator_sha256": "5fa871f78f491b703b0e7bb052085f0c0b0bbc2b589813867dc7968b4f807c50",
+    "eligible_metadata_sha256": "3b2becdc8844dc0b397dfee7903608fe3604a4f4ee4c07b4fd897337c62da778",
+    "changed_values_by_case": {
+      "V5 TMR bump SST station accuracy and three-grid trend": 18,
+      "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend": 20
+    },
+    "script_sha256": "dacc6f7ee8dd2e123af0972fbeee019f019d3478275fc5e509264fe6a484d468"
+  },
+  "canonical_comparator_actual_exit": 1,
+  "canonical_no_new_failures": false,
+  "cases": [
+    {
+      "case": "Kutta cases converted from Fluent cases solve to the same bytes on every backend",
+      "baseline_assertions": 68,
+      "final_assertions": 68,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "The NACA ground-effect wing from a bare mesh and a Kutta case solves like its donor Fluent case",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs",
+      "baseline_assertions": 477,
+      "final_assertions": 477,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Corpus FSAE physics preserve strict solver holds or convert with identical outputs",
+      "baseline_assertions": 0,
+      "final_assertions": 0,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re1000 cavity refinement against Erturk",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V3 Re100 and Re400 cavity reported deviations",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V4 Fluent cavity matches its actual grid",
+      "baseline_assertions": 763,
+      "final_assertions": 763,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields",
+      "baseline_assertions": 17044,
+      "final_assertions": 17044,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent k-epsilon elbow converges with second-order pressure",
+      "baseline_assertions": 11220,
+      "final_assertions": 11220,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent laminar 2D cylinder matches converged Fluent fields",
+      "baseline_assertions": 207,
+      "final_assertions": 207,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V6 Fluent mixing elbow fixed point and cold start",
+      "baseline_assertions": 2565,
+      "final_assertions": 2565,
+      "baseline_failed": 25,
+      "final_failed": 25
+    },
+    {
+      "case": "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega",
+      "baseline_assertions": 28,
+      "final_assertions": 28,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg drag, level 1",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 9,
+      "final_assertions": 9,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled",
+      "baseline_assertions": 8,
+      "final_assertions": 8,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V12 native Fluent polynomial fan import acceptance",
+      "baseline_assertions": 1,
+      "final_assertions": 1,
+      "baseline_failed": 1,
+      "final_failed": 1
+    },
+    {
+      "case": "V8 realizable KE scalable channel MKM DNS profile and momentum balance",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes hex refinement",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV V2 manufactured Navier Stokes tet refinement",
+      "baseline_assertions": 18,
+      "final_assertions": 18,
+      "baseline_failed": 8,
+      "final_failed": 8
+    },
+    {
+      "case": "FV V1 manufactured scalar diffusion and upwind refinement",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FV SIMPLEC develops planar Couette flow with moving and slip walls",
+      "baseline_assertions": 14,
+      "final_assertions": 14,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "V5 TMR flat plate SST accuracy and three-grid trend",
+      "baseline_assertions": 36,
+      "final_assertions": 36,
+      "baseline_failed": 2,
+      "final_failed": 2
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "baseline_assertions": 47,
+      "final_assertions": 47,
+      "baseline_failed": 6,
+      "final_failed": 2
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "baseline_assertions": 70,
+      "final_assertions": 70,
+      "baseline_failed": 9,
+      "final_failed": 6
+    },
+    {
+      "case": "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)",
+      "baseline_assertions": 161470,
+      "final_assertions": 161470,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC",
+      "baseline_assertions": 11,
+      "final_assertions": 11,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.1 translating-wall Couette hex and poly",
+      "baseline_assertions": 104,
+      "final_assertions": 104,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.2 rotating-wall Taylor Couette hex and poly",
+      "baseline_assertions": 6668,
+      "final_assertions": 6668,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V8 Darcy Forchheimer pressure drop and oblique directions",
+      "baseline_assertions": 24,
+      "final_assertions": 24,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9 absolute-velocity MRF analytic solutions and frame invariance",
+      "baseline_assertions": 48,
+      "final_assertions": 48,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10 incompressible pressure and mass-flow inlets",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V11 internal fan polynomial and porous jump pressure discontinuity",
+      "baseline_assertions": 312,
+      "final_assertions": 312,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V7.3 SST moving-wall and translating-frame invariance",
+      "baseline_assertions": 16,
+      "final_assertions": 16,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.2 conformal MRF interface preserves absolute Taylor Couette",
+      "baseline_assertions": 4,
+      "final_assertions": 4,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport",
+      "baseline_assertions": 12,
+      "final_assertions": 12,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "FSAE V9.3 rotation and translation preserve Taylor Couette pressure",
+      "baseline_assertions": 6,
+      "final_assertions": 6,
+      "baseline_failed": 0,
+      "final_failed": 0
+    },
+    {
+      "case": "Fluent research downloads retain published byte identities",
+      "baseline_assertions": 264,
+      "final_assertions": 264,
+      "baseline_failed": 0,
+      "final_failed": 0
+    }
+  ],
+  "regressions": [],
+  "recoveries": [
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "64",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: cpu",
+          "level: 1"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true"
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "64",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: cpu",
+          "level: 2"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true"
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "64",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: metal",
+          "level: 1"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true"
+    },
+    {
+      "case": "V5 TMR bump SST station accuracy and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr.cpp",
+        "64",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: metal",
+          "level: 2"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true"
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "25",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: cpu",
+          "case <pointer-2> level 1"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true"
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "25",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: metal",
+          "case <pointer-2> level 1"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true"
+    },
+    {
+      "case": "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend",
+      "assertion": [
+        "tests/fv/test_tmr_sa.cpp",
+        "25",
+        "CHECK",
+        "r.converged",
+        [
+          "backend: metal",
+          "case <pointer-2> level 2"
+        ],
+        0
+      ],
+      "before": "false",
+      "after": "true"
+    }
+  ],
+  "changed_values_by_case": {
+    "Kutta cases converted from Fluent cases solve to the same bytes on every backend": 16,
+    "Native FSAE Fluent physics convert and solve to byte-identical Kutta outputs": 122,
+    "FV V3 Re1000 cavity refinement against Erturk": 6,
+    "Fluent standard k-epsilon elbow and SST nozzle match converged Fluent fields": 11,
+    "FV V6 Fluent mixing elbow fixed point and cold start": 32,
+    "FSAE aero: Tyrrell 026 sectional Cl in ground effect vs thesis CFL3D k-omega": 3,
+    "FSAE aero: Ahmed body 35 deg drag, level 1": 1,
+    "FSAE aero: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC": 2,
+    "FSAE aero: Ahmed body 35 deg at y+ ~ 1, level 1, SIMPLEC and Coupled": 4,
+    "V5 TMR bump SST station accuracy and three-grid trend": 18,
+    "V7 SA TMR flat plate and bump accuracy convergence and three-grid trend": 20,
+    "Transition: ERCOFTAC T3A skin friction vs experiment (REGRESSION GUARD) and vs the documented equations (VERIFICATION)": 55,
+    "Transition: Selig S1223 at Re 2e5, alpha 4.76 deg vs UIUC": 3,
+    "FSAE V7.3 SST moving-wall and translating-frame invariance": 5,
+    "FSAE V10.2 SST pressure and mass inlets match velocity-inlet transport": 4
+  },
+  "identity_gap_status_counts": {
+    "missing_assertions": {
+      "passed": 76
+    },
+    "new_assertions": {
+      "passed": 76
+    }
+  },
+  "full_comparison_artifact": "build/final-retained-slow-os27/comparison.json",
+  "full_comparison_sha256": "39518e5f0a34959ee56223d3a00f9d8e12b57b3d230ce0fd8eb000992b292a76",
+  "slow_log_sha256": "260a61f86b97900cc98b395955718a93b03574e2e1761e38d971cbe9906579e5",
+  "full_xml_sha256": "c5f31503b54fb7fdb3bb91a0e3b39c97cccac29769464f9865494f841cfb76ff",
+  "baseline_xml_sha256": "aa01955caa4f6601b141ca32cb154644bfdfee56fd498bb53d88aae90264b522",
+  "comparator_sha256": "5fa871f78f491b703b0e7bb052085f0c0b0bbc2b589813867dc7968b4f807c50",
+  "executed_test_binary_sha256": "e8b4747b31582bdc5aeb1e3f4047d700b380f5eb9502694e71a0821e1ac371e0",
+  "executed_cli_sha256": "6ac4fc4945b95417a451924d5ac14ccddbf0c07c76cc90b45f1807d282e2dd4e",
+  "executed_library_sha256": "20d185f278654d0de3c4b48c8a7977fd293b3b6d72499f232d7aac1f64f7ba9e",
+  "resource": {
+    "actual_wait_status": 1,
+    "continuously_guarded": true,
+    "limit_bytes": 3000000000,
+    "resource_limit_exceeded": false,
+    "sampled_and_reported_peak_bytes": 2329807152,
+    "reported_peak_bytes": 2329807152,
+    "interrupted": false,
+    "completed_wait_and_final_footprint": true
+  },
+  "tmr_rows": [
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 0,
+      "baseline_steps": 300,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 1.08658073802e-06,
+      "baseline_load_change": 3.16705721536e-05,
+      "final_steps": 300,
+      "final_maximum_defect": 1.08658073802e-06,
+      "final_converged": true,
+      "final_load_change": 3.16705721536e-05,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "816"
+        ],
+        "iterations": [
+          "300"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "3.16705721536e-05"
+        ],
+        "error": [
+          "0.0164759807378"
+        ],
+        "cf": [
+          "0.00264910058803"
+        ],
+        "drag": [
+          "0.00280631265923"
+        ],
+        "continuity": [
+          "1.08658073802e-06"
+        ],
+        "continuity_raw": [
+          "1.98963145005e-10"
+        ],
+        "corrected_mass": [
+          "3.501859718e-13"
+        ],
+        "ru": [
+          "1.2792904876e-10"
+        ],
+        "rv": [
+          "1.14401849676e-10"
+        ],
+        "rk": [
+          "6.96645387399e-07"
+        ],
+        "rw": [
+          "8.95668086236e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 1,
+      "baseline_steps": 800,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 4.27857860586e-06,
+      "baseline_load_change": 6.86213612579e-07,
+      "final_steps": 800,
+      "final_maximum_defect": 4.27857860586e-06,
+      "final_converged": true,
+      "final_load_change": 6.86213612579e-07,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "3264"
+        ],
+        "iterations": [
+          "800"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "6.86213612579e-07"
+        ],
+        "error": [
+          "0.00167289363248"
+        ],
+        "cf": [
+          "0.00269535506177"
+        ],
+        "drag": [
+          "0.0028563508863"
+        ],
+        "continuity": [
+          "4.27857860586e-06"
+        ],
+        "continuity_raw": [
+          "1.16349018256e-10"
+        ],
+        "corrected_mass": [
+          "1.93208621845e-13"
+        ],
+        "ru": [
+          "6.81530043535e-10"
+        ],
+        "rv": [
+          "2.46606058419e-10"
+        ],
+        "rk": [
+          "8.20810322925e-07"
+        ],
+        "rw": [
+          "3.43520915864e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 1.9098099621e-05,
+      "baseline_load_change": 2.9349888398e-06,
+      "final_steps": 3000,
+      "final_maximum_defect": 1.9098099621e-05,
+      "final_converged": false,
+      "final_load_change": 2.9349888398e-06,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "13056"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "2.9349888398e-06"
+        ],
+        "error": [
+          "0.00850030940617"
+        ],
+        "cf": [
+          "0.00271372663774"
+        ],
+        "drag": [
+          "0.00287680117026"
+        ],
+        "continuity": [
+          "1.9098099621e-05"
+        ],
+        "continuity_raw": [
+          "8.09224706626e-11"
+        ],
+        "corrected_mass": [
+          "2.69088990998e-13"
+        ],
+        "ru": [
+          "6.0380857418e-10"
+        ],
+        "rv": [
+          "7.85314715091e-11"
+        ],
+        "rk": [
+          "9.90676677969e-07"
+        ],
+        "rw": [
+          "4.13604658373e-07"
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Declining failed-component envelope and continued paired-flow or k-field motion. K on middle/fine bumps has lag-two motion about twice lag-one.",
+        "components_exceeding_frozen_gate": [
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 6.038085741800936e-10,
+          "v": 7.853147150907255e-11,
+          "w": 9.689256017509388e-19,
+          "k": 9.906766779689626e-07,
+          "omega": 4.136046583726837e-07,
+          "nu_tilde": 0.0,
+          "continuity": 1.9098099620993904e-05
+        },
+        "endpoint_raw_continuity": 8.092247066258636e-11,
+        "continuity_normalization": 4.237200154387664e-06
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 0,
+      "baseline_steps": 300,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 1.86488954371e-06,
+      "baseline_load_change": 3.17232355992e-05,
+      "final_steps": 300,
+      "final_maximum_defect": 1.86488954371e-06,
+      "final_converged": true,
+      "final_load_change": 3.17232355992e-05,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "816"
+        ],
+        "iterations": [
+          "300"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "3.17232355992e-05"
+        ],
+        "error": [
+          "0.016475949859"
+        ],
+        "cf": [
+          "0.00264910071486"
+        ],
+        "drag": [
+          "0.00280631274734"
+        ],
+        "continuity": [
+          "1.86488954371e-06"
+        ],
+        "continuity_raw": [
+          "3.41485864542e-10"
+        ],
+        "corrected_mass": [
+          "7.6536471388e-13"
+        ],
+        "ru": [
+          "1.30896337172e-10"
+        ],
+        "rv": [
+          "1.32364019849e-10"
+        ],
+        "rk": [
+          "7.36334784543e-07"
+        ],
+        "rw": [
+          "8.9156671327e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 3.04515373356e-05,
+      "baseline_load_change": 0.0,
+      "final_steps": 3000,
+      "final_maximum_defect": 3.04515373356e-05,
+      "final_converged": false,
+      "final_load_change": 0.0,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "3264"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "0"
+        ],
+        "error": [
+          "0.00167044945555"
+        ],
+        "cf": [
+          "0.00269534848485"
+        ],
+        "drag": [
+          "0.00285633548316"
+        ],
+        "continuity": [
+          "3.04515373356e-05"
+        ],
+        "continuity_raw": [
+          "8.28080263892e-10"
+        ],
+        "corrected_mass": [
+          "1.8975771475e-12"
+        ],
+        "ru": [
+          "2.04145393589e-10"
+        ],
+        "rv": [
+          "1.02514016293e-10"
+        ],
+        "rk": [
+          "9.30681874008e-07"
+        ],
+        "rw": [
+          "5.83558724562e-07"
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "two-cycle",
+        "classification": "two-cycle with small drift",
+        "reason": "Pressure, velocity and mass-flux lag-two movement is much smaller than lag-one, while k, omega and eddy viscosity remain unchanged through all final 201 sampled steps.",
+        "components_exceeding_frozen_gate": [
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 2.041453935894421e-10,
+          "v": 1.025140162927462e-10,
+          "w": 6.642327285951253e-19,
+          "k": 9.30681874008309e-07,
+          "omega": 5.835587245620892e-07,
+          "nu_tilde": 0.0,
+          "continuity": 3.045153733564266e-05
+        },
+        "endpoint_raw_continuity": 8.280802638916968e-10,
+        "continuity_normalization": 2.719338123275807e-05
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 7.40765424044e-06,
+      "baseline_load_change": 1.26287885206e-06,
+      "final_steps": 3000,
+      "final_maximum_defect": 7.40765424044e-06,
+      "final_converged": true,
+      "final_load_change": 1.26287885206e-06,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "13056"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "1.26287885206e-06"
+        ],
+        "error": [
+          "0.0084898989712"
+        ],
+        "cf": [
+          "0.00271369862479"
+        ],
+        "drag": [
+          "0.00287676446717"
+        ],
+        "continuity": [
+          "7.40765424044e-06"
+        ],
+        "continuity_raw": [
+          "3.13877166988e-11"
+        ],
+        "corrected_mass": [
+          "1.6963753129e-13"
+        ],
+        "ru": [
+          "1.2939645814e-10"
+        ],
+        "rv": [
+          "2.10167087969e-11"
+        ],
+        "rk": [
+          "9.99793018898e-07"
+        ],
+        "rw": [
+          "6.76695291787e-07"
+        ]
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 0,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 3.14385728337e-05,
+      "baseline_load_change": 4.79683619736e-05,
+      "final_steps": 3000,
+      "final_maximum_defect": 2.80601533804e-05,
+      "final_converged": false,
+      "final_load_change": 2.64342064315e-05,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "3520"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "2.64342064315e-05"
+        ],
+        "error": [
+          "2.05415523434"
+        ],
+        "drag": [
+          "0.00436592257412"
+        ],
+        "cf": [
+          "0.0048744967639",
+          "0.00588610195565",
+          "0.00296086917462"
+        ],
+        "cp": [
+          "-0.218508478189",
+          "-0.60824534297",
+          "-0.263466853217"
+        ],
+        "continuity": [
+          "2.80601533804e-05"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "plateau",
+        "classification": "omega plateau with continuing field motion and slower continuity approach",
+        "reason": "Omega stays above its gate without a declining 1000-step trend, while k and continuity decrease. Velocity has a superposed alternating component, but pressure and k continue to drift.",
+        "components_exceeding_frozen_gate": [
+          "omega",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 1.7095868830302405e-07,
+          "v": 5.227577846823576e-08,
+          "w": 2.06589402948478e-17,
+          "k": 5.898769906887919e-06,
+          "omega": 1.4441001055805294e-05,
+          "nu_tilde": 0.0,
+          "continuity": 3.143857283374818e-05
+        },
+        "endpoint_raw_continuity": 3.343705428585119e-06,
+        "continuity_normalization": 0.10635678172374831
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.30844266492e-05,
+      "baseline_load_change": 0.000109985227325,
+      "final_steps": 2400,
+      "final_maximum_defect": 9.06748079278e-06,
+      "final_converged": true,
+      "final_load_change": 0.000195254610449,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "14080"
+        ],
+        "iterations": [
+          "2400"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "0.000195254610449"
+        ],
+        "error": [
+          "0.88108615462"
+        ],
+        "drag": [
+          "0.00367230553794"
+        ],
+        "cf": [
+          "0.00507913963283",
+          "0.00623961012584",
+          "0.00263218068533"
+        ],
+        "cp": [
+          "-0.23785713952",
+          "-0.643437415361",
+          "-0.256450379452"
+        ],
+        "continuity": [
+          "9.06748079278e-06"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Declining failed-component envelope and continued paired-flow or k-field motion. K on middle/fine bumps has lag-two motion about twice lag-one.",
+        "components_exceeding_frozen_gate": [
+          "k",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 9.867542830818963e-07,
+          "v": 5.787115998603756e-08,
+          "w": 8.250695237096938e-18,
+          "k": 2.0400687901070638e-05,
+          "omega": 3.236369849077532e-06,
+          "nu_tilde": 0.0,
+          "continuity": 2.3084426649165197e-05
+        },
+        "endpoint_raw_continuity": 3.91670038682614e-06,
+        "continuity_normalization": 0.169668514897587
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.57342260198e-05,
+      "baseline_load_change": 0.00080014620876,
+      "final_steps": 3000,
+      "final_maximum_defect": 1.99180334391e-06,
+      "final_converged": true,
+      "final_load_change": 0.00086160476091,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "cells": [
+          "56320"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "0.00086160476091"
+        ],
+        "error": [
+          "0.413631760915"
+        ],
+        "drag": [
+          "0.00365716846486"
+        ],
+        "cf": [
+          "0.00507440324636",
+          "0.0061845049855",
+          "0.00255064721078"
+        ],
+        "cp": [
+          "-0.251953783884",
+          "-0.657461047173",
+          "-0.253360518724"
+        ],
+        "continuity": [
+          "1.99180334391e-06"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Declining failed-component envelope and continued paired-flow or k-field motion. K on middle/fine bumps has lag-two motion about twice lag-one.",
+        "components_exceeding_frozen_gate": [
+          "k",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 8.810997954787107e-07,
+          "v": 1.8926762226932718e-08,
+          "w": 3.3625546448787507e-18,
+          "k": 2.5734226019753343e-05,
+          "omega": 8.517127761554967e-07,
+          "nu_tilde": 0.0,
+          "continuity": 1.2109926528166988e-05
+        },
+        "endpoint_raw_continuity": 3.494265023438106e-06,
+        "continuity_normalization": 0.288545518035196
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 0,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 1.99188050291e-05,
+      "baseline_load_change": 0.000120502689492,
+      "final_steps": 3000,
+      "final_maximum_defect": 2.07176994315e-05,
+      "final_converged": false,
+      "final_load_change": 2.52948584361e-05,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "3520"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "2.52948584361e-05"
+        ],
+        "error": [
+          "2.05404794598"
+        ],
+        "drag": [
+          "0.00436588439872"
+        ],
+        "cf": [
+          "0.00487451832848",
+          "0.00588612342845",
+          "0.00296088526781"
+        ],
+        "cp": [
+          "-0.218507684798",
+          "-0.608248561621",
+          "-0.263469738672"
+        ],
+        "continuity": [
+          "1.74815965357e-05"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "plateau",
+        "classification": "omega plateau with continuing field motion and slower continuity approach",
+        "reason": "Omega stays above its gate without a declining 1000-step trend, while k and continuity decrease. Velocity has a superposed alternating component, but pressure and k continue to drift.",
+        "components_exceeding_frozen_gate": [
+          "omega",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 1.9374689886724368e-07,
+          "v": 6.747064363551799e-08,
+          "w": 1.890729476927275e-17,
+          "k": 6.843090193170681e-06,
+          "omega": 1.991880502908255e-05,
+          "nu_tilde": 0.0,
+          "continuity": 1.5151800050018854e-05
+        },
+        "endpoint_raw_continuity": 1.6114966906468047e-06,
+        "continuity_normalization": 0.10635678172408297
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.81366024514e-05,
+      "baseline_load_change": 0.000112066029761,
+      "final_steps": 2300,
+      "final_maximum_defect": 9.21583110972e-06,
+      "final_converged": true,
+      "final_load_change": 0.000199492603072,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "14080"
+        ],
+        "iterations": [
+          "2300"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "0.000199492603072"
+        ],
+        "error": [
+          "0.879568223"
+        ],
+        "drag": [
+          "0.00367302185174"
+        ],
+        "cf": [
+          "0.00507922261908",
+          "0.00623974921585",
+          "0.00263229408624"
+        ],
+        "cp": [
+          "-0.23788770681",
+          "-0.64348295331",
+          "-0.256495762916"
+        ],
+        "continuity": [
+          "9.21583110972e-06"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Declining failed-component envelope and continued paired-flow or k-field motion. K on middle/fine bumps has lag-two motion about twice lag-one.",
+        "components_exceeding_frozen_gate": [
+          "k",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 9.88436472970159e-07,
+          "v": 5.974645075411571e-08,
+          "w": 1.1530311865170797e-17,
+          "k": 2.0406701702843567e-05,
+          "omega": 3.2340251602378287e-06,
+          "nu_tilde": 0.0,
+          "continuity": 2.8136602451373984e-05
+        },
+        "endpoint_raw_continuity": 4.777892062535713e-06,
+        "continuity_normalization": 0.16981055444746476
+      }
+    },
+    {
+      "model": "sst",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.57270639969e-05,
+      "baseline_load_change": 0.000803104893041,
+      "final_steps": 3000,
+      "final_maximum_defect": 2.19010892384e-06,
+      "final_converged": true,
+      "final_load_change": 0.000839465915497,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "cells": [
+          "56320"
+        ],
+        "iterations": [
+          "3000"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "change": [
+          "0.000839465915497"
+        ],
+        "error": [
+          "0.413535400073"
+        ],
+        "drag": [
+          "0.00365728563325"
+        ],
+        "cf": [
+          "0.00507438341053",
+          "0.00618462957038",
+          "0.00255078600918"
+        ],
+        "cp": [
+          "-0.251946436112",
+          "-0.657463937998",
+          "-0.253362396517"
+        ],
+        "continuity": [
+          "2.19010892384e-06"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Declining failed-component envelope and continued paired-flow or k-field motion. K on middle/fine bumps has lag-two motion about twice lag-one.",
+        "components_exceeding_frozen_gate": [
+          "k",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 8.816159736393066e-07,
+          "v": 1.9161417057239938e-08,
+          "w": 7.803294785436827e-18,
+          "k": 2.5727063996873525e-05,
+          "omega": 8.419657371842855e-07,
+          "nu_tilde": 0.0,
+          "continuity": 1.0878801005944595e-05
+        },
+        "endpoint_raw_continuity": 3.1636630768042224e-06,
+        "continuity_normalization": 0.29080990405794493
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 0,
+      "baseline_steps": 400,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 9.23123312827e-07,
+      "baseline_load_change": 4.72940158892e-07,
+      "final_steps": 400,
+      "final_maximum_defect": 9.23123312827e-07,
+      "final_converged": true,
+      "final_load_change": 4.72940158892e-07,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "0"
+        ],
+        "cells": [
+          "816"
+        ],
+        "steps": [
+          "400"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "4.72940158892e-07"
+        ],
+        "error": [
+          "0.00890221017987"
+        ],
+        "Cd": [
+          "0.00287984540819"
+        ],
+        "Cf": [
+          "0.00272970754153",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000225212528502",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "4.3567170586e-08"
+        ],
+        "u": [
+          "9.04295761625e-12"
+        ],
+        "v": [
+          "3.75194403287e-12"
+        ],
+        "nu_tilde": [
+          "9.23123312827e-07"
+        ],
+        "max_yplus": [
+          "1.18770992756"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 1,
+      "baseline_steps": 900,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 4.99319219744e-06,
+      "baseline_load_change": 7.23281923771e-06,
+      "final_steps": 900,
+      "final_maximum_defect": 4.99319219744e-06,
+      "final_converged": true,
+      "final_load_change": 7.23281923771e-06,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "1"
+        ],
+        "cells": [
+          "3264"
+        ],
+        "steps": [
+          "900"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "7.23281923771e-06"
+        ],
+        "error": [
+          "0.00751554227315"
+        ],
+        "Cd": [
+          "0.00287839381485"
+        ],
+        "Cf": [
+          "0.00272595574298",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000195377307097",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "4.99319219744e-06"
+        ],
+        "u": [
+          "2.7862957184e-10"
+        ],
+        "v": [
+          "1.38411505069e-10"
+        ],
+        "nu_tilde": [
+          "8.57027668468e-07"
+        ],
+        "max_yplus": [
+          "0.642703950405"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "cpu",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 4.28200779547e-05,
+      "baseline_load_change": 4.36018004445e-06,
+      "final_steps": 3000,
+      "final_maximum_defect": 4.28200779547e-05,
+      "final_converged": false,
+      "final_load_change": 4.36018004445e-06,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "2"
+        ],
+        "cells": [
+          "13056"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "4.36018004445e-06"
+        ],
+        "error": [
+          "0.0079213468636"
+        ],
+        "Cd": [
+          "0.00288067552532"
+        ],
+        "Cf": [
+          "0.00272705369662",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000191289091324",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "4.28200779547e-05"
+        ],
+        "u": [
+          "5.38609640224e-10"
+        ],
+        "v": [
+          "1.03171742601e-10"
+        ],
+        "nu_tilde": [
+          "9.55810501597e-07"
+        ],
+        "max_yplus": [
+          "0.37046572566"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Continuity decreases substantially and streamwise velocity/mass-flux lag-two motion is nearly twice lag-one.",
+        "components_exceeding_frozen_gate": [
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 5.38609640224314e-10,
+          "v": 1.0317174260120162e-10,
+          "w": 1.0323282157067465e-18,
+          "k": 0.0,
+          "omega": 0.0,
+          "nu_tilde": 9.558105015970702e-07,
+          "continuity": 4.2820077954672394e-05
+        },
+        "endpoint_raw_continuity": 2.2067953813841403e-10,
+        "continuity_normalization": 5.15364634254091e-06
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 0,
+      "baseline_steps": 300,
+      "baseline_converged": true,
+      "baseline_maximum_defect": 2.88732530877e-06,
+      "baseline_load_change": 0.000186977425748,
+      "final_steps": 300,
+      "final_maximum_defect": 2.88732530877e-06,
+      "final_converged": true,
+      "final_load_change": 0.000186977425748,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "0"
+        ],
+        "cells": [
+          "816"
+        ],
+        "steps": [
+          "300"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.000186977425748"
+        ],
+        "error": [
+          "0.00890185055762"
+        ],
+        "Cd": [
+          "0.0028798467838"
+        ],
+        "Cf": [
+          "0.00272970656853",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000225224686203",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "2.88732530877e-06"
+        ],
+        "u": [
+          "7.57421850666e-10"
+        ],
+        "v": [
+          "7.91618621163e-10"
+        ],
+        "nu_tilde": [
+          "8.09299326657e-07"
+        ],
+        "max_yplus": [
+          "1.1877092123"
+        ],
+        "failure": [
+          ""
+        ]
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 2.41778890637e-05,
+      "baseline_load_change": 0.0,
+      "final_steps": 3000,
+      "final_maximum_defect": 2.41778890637e-05,
+      "final_converged": false,
+      "final_load_change": 0.0,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "1"
+        ],
+        "cells": [
+          "3264"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0"
+        ],
+        "error": [
+          "0.00751511200114"
+        ],
+        "Cd": [
+          "0.00287838904285"
+        ],
+        "Cf": [
+          "0.00272595457883",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000195381560196",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "2.41778890637e-05"
+        ],
+        "u": [
+          "4.94582762091e-10"
+        ],
+        "v": [
+          "3.26859381862e-10"
+        ],
+        "nu_tilde": [
+          "9.52763337886e-07"
+        ],
+        "max_yplus": [
+          "0.642702937126"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "plateau",
+        "classification": "plateau with irregular flow motion",
+        "reason": "Transported and eddy viscosity remain unchanged through all sampled final steps, while paired flow fields continue irregular motion; lag-two does not nearly cancel lag-one as in the SST middle-grid two-cycle.",
+        "components_exceeding_frozen_gate": [
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 4.945827620907488e-10,
+          "v": 3.268593818619503e-10,
+          "w": 7.502358818555555e-19,
+          "k": 0.0,
+          "omega": 0.0,
+          "nu_tilde": 9.527633378857062e-07,
+          "continuity": 2.417788906370623e-05
+        },
+        "endpoint_raw_continuity": 6.951282271250639e-10,
+        "continuity_normalization": 2.8750575589683332e-05
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "plate",
+      "backend": "metal",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 1.39775922557e-05,
+      "baseline_load_change": 4.3562335481e-06,
+      "final_steps": 3000,
+      "final_maximum_defect": 1.39775922557e-05,
+      "final_converged": false,
+      "final_load_change": 4.3562335481e-06,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "2"
+        ],
+        "cells": [
+          "13056"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "4.3562335481e-06"
+        ],
+        "error": [
+          "0.0079213468636"
+        ],
+        "Cd": [
+          "0.00288067550045"
+        ],
+        "Cf": [
+          "0.00272705369662",
+          "0",
+          "0"
+        ],
+        "Cp": [
+          "0.000191297521338",
+          "0",
+          "0"
+        ],
+        "continuity": [
+          "1.39775922557e-05"
+        ],
+        "u": [
+          "5.24170087799e-10"
+        ],
+        "v": [
+          "8.51435966342e-11"
+        ],
+        "nu_tilde": [
+          "9.55431913215e-07"
+        ],
+        "max_yplus": [
+          "0.370465695858"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Continuity decreases substantially and streamwise velocity/mass-flux lag-two motion is nearly twice lag-one.",
+        "components_exceeding_frozen_gate": [
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 5.241700877989999e-10,
+          "v": 8.514359663424615e-11,
+          "w": 3.4518009282172646e-19,
+          "k": 0.0,
+          "omega": 0.0,
+          "nu_tilde": 9.554319132153626e-07,
+          "continuity": 1.397759225565794e-05
+        },
+        "endpoint_raw_continuity": 7.203551843042974e-11,
+        "continuity_normalization": 5.153642852993565e-06
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 0,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 3.43975672022e-05,
+      "baseline_load_change": 4.55523787382e-05,
+      "final_steps": 3000,
+      "final_maximum_defect": 2.92949451484e-05,
+      "final_converged": false,
+      "final_load_change": 9.82966799337e-05,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "0"
+        ],
+        "cells": [
+          "3520"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "9.82966799337e-05"
+        ],
+        "error": [
+          "2.07377771407"
+        ],
+        "Cd": [
+          "0.00439026021085"
+        ],
+        "Cf": [
+          "0.00513927344208",
+          "0.00618968208079",
+          "0.00326787428646"
+        ],
+        "Cp": [
+          "-0.218507875093",
+          "-0.609016686678",
+          "-0.265193584243"
+        ],
+        "continuity": [
+          "2.92949451484e-05"
+        ],
+        "u": [
+          "5.92547503845e-07"
+        ],
+        "v": [
+          "4.99200987352e-08"
+        ],
+        "nu_tilde": [
+          "9.95057247378e-07"
+        ],
+        "max_yplus": [
+          "0.766736149788"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Transported-viscosity defect decreases over the final 1000 steps and its field lag-two movement is approximately twice lag-one; no stationary or repeating scalar state is observed.",
+        "components_exceeding_frozen_gate": [
+          "nu_tilde",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 4.2546321731854185e-07,
+          "v": 1.3157407351021515e-07,
+          "w": 2.0887066199307574e-17,
+          "k": 0.0,
+          "omega": 0.0,
+          "nu_tilde": 2.672520404245925e-05,
+          "continuity": 3.439756720220562e-05
+        },
+        "endpoint_raw_continuity": 3.835271420446929e-06,
+        "continuity_normalization": 0.11149833352752359
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 4.12498250169e-05,
+      "baseline_load_change": 0.000113970731325,
+      "final_steps": 2400,
+      "final_maximum_defect": 9.75252087784e-06,
+      "final_converged": true,
+      "final_load_change": 0.000606434536033,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "1"
+        ],
+        "cells": [
+          "14080"
+        ],
+        "steps": [
+          "2400"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.000606434536033"
+        ],
+        "error": [
+          "0.922810036635"
+        ],
+        "Cd": [
+          "0.0036696643822"
+        ],
+        "Cf": [
+          "0.0052000377161",
+          "0.00647535790217",
+          "0.00274915064846"
+        ],
+        "Cp": [
+          "-0.237958771416",
+          "-0.643545717001",
+          "-0.255809697359"
+        ],
+        "continuity": [
+          "9.75252087784e-06"
+        ],
+        "u": [
+          "1.72598944158e-06"
+        ],
+        "v": [
+          "1.79463897331e-08"
+        ],
+        "nu_tilde": [
+          "6.70337044561e-07"
+        ],
+        "max_yplus": [
+          "0.441540509462"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Transported-viscosity defect decreases over the final 1000 steps and its field lag-two movement is approximately twice lag-one; no stationary or repeating scalar state is observed.",
+        "components_exceeding_frozen_gate": [
+          "nu_tilde",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 1.154583702376979e-06,
+          "v": 4.977782971142792e-08,
+          "w": 7.35167938626044e-18,
+          "k": 0.0,
+          "omega": 0.0,
+          "nu_tilde": 4.124982501686718e-05,
+          "continuity": 2.368411401725154e-05
+        },
+        "endpoint_raw_continuity": 3.984696791736503e-06,
+        "continuity_normalization": 0.16824343899180877
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "cpu",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 6.12823509099e-05,
+      "baseline_load_change": 0.000925772890975,
+      "final_steps": 3000,
+      "final_maximum_defect": 2.40792233697e-06,
+      "final_converged": false,
+      "final_load_change": 0.00276431603219,
+      "final_observations": {
+        "backend": [
+          "cpu"
+        ],
+        "level": [
+          "2"
+        ],
+        "cells": [
+          "56320"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.00276431603219"
+        ],
+        "error": [
+          "0.414727130229"
+        ],
+        "Cd": [
+          "0.00362521182777"
+        ],
+        "Cf": [
+          "0.00522156002985",
+          "0.00631796234437",
+          "0.00263627365108"
+        ],
+        "Cp": [
+          "-0.251589292773",
+          "-0.658788204193",
+          "-0.253644912598"
+        ],
+        "continuity": [
+          "2.40792233697e-06"
+        ],
+        "u": [
+          "8.04938441248e-07"
+        ],
+        "v": [
+          "6.19108232557e-09"
+        ],
+        "nu_tilde": [
+          "9.04608782464e-07"
+        ],
+        "max_yplus": [
+          "0.260503798723"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Transported-viscosity defect decreases over the final 1000 steps and its field lag-two movement is approximately twice lag-one; no stationary or repeating scalar state is observed.",
+        "components_exceeding_frozen_gate": [
+          "nu_tilde"
+        ],
+        "endpoint_components": {
+          "u": 8.580076134718084e-07,
+          "v": 1.2534220625708523e-08,
+          "w": 3.114431204018523e-18,
+          "k": 0.0,
+          "omega": 0.0,
+          "nu_tilde": 6.128235090993612e-05,
+          "continuity": 7.859321507956231e-06
+        },
+        "endpoint_raw_continuity": 1.4166060911400513e-06,
+        "continuity_normalization": 0.18024534175195372
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 0,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 5.78428002807e-05,
+      "baseline_load_change": 3.97250444738e-05,
+      "final_steps": 3000,
+      "final_maximum_defect": 3.80084473176e-05,
+      "final_converged": false,
+      "final_load_change": 0.000101066563385,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "0"
+        ],
+        "cells": [
+          "3520"
+        ],
+        "steps": [
+          "3000"
+        ],
+        "converged": [
+          "0"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.000101066563385"
+        ],
+        "error": [
+          "2.07379360864"
+        ],
+        "Cd": [
+          "0.00439025728121"
+        ],
+        "Cf": [
+          "0.00513920230789",
+          "0.00618965570915",
+          "0.00326784941589"
+        ],
+        "Cp": [
+          "-0.218509494627",
+          "-0.609016209841",
+          "-0.265192981882"
+        ],
+        "continuity": [
+          "3.80084473176e-05"
+        ],
+        "u": [
+          "5.82338615106e-07"
+        ],
+        "v": [
+          "4.85322039873e-08"
+        ],
+        "nu_tilde": [
+          "8.96834771223e-07"
+        ],
+        "max_yplus": [
+          "0.766868174076"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Transported-viscosity defect decreases over the final 1000 steps and its field lag-two movement is approximately twice lag-one; no stationary or repeating scalar state is observed.",
+        "components_exceeding_frozen_gate": [
+          "nu_tilde",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 4.2287775998677317e-07,
+          "v": 1.357126932204115e-07,
+          "w": 2.367716612739005e-17,
+          "k": 0.0,
+          "omega": 0.0,
+          "nu_tilde": 2.6721402986307468e-05,
+          "continuity": 5.784280028066051e-05
+        },
+        "endpoint_raw_continuity": 6.44937583785905e-06,
+        "continuity_normalization": 0.11149833352752408
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 1,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 4.12428160127e-05,
+      "baseline_load_change": 0.000106065966228,
+      "final_steps": 2200,
+      "final_maximum_defect": 8.43305076745e-06,
+      "final_converged": true,
+      "final_load_change": 0.000260337700891,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "1"
+        ],
+        "cells": [
+          "14080"
+        ],
+        "steps": [
+          "2200"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.000260337700891"
+        ],
+        "error": [
+          "0.920160610174"
+        ],
+        "Cd": [
+          "0.00367001980129"
+        ],
+        "Cf": [
+          "0.00520018970611",
+          "0.00647560177256",
+          "0.00274322160716"
+        ],
+        "Cp": [
+          "-0.238015636128",
+          "-0.643625199795",
+          "-0.25589829102"
+        ],
+        "continuity": [
+          "8.43305076745e-06"
+        ],
+        "u": [
+          "1.7639787965e-06"
+        ],
+        "v": [
+          "1.70628924766e-08"
+        ],
+        "nu_tilde": [
+          "9.3424512207e-07"
+        ],
+        "max_yplus": [
+          "0.441548854113"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Transported-viscosity defect decreases over the final 1000 steps and its field lag-two movement is approximately twice lag-one; no stationary or repeating scalar state is observed.",
+        "components_exceeding_frozen_gate": [
+          "nu_tilde",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 1.1540402265494706e-06,
+          "v": 5.085366151867042e-08,
+          "w": 1.1262491292070984e-17,
+          "k": 0.0,
+          "omega": 0.0,
+          "nu_tilde": 4.124281601266976e-05,
+          "continuity": 2.2515253794302198e-05
+        },
+        "endpoint_raw_continuity": 3.788752945604884e-06,
+        "continuity_normalization": 0.16827493841369362
+      }
+    },
+    {
+      "model": "sa",
+      "geometry": "bump",
+      "backend": "metal",
+      "level": 2,
+      "baseline_steps": 3000,
+      "baseline_converged": false,
+      "baseline_maximum_defect": 6.12966637979e-05,
+      "baseline_load_change": 0.000927412913962,
+      "final_steps": 2500,
+      "final_maximum_defect": 2.68803457343e-06,
+      "final_converged": true,
+      "final_load_change": 0.00095799344494,
+      "final_observations": {
+        "backend": [
+          "metal"
+        ],
+        "level": [
+          "2"
+        ],
+        "cells": [
+          "56320"
+        ],
+        "steps": [
+          "2500"
+        ],
+        "converged": [
+          "1"
+        ],
+        "budget": [
+          "0"
+        ],
+        "load_change": [
+          "0.00095799344494"
+        ],
+        "error": [
+          "0.404859581287"
+        ],
+        "Cd": [
+          "0.00364900156342"
+        ],
+        "Cf": [
+          "0.00523741195906",
+          "0.00633914752497",
+          "0.00267488163432"
+        ],
+        "Cp": [
+          "-0.251693634197",
+          "-0.659084230661",
+          "-0.253862757062"
+        ],
+        "continuity": [
+          "2.68803457343e-06"
+        ],
+        "u": [
+          "8.13761605811e-07"
+        ],
+        "v": [
+          "5.91872354579e-09"
+        ],
+        "nu_tilde": [
+          "8.95213738752e-07"
+        ],
+        "max_yplus": [
+          "0.260820358992"
+        ],
+        "failure": [
+          ""
+        ]
+      },
+      "baseline_classification": {
+        "primary_classification": "slow approach",
+        "classification": "slow approach with fluctuations",
+        "reason": "Transported-viscosity defect decreases over the final 1000 steps and its field lag-two movement is approximately twice lag-one; no stationary or repeating scalar state is observed.",
+        "components_exceeding_frozen_gate": [
+          "nu_tilde",
+          "continuity"
+        ],
+        "endpoint_components": {
+          "u": 8.566845549350563e-07,
+          "v": 1.2681459907389948e-08,
+          "w": 1.0161532749307081e-17,
+          "k": 0.0,
+          "omega": 0.0,
+          "nu_tilde": 6.129666379790568e-05,
+          "continuity": 1.0335043866171244e-05
+        },
+        "endpoint_raw_continuity": 1.8628384533905214e-06,
+        "continuity_normalization": 0.18024485212762187
+      }
+    }
+  ],
+  "tmr_before_failures": 17,
+  "tmr_after_failures": 10,
+  "timing_claim": false,
+  "owner_pause_timing_exclusion": "This fresh final process has no owner SIGSTOP interval. Earlier paused case21 and its whole-run span remain excluded from cost/timing; no cross-OS or cross-pause timing pairs."
+}

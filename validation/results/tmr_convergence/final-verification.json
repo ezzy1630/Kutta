@@ -1,0 +1,71 @@
+{
+  "complete": true,
+  "scope": "Publish fresh quick/lint results only when their compiled inputs match full slow.",
+  "measurement_environment": {
+    "system": "Darwin",
+    "darwin_release": "27.2.0",
+    "macos_product_version": "27.2",
+    "macos_build": "26B123",
+    "machine": "arm64",
+    "python_version": "3.14.10"
+  },
+  "full_slow_execution_revision": "d9015a218060301c07cf263861b1881bbfa9abfb",
+  "quick_execution_revision": "d9015a218060301c07cf263861b1881bbfa9abfb",
+  "compiled_inputs_match_full_slow": true,
+  "compiled_input_count": 278,
+  "binary_sha256": {
+    "build/kutta-tests": "e8b4747b31582bdc5aeb1e3f4047d700b380f5eb9502694e71a0821e1ac371e0",
+    "build/kutta": "6ac4fc4945b95417a451924d5ac14ccddbf0c07c76cc90b45f1807d282e2dd4e",
+    "build/libkutta.a": "20d185f278654d0de3c4b48c8a7977fd293b3b6d72499f232d7aac1f64f7ba9e"
+  },
+  "changed_numerical_and_test_inputs_sha256": {
+    "src/kutta/fv/VERIFICATION.md": "0a2eb3104f45ff982a2e66152a3a04310d05be7eb1574bd9f3b331921058e41d",
+    "src/kutta/fv/steady_solver.cpp": "9ca101415924bf18e77fc4b9a524219c72d9dbc893b1cd16284ea75f1d543cc8",
+    "src/kutta/fv/steady_solver.hpp": "b3b8204aff3c1c2fb0cedfc83ac10d3c2a21be463e5742bc61096db17d2d5661",
+    "src/kutta/fv/transport.cpp": "56c124885fc7499bddb252e44ac6986ecf3fb6bd7d88699e76f853e867471907",
+    "src/kutta/fv/transport.hpp": "5880aa33511c34456db647a758eb9c3673daf0cc9e9a020550b8f629e9a98e4a",
+    "src/kutta/fv/turbulence/sa_transport.cpp": "8ae254f8b0fe397651618421b78001774e57ffae054fd22034bccab031236d35",
+    "src/kutta/runtime/metal/metal_device.mm": "407a8a6f3089e28e758c1f498e9e27f648f3673f0f7ee4b863853b4b1b1fed00",
+    "tests/fv/test_monitor_cadence.cpp": "9642a9508877e3f588fe8e0e81cf3f92c247f4b7e194c713e2cb21395c4841ec",
+    "tests/fv/test_scalar.cpp": "b2794a6a66ba65b4848cea6ae223a9f5849eecaea1faac07330b305eca847caf",
+    "validation/cases/tmr.hpp": "f44e5e64c5aa81bafe3d3c4e4e08c1252214545bded0ce8e73e1e14925d20ef7",
+    "validation/cases/tmr_sa.hpp": "e4b8ec202c3e3117356dad11cd1a587961d80998b4ab884ab2502e10d8e79458"
+  },
+  "quick": {
+    "actual_wait_status": 0,
+    "command": [
+      "/usr/bin/time",
+      "-l",
+      "<checkout>/build/kutta-tests",
+      "--test-suite-exclude=slow"
+    ],
+    "resource": {
+      "actual_wait_status": 0,
+      "continuously_guarded": true,
+      "limit_bytes": 3000000000,
+      "resource_limit_exceeded": false,
+      "sampled_and_reported_peak_bytes": 1632389400,
+      "reported_peak_bytes": 1632389400,
+      "interrupted": false,
+      "completed_wait_and_final_footprint": true
+    },
+    "log_sha256": "8e91ee80061084ab8262f0a079b81863753131c3232ea71dfd9870c1338a3727",
+    "test_cases": [
+      309,
+      309,
+      0
+    ],
+    "assertions": [
+      7990218,
+      7990218,
+      0
+    ]
+  },
+  "portability": {
+    "actual_wait_status": 0,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "quick_receipt_sha256": "d85cd76bee631869a6affc28705e69f4177b42a214144910c2c9f644dd5d9a0f",
+  "slow_receipt_sha256": "3231b6832bf251a51d546aa1d8498f676d69b655a54506fd813e19ba30eb9886",
+  "timing_claim": false
+}
