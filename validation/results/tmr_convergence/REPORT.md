@@ -3120,3 +3120,35 @@ contains every endpoint, raw scale, actual inner work and memory, source and
 input hashes, and completed wait receipts. These are controlled target solves,
 not a full slow-tier comparison; no timing improvement is claimed. Production
 still has the original 17 convergence failures.
+
+### Bounded adaptive pressure control, 2026-11-07 UTC
+
+A private Aitken factor scales only the original local pressure increment;
+velocity and flux correction stay unchanged. It uses actual device dot
+reductions of Float increments, clamps the factor to [.05, 1], and applies
+a Float factor to the original paired pressure update. A factor-one shadow
+performs the same reads, reductions and host application and reproduces every
+archived terminal field word and the full residual history on all four cases.
+The library also passes its twenty CLI-file, four target-state and six
+monitor-sum off controls.
+
+| Metal plate control | Original → candidate continuity | Candidate steps | Raw imbalance ratio | Stopping outcome |
+|---|---:|---:|---:|---|
+| sst-plate-metal-3264 after 2,000 | 3.045154e-05 → 5.227634e-06 | 2,100 | 0.1716706 | Pass |
+| sa-plate-metal-3264 from startup | 2.417789e-05 → 6.635218e-06 | 1,000 | 0.2744333 | Pass |
+| sst-plate-metal-3264 from startup | 3.045154e-05 → 2.240842e-06 | 1,000 | 0.07358714 | Pass |
+| sst-plate-metal-13056 from startup | 7.407654e-06 → 3.160368e-05 | 3,000 | 4.266355 | Fails; loses original pass |
+
+Every first-five continuity scale is identical between its cohorts. The
+delayed SST middle-grid trial additionally preserves the exact 2,000-step
+field/report/work prefix; its first adaptive factors are 1, .5000193,
+.5042504, .0505040 and .05. This supports pressure-feedback participation
+in that case's cycle. The startup policy nevertheless loses the originally
+passing finest Metal SST plate, with 4.27 times worse raw imbalance. It is
+rejected as a uniform remedy; no public adaptive-pressure setting is added.
+The cause of its fine-grid regression has not been isolated. These controls
+do not establish a universal pressure-gain fix or full NASA accuracy.
+
+[pressure-aitken-controls.json](pressure-aitken-controls.json) preserves actual
+work, resource receipts, factors and source/input bindings. No timing claim or
+full slow-tier comparison is made. Production still has 17 convergence failures.
