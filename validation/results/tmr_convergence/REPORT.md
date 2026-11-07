@@ -45,6 +45,36 @@ exit 0; portability lint exits 0.
 [final-verification.json](final-verification.json) binds these checks to the same
 source and binaries. CUDA compilation/runtime remains unverified.
 
+### Integration onto main `320350f`, 2026-11-07 UTC
+
+The branch was rebased onto main `320350f`, which adds the memory, speed,
+tet/prism and Ahmed work since `e014e36`. Two conflicts were resolved in
+`steady_solver.cpp` and `transport.hpp`: main's shared strain base and
+transport scratch are kept, with this branch's single low-word gradient
+scratch and scalar preconditioner members added. On macOS 27.2 the rebased
+quick tier passes **317 cases / 7,996,528 assertions**. Its full slow tier
+completes all 37 cases in fresh processes with **36 failures**: V6 25, TMR 10, V12 1.
+
+| Canonical comparison of the rebased slow tier | Against `e014e36` | Against this branch before rebase |
+|---|---:|---:|
+| Regressions / recoveries | 0 / 15 | 0 / 8 |
+| Changed expanded values | 314 | 12 |
+| Missing / new INFO identities | 76 / 76 | 0 / 0 |
+| Comparator exit | 1 | 0 |
+
+The 15 recoveries are this branch's seven TMR gates plus main's eight V2 tet
+gates. Against the pre-rebase branch, every difference is in the V2 tet case
+that main changed, so the rebase alters no other value. The 76 identity
+pairs are the passing CLI solve assertions in the converted Fluent and
+native FSAE CLI cases, whose captured logs carry residual histories.
+
+40-iteration CLI runs against main's binary: the realizable k-epsilon
+`elbow_param` case is byte-identical on CPU and Metal. The SST mixing elbow,
+with SIMPLE and with SIMPLEC, changes on both backends. Wall forces move by
+about 0.2% and final k/omega residuals fall, for example CPU SIMPLE k
+0.00423 → 0.00341 and omega 0.00151 → 0.00109. These are 40-step snapshots,
+not converged comparisons.
+
 ### Option decisions and allocation cost
 
 Each row retains its own frozen study/cost cohort. The selected-six quick count
@@ -933,6 +963,8 @@ to the committed evidence.
 
 ## Remaining work
 
+*Status of the earlier lane at `271b31f`; the final status is at the top of this report.*
+
 There are 17 remaining TMR convergence assertions.
 Every solve completed within its unchanged 3,000-step budget. All TMR accuracy
 gates now pass, but the remaining nonlinear convergence mechanism is not
@@ -951,6 +983,8 @@ After validation, this lane's fixture links and temporary main-source worktree
 were removed. No lane processes remain running. No push or PR was made.
 
 ## 2026-11-03–05 UTC: defaults and remaining convergence study
+
+*Progress record written during the study; the final status is at the top of this report.*
 
 This follow-up is in progress on base `e014e36`. All nine singleton and
 three grouped default studies are complete and reviewed. Momentum
