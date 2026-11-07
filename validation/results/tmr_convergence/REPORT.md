@@ -3260,3 +3260,49 @@ fields match exactly for SST and SA on CPU and Metal. This cheap check does
 not establish long-run or all-grid cadence invariance, but it does not support
 monitoring as a cause on that geometry. Its bound source and actual results
 are in [compensated-cadence-check.json](compensated-cadence-check.json).
+
+### Velocity-junction controls and no-intervention findings, 2026-11-07 UTC
+
+The same-facing wall/symmetry support mask is tested on velocity reconstruction,
+while scalar fits remain unchanged. SA high/low momentum diffusion, high/low
+face prediction and wall-traction monitoring use the same modified fit. The
+library passes its twenty elbow file checks, four target states and six
+monitor sums with the control off. Every case retains the original 3,000-step
+budget and reproduces its complete archived baseline fields and residuals.
+
+The attempted plate controls do not alter an eligible face fit. There are two
+seed cells on each tested plate, but corrected-face counts stay 301 on the
+middle SST and SA grids and 721 on the fine SST grid. The original strict
+must-change-a-fit assertions fail, and remain failed in their original receipts.
+All solver runs finish naturally at 3,000. A separate artifact check confirms
+that every captured high/low snapshot, the complete residual history, complete
+linear-work history and public state are byte-identical between each pair.
+The middle SST/SA failures and original fine SST Metal pass remain unchanged.
+These are certified no-intervention findings, not successful causal trials or
+expected-failure test markers. No completed solve is restarted. The work queue
+continues from its verified completed cases.
+
+On the coarse bumps, four seed cells do remove actual quadratic fits. The
+candidate has the exact first 2,000 field/report/work steps, then changes only
+the velocity fit:
+
+| Model / Metal coarse bump | Continuity, original → candidate | Raw imbalance ratio | Scalar defects after change | Outcome |
+|---|---:|---:|---|---|
+| sst-bump-metal-3520 | 1.51518e-05 → 3.361262e-05 | 2.218391 | k 5.852338e-06, omega 1.426428e-05 | Fails at 3,000 |
+| sa-bump-metal-3520 | 5.78428e-05 → 4.273376e-05 | 0.7387913 | nu_tilde 2.672078e-05 | Fails at 3,000 |
+
+The velocity fallback worsens SST continuity and leaves SA well above its
+flow and scalar gates. It stays unselected. This result is distinct from the
+earlier omega-only fallback: that intervention changes a different operator
+and has a measured raw-omega benefit. It does not establish a velocity-fit
+remedy. No full NASA station/trend or slow-tier qualification of the velocity
+policy is claimed. [velocity-junction-controls.json](velocity-junction-controls.json)
+retains actual child exits, the unmodified failed assertions, no-effect
+certificates, changed-fit results, work, memory and source/input bindings.
+
+The original coarse SST baseline also performs scalar work in all 309 sampled
+late reports: the terminal k/omega solves take six/five inner iterations,
+without hitting the 100-step caps. Its omega plateau is therefore not a
+complete hold under the scalar steady threshold on those samples. This does
+not establish its sole cause; it distinguishes that case from the fine SA
+hold/release study.
