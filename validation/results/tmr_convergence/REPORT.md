@@ -918,7 +918,7 @@ in [default-study-memory.json](default-study-memory.json) and
 
 Momentum relaxation .7 is already the ordinary solver default. The bump
 harness's fixed time step is a separate candidate from its relaxation.
-The planned groups are the three inner absolute tolerances, the four scalar
+The completed groups are the three inner absolute tolerances, the four scalar
 controls, and the combined precision controls. A group does not substitute
 for the singleton checks. Any regression leaves the setting opt-in.
 
@@ -2994,3 +2994,13 @@ byte checks and test receipts. The root TMR harness has not yet selected the
 new option. Full TMR station/drag/trend qualification runs separately; a private
 fine-case convergence pass does not establish those results. No new default
 or timing improvement is claimed.
+
+### Default study status, 2026-11-07 UTC
+
+The completed per-option decision table is in [Option decisions and allocation
+cost](#option-decisions-and-allocation-cost), including all nine single settings,
+three groups and the actual selected six. Six defaults are promoted; momentum
+compensation, slack 16 and fixed flow time .1 remain opt-in. The original 17
+TMR convergence failures remain in the root harness. The private ramp/AMG
+qualification is still running, with a plate regression already observed;
+its complete canonical comparison and remaining flow controls follow separately.
