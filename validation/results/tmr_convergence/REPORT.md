@@ -3306,3 +3306,45 @@ without hitting the 100-step caps. Its omega plateau is therefore not a
 complete hold under the scalar steady threshold on those samples. This does
 not establish its sole cause; it distinguishes that case from the fine SA
 hold/release study.
+
+### Minimal scalar correction after startup, 2026-11-07 UTC
+
+A second controlled policy retains the physical scalar tolerance 1e-6.
+Below that threshold it requests an inner L2 goal just below the current
+norm, instead of just above it. The requested absolute floor, relative
+criterion and 100-step inner cap stay unchanged. This asks for a small
+contraction rather than permitting a zero-update solve. It is not a fixed
+one-iteration promise: actual work is measured.
+
+Both backends use the same verified held baseline and identical numerical
+binary as the scalar-release study. Candidate fields, reports and cumulative
+work match exactly through 2,000, and the actual policy readback switches at
+2,001 with tolerance still 1e-6. Flow ramp, scalar AMG/full update and all
+outer gates remain fixed.
+
+| Backend | Stops, hold → minimal correction | Nu-tilde defect, hold → candidate | Load change, hold → candidate | Private stopping outcome |
+|---|---:|---:|---:|---|
+| cpu | 3,000 → 3,000 | 9.046088e-07 → 4.155476e-08 | 0.002764316 → 0.001185526 | Fail → fail |
+| metal | 2,500 → 3,000 | 8.952137e-07 → 4.290865e-08 | 0.0009579934 → 0.001186635 | Pass → fail |
+
+The delayed policy still fails the load gate and loses the held Metal pass.
+It is not selected. Like the tight release, it changes scalar accuracy and
+late load evolution without establishing a complete load remedy. A separate
+from-start experiment is pending; the delayed result cannot establish that
+trajectory or its startup normalization.
+
+Work below compares the same interval after 2,000 through the earlier stop
+within each backend. Entries are actual momentum / pressure / scalar Krylov
+iterations, independent of monitor sampling.
+
+| Backend / common end step | Held work | Minimal-correction work |
+|---|---:|---:|
+| cpu / 3,000 | 15,223 / 27,840 / 396 | 15,394 / 28,943 / 1,061 |
+| metal / 2,500 | 5,208 / 14,706 / 301 | 5,215 / 14,943 / 500 |
+
+Cpu whole-process peak is 244,007,560 → 245,088,928 B. Metal whole-process peak is 362,824,568 → 374,752,168 B. All runs complete naturally under the 3 GB guard. No new default,
+paired timing improvement, full slow-tier result or NASA reference
+qualification is claimed. [ramp-scalar-minimal-controls.json](ramp-scalar-minimal-controls.json)
+preserves actual switches, raw defects, common-window work, prefixes and
+source/input/resource receipts. The prototype's private pointer registry is
+not a production design and is not added to the root solver.
