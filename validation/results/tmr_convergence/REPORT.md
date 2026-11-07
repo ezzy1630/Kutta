@@ -3066,3 +3066,57 @@ whose peak remains unmeasured. No paired timing comparison is made.
 the unchanged canonical comparison, source/binary/input hashes and actual
 resource/wait receipts. The root harness has not selected this group;
 production still has 17 convergence failures at this checkpoint.
+
+### Boundary and arithmetic controls, 2026-11-07 UTC
+
+Ten fresh NormalFoot-only experiments reproduce their original full residual
+histories and terminal field words before changing the existing boundary fit.
+Pressure gain, time, scalar relaxation, preconditioner and all budgets stay
+fixed. The two middle Metal plates recover, but the originally passing fine
+Metal SST plate fails. The option remains unselected. The table separates
+raw continuity from the first-five normalization; a ratio below one means
+less raw imbalance, while a larger denominator can lower the displayed ratio
+without improving that imbalance.
+
+| Model / geometry / backend / level | Continuity, original → NormalFoot | Raw imbalance ratio | Normalization ratio | Stopping outcome |
+|---|---:|---:|---:|---|
+| sa-bump-cpu-3520 | 3.439757e-05 → 2.511491e-05 | 1.123799 | 1.539163 | Fail → fail |
+| sa-bump-metal-3520 | 5.78428e-05 → 3.623644e-05 | 0.9642305 | 1.539163 | Fail → fail |
+| sa-plate-cpu-13056 | 4.282008e-05 → 4.725648e-05 | 1.103605 | 0.9999992 | Fail → fail |
+| sa-plate-metal-3264 | 2.417789e-05 → 4.674476e-06 | 0.1933341 | 0.9999862 | Fail → pass |
+| sa-plate-metal-13056 | 1.397759e-05 → 1.835145e-05 | 1.312918 | 0.9999992 | Fail → fail |
+| sst-bump-cpu-3520 | 3.143857e-05 → 1.257946e-05 | 0.6297613 | 1.573898 | Fail → fail |
+| sst-bump-metal-3520 | 1.51518e-05 → 1.226547e-05 | 1.27408 | 1.573898 | Fail → fail |
+| sst-plate-cpu-13056 | 1.90981e-05 → 4.432747e-05 | 2.321052 | 1.000005 | Fail → fail |
+| sst-plate-metal-3264 | 3.045154e-05 → 3.246784e-06 | 0.1066185 | 0.9999731 | Fail → pass |
+| sst-plate-metal-13056 | 7.407654e-06 → 1.713392e-05 | 2.313014 | 1.000005 | Pass → fail |
+
+In particular, coarse Metal SST and coarse CPU SA have lower displayed
+continuity but worse raw imbalance. NormalFoot's middle-grid recovery
+establishes a boundary-fit contribution on those cases; it does not establish
+a universal pressure boundary defect or justify selecting by grid/backend.
+
+Two delayed arithmetic controls on the middle Metal SST plate are negative.
+Both preserve the exact first 2,000 field/report/work prefix. Restoring the
+high LSQ rounding remainder in its original source frame plus the current
+low-word gradient changes continuity 3.045154e-5 → 3.039196e-5. Restoring
+high transpose-stress interpolation/product, reduction and source-add carry
+changes it to 3.041898e-5. Both still fail at 3,000. The latter keeps the
+same stored gradients and rounded face viscosity; neither result rules out
+all other nonlinear or arithmetic mechanisms. Both private libraries pass
+the twenty CLI-file, four target-state and six monitor-sum off controls.
+No production precision patch follows from these negative experiments.
+
+The geometric omega fallback also runs from startup on the coarse Metal
+SST bump. Its four same-facing wall/symmetry edge cells remove 86 of 6,950
+quadratic face fits; right-angle extrusion caps are excluded. Omega falls
+1.991881e-5 → 9.469753e-6, but continuity rises 1.515180e-5 → 1.682704e-5
+and the solve still fails. This supports the previously isolated omega-fit
+contribution. Full NASA station/trend qualification of that fallback has not
+run, so it remains a diagnostic, not a retained fix.
+
+[boundary-and-arithmetic-controls.json](boundary-and-arithmetic-controls.json)
+contains every endpoint, raw scale, actual inner work and memory, source and
+input hashes, and completed wait receipts. These are controlled target solves,
+not a full slow-tier comparison; no timing improvement is claimed. Production
+still has the original 17 convergence failures.
