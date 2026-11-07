@@ -1,0 +1,1147 @@
+{
+  "scope": "Private coarse SST bump omega mixed-support fit controls under the retained scalar AMG/k1/omega.75 and bounded flow ramp.1->1at1.001/P.3/M.7. Observe constructs the same alternative fit but never applies it in3000steps; its entire root-qualified printed trajectory must reproduce. Delayed and startup controls change only omega reconstruction. Original3000outer and100/300/100inner caps and physical gates unchanged.",
+  "rows": [
+    {
+      "backend": "cpu",
+      "case": "sst-bump-cpu-3520",
+      "before": {
+        "name": "observe",
+        "switch_after": 3000,
+        "steps": 3000,
+        "converged": false,
+        "continuity": 2.8060153380420312e-05,
+        "continuity_raw": 2.9908145535338052e-06,
+        "continuity_scale": 0.10658582342677864,
+        "k": 6.075551543776848e-07,
+        "k_raw": 5.59140400635146e-10,
+        "omega": 1.157546810284958e-05,
+        "omega_raw": 0.009765959678207179,
+        "load_change": 2.64342064315e-05,
+        "cf": 0.0048744967639,
+        "cd": 0.00436592257412,
+        "inner_work": {
+          "momentum_work": 32009,
+          "pressure_work": 48870,
+          "scalar_work": 56215
+        },
+        "resource": {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 22741424,
+          "reported_peak_bytes": 22741424,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        "actual_geometry": {
+          "cells": "3520",
+          "masked_cells": "4",
+          "original_corrected": "6950",
+          "masked_corrected": "6864"
+        },
+        "actual_switch": [],
+        "scalar_storage": {
+          "scope": "Terminal high float scalar storage; compensated assembly does not carry a persistent scalar low word. Floor values are the frozen model defaults; these observations do not establish a convergence cause.",
+          "fields": {
+            "k": {
+              "cells": 3520,
+              "finite_minimum": 9.9999998245167e-15,
+              "finite_maximum": 0.008186019957065582,
+              "nonfinite_values": 0,
+              "configured_floor": 9.9999998245167e-15,
+              "at_or_below_floor": 6,
+              "first_64_floor_internal_indices": [
+                3108,
+                3137,
+                3165,
+                3192,
+                3218,
+                3243
+              ]
+            },
+            "omega": {
+              "cells": 3520,
+              "finite_minimum": 9.999999682655225e-21,
+              "finite_maximum": 634590.8125,
+              "nonfinite_values": 0,
+              "configured_floor": 9.999999682655225e-21,
+              "at_or_below_floor": 3,
+              "first_64_floor_internal_indices": [
+                3243,
+                3266,
+                3288
+              ]
+            }
+          }
+        },
+        "normalization_ratio": null,
+        "raw_continuity_ratio": null
+      },
+      "delayed": {
+        "name": "delayed",
+        "switch_after": 2000,
+        "steps": 3000,
+        "converged": false,
+        "continuity": 1.5975767882887073e-05,
+        "continuity_raw": 1.7027903746726027e-06,
+        "continuity_scale": 0.10658582342677864,
+        "k": 1.1542763517679268e-06,
+        "k_raw": 1.0626536188180146e-09,
+        "omega": 5.081824830390529e-06,
+        "omega_raw": 0.004287096477436105,
+        "load_change": 7.13359161141e-05,
+        "cf": 0.00487439903002,
+        "cd": 0.00436624354328,
+        "inner_work": {
+          "momentum_work": 31977,
+          "pressure_work": 48810,
+          "scalar_work": 56341
+        },
+        "resource": {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 23495112,
+          "reported_peak_bytes": 23495112,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        "actual_geometry": {
+          "cells": "3520",
+          "masked_cells": "4",
+          "original_corrected": "6950",
+          "masked_corrected": "6864"
+        },
+        "actual_switch": [
+          {
+            "after": "2000",
+            "iteration": "2001",
+            "omega_only": "1"
+          }
+        ],
+        "scalar_storage": {
+          "scope": "Terminal high float scalar storage; compensated assembly does not carry a persistent scalar low word. Floor values are the frozen model defaults; these observations do not establish a convergence cause.",
+          "fields": {
+            "k": {
+              "cells": 3520,
+              "finite_minimum": 9.9999998245167e-15,
+              "finite_maximum": 0.008185961283743382,
+              "nonfinite_values": 0,
+              "configured_floor": 9.9999998245167e-15,
+              "at_or_below_floor": 6,
+              "first_64_floor_internal_indices": [
+                3108,
+                3137,
+                3165,
+                3192,
+                3218,
+                3243
+              ]
+            },
+            "omega": {
+              "cells": 3520,
+              "finite_minimum": 9.999999682655225e-21,
+              "finite_maximum": 634590.0,
+              "nonfinite_values": 0,
+              "configured_floor": 9.999999682655225e-21,
+              "at_or_below_floor": 8,
+              "first_64_floor_internal_indices": [
+                3191,
+                3217,
+                3241,
+                3242,
+                3243,
+                3265,
+                3266,
+                3288
+              ]
+            }
+          }
+        },
+        "normalization_ratio": 1.0,
+        "raw_continuity_ratio": 0.5693400056050503
+      },
+      "startup": {
+        "name": "startup",
+        "switch_after": 0,
+        "steps": 3000,
+        "converged": false,
+        "continuity": 1.6812926431494857e-05,
+        "continuity_raw": 1.792019607913301e-06,
+        "continuity_scale": 0.10658582342669362,
+        "k": 1.3810843549946407e-06,
+        "k_raw": 1.2712284550569272e-09,
+        "omega": 1.1965541337399287e-05,
+        "omega_raw": 0.010094262560208577,
+        "load_change": 5.77667351527e-05,
+        "cf": 0.00487438703517,
+        "cd": 0.00436635668291,
+        "inner_work": {
+          "momentum_work": 31834,
+          "pressure_work": 49050,
+          "scalar_work": 56007
+        },
+        "resource": {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 22561200,
+          "reported_peak_bytes": 22561200,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        "actual_geometry": {
+          "cells": "3520",
+          "masked_cells": "4",
+          "original_corrected": "6950",
+          "masked_corrected": "6864"
+        },
+        "actual_switch": [
+          {
+            "after": "0",
+            "iteration": "1",
+            "omega_only": "1"
+          }
+        ],
+        "scalar_storage": {
+          "scope": "Terminal high float scalar storage; compensated assembly does not carry a persistent scalar low word. Floor values are the frozen model defaults; these observations do not establish a convergence cause.",
+          "fields": {
+            "k": {
+              "cells": 3520,
+              "finite_minimum": 9.9999998245167e-15,
+              "finite_maximum": 0.008185895159840584,
+              "nonfinite_values": 0,
+              "configured_floor": 9.9999998245167e-15,
+              "at_or_below_floor": 6,
+              "first_64_floor_internal_indices": [
+                3108,
+                3137,
+                3165,
+                3192,
+                3218,
+                3243
+              ]
+            },
+            "omega": {
+              "cells": 3520,
+              "finite_minimum": 9.999999682655225e-21,
+              "finite_maximum": 634590.0625,
+              "nonfinite_values": 0,
+              "configured_floor": 9.999999682655225e-21,
+              "at_or_below_floor": 8,
+              "first_64_floor_internal_indices": [
+                3191,
+                3217,
+                3241,
+                3242,
+                3243,
+                3265,
+                3266,
+                3288
+              ]
+            }
+          }
+        },
+        "normalization_ratio": 0.9999999999992024,
+        "raw_continuity_ratio": 0.5991744308572844
+      },
+      "identical_captured_prefix": {
+        "1998": "589211adee18b7f2aab5dc32baa9d7b4aa36ced8670cba7d0d2c44af95fc9d2a",
+        "1999": "37a4c4142641cffe46e35e0cb065c7b0192bd7424210fe5b22689004a88b26c3",
+        "2000": "172ada55fd04aeef264325775b4d259e80cddea68f5d735304c1e0a6da91230c"
+      },
+      "reported_and_linear_prefix_identical": true,
+      "baseline_all_root_qualified_printed_progress_and_endpoints_reproduced": true,
+      "baseline_original_full_state_archive": "not_collected_by_root_qualification; fresh observe captures used for delayed exact-prefix control",
+      "first_five_reports": {
+        "observe": [
+          {
+            "iteration": "1",
+            "u": "0.0010779254175058298",
+            "v": "0.0010038350343952408",
+            "w": "5.8715882725652131e-17",
+            "k": "0.61316368665880927",
+            "omega": "0.3778989033441717",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.0025452153623244135",
+            "continuity_scale": "0.0025452153623244135",
+            "corrected_mass": "2.1063597528443809e-05",
+            "k_raw": "1.8359697409593379e-08",
+            "k_fluent_normalization": "2.9942571305285905e-08",
+            "omega_raw": "2707.3794920101641",
+            "omega_fluent_normalization": "7164.2957099148189",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "2",
+            "u": "0.00093402786874020492",
+            "v": "0.00089034621865351031",
+            "w": "1.060259265976665e-16",
+            "k": "0.50754152342245562",
+            "omega": "0.30127212827676314",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.10658582342677864",
+            "continuity_scale": "0.10658582342677864",
+            "corrected_mass": "0.00022918107580438248",
+            "k_raw": "4.6971930512345291e-09",
+            "k_fluent_normalization": "9.2547955870889185e-09",
+            "omega_raw": "1098.0443453758448",
+            "omega_fluent_normalization": "3644.6927621765535",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "3",
+            "u": "0.00068115250649069278",
+            "v": "0.000689436180535475",
+            "w": "1.5125743349828606e-16",
+            "k": "0.4111989156649824",
+            "omega": "0.19500237383546815",
+            "nu_tilde": "0",
+            "continuity": "0.51407198952726518",
+            "continuity_raw": "0.054792786304405885",
+            "continuity_scale": "0.10658582342677864",
+            "corrected_mass": "0.00011922198851219016",
+            "k_raw": "3.8413925057696539e-09",
+            "k_fluent_normalization": "9.3419324794605381e-09",
+            "omega_raw": "418.42181873823301",
+            "omega_fluent_normalization": "2145.7267955685165",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "4",
+            "u": "0.00049688875881386885",
+            "v": "0.0005302076180290769",
+            "w": "1.3290274664463257e-16",
+            "k": "0.30293664032049933",
+            "omega": "0.10215910293427496",
+            "nu_tilde": "0",
+            "continuity": "0.30539184031069938",
+            "continuity_raw": "0.032550440767335181",
+            "continuity_scale": "0.10658582342677864",
+            "corrected_mass": "6.3972051820130032e-05",
+            "k_raw": "3.2457930391096295e-09",
+            "k_fluent_normalization": "1.0714428719073607e-08",
+            "omega_raw": "156.18878520683305",
+            "omega_fluent_normalization": "1528.8778064869912",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "5",
+            "u": "0.00037187665038274808",
+            "v": "0.00041581933448382697",
+            "w": "1.1292640886934216e-16",
+            "k": "0.17776437327790839",
+            "omega": "0.046434720615923998",
+            "nu_tilde": "0",
+            "continuity": "0.18481040231809104",
+            "continuity_raw": "0.019698168908907972",
+            "continuity_scale": "0.10658582342677864",
+            "corrected_mass": "4.0233476962412145e-05",
+            "k_raw": "2.246991981308003e-09",
+            "k_fluent_normalization": "1.264028297613472e-08",
+            "omega_raw": "59.022851513002223",
+            "omega_fluent_normalization": "1271.0930685079074",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          }
+        ],
+        "delayed": [
+          {
+            "iteration": "1",
+            "u": "0.0010779254175058298",
+            "v": "0.0010038350343952408",
+            "w": "5.8715882725652131e-17",
+            "k": "0.61316368665880927",
+            "omega": "0.3778989033441717",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.0025452153623244135",
+            "continuity_scale": "0.0025452153623244135",
+            "corrected_mass": "2.1063597528443809e-05",
+            "k_raw": "1.8359697409593379e-08",
+            "k_fluent_normalization": "2.9942571305285905e-08",
+            "omega_raw": "2707.3794920101641",
+            "omega_fluent_normalization": "7164.2957099148189",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "2",
+            "u": "0.00093402786874020492",
+            "v": "0.00089034621865351031",
+            "w": "1.060259265976665e-16",
+            "k": "0.50754152342245562",
+            "omega": "0.30127212827676314",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.10658582342677864",
+            "continuity_scale": "0.10658582342677864",
+            "corrected_mass": "0.00022918107580438248",
+            "k_raw": "4.6971930512345291e-09",
+            "k_fluent_normalization": "9.2547955870889185e-09",
+            "omega_raw": "1098.0443453758448",
+            "omega_fluent_normalization": "3644.6927621765535",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "3",
+            "u": "0.00068115250649069278",
+            "v": "0.000689436180535475",
+            "w": "1.5125743349828606e-16",
+            "k": "0.4111989156649824",
+            "omega": "0.19500237383546815",
+            "nu_tilde": "0",
+            "continuity": "0.51407198952726518",
+            "continuity_raw": "0.054792786304405885",
+            "continuity_scale": "0.10658582342677864",
+            "corrected_mass": "0.00011922198851219016",
+            "k_raw": "3.8413925057696539e-09",
+            "k_fluent_normalization": "9.3419324794605381e-09",
+            "omega_raw": "418.42181873823301",
+            "omega_fluent_normalization": "2145.7267955685165",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "4",
+            "u": "0.00049688875881386885",
+            "v": "0.0005302076180290769",
+            "w": "1.3290274664463257e-16",
+            "k": "0.30293664032049933",
+            "omega": "0.10215910293427496",
+            "nu_tilde": "0",
+            "continuity": "0.30539184031069938",
+            "continuity_raw": "0.032550440767335181",
+            "continuity_scale": "0.10658582342677864",
+            "corrected_mass": "6.3972051820130032e-05",
+            "k_raw": "3.2457930391096295e-09",
+            "k_fluent_normalization": "1.0714428719073607e-08",
+            "omega_raw": "156.18878520683305",
+            "omega_fluent_normalization": "1528.8778064869912",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "5",
+            "u": "0.00037187665038274808",
+            "v": "0.00041581933448382697",
+            "w": "1.1292640886934216e-16",
+            "k": "0.17776437327790839",
+            "omega": "0.046434720615923998",
+            "nu_tilde": "0",
+            "continuity": "0.18481040231809104",
+            "continuity_raw": "0.019698168908907972",
+            "continuity_scale": "0.10658582342677864",
+            "corrected_mass": "4.0233476962412145e-05",
+            "k_raw": "2.246991981308003e-09",
+            "k_fluent_normalization": "1.264028297613472e-08",
+            "omega_raw": "59.022851513002223",
+            "omega_fluent_normalization": "1271.0930685079074",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          }
+        ],
+        "startup": [
+          {
+            "iteration": "1",
+            "u": "0.0010779254174971941",
+            "v": "0.0010038350343892148",
+            "w": "5.8715882725184583e-17",
+            "k": "0.61316368667076293",
+            "omega": "0.37789501643512619",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.0025452153623244135",
+            "continuity_scale": "0.0025452153623244135",
+            "corrected_mass": "2.1063597528443809e-05",
+            "k_raw": "1.8359697410433278e-08",
+            "k_fluent_normalization": "2.9942571306071952e-08",
+            "omega_raw": "2707.3516446991257",
+            "omega_fluent_normalization": "7164.2957090012351",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "2",
+            "u": "0.00093423429298040604",
+            "v": "0.00089047638473270215",
+            "w": "1.0044701834702404e-16",
+            "k": "0.50753698416839887",
+            "omega": "0.30126919414818887",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.10658582342669362",
+            "continuity_scale": "0.10658582342669362",
+            "corrected_mass": "0.00022944169503346501",
+            "k_raw": "4.6971445664669495e-09",
+            "k_fluent_normalization": "9.2547828295966193e-09",
+            "omega_raw": "1098.029529824265",
+            "omega_fluent_normalization": "3644.6790815398272",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "3",
+            "u": "0.00068119493057954559",
+            "v": "0.00068941962206165873",
+            "w": "1.451237333581135e-16",
+            "k": "0.41104502432124329",
+            "omega": "0.19499707168201369",
+            "nu_tilde": "0",
+            "continuity": "0.5147845502327707",
+            "continuity_raw": "0.054868735173899993",
+            "continuity_scale": "0.10658582342669362",
+            "corrected_mass": "0.00011914906826187774",
+            "k_raw": "3.8408072267856601e-09",
+            "k_fluent_normalization": "9.344006129566869e-09",
+            "omega_raw": "418.40606375477631",
+            "omega_fluent_normalization": "2145.7043438943583",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "4",
+            "u": "0.00049634242395883721",
+            "v": "0.00052976850999604487",
+            "w": "1.3171410300660413e-16",
+            "k": "0.30296947838492111",
+            "omega": "0.10215112751998481",
+            "nu_tilde": "0",
+            "continuity": "0.30581845316418971",
+            "continuity_raw": "0.0325959116495829",
+            "continuity_scale": "0.10658582342669362",
+            "corrected_mass": "6.3947657995406469e-05",
+            "k_raw": "3.2483691521096304e-09",
+            "k_fluent_normalization": "1.0721770289951764e-08",
+            "omega_raw": "156.17503772661368",
+            "omega_fluent_normalization": "1528.8625932793511",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "5",
+            "u": "0.00037189974773054781",
+            "v": "0.00041588206777823763",
+            "w": "1.0580846841147044e-16",
+            "k": "0.17764633737445659",
+            "omega": "0.046416860192874797",
+            "nu_tilde": "0",
+            "continuity": "0.18441740250152933",
+            "continuity_raw": "0.019656280699837492",
+            "continuity_scale": "0.10658582342669362",
+            "corrected_mass": "4.0164653106493587e-05",
+            "k_raw": "2.2466072357375897e-09",
+            "k_fluent_normalization": "1.2646515931268645e-08",
+            "omega_raw": "58.999332122973271",
+            "omega_fluent_normalization": "1271.0754643423716",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          }
+        ]
+      },
+      "receipt": "build/cause-selected-omega-sst-bump-cpu-L0/comparison.json",
+      "receipt_sha256": "abea7ad391cb4c90ce2b9104606ea0f6921bd61b6e59e326fd95b7fd34ff6599",
+      "measurement_environment": {
+        "system": "Darwin",
+        "darwin_release": "27.2.0",
+        "macos_product_version": "27.2",
+        "macos_build": "26B123",
+        "machine": "arm64",
+        "python_version": "3.14.10"
+      },
+      "source_and_probe_bindings": {
+        "build/ramp-steady-control/source/src/kutta/fv/steady_solver.cpp": "f89327d0fefd8161ee0a942b9301ff3704ef5ab46d8d5f2a51e08800d8aee025",
+        "build/ramp-steady-control/source/src/kutta/fv/steady_solver.hpp": "be4e1bc83d9a393db565f090a3acdb42811d245fc8406ac7c529b19c18ff4abc",
+        "build/ramp-steady-control/source/src/kutta/fv/turbulence/sa_transport.hpp": "317a9aa3c82fb0ceca88b685b70203307cb0961924594f5bfd9180056bde271b",
+        "build/ramp-steady-control/build/libkutta.a": "5dd1e36a130df5eea000f7c9573adc90bab0678c9b432eec02abd61e4718628e",
+        "build/ramp-steady-control/source/src/kutta/fv/turbulence/sa_transport.cpp": "1b770afdb6cae10c1c6e8d72bbab10cdbeec57f9f28a0c0f5f624494f125ab95",
+        "build/ramp-steady-control/source/src/kutta/fv/transport.cpp": "51c44bc38e5c6e824e3ce3cc187725b6c7eea01e9a488be919017e31b1362b60",
+        "build/ramp-steady-control/source/src/kutta/fv/transport.hpp": "aab90c5d6789fa1574886d3dbfe631bc4e7ff72c41506ac52c54b40771d1705a",
+        "build/run_selected_omega_cause.py": "7b0a66881ee7a8b0556693a8c15693c3e51d814122b359ae3637761d6436badb",
+        "build/ramp-steady-control/readback-probe": "c7948acd8dd391b75b98ad067507d65a3a0617d4b398cf37f2062b154c99d713"
+      }
+    },
+    {
+      "backend": "metal",
+      "case": "sst-bump-metal-3520",
+      "before": {
+        "name": "observe",
+        "switch_after": 3000,
+        "steps": 3000,
+        "converged": false,
+        "continuity": 1.748159653567575e-05,
+        "continuity_raw": 1.8632903615699173e-06,
+        "continuity_scale": 0.10658582342678989,
+        "k": 5.24136914836258e-07,
+        "k_raw": 4.823862586281636e-10,
+        "omega": 2.0717699431480542e-05,
+        "omega_raw": 0.017478843469765946,
+        "load_change": 2.52948584361e-05,
+        "cf": 0.00487451832848,
+        "cd": 0.00436588439872,
+        "inner_work": {
+          "momentum_work": 26422,
+          "pressure_work": 48947,
+          "scalar_work": 55989
+        },
+        "resource": {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 146719392,
+          "reported_peak_bytes": 146719392,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        "actual_geometry": {
+          "cells": "3520",
+          "masked_cells": "4",
+          "original_corrected": "6950",
+          "masked_corrected": "6864"
+        },
+        "actual_switch": [],
+        "scalar_storage": {
+          "scope": "Terminal high float scalar storage; compensated assembly does not carry a persistent scalar low word. Floor values are the frozen model defaults; these observations do not establish a convergence cause.",
+          "fields": {
+            "k": {
+              "cells": 3520,
+              "finite_minimum": 9.9999998245167e-15,
+              "finite_maximum": 0.008186048828065395,
+              "nonfinite_values": 0,
+              "configured_floor": 9.9999998245167e-15,
+              "at_or_below_floor": 6,
+              "first_64_floor_internal_indices": [
+                3108,
+                3137,
+                3165,
+                3192,
+                3218,
+                3243
+              ]
+            },
+            "omega": {
+              "cells": 3520,
+              "finite_minimum": 9.999999682655225e-21,
+              "finite_maximum": 634590.6875,
+              "nonfinite_values": 0,
+              "configured_floor": 9.999999682655225e-21,
+              "at_or_below_floor": 3,
+              "first_64_floor_internal_indices": [
+                3243,
+                3266,
+                3288
+              ]
+            }
+          }
+        },
+        "normalization_ratio": null,
+        "raw_continuity_ratio": null
+      },
+      "delayed": {
+        "name": "delayed",
+        "switch_after": 2000,
+        "steps": 3000,
+        "converged": false,
+        "continuity": 1.6983023272988527e-05,
+        "continuity_raw": 1.8101495198278184e-06,
+        "continuity_scale": 0.10658582342678989,
+        "k": 1.4891474466268222e-06,
+        "k_raw": 1.3708454909667798e-09,
+        "omega": 1.220019370348851e-05,
+        "omega_raw": 0.010292270250745719,
+        "load_change": 8.52505183337e-05,
+        "cf": 0.00487442566437,
+        "cd": 0.00436643836625,
+        "inner_work": {
+          "momentum_work": 26491,
+          "pressure_work": 48882,
+          "scalar_work": 56198
+        },
+        "resource": {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 146866872,
+          "reported_peak_bytes": 146866872,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        "actual_geometry": {
+          "cells": "3520",
+          "masked_cells": "4",
+          "original_corrected": "6950",
+          "masked_corrected": "6864"
+        },
+        "actual_switch": [
+          {
+            "after": "2000",
+            "iteration": "2001",
+            "omega_only": "1"
+          }
+        ],
+        "scalar_storage": {
+          "scope": "Terminal high float scalar storage; compensated assembly does not carry a persistent scalar low word. Floor values are the frozen model defaults; these observations do not establish a convergence cause.",
+          "fields": {
+            "k": {
+              "cells": 3520,
+              "finite_minimum": 9.9999998245167e-15,
+              "finite_maximum": 0.008185959421098232,
+              "nonfinite_values": 0,
+              "configured_floor": 9.9999998245167e-15,
+              "at_or_below_floor": 6,
+              "first_64_floor_internal_indices": [
+                3108,
+                3137,
+                3165,
+                3192,
+                3218,
+                3243
+              ]
+            },
+            "omega": {
+              "cells": 3520,
+              "finite_minimum": 9.999999682655225e-21,
+              "finite_maximum": 634590.0625,
+              "nonfinite_values": 0,
+              "configured_floor": 9.999999682655225e-21,
+              "at_or_below_floor": 8,
+              "first_64_floor_internal_indices": [
+                3191,
+                3217,
+                3241,
+                3242,
+                3243,
+                3265,
+                3266,
+                3288
+              ]
+            }
+          }
+        },
+        "normalization_ratio": 1.0,
+        "raw_continuity_ratio": 0.9714801069988228
+      },
+      "startup": {
+        "name": "startup",
+        "switch_after": 0,
+        "steps": 3000,
+        "converged": false,
+        "continuity": 2.2017404391553145e-05,
+        "continuity_raw": 2.346743176792432e-06,
+        "continuity_scale": 0.10658582342670452,
+        "k": 6.313903588317858e-07,
+        "k_raw": 5.811634543189407e-10,
+        "omega": 1.561906088042959e-06,
+        "omega_raw": 0.001317737406758668,
+        "load_change": 3.7769423671e-05,
+        "cf": 0.00487451898216,
+        "cd": 0.00436612736041,
+        "inner_work": {
+          "momentum_work": 26496,
+          "pressure_work": 48799,
+          "scalar_work": 55915
+        },
+        "resource": {
+          "actual_wait_status": 0,
+          "continuously_guarded": true,
+          "limit_bytes": 3000000000,
+          "resource_limit_exceeded": false,
+          "sampled_and_reported_peak_bytes": 151995040,
+          "reported_peak_bytes": 151995040,
+          "interrupted": false,
+          "completed_wait_and_final_footprint": true
+        },
+        "actual_geometry": {
+          "cells": "3520",
+          "masked_cells": "4",
+          "original_corrected": "6950",
+          "masked_corrected": "6864"
+        },
+        "actual_switch": [
+          {
+            "after": "0",
+            "iteration": "1",
+            "omega_only": "1"
+          }
+        ],
+        "scalar_storage": {
+          "scope": "Terminal high float scalar storage; compensated assembly does not carry a persistent scalar low word. Floor values are the frozen model defaults; these observations do not establish a convergence cause.",
+          "fields": {
+            "k": {
+              "cells": 3520,
+              "finite_minimum": 9.9999998245167e-15,
+              "finite_maximum": 0.008186046034097672,
+              "nonfinite_values": 0,
+              "configured_floor": 9.9999998245167e-15,
+              "at_or_below_floor": 6,
+              "first_64_floor_internal_indices": [
+                3108,
+                3137,
+                3165,
+                3192,
+                3218,
+                3243
+              ]
+            },
+            "omega": {
+              "cells": 3520,
+              "finite_minimum": 9.999999682655225e-21,
+              "finite_maximum": 634590.6875,
+              "nonfinite_values": 0,
+              "configured_floor": 9.999999682655225e-21,
+              "at_or_below_floor": 8,
+              "first_64_floor_internal_indices": [
+                3191,
+                3217,
+                3241,
+                3242,
+                3243,
+                3265,
+                3266,
+                3288
+              ]
+            }
+          }
+        },
+        "normalization_ratio": 0.999999999999199,
+        "raw_continuity_ratio": 1.2594618773292967
+      },
+      "identical_captured_prefix": {
+        "1998": "038c45409948c530cac3db4bfa9223c54188963dc64fd6edfd63f2028d2f6751",
+        "1999": "a68f87f892a6e872423ab30675abc0317876e1c5529bdce552c436f8e45639e1",
+        "2000": "2c55b7213a3b313f1abc76bdf8b054b98e65a7019874b548c316b8d3973450f8"
+      },
+      "reported_and_linear_prefix_identical": true,
+      "baseline_all_root_qualified_printed_progress_and_endpoints_reproduced": true,
+      "baseline_original_full_state_archive": "not_collected_by_root_qualification; fresh observe captures used for delayed exact-prefix control",
+      "first_five_reports": {
+        "observe": [
+          {
+            "iteration": "1",
+            "u": "0.0010779254192211181",
+            "v": "0.0010038350343918563",
+            "w": "5.8721822457603349e-17",
+            "k": "0.61316368432606372",
+            "omega": "0.37789890181360064",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.002545215362324423",
+            "continuity_scale": "0.002545215362324423",
+            "corrected_mass": "2.1063597528443809e-05",
+            "k_raw": "1.8359697457679334e-08",
+            "k_fluent_normalization": "2.9942571497623377e-08",
+            "omega_raw": "2707.3795079120323",
+            "omega_fluent_normalization": "7164.2957810114312",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "2",
+            "u": "0.00093351378283524527",
+            "v": "0.00089018303017912147",
+            "w": "9.1957217287417433e-17",
+            "k": "0.50754208631150133",
+            "omega": "0.30127222561876565",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.10658582342678989",
+            "continuity_scale": "0.10658582342678989",
+            "corrected_mass": "0.00022940463044942216",
+            "k_raw": "4.6971941999888394e-09",
+            "k_fluent_normalization": "9.2547875864346756e-09",
+            "omega_raw": "1098.0444053576114",
+            "omega_fluent_normalization": "3644.6917836597822",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "3",
+            "u": "0.00068088757662133361",
+            "v": "0.00068930896724888973",
+            "w": "1.3669803012307085e-16",
+            "k": "0.41116115908952894",
+            "omega": "0.19500307066813477",
+            "nu_tilde": "0",
+            "continuity": "0.51154460336455332",
+            "continuity_raw": "0.054523402769141555",
+            "continuity_scale": "0.10658582342678989",
+            "corrected_mass": "0.00011893677938381404",
+            "k_raw": "3.8411696897000717e-09",
+            "k_fluent_normalization": "9.3422484220200144e-09",
+            "omega_raw": "418.42245991509895",
+            "omega_fluent_normalization": "2145.722415967437",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "4",
+            "u": "0.00049649995628926866",
+            "v": "0.00052988267948491307",
+            "w": "1.3892680950524249e-16",
+            "k": "0.30301067048604408",
+            "omega": "0.10215372322517467",
+            "nu_tilde": "0",
+            "continuity": "0.3049931210316989",
+            "continuity_raw": "0.032507942944670215",
+            "continuity_scale": "0.10658582342678989",
+            "corrected_mass": "6.3976396968428058e-05",
+            "k_raw": "3.2469631322930123e-09",
+            "k_fluent_normalization": "1.0715672577090184e-08",
+            "omega_raw": "156.18037813520556",
+            "omega_fluent_normalization": "1528.8760233529756",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "5",
+            "u": "0.00037222561324720514",
+            "v": "0.00041621228630584818",
+            "w": "1.2441930668338759e-16",
+            "k": "0.17780794725904889",
+            "omega": "0.046436472811097612",
+            "nu_tilde": "0",
+            "continuity": "0.18471691833160797",
+            "continuity_raw": "0.019688204841233535",
+            "continuity_scale": "0.10658582342678989",
+            "corrected_mass": "4.0209574492004784e-05",
+            "k_raw": "2.2472183624741644e-09",
+            "k_fluent_normalization": "1.2638458500396417e-08",
+            "omega_raw": "59.025098473634216",
+            "omega_fluent_normalization": "1271.0934939814833",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          }
+        ],
+        "delayed": [
+          {
+            "iteration": "1",
+            "u": "0.0010779254192211181",
+            "v": "0.0010038350343918563",
+            "w": "5.8721822457603349e-17",
+            "k": "0.61316368432606372",
+            "omega": "0.37789890181360064",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.002545215362324423",
+            "continuity_scale": "0.002545215362324423",
+            "corrected_mass": "2.1063597528443809e-05",
+            "k_raw": "1.8359697457679334e-08",
+            "k_fluent_normalization": "2.9942571497623377e-08",
+            "omega_raw": "2707.3795079120323",
+            "omega_fluent_normalization": "7164.2957810114312",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "2",
+            "u": "0.00093351378283524527",
+            "v": "0.00089018303017912147",
+            "w": "9.1957217287417433e-17",
+            "k": "0.50754208631150133",
+            "omega": "0.30127222561876565",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.10658582342678989",
+            "continuity_scale": "0.10658582342678989",
+            "corrected_mass": "0.00022940463044942216",
+            "k_raw": "4.6971941999888394e-09",
+            "k_fluent_normalization": "9.2547875864346756e-09",
+            "omega_raw": "1098.0444053576114",
+            "omega_fluent_normalization": "3644.6917836597822",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "3",
+            "u": "0.00068088757662133361",
+            "v": "0.00068930896724888973",
+            "w": "1.3669803012307085e-16",
+            "k": "0.41116115908952894",
+            "omega": "0.19500307066813477",
+            "nu_tilde": "0",
+            "continuity": "0.51154460336455332",
+            "continuity_raw": "0.054523402769141555",
+            "continuity_scale": "0.10658582342678989",
+            "corrected_mass": "0.00011893677938381404",
+            "k_raw": "3.8411696897000717e-09",
+            "k_fluent_normalization": "9.3422484220200144e-09",
+            "omega_raw": "418.42245991509895",
+            "omega_fluent_normalization": "2145.722415967437",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "4",
+            "u": "0.00049649995628926866",
+            "v": "0.00052988267948491307",
+            "w": "1.3892680950524249e-16",
+            "k": "0.30301067048604408",
+            "omega": "0.10215372322517467",
+            "nu_tilde": "0",
+            "continuity": "0.3049931210316989",
+            "continuity_raw": "0.032507942944670215",
+            "continuity_scale": "0.10658582342678989",
+            "corrected_mass": "6.3976396968428058e-05",
+            "k_raw": "3.2469631322930123e-09",
+            "k_fluent_normalization": "1.0715672577090184e-08",
+            "omega_raw": "156.18037813520556",
+            "omega_fluent_normalization": "1528.8760233529756",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "5",
+            "u": "0.00037222561324720514",
+            "v": "0.00041621228630584818",
+            "w": "1.2441930668338759e-16",
+            "k": "0.17780794725904889",
+            "omega": "0.046436472811097612",
+            "nu_tilde": "0",
+            "continuity": "0.18471691833160797",
+            "continuity_raw": "0.019688204841233535",
+            "continuity_scale": "0.10658582342678989",
+            "corrected_mass": "4.0209574492004784e-05",
+            "k_raw": "2.2472183624741644e-09",
+            "k_fluent_normalization": "1.2638458500396417e-08",
+            "omega_raw": "59.025098473634216",
+            "omega_fluent_normalization": "1271.0934939814833",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          }
+        ],
+        "startup": [
+          {
+            "iteration": "1",
+            "u": "0.0010779254192124824",
+            "v": "0.0010038350343858304",
+            "w": "5.8721822457135752e-17",
+            "k": "0.61316368433801727",
+            "omega": "0.37789501490459348",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.002545215362324423",
+            "continuity_scale": "0.002545215362324423",
+            "corrected_mass": "2.1063597528443809e-05",
+            "k_raw": "1.835969745851923e-08",
+            "k_fluent_normalization": "2.9942571498409424e-08",
+            "omega_raw": "2707.3516606009921",
+            "omega_fluent_normalization": "7164.2957800978475",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "2",
+            "u": "0.00093379451367272615",
+            "v": "0.00089037025566426073",
+            "w": "9.1213611980959043e-17",
+            "k": "0.50753740288742299",
+            "omega": "0.30126746470726845",
+            "nu_tilde": "0",
+            "continuity": "1",
+            "continuity_raw": "0.10658582342670452",
+            "continuity_scale": "0.10658582342670452",
+            "corrected_mass": "0.00022922953588805882",
+            "k_raw": "4.6971484257574811e-09",
+            "k_fluent_normalization": "9.2547827983415767e-09",
+            "omega_raw": "1098.0256302209955",
+            "omega_fluent_normalization": "3644.6870600113107",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "3",
+            "u": "0.00068125647417365042",
+            "v": "0.0006895689744317961",
+            "w": "1.3825367767378412e-16",
+            "k": "0.41111251148668715",
+            "omega": "0.19499663293199596",
+            "nu_tilde": "0",
+            "continuity": "0.51299157654715777",
+            "continuity_raw": "0.054677629597242129",
+            "continuity_scale": "0.10658582342670452",
+            "corrected_mass": "0.00011921266095655245",
+            "k_raw": "3.8402989236184195e-09",
+            "k_fluent_normalization": "9.3412358328159951e-09",
+            "omega_raw": "418.40457922932035",
+            "omega_fluent_normalization": "2145.7015587301794",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "4",
+            "u": "0.00049665527480947382",
+            "v": "0.00052997320593220129",
+            "w": "1.3196679306543032e-16",
+            "k": "0.30319937057535901",
+            "omega": "0.10214896574476233",
+            "nu_tilde": "0",
+            "continuity": "0.30538172952393949",
+            "continuity_raw": "0.03254936310078025",
+            "continuity_scale": "0.10658582342670452",
+            "corrected_mass": "6.4145649228692552e-05",
+            "k_raw": "3.2505976124442085e-09",
+            "k_fluent_normalization": "1.0720990634894095e-08",
+            "omega_raw": "156.17164987556686",
+            "omega_fluent_normalization": "1528.8617827594062",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          },
+          {
+            "iteration": "5",
+            "u": "0.00037185869625203246",
+            "v": "0.00041576829126916336",
+            "w": "1.1230004519482802e-16",
+            "k": "0.17779149391728144",
+            "omega": "0.046419872007284049",
+            "nu_tilde": "0",
+            "continuity": "0.18525217918791348",
+            "continuity_raw": "0.01974525606033517",
+            "continuity_scale": "0.10658582342670452",
+            "corrected_mass": "4.0218119133117068e-05",
+            "k_raw": "2.2476501196404721e-09",
+            "k_fluent_normalization": "1.2642056546789605e-08",
+            "omega_raw": "59.00369807130172",
+            "omega_fluent_normalization": "1271.0870478497454",
+            "nu_tilde_raw": "0",
+            "nu_tilde_fluent_normalization": "0"
+          }
+        ]
+      },
+      "receipt": "build/cause-selected-omega-sst-bump-metal-L0/comparison.json",
+      "receipt_sha256": "88e66919a57624c4e166ea28b08e3d910440d8c8413d22214f89900d9c95a8d3",
+      "measurement_environment": {
+        "system": "Darwin",
+        "darwin_release": "27.2.0",
+        "macos_product_version": "27.2",
+        "macos_build": "26B123",
+        "machine": "arm64",
+        "python_version": "3.14.10"
+      },
+      "source_and_probe_bindings": {
+        "build/ramp-steady-control/source/src/kutta/fv/steady_solver.cpp": "f89327d0fefd8161ee0a942b9301ff3704ef5ab46d8d5f2a51e08800d8aee025",
+        "build/ramp-steady-control/source/src/kutta/fv/steady_solver.hpp": "be4e1bc83d9a393db565f090a3acdb42811d245fc8406ac7c529b19c18ff4abc",
+        "build/ramp-steady-control/source/src/kutta/fv/turbulence/sa_transport.hpp": "317a9aa3c82fb0ceca88b685b70203307cb0961924594f5bfd9180056bde271b",
+        "build/ramp-steady-control/build/libkutta.a": "5dd1e36a130df5eea000f7c9573adc90bab0678c9b432eec02abd61e4718628e",
+        "build/ramp-steady-control/source/src/kutta/fv/turbulence/sa_transport.cpp": "1b770afdb6cae10c1c6e8d72bbab10cdbeec57f9f28a0c0f5f624494f125ab95",
+        "build/ramp-steady-control/source/src/kutta/fv/transport.cpp": "51c44bc38e5c6e824e3ce3cc187725b6c7eea01e9a488be919017e31b1362b60",
+        "build/ramp-steady-control/source/src/kutta/fv/transport.hpp": "aab90c5d6789fa1574886d3dbfe631bc4e7ff72c41506ac52c54b40771d1705a",
+        "build/run_selected_omega_cause.py": "7b0a66881ee7a8b0556693a8c15693c3e51d814122b359ae3637761d6436badb",
+        "build/ramp-steady-control/readback-probe": "c7948acd8dd391b75b98ad067507d65a3a0617d4b398cf37f2062b154c99d713"
+      }
+    }
+  ],
+  "timing_claim": false,
+  "public_selection": "A private stopping result alone is not full NASA-reference or full slow-tier qualification of a geometry policy."
+}

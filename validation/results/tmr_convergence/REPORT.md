@@ -3492,3 +3492,56 @@ All six solves finish naturally; the largest process peak is 172,180,200 B.
 actual per-cell gain diagnostics, endpoints, first-five normalizations, source
 bindings and wait/resource receipts. No full NASA or slow-tier qualification
 of a new pressure-update policy is claimed.
+
+### Omega support with the retained scalar/time controls, 2026-11-07 UTC
+
+Six more coarse-bump controls hold the selected scalar AMG, k relaxation 1,
+omega relaxation .75, time ramp .1 → 1 at 1.001, pressure .3 and momentum .7
+fixed. The observe cohort constructs the same alternative omega fit but never
+applies it within 3,000 steps. Its complete printed trajectory and endpoint
+reproduce the earlier qualified group on each backend. That earlier coarse
+qualification did not collect a full field archive; none is claimed. Fresh
+observe snapshots provide the delayed controls' exact high/low 1,998–2,000
+field prefix and complete reported/linear-work prefix through 2,000.
+
+Only omega diffusion reconstruction changes after that prefix, or from
+startup in the separate treatment. The same four geometric seeds remove
+86 quadratic face fits, 6,950 → 6,864, while velocity and k fits stay unchanged.
+All original 3,000 outer and 100/300/100 inner caps and physical gates hold.
+
+| Backend / treatment | Continuity | Omega defect | Load change | Stopping outcome |
+|---|---:|---:|---:|---|
+| CPU / observe | 2.806015e-5 | 1.157547e-5 | 2.643421e-5 | Fails 3,000 |
+| CPU / after 2,000 | 1.597577e-5 | 5.081825e-6 | 7.133592e-5 | Fails 3,000 |
+| CPU / from startup | 1.681293e-5 | 1.196554e-5 | 5.776674e-5 | Fails 3,000 |
+| Metal / observe | 1.748160e-5 | 2.071770e-5 | 2.529486e-5 | Fails 3,000 |
+| Metal / after 2,000 | 1.698302e-5 | 1.220019e-5 | 8.525052e-5 | Fails 3,000 |
+| Metal / from startup | 2.201740e-5 | 1.561906e-6 | 3.776942e-5 | Fails 3,000 |
+
+Continuity normalization is unchanged in the delayed controls and differs
+by less than 8e-13 relatively in the startup controls. Delayed raw omega
+falls to .438984 of observe on CPU and .588842 on Metal. From startup,
+Metal raw omega falls to .0753904, but raw continuity worsens by 25.9%.
+CPU startup raw omega instead rises by 3.36%, while raw continuity improves
+by 40.1%; both components still miss their gates. Thus the earlier omega
+support benefit is configuration-dependent. It is a measured contribution,
+not a universal plateau remedy, and no root geometry policy is selected.
+The continuing coupled flow failure still needs a complete cause established.
+
+All work totals cover the same 3,000 outer steps:
+
+| Backend / treatment | Momentum / pressure / scalar Krylov work |
+|---|---:|
+| CPU / observe | 32,009 / 48,870 / 56,215 |
+| CPU / after 2,000 | 31,977 / 48,810 / 56,341 |
+| CPU / from startup | 31,834 / 49,050 / 56,007 |
+| Metal / observe | 26,422 / 48,947 / 55,989 |
+| Metal / after 2,000 | 26,491 / 48,882 / 56,198 |
+| Metal / from startup | 26,496 / 48,799 / 55,915 |
+
+Every solve finishes naturally; the largest process peak is 151,995,040 B.
+No paired timing or full NASA-reference qualification of this alternative
+fit is claimed. [selected-omega-fit-controls.json](selected-omega-fit-controls.json)
+contains actual switches, geometry, raw defects, normalizations, work,
+scalar-floor observations and source/input/resource bindings. These controls
+leave the retained root numerical configuration unchanged.
