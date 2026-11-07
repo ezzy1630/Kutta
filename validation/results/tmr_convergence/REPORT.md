@@ -3348,3 +3348,45 @@ qualification is claimed. [ramp-scalar-minimal-controls.json](ramp-scalar-minima
 preserves actual switches, raw defects, common-window work, prefixes and
 source/input/resource receipts. The prototype's private pointer registry is
 not a production design and is not added to the root solver.
+
+### Isolate the pressure boundary rows, 2026-11-07 UTC
+
+A disjoint factorial separates symmetry observations from gain-triggered
+wall/inlet observations. It changes only the pressure fit, retaining the
+original scalar, time, pressure and momentum controls. All six fresh observe
+cohorts reproduce the archived 3,000-step high/low state and complete residual
+history. The combined startup treatment also reproduces the earlier full
+NormalFoot public state and full physical history exactly on both tested grids.
+The inactive library passes its twenty elbow file checks, four target states
+and six monitor sums.
+
+| SST Metal plate | Original continuity | Symmetry-only continuity | Non-symmetry-only continuity | Combined continuity |
+|---|---:|---:|---:|---:|
+| Middle grid | 3.045154e-5, fails 3,000 | 3.246784e-6, passes 800 | Original result, fails 3,000 | Same as symmetry-only |
+| Fine grid | 7.407654e-6, passes 3,000 | 1.713392e-5, fails 3,000 | Original result, passes 3,000 | Same as symmetry-only |
+
+Both grids have **zero eligible non-symmetry gain rows**. The original helper
+incorrectly required a requested factor to have eligible rows. It failed
+after the middle-grid shadow had completed. That failed assertion and receipt
+remain unchanged. A separate receipt verifies and reuses the completed shadow;
+no completed solve is restarted. The corrected experimental protocol records
+absent factors explicitly. A requested factor with zero changed coefficients
+must preserve the full state, entire residual history and linear-work history.
+It is a certified null intervention, not a causal recovery or a skipped gate.
+
+The symmetry-only and combined states and complete histories match on both
+grids. There are 6,540 / 26,136 changed symmetry observations and no changed
+non-symmetry observations. Middle-grid raw continuity falls by about 9.38
+while its normalization changes only 0.00269%. Fine-grid raw continuity worsens
+by 2.313 times, with normalization changing only 0.000491%. Thus the same
+symmetry factor causes both the measured middle-grid gain and the fine-grid
+regression. The earlier interpretation that a separate wall/inlet factor might
+explain that regression is unsupported here. No pressure-fit policy is selected
+by this experiment. The sole cause of the original fine-grid slow approach
+is still unestablished.
+
+All runs finish naturally; the largest process peak is 185,025,232 B. No paired timing claim is made.
+[pressure-row-factorial.json](pressure-row-factorial.json) contains the six
+endpoints, geometry counts, work, resource/wait receipts, complete replay
+checks and input/source bindings. This is a private causal experiment, not a
+full NASA reference or slow-tier qualification of a new boundary policy.
