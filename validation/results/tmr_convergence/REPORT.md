@@ -3152,3 +3152,21 @@ do not establish a universal pressure-gain fix or full NASA accuracy.
 [pressure-aitken-controls.json](pressure-aitken-controls.json) preserves actual
 work, resource receipts, factors and source/input bindings. No timing claim or
 full slow-tier comparison is made. Production still has 17 convergence failures.
+
+### Select the qualified bump configuration, 2026-11-07 UTC
+
+The root SST and SA bump harnesses now select the public scalar AMG option,
+k relaxation 1 / omega .75 or SA relaxation 1, and the public .1 → 1 time
+ramp with growth 1.001. Pressure relaxation stays .3. These are exactly the
+bump settings in the completed 24-solve qualification above. That qualification
+recovers seven bump convergence gates and holds every bump station, drag and
+refinement gate. Its plate settings are rejected and are not selected here.
+No grid/backend-specific setting, reference, stopping condition or budget changes.
+
+This commits the case setup, not a new global default. The current root build
+succeeds; its solver library SHA is identical to the library used by the
+completed private qualification. A fresh root full slow comparison and quick
+tier remain required after the remaining controlled solver work. The original
+five plate convergence failures and five bump failures have no retained remedy
+at this checkpoint; the private grouped results are not relabelled as completed
+root qualification.

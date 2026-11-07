@@ -39,7 +39,14 @@ inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level
   SolverSettings settings;settings.viscosity=nu;settings.sa=SaSettings{};
   settings.sa->model.formulation=SaFormulation::TmrStandard;
   settings.sa->convection=ConvectionScheme::FirstOrderUpwind;settings.monitor_interval=100;
-  if(c==Case::Bump) {settings.pseudo_time_step=.1;settings.pressure_relaxation=.3;}
+  if(c==Case::Bump) {
+    // Keep startup conservative, then remove excess flow damping. AMG lets
+    // the anisotropic scalar equations support a full update at the same cap.
+    settings.pseudo_time_step=.1;settings.pseudo_time_ramp=PseudoTimeRamp{1,1.001};
+    settings.pressure_relaxation=.3;
+    settings.sa->linear_preconditioner=TransportPreconditioner::Amg;
+    settings.sa->relaxation=1;
+  }
   // Keep the TMR precision opt-ins that failed global default qualification.
   settings.compensated_momentum=true;settings.paired_state_slack_ulps=16;
   // Momentum/pressure tolerances and scalar defects use solver defaults.

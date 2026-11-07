@@ -140,7 +140,14 @@ inline Result run(Device& dev,const std::filesystem::path& root,Case c,int level
   settings.monitor_interval=100;
   // The bump domain extends 25 lengths upstream/downstream. Its global
   // automatic time scale is too large for uniform no-slip-wall startup.
-  if(c==Case::Bump) {settings.pseudo_time_step=.1;settings.pressure_relaxation=.3;}
+  if(c==Case::Bump) {
+    // Keep startup conservative, then remove excess flow damping. AMG lets
+    // the anisotropic scalar equations support a full update at the same cap.
+    settings.pseudo_time_step=.1;settings.pseudo_time_ramp=PseudoTimeRamp{1,1.001};
+    settings.pressure_relaxation=.3;
+    settings.sst->linear_preconditioner=TransportPreconditioner::Amg;
+    settings.sst->k_relaxation=1;
+  }
   // Keep the TMR precision opt-ins that failed global default qualification.
   settings.compensated_momentum=true;settings.paired_state_slack_ulps=16;
   // Momentum/pressure tolerances and scalar defects use solver defaults.
