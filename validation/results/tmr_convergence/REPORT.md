@@ -3431,3 +3431,64 @@ timing or full NASA reference qualification is claimed.
 [ramp-scalar-startup-minimal-controls.json](ramp-scalar-startup-minimal-controls.json)
 contains complete endpoint, common-work, normalization, source/input and
 actual wait/resource receipts, including the reused baseline's coverage limits.
+
+### Local pressure cap versus uniform gain, 2026-11-07 UTC
+
+The private pressure update compares the original local ceiling with a
+uniform requested gain. Velocity and flux correction, pressure hysteresis,
+spatial fits, scalar controls and time stepping are unchanged. An observe
+cohort keeps the original requested pressure relaxation 1. The two treatments
+both request .7; they differ only by `min(alpha, .7*Dphysical*consistentInverse)`
+versus uniform `alpha` in the pressure update. Each observe cohort reproduces
+all archived 3,000-step field words and the complete physical residual history.
+The disabled library passes twenty elbow file comparisons, four target states
+and six monitor sums.
+
+The first attempt incorrectly used the private delayed setter at zero.
+Its constructor guard requires at least five completed steps and rejected
+that setup before any solver step. The failed helper, receipt and guard are
+preserved. The corrected startup helper supplies relaxation through the
+existing constructor probe control and verifies actual initial settings.
+The complete off proof is reused, without restarting any completed solve.
+No source guard, physical gate or budget is weakened.
+
+| SST Metal plate | Original continuity / steps | Local .7 continuity / steps | Uniform .7 continuity / steps |
+|---|---:|---:|---:|
+| Middle | 3.045154e-5 / 3,000 fail | 3.468712e-6 / 800 pass | 9.561478e-6 / 1,300 pass |
+| Fine, original guard passes | 7.407654e-6 / 3,000 pass | 6.989827e-5 / 3,000 fail | 4.155288e-4 / 3,000 fail |
+
+The normalized values alone obscure the startup trade-off:
+
+| Grid / treatment | Raw continuity, candidate / original | Initial normalization, candidate / original |
+|---|---:|---:|
+| Middle / local .7 | .0483402 | .4243745 |
+| Middle / uniform .7 | .00180113 | .00573627 |
+| Fine / local .7 | 2.789892 | .2956662 |
+| Fine / uniform .7 | .8706038 | .01552030 |
+
+Uniform .7 reduces middle-grid raw imbalance by about 555 times, but also
+makes its startup denominator about 174 times smaller. On the fine grid,
+raw imbalance improves by 12.9%, while its denominator becomes about 64.4
+times smaller. Its actual normalized gate therefore fails badly. This is
+not a measured 56-fold worsening of the raw flow balance. The original
+normalization is not substituted into any acceptance check. Neither startup
+pressure policy qualifies as a general remedy, and neither is selected.
+These trials isolate cap and startup effects; they do not establish a safe
+complete cause-specific fix for the original plate failures.
+
+| Grid / treatment | Final steps | Momentum / pressure / scalar Krylov work |
+|---|---:|---:|
+| Middle / original | 3,000 | 32,997 / 45,118 / 4,245 |
+| Middle / local .7 | 800 | 5,044 / 11,940 / 4,225 |
+| Middle / uniform .7 | 1,300 | 8,443 / 23,203 / 4,256 |
+| Fine / original | 3,000 | 20,126 / 78,386 / 14,771 |
+| Fine / local .7 | 3,000 | 20,203 / 82,569 / 14,775 |
+| Fine / uniform .7 | 3,000 | 20,345 / 87,193 / 14,769 |
+
+Middle-grid totals are time-to-stop work with different stop counts; fine-grid
+totals cover the same 3,000 steps. They are not paired wall-clock measurements.
+All six solves finish naturally; the largest process peak is 172,180,200 B.
+[global-pressure-cap-controls.json](global-pressure-cap-controls.json) retains
+actual per-cell gain diagnostics, endpoints, first-five normalizations, source
+bindings and wait/resource receipts. No full NASA or slow-tier qualification
+of a new pressure-update policy is claimed.
