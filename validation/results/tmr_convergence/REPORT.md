@@ -3170,3 +3170,43 @@ tier remain required after the remaining controlled solver work. The original
 five plate convergence failures and five bump failures have no retained remedy
 at this checkpoint; the private grouped results are not relabelled as completed
 root qualification.
+
+### Scalar hold/release with the flow ramp fixed, 2026-11-07 UTC
+
+The finest SA bump repeats on both backends with the selected flow ramp and
+full scalar AMG update fixed. The completed held baseline reproduces every
+root-qualified progress report and endpoint. Metal additionally reproduces
+its archived full residual history and all terminal high/low field words.
+The CPU root qualification had no full-state archive; that limitation remains
+explicit. Both fresh candidates then preserve the exact captured fields,
+reported residuals and cumulative linear work through step 2,000. Only the
+actual scalar steady tolerance switches from 1e-6 to zero at step 2,001.
+All original iteration caps and stopping gates hold.
+
+| Backend | Stops, hold → release | Nu-tilde defect, hold → release | Load change, hold → release | Private stopping outcome |
+|---|---:|---:|---:|---|
+| cpu | 3,000 → 3,000 | 9.046088e-07 → 2.934343e-08 | 0.002764316 → 0.001181923 | Fail → fail |
+| metal | 2,500 → 3,000 | 8.952137e-07 → 2.879018e-08 | 0.0009579934 → 0.001181115 | Pass → fail |
+
+The raw scalar defect also falls, so this is not just a changed scalar
+normalization. The hold affects scalar accuracy and the coupled flow, but
+removing it after startup does not resolve the load failure on either backend.
+It loses the held Metal stopping pass. This is a measured contribution, not
+a complete cause or a retained fix. The root holding policy stays unchanged.
+
+Terminal totals have different stop counts on Metal. The following work
+comparison therefore uses the same outer-step interval within each backend,
+from after 2,000 through the earlier cohort's stop. Each entry is actual
+momentum / pressure / scalar Krylov work in that common window.
+
+| Backend / common end step | Held work | Released work |
+|---|---:|---:|
+| cpu / 3,000 | 15,223 / 27,840 / 396 | 15,367 / 27,720 / 42,048 |
+| metal / 2,500 | 5,208 / 14,706 / 301 | 5,232 / 14,495 / 24,157 |
+
+Cpu whole-process peak is 244,007,560 → 246,186,848 B. Metal whole-process peak is 362,824,568 → 372,851,576 B. All four runs finish naturally under the continuous 3 GB guard.
+No paired timing claim is made. These are controlled stopping experiments,
+not a full slow-tier or NASA station/trend qualification of scalar release.
+[ramp-scalar-release-controls.json](ramp-scalar-release-controls.json) contains
+raw defects, exact-prefix proofs, common-window work, settings and source/input
+bindings with actual wait/resource receipts.
