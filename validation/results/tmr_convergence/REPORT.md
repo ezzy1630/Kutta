@@ -927,8 +927,11 @@ documented below, compensated momentum added 17,840,128 device bytes on the
 56,320-cell SST bump (316.76 B/cell). SA added 20,092,928 bytes (356.76 B/cell).
 The table above uses the later actual-root measurements, 268.76 / 332.76 B/cell. These deltas keep the TMR scalar controls fixed. With
 walk reconstruction active, the increments are
-`148*Ncells + 28*Nfaces + 28*Nboundary` for SST and
-`188*Ncells + 28*Nfaces + 28*Nboundary` for SA. They include the 64 B/cell
+`100*Ncells + 28*Nfaces + 28*Nboundary` for SST and
+`164*Ncells + 28*Nfaces + 28*Nboundary` for SA, after both scratch cleanups.
+Here `Nfaces` includes boundary faces. On the measured grid, `Ncells=56,320`,
+`Nfaces=225,792` and `Nboundary=113,664`; these formulas reproduce all four
+CPU/Metal on-minus-off allocation deltas exactly. They include the 64 B/cell
 paired walk scratch allocated on first use. The original allocation receipt
 records SST before that cleanup: 19,867,648 bytes (352.76 B/cell); the linked
 parity receipt records its exact 2,027,520-byte reduction. These are device
