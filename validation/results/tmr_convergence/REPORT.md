@@ -3385,11 +3385,49 @@ by 2.313 times, with normalization changing only 0.000491%. Thus the same
 symmetry factor causes both the measured middle-grid gain and the fine-grid
 regression. The earlier interpretation that a separate wall/inlet factor might
 explain that regression is unsupported here. No pressure-fit policy is selected
-by this experiment. The sole cause of the original fine-grid slow approach
-is still unestablished.
+by this experiment. This isolates the boundary factor behind that regression; it does not
+establish a safe general fix for the original plate failures.
 
 All runs finish naturally; the largest process peak is 185,025,232 B. No paired timing claim is made.
 [pressure-row-factorial.json](pressure-row-factorial.json) contains the six
 endpoints, geometry counts, work, resource/wait receipts, complete replay
 checks and input/source bindings. This is a private causal experiment, not a
 full NASA reference or slow-tier qualification of a new boundary policy.
+
+### Minimal scalar correction from startup, 2026-11-07 UTC
+
+The pending startup experiment is now complete on both backends. It uses
+exactly the same verified numerical binary and held baseline as the delayed
+experiment, but enables minimal contraction at step one. All scalar controls,
+flow ramp, pressure/momentum relaxation and the 3,000/100-step caps remain
+unchanged. There is no delayed-prefix claim for a startup intervention.
+The continuity normalization is exactly unchanged on each backend; the
+first-five reports and actual policy readbacks are retained in the receipt.
+
+| Backend | Stops, held → minimal from startup | Nu-tilde defect, held → candidate | Load change, held → candidate | Private stopping outcome |
+|---|---:|---:|---:|---|
+| CPU | 3,000 → 3,000 | 9.046088e-7 → 4.257270e-8 | .002764316 → .001247129 | Fail → fail |
+| Metal | 2,500 → 3,000 | 8.952137e-7 → 4.232756e-8 | .0009579934 → .001249528 | Pass → fail |
+
+Raw scalar defect falls by about 21 times on both backends. The startup
+intervention still fails the load gate, and loses the held Metal pass.
+This rules out calling the delayed policy's failure merely an artifact of
+switching it on at step 2,001. It does not establish the complete cause of
+the remaining load transient. No scalar holding-policy change is selected.
+
+The work comparison uses the same interval from startup through the earlier
+stop in each pair. Entries are actual momentum / pressure / scalar Krylov
+iterations, not wall time or sampled terminal iteration counts.
+
+| Backend / common last step | Held work | Minimal-from-start work |
+|---|---:|---:|
+| CPU / 3,000 | 41,385 / 83,226 / 19,875 | 41,654 / 86,900 / 16,280 |
+| Metal / 2,500 | 22,814 / 69,929 / 19,775 | 22,920 / 72,463 / 15,531 |
+
+The scalar-work reduction does not compensate for the failed stopping gate.
+CPU process peak is 244,007,560 → 236,176,008 B; Metal is 362,824,568 →
+381,158,264 B. Every solve finishes naturally below the 3 GB guard. No paired
+timing or full NASA reference qualification is claimed.
+[ramp-scalar-startup-minimal-controls.json](ramp-scalar-startup-minimal-controls.json)
+contains complete endpoint, common-work, normalization, source/input and
+actual wait/resource receipts, including the reused baseline's coverage limits.
