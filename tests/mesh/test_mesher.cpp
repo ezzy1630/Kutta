@@ -7,6 +7,7 @@
 #include <bit>
 #include <cstdlib>
 #include <numeric>
+#include <set>
 
 namespace {
 using namespace kutta;
@@ -116,12 +117,13 @@ TEST_CASE("kutta mesh writes JSONL and a case that solves through the real CLI")
   const auto args="mesh "+quote(t.path("test.stl"))+" --setup "+quote(t.path("mesh.json"))+" --out "+quote(t.path("out"))+" --case --progress jsonl";
   REQUIRE_MESSAGE(cli(args,t.path("mesh.log"))==0,mesh_text(t.path("mesh.log")));
   CHECK(std::filesystem::exists(t.path("out/mesh-report.json")));
-  std::istringstream lines(mesh_text(t.path("mesh.log"))); std::string line; int events=0; double fraction=-1;
+  std::istringstream lines(mesh_text(t.path("mesh.log"))); std::string line; int events=0,done=0; double fraction=-1; std::set<std::string> stages;
   while(std::getline(lines,line)) {
     const auto event=std::get<Json::Object>(parse_json(line).value); ++events;
-    if(event.at("event")==Json{"mesh-progress"}) { const auto value=std::get<double>(event.at("fraction").value); CHECK(value>=fraction); CHECK(value<=1); fraction=value; }
+    if(event.at("event")==Json{"mesh-done"}) ++done;
+    if(event.at("event")==Json{"mesh-progress"}) { stages.insert(std::get<std::string>(event.at("stage").value)); const auto value=std::get<double>(event.at("fraction").value); CHECK(value>=fraction); CHECK(value<=1); fraction=value; }
   }
-  CHECK(events==8);
+  CHECK(events>=8); CHECK(done==1); CHECK(stages.size()==7);
   // A bad setup must produce a terminal error and publish no output.
   mesh_text(t.path("bad.json"),R"({"v":1,"surface":{"min_size":-1}})");
   CHECK(cli("mesh "+quote(t.path("test.stl"))+" --setup "+quote(t.path("bad.json"))+" --out "+quote(t.path("bad"))+" --json",t.path("bad.log"))!=0);

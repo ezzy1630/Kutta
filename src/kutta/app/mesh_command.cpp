@@ -92,6 +92,7 @@ int mesh_command(int argc,char** argv) {
     Json::Array input_hashes;
     for(const auto& input:inputs) input_hashes.push_back(Json::Object{{"file",utf8_path(input.filename())},{"sha256",sha256_file(input)}});
     result.report["inputs"]=std::move(input_hashes);
+    result.report["kutta_commit"]=KUTTA_COMMIT;
     result.report["out"]=utf8_path(out); result.report["case_written"]=!case_text.empty();
     write_text(scratch.path/"mesh-report.json",dump_json(result.report));
     for(const auto* name:{"mesh.msh","mesh-report.json","case.kutta.json"}) if(std::filesystem::exists(scratch.path/name)) {

@@ -34,6 +34,7 @@ struct Tree {
     const auto extent=(bounds.max-bounds.min)/st.base_size;
     KUTTA_REQUIRE(extent.x>0 && extent.y>0 && extent.z>0 && extent.x<100000 && extent.y<100000 && extent.z<100000,"mesh: invalid tunnel dimensions");
     counts={int(std::ceil(extent.x)),int(std::ceil(extent.y)),int(std::ceil(extent.z))};
+    for(int a=0;a<3;++a) KUTTA_REQUIRE(std::int64_t(counts[a])*root_size<std::numeric_limits<int>::max()-1,"mesh: requested tunnel/size range exceeds integer lattice capacity");
     const auto roots=std::int64_t(counts[0])*counts[1]*counts[2];
     KUTTA_REQUIRE(roots<=st.max_cells,"mesh/max_cells: tunnel base grid alone exceeds the cell budget; increase base_size");
     bounds.max=bounds.min+Vec3d{double(counts[0]),double(counts[1]),double(counts[2])}*st.base_size;
@@ -142,7 +143,8 @@ struct Builder {
   std::vector<Face> faces;
   std::unordered_map<FaceKey,Index,FaceHash> pending;
   Index cells=0,hexes=0,cut_cells=0;
-  explicit Builder(const Tree& t):tree(t),surface(t.surface),query(t.query),settings(t.settings) {}
+  const Progress& progress;
+  explicit Builder(const Tree& t,const Progress& p):tree(t),surface(t.surface),query(t.query),settings(t.settings),progress(p) {}
   Index vertex(Grid g) {
     const auto it=vertices.find(g); if(it!=vertices.end()) return it->second;
     const auto p=tree.position(g); const auto s=query.sample(p); const auto id=index(points.size());
@@ -271,7 +273,11 @@ struct Builder {
       }
       if(positive) kind[id]=negative?1:0;
     }
+    auto last_progress=std::chrono::steady_clock::now();
     for(std::size_t id=0;id<tree.nodes.size();++id) if(kind[id]>=0) {
+      if(id%1024==0 && progress && std::chrono::steady_clock::now()-last_progress>std::chrono::seconds(1)) {
+        progress("trim",.5+.24*double(id)/tree.nodes.size(),"Clipping and merging convex surface cells"); last_progress=std::chrono::steady_clock::now();
+      }
       const auto& n=tree.nodes[id]; const bool cut=kind[id]==1;
       std::vector<std::array<Index,3>> triangles; Poly polygons; int quad_count=0;
       for(int a=0;a<3;++a) for(int side=0;side<2;++side) for(const auto& g:tree.face_quads(n,a,side)) {
@@ -347,11 +353,13 @@ Result generate(const Surface& surface,const Settings& settings,double speed,con
   Tree tree(surface,settings,query); tree.refine();
   const auto level_jump=tree.max_level_jump(); KUTTA_REQUIRE(level_jump<=1,"mesh: octree 2:1 balance invariant failed");
   emit("trim",.5,"Clipping a conforming shared signed-distance field");
-  Builder builder(tree); auto mesh=builder.build();
+  Builder builder(tree,progress); auto mesh=builder.build();
   emit("layers",.75,"No prism layers requested; wall-function sizing is reported");
   emit("quality",.8,"Checking closure, positive volume and convexity");
   validate(mesh); const auto geometry=compute_geometry(mesh); const auto quality=orthogonal_quality(mesh,geometry);
-  const auto min_quality=*std::min_element(quality.begin(),quality.end());
+  const auto worst=std::min_element(quality.begin(),quality.end());
+  const auto min_quality=*worst; const auto worst_cell=Index(worst-quality.begin());
+  const auto poor_cells=std::count_if(quality.begin(),quality.end(),[](double q) { return q<=.05; });
   double max_skew=0,max_ratio=1; Index nonconvex=0;
   // Every face plane must bound every vertex of its cell. This detects a
   // nonconvex cut cell instead of treating a positive signed volume as proof.
@@ -393,7 +401,7 @@ Result generate(const Surface& surface,const Settings& settings,double speed,con
     {"cut_cells",double(builder.cut_cells)},{"octree_leaves",double(tree.leaves)},{"max_face_level_difference",level_jump},
     {"bounds",Json::Array{vec(tree.bounds.min),vec(tree.bounds.max)}},{"body_bounds",Json::Array{vec(surface.bounds.min),vec(surface.bounds.max)}},
     {"zones",std::move(zones)},{"missing_surface_zones",std::move(missing)},{"repairs",surface.repairs},
-    {"quality",Json::Object{{"orthogonal_min",min_quality},{"orthogonal_mean",std::accumulate(quality.begin(),quality.end(),0.)/quality.size()},
+    {"quality",Json::Object{{"cells_at_or_below_0_05",double(poor_cells)},{"worst_cell",Json::Object{{"index",double(worst_cell)},{"centroid",vec(geometry.cell_centroid[worst_cell])},{"volume",geometry.cell_volume[worst_cell]}}},{"orthogonal_min",min_quality},{"orthogonal_mean",std::accumulate(quality.begin(),quality.end(),0.)/quality.size()},
       {"skewness_max",max_skew},{"adjacent_volume_ratio_max",max_ratio},{"nonconvex_cells",double(nonconvex)},{"negative_cells",0},
       {"volume_min",*std::min_element(geometry.cell_volume.begin(),geometry.cell_volume.end())},{"hard_orthogonal_floor",1e-8}}},
     {"layers",Json::Object{{"requested",settings.layer_count},{"generated",0},{"status","wall-function mesh; prism layers unavailable"}}},
