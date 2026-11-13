@@ -68,12 +68,13 @@ Settings parse_settings(std::string_view text) {
       }
     }
     if (k == "surface") {
-      for (const auto& [a,b] : object(v,p,{"min_size","max_size","curvature_degrees","proximity_cells"})) {
+      for (const auto& [a,b] : object(v,p,{"min_size","max_size","curvature_degrees","proximity_cells","proximity_min_size"})) {
         const auto q=p+"/"+a;
         if (a=="min_size") s.min_size=number(b,q,1e-7,1e5);
         if (a=="max_size") s.max_size=number(b,q,1e-7,1e5);
         if (a=="curvature_degrees") s.curvature_degrees=number(b,q,0.1,180);
         if (a=="proximity_cells") s.proximity_cells=integer(b,q,1,20);
+        if (a=="proximity_min_size") s.proximity_min_size=number(b,q,1e-7,1e5);
       }
     }
     if (k == "layers") {
@@ -104,6 +105,7 @@ Settings parse_settings(std::string_view text) {
   }
   if (s.min_size>s.max_size) bad("mesh/surface/min_size","must not exceed max_size");
   if (s.max_size>s.base_size) bad("mesh/surface/max_size","must not exceed base_size");
+  if (s.proximity_min_size>s.min_size) bad("mesh/surface/proximity_min_size","must not exceed min_size");
   return s;
 }
 }

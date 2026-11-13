@@ -26,7 +26,7 @@ def sha(path):
 def run(command, log):
     start=time.monotonic()
     with log.open('w') as f:
-        result=subprocess.run([str(a) for a in command],stdout=f,stderr=subprocess.STDOUT)
+        result=subprocess.run([str(a) for a in command],stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT)
     return {'exit':result.returncode,'wall_seconds':time.monotonic()-start}
 
 
@@ -36,7 +36,8 @@ def qualify(args, name):
     mesh_dir=out/'mesh'
     receipt={'geometry':name,'backend':args.backend,'binary_sha256':sha(args.kutta),
              'stl_sha256':sha(args.geometry/f'{name}.stl')}
-    receipt['mesh']=run([args.kutta,'mesh',args.geometry/f'{name}.stl','--setup',args.geometry/f'{name}-coarse.json','--out',mesh_dir,'--case','--json','--force'],out/'mesh.log')
+    speed=40 if name=='ahmed' else 20
+    receipt['mesh']=run([args.kutta,'mesh',args.geometry/f'{name}.stl','--setup',args.geometry/f'{name}-{args.setup}.json','--out',mesh_dir,'--case','--json','--force','--speed',speed],out/'mesh.log')
     if receipt['mesh']['exit']:
         return receipt
     report=json.loads((mesh_dir/'mesh-report.json').read_text())
@@ -45,8 +46,11 @@ def qualify(args, name):
     receipt['mesh_sha256']=sha(mesh_dir/'mesh.msh')
     # Exercise the separate new-case path, then state the benchmark settings.
     case=mesh_dir/'study.kutta.json'
-    speed=40 if name=='ahmed' else 20
-    receipt['new_case']=run([args.kutta,'new-case',mesh_dir/'mesh.msh','--speed',speed,'--out',case,'--force','--json'],out/'new-case.log')
+    wheels=[]
+    if (args.geometry/f'{name}-wheels.json').exists():
+        for w in json.loads((args.geometry/f'{name}-wheels.json').read_text()):
+            wheels+=['--wheel',f"{w['zone']}="+','.join(f'{v:g}' for v in [w['radius'],*w['center'],*w['axis']])]
+    receipt['new_case']=run([args.kutta,'new-case',mesh_dir/'mesh.msh','--speed',speed,*wheels,'--out',case,'--force','--json'],out/'new-case.log')
     if receipt['new_case']['exit']:
         return receipt
     c=json.loads(case.read_text())
@@ -95,6 +99,7 @@ def main():
     p.add_argument('--kind',choices=['both','ahmed','fsae'],default='both')
     p.add_argument('--backend',choices=['cpu','metal','cuda'],default='metal')
     p.add_argument('--iterations',type=int,default=5000)
+    p.add_argument('--setup',default='coarse',help='mesh setup NAME: uses GEOMETRY/<kind>-NAME.json')
     args=p.parse_args()
     args.kutta=args.kutta.resolve()
     if args.iterations<=0:

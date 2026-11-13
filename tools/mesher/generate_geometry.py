@@ -8,8 +8,11 @@
 Ahmed uses the existing rounded 35-degree body surface generator (no reference
 measurement data). FSAE is synthetic, full-scale SI: tapered monocoque and nose,
 sidepods, three-element inverted front/rear wings, endplates, floor/diffuser and
-four open wheels. Wheels have a 3 mm flattened contact patch at z=0, not a
-sub-grid ground clearance. Disjoint named solids are preserved in one ASCII STL.
+four open wheels. Each wheel stands on a 10 mm contact plinth (the tyre cut
+10 mm above the ground and closed down to it), the usual car-CFD contact
+treatment: a tangent or flattened tyre leaves a thin wedge of cells walled on
+two or three sides in which k-omega diverged. fsae-wheels.json gives each
+wheel's rolling radius, centre and axis for rotating-wheel cases. Disjoint named solids are preserved in one ASCII STL.
 No volume mesher is used. --kind fsae needs only Python's standard library.
 """
 import argparse
@@ -69,7 +72,7 @@ def box(x0, x1, y0, y1, z0, z1):
     return extrude([(x0,z0),(x1,z0),(x1,z1),(x0,z1)], y0, y1)
 
 
-def wing(x, z, chord, span, angle):
+def section(x, z, chord, angle):
     # Closed NACA0012 thickness with inverted camber; cosine spacing resolves
     # the nose. Geometric trailing-edge thickness avoids zero-volume exports.
     upper, lower = [], []
@@ -80,7 +83,34 @@ def wing(x, z, chord, span, angle):
         for section, sign in ((upper,1),(lower,-1)):
             xx, zz = chord*t, chord*(camber+sign*h)
             section.append((x+xx*math.cos(angle)-zz*math.sin(angle), z+xx*math.sin(angle)+zz*math.cos(angle)))
-    return extrude(upper + list(reversed(lower[1:])), -span/2, span/2)
+    return upper + list(reversed(lower[1:]))
+
+
+def gap(a, b):
+    """Smallest distance between two closed 2D sections (point to segment)."""
+    def seg(p, q, r):
+        dx, dz = r[0]-q[0], r[1]-q[1]
+        t = max(0., min(1., ((p[0]-q[0])*dx+(p[1]-q[1])*dz)/(dx*dx+dz*dz)))
+        return math.hypot(p[0]-q[0]-t*dx, p[1]-q[1]-t*dz)
+    return min(min(seg(p, q, r) for q, r in zip(other, other[1:]+other[:1])) for one, other in ((a, b), (b, a)) for p in one)
+
+
+def elements(x, z, chord, angle, slot):
+    """Three elements; each flap is lowered from well above the previous
+    trailing edge until its slot gap is `slot` (m)."""
+    out = [section(x, z, chord, math.radians(angle))]
+    for i in (1, 2):
+        c, a, xi = chord*(1-.12*i), math.radians(angle+8*i), x+i*chord*.81
+        zi = max(p[1] for p in out[-1])+.1
+        while gap(out[-1], section(xi, zi-.0005, c, a)) >= slot:
+            zi -= .0005
+        out.append(section(xi, zi, c, a))
+    return out
+
+
+SLOT = .012
+WHEEL_RADIUS, PLINTH = .23, .01
+WHEELS = [(f"wheel-{which}{side}", x, y) for which, x in (("f", -.78), ("r", .95)) for side, y in (("l", .72), ("r", -.72))]
 
 
 def fsae():
@@ -93,18 +123,21 @@ def fsae():
         add("sidepod-"+("left" if side>0 else "right"), box(-.15,.95,a,b,.16,.48))
     add("undertray-diffuser", extrude([(-.75,.065),(.72,.065),(1.36,.23),(1.36,.25),(.72,.085),(-.75,.085)],-.7,.7))
     for which,x,z,chord,span,angle in (("front",-1.5,.12,.32,1.5,7),("rear",.65,.88,.36,1.15,12)):
-        for i in range(3):
-            add(f"{which}-wing-element-{i+1}",wing(x+i*chord*.81,z+i*(.045 if which=="front" else .075),chord*(1-.12*i),span,math.radians(angle+8*i)))
+        # 12 mm slot gaps (about 4% chord), typical of FSAE multi-element wings.
+        for i, poly in enumerate(elements(x, z, chord, angle, SLOT)):
+            add(f"{which}-wing-element-{i+1}", extrude(poly, -span/2, span/2))
         for sign in (-1,1):
             y=sign*span/2
             add(f"{which}-wing-endplate-"+("left" if sign>0 else "right"),box(x-.02,x+chord*2.6,y-.004,y+.004,max(.02,z-.08),z+.36))
-    for which,x in (("f",-.78),("r",.95)):
-        for side,y in (("l",.72),("r",-.72)):
-            r=.23
-            polygon=[(x+r*math.cos(2*math.pi*i/64),max(0.,r-.003+r*math.sin(2*math.pi*i/64))) for i in range(64)]
-            # Remove collinear points on the flattened contact patch.
-            polygon=[p for i,p in enumerate(polygon) if not (p[1]==0 and polygon[i-1][1]==0 and polygon[(i+1)%len(polygon)][1]==0)]
-            add(f"wheel-{which}{side}",extrude(polygon,y-.105,y+.105))
+    for zone,x,y in WHEELS:
+        r=WHEEL_RADIUS
+        half=math.sqrt(r*r-(r-PLINTH)**2)
+        # Arc above the plinth (counter-clockwise from its right end), then
+        # the plinth down to the ground and back.
+        start=math.asin((PLINTH-r)/r)
+        arc=[(x+r*math.cos(t),r+r*math.sin(t)) for t in (start+(math.pi-2*start)*i/60 for i in range(61))]
+        polygon=arc+[(x-half,0.),(x+half,0.)]
+        add(zone,extrude(polygon,y-.105,y+.105))
     return solids
 
 
@@ -138,10 +171,17 @@ def main():
         write(args.out/"ahmed.stl",[("body",points,tris)])
     if args.kind in ("both","fsae"):
         write(args.out/"fsae.stl",fsae())
-    for name,base,minimum,maximum in (("ahmed",.2,.025,.05),("fsae",.5,.04,.1)):
-        setup={"v":1,"base_size":base,"surface":{"min_size":minimum,"max_size":maximum},"max_cells":2000000,"layers":{"count":0},"tunnel":{"upstream":3,"downstream":6,"side":2,"top":2,"ground":True}}
+    # Coarse qualification meshes. 2 mm first layers put the first-cell
+    # centroid near y+ 50 (FSAE, 20 m/s) and 100 (Ahmed, 40 m/s): the
+    # wall-function range of Kutta's y+-insensitive SST wall treatment.
+    for name,base,minimum,maximum,floor,proximity,count in (("ahmed",.2,.025,.05,.00625,3,3),("fsae",.5,.04,.1,.003,1,4)):
+        setup={"v":1,"base_size":base,"surface":{"min_size":minimum,"max_size":maximum,"proximity_min_size":floor,"proximity_cells":proximity},
+               "max_cells":3000000,"layers":{"count":count,"first_height":.002,"growth":1.3},"tunnel":{"upstream":3,"downstream":6,"side":2,"top":2,"ground":True}}
         (args.out/f"{name}-coarse.json").write_text(json.dumps(setup,indent=2)+"\n")
-    print(json.dumps({"out":str(args.out),"contact_patch":"3 mm flattened wheel bottom at z=0","units":"m"}))
+        # Rolling about -y moves the contact patch with the +x ground.
+        wheels=[{"zone":zone,"radius":WHEEL_RADIUS,"center":[x,y,WHEEL_RADIUS],"axis":[0,-1,0]} for zone,x,y in WHEELS]
+        (args.out/"fsae-wheels.json").write_text(json.dumps(wheels,indent=2)+"\n")
+    print(json.dumps({"out":str(args.out),"contact_patch":f"{PLINTH*1000:g} mm contact plinth under each wheel","units":"m"}))
 
 
 if __name__=="__main__":

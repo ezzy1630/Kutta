@@ -43,8 +43,6 @@ int mesh_command(int argc,char** argv) {
     KUTTA_REQUIRE(wheels.empty() || flags.contains("--case"),"--wheel requires --case");
     Settings settings;
     if(options.contains("--setup")) { KUTTA_REQUIRE(std::filesystem::file_size(options.at("--setup"))<=1024*1024,"mesh: setup exceeds 1 MiB"); std::ifstream f(options.at("--setup"),std::ios::binary); KUTTA_REQUIRE(f,"cannot read mesh setup"); const std::string text((std::istreambuf_iterator<char>(f)),{}); settings=parse_settings(text); }
-    // Fail unsupported layers before reading geometry or creating output.
-    KUTTA_REQUIRE(settings.layer_count==0,"mesh/layers/count: prism layers are unavailable in v1; use count 0 for a wall-function mesh");
     double speed=20;
     if(options.contains("--speed")) { const auto value=parse_double(options.at("--speed")); KUTTA_REQUIRE(value && *value>0 && std::isfinite(*value),"--speed must be a positive finite speed in m/s"); speed=*value; }
     const auto out=std::filesystem::absolute(options.at("--out")).lexically_normal();
@@ -104,7 +102,7 @@ int mesh_command(int argc,char** argv) {
     else std::cout << "Wrote " << (out/"mesh.msh").string() << " (" << result.mesh.n_cells << " cells); report: " << (out/"mesh-report.json").string() << '\n';
     return 0;
   } catch(const std::exception& e) {
-    const std::string advice="Check the named input/setup path; increase max_cells or mesh sizes for budget errors. Prism layers require count 0 in v1.";
+    const std::string advice="Check the named input/setup path; increase max_cells or mesh sizes for budget errors.";
     if(json || progress) std::cout << dump_json(Json::Object{{"v",1},{"event","error"},{"message",e.what()},{"advice",advice}}) << std::endl;
     std::cerr << "kutta mesh: " << e.what() << '\n'; return 1;
   }

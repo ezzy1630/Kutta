@@ -117,9 +117,17 @@ Surface read_stl(std::span<const std::filesystem::path> paths,const Settings& se
   }
   const auto feature_cos=std::cos(settings.curvature_degrees*std::acos(-1.)/180);
   auto normal=[&](Index i) { const auto& n=out.triangles[i].nodes; const auto v=cross(out.points[n[1]]-out.points[n[0]],out.points[n[2]]-out.points[n[0]]); return v/norm(v); };
+  auto centroid=[&](Index i) { const auto& n=out.triangles[i].nodes; return (out.points[n[0]]+out.points[n[1]]+out.points[n[2]])/3.; };
   for(const auto& [edge,uses]:edges) {
     (void)edge;
     const bool feature=uses.size()!=2 || dot(normal(uses[0].first),normal(uses[1].first))<feature_cos;
+    if(uses.size()==2 && !feature) {
+      const auto angle=std::acos(std::clamp(dot(normal(uses[0].first),normal(uses[1].first)),-1.,1.));
+      if(angle>1e-6) {
+        const auto radius=norm(centroid(uses[0].first)-centroid(uses[1].first))/angle;
+        for(const auto& use:uses) out.triangles[use.first].radius=std::min(out.triangles[use.first].radius,radius);
+      }
+    }
     if(feature) for(const auto& [t,dir]:uses) {
       (void)dir; auto& tri=out.triangles[t];
       for(int e=0;e<3;++e) if(std::min(tri.nodes[e],tri.nodes[(e+1)%3])==edge[1] && std::max(tri.nodes[e],tri.nodes[(e+1)%3])==edge[2]) tri.feature_edges[e]=true;
@@ -197,6 +205,45 @@ struct SurfaceQuery::Impl {
       const auto t=dot(ac,r)/det; if(t>1e-12*norm(s.bounds.max-s.bounds.min)) out.push_back({tri.component,t});
     }
   }
+  void first(int id,Vec3d p,Vec3d d,double& best,Index skip,Index& hit) const {
+    const auto& n=nodes[id];
+    { double lo=0,hi=best; for(int a=0;a<3;++a) { const auto inv=1/coord(d,a); auto t0=(coord(n.b.min,a)-coord(p,a))*inv,t1=(coord(n.b.max,a)-coord(p,a))*inv; if(t0>t1) std::swap(t0,t1); lo=std::max(lo,t0); hi=std::min(hi,t1); } if(hi<lo) return; }
+    if(n.left>=0) { first(n.left,p,d,best,skip,hit); first(n.right,p,d,best,skip,hit); return; }
+    for(int i=n.first;i<n.first+n.count;++i) {
+      if(order[i]==skip) continue;
+      const auto& tri=s.triangles[order[i]]; const auto a=s.points[tri.nodes[0]],ab=s.points[tri.nodes[1]]-a,ac=s.points[tri.nodes[2]]-a;
+      const auto h=cross(d,ac); const auto det=dot(ab,h);
+      if(std::abs(det)<1e-14*norm(ab)*norm(ac)) continue;
+      const auto q=p-a; const auto u=dot(q,h)/det; if(u<0 || u>1) continue;
+      const auto r=cross(q,ab); const auto v=dot(d,r)/det; if(v<0 || u+v>1) continue;
+      const auto t=dot(ac,r)/det; if(t>1e-9*norm(s.bounds.max-s.bounds.min) && t<best) { best=t; hit=order[i]; }
+    }
+  }
+  // Separating-axis triangle/box test (Akenine-Moller), strict: a facet that
+  // only touches the box boundary does not cross it.
+  bool crosses(Index t,Vec3d c,Vec3d e) const {
+    const auto& tri=s.triangles[t];
+    const std::array<Vec3d,3> v{s.points[tri.nodes[0]]-c,s.points[tri.nodes[1]]-c,s.points[tri.nodes[2]]-c};
+    const std::array<Vec3d,3> f{v[1]-v[0],v[2]-v[1],v[0]-v[2]};
+    auto separated=[&](Vec3d axis) {
+      const auto r=e.x*std::abs(axis.x)+e.y*std::abs(axis.y)+e.z*std::abs(axis.z);
+      const auto p0=dot(v[0],axis),p1=dot(v[1],axis),p2=dot(v[2],axis);
+      return std::min({p0,p1,p2})>=r || std::max({p0,p1,p2})<=-r;
+    };
+    for(int i=0;i<3;++i) {
+      const Vec3d unit{double(i==0),double(i==1),double(i==2)};
+      if(separated(unit)) return false;
+      for(const auto& edge:f) { const auto axis=cross(unit,edge); if(dot(axis,axis)>0 && separated(axis)) return false; }
+    }
+    const auto n=cross(f[0],f[1]); return !(dot(n,n)>0 && separated(n));
+  }
+  bool crosses(int id,const Box& b,Vec3d c,Vec3d e) const {
+    const auto& n=nodes[id];
+    if(n.b.min.x>=b.max.x || n.b.max.x<=b.min.x || n.b.min.y>=b.max.y || n.b.max.y<=b.min.y || n.b.min.z>=b.max.z || n.b.max.z<=b.min.z) return false;
+    if(n.left>=0) return crosses(n.left,b,c,e) || crosses(n.right,b,c,e);
+    for(int i=n.first;i<n.first+n.count;++i) if(crosses(order[i],c,e)) return true;
+    return false;
+  }
   bool inside(Vec3d p) const {
     // A union of shells cannot contain a point outside their global bounds.
     if(p.x<s.bounds.min.x || p.x>s.bounds.max.x || p.y<s.bounds.min.y || p.y>s.bounds.max.y || p.z<s.bounds.min.z || p.z>s.bounds.max.z) return false;
@@ -226,5 +273,11 @@ Sample SurfaceQuery::nearest(Vec3d p) const {
 Sample SurfaceQuery::sample(Vec3d p) const { auto s=nearest(p); s.inside=impl_->inside(p); return s; }
 double SurfaceQuery::other_distance(Vec3d p,Index component) const {
   double d=std::numeric_limits<double>::infinity(); Index tri=-1; impl_->nearest(0,p,d,tri,component); return std::sqrt(d);
+}
+double SurfaceQuery::ray(Vec3d p,Vec3d d,Index skip,Index* hit) const {
+  double best=std::numeric_limits<double>::infinity(); Index t=-1; impl_->first(0,p,d,best,skip,t); if(hit) *hit=t; return best;
+}
+bool SurfaceQuery::crosses(const Box& b) const {
+  return impl_->crosses(0,b,(b.min+b.max)*.5,(b.max-b.min)*.5);
 }
 }  // namespace kutta::mesher
