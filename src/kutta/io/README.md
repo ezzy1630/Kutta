@@ -231,3 +231,12 @@ bump and NACA0012 grids directly from
 when that external directory is absent. They check every NMF patch name/type/size,
 stitched point/internal-face counts, absence of coincident boundary faces, and
 global boundary area closure. No large validation files are copied.
+
+## External-aero mesh output
+
+`kutta mesh` reads STL and writes Fluent ASCII polyhedra through
+`mesh/mesher/writer.cpp`. It reverses Kutta outward owner winding for Fluent
+c0, preserves named boundary zones, and uses polyhedral element type 7. The
+quick tier reads the output through `read_mesh`, validates oriented manifold
+edges and positive geometry, and solves a tiny generated case. The complete
+setup and report contract is in `docs/app-protocol.md`.

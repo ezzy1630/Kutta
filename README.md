@@ -85,6 +85,19 @@ the current VTU writer has no boundary-face wall shear output.
 Windows CI produces `kutta-windows-rtx.zip` with HDF5/zlib DLLs, license notices
 and [Windows requirements and examples](docs/README-windows.txt).
 
+## Start from STL
+
+```sh
+./build/kutta mesh car.stl --out car-mesh --case --progress jsonl
+./build/kutta solve car-mesh/case.kutta.json --backend metal --out results
+```
+
+The automatic external-aero mesher builds a balanced octree and convex cut cells
+from binary or named-solid ASCII STL. This first version has no prism layers;
+mesh validity does not establish aerodynamic accuracy or solve convergence.
+See the [mesh setup and CLI contract](docs/app-protocol.md#automatic-stl-meshing-mesh-v1-additive)
+and [measured results](validation/results/mesher/REPORT.md).
+
 ## Run without a Fluent case
 
 A Kutta case is a mesh plus a small JSON setup that states only what differs
