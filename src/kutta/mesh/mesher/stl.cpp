@@ -198,6 +198,8 @@ struct SurfaceQuery::Impl {
     }
   }
   bool inside(Vec3d p) const {
+    // A union of shells cannot contain a point outside their global bounds.
+    if(p.x<s.bounds.min.x || p.x>s.bounds.max.x || p.y<s.bounds.min.y || p.y>s.bounds.max.y || p.z<s.bounds.min.z || p.z>s.bounds.max.z) return false;
     int votes=0;
     constexpr Vec3d rays[]={{1,.3713906763541037,.6947465906068658},{.21913721,1,.51768143},{.61391717,.27131971,1}};
     for(auto ray:rays) {
@@ -217,10 +219,11 @@ SurfaceQuery::SurfaceQuery(const Surface& s):impl_(std::make_unique<Impl>(s)) {}
 SurfaceQuery::~SurfaceQuery()=default;
 SurfaceQuery::SurfaceQuery(SurfaceQuery&&) noexcept=default;
 SurfaceQuery& SurfaceQuery::operator=(SurfaceQuery&&) noexcept=default;
-Sample SurfaceQuery::sample(Vec3d p) const {
+Sample SurfaceQuery::nearest(Vec3d p) const {
   double d=std::numeric_limits<double>::infinity(); Index tri=-1; impl_->nearest(0,p,d,tri);
-  return {std::sqrt(d),tri,impl_->inside(p)};
+  return {std::sqrt(d),tri,false};
 }
+Sample SurfaceQuery::sample(Vec3d p) const { auto s=nearest(p); s.inside=impl_->inside(p); return s; }
 double SurfaceQuery::other_distance(Vec3d p,Index component) const {
   double d=std::numeric_limits<double>::infinity(); Index tri=-1; impl_->nearest(0,p,d,tri,component); return std::sqrt(d);
 }

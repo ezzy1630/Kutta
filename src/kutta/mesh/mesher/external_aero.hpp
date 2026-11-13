@@ -46,6 +46,8 @@ class SurfaceQuery {
   SurfaceQuery(SurfaceQuery&&) noexcept;
   SurfaceQuery& operator=(SurfaceQuery&&) noexcept;
   Sample sample(Vec3d) const;
+  // Distance and nearest facet only; inside is false, no ray classification.
+  Sample nearest(Vec3d) const;
   // Closest point on a different connected component, for slot refinement.
   double other_distance(Vec3d, Index component) const;
  private:

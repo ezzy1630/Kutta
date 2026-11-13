@@ -60,7 +60,7 @@ struct Tree {
   void refine() {
     for(std::size_t i=0;i<nodes.size();++i) {
       auto& n=nodes[i]; if(n.child>=0) continue;
-      const auto p=center(n); n.sample=query.sample(p);
+      const auto p=center(n); n.sample=query.nearest(p);
       const auto h=n.size*unit; double target=settings.base_size;
       if(n.sample.distance<1.75*h) {
         target=settings.max_size;
@@ -324,7 +324,7 @@ struct Builder {
       }
       if(f.patch<0) {
         KUTTA_REQUIRE(std::all_of(f.nodes.begin(),f.nodes.end(),[&](Index v) { return distance[v]==0; }),"mesh: unmatched internal face is not on the shared isosurface");
-        const auto s=query.sample(c);
+        const auto s=query.nearest(c);
         KUTTA_REQUIRE(s.distance<tree.settings.base_size,"mesh: unpaired internal face away from surface");
         f.patch=6+surface.triangles[s.triangle].zone;
       }
