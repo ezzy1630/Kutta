@@ -7,7 +7,9 @@
 # param-run, cylinder-run and wing-* use the real CLI with PARAM_CASE,
 # CYLINDER_CASE and WING_CASE when set, else the fixture's recordings;
 # new-case* use it with NEW_CASE_MESH (a bare mesh), else the fixture's
-# meshes. case-* take CASE (any case) and need KUTTA_REAL_CLI.
+# meshes. case-* take CASE (any case) and need KUTTA_REAL_CLI. geometry-*
+# use the real CLI with GEOMETRY_STL (space-separated STL files) when set, else
+# the fixture's synthetic car STLs and `mesh`.
 #
 # Shots must not show where things live on this machine. The app writes the
 # home folder as "~" and refuses to save a shot whose visible text contains it
@@ -27,6 +29,9 @@ for s in $scenarios; do
     new-case*)
       if [ -n "${KUTTA_REAL_CLI:-}" ] && [ -n "${NEW_CASE_MESH:-}" ]; then set -- --cli "$KUTTA_REAL_CLI" "$NEW_CASE_MESH"; fi ;;
     case-*) set -- --cli "$KUTTA_REAL_CLI" "$CASE" ;;
+    geometry-*)
+      # shellcheck disable=SC2086 # GEOMETRY_STL is a list of files
+      if [ -n "${KUTTA_REAL_CLI:-}" ] && [ -n "${GEOMETRY_STL:-}" ]; then set -- --cli "$KUTTA_REAL_CLI" $GEOMETRY_STL; fi ;;
     param-run|cylinder-run|wing-*)
       case $s in param-run) c=${PARAM_CASE:-} ;; cylinder-run) c=${CYLINDER_CASE:-} ;; *) c=${WING_CASE:-} ;; esac
       if [ -n "${KUTTA_REAL_CLI:-}" ] && [ -n "$c" ]; then set -- --cli "$KUTTA_REAL_CLI" "$c"; fi ;;

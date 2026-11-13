@@ -530,15 +530,15 @@ void planePart(Part& part, QVector3D origin, QVector3D du, QVector3D dv, int nu,
          [=](QVector3D, QVector3D n) { return QVector3D::dotProduct(n, outward) > 0; });
 }
 
-std::vector<Part> zoneParts(const QString& zone, int d)
+std::vector<Part> zoneParts(const QString& zone, double d)
 {
     std::vector<Part> parts;
     auto add = [&](Part::Kind k) -> Part& { parts.emplace_back(); parts.back().kind = k; return parts.back(); };
     if (zone == "monocoque") {
-        loft(add(Part::Body), kNoseX, kTailX, 0, bodySection, 140 * d, 220 * d);
+        loft(add(Part::Body), kNoseX, kTailX, 0, bodySection, std::max(3, int(140 * d)), std::max(3, int(220 * d)));
     } else if (zone == "sidepods") {
-        loft(add(Part::Body), kPodX0, kPodX1, kPodY, podSection, 80 * d, 110 * d);
-        loft(add(Part::Body), kPodX0, kPodX1, -kPodY, podSection, 80 * d, 110 * d);
+        loft(add(Part::Body), kPodX0, kPodX1, kPodY, podSection, std::max(3, int(80 * d)), std::max(3, int(110 * d)));
+        loft(add(Part::Body), kPodX0, kPodX1, -kPodY, podSection, std::max(3, int(80 * d)), std::max(3, int(110 * d)));
     } else if (zone == "front-wing" || zone == "rear-wing") {
         const bool front = zone == "front-wing";
         for (std::size_t i = 0; i < wings().size(); ++i) {
@@ -547,16 +547,16 @@ std::vector<Part> zoneParts(const QString& zone, int d)
             Part& p = add(Part::Wing);
             p.wingIndex = int(i);
             const double span = w.y1 - w.y0;
-            wingPart(p, w, 120 * d, std::max(20, int(110 * d * span / 1.2)));
+            wingPart(p, w, std::max(3, int(120 * d)), std::max(20, int(std::max(3, int(110 * d)) * span / 1.2)));
         }
         Part& plates = add(Part::Body);
         for (const Box& b : endplates())
-            if ((b.lo.x() < 0) == front) boxPart(plates, b, 18 * d);
+            if ((b.lo.x() < 0) == front) boxPart(plates, b, std::max(3, int(18 * d)));
     } else if (zone == "tyre-front" || zone == "tyre-rear") {
         for (const Tyre& t : tyres())
-            if ((t.centre.x() < 0) == (zone == "tyre-front")) tyrePart(add(Part::Tyre), t, 56 * d, 150 * d);
+            if ((t.centre.x() < 0) == (zone == "tyre-front")) tyrePart(add(Part::Tyre), t, std::max(3, int(56 * d)), std::max(3, int(150 * d)));
     } else if (zone == "ground") {
-        planePart(add(Part::Plane), {-3, -2.5, 0}, {9, 0, 0}, {0, 5, 0}, 180 * d, 100 * d, {0, 0, 1});
+        planePart(add(Part::Plane), {-3, -2.5, 0}, {9, 0, 0}, {0, 5, 0}, std::max(3, int(180 * d)), std::max(3, int(100 * d)), {0, 0, 1});
     } else if (zone == "inlet") {
         planePart(add(Part::Plane), {-6, -4, 0}, {0, 8, 0}, {0, 0, 4}, 24, 12, {1, 0, 0});
     } else if (zone == "outlet") {
@@ -622,6 +622,44 @@ void addWithReference(MeshData& m, const QString& name, const QString& unit, int
 
 } // namespace
 
+QStringList carWallZones()
+{
+    QStringList out;
+    for (const CarZone& z : carZones())
+        if (z.type == "wall" && z.name != "ground") out << z.name;
+    return out;
+}
+
+kapp::MeshData carZoneSurface(const QString& zone, double resolution)
+{
+    MeshData m;
+    for (const Part& part : zoneParts(zone, resolution)) {
+        const std::uint32_t base = std::uint32_t(m.positions.size() / 3);
+        for (const QVector3D& p : part.pos) m.positions.insert(m.positions.end(), {p.x(), p.y(), p.z()});
+        for (std::uint32_t t : part.tri) m.indices.push_back(base + t);
+    }
+    return m;
+}
+
+kapp::Bounds carZoneBounds(const QString& zone)
+{
+    kapp::Bounds b;
+    for (const Part& part : zoneParts(zone, 1))
+        for (const QVector3D& p : part.pos) b.expand(p);
+    return b;
+}
+
+SolidTransform fitTransform(const kapp::Bounds& zone, const kapp::Bounds& target)
+{
+    SolidTransform t;
+    if (!zone.valid || !target.valid) return t;
+    t.pivot = zone.center();
+    const float d0 = (zone.max - zone.min).length(), d1 = (target.max - target.min).length();
+    t.scale = d0 > 0 ? d1 / d0 : 1.0f;
+    t.offset = target.center() - zone.center();
+    return t;
+}
+
 const std::vector<CarZone>& carZones()
 {
     static const std::vector<CarZone> z{
@@ -678,6 +716,13 @@ MeshData carZoneMesh(const QString& zone, const CarParams& prm, bool reference)
             }
         }
         for (std::uint32_t t : part.tri) mesh.indices.push_back(base + t);
+    }
+    if (auto tr = prm.transforms.find(zone); tr != prm.transforms.end()) {
+        // A resized or moved part: the same surface pattern on its new shape.
+        for (std::size_t i = 0; i + 2 < mesh.positions.size(); i += 3) {
+            const QVector3D p = tr->apply(QVector3D(mesh.positions[i], mesh.positions[i + 1], mesh.positions[i + 2]));
+            mesh.positions[i] = p.x(), mesh.positions[i + 1] = p.y(), mesh.positions[i + 2] = p.z();
+        }
     }
     auto scaled = [](const std::vector<float>& v, double k, double add = 0) {
         std::vector<float> o(v.size());

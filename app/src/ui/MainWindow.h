@@ -41,6 +41,11 @@ public:
 
     void openCaseDialog();
     void newCaseDialog();
+    void importGeometryDialog();
+    void addGeometryDialog();
+    void replaceGeometryDialog(int fileIndex);
+    void importSampleGeometry();
+    void duplicateVariant();
     void createCaseDialog();
     void saveCaseAsDialog();
     void openCase(const QString& path, const QString& data = {});
@@ -86,6 +91,7 @@ private:
     QToolButton* m_layoutButtons[3] = {};
     QToolButton* m_themeButton = nullptr;
     QLabel* m_cliLabel = nullptr;
+    QLabel* m_meshLabel = nullptr;
     QAction* m_runAction = nullptr;
     QAction* m_stopAction = nullptr;
     QAction* m_undoAction = nullptr;

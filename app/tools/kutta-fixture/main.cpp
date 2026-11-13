@@ -16,11 +16,22 @@
 //                             no message, abort as a crash would
 //   KUTTA_FIXTURE_DEVICES     "macos" | "windows" device inventory
 //   KUTTA_FIXTURE_CAR_DETAIL  car tessellation multiplier (1 ~ 0.4M triangles)
+//   KUTTA_FIXTURE_MESH_HOLD   `mesh` pauses at this stage until stdin closes
+//
+//   mesh GEOM.stl...          a SYNTHETIC stand-in for `kutta mesh`: it meshes
+//                             nothing. It accepts STL solids named after the
+//                             synthetic car's walls (sample-stl writes them),
+//                             writes a placeholder mesh.msh the other commands
+//                             read as that car (each solid's size and position
+//                             carried over), and a synthetic mesh-report.json.
+//   sample-stl DIR            the synthetic car's walls as STL files in mm
 
 #include "Aero.h"
 #include "SyntheticCar.h"
 
 #include "core/CliClient.h"
+#include "core/MeshSetup.h"
+#include "core/Stl.h"
 #include "core/Geometry.h"
 #include "core/Protocol.h"
 #include "core/SettingsModel.h"
@@ -42,6 +53,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <csignal>
 #include <cstdio>
 #include <map>
 #include <thread>
@@ -49,6 +61,7 @@
 namespace {
 
 using namespace fixture;
+using kapp::LengthUnit;
 
 QTextStream& out()
 {
@@ -176,6 +189,7 @@ Args parseArgs(const QStringList& args)
         const QString& s = args[i];
         if (s == "--json") a.opts["json"] << "1";
         else if (s == "--force") a.opts["force"] << "1";
+        else if (s == "--case") a.opts["case"] << "1";
         else if (s.startsWith("--")) {
             if (i + 1 >= args.size()) usage(false);
             a.opts[s.mid(2)] << args[++i];
@@ -247,6 +261,53 @@ void setJsonAt(QJsonObject& o, QStringList path, const QJsonValue& value)
     o[key] = child;
 }
 
+// ---- fixture meshes (`mesh`) ---------------------------------------------------------
+
+const QByteArray kFixtureMeshMarker = "Kutta fixture synthetic mesh";
+
+// The placeholder mesh.msh `mesh` writes: a marker line, then JSON.
+QJsonObject fixtureMeshInfo(const QString& meshPath)
+{
+    QFile f(meshPath);
+    if (!f.open(QIODevice::ReadOnly)) return {};
+    const QByteArray head = f.readLine();
+    if (!head.startsWith(kFixtureMeshMarker)) return {};
+    return QJsonDocument::fromJson(f.readAll()).object();
+}
+
+// A case or mesh path's fixture mesh, if it is one.
+QJsonObject fixtureMeshOf(const QString& path)
+{
+    if (isKuttaCase(path)) return fixtureMeshInfo(kuttaMesh(path));
+    return fixtureMeshInfo(path);
+}
+
+QMap<QString, SolidTransform> meshTransforms(const QString& path)
+{
+    QMap<QString, SolidTransform> out;
+    const QJsonObject t = fixtureMeshOf(path).value("transforms").toObject();
+    for (auto it = t.begin(); it != t.end(); ++it) {
+        const QJsonObject o = it.value().toObject();
+        const QJsonArray p = o.value("pivot").toArray(), d = o.value("offset").toArray();
+        SolidTransform x;
+        x.pivot = QVector3D(float(p[0].toDouble()), float(p[1].toDouble()), float(p[2].toDouble()));
+        x.offset = QVector3D(float(d[0].toDouble()), float(d[1].toDouble()), float(d[2].toDouble()));
+        x.scale = float(o.value("scale").toDouble(1));
+        out[it.key()] = x;
+    }
+    return out;
+}
+
+QJsonObject transformsJson(const QMap<QString, SolidTransform>& t)
+{
+    QJsonObject o;
+    for (auto it = t.begin(); it != t.end(); ++it)
+        o[it.key()] = QJsonObject{{"pivot", QJsonArray{it->pivot.x(), it->pivot.y(), it->pivot.z()}},
+                                  {"offset", QJsonArray{it->offset.x(), it->offset.y(), it->offset.z()}},
+                                  {"scale", it->scale}};
+    return o;
+}
+
 // "elbow_param.cas.h5" -> "elbow_param": the recording's directory name. A
 // Kutta case replays its mesh's recording.
 QString caseStem(const QString& casePath)
@@ -267,6 +328,7 @@ QStringList recordedCases()
 CaseKind caseKind(const QString& casePath, bool jsonl)
 {
     const QString name = QFileInfo(casePath).fileName();
+    if (!fixtureMeshOf(casePath).isEmpty()) return CaseKind::Car;
     if (recordedCases().contains(caseStem(casePath))) return CaseKind::Recorded;
     if (name.startsWith("fsae_car") || caseStem(casePath).startsWith("fsae_car")) return CaseKind::Car;
     fail(QStringLiteral("The fixture CLI has no data for %1. It replays recorded runs of %2 and generates "
@@ -299,6 +361,12 @@ QJsonObject inspectJson(const QString& casePath, const QString& dataPath, const 
                       : "fixture data missing: " + rel, {}, false);
     } else {
         o = carInspect(car, data, rawElbowSettings());
+        if (const QJsonObject fm = fixtureMeshOf(casePath); fm.contains("cells")) {
+            // A fixture mesh states its own (synthetic) size.
+            QJsonObject mesh = o.value("mesh").toObject();
+            for (const char* k : {"cells", "faces", "nodes", "cell_types"}) mesh[k] = fm.value(k);
+            o["mesh"] = mesh;
+        }
     }
     QJsonObject file = o.value("file").toObject();
     file["path"] = QFileInfo(casePath).absoluteFilePath();
@@ -456,7 +524,7 @@ QJsonObject runDescriptor(const RunSpec& r)
             {"params", QJsonObject{{"speed", r.car.speed}, {"density", r.car.density}, {"viscosity", r.car.viscosity},
                                    {"ref_area", r.car.refArea}, {"ref_density", r.car.refDensity},
                                    {"ref_velocity", r.car.refVelocity}, {"ref_pressure", r.car.refPressure},
-                                   {"ref_length", r.car.refLength}}}};
+                                   {"ref_length", r.car.refLength}, {"transforms", transformsJson(r.car.transforms)}}}};
 }
 
 CarParams paramsFrom(const QJsonObject& d)
@@ -472,6 +540,16 @@ CarParams paramsFrom(const QJsonObject& d)
     c.refPressure = p.value("ref_pressure").toDouble(c.refPressure);
     c.refLength = p.value("ref_length").toDouble(c.refLength);
     c.detail = std::max(1, qEnvironmentVariableIntValue("KUTTA_FIXTURE_CAR_DETAIL"));
+    const QJsonObject t = p.value("transforms").toObject();
+    for (auto it = t.begin(); it != t.end(); ++it) {
+        const QJsonObject o = it.value().toObject();
+        const QJsonArray pv = o.value("pivot").toArray(), d = o.value("offset").toArray();
+        SolidTransform x;
+        x.pivot = QVector3D(float(pv[0].toDouble()), float(pv[1].toDouble()), float(pv[2].toDouble()));
+        x.offset = QVector3D(float(d[0].toDouble()), float(d[1].toDouble()), float(d[2].toDouble()));
+        x.scale = float(o.value("scale").toDouble(1));
+        c.transforms[it.key()] = x;
+    }
     return c;
 }
 
@@ -628,7 +706,10 @@ int solve(const Args& a)
     }
     if (r.device.isEmpty()) fail(QStringLiteral("backend %1 is not available on this machine").arg(backend));
 
-    if (r.kind == CaseKind::Car) applyCarOverrides(r);
+    if (r.kind == CaseKind::Car) {
+        applyCarOverrides(r);
+        r.car.transforms = meshTransforms(r.casePath);
+    }
     const QJsonObject inspected = inspectJson(r.casePath, r.dataPath, r.car);
     const ConvergenceConfig conv = convergenceFrom(inspected.value("settings").toArray(), r.overrides);
     ConvergenceCheck convergence(conv);
@@ -1264,7 +1345,11 @@ int exportGeometry(const Args& a)
     const bool car = caseKind(casePath, jsonl) == CaseKind::Car;
     const QString root = QDir(a.value("out")).filePath("geometry"), staging = QDir(a.value("out")).filePath("geometry.staging");
     QDir(staging).removeRecursively();
-    if (car) writeCarView(staging, paramsFrom({}), false, {}, {}, false);
+    if (car) {
+        CarParams prm = paramsFrom({});
+        prm.transforms = meshTransforms(casePath);
+        writeCarView(staging, prm, false, {}, {}, false);
+    }
     else copyFixtureDir(recorded(caseStem(casePath), "run-cold/view"), staging);
     for (const QString& s : QDir(staging).entryList({"slice-*"})) QFile::remove(QDir(staging).filePath(s));
     QJsonObject m = readJson(QDir(staging).filePath("manifest.json"));
@@ -1347,7 +1432,7 @@ int newCase(const Args& a)
     const bool json = a.has("json");
     if (a.positional.size() != 1) usage(false);
     const QString mesh = a.positional[0];
-    QJsonObject o = caseStem(mesh).startsWith("fsae_car") ? carNewCaseReply()
+    QJsonObject o = caseStem(mesh).startsWith("fsae_car") || !fixtureMeshInfo(mesh).isEmpty() ? carNewCaseReply()
                                                           : QJsonDocument::fromJson(readFixture(recorded(caseStem(mesh), "new-case.json"))).object();
     if (o.isEmpty())
         fail(QStringLiteral("The fixture CLI reads naca4412_ground.msh (recorded) and fsae_car.msh (synthetic) only; point the app at the real "
@@ -1432,6 +1517,8 @@ int newCase(const Args& a)
     }
     QJsonObject meshInfo = o.value("mesh").toObject();
     meshInfo["path"] = QFileInfo(mesh).absoluteFilePath();
+    if (const QJsonObject fm = fixtureMeshInfo(mesh); fm.contains("cells"))
+        for (const char* k : {"cells", "faces", "nodes"}) meshInfo[k] = fm.value(k);
     o["mesh"] = meshInfo;
     o["zones"] = zones;
     o["speed"] = speed;
@@ -1477,6 +1564,214 @@ int convert(const Args& a)
     return 0;
 }
 
+
+// ---- mesh: a SYNTHETIC stand-in for `kutta mesh` ------------------------------------
+
+int mesh(const Args& a)
+{
+    const bool jsonl = a.value("progress") == "jsonl";
+    if (a.positional.isEmpty() || !a.has("out")) usage(jsonl);
+    kapp::MeshSetup setup;
+    bool haveSetup = false;
+    if (a.has("setup")) {
+        const QJsonObject o = readJson(a.value("setup"));
+        if (o.isEmpty()) fail("cannot read the mesh setup " + a.value("setup"), {}, jsonl);
+        if (o.value("v").toInt() != 1) fail("mesh setup: \"v\" must be 1", {}, jsonl);
+        setup = kapp::MeshSetup::fromJson(o);
+        haveSetup = true;
+    }
+    if (const QStringList p = setup.problems(); !p.isEmpty()) fail("mesh setup: " + p.join(" "), {}, jsonl);
+    const QString outDir = a.value("out");
+    if (QFileInfo::exists(QDir(outDir).filePath("mesh.msh")) && !a.has("force")) fail(outDir + " already holds a mesh; pass --force to replace it", {}, jsonl);
+    // Cancelled by an interrupt, as the app escalates after closing stdin
+    // (stdin is not watched: from a shell it is often closed already).
+    std::signal(SIGINT, [](int) { g_stop = true; });
+    std::signal(SIGTERM, [](int) { g_stop = true; });
+    const double speed = std::max(0.1, qEnvironmentVariable("KUTTA_FIXTURE_SPEED", "6").toDouble());
+    const QString hold = qEnvironmentVariable("KUTTA_FIXTURE_MESH_HOLD");
+    QElapsedTimer clock;
+    clock.start();
+    auto stage = [&](const QString& name, double from, double to, const QString& message, double ms) {
+        const int steps = 4;
+        for (int i = 0; i <= steps; ++i) {
+            if (jsonl)
+                emitJson({{"v", 1}, {"event", "mesh-progress"}, {"stage", name}, {"fraction", from + (to - from) * i / steps}, {"message", message}});
+            if (name == hold && i == 1)
+                while (!g_stop) sleepMs(20);
+            if (g_stop) {
+                if (jsonl) emitJson({{"v", 1}, {"event", "error"}, {"message", "mesh generation cancelled"}, {"advice", "Nothing was written."}});
+                std::exit(130);
+            }
+            sleepMs(ms / steps / speed);
+        }
+    };
+
+    // read: the solids must be the synthetic car's walls.
+    LengthUnit units = setup.units;
+    std::vector<kapp::StlSolid> solids;
+    stage("read", 0.0, 0.08, QStringLiteral("Reading %1 STL file(s)").arg(a.positional.size()), 600);
+    kapp::Bounds raw;
+    for (const QString& path : a.positional) {
+        auto r = kapp::readStl(path, haveSetup ? units : LengthUnit::Metre);
+        if (!r) fail(r.error(), {}, jsonl);
+        for (auto& sld : r.value().solids) {
+            raw.expand(sld.mesh.bounds());
+            solids.push_back(std::move(sld));
+        }
+    }
+    if (!haveSetup) {
+        units = kapp::guessUnit(raw);
+        const double k = kapp::unitScale(units);
+        for (auto& sld : solids) {
+            for (float& x : sld.mesh.positions) x = float(x * k);
+            sld.area *= k * k;
+        }
+    }
+    const QStringList walls = carWallZones();
+    QStringList names;
+    for (const auto& sld : solids) names << sld.name;
+    QStringList missing, unknown;
+    for (const QString& w : walls) if (!names.contains(w)) missing << w;
+    for (const QString& n : names) if (!walls.contains(n)) unknown << n;
+    if (!missing.isEmpty() || !unknown.isEmpty() || names.removeDuplicates() > 0)
+        emitJson({{"v", 1}, {"event", "error"},
+                  {"message", QStringLiteral("The fixture CLI meshes only its synthetic car: one solid each named %1 (got %2).")
+                                  .arg(walls.join(", "), names.join(", "))},
+                  {"advice", "Point the app at the real kutta CLI to mesh other geometry, or write the car with `kutta-fixture sample-stl DIR`."}}),
+        std::exit(1);
+    kapp::Bounds g;
+    double area = 0;
+    QMap<QString, SolidTransform> transforms;
+    QJsonArray solidsJson;
+    for (const auto& sld : solids) {
+        const kapp::Bounds b = sld.mesh.bounds();
+        g.expand(b);
+        area += sld.area;
+        const SolidTransform t = fitTransform(carZoneBounds(sld.name), b);
+        // A baseline part, re-tessellated: no change.
+        if (std::abs(t.scale - 1) > 0.02f || t.offset.length() > 0.01f * (b.max - b.min).length()) transforms[sld.name] = t;
+        solidsJson.append(QJsonObject{{"name", sld.name}, {"triangles", double(sld.triangles)}, {"area", sld.area}});
+    }
+    if (!haveSetup) setup = kapp::defaultMeshSetup(g, units);
+    stage("repair", 0.08, 0.15, "Checking surfaces for holes and overlaps", 400);
+    const kapp::CellEstimate est = kapp::estimateCells(setup, g, area);
+    stage("octree", 0.15, 0.45, QStringLiteral("Refining towards %1 mm on the surface").arg(setup.minSize * 1000, 0, 'g', 3), 1000);
+    stage("trim", 0.45, 0.62, "Trimming octree cells at the surfaces", 600);
+    stage("layers", 0.62, 0.85, QStringLiteral("%1 prism layers, first height %2 mm").arg(setup.layers).arg(setup.firstHeight * 1000, 0, 'g', 3), 900);
+    stage("quality", 0.85, 0.94, "Orthogonal quality, skewness, volume ratio", 300);
+    stage("write", 0.94, 1.0, "Writing mesh.msh", 300);
+
+    const qint64 cells = std::max<qint64>(1000, qint64(est.total()));
+    const qint64 prisms = qint64(est.layerCells);
+    const qint64 rest = cells - prisms;
+    const QJsonObject types{{"hex", double(qint64(rest * 0.86))}, {"poly", double(qint64(rest * 0.12))}, {"prism", double(prisms)},
+                            {"tet", double(qint64(rest * 0.015))}, {"pyramid", double(rest - qint64(rest * 0.86) - qint64(rest * 0.12) - qint64(rest * 0.015))}};
+    QJsonArray zones;
+    const QMap<QString, double> share{{"inlet", 0.004}, {"outlet", 0.004}, {"ground", 0.03}, {"tunnel", 0.012}};
+    for (const CarZone& z : carZones()) {
+        const qint64 faces = walls.contains(z.name) ? qint64(est.surfaceFaces * 0.16) : qint64(cells * share.value(z.name, 0.01));
+        zones.append(QJsonObject{{"name", z.name}, {"type", z.type == "wall" && z.name == "ground" ? "wall" : z.type}, {"faces", double(faces)}});
+    }
+    auto histogram = [](const std::vector<double>& edges, const std::vector<double>& weights, qint64 total) {
+        QJsonArray e, c;
+        double sum = 0;
+        for (double w : weights) sum += w;
+        for (double x : edges) e.append(x);
+        for (double w : weights) c.append(double(qint64(total * w / sum)));
+        return QJsonObject{{"edges", e}, {"counts", c}};
+    };
+    const std::vector<double> unit{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+    const std::vector<double> ratio{1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20};
+    QJsonObject quality{
+        {"orthogonal_quality", QJsonObject{{"min", 0.118}, {"mean", 0.884}, {"max", 1.0},
+                                           {"histogram", histogram(unit, {0.00002, 0.0001, 0.0006, 0.002, 0.006, 0.015, 0.04, 0.09, 0.22, 0.63}, cells)}}},
+        {"skewness", QJsonObject{{"min", 0.0}, {"mean", 0.121}, {"max", 0.874},
+                                 {"histogram", histogram(unit, {0.62, 0.22, 0.09, 0.04, 0.016, 0.007, 0.003, 0.0012, 0.0004, 0.00003}, cells)}}},
+        {"volume_ratio", QJsonObject{{"min", 1.0}, {"mean", 1.43}, {"max", 11.8},
+                                     {"histogram", histogram(ratio, {0.71, 0.2, 0.06, 0.02, 0.006, 0.002, 0.001, 0.0003, 0.0001, 0.00001}, cells)}}}};
+    auto worstAt = [&](const QString& zone, const QString& metric, double value) {
+        kapp::Bounds b;
+        for (const auto& sld : solids) if (sld.name == zone) b = sld.mesh.bounds();
+        const QVector3D p(b.max.x(), b.center().y(), b.center().z());
+        return QJsonObject{{"metric", metric}, {"value", value}, {"centroid", QJsonArray{p.x(), p.y(), p.z()}}, {"zone", zone}};
+    };
+    const QJsonArray worst{worstAt("rear-wing", "orthogonal_quality", 0.118), worstAt("front-wing", "orthogonal_quality", 0.142),
+                           worstAt("tyre-front", "skewness", 0.874), worstAt("sidepods", "volume_ratio", 11.8)};
+    const double L = g.valid ? g.max.x() - g.min.x() : 1.0;
+    const QJsonObject report{
+        {"v", 1}, {"synthetic", true},
+        {"provenance", "SYNTHETIC FIXTURE: kutta-fixture did not mesh anything; counts follow the app's planning estimate and the quality figures are invented."},
+        {"cells", QJsonObject{{"total", double(cells)}}}, {"cell_types", types},
+        {"faces", double(qint64(cells * 3.4))}, {"nodes", double(qint64(cells * 1.15))},
+        {"zones", zones}, {"quality", quality}, {"worst_cells", worst},
+        {"repairs", QJsonArray{QJsonObject{{"solid", "sidepods"}, {"kind", "closed small gaps"}, {"count", 2}},
+                               QJsonObject{{"solid", "front-wing"}, {"kind", "removed sliver triangles"}, {"count", 14}}}},
+        {"y_plus", QJsonObject{{"estimate", kapp::yPlusForFirstHeight(setup.firstHeight, 16, L)}, {"speed", 16}}},
+        {"wall_seconds", clock.elapsed() / 1000.0}, {"peak_memory_bytes", double(cells) * 620}};
+    QDir().mkpath(outDir);
+    QFile m(QDir(outDir).filePath("mesh.msh"));
+    if (!m.open(QIODevice::WriteOnly)) fail("cannot write " + m.fileName(), {}, jsonl);
+    m.write(kFixtureMeshMarker + ": not a Fluent mesh. kutta-fixture reads it as its synthetic car.\n");
+    m.write(QJsonDocument(QJsonObject{{"fixture_mesh", 1}, {"solids", solidsJson}, {"transforms", transformsJson(transforms)},
+                                      {"setup", setup.toJson()}, {"cells", report.value("cells").toObject().value("total")},
+                                      {"faces", report.value("faces")}, {"nodes", report.value("nodes")}, {"cell_types", types}})
+                .toJson(QJsonDocument::Indented));
+    m.close();
+    writeJson(QDir(outDir).filePath("mesh-report.json"), report);
+    if (a.has("case")) {
+        QJsonObject kase = carNewCaseReply().value("case").toObject(), boundaries;
+        for (const CarZone& z : carZones())
+            boundaries[z.name] = starterBoundary(z.name == "inlet" ? "velocity-inlet" : z.name == "outlet" ? "pressure-outlet" : z.name == "ground" ? "moving-ground"
+                                                 : z.name == "tunnel" ? "symmetry" : "wall", 15);
+        kase["boundaries"] = boundaries;
+        kase["mesh"] = "mesh.msh";
+        writeJson(QDir(outDir).filePath("case.kutta.json"), kase);
+    }
+    const QJsonObject done{{"v", 1}, {"event", "mesh-done"}, {"mesh", QFileInfo(m.fileName()).absoluteFilePath()},
+                           {"report", QFileInfo(QDir(outDir).filePath("mesh-report.json")).absoluteFilePath()},
+                           {"cells", double(cells)}, {"seconds", clock.elapsed() / 1000.0}, {"synthetic", true}};
+    if (jsonl || a.has("json")) emitJson(done);
+    else eprint(QStringLiteral("Wrote %1 (%2 cells, SYNTHETIC)").arg(m.fileName()).arg(cells));
+    return 0;
+}
+
+// sample-stl DIR: the synthetic car's walls as ASCII STL in millimetres, for
+// trying New Case from Geometry with the fixture: fsae-car.stl (every wall
+// but the rear wing), rear-wing.stl, and rear-wing-v2.stl, a larger rear wing
+// set higher and further back (the same solid name, for a swap).
+int sampleStl(const Args& a)
+{
+    if (a.positional.size() != 1) usage(false);
+    const QString dir = a.positional[0];
+    QDir().mkpath(dir);
+    const double resolution = 0.3;
+    std::vector<std::pair<QString, kapp::MeshData>> body;
+    for (const QString& z : carWallZones())
+        if (z != "rear-wing") body.push_back({z, carZoneSurface(z, resolution)});
+    auto write = [&](const QString& name, const std::vector<std::pair<QString, kapp::MeshData>>& solids) {
+        std::vector<std::pair<QString, const kapp::MeshData*>> refs;
+        for (const auto& [n, m] : solids) refs.push_back({n, &m});
+        QString err;
+        if (!kapp::writeAsciiStl(QDir(dir).filePath(name), refs, LengthUnit::Millimetre, &err)) fail(err, {}, false);
+        out() << QDir(dir).filePath(name) << '\n';
+    };
+    write("fsae-car.stl", body);
+    kapp::MeshData wing = carZoneSurface("rear-wing", resolution);
+    write("rear-wing.stl", {{"rear-wing", wing}});
+    const kapp::Bounds b = wing.bounds();
+    SolidTransform t;
+    t.pivot = b.center();
+    t.scale = 1.12f;
+    t.offset = QVector3D(0.03f, 0, 0.04f);
+    for (std::size_t i = 0; i + 2 < wing.positions.size(); i += 3) {
+        const QVector3D p = t.apply(QVector3D(wing.positions[i], wing.positions[i + 1], wing.positions[i + 2]));
+        wing.positions[i] = p.x(), wing.positions[i + 1] = p.y(), wing.positions[i + 2] = p.z();
+    }
+    write("rear-wing-v2.stl", {{"rear-wing", wing}});
+    out().flush();
+    return 0;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -1503,5 +1798,7 @@ int main(int argc, char** argv)
     if (cmd == "aero") return aero(a);
     if (cmd == "new-case") return newCase(a);
     if (cmd == "convert") return convert(a);
+    if (cmd == "mesh") return mesh(a);
+    if (cmd == "sample-stl") return sampleStl(a);
     usage(false);
 }

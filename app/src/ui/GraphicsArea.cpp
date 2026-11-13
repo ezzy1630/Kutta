@@ -4,6 +4,9 @@
 #include "ui/Theme.h"
 
 #include <QComboBox>
+#include <QDir>
+#include <QFile>
+#include <QJsonDocument>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -55,6 +58,13 @@ QStringList badgesFor(const SceneData& s, const QString& key, const Session* ses
         const auto& runs = session->history().runs();
         const RunRecord* r = key.startsWith("run:") ? session->history().find(key.mid(4))
                              : key == "live" && !runs.empty() ? &runs.back() : nullptr;
+        // Another case's run (a design variant) carries its own record.
+        std::optional<RunRecord> other;
+        if (key.startsWith("ext:")) {
+            QFile f(QDir(key.mid(4)).filePath("app-run.json"));
+            if (f.open(QIODevice::ReadOnly)) other = RunRecord::fromJson(QJsonDocument::fromJson(f.readAll()).object(), key.mid(4));
+            if (other) r = &*other;
+        }
         b << (r && r->approximate() ? r->approximateBadge() : QStringLiteral("APPROXIMATE"));
     }
     if (p.contains("MODIFIED")) b << "MODIFIED";
@@ -235,7 +245,7 @@ void ViewportPanel::sceneArrived(std::shared_ptr<const SceneData> scene)
         for (const auto& it : scene->items) tris += it.mesh ? it.mesh->triangleCount() : 0;
         // Edges on a multi-million-face body are a solid black blur; Fluent
         // users switch them on when they want them (Results ▸ Graphics ▸ Mesh).
-        d.edges = isMesh && tris < 2'000'000;
+        d.edges = isMesh && !scene->geometrySetup && tris < 2'000'000;
     }
     if (scene) {
         QStringList ids;
@@ -248,6 +258,8 @@ void ViewportPanel::sceneArrived(std::shared_ptr<const SceneData> scene)
             for (const auto& it : scene->items)
                 if (it.kind != ItemKind::Zone && it.kind != ItemKind::Slice && !m_knownItems.contains(it.id)) d.visible << it.id;
         }
+        // The geometry editor shows everything it holds; parts come and go as they are edited.
+        if (scene->geometrySetup) d.visible = ids;
         m_knownItems = ids;
         const auto fields = scene->availableFields();
         // A viewport's first dataset gets the field that suits the case; later
@@ -366,14 +378,39 @@ void ViewportPanel::updateOverlay()
         m_view->setOverlay(o);
         return;
     }
+    if (s->geometrySetup) {
+        // New Case from Geometry: the STL solids in the wind tunnel.
+        m_field->setVisible(false);
+        const MeshWorkflow* mw = m_session->meshing();
+        o.title = tr("Geometry");
+        if (mw->hasProject())
+            o.subtitle = tr("%1 · %2 solid(s) · %3 triangles · %4").arg(mw->project().name()).arg(mw->project().solids.size())
+                             .arg(QLocale().toString(qulonglong(mw->triangles()))).arg(unitName(mw->project().setup.units));
+        bool tunnel = false, boxes = false;
+        for (const auto& it : s->items) {
+            if (!d.visible.contains(it.id)) continue;
+            if (it.id.startsWith("box:")) boxes = true;
+            else if (it.kind != ItemKind::Zone || it.id.startsWith("tunnel:") || it.id == "zone:ground") tunnel = true;
+            else o.zoneKey.push_back({it.label, d.zoneColors ? it.color : QColor()});
+        }
+        if (tunnel) o.zoneKey.push_back({tr("Wind tunnel (context)"), tokens().dark ? QColor(90, 94, 99) : QColor(190, 194, 199)});
+        if (boxes) o.zoneKey.push_back({tr("Refinement regions (outlines)"), QColor()});
+        if (o.zoneKey.empty()) o.emptyText = tr("No geometry is shown.");
+        m_view->setOverlay(o);
+        return;
+    }
     if (s->geometryOnly) {
         // Fluent's mesh display: zones by colour, with a key, before any run.
         m_field->setVisible(false);
         o.title = tr("Mesh");
+        if (s->synthetic) o.badges << "SYNTHETIC";
         std::size_t faces = 0;
         for (const auto& z : m_session->hasCase() ? m_session->caseSummary().zones : std::vector<Zone>{})
             if (z.type != "interior") faces += std::size_t(z.faces);
-        o.subtitle = !m_session->hasCase() ? QString()
+        const bool generated = m_key.startsWith("meshfile:");
+        if (generated && m_session->meshing()->report())
+            o.subtitle = tr("Generated mesh · %1 · %2 cells").arg(m_session->meshing()->project().name(), QLocale().toString(m_session->meshing()->report()->cells));
+        else o.subtitle = !m_session->hasCase() ? QString()
                      : s->planar ? tr("%1 · 2D · %2 cells").arg(m_session->caseName(), QLocale().toString(m_session->caseSummary().cells))
                                  : tr("%1 · %2 boundary faces").arg(m_session->caseName(), QLocale().toString(qulonglong(faces)));
         for (const auto& it : s->items)
@@ -407,7 +444,8 @@ void ViewportPanel::updateOverlay()
     if (fieldShown && !unit.isEmpty()) o.title += QStringLiteral(" [%1]").arg(unit);
     if (fieldShown && pathlines && surfaces) o.title += tr(" · pathlines");
     if (d.vectors) o.title += fieldShown ? tr(" · velocity vectors") : tr(" with velocity vectors");
-    o.subtitle = datasetLabel() + (m_session->hasCase() ? " · " + m_session->caseName() : QString());
+    // A run of another case (a design variant) carries its own case in its label.
+    o.subtitle = datasetLabel() + (m_session->hasCase() && !m_key.startsWith("ext:") ? " · " + m_session->caseName() : QString());
     o.badges = badgesFor(*s, m_key, m_session);
     o.provenance = s->provenance;
     if (s->synthetic && !o.provenance.contains("SYNTHETIC", Qt::CaseInsensitive))
@@ -471,6 +509,10 @@ GraphicsArea::GraphicsArea(Session* session, QWidget* parent) : QWidget(parent),
     }
     connect(session, &Session::historyChanged, this, &GraphicsArea::refreshDatasets);
     connect(session, &Session::liveSceneChanged, this, &GraphicsArea::refreshDatasets);
+    connect(session->meshing(), &MeshWorkflow::projectChanged, this, &GraphicsArea::refreshDatasets);
+    connect(session->meshing(), &MeshWorkflow::meshStateChanged, this, [this] {
+        if (!m_session->meshing()->meshing()) refreshDatasets();
+    });
     connect(session, &Session::caseOpened, this, [this] {
         m_extra.clear();
         for (auto* p : m_panels) p->setDataset({});
@@ -563,6 +605,10 @@ void GraphicsArea::refreshDatasets()
         if (it->status == RunStatus::Completed || it->status == RunStatus::Stopped) list.append({"run:" + it->id, it->title()});
     list.append(m_extra);
     if (m_session->hasCase()) list.append({m_session->meshSceneKey(), tr("Mesh")});
+    if (m_session->meshing()->hasProject()) {
+        list.append({"geometry", tr("Geometry · %1").arg(m_session->meshing()->project().name())});
+        if (const QString k = m_session->generatedMeshSceneKey(); !k.isEmpty()) list.append({k, tr("Generated mesh · %1").arg(m_session->meshing()->project().name())});
+    }
     for (auto* p : m_panels) p->refreshDatasets(list);
 }
 

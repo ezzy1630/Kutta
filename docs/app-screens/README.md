@@ -7,6 +7,9 @@ reference where noted). Each run uses the approved warped-face gradient
 approximation, so results are marked APPROXIMATE. The `car-*` screens are the
 exception: the fixture CLI's synthetic FSAE car, marked SYNTHETIC, because no
 real car case is on hand. Their numbers show the pages, not CFD results. The
+`geometry-*` screens are New Case from Geometry from the fixture's synthetic
+car STLs through the fixture's `mesh`, which meshes nothing (SYNTHETIC report
+and mesh) until `kutta mesh` lands. The
 `wing-*` screens are a real Kutta run of the 2D ground-effect wing from
 `tools/fsae_aero/naca_ground_case.py`, `cylinder-run` the Ansys adjoint
 cylinder tutorial. Window 1500×940, downscaled to 1500 px wide and reduced to
@@ -40,3 +43,10 @@ folder; the app refuses to save a shot whose visible text contains it.
 | Laminar 2D | `cylinder-run` | The cylinder framed with three diameters of its wake, three residuals from iteration 1, the APPROXIMATE badge naming the approximation |
 | Aerodynamics | `car-aero` | CL, CD, L/D and balance; ClA/CdA, % viscous drag, pitching moment, CoP from the front axle; breakdown by front wing, rear wing, wheels and body; vehicle and zone groups (synthetic car) |
 | Design study | `car-study` | An inlet speed sweep with the reference velocity following: CL, CD, L/D, % front and CoP per speed, MODIFIED variants marked, CD vs speed plotted (synthetic car) |
+| Import Geometry | `geometry-import` | Two STL files read in the app and shown at once: units guessed (mm), six solids as named wall zones, tyres flagged Rotating wheel, Replace/Add for parts |
+| Wind tunnel | `geometry-tunnel` | Tunnel extents in car lengths, moving ground, half-car option; the tunnel drawn round the car as you type |
+| Refinement regions | `geometry-refinement` | Body and wake boxes as numbers in mm and as outlines in the viewport |
+| Generate Mesh | `geometry-meshing` | Cell and device-memory estimate, then `mesh` held at Add Boundary Layers: stages, progress, console, status-bar Cancel |
+| Mesh Report | `geometry-report` | Cells by type, quality histograms (poor bins amber), worst cells; the generated mesh's surfaces in the geometry's colours (SYNTHETIC) |
+| Case from the mesh | `geometry-case` | New Case from Mesh on the generated mesh, the case file chosen for the project, tyres already rotating with the estimated axle to check |
+| Design variants | `geometry-variants` | A rear-wing variant meshed and run: CL, CD, L/D, front % and ΔCL, ΔCD, Δ front % against the base, the two runs side by side |

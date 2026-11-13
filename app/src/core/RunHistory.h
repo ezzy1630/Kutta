@@ -109,6 +109,10 @@ public:
     // Runs for one case live under root/<case name>-<sha prefix>/.
     void setRoot(const QString& root) { m_root = root; }
     void setCase(const QString& casePath, const QString& sha);
+    // Reads the runs of an existing case folder (another case's history), without creating it.
+    void setCaseDir(const QString& dir);
+    // The history folder name a case file's runs use, before its SHA suffix.
+    static QString caseKey(const QString& casePath);
     QString caseDir() const { return m_caseDir; }
 
     void reload();

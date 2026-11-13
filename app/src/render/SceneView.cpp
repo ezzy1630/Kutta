@@ -442,23 +442,34 @@ void paintOverlay(QPainter& p, const QRect& r, const OverlayState& s, QColor acc
     bf.setPixelSize(10);
     bf.setLetterSpacing(QFont::AbsoluteSpacing, 0.6);
     p.setFont(bf);
-    qreal x = r.right() - pad;
+    // In a narrow viewport (split views) a row of badges would leave the title
+    // a few letters; they stack down the right edge instead.
+    qreal row = 0, widest = 0;
     for (const QString& b : s.badges) {
         const qreal w = p.fontMetrics().horizontalAdvance(b) + 14;
-        const QRectF br(x - w, r.top() + 10, w, 18);
+        row += w + 6;
+        widest = std::max(widest, w);
+    }
+    const bool stack = s.badges.size() > 1 && r.width() - 2 * pad - row < 240;
+    qreal x = r.right() - pad, y = r.top() + 10;
+    for (const QString& b : s.badges) {
+        const qreal w = p.fontMetrics().horizontalAdvance(b) + 14;
+        const QRectF br(stack ? r.right() - pad - w : x - w, y, w, 18);
         if (b.startsWith("APPROXIMATE")) badge(p, br, b, amber, QColor(30, 22, 6), Qt::transparent);
         else if (b.startsWith("MODIFIED")) badge(p, br, b, Qt::transparent, amber, amber);
         else if (b.startsWith("LIVE")) badge(p, br, b, Qt::transparent, accent, accent);
         else if (b.startsWith("FAILED") || b.startsWith("BLOCKED")) badge(p, br, b, QColor(200, 64, 56), Qt::white, Qt::transparent);
         else badge(p, br, b, Qt::transparent, muted, muted);
-        x -= w + 6;
+        if (stack) y += 22;
+        else x -= w + 6;
     }
 
-    const qreal titleRight = x;
+    const qreal titleRight = stack ? r.right() - pad - widest - 6 : x;
     // Title and dataset.
     if (!s.title.isEmpty()) {
         const QString title = QFontMetrics(strong).elidedText(s.title, Qt::ElideRight, int(titleRight) - r.left() - pad - 10);
-        const QString subtitle = QFontMetrics(small).elidedText(s.subtitle, Qt::ElideRight, r.width() - 2 * pad - 200);
+        // Title, subtitle and their plate all stay left of the badges.
+        const QString subtitle = QFontMetrics(small).elidedText(s.subtitle, Qt::ElideRight, int(titleRight) - r.left() - pad - 10);
         const int w = std::max(QFontMetrics(strong).horizontalAdvance(title), QFontMetrics(small).horizontalAdvance(subtitle));
         plate(p, QRectF(r.left() + pad - 7, r.top() + 5, w + 14, subtitle.isEmpty() ? 24 : 40), s);
         p.setFont(strong);

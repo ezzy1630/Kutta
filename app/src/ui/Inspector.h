@@ -26,6 +26,11 @@ struct InspectorContext {
     std::function<void(const QString& casePath)> openPath;
     std::function<void()> newCaseDialog;                       // File ▸ New Case from Mesh…
     std::function<void()> createCaseDialog;                    // where to write the new case
+    std::function<void()> importGeometryDialog;                // File ▸ New Case from Geometry…
+    std::function<void()> addGeometryDialog;                   // more STL files for the project
+    std::function<void(int fileIndex)> replaceGeometryDialog;  // swap one STL file
+    std::function<void()> sampleGeometry;                      // the fixture CLI's synthetic car as STL
+    std::function<void()> duplicateVariant;                    // Duplicate as Design Variant
     QStringList samples;                                       // sample cases the CLI can serve
     std::function<void()> refresh;                             // rebuild the current page
     std::function<QString()> current;                          // the current page's id
@@ -57,6 +62,7 @@ private:
     InspectorContext m_ctx;
     QString m_id;
     QString m_settingsFilter;
+    bool m_meshBusy = false;
 };
 
 // Page builders (Inspector.cpp: setup and solution; ResultsPages.cpp: the rest).
@@ -92,6 +98,14 @@ QWidget* studies(const InspectorContext& c);
 QWidget* compare(const InspectorContext& c);
 QWidget* allSettings(const InspectorContext& c, const QString& filter);
 QWidget* noCase(const InspectorContext& c, const QString& title);
+// Meshing: New Case from Geometry (MeshPages.cpp).
+QWidget* geometry(const InspectorContext& c);
+QWidget* tunnel(const InspectorContext& c);
+QWidget* refinement(const InspectorContext& c);
+QWidget* sizing(const InspectorContext& c);
+QWidget* generateMesh(const InspectorContext& c);
+QWidget* meshReport(const InspectorContext& c);
+QWidget* variants(const InspectorContext& c);
 // File ▸ New Case from Mesh (NewCasePage.cpp).
 QWidget* newCase(const InspectorContext& c);
 // Where the live or last run stands against its convergence criteria.

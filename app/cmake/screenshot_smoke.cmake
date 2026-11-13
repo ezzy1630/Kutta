@@ -5,9 +5,11 @@
 # Without CLI, scenarios use the build tree's fixture CLI when it exists.
 cmake_minimum_required(VERSION 3.26)
 # The recorded k-epsilon, laminar 2D and transition cases run too: each has
-# its own equations, approximations and views.
+# its own equations, approximations and views. geometry-* go from STL files
+# through the fixture's `mesh` to a run and a design variant.
 if(NOT SCENARIOS)
-  set(SCENARIOS start elbow-setup car-results car-mesh car-mesh-context car-mesh-below param-run cylinder-run wing-aero new-case-car new-case-car-estimate new-case-car-rotating new-case-car-boundary new-case-run new-case-save)
+  set(SCENARIOS start elbow-setup car-results car-mesh car-mesh-context car-mesh-below param-run cylinder-run wing-aero new-case-car new-case-car-estimate new-case-car-rotating new-case-car-boundary new-case-run new-case-save
+      geometry-import geometry-meshing geometry-report geometry-variants)
 endif()
 # Every scenario also checks its inspector page at each panel width and that
 # no visible text shows the home folder (main.cpp); the saved case gets a long

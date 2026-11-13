@@ -5,6 +5,8 @@
 // Widgets observe it through signals; scenarios and tests drive it directly.
 
 #include "core/CliClient.h"
+#include "core/Console.h"
+#include "core/MeshWorkflow.h"
 #include "core/RunHistory.h"
 #include "core/SceneData.h"
 #include "core/SettingsModel.h"
@@ -22,7 +24,6 @@
 namespace kapp {
 
 enum class RunState { Idle, Starting, Running, Stopping };
-enum class ConsoleLevel { Command, Info, Warning, Error, Table, Success };
 
 // export-view --post operation families, in the batch's key order.
 enum class PostKind { Streamlines, IsoSurface, Probe, Integral };
@@ -55,6 +56,7 @@ public:
     ~Session() override;
 
     CliClient* cli() { return m_cli; }
+    QString dataRoot() const { return m_dataRoot; }
     const CliInfo& cliInfo() const { return m_cli->info(); }
 
     // Devices
@@ -99,6 +101,29 @@ public:
     // become the case's own settings.
     void saveCase(const QString& outPath);
     bool saving() const { return m_saving; }
+
+    // New Case from Geometry (core/MeshWorkflow.h): STL import, meshing and
+    // design variants. The open case, if any, stays open meanwhile.
+    MeshWorkflow* meshing() { return m_mesh; }
+    const MeshWorkflow* meshing() const { return m_mesh; }
+    // After a mesh: a variant's case reuses its base case's settings on the new
+    // mesh; otherwise the New Case page starts from the mesh, its wheels set to
+    // rotate, and its case is written into the project without asking where.
+    void setUpCaseFromMesh();
+    QString newCaseTarget() const { return m_draftTarget; }
+    // Scene key of the generated mesh's surfaces (export-geometry on mesh.msh).
+    QString generatedMeshSceneKey() const;
+
+    // Design variants: the latest finished run of each case in the open
+    // project's family, and aero coefficients of any run folder computed with
+    // the open case's aero settings (so the variants compare like for like).
+    struct VariantRun {
+        QString project, projectDir, caseFile;
+        bool current = false, base = false;
+        std::optional<RunRecord> run;  // empty: no finished run yet
+    };
+    std::vector<VariantRun> variantRuns() const;
+    void aeroForRunDir(const QString& runDir, std::function<void(Result<AeroResult>)> done);
 
     // Approximation opt-in: explicit per approximation, reset for each case.
     QStringList approvedApproximations() const { return m_approved; }
@@ -206,7 +231,11 @@ private:
     void writePostBatch(const QString& runId, const QJsonObject& batch) const;
 
     CliClient* m_cli;
+    MeshWorkflow* m_mesh;
     QString m_dataRoot;
+    QString m_draftTarget;
+    QStringList m_pendingWheels;
+    QHash<QString, AeroResult> m_runDirAero;
     OpenError m_openError;
     std::vector<Device> m_devices;
     QString m_backend = "auto";

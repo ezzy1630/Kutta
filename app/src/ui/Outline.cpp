@@ -72,6 +72,14 @@ public:
 const QHash<QString, QString>& titles()
 {
     static const QHash<QString, QString> t = {
+        {"mesh", "Meshing"},
+        {"mesh/geometry", "Import Geometry"},
+        {"mesh/tunnel", "Wind Tunnel"},
+        {"mesh/refinement", "Local Refinement Regions"},
+        {"mesh/sizing", "Sizing and Boundary Layers"},
+        {"mesh/generate", "Generate the Volume Mesh"},
+        {"mesh/report", "Mesh Report"},
+        {"runs/variants", "Design Variants"},
         {"setup", "Setup"},
         {"setup/general", "General"},
         {"setup/models", "Models"},
@@ -117,6 +125,7 @@ QString Outline::titleOf(const QString& id)
 {
     if (id.startsWith("setup/boundary/")) return id.mid(15);
     if (id.startsWith("setup/material/")) return id.mid(15);
+    if (id.startsWith("mesh/solid/")) return id.mid(11);
     return titles().value(id, id);
 }
 
@@ -137,10 +146,13 @@ Outline::Outline(Session* session, QWidget* parent) : QTreeWidget(parent), m_ses
         // Group headers open their first page.
         if (cur->childCount() > 0 && !id.contains('/')) {
             if (id == "runs") id = "runs/history";
+            if (id == "mesh") id = "mesh/geometry";
         }
         emit nodeSelected(id);
     });
     connect(session, &Session::caseOpened, this, &Outline::rebuild);
+    connect(session->meshing(), &MeshWorkflow::projectChanged, this, &Outline::rebuild);
+    connect(session->meshing(), &MeshWorkflow::meshStateChanged, this, &Outline::refreshMarkers);
     connect(session->settings(), &SettingsModel::overridesChanged, this, &Outline::refreshMarkers);
     connect(session, &Session::approvalsChanged, this, &Outline::refreshMarkers);
     connect(session, &Session::historyChanged, this, &Outline::refreshMarkers);
@@ -168,6 +180,17 @@ void Outline::rebuild()
     m_items.clear();
     const bool hasCase = m_session->hasCase();
 
+    // Fluent Meshing's workflow, before Fluent's Setup: STL to volume mesh.
+    const MeshWorkflow* mw = m_session->meshing();
+    auto* meshing = add(nullptr, "mesh", tr("Meshing"), "box");
+    auto* geo = add(meshing, "mesh/geometry", tr("Import Geometry"), {}, mw->hasProject() ? mw->project().name() : QString());
+    if (mw->hasProject())
+        for (const auto& s : mw->project().solids) add(geo, "mesh/solid/" + s.name, s.name, {}, s.wheel ? tr("wheel") : tr("wall"));
+    add(meshing, "mesh/tunnel", tr("Wind Tunnel"));
+    add(meshing, "mesh/refinement", tr("Local Refinement Regions"));
+    add(meshing, "mesh/sizing", tr("Sizing and Layers"));
+    add(meshing, "mesh/generate", tr("Generate Mesh"));
+    add(meshing, "mesh/report", tr("Mesh Report"));
     auto* setup = add(nullptr, "setup", tr("Setup"), "sliders-horizontal");
     add(setup, "setup/general", tr("General"));
     add(setup, "setup/models", tr("Models"));
@@ -208,18 +231,30 @@ void Outline::rebuild()
     add(runs, "runs/history", tr("Run History"));
     add(runs, "runs/compare", tr("Compare Runs"));
     add(runs, "runs/studies", tr("Design Studies"));
+    add(runs, "runs/variants", tr("Design Variants"));
     add(nullptr, "settings", tr("All Case Settings"), "list-filter");
 
     expandAll();
-    for (const char* collapsed : {"setup/materials"})
+    for (const char* collapsed : {"setup/materials", "mesh/geometry"})
         if (auto* it = m_items.value(collapsed)) it->setExpanded(false);
+    // Without geometry, Meshing stays folded: most cases arrive meshed.
+    if (!mw->hasProject())
+        if (auto* it = m_items.value("mesh")) it->setExpanded(false);
     refreshMarkers();
     if (auto* it = m_items.value(cur.isEmpty() ? QString("setup/general") : cur)) setCurrentItem(it);
 }
 
 void Outline::refreshMarkers()
 {
-    if (!m_session->hasCase()) return;
+    // Meshing: a stale or failed mesh is flagged where it is generated.
+    if (auto* it = m_items.value("mesh/generate")) {
+        const MeshWorkflow* mw = m_session->meshing();
+        it->setData(0, IssueRole, mw->outcome() == MeshWorkflow::Outcome::Failed ? 2 : mw->meshStale() ? 1 : 0);
+    }
+    if (!m_session->hasCase()) {
+        viewport()->update();
+        return;
+    }
     const QStringList mod = m_session->settings()->modifiedPaths();
     auto count = [&](const QString& prefix) {
         int n = 0;

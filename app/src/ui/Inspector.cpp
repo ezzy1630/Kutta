@@ -43,6 +43,16 @@ Inspector::Inspector(Session* session, GraphicsArea* graphics, ChartsPanel* char
     connect(graphics, &GraphicsArea::activeChanged, this, [this] {
         if (m_id.startsWith("results/") && m_id != "results/residuals" && m_id != "results/report-plots") refresh();
     });
+    // Meshing pages follow the project; the generate page follows the mesher
+    // itself (progress updates in place), and rebuilds when it starts or ends.
+    connect(session->meshing(), &MeshWorkflow::projectChanged, this, [this] {
+        if (m_id.startsWith("mesh/") || m_id == "runs/variants") refresh();
+    });
+    connect(session->meshing(), &MeshWorkflow::meshStateChanged, this, [this, session] {
+        const bool busy = session->meshing()->meshing();
+        if (busy != m_meshBusy && (m_id == "mesh/generate" || m_id == "mesh/report")) refresh();
+        m_meshBusy = busy;
+    });
     connect(session, &Session::newCaseChanged, this, [this] {
         if (m_id == "new-case") refresh();
     });
@@ -107,7 +117,7 @@ void Inspector::show(const QString& rawId)
     static const QHash<QString, QString> groups = {
         {"setup", "setup/general"},           {"solution", "solution/run"},        {"results", "results/contours"},
         {"results/graphics", "results/contours"}, {"results/plots", "results/residuals"}, {"results/reports", "results/forces"},
-        {"runs", "runs/history"}};
+        {"runs", "runs/history"}, {"mesh", "mesh/geometry"}};
     id = groups.value(id, id);
     const int scroll = id == m_id ? verticalScrollBar()->value() : 0;
     m_id = id;
@@ -131,6 +141,13 @@ QWidget* Inspector::build(const QString& id)
 {
     const InspectorContext& c = m_ctx;
     if (id == "new-case") return pages::newCase(c);
+    if (id == "mesh/geometry" || id.startsWith("mesh/solid/")) return pages::geometry(c);
+    if (id == "mesh/tunnel") return pages::tunnel(c);
+    if (id == "mesh/refinement") return pages::refinement(c);
+    if (id == "mesh/sizing") return pages::sizing(c);
+    if (id == "mesh/generate") return pages::generateMesh(c);
+    if (id == "mesh/report") return pages::meshReport(c);
+    if (id == "runs/variants") return pages::variants(c);
     const bool needsCase = id.startsWith("setup/") || id.startsWith("solution/");
     if (needsCase && !c.session->hasCase()) return pages::noCase(c, Outline::titleOf(id));
     if (id == "setup/general") return pages::general(c);
@@ -449,6 +466,13 @@ QWidget* noCase(const InspectorContext& c, const QString& title)
     fromMesh->addWidget(nb);
     fromMesh->addWidget(label(QObject::tr("No Fluent case? Start from your mesh (.msh) and set it up here."), "faint"), 1);
     v->addLayout(fromMesh);
+    auto* fromGeometry = new QHBoxLayout;
+    auto* gb = button(QObject::tr("New Case from Geometry…"), "box");
+    gb->setProperty("flat", true);
+    QObject::connect(gb, &QPushButton::clicked, gb, [c] { if (c.importGeometryDialog) c.importGeometryDialog(); });
+    fromGeometry->addWidget(gb);
+    fromGeometry->addWidget(label(QObject::tr("No mesh either? Import the car's STL files and mesh them here."), "faint"), 1);
+    v->addLayout(fromGeometry);
     if (!c.samples.isEmpty()) {
         v->addSpacing(6);
         v->addWidget(section(QObject::tr("Samples")));

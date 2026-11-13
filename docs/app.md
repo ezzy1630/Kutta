@@ -36,7 +36,8 @@ names the solver in use.
 
 `Kutta --scenario NAME --screenshot out.png [--theme dark|light] [--size WxH]`
 drives the app to a state and saves the window, GPU viewports included.
-`--list-scenarios` names them. `elbow-*` scenarios are meant for the real CLI
+`--list-scenarios` names them. Without `--screenshot` the window stays open
+on the scenario's state, with its throwaway settings, for driving by hand. `elbow-*` scenarios are meant for the real CLI
 and the Ansys mixing elbow:
 
 ```sh
@@ -72,6 +73,14 @@ Case page for the fixture's synthetic car mesh (3D, with wheels).
 `KUTTA_SCENARIO_CASE_NAME` names the created case and
 `KUTTA_SCENARIO_SCROLL=bottom` shows the end of the inspector page.
 
+`geometry-*` go from STL files (the positional arguments, else the fixture's
+synthetic car STLs) through New Case from Geometry: `-import`, `-tunnel`,
+`-refinement`, `-sizing`, `-meshing` (held at the layers stage with
+`KUTTA_FIXTURE_MESH_HOLD=layers`), `-report`, `-case` (the New Case page from
+the generated mesh), `-run` (a run and the Aerodynamics page) and `-variants`
+(a rear-wing variant meshed, run and compared side by side). With the real
+CLI they need `kutta mesh`.
+
 Before its screenshot, every scenario checks the screen and fails (exit 4)
 with each problem on stderr: the inspector page is laid out again at each
 panel width from 320 to 720 px, and no text may overlap other text, be clipped,
@@ -104,6 +113,71 @@ case (`kutta convert --setup`), in place for a Kutta case and as a new
 case is reopened from the saved file, so the changes become its own settings.
 A saved case with different settings is a different case: its runs start a
 new history, as a changed `.cas` does.
+
+## New Case from Geometry
+
+File ▸ New Case from Geometry (Ctrl+Shift+N, or drop STL files on the window)
+goes from STL files to a case without the terminal. The outline's Meshing
+group holds the steps in Fluent Meshing's words:
+
+- **Import Geometry**: STL files read in the app (ASCII with any number of
+  named solids, or binary as one solid named after the file) and shown at
+  once. Units are guessed from the size (above 20 "m" means mm) and can be
+  changed. Each solid becomes a wall zone; names are editable and solids
+  named wheel/tyre/tire are flagged Rotating wheel. Add, Replace… and Remove
+  edit the file list.
+- **Wind Tunnel**, **Local Refinement Regions**, **Sizing and Layers**:
+  mesh.json's fields as numbers, drawn in the viewport as you type (tunnel
+  faces translucent, tunnel and regions as outlines).
+- **Generate Mesh**: a cell estimate and the device memory it needs against
+  the device the case will run on (a planning figure: surface bands by size,
+  layers, regions and a graded far field at about 1.5 kB per cell), then
+  `kutta mesh` with its stages in the console, the page and the status bar,
+  cancellable. An error shows the mesher's message and advice in place.
+- **Mesh Report**: cells by type, quality statistics with histograms, worst
+  cells, repairs, zones and the y+ estimate from mesh-report.json, and the
+  generated mesh's surfaces in the viewport. Set Up Case runs the New Case
+  from Mesh flow on it with the rotating wheels carried over.
+
+A geometry project is a folder (`geometry.json`, `mesh.json`, `mesh/`, the
+case). **Duplicate as Design Variant** copies it beside itself (`name-v2`)
+with the same STLs, settings and aero settings; swap or add an STL, generate,
+and Set Up Variant Case copies the base case's setup onto the new mesh (zones
+it lacks dropped, new solids added as car walls). Runs ▸ Design Variants lists
+each variant's latest run with CL, CD, L/D, front % and their deltas against
+the base, and shows two runs side by side.
+
+Everything `kutta mesh` is, the app reaches through one adapter,
+`app/src/core/MeshCli.cpp` (arguments, event and report names). It codes to
+this contract, pending the mesher's own section in
+[app-protocol.md](app-protocol.md); these points are assumptions:
+
+- `kutta mesh A.stl [B.stl ...] --setup mesh.json --out DIR --progress jsonl
+  --force`; DIR holds `mesh.msh` and `mesh-report.json`, published only on
+  success. `--case` is not used: the app writes the case with `new-case` (or
+  the variant copy) so wheels are confirmed as for any mesh.
+- mesh.json lengths are in its `units`; tunnel distances are in body lengths
+  along the flow; ground at the car's lowest point.
+- An ASCII solid's name is its wall zone; a binary STL is one solid named
+  after the file. Renamed solids are passed as ASCII copies in
+  `<project>/geometry/`.
+- Cancel closes stdin, then sends SIGINT after 1.5 s, then kills.
+- Report keys read tolerantly: `cells` as a number or `{total, hex, ...}`
+  (or `cell_types`), `faces`, `nodes`, `zones[{name,type,faces}]`, `quality`
+  as an object or a list with `min/mean/max` and optional
+  `histogram{edges,counts}`, `worst_cells[{metric,value,centroid,zone}]`,
+  `repairs` (strings or objects), `y_plus` (number or `{estimate|mean,
+  speed}`), `wall_seconds`, `peak_memory_bytes`.
+- Tunnel zones are named inlet, outlet, ground, top and sides (symmetry when
+  half a car); `kutta new-case` accepts the mesher's `mesh.msh`.
+
+Volume-mesh slices are not shown yet (read-only on the Mesh Report page): that
+needs a cut-plane export for a bare mesh from the CLI. The fixture CLI's `mesh`
+meshes nothing; it accepts only its synthetic car's STLs (`kutta-fixture
+sample-stl DIR` writes them, with `rear-wing-v2.stl` for a variant), writes a
+SYNTHETIC report sized by the app's estimate, and its runs follow the parts'
+moves. `app/scripts/make_test_stl.py` writes a small closed car (body, wings,
+wheels; `--split` puts the rear wing in its own file) for the real mesher.
 
 ## Case types and convergence
 
@@ -163,8 +237,10 @@ written is refused before kutta starts.
 ## Tests
 
 - `ctest -L app -LE gui`: unit tests (protocol, settings, run history, plots,
-  view format, session through the fixture CLI). They include a real-CLI probe
-  and report written by `export-view --post` on the elbow (`app/tests/data/`).
+  view format, session through the fixture CLI, STL reading, mesh.json and the
+  mesh report, and geometry to a variant case through the fixture's `mesh`).
+  They include a real-CLI probe and report written by `export-view --post` on
+  the elbow (`app/tests/data/`).
 - `tst_realcli` runs the session against the real CLI when `KUTTA_REAL_CLI`
   and `KUTTA_ELBOW_CASE` are set: full inventory, live run, post-processing
   with Fluent fields, mass balance, stop, a new case from a bare mesh run and
@@ -175,7 +251,9 @@ written is refused before kutta starts.
   the elbow setup, the synthetic car, the recorded k-epsilon, laminar 2D and
   transition cases, and the new-case flow through the fixture (the car's New
   Case page, the wing's case after a run under a long case name, and that case
-  saved with a change).
+  saved with a change), and New Case from Geometry through the fixture's
+  `mesh` (import, meshing in progress, the report, and a design variant run
+  beside its base).
 
 ## Performance (M4 Pro, macOS, Metal)
 

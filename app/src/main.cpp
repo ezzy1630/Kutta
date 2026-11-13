@@ -26,6 +26,7 @@
 #include <QJsonObject>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QProcess>
 #include <QKeyEvent>
 #include <QScrollBar>
 #include <QSet>
@@ -169,6 +170,12 @@ int main(int argc, char** argv)
     // (pass the case path; --open-data defaults to the .dat.h5 beside it).
     // Post-processing ones need the real CLI: the fixture has no volume fields.
     // car-* and bench use the fixture CLI's synthetic FSAE car.
+    // geometry-* walk New Case from Geometry with the fixture CLI's synthetic
+    // car as STL (or the STL files given as positional arguments, with the
+    // real CLI): the imported geometry, the wind tunnel, refinement regions,
+    // sizes and layers, the mesher part-way (held at its boundary-layer stage),
+    // the mesh report, the case set up from it, a run's aerodynamics, and a
+    // design variant with a larger rear wing compared with the base.
     // new-case* start from a bare mesh (the positional argument, else the
     // fixture's NACA wing mesh): the New Case page, the created case after a
     // run, and that case saved with a changed setting and reopened.
@@ -181,7 +188,9 @@ int main(int argc, char** argv)
                                    "wing-models", "wing-aero", "wing-monitors", "bench",
                                    "case-mesh", "car-mesh", "car-mesh-context", "car-mesh-below", "case-approvals", "case-methods", "case-run", "case-stop",
                                    "new-case", "new-case-car", "new-case-run", "new-case-save", "new-case-wheel", "new-case-wheel-invalid",
-                                   "new-case-wheel-boundary", "new-case-wheel-estimate", "new-case-car-estimate", "new-case-car-rotating", "new-case-car-boundary"};
+                                   "new-case-wheel-boundary", "new-case-wheel-estimate", "new-case-car-estimate", "new-case-car-rotating", "new-case-car-boundary",
+                                   "geometry-import", "geometry-tunnel", "geometry-refinement", "geometry-sizing", "geometry-meshing", "geometry-report",
+                                   "geometry-case", "geometry-run", "geometry-variants"};
     if (cli.isSet(listOpt)) {
         for (const QString& s : scenarios) std::printf("%s\n", qPrintable(s));
         return 0;
@@ -792,6 +801,155 @@ int main(int argc, char** argv)
             }
             sc->add([&w](auto next) { w.charts()->showTab(ChartsPanel::Tab::Reports); next(); });
         }
+    } else if (scenario.startsWith("geometry-")) {
+        static const QStringList order{"geometry-import", "geometry-tunnel", "geometry-refinement", "geometry-sizing", "geometry-meshing",
+                                       "geometry-report", "geometry-case", "geometry-run", "geometry-variants"};
+        const int level = int(order.indexOf(scenario));
+        MeshWorkflow* mw = session->meshing();
+        QStringList stls;
+        for (const QString& a : cli.positionalArguments())
+            if (a.endsWith(".stl", Qt::CaseInsensitive)) stls << QFileInfo(a).absoluteFilePath();
+        const QString stlDir = QDir(dataRoot).filePath("samples/stl");
+        sc->add([sc, session, mw, stls, stlDir, dataRoot](auto next) {
+            QStringList files = stls;
+            if (files.isEmpty()) {
+                if (!session->cliInfo().fixture) return sc->fail("geometry scenarios need STL files with the real CLI");
+                QProcess p;
+                p.start(session->cliInfo().program, {"sample-stl", stlDir});
+                if (!p.waitForFinished(60000) || p.exitCode() != 0) return sc->fail("sample-stl: " + QString::fromUtf8(p.readAllStandardError()));
+                files = {QDir(stlDir).filePath("fsae-car.stl"), QDir(stlDir).filePath("rear-wing.stl")};
+            }
+            mw->importGeometry(files, QDir(dataRoot).filePath("projects/fsae-car"));
+            sc->waitFor([mw] { return mw->hasProject() && !mw->loading() && mw->scene(); }, [mw, sc, next] {
+                if (!mw->error().isEmpty()) return sc->fail("import: " + mw->error());
+                next();
+            }, "geometry to import");
+        });
+        sc->add(showScene(0, "geometry"));
+        if (level == 0) sc->add(go("mesh/geometry"));
+        if (level == 1) {
+            sc->add(go("mesh/tunnel"));
+            sc->add([&w](auto next) {
+                // The whole tunnel in view, as the page describes it.
+                auto* v = w.graphics()->panel(0)->view();
+                Camera cam = w.graphics()->panel(0)->display().camera;
+                cam.fit(v->scene()->bounds, float(v->width()) / float(std::max(1, v->height())));
+                v->setCamera(cam);
+                next();
+            });
+        }
+        if (level == 2) sc->add(go("mesh/refinement"));
+        if (level == 3) sc->add(go("mesh/sizing"));
+        if (level == 4) {
+            // Held at the boundary-layer stage so the shot shows a run in progress.
+            sc->add([sc, mw](auto next) {
+                qputenv("KUTTA_FIXTURE_MESH_HOLD", "layers");
+                if (!mw->generate()) return sc->fail("generate refused: " + mw->error());
+                sc->waitFor([mw] { return mw->progress().stage == "layers"; }, next, "mesher to reach the layers stage");
+            });
+            sc->add(go("mesh/generate"));
+        }
+        auto generate = [sc, mw](auto next) {
+            qunsetenv("KUTTA_FIXTURE_MESH_HOLD");
+            if (!mw->generate()) return sc->fail("generate refused: " + mw->error());
+            sc->waitFor([mw] { return !mw->meshing(); }, [sc, mw, next] {
+                if (mw->outcome() != MeshWorkflow::Outcome::Succeeded) return sc->fail("mesh: " + mw->failure());
+                next();
+            }, "mesh to generate", 180000);
+        };
+        auto setUpCase = [sc, session, mw](auto next) {
+            const bool variant = !mw->project().baseCase.isEmpty();
+            bool* done = new bool(false);
+            if (variant) QObject::connect(session, &Session::caseOpened, sc, [done] { *done = true; }, Qt::SingleShotConnection);
+            session->setUpCaseFromMesh();
+            if (variant) return sc->waitFor([done] { return *done; }, [done, next] { delete done; next(); }, "variant case to open");
+            delete done;
+            sc->waitFor([session] { return session->newCaseDraft() && !session->newCaseBusy(); }, next, "new case from the mesh");
+        };
+        if (level >= 5) {
+            sc->add(generate);
+            if (level == 5) {
+                sc->add(go("mesh/report"));
+                sc->add([&w, sc, session](auto next) {
+                    w.graphics()->show(session->generatedMeshSceneKey(), 0);
+                    sc->waitFor([&w] { return w.graphics()->panel(0)->scene() && !w.graphics()->panel(0)->scene()->geometrySetup; }, next, "generated mesh");
+                });
+            }
+        }
+        if (level >= 6) {
+            sc->add(setUpCase);
+            sc->add(go("new-case"));
+        }
+        auto confirmAndCreate = [sc, session, mw](auto next) {
+            for (const NewCaseZone* z : session->newCaseDraft()->boundaries())
+                if (z->wheel && !z->wheelConfirmed) session->confirmNewCaseWheel(z->name, true);
+            if (const QString e = session->newCaseDraft()->wheelError(); !e.isEmpty()) return sc->fail("wheels: " + e);
+            const QString target = session->newCaseTarget();
+            if (target.isEmpty()) return sc->fail("no case target for the geometry project");
+            session->createNewCase(target);
+            sc->waitFor([session, target] { return session->hasCase() && session->casePath() == target; }, [sc, mw, target, next] {
+                if (mw->project().caseFile != target) return sc->fail("the project did not record its case");
+                next();
+            }, "case from geometry to open");
+        };
+        auto vehicle = [session](auto next) {
+            AeroSpec spec = session->aeroSpec();
+            spec.frontAxle = QVector3D(-0.78f, 0, 0);  // the synthetic car's front tyre contact
+            spec.wheelbase = 1.58;
+            spec.momentCentre = *spec.frontAxle;
+            session->setAeroSpec(spec);
+            next();
+        };
+        if (level >= 7) {
+            sc->add(confirmAndCreate);
+            sc->add(approveAll);
+            sc->add(vehicle);
+            sc->add(runWith(200));
+            sc->add(showScene(0, "run:run-0001"));
+            sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
+            if (level == 7) {
+                sc->add(go("results/aero"));
+                sc->add([sc, session](auto next) {
+                    sc->waitFor([session] { return session->aeroIfComputed("run-0001").has_value(); }, next, "aero coefficients");
+                });
+            }
+        }
+        if (level == 8) {
+            sc->add([&w, sc, mw](auto next) {
+                w.duplicateVariant();
+                if (mw->project().variantOf.isEmpty()) return sc->fail("variant not created: " + mw->error());
+                const int at = int(mw->project().files.indexOf(QDir(mw->project().files.value(1)).absolutePath()));
+                mw->replaceGeometry(at < 0 ? 1 : at, QDir(QFileInfo(mw->project().files.value(1)).absolutePath()).filePath("rear-wing-v2.stl"));
+                sc->waitFor([mw] { return !mw->loading() && mw->project().files.value(1).endsWith("rear-wing-v2.stl"); }, next, "rear wing swap");
+            });
+            sc->add(generate);
+            sc->add(setUpCase);
+            sc->add(approveAll);
+            sc->add(runWith(200));
+            sc->add(go("runs/variants"));
+            sc->add([&w, sc, session, inspectorButton](auto next) {
+                sc->waitFor([session] {
+                    int n = 0;
+                    for (const auto& v : session->variantRuns()) n += v.run.has_value();
+                    return n >= 2;
+                }, [&w, sc, inspectorButton, next] {
+                    auto* side = inspectorButton(QObject::tr("Side by Side"));
+                    if (!side) return sc->fail("no Side by Side button");
+                    side->click();
+                    sc->waitFor([&w] { return w.graphics()->panel(0)->scene() && w.graphics()->panel(1)->scene(); }, next, "variants side by side");
+                }, "variant runs");
+            });
+            sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
+            sc->add(display(1, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
+            sc->add([&w, sc](auto next) {
+                // Coefficients arrive from kutta aero for each variant's run.
+                sc->waitFor([&w] {
+                    for (auto* t : w.inspector()->findChildren<QTableWidget*>())
+                        if (t->accessibleName() == QObject::tr("Design variants") && t->item(5, 1) && t->item(5, 1)->text().contains('%')) return true;
+                    return false;
+                }, next, "variant coefficients");
+            });
+        }
     } else if (scenario.startsWith("car-mesh")) {
         if (scenario.endsWith("context")) {
             sc->add(open(elbow));
@@ -974,6 +1132,13 @@ int main(int argc, char** argv)
                     return;
                 }
             }
+        }
+        // Without a screenshot or a benchmark the window stays open on the
+        // scenario's state (throwaway settings) for driving by hand.
+        if (shot.isEmpty() && benchFrames <= 0) {
+            std::printf("scenario %s ready; the window stays open\n", qPrintable(scenario));
+            std::fflush(stdout);
+            return;
         }
         session->stop();
         QTimer::singleShot(100, [] { QCoreApplication::exit(0); });

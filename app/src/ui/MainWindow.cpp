@@ -15,6 +15,9 @@
 #include <DockWidget.h>
 
 #include <QApplication>
+#include <QJsonObject>
+#include <QLocale>
+#include <cmath>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDragEnterEvent>
@@ -27,7 +30,9 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QProcess>
 #include <QPushButton>
+#include <QStandardPaths>
 #include <QSettings>
 #include <QStatusBar>
 #include <QToolButton>
@@ -37,6 +42,8 @@ namespace kapp {
 using namespace kit;
 
 namespace {
+
+bool isStlFile(const QString& p) { return QFileInfo(p).suffix().compare("stl", Qt::CaseInsensitive) == 0; }
 
 bool isCaseFile(const QString& p)
 {
@@ -77,7 +84,44 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
     const CliInfo& cli = session->cliInfo();
     m_cliLabel->setText(cli.fixture ? tr("Solver: fixture CLI (recorded and synthetic data)") : tr("Solver: %1").arg(compactPath(cli.program)));
     m_cliLabel->setToolTip(cli.describe());
+    // Mesh generation runs for minutes: its stage stays in the status bar.
+    m_meshLabel = new QLabel(this);
+    m_meshLabel->setTextFormat(Qt::RichText);
+    m_meshLabel->hide();
+    connect(m_meshLabel, &QLabel::linkActivated, this, [this](const QString& href) {
+        if (href == "cancel") m_session->meshing()->cancel();
+        else navigate(href);
+    });
+    statusBar()->addPermanentWidget(m_meshLabel);
     statusBar()->addPermanentWidget(m_cliLabel);
+    connect(session->meshing(), &MeshWorkflow::meshStateChanged, this, [this] {
+        MeshWorkflow* mw = m_session->meshing();
+        if (mw->meshing()) {
+            const auto& p = mw->progress();
+            m_meshLabel->setText(tr("Meshing: %1 · %2 % &nbsp;<a href=\"mesh/generate\" style=\"color:%3\">Show</a> &nbsp;<a href=\"cancel\" style=\"color:%3\">Cancel</a>")
+                                     .arg(p.stage.isEmpty() ? tr("starting") : meshStageLabel(p.stage).toHtmlEscaped())
+                                     .arg(int(std::round(p.fraction * 100))).arg(tokens().text.name()));
+            m_meshLabel->show();
+            return;
+        }
+        m_meshLabel->hide();
+        using O = MeshWorkflow::Outcome;
+        if (mw->outcome() == O::Succeeded && mw->report()) {
+            showStatus(tr("Mesh generated: %1 cells").arg(QLocale().toString(mw->report()->cells)), 8000);
+            if (m_inspector->current() == "mesh/generate") navigate("mesh/report");
+            const QString k = m_session->generatedMeshSceneKey();
+            if (!k.isEmpty()) m_graphics->show(k, 0);
+        } else if (mw->outcome() == O::Failed) {
+            showStatus(tr("Mesh generation failed: %1").arg(mw->failure().section('\n', 0, 0)), 10000);
+        } else if (mw->outcome() == O::Cancelled) {
+            showStatus(tr("Mesh generation cancelled"), 6000);
+        }
+    });
+    connect(session->meshing(), &MeshWorkflow::projectChanged, this, [this] {
+        // The geometry appears as soon as it is read.
+        MeshWorkflow* mw = m_session->meshing();
+        if (mw->hasProject() && !mw->loading() && mw->scene() && m_graphics->panel(0)->datasetKey().isEmpty()) m_graphics->show("geometry", 0);
+    });
     statusBar()->setSizeGripEnabled(false);
 
     m_palette = new CommandPalette(this);
@@ -254,6 +298,11 @@ void MainWindow::buildDocks()
     ctx.openPath = [this](const QString& p) { openCase(p); };
     ctx.newCaseDialog = [this] { newCaseDialog(); };
     ctx.createCaseDialog = [this] { createCaseDialog(); };
+    ctx.importGeometryDialog = [this] { importGeometryDialog(); };
+    ctx.addGeometryDialog = [this] { addGeometryDialog(); };
+    ctx.replaceGeometryDialog = [this](int i) { replaceGeometryDialog(i); };
+    ctx.duplicateVariant = [this] { duplicateVariant(); };
+    if (m_session->cliInfo().fixture) ctx.sampleGeometry = [this] { importSampleGeometry(); };
     ctx.samples = m_samples;
     m_inspector->refresh();
 
@@ -312,6 +361,14 @@ void MainWindow::buildMenus()
         openCase(cas, dat);
     });
     add(file, tr("New Case from Mesh…"), "plus", QKeySequence::New, [this] { newCaseDialog(); });
+    add(file, tr("New Case from Geometry…"), "box", QKeySequence("Ctrl+Shift+N"), [this] { importGeometryDialog(); });
+    add(file, tr("Open Geometry Project…"), "folder-open", QKeySequence(), [this] {
+        const QString f = QFileDialog::getOpenFileName(this, tr("Open geometry project"), {}, tr("Kutta geometry project (geometry.json)"));
+        if (f.isEmpty()) return;
+        m_session->meshing()->openProject(f);
+        navigate("mesh/geometry");
+        m_graphics->show("geometry", 0);
+    });
     m_recentMenu = file->addMenu(tr("Open Recent"));
     connect(m_recentMenu, &QMenu::aboutToShow, this, [this] {
         m_recentMenu->clear();
@@ -389,6 +446,20 @@ void MainWindow::buildMenus()
     });
     add(view, tr("Dark Theme"), "moon", QKeySequence(), [this] { setTheme(true); });
     add(view, tr("Light Theme"), "sun", QKeySequence(), [this] { setTheme(false); });
+
+    QMenu* meshMenu = mb->addMenu(tr("&Mesh"));
+    add(meshMenu, tr("Import Geometry…"), "file-input", QKeySequence(), [this] { importGeometryDialog(); });
+    add(meshMenu, tr("Add Geometry…"), "plus", QKeySequence(), [this] { addGeometryDialog(); });
+    add(meshMenu, tr("Generate Mesh"), "play", QKeySequence("Ctrl+Shift+M"), [this] {
+        navigate("mesh/generate");
+        m_session->meshing()->generate();
+    });
+    add(meshMenu, tr("Cancel Mesh Generation"), "circle-stop", QKeySequence(), [this] { m_session->meshing()->cancel(); });
+    add(meshMenu, tr("Mesh Report"), "file-text", QKeySequence(), [this] { navigate("mesh/report"); });
+    meshMenu->addSeparator();
+    add(meshMenu, tr("Set Up Case from Mesh"), "arrow-right-left", QKeySequence(), [this] { m_session->setUpCaseFromMesh(); });
+    add(meshMenu, tr("Duplicate as Design Variant"), "copy", QKeySequence(), [this] { duplicateVariant(); });
+    add(meshMenu, tr("Compare Design Variants"), "git-compare-arrows", QKeySequence(), [this] { navigate("runs/variants"); });
 
     QMenu* run = mb->addMenu(tr("&Run"));
     m_runAction = add(run, tr("Run Calculation"), "play", QKeySequence("Ctrl+R"), [this] { m_session->run(); });
@@ -545,6 +616,11 @@ void MainWindow::createCaseDialog()
 {
     const auto& draft = m_session->newCaseDraft();
     if (!draft) return;
+    // A case set up from geometry goes into its project folder.
+    if (const QString target = m_session->newCaseTarget(); !target.isEmpty()) {
+        m_session->createNewCase(target);
+        return;
+    }
     QString stem = QFileInfo(draft->meshPath).fileName();
     for (const char* ext : {".msh.h5", ".msh", ".cas.h5", ".cas"})
         if (stem.endsWith(QLatin1String(ext))) { stem.chop(int(qstrlen(ext))); break; }
@@ -553,6 +629,61 @@ void MainWindow::createCaseDialog()
     if (f.isEmpty()) return;
     if (!f.endsWith(".json")) f += ".kutta.json";
     m_session->createNewCase(f);
+}
+
+void MainWindow::importGeometryDialog()
+{
+    const QStringList files = QFileDialog::getOpenFileNames(this, tr("New case from geometry"), {}, tr("STL geometry (*.stl *.STL);;All files (*)"));
+    if (files.isEmpty()) return;
+    navigate("mesh/geometry");
+    m_session->meshing()->importGeometry(files);
+    m_graphics->show("geometry", 0);
+}
+
+void MainWindow::addGeometryDialog()
+{
+    if (!m_session->meshing()->hasProject()) return importGeometryDialog();
+    const QStringList files = QFileDialog::getOpenFileNames(this, tr("Add geometry"), m_session->meshing()->project().dir, tr("STL geometry (*.stl *.STL);;All files (*)"));
+    if (!files.isEmpty()) m_session->meshing()->addGeometry(files);
+}
+
+void MainWindow::replaceGeometryDialog(int index)
+{
+    MeshWorkflow* mw = m_session->meshing();
+    if (!mw->hasProject() || index < 0 || index >= mw->project().files.size()) return;
+    const QString f = QFileDialog::getOpenFileName(this, tr("Replace %1").arg(QFileInfo(mw->project().files[index]).fileName()),
+                                                   QFileInfo(mw->project().files[index]).absolutePath(), tr("STL geometry (*.stl *.STL);;All files (*)"));
+    if (!f.isEmpty()) mw->replaceGeometry(index, f);
+}
+
+void MainWindow::importSampleGeometry()
+{
+    // The fixture CLI writes its synthetic car as STL; the import is then the
+    // same as for any CAD export.
+    const QString dir = QDir(m_session->dataRoot()).filePath("samples/stl");
+    QProcess p;
+    p.start(m_session->cliInfo().program, {"sample-stl", dir});
+    if (!p.waitForFinished(60000) || p.exitCode() != 0) {
+        showStatus(tr("The fixture CLI could not write the sample car: %1").arg(QString::fromUtf8(p.readAllStandardError()).trimmed()), 8000);
+        return;
+    }
+    navigate("mesh/geometry");
+    m_session->meshing()->importGeometry({QDir(dir).filePath("fsae-car.stl"), QDir(dir).filePath("rear-wing.stl")}, QDir(dir).filePath("fsae-car"));
+    m_graphics->show("geometry", 0);
+}
+
+void MainWindow::duplicateVariant()
+{
+    MeshWorkflow* mw = m_session->meshing();
+    if (!mw->hasProject()) return;
+    // The variant's case starts from the open case's aero settings when it is this project's.
+    QJsonObject spec;
+    if (m_session->hasCase() && QFileInfo(m_session->casePath()) == QFileInfo(mw->project().caseFile)) spec = m_session->aeroSpec().toJson();
+    const QString dir = mw->duplicateAsVariant(spec);
+    if (dir.isEmpty()) return;
+    showStatus(tr("Design variant %1: replace or add parts, then generate its mesh").arg(QFileInfo(dir).fileName()), 8000);
+    navigate("mesh/geometry");
+    m_graphics->show("geometry", 0);
 }
 
 void MainWindow::saveCaseAsDialog()
@@ -651,7 +782,7 @@ void MainWindow::closeEvent(QCloseEvent* e)
 void MainWindow::dragEnterEvent(QDragEnterEvent* e)
 {
     for (const QUrl& u : e->mimeData()->urls())
-        if (u.isLocalFile() && isCaseFile(u.toLocalFile())) {
+        if (u.isLocalFile() && (isCaseFile(u.toLocalFile()) || isStlFile(u.toLocalFile()))) {
             e->acceptProposedAction();
             return;
         }
@@ -660,12 +791,21 @@ void MainWindow::dragEnterEvent(QDragEnterEvent* e)
 void MainWindow::dropEvent(QDropEvent* e)
 {
     QString cas, dat;
+    QStringList stls;
     for (const QUrl& u : e->mimeData()->urls()) {
         const QString f = u.toLocalFile();
+        if (isStlFile(f)) stls << f;
         if (isCaseFile(f)) cas = f;
         else if (f.contains(".dat")) dat = f;
     }
     if (!cas.isEmpty()) openCase(cas, dat);
+    else if (!stls.isEmpty()) {
+        // STL dropped: new geometry, or more parts for the open project.
+        navigate("mesh/geometry");
+        if (m_session->meshing()->hasProject()) m_session->meshing()->addGeometry(stls);
+        else m_session->meshing()->importGeometry(stls);
+        m_graphics->show("geometry", 0);
+    }
 }
 
 } // namespace kapp

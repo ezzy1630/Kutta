@@ -75,6 +75,9 @@ struct SceneData {
     bool reference = false; // Fluent fields present
     bool runDelta = false;  // fields are Run A − Run B
     bool geometryOnly = false;  // a case's boundary mesh, before any run
+    // New Case from Geometry: imported STL solids with the wind tunnel and
+    // refinement regions around them (every item shown, nothing coloured by field).
+    bool geometrySetup = false;
     // A 2D case, solved as one cell between two symmetry caps: shown as the
     // plane (one cap), seen face on, panned and zoomed but not orbited.
     bool planar = false;

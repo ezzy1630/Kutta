@@ -299,11 +299,23 @@ std::vector<SettingDiff> diffRuns(const RunRecord& a, const RunRecord& b, const 
     return out;
 }
 
-void RunHistory::setCase(const QString& casePath, const QString& sha)
+QString RunHistory::caseKey(const QString& casePath)
 {
     QString name = QFileInfo(casePath).fileName();
     name.remove(QRegularExpression("\\.(cas|dat)(\\.h5)?$|(\\.kutta)?\\.json$"));
     name.replace(QRegularExpression("[^A-Za-z0-9._-]"), "_");
+    return name;
+}
+
+void RunHistory::setCaseDir(const QString& dir)
+{
+    m_caseDir = dir;
+    reload();
+}
+
+void RunHistory::setCase(const QString& casePath, const QString& sha)
+{
+    const QString name = caseKey(casePath);
     const QString key = sha.isEmpty() ? name : name + "-" + sha.left(12);
     m_caseDir = QDir(m_root).filePath(key);
     QDir().mkpath(m_caseDir);

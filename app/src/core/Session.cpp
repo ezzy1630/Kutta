@@ -4,6 +4,7 @@
 #include "core/Geometry.h"
 
 #include <QCryptographicHash>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -20,9 +21,34 @@
 
 namespace kapp {
 
-Session::Session(const CliInfo& cli, const QString& dataRoot, QObject* parent)
-    : QObject(parent), m_cli(new CliClient(cli, this)), m_dataRoot(dataRoot)
+namespace {
+// A case meshed from geometry shows each part in the colour it had in the
+// geometry view, so the rear wing stays the rear wing's colour throughout.
+void keepGeometryColours(SceneData& scene, const SceneData* geometry)
 {
+    if (!geometry) return;
+    for (auto& it : scene.items)
+        if (const SceneItem* g = geometry->item(it.id); g && g->color.isValid() && it.color.isValid()) it.color = g->color;
+}
+} // namespace
+
+Session::Session(const CliInfo& cli, const QString& dataRoot, QObject* parent)
+    : QObject(parent), m_cli(new CliClient(cli, this)), m_mesh(new MeshWorkflow(m_cli, this)), m_dataRoot(dataRoot)
+{
+    connect(m_mesh, &MeshWorkflow::consoleLine, this, &Session::consoleLine);
+    // The geometry is built in the app: replace the cached scene on each change.
+    connect(m_mesh, &MeshWorkflow::sceneChanged, this, [this] {
+        if (auto s = m_mesh->scene()) {
+            m_scenes.insert("geometry", s);
+        } else {
+            m_scenes.remove("geometry");
+        }
+        emit sceneChanged("geometry");
+    });
+    connect(m_mesh, &MeshWorkflow::meshStateChanged, this, [this] {
+        // A new mesh replaces the cached display of the old one.
+        if (!m_mesh->meshing()) m_scenes.remove(generatedMeshSceneKey());
+    });
     m_history.setRoot(QDir(dataRoot).filePath("runs"));
     m_notesTimer.setSingleShot(true);
     m_notesTimer.setInterval(300);
@@ -114,6 +140,12 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
         m_aero.clear();
         m_aeroSpec = {};
         m_aeroSpecSaved = false;
+        m_runDirAero.clear();
+        // A design variant's case starts with its base case's aero settings,
+        // copied into the project when the variant was made.
+        const QString projectSpec = QDir(QFileInfo(casePath).absolutePath()).filePath("aero-spec.json");
+        if (!QFileInfo::exists(QDir(m_history.caseDir()).filePath("aero-spec.json")) && QFileInfo::exists(projectSpec))
+            QFile::copy(projectSpec, QDir(m_history.caseDir()).filePath("aero-spec.json"));
         if (QFile f(QDir(m_history.caseDir()).filePath("aero-spec.json")); f.open(QIODevice::ReadOnly)) {
             m_aeroSpec = AeroSpec::fromJson(QJsonDocument::fromJson(f.readAll()).object());
             m_aeroSpecSaved = true;
@@ -151,6 +183,16 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
                 emit consoleLine(i.cls == IssueClass::Unsupported ? ConsoleLevel::Error : ConsoleLevel::Warning,
                                  QStringLiteral("%1 (%2): %3%4").arg(i.label, i.setting, i.explanationOnly(),
                                      i.measuredEffect.isEmpty() ? QString() : QStringLiteral(" Measured effect: %1.").arg(i.measuredEffect)));
+        // A case set up from geometry belongs to its project: record it, and
+        // show that project's geometry on the Meshing pages.
+        m_draftTarget.clear();
+        if (const QString project = MeshWorkflow::projectForCase(casePath); !project.isEmpty()) {
+            if (m_mesh->hasProject() && QFileInfo(m_mesh->project().projectFile()) == QFileInfo(project)) {
+                if (m_mesh->project().caseFile.isEmpty() || QFileInfo(m_mesh->project().caseFile) == QFileInfo(casePath)) m_mesh->setCaseFile(casePath);
+            } else if (!m_mesh->meshing()) {
+                m_mesh->openProject(project);
+            }
+        }
         emit caseOpened();
         emit newCaseChanged();
         emit historyChanged();
@@ -162,6 +204,8 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
 
 void Session::startNewCase(const QString& meshPath)
 {
+    m_draftTarget.clear();
+    m_pendingWheels.clear();
     const auto revision = ++m_draftRevision;
     m_notesTimer.stop();
     m_notesCurrent = true;
@@ -200,7 +244,25 @@ void Session::startNewCase(const QString& meshPath)
                         else draft.geometryError = mesh.error();
                     }
                 } else draft.geometryError = m.error();
+                // Solids flagged as wheels in the geometry rotate, from the
+                // surface estimate (which still needs the user's check).
+                bool wheelsSet = false;
+                for (const QString& name : std::exchange(m_pendingWheels, {})) {
+                    auto* z = draft.zone(name);
+                    if (!z || z->kind != "boundary" || z->role != "wall") continue;
+                    wheelsSet = true;
+                    WheelGeometry manual;
+                    manual.axis = draft.dimension == 2 ? std::array<double, 3>{0, 0, 1} : std::array<double, 3>{0, -1, 0};
+                    z->wheel = z->wheelEstimate.value_or(manual);
+                    z->wheelConfirmed = !z->wheelEstimate;
+                }
                 m_draft = std::move(draft);
+                if (wheelsSet) {
+                    // The CLI's notes were for stationary wheels: check again.
+                    m_notesCurrent = false;
+                    m_draft->notes.clear();
+                    m_notesTimer.start();
+                }
                 m_draftBusy = false;
                 emit consoleLine(ConsoleLevel::Info, tr("Mesh %1: %2 cells, %3 boundary zones; roles suggested from the zone names")
                                                      .arg(QFileInfo(m_draft->meshPath).fileName(), QLocale().toString(m_draft->cells))
@@ -309,6 +371,7 @@ void Session::refreshDraftNotes()
 
 void Session::discardNewCase()
 {
+    m_draftTarget.clear();
     ++m_draftRevision;
     m_notesTimer.stop();
     m_draft.reset();
@@ -763,6 +826,7 @@ QStringList Session::carZones() const
 void Session::setAeroSpec(const AeroSpec& spec)
 {
     m_aeroSpec = spec;
+    m_runDirAero.clear();
     QSaveFile f(QDir(m_history.caseDir()).filePath("aero-spec.json"));
     QDir().mkpath(m_history.caseDir());
     m_aeroSpecSaved = f.open(QIODevice::WriteOnly) && f.write(QJsonDocument(spec.toJson()).toJson(QJsonDocument::Indented)) >= 0 && f.commit();
@@ -1033,6 +1097,7 @@ void Session::loadSceneNow(const QString& key, SceneCallback done)
             if (scene) {
                 scene.value()->geometryOnly = true;
                 if (m_case && m_case->planar()) makePlanar(*scene.value());
+                if (m_mesh->hasProject() && m_mesh->project().caseFile == m_casePath) keepGeometryColours(*scene.value(), m_mesh->scene().get());
                 m_scenes.insert(key, scene.value());
             }
             done(key, scene);
@@ -1046,6 +1111,56 @@ void Session::loadSceneNow(const QString& key, SceneCallback done)
             if (!m) emit consoleLine(ConsoleLevel::Warning, tr("Mesh display unavailable: %1").arg(m.error()));
             finish(m);
         });
+        return;
+    }
+    if (key == "geometry") {
+        if (auto g = m_mesh->scene()) {
+            m_scenes.insert(key, g);
+            return done(key, g);
+        }
+        return done(key, Result<std::shared_ptr<SceneData>>::failure(tr("no geometry imported")));
+    }
+    if (key.startsWith("meshfile:")) {
+        if (key != generatedMeshSceneKey()) return done(key, Result<std::shared_ptr<SceneData>>::failure(tr("that mesh is no longer the project's")));
+        const QString meshFile = m_mesh->meshFile();
+        const QString dir = QDir(m_dataRoot).filePath("geometry/" + key.mid(9));
+        auto finish = [this, key, done](Result<ViewManifest> m) {
+            if (!m) return done(key, Result<std::shared_ptr<SceneData>>::failure(m.error()));
+            auto scene = kapp::loadScene(m.value(), tr("Generated mesh"));
+            if (scene) {
+                scene.value()->geometryOnly = true;
+                keepGeometryColours(*scene.value(), m_mesh->scene().get());
+                m_scenes.insert(key, scene.value());
+            }
+            done(key, scene);
+        };
+        const QString manifest = QDir(dir).filePath("geometry/manifest.json");
+        if (QFileInfo::exists(manifest))
+            if (auto m = loadViewManifest(manifest); m && m.value().geometryOnly) return finish(m);
+        QDir().mkpath(dir);
+        emit consoleLine(ConsoleLevel::Info, tr("Reading the generated mesh for display…"));
+        m_cli->exportGeometry(meshFile, dir, [this, finish](Result<ViewManifest> m) {
+            if (!m) emit consoleLine(ConsoleLevel::Warning, tr("Mesh display unavailable: %1").arg(m.error()));
+            finish(m);
+        });
+        return;
+    }
+    if (key.startsWith("ext:")) {
+        // A run of another case (a design variant), shown beside this case's runs.
+        const QString runDir = key.mid(4);
+        QFile rec(QDir(runDir).filePath("app-run.json"));
+        auto record = rec.open(QIODevice::ReadOnly) ? RunRecord::fromJson(QJsonDocument::fromJson(rec.readAll()).object(), runDir) : std::nullopt;
+        if (!record) return done(key, Result<std::shared_ptr<SceneData>>::failure(tr("no run in %1").arg(QDir::toNativeSeparators(runDir))));
+        const QString title = QStringLiteral("%1 · %2").arg(QFileInfo(QFileInfo(record->casePath).absolutePath()).fileName(), record->title());
+        auto finish = [this, key, title, done](Result<ViewManifest> m) {
+            if (!m) return done(key, Result<std::shared_ptr<SceneData>>::failure(m.error()));
+            auto scene = kapp::loadScene(m.value(), title);
+            if (scene) m_scenes.insert(key, scene.value());
+            done(key, scene);
+        };
+        const QString manifest = QDir(runDir).filePath("view/manifest.json");
+        if (QFileInfo::exists(manifest)) return finish(loadViewManifest(manifest));
+        m_cli->exportView(runDir, defaultSlices(), {}, finish);
         return;
     }
     if (key.startsWith("diff:")) {
@@ -1125,6 +1240,130 @@ void Session::postProcess(const QString& runId, PostKind kind, const QJsonObject
         if (it == parts.end()) return done(R::failure("the exported view has no result named " + name));
         out.part = *it;
         done(out);
+    });
+}
+
+// ---- New Case from Geometry --------------------------------------------------------
+
+QString Session::generatedMeshSceneKey() const
+{
+    if (!m_mesh->hasMesh()) return {};
+    const QFileInfo fi(m_mesh->meshFile());
+    const QByteArray id = QStringLiteral("%1|%2|%3").arg(fi.absoluteFilePath()).arg(fi.size()).arg(fi.lastModified().toMSecsSinceEpoch()).toUtf8();
+    return "meshfile:" + QString::fromLatin1(QCryptographicHash::hash(id, QCryptographicHash::Sha256).toHex().left(16));
+}
+
+void Session::setUpCaseFromMesh()
+{
+    if (!m_mesh->hasMesh()) {
+        emit consoleLine(ConsoleLevel::Error, tr("Generate the mesh first."));
+        return;
+    }
+    if (running()) {
+        emit consoleLine(ConsoleLevel::Error, tr("Stop the running calculation before setting up another case."));
+        return;
+    }
+    const GeometryProject& p = m_mesh->project();
+    const QString target = p.defaultCaseFile();
+    if (!p.baseCase.isEmpty()) {
+        // A design variant: the base case's settings on this mesh. Zones the
+        // new mesh lacks are dropped; new solids become walls in the car's reports.
+        QFile in(p.baseCase);
+        if (!in.open(QIODevice::ReadOnly)) {
+            emit consoleLine(ConsoleLevel::Error, tr("The base case %1 cannot be read; set up the case from the mesh instead.").arg(QDir::toNativeSeparators(p.baseCase)));
+            return;
+        }
+        QJsonObject kase = QJsonDocument::fromJson(in.readAll()).object();
+        QStringList zones;
+        if (m_mesh->report())
+            for (const auto& z : m_mesh->report()->zones) zones << z.name;
+        QStringList walls;
+        for (const auto& s : p.solids) walls << s.name;
+        QJsonObject boundaries = kase.value("boundaries").toObject();
+        QStringList baseWalls, dropped, added;
+        for (auto it = boundaries.begin(); it != boundaries.end(); ++it)
+            if (it.value().toObject().value("type") == "wall" && it.value().toObject().value("motion").toString() != "moving") baseWalls << it.key();
+        if (!zones.isEmpty())
+            for (const QString& name : boundaries.keys())
+                if (!zones.contains(name)) {
+                    boundaries.remove(name);
+                    dropped << name;
+                }
+        for (const QString& w : walls)
+            if (!boundaries.contains(w)) {
+                boundaries[w] = QJsonObject{{"type", "wall"}};
+                added << w;
+            }
+        kase["boundaries"] = boundaries;
+        QJsonObject reports = kase.value("reports").toObject();
+        for (const QString& name : reports.keys()) {
+            QJsonObject r = reports.value(name).toObject();
+            QStringList rz;
+            for (const QJsonValue& v : r.value("zones").toArray()) rz << v.toString();
+            const bool wholeCar = !baseWalls.isEmpty() && std::all_of(baseWalls.begin(), baseWalls.end(), [&](const QString& w) { return rz.contains(w); });
+            rz.erase(std::remove_if(rz.begin(), rz.end(), [&](const QString& z) { return dropped.contains(z); }), rz.end());
+            if (wholeCar) for (const QString& a : added) if (!rz.contains(a)) rz << a;
+            r["zones"] = QJsonArray::fromStringList(rz);
+            reports[name] = r;
+        }
+        kase["reports"] = reports;
+        kase["mesh"] = QDir(QFileInfo(target).absolutePath()).relativeFilePath(m_mesh->meshFile());
+        QSaveFile out(target);
+        if (!out.open(QIODevice::WriteOnly) || out.write(QJsonDocument(kase).toJson(QJsonDocument::Indented)) < 0 || !out.commit()) {
+            emit consoleLine(ConsoleLevel::Error, tr("Kutta cannot write %1: %2").arg(QDir::toNativeSeparators(target), out.errorString()));
+            return;
+        }
+        emit consoleLine(ConsoleLevel::Success, tr("Wrote %1 with the settings of %2").arg(QDir::toNativeSeparators(target), QFileInfo(p.baseCase).fileName()));
+        if (!added.isEmpty()) emit consoleLine(ConsoleLevel::Info, tr("New walls (stationary, in the whole-car reports): %1").arg(added.join(", ")));
+        if (!dropped.isEmpty()) emit consoleLine(ConsoleLevel::Info, tr("Zones not in the new mesh, left out: %1").arg(dropped.join(", ")));
+        m_mesh->setCaseFile(target);
+        openCase(target);
+        return;
+    }
+    QStringList wheels;
+    for (const auto& s : p.solids)
+        if (s.wheel) wheels << s.name;
+    startNewCase(m_mesh->meshFile());
+    m_draftTarget = target;
+    m_pendingWheels = wheels;
+}
+
+std::vector<Session::VariantRun> Session::variantRuns() const
+{
+    std::vector<VariantRun> out;
+    const QString root = QDir(m_dataRoot).filePath("runs");
+    for (const auto& v : m_mesh->family()) {
+        VariantRun vr{v.name, v.dir, v.caseFile, v.current, v.base, std::nullopt};
+        if (!v.caseFile.isEmpty()) {
+            std::vector<RunRecord> runs;
+            if (m_case && QFileInfo(m_casePath) == QFileInfo(v.caseFile)) {
+                runs = m_history.runs();
+            } else {
+                const QString key = RunHistory::caseKey(v.caseFile);
+                for (const QFileInfo& d : QDir(root).entryInfoList({key + "-*", key}, QDir::Dirs | QDir::NoDotAndDotDot)) {
+                    RunHistory h;
+                    h.setCaseDir(d.absoluteFilePath());
+                    for (const auto& r : h.runs())
+                        if (QFileInfo(r.casePath) == QFileInfo(v.caseFile)) runs.push_back(r);
+                }
+            }
+            for (const auto& r : runs)
+                if ((r.status == RunStatus::Completed || r.status == RunStatus::Stopped) && (!vr.run || r.finished > vr.run->finished)) vr.run = r;
+        }
+        out.push_back(vr);
+    }
+    return out;
+}
+
+void Session::aeroForRunDir(const QString& runDir, std::function<void(Result<AeroResult>)> done)
+{
+    if (auto it = m_runDirAero.find(runDir); it != m_runDirAero.end()) return done(*it);
+    if (!m_case) return done(Result<AeroResult>::failure(tr("Open a case first.")));
+    const QString spec = QDir(m_history.caseDir()).filePath("aero-spec.json");
+    if (!QFileInfo::exists(spec)) setAeroSpec(m_aeroSpec);
+    m_cli->aero(runDir, spec, [this, runDir, done](Result<AeroResult> r) {
+        if (r) m_runDirAero.insert(runDir, r.value());
+        done(r);
     });
 }
 
