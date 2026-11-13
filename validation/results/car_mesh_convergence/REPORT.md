@@ -137,6 +137,10 @@ Gates:
      resolution near the body; the hex L1 mesh has 3.4 times the cells. That
      belongs to the mesher lane.
    - The Ahmed 0.26 drag gate is unchanged and still fails for both families.
+   - Follow-up ([tet/poly accuracy](../tet_poly_accuracy/REPORT.md)): the cause
+     is the core cell count, not the solver. The hex control is the native
+     mesh subdivided, so it has about 20 times the native poly core's cells.
+     A polyhedral core of matched cell count comes within 2–3% of hex.
 2. **Coupled still limit-cycles on 3D external aero.** The template avoids it.
    - A Fluent case saved with Coupled still runs Coupled, and the forces
      criterion will correctly refuse to call it converged.

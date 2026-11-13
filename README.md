@@ -106,6 +106,10 @@ Steady solves on tetrahedral regions oscillate instead of converging, so
 convert a tet/prism mesh to polyhedra first, as Fluent recommends; hex,
 poly-hexcore and polyhedral meshes solve as they are
 ([car mesh convergence](validation/results/car_mesh_convergence/REPORT.md)).
+Conversion leaves about one polyhedron per five tetrahedra. Size the tet region
+for the polyhedral cell count: on the Ahmed body, a polyhedral core needs about
+as many cells as a hex core to give the same drag
+([tet/poly accuracy](validation/results/tet_poly_accuracy/REPORT.md)).
 
 The desktop app does the same with File ▸ New Case from Mesh and File ▸ Save
 Case.
