@@ -96,8 +96,11 @@ for name, data, approximate in [("tiny", False, False), ("tiny", True, False), (
     assert events[0]["event"] == "setup" and events[-1]["event"] == "done", events
     assert events[0]["init"] == ("fluent-data" if data else "hybrid" if name == "hybrid" else "standard")
     assert events[0]["approximations"] == (["wfgc"] if approximate else [])
-    assert events[0]["convergence"] == {"enabled": False, "condition": "all", "residuals": {}, "reports": []}
-    assert "Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit." in [e.get("message") for e in events if e["event"] == "warning"]
+    # Force reports turn convergence checking on by default (forces settled).
+    setup_convergence = events[0]["convergence"]
+    assert setup_convergence["enabled"] is True and setup_convergence["reports"] == []
+    assert setup_convergence["forces"]["tolerance"] == 0.001 and setup_convergence["forces"]["window"] == 300
+    assert "Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit." not in [e.get("message") for e in events if e["event"] == "warning"]
     assert events[-1]["converged"] is False and events[-1]["convergence"]["met_by"] == [] and events[-1]["convergence"]["iteration"] is None
     iterations = [e for e in events if e["event"] == "iteration"]
     # Iterations 1-5 are reported as the solver monitors them anyway; they
@@ -106,7 +109,12 @@ for name, data, approximate in [("tiny", False, False), ("tiny", True, False), (
     # Continuity is scaled by the largest of the first five, so none exceeds 1.
     assert all(e["residuals"]["continuity"] <= 1 for e in iterations[:5])
     for e in iterations:
-        assert "convergence" not in e
+        if e["iter"] <= 5:
+            assert "convergence" not in e
+        else:
+            assert e["convergence"]["met"] is False
+            [forces] = [c for c in e["convergence"]["conditions"] if c["kind"] == "forces"]
+            assert forces["met"] is False and forces["settled"] is False and forces["window"] == 300
         assert set(e["residuals"]) == {"continuity", "x-velocity", "y-velocity", "z-velocity", "k", "omega"}
         assert all(math.isfinite(v) and v >= 0 for v in e["residuals"].values())
         assert e["sec_per_iter"] > 0 and e["elapsed"] > 0
@@ -297,7 +305,8 @@ assert courant["depends_on"] == "methods/pressure-velocity-coupling" and courant
 assert courant["active"] is (tiny_settings["methods/pressure-velocity-coupling"]["value"] == "coupled")
 solve_setup({"controls/courant-number": 50}, "courant", case="tiny")
 solve_setup({"controls/courant-number": 0}, "bad-courant", reject=True, case="tiny")
-converged_out, events = solve_setup({"run/iterations": 10, "run/monitor-interval": 1, "monitors/check-convergence": True,
+# The report condition alone (forces settled off): the drag report converges.
+converged_out, events = solve_setup({"run/iterations": 10, "run/monitor-interval": 1, "monitors/check-convergence": True, "monitors/forces-settled/active": False,
                                      "monitors/report/drag/active": True, "monitors/report/drag/stop-criterion": 1e30,
                                      "monitors/report/drag/previous-values": 1, "monitors/report/drag/ignore-before": 0}, "report-converged", case="tiny")
 assert events[0]["convergence"] == {"enabled": True, "condition": "all", "residuals": {},
@@ -315,7 +324,8 @@ assert done["convergence"]["met_by"] == ["report:drag"] and done["convergence"][
 summary = json.loads((converged_out / "summary.json").read_text())
 assert summary["converged"] is True and summary["stop_reason"] == "converged" and summary["convergence"] == done["convergence"]
 # Checking on with nothing to check warns and runs to the limit.
-_, events = solve_setup({"run/iterations": 2, "run/monitor-interval": 1, "monitors/check-convergence": True, "monitors/condition": "any"}, "no-conditions", case="tiny")
+_, events = solve_setup({"run/iterations": 2, "run/monitor-interval": 1, "monitors/check-convergence": True, "monitors/forces-settled/active": False,
+                        "monitors/condition": "any"}, "no-conditions", case="tiny")
 assert "Convergence checking is on but no residual is checked and no report condition is active; stopping at the requested iteration limit." in [e.get("message") for e in events]
 assert [e["convergence"] for e in events if e["event"] == "iteration"] == [{"met": False, "conditions": []}] * 2
 assert events[-1]["converged"] is False and events[-1]["stop_reason"] == "iteration_limit"

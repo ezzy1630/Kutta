@@ -31,7 +31,13 @@ def check_outputs(directory, data=False, iterations=21, case_name="tiny.cas.h5",
     assert summary["wall_time_seconds"] > 0 and summary["setup_time_seconds"] > 0
     assert summary["converged"] is False and summary["stop_reason"] == "iteration_limit"
     assert summary["convergence_criteria_available"] is True
-    assert summary["convergence"] == {"enabled": False, "condition": "all", "residuals": {}, "reports": [], "met_by": [], "iteration": None}
+    # A case with force reports checks convergence by default: its residual
+    # criteria and settled forces, neither reachable in a few iterations.
+    convergence = summary["convergence"]
+    assert convergence["enabled"] is True and convergence["condition"] == "all" and convergence["reports"] == []
+    assert convergence["forces"] == {"tolerance": 0.001, "window": 300, "reports": convergence["forces"]["reports"]}
+    assert sorted(convergence["forces"]["reports"]) == ["drag", "force", "lift"]
+    assert convergence["met_by"] == [] and convergence["iteration"] is None and convergence["residuals_waived"] is False
     assert summary["peak_device_memory_bytes"] is None
     assert summary["kutta_version"] and summary["kutta_commit"]
     assert summary["approximate"] is approximate
@@ -112,7 +118,7 @@ approximate_fields = check_outputs(root / "approximate", iterations=1, case_name
 case = root / "tiny.cas.h5"
 log = run(case, "--backend", "cpu", "--iterations", 21, "--out", root / "standard")
 assert all(s in log for s in ["continuity", "x-velocity", "y-velocity", "z-velocity", "omega", "sec/iter"])
-assert "Convergence checking is off (monitors/check-convergence)" in log and "Reached the iteration limit (21 iterations)." in log, log
+assert "Convergence checking is off" not in log and "Reached the iteration limit (21 iterations) before the convergence conditions were met." in log, log
 check_outputs(root / "standard")
 run(case, "--approximate", "wfgc", "--backend", "cpu", "--iterations", 1, "--out", root / "unused-opt-in")
 check_outputs(root / "unused-opt-in", iterations=1)
@@ -127,7 +133,11 @@ log = run(root / "hybrid.cas.h5", "--backend", "cpu", "--iterations", 1, "--out"
 assert "Initialization: hybrid" in log
 hybrid = check_outputs(root / "hybrid", iterations=1, case_name="hybrid.cas.h5")
 assert max(map(abs, hybrid["u"])) < 1e-10, "hybrid dispatch used standard velocity defaults"
-run(root / "no-reports.cas.h5", "--backend", "cpu", "--iterations", 1, "--out", root / "no-reports")
+log = run(root / "no-reports.cas.h5", "--backend", "cpu", "--iterations", 1, "--out", root / "no-reports")
+# Without a force report, checking stays off and the run reaches its limit.
+assert "Convergence checking is off (monitors/check-convergence)" in log, log
+no_reports = json.loads((root / "no-reports" / "summary.json").read_text())["convergence"]
+assert no_reports["enabled"] is False and "forces" not in no_reports
 with (root / "no-reports" / "forces.csv").open(newline="") as f:
     rows = list(csv.DictReader(f))
 assert len(rows) == 1 and rows[0]["kind"] == "wall"

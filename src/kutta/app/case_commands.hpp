@@ -5,4 +5,6 @@ int new_case(int argc, char** argv);
 // kutta convert CASE: a Fluent or Kutta case, with optional setup overrides,
 // written as a Kutta case.
 int convert(int argc, char** argv);
+// kutta polyhedra MESH: Fluent's tet-to-polyhedra conversion, prisms kept.
+int polyhedra(int argc, char** argv);
 }  // namespace kutta::app

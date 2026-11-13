@@ -249,6 +249,9 @@ TEST_CASE("Native FSAE Fluent physics convert and solve to byte-identical Kutta 
     INFO(std::string(feature));
     MeshTemp t;
     auto input = setup::fsae_starter(info, "box.msh", {});
+    // Fluent's default (Coupled), as a Fluent case saved with defaults has; the
+    // starter's SIMPLEC is covered by the new-case test.
+    input.methods.coupling.reset();
     if (std::string_view(feature).find("mrf") != std::string_view::npos)
       for (const auto* name : {"inlet", "outlet", "top", "side_left", "side_right"}) input.boundaries[name] = setup::WallInput{};
     if (std::string_view(feature) == "transition-constants") input.models.intermittency_transition = true;

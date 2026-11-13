@@ -63,6 +63,13 @@ struct CellField {
 void write_vtu(const std::filesystem::path& path, const PolyMesh& mesh,
                std::span<const CellField> fields = {}, std::string_view header_comment = {});
 
+// Fluent legacy ASCII mesh (.msh): points, one cell zone per CellZone (cells
+// renumbered so each zone is a contiguous range), interior faces and one face
+// zone per patch, typed from the patch's source type or kind. Patches of kind
+// Other need a Fluent source type. Internal face zones are not written.
+void write_fluent_msh(const std::filesystem::path& path, const PolyMesh& mesh,
+                      std::string_view comment = {});
+
 // Structured hex box [lo, hi] with nx*ny*nz cells. Patches, in order:
 // xmin, xmax, ymin, ymax, zmin, zmax (all PatchKind::Wall; callers re-tag).
 PolyMesh make_box_hex(int nx, int ny, int nz, Vec3d lo, Vec3d hi);
@@ -70,6 +77,20 @@ PolyMesh make_box_hex(int nx, int ny, int nz, Vec3d lo, Vec3d hi);
 // Conforming Freudenthal split: six tets per hex, sharing the 000->111
 // diagonal.
 PolyMesh make_box_tet(int nx, int ny, int nz, Vec3d lo, Vec3d hi);
+
+// Axis-aligned octree box: nx*ny*nz base cells on [lo, hi], each split into
+// eight up to `levels` times. refine(cell_lo, cell_hi, level) marks a cell of
+// that level for splitting; face neighbours are then kept within a factor two
+// (2:1 balance). A cell where solid(cell_lo, cell_hi) holds is removed and its
+// faces form a "body" patch; solid cells may only touch cells of their size.
+// A cell next to smaller ones is a polyhedron: its side is split into the
+// neighbours' faces, and every face edge carries the hanging nodes on it,
+// as in a trimmed hex-dominant mesh. Patches xmin, xmax, ymin, ymax, zmin,
+// zmax, then body, all Wall (callers re-tag).
+using OctreeRefine = std::function<bool(Vec3d, Vec3d, int)>;
+using OctreeSolid = std::function<bool(Vec3d, Vec3d)>;
+PolyMesh make_octree_box(int nx, int ny, int nz, Vec3d lo, Vec3d hi, int levels,
+                         const OctreeRefine& refine, const OctreeSolid& solid = {});
 
 // Planar xy mesh. Directed edges leave owner on the left. neighbour and
 // edge_patch have one entry per edge: -1 denotes boundary / internal

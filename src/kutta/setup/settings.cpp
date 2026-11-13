@@ -334,7 +334,15 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   auto& conv=run.convergence;conv=ConvergenceControls{};
   for(auto eq:solved_residuals(c.viscous.model,transition,c.dimension==2))conv.residuals.push_back({std::string(eq)});
   if(residual_criteria(c.variables.value("residuals/settings"),conv.residuals))b.consume(c.variables,"residuals/settings");
-  for(const auto& r:c.reports)conv.reports.push_back({r.name});
+  for(const auto& r:c.reports) {
+    using Kind=ReportDefinition::Kind;
+    conv.reports.push_back({.report=r.name,.force=r.kind==Kind::force || r.kind==Kind::drag || r.kind==Kind::lift || r.kind==Kind::downforce});
+  }
+  // A case with a force report (a car run) checks convergence by default:
+  // its residual criteria and settled forces (docs/app-protocol.md,
+  // Convergence criteria). Other cases run to their iteration limit.
+  conv.settle.active=std::any_of(conv.reports.begin(),conv.reports.end(),[](const auto& r){return r.force;});
+  conv.check=conv.settle.active;
   b.editable(b.add("monitors/check-convergence","Check convergence","Monitors",conv.check),[t=&conv.check](const Json& j){*t=std::get<bool>(j.value);});
   auto& combine=b.add("monitors/condition","Condition","Monitors","all","","enum");
   combine.options={"all","any"};combine.option_labels={"All Conditions are Met","Any Condition is Met"};label_value(combine);
@@ -344,9 +352,17 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     b.editable(b.add(prefix+"check","Check Convergence ("+r.equation+")","Monitors",r.check),[t=&r.check](const Json& j){*t=std::get<bool>(j.value);});
     b.editable(b.add(prefix+"absolute-criterion","Absolute Criteria ("+r.equation+")","Monitors",r.absolute?Json(*r.absolute):Json(nullptr),"1","number"),[t=&r.absolute](const Json& j){*t=std::get<double>(j.value);},0,1e30);
   }
+  {
+    auto& settle=conv.settle;const bool any=settle.active;
+    const auto bind=[&](Setting& s,std::function<void(const Json&)> setter,std::optional<double> min,std::optional<double> max) {
+      if(any)b.editable(s,std::move(setter),min,max);else{s.active=false;s.reason="the case has no force, drag, lift or downforce report";}
+    };
+    bind(b.add("monitors/forces-settled/active","Forces settled","Monitors",settle.active),[t=&settle.active](const Json& j){*t=std::get<bool>(j.value);},{},{});
+    bind(b.add("monitors/forces-settled/tolerance","Forces settled: relative range","Monitors",settle.tolerance,"1","number"),[t=&settle.tolerance](const Json& j){*t=std::get<double>(j.value);},positive,1e30);
+    bind(b.add("monitors/forces-settled/window","Forces settled: window","Monitors",settle.window,"","integer"),[t=&settle.window](const Json& j){*t=int(std::get<double>(j.value));},1,1e8);
+  }
   for(std::size_t i=0;i<c.reports.size();++i) {
-    using Kind=ReportDefinition::Kind;auto& r=conv.reports[i];const auto kind=c.reports[i].kind;
-    const bool force=kind==Kind::force || kind==Kind::drag || kind==Kind::lift || kind==Kind::downforce;
+    auto& r=conv.reports[i];const bool force=r.force;
     const auto prefix="monitors/report/"+segment(r.report)+"/";
     const auto bind=[&](Setting& s,std::function<void(const Json&)> setter,std::optional<double> min={},std::optional<double> max={}) {
       if(force)b.editable(s,std::move(setter),min,max);else s.reason="only force, drag, lift and downforce reports can be convergence conditions in Kutta";

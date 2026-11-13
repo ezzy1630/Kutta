@@ -25,15 +25,35 @@ struct ReportCriterion {
   bool active=false;
   double stop=1e-3;
   int previous_values=5,ignore_before=100;
+  // A force, drag, lift or downforce report: only these can be conditions,
+  // and they are the reports the forces-settled condition watches.
+  bool force=true;
 };
-// Fluent's convergence conditions. Off by default, so a run without a setup
-// file still stops at its iteration limit.
+// Kutta's forces-settled condition (not a Fluent setting): over the last
+// `window` iterations every force report stays within `tolerance` of its mean
+// magnitude (max - min <= tolerance * scale, scale = max(|mean|, 1% of the
+// largest report's |mean|)). It must hold at two samples one iteration apart,
+// so a cycle whose period divides the monitor interval cannot look steady.
+// Residuals that stall above their criteria are waived once the forces have
+// held for twice the window (docs/app-protocol.md).
+struct SettleCriterion {
+  bool active=false;
+  double tolerance=1e-3;
+  int window=300;
+};
+// Fluent's convergence conditions plus Kutta's forces-settled condition. The
+// settings inventory turns checking and the forces-settled condition on when
+// the case has a force report; a default-constructed ConvergenceControls
+// checks nothing.
 struct ConvergenceControls {
   enum class Combine { all, any };
   bool check=false;
   Combine combine=Combine::all;
   std::vector<ResidualCriterion> residuals;
   std::vector<ReportCriterion> reports;
+  SettleCriterion settle;
+  // Forces-settled is a condition only with at least one force report.
+  bool settle_condition() const;
   bool has_conditions() const;
   // The setup-event object: checked residuals and active reports only.
   Json::Object json() const;
@@ -43,9 +63,15 @@ struct ConvergenceControls {
 std::vector<fluent::SettingIssue> criteria_issues(const ConvergenceControls&);
 struct ConvergenceSample {
   bool met=false;
+  // The conditions would be met if the next iteration's sample confirms the
+  // settled forces: sample it, off the monitor stride.
+  bool confirm=false;
+  // Residuals stalled above their criteria were waived (forces settled for
+  // twice the window).
+  bool residuals_waived=false;
   // Iteration-event object: {"met":...,"conditions":[...]}.
   Json::Object json;
-  // Met conditions as "residuals" or "report:<name>".
+  // Met conditions as "residuals", "report:<name>" or "forces".
   std::vector<std::string> met_by;
 };
 // Evaluates one monitor sample at a time; keeps only the report history the
@@ -55,11 +81,20 @@ class ConvergenceMonitor {
   explicit ConvergenceMonitor(ConvergenceControls);
   const ConvergenceControls& controls() const { return controls_; }
   // residuals by equation; reports by exact name, projected total force in N.
+  // The forces-settled condition reads every force report present in `reports`.
   ConvergenceSample sample(int iteration,const std::map<std::string,double>& residuals,
                            const std::map<std::string,double>& reports);
  private:
+  struct Forces {int iteration;std::vector<double> values;};
+  // Each force report's relative range over the last `window` iterations;
+  // null until the samples cover the whole window.
+  std::vector<std::optional<double>> ranges(int iteration,int window) const;
   ConvergenceControls controls_;
   std::vector<std::vector<double>> history_;
+  std::vector<std::string> force_reports_;
+  std::vector<Forces> forces_;
+  int last_iteration_=-1;
+  bool last_settled_=false,last_settled_twice_=false;
 };
 // Fluent's lag residual over the last previous_values differences, relative to
 // the newest value. Null with too few values or a zero newest value.

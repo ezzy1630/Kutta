@@ -91,3 +91,82 @@ TEST_CASE("All needs every condition at one sample and any needs one") {
   c.residuals[2].check=true;
   const auto issues=criteria_issues(c);REQUIRE(issues.size()==1);CHECK(issues[0].path=="monitors/residual/y-velocity/absolute-criterion");
 }
+
+namespace {
+ConvergenceControls settling(double tolerance=1e-3,int window=100) {
+  auto c=controls();c.residuals[0].check=true; // continuity at 1e-3
+  c.reports={{"drag",false},{"lift",false},{"pressure",false,1e-3,5,100,false}}; // the last is not a force report
+  c.settle={true,tolerance,window};
+  return c;
+}
+std::map<std::string,double> forces(double drag,double lift){return {{"drag",drag},{"lift",lift},{"pressure",0}};}
+Json condition(const ConvergenceSample& s,const std::string& kind) {
+  const Json state=s.json;
+  for(const auto& c:std::get<Json::Array>(at(state,"conditions").value))if(at(c,"kind")==Json(kind))return c;
+  throw std::runtime_error("no condition "+kind);
+}
+}
+
+TEST_CASE("Settled forces need a full window and a confirming sample one iteration later") {
+  const auto c=settling();
+  CHECK(c.settle_condition());CHECK(c.has_conditions());
+  CHECK(dump_json(Json(c.json()))==R"({"condition":"all","enabled":true,"forces":{"reports":["drag","lift"],"tolerance":0.001,"window":100},"reports":[],"residuals":{"continuity":0.001}})");
+  ConvergenceMonitor monitor(c);
+  // Samples every 20 iterations; the window needs one at or before n-100.
+  for(int it=20;it<=100;it+=20) {
+    const auto s=monitor.sample(it,residuals(1e-4,1),forces(2,1));
+    CAPTURE(it);CHECK_FALSE(s.met);CHECK_FALSE(s.confirm);CHECK(at(at(condition(s,"forces"),"reports"),"drag")==Json(nullptr));
+  }
+  auto s=monitor.sample(120,residuals(1e-4,1),forces(2,1));
+  CHECK_FALSE(s.met);CHECK(s.confirm);CHECK(at(condition(s,"forces"),"settled")==Json(true));CHECK(at(condition(s,"forces"),"met")==Json(false));
+  CHECK(at(at(condition(s,"forces"),"reports"),"drag")==Json(0.0));
+  s=monitor.sample(121,residuals(1e-4,1),forces(2.0015,1.0005)); // within 1e-3 of the means
+  CHECK(s.met);CHECK_FALSE(s.confirm);CHECK(s.met_by==std::vector<std::string>{"residuals","forces"});CHECK_FALSE(s.residuals_waived);
+}
+
+TEST_CASE("A cycle aliased by the monitor stride fails the off-stride confirmation") {
+  // Period two: every even iteration reads 2, every odd one 2.1. The stride
+  // samples all read 2 and look settled; the confirming sample does not.
+  ConvergenceMonitor monitor(settling());
+  for(int it=20;it<=200;it+=20) {
+    const auto s=monitor.sample(it,residuals(1e-4,1),forces(2,1));
+    CHECK_FALSE(s.met);
+    if(s.confirm) {
+      const auto odd=monitor.sample(it+1,residuals(1e-4,1),forces(2.1,1));
+      CAPTURE(it);CHECK_FALSE(odd.met);CHECK(at(condition(odd,"forces"),"settled")==Json(false));
+    }
+  }
+}
+
+TEST_CASE("Drifting forces never settle and stalled residuals are waived only after twice the window") {
+  {
+    ConvergenceMonitor monitor(settling());
+    for(int it=20;it<=1000;it+=20) {
+      const auto s=monitor.sample(it,residuals(1e-4,1),forces(2+it*4e-5,1)); // 0.2% per 100 iterations
+      CAPTURE(it);CHECK_FALSE(s.met);CHECK_FALSE(s.confirm);
+    }
+  }
+  ConvergenceMonitor monitor(settling());
+  bool waived=false;int at_iteration=0;
+  for(int it=20;it<=400 && !waived;it+=20) {
+    auto s=monitor.sample(it,residuals(5e-3,1),forces(2,1)); // continuity stalled at 5e-3
+    if(!s.confirm){CHECK_FALSE(s.met);continue;}
+    s=monitor.sample(it+1,residuals(5e-3,1),forces(2,1));
+    // Forces alone settle at 120 but the residual condition holds the run
+    // until they have held for 200 iterations.
+    CAPTURE(it);CHECK(it>=220);
+    waived=s.met;at_iteration=it+1;
+    if(waived){CHECK(s.residuals_waived);CHECK(s.met_by==std::vector<std::string>{"forces"});CHECK(at(condition(s,"residuals"),"waived")==Json(true));}
+  }
+  CHECK(waived);CHECK(at_iteration==221);
+}
+
+TEST_CASE("A report near zero is judged against one percent of the largest report") {
+  // Lift is zero on average and wanders by 1e-4 of the drag: 1e-2 of 1% of
+  // drag. Relative to its own mean it would never settle.
+  auto c=settling(3e-2,100);c.residuals[0].check=false;
+  ConvergenceMonitor monitor(c);ConvergenceSample s;
+  for(int it=20;it<=140;it+=20)s=monitor.sample(it,residuals(1,1),forces(1,it%40?1e-4:-1e-4));
+  CHECK(s.confirm);
+  CHECK(std::get<double>(at(at(condition(s,"forces"),"reports"),"lift").value)==doctest::Approx(2e-4/1e-2));
+}

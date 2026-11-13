@@ -77,10 +77,15 @@ case JSON inputs; it is recorded in `summary.json`.
 The CLI prints Fluent-scaled residuals and average seconds per iteration at the
 solver's monitor interval. It writes `result.vtu` (`u`, `p`, `k`, `omega`, `mu_t`),
 `forces.csv` (wall zones and resolved force/drag/lift reports), `residuals.csv`,
-and `summary.json` (SHA256 inputs, build/device identity and timing). The current
-adapter exposes no convergence criteria, so runs stop at `--iterations` (default
-1000) and record `converged=false`. Peak device memory is recorded as `null`;
-the current VTU writer has no boundary-face wall shear output.
+and `summary.json` (SHA256 inputs, build/device identity and timing). A case
+with a force, drag, lift or downforce report stops on its own once its
+residual criteria are met and every report has stayed within 0.1 % over 300
+iterations (residuals stalled above their criteria are waived once the forces
+have held for 600); `summary.json` records `stop_reason` and what was met.
+Other cases run to `--iterations` (default 1000). The criteria are editable
+([Convergence criteria](docs/app-protocol.md#convergence-criteria-v1-additive)).
+Peak device memory is recorded as `null`; the current VTU writer has no
+boundary-face wall shear output.
 
 Windows CI produces `kutta-windows-rtx.zip` with HDF5/zlib DLLs, license notices
 and [Windows requirements and examples](docs/README-windows.txt).
@@ -91,10 +96,16 @@ A Kutta case is a mesh plus a small JSON setup that states only what differs
 from Fluent's defaults ([docs/kutta-case.md](docs/kutta-case.md)):
 
 ```sh
-./build/kutta new-case car.msh --speed 20 --out car.kutta.json  # zone roles suggested from their names
+./build/kutta polyhedra car.msh --out car-poly.msh               # tets to polyhedra, prism layers kept (tet meshes only)
+./build/kutta new-case car-poly.msh --speed 20 --out car.kutta.json  # zone roles suggested from their names
 ./build/kutta solve car.kutta.json --backend metal --out results
 ./build/kutta convert old.cas.h5 --out old.kutta.json            # a Fluent case's settings as a Kutta case
 ```
+
+Steady solves on tetrahedral regions oscillate instead of converging, so
+convert a tet/prism mesh to polyhedra first, as Fluent recommends; hex,
+poly-hexcore and polyhedral meshes solve as they are
+([car mesh convergence](validation/results/car_mesh_convergence/REPORT.md)).
 
 The desktop app does the same with File ▸ New Case from Mesh and File ▸ Save
 Case.

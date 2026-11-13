@@ -91,9 +91,16 @@ Wheels, Body), the app's grouping. The `fsae-external` template: flow along
 +x at `--speed` (default 15 m/s), up +z (+y in 2D), k-ω SST, air, velocity
 inlet and pressure outlet with 1 % intensity and viscosity ratio 10, a
 moving ground at the freestream speed, symmetry planes, stationary car walls,
-second-order k and ω, reference velocity and density of the freestream, and
-drag (+x) and downforce (lift along −z, −y in 2D) coefficient reports on
-every car wall.
+second-order k and ω, SIMPLEC pressure-velocity coupling (v1 additive: Kutta's
+Coupled solver limit-cycles on 3D external aero, so its forces do not settle;
+SIMPLEC converges the same discretization), reference velocity and density of
+the freestream, and drag (+x) and downforce (lift along −z, −y in 2D)
+coefficient reports on every car wall. On a 3D mesh with polyhedral cells the
+template also sets `methods/warped_face_gradient_correction` false (v1
+additive): Fluent's default turns it on there and Kutta does not implement it,
+so the case states what is solved and needs no `--approximate wfgc`. A mesh
+with tetrahedra adds a note recommending `kutta polyhedra`.
+See [car mesh convergence](../validation/results/car_mesh_convergence/REPORT.md).
 
 `--wheel ZONE=RADIUS,X,Y,Z,AX,AY,AZ` is repeatable (v1 additive).
 It requires an exact wall-zone name, a positive wheel radius in metres, its
@@ -123,6 +130,29 @@ either command with `--json` print one `error` event, as `solve` does, whose
 `issues` name each rejected setting. The app
 saves an edited case with it.
 
+## Tetrahedra to polyhedra (`polyhedra`, v1 additive)
+
+`kutta polyhedra MESH --out OUT.msh [--force] [--json]` is Fluent's
+tet-to-polyhedra conversion (`mesh/polyhedra/convert-domain`): each vertex of
+the tetrahedral region becomes one polyhedron, the median dual (a quarter of
+every tet around the vertex, cut at edge midpoints, triangle centroids and
+tet centroids). Prisms, hexes and pyramids are kept; their faces on the
+converted region gain the edge midpoints, so the mesh stays conforming.
+Volume, boundary zones and their types are preserved. A vertex whose dual
+cell wraps a sharp convex edge so that its centroid falls behind one of its
+faces keeps one hex quarter per tet instead (`split_vertices`). Steady solves
+on tetrahedral regions oscillate instead of converging; the converted mesh
+converges (see the report linked above). The output is a Fluent ASCII `.msh`
+(one cell zone per input cell zone); internal face zones are not supported.
+With `--json` it prints one object:
+
+```json
+{"v":1,"input":"/abs/car.msh","out":"/abs/car-poly.msh","input_cells":130331,
+ "tetrahedra":55371,"polyhedra":11149,"split_vertices":7,"kept":74960,"cells":86215}
+```
+
+Failures print one `error` event, as `new-case` does.
+
 ## Progress events (`solve --progress jsonl`)
 
 One JSON object per line, in order:
@@ -137,8 +167,10 @@ One JSON object per line, in order:
 {"v":1,"event":"error","message":"…","issues":[...]}
 ```
 
-`iteration` events are emitted at the monitor interval (the monitor samples)
-and, v1 additive, at iterations 1 to 5. The solver monitors those anyway,
+`iteration` events are emitted at the monitor interval (the monitor samples),
+v1 additive at iterations 1 to 5, and v1 additive at the forces-settled
+condition's confirming sample, one iteration after a monitor sample (see
+Convergence criteria). The solver monitors those anyway,
 because Fluent scales continuity by its largest value in the first five
 iterations, so reporting them costs no solver work and changes no output; the
 residual history starts at iteration 1, as in Fluent. An iteration 1-5 event
@@ -783,8 +815,10 @@ closure. Live views are intermediate solutions, not convergence certificates.
 
 Fluent stops a steady run when its residual criteria and report convergence
 conditions are met. `kutta solve` does the same when convergence checking is
-on. It is **off by default**, so an existing script still runs to its
-iteration limit; the app's Monitors page turns it on. Every control below is a
+on. Since v1 additive, checking is **on by default for a case with a force,
+drag, lift or downforce report** (a car run), together with Kutta's
+forces-settled condition below; a case without such a report keeps checking
+off and runs to its iteration limit, as before. Every control below is a
 settings-inventory entry in group `Monitors`, editable through `solve --setup`.
 They are run controls like `run/iterations`: they say when to stop, not what
 case is solved, so they never mark a result MODIFIED and are echoed under
@@ -793,7 +827,7 @@ prefixes.)
 
 | Path | Kind | Default | Meaning |
 | --- | --- | --- | --- |
-| `monitors/check-convergence` | bool | `false` | Stop when the conditions below are met |
+| `monitors/check-convergence` | bool | `true` with a force report, else `false` | Stop when the conditions below are met |
 | `monitors/condition` | enum `"all"`, `"any"` | `"all"` | "All conditions are met" / "Any condition is met" |
 | `monitors/residual/<equation>/check` | bool | case value | Fluent's Check Convergence for that residual |
 | `monitors/residual/<equation>/absolute-criterion` | number ≥ 0 | case value | Fluent's Absolute Criteria (scaled residual) |
@@ -801,6 +835,9 @@ prefixes.)
 | `monitors/report/<report>/stop-criterion` | number > 0 | `0.001` | Fluent's Stop Criterion (relative change) |
 | `monitors/report/<report>/previous-values` | integer ≥ 1 | `5` | Np: report values to include (Fluent's Use Iterations, counted in monitor samples) |
 | `monitors/report/<report>/ignore-before` | integer ≥ 0 | `100` | Fluent's Ignore Iterations Before |
+| `monitors/forces-settled/active` | bool | `true` with a force report | Kutta's forces-settled condition (not a Fluent setting) |
+| `monitors/forces-settled/tolerance` | number > 0 | `0.001` | Largest relative range of each force report over the window |
+| `monitors/forces-settled/window` | integer ≥ 1 | `300` | Window, in iterations |
 
 `<equation>` is each residual name the solver reports (`continuity`,
 `x-velocity`, `y-velocity`, `z-velocity` except for planar 2D cases, then `k`
@@ -832,11 +869,36 @@ iteration 1-5 events):
   with interval 1 Np is exactly Fluent's Use Iterations, with a larger interval
   the check is stricter than Fluent's for the same Np.
 - **Combination**: the conditions are the residual condition (when any residual
-  is checked) and each active report. `all` needs every condition met at the
-  same sample, `any` needs one. Checking on with no condition emits the warning
+  is checked), each active report and forces-settled when active. `all` needs
+  every condition met at the same sample, `any` needs one. Checking on with no
+  condition emits the warning
   "Convergence checking is on but no residual is checked and no report
   condition is active; stopping at the requested iteration limit." and runs to
   the iteration limit.
+
+- **Forces settled** (v1 additive) watches every force, drag, lift and
+  downforce report at once (not only Fluent-active ones). At a sample n it
+  holds when, for each report, the monitor samples from iteration n−window to
+  n cover the whole window (one at or before n−window) and their
+  max − min ≤ tolerance × scale, where scale is the window's mean |value|, or
+  1 % of the largest report's mean |value| when that is larger (so a report
+  near zero, such as the side force of a symmetric car, is judged against the
+  main loads). The settled forces must then be confirmed: when they are what
+  stands between a sample and convergence, the next iteration is sampled too
+  (off the monitor stride, so a cycle whose period divides the monitor
+  interval cannot look steady) and the condition is met only if the forces
+  are still settled there. That sample is an ordinary `iteration` event.
+  Fluent's lag-residual report conditions are unchanged; this condition is
+  stronger against slow drift and oscillation, because it bounds the range
+  over the window rather than consecutive differences.
+- **Stalled residuals** (v1 additive): residuals that stall above their
+  criteria (the external-aero continuity plateau, k or ω) must not hold a run
+  whose loads have stopped changing. When forces-settled is active and the
+  forces have also been settled over twice the window (confirmed the same
+  way), the residual condition counts as met; its object then carries
+  `"waived": true` (its `met` stays false), `met_by` omits `"residuals"`, and
+  `done`/`summary.json` report `"residuals_waived": true`. Forces that still
+  drift or oscillate beyond the tolerance never stop a run.
 
 When met, the run stops after that iteration and writes its outputs normally.
 `done` and `summary.json` then carry `"converged": true` and
@@ -850,24 +912,32 @@ The `setup` event adds `convergence` (always present):
 ```json
 "convergence":{"enabled":true,"condition":"all",
   "residuals":{"continuity":0.001,"x-velocity":0.001},
-  "reports":[{"report":"drag","stop_criterion":0.001,"previous_values":5,"ignore_before":100}]}
+  "reports":[{"report":"drag","stop_criterion":0.001,"previous_values":5,"ignore_before":100}],
+  "forces":{"tolerance":0.001,"window":300,"reports":["drag","downforce"]}}
 ```
 
-`residuals` lists checked equations only. With checking on, each `iteration`
+`residuals` lists checked equations only; `forces` (v1 additive) is present
+only while the forces-settled condition is active. With checking on, each `iteration`
 event adds the state of every condition at that sample, residuals first and
 then active reports in report order:
 
 ```json
 "convergence":{"met":false,"conditions":[
   {"kind":"residuals","met":false,"equations":{"continuity":{"value":0.0021,"criterion":0.001,"met":false}}},
-  {"kind":"report","report":"drag","value":0.0042,"criterion":0.001,"met":false}]}
+  {"kind":"report","report":"drag","value":0.0042,"criterion":0.001,"met":false},
+  {"kind":"forces","met":false,"settled":true,"criterion":0.001,"window":300,
+   "reports":{"drag":0.00031,"downforce":0.00072}}]}
 ```
 
-A report's `value` is null until it has enough samples. `done` and
+A report's `value` is null until it has enough samples. The `forces`
+condition's `reports` give each report's relative range over the window
+(null until the window is covered); `settled` is the window test alone and
+`met` adds the confirmation. `done` and
 `summary.json` add `convergence`: the setup object plus `met_by` (the met
 conditions at the stopping sample, as `"residuals"` or `"report:<name>"`, empty
-unless converged) and `iteration` (the stopping iteration, null unless
-converged). `summary.json` sets `convergence_criteria_available: true`.
+unless converged), `iteration` (the stopping iteration, null unless
+converged) and, v1 additive, `residuals_waived`. `summary.json` sets
+`convergence_criteria_available: true`.
 Without checking, the warning reads "Convergence checking is off
 (monitors/check-convergence); stopping at the requested iteration limit."
 

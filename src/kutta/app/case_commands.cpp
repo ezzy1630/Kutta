@@ -4,6 +4,7 @@
 #include "kutta/core/parse.hpp"
 #include "kutta/core/path.hpp"
 #include "kutta/io/mesh_io.hpp"
+#include "kutta/mesh/polyhedral.hpp"
 #include "kutta/setup/kutta_case.hpp"
 #include "kutta/setup/settings.hpp"
 #include <algorithm>
@@ -160,8 +161,13 @@ int new_case(int argc, char** argv) {
     std::vector<std::string> notes;
     notes.push_back("Reference area is Fluent's default, 1 m^2; set your car's frontal area (reference_values/area) for meaningful coefficients.");
     if (info.dimension == 3 && info.polyhedral)
-      notes.push_back("The mesh has polyhedral cells, so Fluent's default turns warped-face gradient correction on; Kutta runs it only "
-                      "approximately, with WFGC off, after you approve --approximate wfgc.");
+      notes.push_back("The mesh has polyhedral cells, where Fluent's default turns warped-face gradient correction on; Kutta does not "
+                      "implement it, so the case sets methods/warped_face_gradient_correction false. Fluent solves the same case with "
+                      "that setting off.");
+    if (info.tetrahedra)
+      notes.push_back("The mesh has " + std::to_string(info.tetrahedra) + " tetrahedra. Steady solves on tetrahedral regions oscillate "
+                      "instead of converging; convert them to polyhedra first, as Fluent recommends: kutta polyhedra MESH --out POLY.msh "
+                      "(prism layers are kept).");
     bool inlet = false, outlet = false, wheels = false;
     Json::Array zones;
     for (const auto& z : info.zones) {
@@ -264,6 +270,48 @@ int convert(int argc, char** argv) {
     return 0;
   } catch (const std::exception& e) {
     return fail(json, "convert", e);
+  }
+}
+int polyhedra(int argc, char** argv) {
+  bool json = false;
+  for (int i = 2; i < argc; ++i) json = json || std::string_view(argv[i]) == "--json";
+  constexpr auto usage = "Usage: kutta polyhedra MESH --out OUT.msh [--force] [--json]";
+  Args a;
+  try {
+    a = parse_args(argc, argv, {"--out"}, {"--json", "--force"}, {});
+    KUTTA_REQUIRE(a.positional.size() == 1 && a.options.contains("--out"), usage);
+  } catch (const std::exception& e) {
+    if (json) error_event(e.what());
+    std::cerr << e.what() << '\n' << usage << '\n';
+    return 2;
+  }
+  try {
+    const std::filesystem::path input = a.positional[0], out = option(a, "--out");
+    if (!fluent_mesh(input))
+      throw RejectedSettings({{"mesh", "reads Fluent meshes (.msh, .msh.h5, or the mesh of a .cas/.cas.h5)"}}, "Invalid options:");
+    auto name = out.filename().string();
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return char(std::tolower(c)); });
+    KUTTA_REQUIRE(name.ends_with(".msh"), "--out must name a Fluent .msh file");
+    KUTTA_REQUIRE(a.flags.contains("--force") || !std::filesystem::exists(out), out.string() + " exists; pass --force to replace it");
+    KUTTA_REQUIRE(!std::filesystem::exists(out) || !std::filesystem::equivalent(input, out), "--out must differ from the input mesh");
+    const auto mesh = read_mesh(input);
+    const auto converted = convert_tets_to_polyhedra(mesh);
+    const auto tmp = out.string() + ".tmp";
+    write_fluent_msh(tmp, converted.mesh, "kutta polyhedra: median dual of the tetrahedra; other cells kept");
+    std::filesystem::rename(tmp, out);
+    if (json)
+      std::cout << dump_json(Json::Object{{"v", 1}, {"input", utf8_path(std::filesystem::absolute(input))},
+                                          {"out", utf8_path(std::filesystem::absolute(out))}, {"input_cells", double(mesh.n_cells)},
+                                          {"tetrahedra", double(converted.tets)}, {"polyhedra", double(converted.polyhedra)},
+                                          {"kept", double(converted.kept)}, {"split_vertices", double(converted.split_vertices)},
+                                          {"cells", double(converted.mesh.n_cells)}})
+                << std::endl;
+    else
+      std::cout << "Wrote " << out.string() << ": " << converted.tets << " tetrahedra became " << converted.polyhedra << " polyhedra; "
+                << converted.kept << " other cells kept (" << mesh.n_cells << " -> " << converted.mesh.n_cells << " cells)\n";
+    return 0;
+  } catch (const std::exception& e) {
+    return fail(json, "polyhedra", e);
   }
 }
 }  // namespace kutta::app

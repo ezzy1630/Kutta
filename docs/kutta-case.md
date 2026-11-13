@@ -275,6 +275,12 @@ Fluent's default turns warped-face gradient correction on; `compressibility`
 and `ke-options` for k-ε with compressibility effects and Fluent's default k-ε
 solver options. The exception is `reverse-flow`: Fluent 18 and older left
 `prevent-reverse-flow?` unwritten, while a Kutta case always states it.
+The `new-case` starter states two settings that differ from Fluent's
+defaults: SIMPLEC coupling (Kutta's Coupled solver limit-cycles on 3D
+external aero) and, on a 3D polyhedral mesh, warped-face gradient correction
+off, so its cases need no approximation
+([car mesh convergence](../validation/results/car_mesh_convergence/REPORT.md)).
+Convert a tet/prism mesh with `kutta polyhedra MESH --out POLY.msh` first.
 
 ## Equivalence
 

@@ -1053,14 +1053,15 @@ MeshInfo mesh_info(const PolyMesh& mesh) {
   out.dimension = caps == 2 ? 2 : 3;
   if (out.dimension == 3) {
     const auto cf = build_cell_faces(mesh);
-    for (Index cell = 0; cell < mesh.n_cells && !out.polyhedral; ++cell) {
+    for (Index cell = 0; cell < mesh.n_cells; ++cell) {
       int tri = 0, quad = 0, other = 0;
       for (auto i = cf.offsets[cell]; i < cf.offsets[cell + 1]; ++i) {
         const auto n = detail::nodes(mesh, cf.faces[i]).size();
         (n == 3 ? tri : n == 4 ? quad : other)++;
       }
       const bool tet = tri == 4 && quad == 0, pyramid = tri == 4 && quad == 1, wedge = tri == 2 && quad == 3, hex = tri == 0 && quad == 6;
-      out.polyhedral = other > 0 || !(tet || pyramid || wedge || hex);
+      out.polyhedral = out.polyhedral || other > 0 || !(tet || pyramid || wedge || hex);
+      out.tetrahedra += tet;
     }
   }
   // Readers name a cell zone's type only when the file does; otherwise they keep
@@ -2313,6 +2314,13 @@ KuttaCase fsae_starter(const MeshInfo& mesh, std::filesystem::path mesh_path, co
   // Second-order turbulence transport, the usual external-aero choice.
   c.methods.turbulent_kinetic_energy = Upwind::second_order;
   c.methods.specific_dissipation_rate = Upwind::second_order;
+  // SIMPLEC: Kutta's Coupled solver limit-cycles on external aero with the
+  // Standard limiter, so its forces never settle; SIMPLEC converges the same
+  // discretization (validation/results/car_mesh_convergence/REPORT.md).
+  c.methods.coupling = CouplingScheme::simplec;
+  // Fluent turns warped-face gradient correction on for polyhedral meshes;
+  // Kutta does not implement it, so the case states that it is off.
+  if (mesh.dimension == 3 && mesh.polyhedral) c.methods.warped_face_gradient_correction = false;
   if (!car.empty()) {
     c.reports.emplace("drag", ForceReportInput{ForceReportInput::Kind::drag, car, flow, true});
     c.reports.emplace("downforce", ForceReportInput{ForceReportInput::Kind::lift, car, down, true});

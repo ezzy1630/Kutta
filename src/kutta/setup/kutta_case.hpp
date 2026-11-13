@@ -217,6 +217,7 @@ struct MeshInfo {
   bool polyhedral = false;    // any cell other than tet, pyramid, wedge or hex
   std::vector<MeshZoneInfo> zones;
   std::size_t cells = 0, faces = 0, nodes = 0;
+  std::size_t tetrahedra = 0;  // 3D meshes only
 };
 MeshInfo mesh_info(const PolyMesh&);
 

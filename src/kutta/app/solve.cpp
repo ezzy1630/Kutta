@@ -145,7 +145,7 @@ int solve(int argc,char** argv) {
     std::string convergence_warning;
     if(!convergence.check)convergence_warning="Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.";
     else if(!convergence.has_conditions())convergence_warning="Convergence checking is on but no residual is checked and no report condition is active; stopping at the requested iteration limit.";
-    const bool report_conditions=convergence.check && std::any_of(convergence.reports.begin(),convergence.reports.end(),[](const auto& r){return r.active;});
+    const bool report_conditions=convergence.check && (convergence.settle_condition() || std::any_of(convergence.reports.begin(),convergence.reports.end(),[](const auto& r){return r.active;}));
     o.iterations=controls.iterations;
     auto mesh=preloaded?std::move(*preloaded):read_mesh(o.input);
     memory::phase("read-mesh");
@@ -232,7 +232,10 @@ int solve(int argc,char** argv) {
     }
     const auto run_start=Clock::now();
     bool stopped=false,converged=false;
-    setup::ConvergenceMonitor monitor(convergence);std::vector<std::string> met_by;
+    setup::ConvergenceMonitor monitor(convergence);std::vector<std::string> met_by;bool residuals_waived=false;
+    // The forces-settled condition confirms itself with a sample at the next
+    // iteration, off the monitor stride.
+    int confirm_at=-1;
     auto batch=Clock::now();int batch_count=0;double batch_snapshot_time=0;
     while(solver.report().iteration<o.iterations) {
       if(stop.requested()){stopped=true;if(batch_count==0)break;}
@@ -242,7 +245,7 @@ int solve(int argc,char** argv) {
         if(solver.report().iteration==1)memory::phase("first-iteration");
       }
       const auto iter=solver.report().iteration;
-      const bool report_due=iter%setup->settings.monitor_interval==0 || iter==o.iterations || stopped;
+      const bool report_due=iter%setup->settings.monitor_interval==0 || iter==o.iterations || stopped || iter==confirm_at;
       // Between monitors the boundary-pressure buffer is pressure-correction
       // scratch. Reuse the solver's scheduled refresh; never export that scratch
       // or add extra monitor work that could change the solve for live view.
@@ -268,7 +271,7 @@ int solve(int argc,char** argv) {
       // their largest value), so their residuals are reported at no solver
       // cost, as Fluent's residual history starts at iteration 1. They are not
       // monitor samples: no force reports and no convergence evaluation.
-      const bool sample=iter%setup->settings.monitor_interval==0 || iter==o.iterations || stopped;
+      const bool sample=iter%setup->settings.monitor_interval==0 || iter==o.iterations || stopped || iter==confirm_at;
       const bool early=!sample && iter<=5 && solver.report().residual_iteration==iter;
       if(!sample && !early)continue;
       const auto r=solver.report().residual_iteration==iter?solver.report():solver.monitor();
@@ -321,7 +324,8 @@ int solve(int argc,char** argv) {
         std::cout<<event.str()<<std::endl;
       }
       // Met conditions win over a stop requested during the same sample.
-      if(state && state->met){converged=true;met_by=state->met_by;break;}
+      if(state && state->met){converged=true;met_by=state->met_by;residuals_waived=state->residuals_waived;break;}
+      confirm_at=state && state->confirm?iter+1:-1;
       if(stopped)break;
       batch=Clock::now();batch_count=0;batch_snapshot_time=0;
     }
@@ -386,6 +390,7 @@ int solve(int argc,char** argv) {
     auto summary_convergence=convergence.json();
     summary_convergence.emplace("met_by",Json::Array(met_by.begin(),met_by.end()));
     summary_convergence.emplace("iteration",converged?Json(solver.report().iteration):Json(nullptr));
+    summary_convergence.emplace("residuals_waived",residuals_waived);
     const auto stop_reason=converged?"converged":stopped?"stopped":"iteration_limit";
     auto summary=output(o.out/"summary.json");
     summary<<"{\n  \"v\": 1,\n  \"modified\": "<<(changes.empty()?"false":"true")<<",\n  \"overrides\": "<<dump_json(applied)<<",\n  \"run_controls\": "<<dump_json(run_controls)<<",\n  \"approximate\": "<<(setup->approximations.empty()?"false":"true")<<",\n  \"approximation_notice\": "<<json_string(setup::approximation_notice(setup->approximations))
@@ -419,7 +424,7 @@ int solve(int argc,char** argv) {
       if(converged) {
         human<<"Converged at iteration "<<solver.report().iteration<<" (met:";
         for(const auto& m:met_by)human<<' '<<m;
-        human<<").\n";
+        human<<")"<<(residuals_waived?"; residuals stalled above their criteria while the forces held for twice the window":"")<<".\n";
       } else if(stopped)human<<"Stopped on request at iteration "<<solver.report().iteration<<".\n";
       else human<<"Reached the iteration limit ("<<solver.report().iteration<<" iterations)"<<(convergence.check && convergence.has_conditions()?" before the convergence conditions were met":"")<<".\n";
       human<<"Wrote "<<o.out.string()<<" ("<<solver.report().iteration<<" iterations, "<<wall_time<<" s solve).\n";
