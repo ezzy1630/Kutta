@@ -84,3 +84,12 @@ Tests run every backend that is compiled in and present on the machine (`KUTTA_F
 - Don't add GPL/AGPL dependencies. Permissive licenses (MIT/BSD/Apache, HDF5's BSD-style) are fine.
 - Don't push or publish. Leave work committed on your branch with a clear message.
 - Report measured numbers with machine, commit and command. Never round a failure into a pass.
+
+### Experimental external-aero mesher
+
+`mesh/mesher/` is a CPU C++20 geometry stage behind `kutta mesh`. It reads and
+repairs STL, builds a balanced octree, clips a shared linear distance field,
+merges convex pieces, validates `PolyMesh` and writes Fluent ASCII. The solver
+and device contracts are unchanged. Mesh validity is separate from CFD
+qualification; `validation/results/mesher/REPORT.md` records the failed force
+and convergence gates and missing prism layers.

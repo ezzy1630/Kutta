@@ -1,0 +1,1024 @@
+{
+  "v": 1,
+  "results": [
+    {
+      "geometry": "ahmed",
+      "backend": "metal",
+      "binary_sha256": "979f179a2ae3860194e3764ccd0323d34dabb12bd9770af5b9cbf2daedf01d44",
+      "stl_sha256": "4d51de9fc8928a6e25bfe25531e54dcad894c4dc9edacdb3076e957731c49319",
+      "mesh": {
+        "exit": 0,
+        "wall_seconds": 0.72164629100007
+      },
+      "mesh_report": {
+        "body_bounds": [
+          [
+            -1.044,
+            -0.1945,
+            0.05
+          ],
+          [
+            4.16333634234e-17,
+            0.1945,
+            0.338
+          ]
+        ],
+        "bounds": [
+          [
+            -4.176,
+            -2.2825,
+            0
+          ],
+          [
+            6.424000000000001,
+            2.3175000000000003,
+            2.6
+          ]
+        ],
+        "case_written": true,
+        "cell_types": {
+          "hex": 20058,
+          "poly": 4295,
+          "prism": 0
+        },
+        "cells": 24353,
+        "cut_cells": 3378,
+        "estimated_first_cell_y_plus": {
+          "max": 5672.520871551154,
+          "mean": 1160.4271071068508,
+          "method": "flat-plate Cf=0.026/Re_L^(1/7); centroid wall distance; estimate, not solved y+",
+          "min": 6.020278404734433,
+          "speed_m_s": 20
+        },
+        "faces": 91365,
+        "geometry_method": "shared piecewise-linear signed distance; cut tetrahedra near STL, whole octree cells elsewhere",
+        "geometry_resolution_m": 0.025,
+        "inputs": [
+          {
+            "file": "ahmed.stl",
+            "sha256": "4d51de9fc8928a6e25bfe25531e54dcad894c4dc9edacdb3076e957731c49319"
+          }
+        ],
+        "isosurface_snap_fraction": 0.01,
+        "kutta_commit": "e5a92b0e19c47fb4fa25d3be108ee71e7f7bf2e0",
+        "layers": {
+          "generated": 0,
+          "requested": 0,
+          "status": "wall-function mesh; prism layers unavailable"
+        },
+        "max_face_level_difference": 1,
+        "missing_surface_zones": [],
+        "nodes": 33449,
+        "octree_leaves": 22196,
+        "peak_memory_bytes": 17678744,
+        "quality": {
+          "adjacent_volume_ratio_max": 125393.73972215388,
+          "cells_at_or_below_0_05": 18,
+          "hard_orthogonal_floor": 1e-08,
+          "negative_cells": 0,
+          "nonconvex_cells": 0,
+          "orthogonal_mean": 0.9071841866464089,
+          "orthogonal_min": 0.00875968917164996,
+          "skewness_max": 38.28403764441743,
+          "volume_min": 4.7948964703680295e-11,
+          "worst_cell": {
+            "centroid": [
+              -0.1262167191217872,
+              0.14239164043944208,
+              0.2994136050927785
+            ],
+            "index": 20397,
+            "volume": 1.7967394794656878e-08
+          }
+        },
+        "repairs": {
+          "components": 1,
+          "hole_filling": false,
+          "input_triangles": 6672,
+          "inside_method": "union of connected shells; majority of three ray parities (no flood fill)",
+          "nonmanifold_edges": 0,
+          "open_edges": 0,
+          "orientation_conflicts": 0,
+          "removed_degenerate_triangles": 0,
+          "removed_duplicate_triangles": 0,
+          "reoriented_triangles": 0,
+          "triangles": 6672,
+          "weld_tolerance_m": 1.1507393275629369e-07,
+          "welded_vertex_occurrences": 16678
+        },
+        "v": 1,
+        "wall_seconds": 0.697819125,
+        "warnings": [
+          "Sub-cell features and leaks larger than the weld tolerance are not repaired. Resolve slots with surface/min_size; inspect missing_surface_zones.",
+          "No prism layers: drag and downforce require independent grid and wall-resolution validation.",
+          "Hex counts include octree cubes with triangulated planar faces; Fluent stores these as polyhedra."
+        ],
+        "zones": [
+          {
+            "faces": 299,
+            "name": "inlet",
+            "type": "velocity-inlet"
+          },
+          {
+            "faces": 299,
+            "name": "outlet",
+            "type": "pressure-outlet"
+          },
+          {
+            "faces": 689,
+            "name": "side-low",
+            "type": "symmetry"
+          },
+          {
+            "faces": 689,
+            "name": "side-high",
+            "type": "symmetry"
+          },
+          {
+            "faces": 1969,
+            "name": "ground",
+            "type": "wall"
+          },
+          {
+            "faces": 1219,
+            "name": "top",
+            "type": "symmetry"
+          },
+          {
+            "faces": 9388,
+            "name": "body",
+            "type": "wall"
+          }
+        ]
+      },
+      "mesh_sha256": "bc9926b844970e347f611911d95c9f03aad4da2a7b4c42476156f1fca18414f4",
+      "new_case": {
+        "exit": 0,
+        "wall_seconds": 0.07103879100031918
+      },
+      "case_settings": {
+        "kutta_case": 1,
+        "mesh": "mesh.msh",
+        "models": {
+          "viscous": "k-omega-sst"
+        },
+        "material": {
+          "name": "air",
+          "density": 1.225,
+          "viscosity": 1.7894e-05
+        },
+        "boundaries": {
+          "body": {
+            "type": "wall"
+          },
+          "ground": {
+            "type": "wall"
+          },
+          "inlet": {
+            "type": "velocity-inlet",
+            "speed": 40,
+            "direction": [
+              1,
+              0,
+              0
+            ],
+            "turbulence": {
+              "intensity": 0.01,
+              "viscosity_ratio": 10
+            }
+          },
+          "outlet": {
+            "type": "pressure-outlet",
+            "gauge_pressure": 0,
+            "turbulence": {
+              "intensity": 0.01,
+              "viscosity_ratio": 10
+            }
+          },
+          "side-high": {
+            "type": "symmetry"
+          },
+          "side-low": {
+            "type": "symmetry"
+          },
+          "top": {
+            "type": "symmetry"
+          }
+        },
+        "reference_values": {
+          "area": 0.112032,
+          "length": 1.044,
+          "density": 1.225,
+          "velocity": 40
+        },
+        "methods": {
+          "turbulent_kinetic_energy": "second-order-upwind",
+          "specific_dissipation_rate": "second-order-upwind",
+          "warped_face_gradient_correction": false
+        },
+        "reports": {
+          "downforce": {
+            "type": "lift",
+            "zones": [
+              "body"
+            ],
+            "direction": [
+              0,
+              0,
+              -1
+            ],
+            "coefficient": true
+          },
+          "drag": {
+            "type": "drag",
+            "zones": [
+              "body"
+            ],
+            "direction": [
+              1,
+              0,
+              0
+            ],
+            "coefficient": true
+          }
+        }
+      },
+      "solve": {
+        "exit": 1,
+        "wall_seconds": 3.6032279589999234
+      },
+      "memory": {
+        "max_observed_device_bytes": 65376248,
+        "device_bytes_per_cell": 2684.5254383443516,
+        "max_observed_footprint_bytes": 198312680,
+        "scope": "observed phase marks, not guaranteed peak; Metal unified memory"
+      },
+      "terminal_event": {
+        "v": 1,
+        "event": "error",
+        "message": "solver.cpp:117: solve: nonfinite input vector",
+        "issues": []
+      },
+      "accepted": false,
+      "settled_coefficients": null,
+      "last_completed_monitor_iteration": 160,
+      "settled_aero_balance": null
+    },
+    {
+      "geometry": "fsae",
+      "backend": "metal",
+      "binary_sha256": "979f179a2ae3860194e3764ccd0323d34dabb12bd9770af5b9cbf2daedf01d44",
+      "stl_sha256": "a37180df520372ded54e020a20eba1f577477f358e2fb9f0e2bf1583977b5635",
+      "mesh": {
+        "exit": 0,
+        "wall_seconds": 12.09087766599987
+      },
+      "mesh_report": {
+        "body_bounds": [
+          [
+            -1.52,
+            -0.825,
+            0
+          ],
+          [
+            1.586,
+            0.825,
+            1.24
+          ]
+        ],
+        "bounds": [
+          [
+            -10.838,
+            -7.037,
+            0
+          ],
+          [
+            20.662,
+            7.463,
+            7.5
+          ]
+        ],
+        "case_written": true,
+        "cell_types": {
+          "hex": 81745,
+          "poly": 127070,
+          "prism": 0
+        },
+        "cells": 208815,
+        "cut_cells": 121122,
+        "estimated_first_cell_y_plus": {
+          "max": 13118.815206018535,
+          "mean": 409.2673261794843,
+          "method": "flat-plate Cf=0.026/Re_L^(1/7); centroid wall distance; estimate, not solved y+",
+          "min": 4.82076231483608,
+          "speed_m_s": 20
+        },
+        "faces": 1013514,
+        "geometry_method": "shared piecewise-linear signed distance; cut tetrahedra near STL, whole octree cells elsewhere",
+        "geometry_resolution_m": 0.04,
+        "inputs": [
+          {
+            "file": "fsae.stl",
+            "sha256": "a37180df520372ded54e020a20eba1f577477f358e2fb9f0e2bf1583977b5635"
+          }
+        ],
+        "isosurface_snap_fraction": 0.01,
+        "kutta_commit": "e5a92b0e19c47fb4fa25d3be108ee71e7f7bf2e0",
+        "layers": {
+          "generated": 0,
+          "requested": 0,
+          "status": "wall-function mesh; prism layers unavailable"
+        },
+        "max_face_level_difference": 1,
+        "missing_surface_zones": [],
+        "nodes": 347873,
+        "octree_leaves": 119168,
+        "peak_memory_bytes": 176276008,
+        "quality": {
+          "adjacent_volume_ratio_max": 296296.29629639344,
+          "cells_at_or_below_0_05": 922,
+          "hard_orthogonal_floor": 1e-08,
+          "negative_cells": 0,
+          "nonconvex_cells": 0,
+          "orthogonal_mean": 0.7010370651380765,
+          "orthogonal_min": 0.0037914027701846653,
+          "skewness_max": 44.74811308911889,
+          "volume_min": 1.8409029951093392e-11,
+          "worst_cell": {
+            "centroid": [
+              -0.1501666666666664,
+              -0.5368333333333335,
+              0.28125
+            ],
+            "index": 32657,
+            "volume": 7.812499999974565e-09
+          }
+        },
+        "repairs": {
+          "components": 19,
+          "hole_filling": false,
+          "input_triangles": 2652,
+          "inside_method": "union of connected shells; majority of three ray parities (no flood fill)",
+          "nonmanifold_edges": 0,
+          "open_edges": 0,
+          "orientation_conflicts": 0,
+          "removed_degenerate_triangles": 0,
+          "removed_duplicate_triangles": 0,
+          "reoriented_triangles": 1872,
+          "triangles": 2652,
+          "weld_tolerance_m": 3.72925408091216e-07,
+          "welded_vertex_occurrences": 6592
+        },
+        "v": 1,
+        "wall_seconds": 12.07399525,
+        "warnings": [
+          "Sub-cell features and leaks larger than the weld tolerance are not repaired. Resolve slots with surface/min_size; inspect missing_surface_zones.",
+          "No prism layers: drag and downforce require independent grid and wall-resolution validation.",
+          "Hex counts include octree cubes with triangulated planar faces; Fluent stores these as polyhedra."
+        ],
+        "zones": [
+          {
+            "faces": 435,
+            "name": "inlet",
+            "type": "velocity-inlet"
+          },
+          {
+            "faces": 435,
+            "name": "outlet",
+            "type": "pressure-outlet"
+          },
+          {
+            "faces": 945,
+            "name": "side-low",
+            "type": "symmetry"
+          },
+          {
+            "faces": 945,
+            "name": "side-high",
+            "type": "symmetry"
+          },
+          {
+            "faces": 6890,
+            "name": "ground",
+            "type": "wall"
+          },
+          {
+            "faces": 1827,
+            "name": "top",
+            "type": "symmetry"
+          },
+          {
+            "faces": 56413,
+            "name": "monocoque",
+            "type": "wall"
+          },
+          {
+            "faces": 7756,
+            "name": "nose",
+            "type": "wall"
+          },
+          {
+            "faces": 18004,
+            "name": "sidepod-right",
+            "type": "wall"
+          },
+          {
+            "faces": 18178,
+            "name": "sidepod-left",
+            "type": "wall"
+          },
+          {
+            "faces": 74808,
+            "name": "undertray-diffuser",
+            "type": "wall"
+          },
+          {
+            "faces": 10996,
+            "name": "front-wing-element-1",
+            "type": "wall"
+          },
+          {
+            "faces": 10767,
+            "name": "front-wing-element-2",
+            "type": "wall"
+          },
+          {
+            "faces": 6651,
+            "name": "front-wing-element-3",
+            "type": "wall"
+          },
+          {
+            "faces": 284,
+            "name": "front-wing-endplate-right",
+            "type": "wall"
+          },
+          {
+            "faces": 484,
+            "name": "front-wing-endplate-left",
+            "type": "wall"
+          },
+          {
+            "faces": 10789,
+            "name": "rear-wing-element-1",
+            "type": "wall"
+          },
+          {
+            "faces": 10831,
+            "name": "rear-wing-element-2",
+            "type": "wall"
+          },
+          {
+            "faces": 8321,
+            "name": "rear-wing-element-3",
+            "type": "wall"
+          },
+          {
+            "faces": 300,
+            "name": "rear-wing-endplate-right",
+            "type": "wall"
+          },
+          {
+            "faces": 9805,
+            "name": "rear-wing-endplate-left",
+            "type": "wall"
+          },
+          {
+            "faces": 9531,
+            "name": "wheel-fl",
+            "type": "wall"
+          },
+          {
+            "faces": 8263,
+            "name": "wheel-fr",
+            "type": "wall"
+          },
+          {
+            "faces": 8716,
+            "name": "wheel-rl",
+            "type": "wall"
+          },
+          {
+            "faces": 8000,
+            "name": "wheel-rr",
+            "type": "wall"
+          }
+        ]
+      },
+      "mesh_sha256": "aeed78d99a107827be0adb185d3592d50417ff8a9cafaf4bb3ee900ea3208009",
+      "new_case": {
+        "exit": 0,
+        "wall_seconds": 0.5801122500015481
+      },
+      "case_settings": {
+        "kutta_case": 1,
+        "mesh": "mesh.msh",
+        "models": {
+          "viscous": "k-omega-sst"
+        },
+        "material": {
+          "name": "air",
+          "density": 1.225,
+          "viscosity": 1.7894e-05
+        },
+        "boundaries": {
+          "front-wing-element-1": {
+            "type": "wall"
+          },
+          "front-wing-element-2": {
+            "type": "wall"
+          },
+          "front-wing-element-3": {
+            "type": "wall"
+          },
+          "front-wing-endplate-left": {
+            "type": "wall"
+          },
+          "front-wing-endplate-right": {
+            "type": "wall"
+          },
+          "ground": {
+            "type": "wall",
+            "motion": "moving",
+            "speed": 20,
+            "direction": [
+              1,
+              0,
+              0
+            ]
+          },
+          "inlet": {
+            "type": "velocity-inlet",
+            "speed": 20,
+            "direction": [
+              1,
+              0,
+              0
+            ],
+            "turbulence": {
+              "intensity": 0.01,
+              "viscosity_ratio": 10
+            }
+          },
+          "monocoque": {
+            "type": "wall"
+          },
+          "nose": {
+            "type": "wall"
+          },
+          "outlet": {
+            "type": "pressure-outlet",
+            "gauge_pressure": 0,
+            "turbulence": {
+              "intensity": 0.01,
+              "viscosity_ratio": 10
+            }
+          },
+          "rear-wing-element-1": {
+            "type": "wall"
+          },
+          "rear-wing-element-2": {
+            "type": "wall"
+          },
+          "rear-wing-element-3": {
+            "type": "wall"
+          },
+          "rear-wing-endplate-left": {
+            "type": "wall"
+          },
+          "rear-wing-endplate-right": {
+            "type": "wall"
+          },
+          "side-high": {
+            "type": "symmetry"
+          },
+          "side-low": {
+            "type": "symmetry"
+          },
+          "sidepod-left": {
+            "type": "wall"
+          },
+          "sidepod-right": {
+            "type": "wall"
+          },
+          "top": {
+            "type": "symmetry"
+          },
+          "undertray-diffuser": {
+            "type": "wall"
+          },
+          "wheel-fl": {
+            "type": "wall"
+          },
+          "wheel-fr": {
+            "type": "wall"
+          },
+          "wheel-rl": {
+            "type": "wall"
+          },
+          "wheel-rr": {
+            "type": "wall"
+          }
+        },
+        "reference_values": {
+          "area": 1,
+          "length": 1,
+          "density": 1.225,
+          "velocity": 20
+        },
+        "methods": {
+          "turbulent_kinetic_energy": "second-order-upwind",
+          "specific_dissipation_rate": "second-order-upwind",
+          "warped_face_gradient_correction": false
+        },
+        "reports": {
+          "downforce": {
+            "type": "lift",
+            "zones": [
+              "monocoque",
+              "nose",
+              "sidepod-right",
+              "sidepod-left",
+              "undertray-diffuser",
+              "front-wing-element-1",
+              "front-wing-element-2",
+              "front-wing-element-3",
+              "front-wing-endplate-right",
+              "front-wing-endplate-left",
+              "rear-wing-element-1",
+              "rear-wing-element-2",
+              "rear-wing-element-3",
+              "rear-wing-endplate-right",
+              "rear-wing-endplate-left",
+              "wheel-fl",
+              "wheel-fr",
+              "wheel-rl",
+              "wheel-rr"
+            ],
+            "direction": [
+              0,
+              0,
+              -1
+            ],
+            "coefficient": true
+          },
+          "drag": {
+            "type": "drag",
+            "zones": [
+              "monocoque",
+              "nose",
+              "sidepod-right",
+              "sidepod-left",
+              "undertray-diffuser",
+              "front-wing-element-1",
+              "front-wing-element-2",
+              "front-wing-element-3",
+              "front-wing-endplate-right",
+              "front-wing-endplate-left",
+              "rear-wing-element-1",
+              "rear-wing-element-2",
+              "rear-wing-element-3",
+              "rear-wing-endplate-right",
+              "rear-wing-endplate-left",
+              "wheel-fl",
+              "wheel-fr",
+              "wheel-rl",
+              "wheel-rr"
+            ],
+            "direction": [
+              1,
+              0,
+              0
+            ],
+            "coefficient": true
+          }
+        }
+      },
+      "solve": {
+        "exit": 1,
+        "wall_seconds": 10.716611666000972
+      },
+      "memory": {
+        "max_observed_device_bytes": 694042912,
+        "device_bytes_per_cell": 3323.721533414745,
+        "max_observed_footprint_bytes": 912360816,
+        "scope": "observed phase marks, not guaranteed peak; Metal unified memory"
+      },
+      "terminal_event": {
+        "v": 1,
+        "event": "error",
+        "message": "solver.cpp:117: solve: nonfinite input vector",
+        "issues": []
+      },
+      "accepted": false,
+      "settled_coefficients": null,
+      "last_completed_monitor_iteration": 5,
+      "settled_aero_balance": null
+    }
+  ],
+  "host": {
+    "machine": "Apple M4 Pro, 24 GB unified memory",
+    "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+    "sdk": "macOS 26.5 (explicit CMake sysroot)",
+    "gpu_shared": true
+  },
+  "source_commit": "e5a92b0e19c47fb4fa25d3be108ee71e7f7bf2e0",
+  "note": "No accepted force result. Wall times are contended diagnostics, not performance claims. Final coarse mesh hashes equal the pre-query-optimization hashes.",
+  "default_mesh_diagnostic": {
+    "body_bounds": [
+      [
+        -1.52,
+        -0.825,
+        0
+      ],
+      [
+        1.586,
+        0.825,
+        1.24
+      ]
+    ],
+    "bounds": [
+      [
+        -10.838,
+        -7.037,
+        0
+      ],
+      [
+        20.412,
+        7.213,
+        7.5
+      ]
+    ],
+    "case_written": true,
+    "cell_types": {
+      "hex": 1224945,
+      "poly": 2094879,
+      "prism": 0
+    },
+    "cells": 3319824,
+    "cut_cells": 1961484,
+    "estimated_first_cell_y_plus": {
+      "max": 6559.407603009267,
+      "mean": 64.33599085012314,
+      "method": "flat-plate Cf=0.026/Re_L^(1/7); centroid wall distance; estimate, not solved y+",
+      "min": 0.48248890274381334,
+      "speed_m_s": 20
+    },
+    "faces": 19946816,
+    "geometry_method": "shared piecewise-linear signed distance; cut tetrahedra near STL, whole octree cells elsewhere",
+    "geometry_resolution_m": 0.006,
+    "inputs": [
+      {
+        "file": "fsae.stl",
+        "sha256": "a37180df520372ded54e020a20eba1f577477f358e2fb9f0e2bf1583977b5635"
+      }
+    ],
+    "isosurface_snap_fraction": 0.01,
+    "layers": {
+      "generated": 0,
+      "requested": 0,
+      "status": "wall-function mesh; prism layers unavailable"
+    },
+    "max_face_level_difference": 1,
+    "missing_surface_zones": [],
+    "nodes": 7169281,
+    "octree_leaves": 2577622,
+    "peak_memory_bytes": 3802598664,
+    "quality": {
+      "adjacent_volume_ratio_max": 728853.1766834611,
+      "hard_orthogonal_floor": 1e-08,
+      "negative_cells": 0,
+      "nonconvex_cells": 0,
+      "orthogonal_mean": 0.6351179716166262,
+      "orthogonal_min": 0.0029214665766182975,
+      "skewness_max": 88.3868732104792,
+      "volume_min": 1.4874408333170003e-14
+    },
+    "repairs": {
+      "components": 19,
+      "hole_filling": false,
+      "input_triangles": 2652,
+      "inside_method": "union of connected shells; majority of three ray parities (no flood fill)",
+      "nonmanifold_edges": 0,
+      "open_edges": 0,
+      "orientation_conflicts": 0,
+      "removed_degenerate_triangles": 0,
+      "removed_duplicate_triangles": 0,
+      "reoriented_triangles": 1872,
+      "triangles": 2652,
+      "weld_tolerance_m": 3.72925408091216e-07,
+      "welded_vertex_occurrences": 6592
+    },
+    "v": 1,
+    "wall_seconds": 427.253989208,
+    "warnings": [
+      "Sub-cell features and leaks larger than the weld tolerance are not repaired. Resolve slots with surface/min_size; inspect missing_surface_zones.",
+      "No prism layers: drag and downforce require independent grid and wall-resolution validation.",
+      "Hex counts include octree cubes with triangulated planar faces; Fluent stores these as polyhedra."
+    ],
+    "zones": [
+      {
+        "faces": 1710,
+        "name": "inlet",
+        "type": "velocity-inlet"
+      },
+      {
+        "faces": 1710,
+        "name": "outlet",
+        "type": "pressure-outlet"
+      },
+      {
+        "faces": 3750,
+        "name": "side-low",
+        "type": "symmetry"
+      },
+      {
+        "faces": 3750,
+        "name": "side-high",
+        "type": "symmetry"
+      },
+      {
+        "faces": 28132,
+        "name": "ground",
+        "type": "wall"
+      },
+      {
+        "faces": 7125,
+        "name": "top",
+        "type": "symmetry"
+      },
+      {
+        "faces": 1508937,
+        "name": "monocoque",
+        "type": "wall"
+      },
+      {
+        "faces": 221273,
+        "name": "nose",
+        "type": "wall"
+      },
+      {
+        "faces": 637886,
+        "name": "sidepod-right",
+        "type": "wall"
+      },
+      {
+        "faces": 640066,
+        "name": "sidepod-left",
+        "type": "wall"
+      },
+      {
+        "faces": 945463,
+        "name": "undertray-diffuser",
+        "type": "wall"
+      },
+      {
+        "faces": 273136,
+        "name": "front-wing-element-1",
+        "type": "wall"
+      },
+      {
+        "faces": 319578,
+        "name": "front-wing-element-2",
+        "type": "wall"
+      },
+      {
+        "faces": 142852,
+        "name": "front-wing-element-3",
+        "type": "wall"
+      },
+      {
+        "faces": 164738,
+        "name": "front-wing-endplate-right",
+        "type": "wall"
+      },
+      {
+        "faces": 156017,
+        "name": "front-wing-endplate-left",
+        "type": "wall"
+      },
+      {
+        "faces": 210598,
+        "name": "rear-wing-element-1",
+        "type": "wall"
+      },
+      {
+        "faces": 218622,
+        "name": "rear-wing-element-2",
+        "type": "wall"
+      },
+      {
+        "faces": 136806,
+        "name": "rear-wing-element-3",
+        "type": "wall"
+      },
+      {
+        "faces": 282273,
+        "name": "rear-wing-endplate-right",
+        "type": "wall"
+      },
+      {
+        "faces": 281824,
+        "name": "rear-wing-endplate-left",
+        "type": "wall"
+      },
+      {
+        "faces": 200416,
+        "name": "wheel-fl",
+        "type": "wall"
+      },
+      {
+        "faces": 198763,
+        "name": "wheel-fr",
+        "type": "wall"
+      },
+      {
+        "faces": 157085,
+        "name": "wheel-rl",
+        "type": "wall"
+      },
+      {
+        "faces": 156912,
+        "name": "wheel-rr",
+        "type": "wall"
+      }
+    ],
+    "note": "Pre-query-optimization diagnostic on the same geometry and numerical meshing algorithm; not an RTX solve qualification."
+  },
+  "controls": {
+    "simplec": "failed",
+    "standard_pressure": "failed",
+    "low_courant_1_scale_0_1_relaxation_0_2": "failed; omega residual 85 at monitor 20"
+  },
+  "verification": {
+    "build_exit": 0,
+    "quick_tier_exit": 0,
+    "quick_test_cases": 323,
+    "quick_assertions": 7996603,
+    "focused_exit": 0,
+    "focused_cases": 7,
+    "focused_assertions": 93,
+    "portability_lint_exit": 0,
+    "windows_gcc_runtime": "unverified",
+    "slow_tier": "not run"
+  },
+  "wheel_case_check": {
+    "walls": [
+      "wheel-fl",
+      "wheel-fr",
+      "wheel-rl",
+      "wheel-rr"
+    ],
+    "angular_speed_rad_s": 86.95652173913044,
+    "axis_direction": [
+      0,
+      -1,
+      0
+    ],
+    "case_readback": "pass"
+  },
+  "hybrid_startup_diagnostic": {
+    "backend": "metal",
+    "source_commit": "e5a92b0e19c47fb4fa25d3be108ee71e7f7bf2e0",
+    "mesh_sha256": "aeed78d99a107827be0adb185d3592d50417ff8a9cafaf4bb3ee900ea3208009",
+    "method": "Download solver fields after initialize and every iterate(1), without solver source edits; cells in solver RCM order",
+    "before_first_iteration": {
+      "max_abs_u_m_s": 123917,
+      "max_abs_v_m_s": 49525.1,
+      "max_abs_w_m_s": 321588,
+      "worst_w_cell": 171406,
+      "centroid_m": [
+        -0.993678,
+        -0.661715,
+        0.312276
+      ],
+      "volume_m3": 1.3993e-10,
+      "orthogonal_quality": 0.660256
+    },
+    "path": "SteadySolver::initialize_hybrid -> potential solve -> gradient -> fv_hybrid_velocity"
+  },
+  "standard_freestream_control": {
+    "accepted": false,
+    "initial_velocity_m_s": [
+      20,
+      0,
+      0
+    ],
+    "k": 0.06,
+    "omega": 410.7522074438359,
+    "last_monitor_iteration": 20,
+    "last_residuals": {
+      "continuity": 364.53663319155555,
+      "x-velocity": 0.2068858273539545,
+      "y-velocity": 0.17898233640846312,
+      "z-velocity": 0.18692442321406952,
+      "k": 1.042821034894042,
+      "omega": 0.9921366060014304
+    },
+    "terminal": {
+      "v": 1,
+      "event": "error",
+      "message": "solver.cpp:117: solve: nonfinite input vector",
+      "issues": []
+    }
+  }
+}

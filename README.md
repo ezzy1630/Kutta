@@ -85,7 +85,7 @@ the current VTU writer has no boundary-face wall shear output.
 Windows CI produces `kutta-windows-rtx.zip` with HDF5/zlib DLLs, license notices
 and [Windows requirements and examples](docs/README-windows.txt).
 
-## Start from STL
+## Experimental STL meshing
 
 ```sh
 ./build/kutta mesh car.stl --out car-mesh --case --progress jsonl
