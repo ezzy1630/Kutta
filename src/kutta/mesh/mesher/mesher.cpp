@@ -513,10 +513,16 @@ Result generate(const Surface& surface, const Settings& settings, double speed, 
     const auto cf = build_cell_faces(mesh);
     for (Index c = 0; c < mesh.n_cells; ++c) {
       prisms += kind[c] == Prism;
-      if (kind[c] != Hex) continue;
-      ++hexes;
-      bool simple = cf.offsets[c + 1] - cf.offsets[c] == 6;
-      for (auto i = cf.offsets[c]; i < cf.offsets[c + 1] && simple; ++i) simple = nodes(mesh, cf.faces[i]).size() == 4;
+      // An octree cell is a hex (possibly with split hanging faces) unless a
+      // snap merge collapsed an edge, leaving fewer faces or a triangle.
+      if (kind[c] != Hex || cf.offsets[c + 1] - cf.offsets[c] < 6) continue;
+      bool quads = true, simple = cf.offsets[c + 1] - cf.offsets[c] == 6;
+      for (auto i = cf.offsets[c]; i < cf.offsets[c + 1]; ++i) {
+        const auto n = nodes(mesh, cf.faces[i]).size();
+        quads = quads && n >= 4;
+        simple = simple && n == 4;
+      }
+      hexes += quads;
       pure += simple;
     }
   }
@@ -560,8 +566,8 @@ Result generate(const Surface& surface, const Settings& settings, double speed, 
     {"wall_seconds", elapsed}, {"peak_memory_bytes", usage.peak ? Json(double(usage.peak)) : Json(nullptr)},
     {"geometry_method", "castellated octree (cells inside or crossed by the STL removed), wall snapped to the STL with implicit feature capture"},
     {"geometry_resolution_m", settings.min_size},
-    {"warnings", Json::Array{"Snapping retreats where a cell would fall below orthogonal quality 0.15; see snap/surface_deviation for the remaining geometric error.",
-                             "Sub-cell slots close when narrower than about two cells; see snap/gaps.",
+    {"warnings", Json::Array{"Snapping retreats where a cell would fall below orthogonal quality 0.15; see snap/point_distance_m for the remaining geometric error.",
+                             "Slots narrower than about two cells close; see castellation/gaps.",
                              "Octree cubes with 2:1 hanging faces count as hex; Fluent stores every cell as a polyhedron."}}};
   return {std::move(mesh), std::move(report)};
 }

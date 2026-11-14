@@ -276,15 +276,15 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
     }
     const auto layered = cell_faces(w);
     const auto check = geometry(w, layered);
+    std::vector<Index> stalled;  // bad cells with no stack or termination on their points
     for (Index c = 0; c < w.cells; ++c) {
       if (check.quality[c] >= layer_min_quality) continue;
-      changed = true;
-      if (c >= base.cells) { extrude[source_face[c - base.cells]] = 0; continue; }
+      if (c >= base.cells) { extrude[source_face[c - base.cells]] = 0; changed = true; continue; }
       // A bad octree cell drops its own stacks.
       bool own = false;
       for (auto i = adjacency.offsets[c]; i < adjacency.offsets[c + 1]; ++i)
         if (extrude[adjacency.faces[i]]) { extrude[adjacency.faces[i]] = 0; own = true; }
-      if (own) continue;
+      if (own) { changed = true; continue; }
       // Beside a split termination it keeps that whole termination (connected
       // along its edges) lifted: the form the displacement already kept above
       // quality. Dropping the stacks instead would only move the failing end
@@ -293,6 +293,7 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
       for (auto i = adjacency.offsets[c]; i < adjacency.offsets[c + 1]; ++i)
         for (auto p : base.faces[adjacency.faces[i]].nodes) if (split[p] && !lift[p]) { lift[p] = 1; front.push_back(p); }
       if (!front.empty()) {
+        changed = true;
         while (!front.empty()) {
           const auto p = front.back();
           front.pop_back();
@@ -302,9 +303,33 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
         }
         continue;
       }
+      // Otherwise the stacks on its points go.
+      bool dropped = false;
       for (auto i = adjacency.offsets[c]; i < adjacency.offsets[c + 1]; ++i)
         for (auto p : base.faces[adjacency.faces[i]].nodes)
-          for (auto j = pf.offsets[p]; j < pf.offsets[p + 1]; ++j) extrude[pf.faces[j]] = 0;
+          for (auto j = pf.offsets[p]; j < pf.offsets[p + 1]; ++j)
+            if (extrude[pf.faces[j]]) { extrude[pf.faces[j]] = 0; dropped = true; }
+      if (dropped) changed = true;
+      else stalled.push_back(c);
+    }
+    // A cell moved only by stacks a few points away (through the
+    // displacement's decay band) is left bad above; once nothing else
+    // changes, the stacks within that band go, so collapse always progresses.
+    if (!changed && !stalled.empty()) {
+      std::vector<char> seen(np);
+      std::vector<Index> ring, next;
+      for (auto c : stalled)
+        for (auto i = adjacency.offsets[c]; i < adjacency.offsets[c + 1]; ++i)
+          for (auto p : base.faces[adjacency.faces[i]].nodes) if (!seen[p]) { seen[p] = 1; ring.push_back(p); }
+      for (int hop = 1; hop <= displace_band_depth && !changed; ++hop) {
+        next.clear();
+        for (auto p : ring) point_neighbours(base, pf, p, [&](Index q) { if (!seen[q]) { seen[q] = 1; next.push_back(q); } });
+        std::swap(ring, next);
+        for (auto p : ring)
+          for (auto j = pf.offsets[p]; j < pf.offsets[p + 1]; ++j)
+            if (extrude[pf.faces[j]]) { extrude[pf.faces[j]] = 0; changed = true; }
+      }
+      KUTTA_REQUIRE(changed, "mesh: a cell fails layer quality with no layer near it; refine the surface or report the geometry");
     }
     if (!changed) break;
     if (progress) progress("layers", .8, "Collapsing layers where cell quality would fail");

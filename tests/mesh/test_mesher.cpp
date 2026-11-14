@@ -6,6 +6,7 @@
 #include "kutta/core/json_value.hpp"
 #include <bit>
 #include <cstdlib>
+#include <numbers>
 #include <numeric>
 #include <set>
 #include <sstream>
@@ -27,6 +28,19 @@ std::string cube(std::string name="body",double scale=1,bool flip=false,Vec3d sh
     }
   }
   return out.str()+"endsolid "+name+"\n";
+}
+std::string sphere(double r,Vec3d c) {
+  // UV sphere, outward winding.
+  std::ostringstream out; out << "solid ball\n";
+  constexpr int nu=48, nv=24;
+  const auto at=[&](int i,int j) { const double u=2*std::numbers::pi*i/nu, v=std::numbers::pi*j/nv; return c+Vec3d{std::sin(v)*std::cos(u),std::sin(v)*std::sin(u),std::cos(v)}*r; };
+  const auto tri=[&](Vec3d a,Vec3d b,Vec3d d) { out << "facet normal 0 0 0\nouter loop\n"; for(auto p:{a,b,d}) out << "vertex " << p.x << ' ' << p.y << ' ' << p.z << '\n'; out << "endloop\nendfacet\n"; };
+  for(int i=0;i<nu;++i) for(int j=0;j<nv;++j) {
+    const auto a=at(i,j), b=at(i+1,j), d=at(i+1,j+1), e=at(i,j+1);
+    if(j>0) tri(a,e,b);
+    if(j<nv-1) tri(b,e,d);
+  }
+  return out.str()+"endsolid ball\n";
 }
 Surface surface(MeshTemp& t,std::string text=cube()) {
   mesh_text(t.path("test.stl"),text); const std::array paths{t.path("test.stl")}; return read_stl(paths,{});
@@ -137,7 +151,8 @@ TEST_CASE("castellated snapped mesh conserves the body, captures corners and rou
   CHECK(report(result.report,{"snap","point_distance_m","max"})<1e-9);
   const auto& r=std::get<Json::Object>(result.report.at("quality").value);
   CHECK(report(r,{"orthogonal_min"})>=.15); CHECK(report(r,{"cells_below_0_15"})==0);
-  CHECK(report(result.report,{"cell_types","hex_fraction_of_core"})==1);
+  // Corner merges leave a few polyhedra; the rest of the core is hex.
+  CHECK(report(result.report,{"cell_types","hex_fraction_of_core"})>.9);
   write_msh(t.path("test.msh"),result.mesh);
   const auto read=read_mesh(t.path("test.msh")); CHECK_NOTHROW(validate(read));
   CHECK(read.n_cells==result.mesh.n_cells); CHECK(read.n_faces()==result.mesh.n_faces()); CHECK(read.n_points()==result.mesh.n_points());
@@ -147,6 +162,14 @@ TEST_CASE("castellated snapped mesh conserves the body, captures corners and rou
   auto refined=settings; refined.boxes.push_back({"wake",{{.7,.1,.1},{1.,.8,.7}},.05}); CHECK_NOTHROW(validate(generate(sf,refined).mesh));
   auto limited=settings; limited.max_cells=10; CHECK_THROWS(generate(sf,limited));
   auto symmetry=settings; symmetry.symmetry_y=true; CHECK_NOTHROW(validate(generate(sf,symmetry).mesh));
+}
+TEST_CASE("snap on a curved body keeps quality and surface error under the chord sag") {
+  MeshTemp t;
+  const auto result=generate(surface(t,sphere(.3,{.43,.47,.4})),parse_settings(R"({"v":1,"base_size":0.4,"surface":{"min_size":0.04,"max_size":0.1},"tunnel":{"upstream":0.3,"downstream":0.3,"side":0.3,"top":0.3},"layers":{"count":0},"max_cells":400000})"));
+  CHECK_NOTHROW(validate(result.mesh));
+  CHECK(report(result.report,{"quality","orthogonal_min"})>=.15);
+  CHECK(report(result.report,{"snap","point_distance_m","max"})<.004);  // facets 0.04 m wide; chord sag 2 mm
+  CHECK(report(result.report,{"cell_types","hex"})+report(result.report,{"cell_types","poly"})==result.mesh.n_cells);
 }
 TEST_CASE("prism layers extrude every visible wall face and keep the body volume") {
   MeshTemp t; const auto sf=surface(t);
