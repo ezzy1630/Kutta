@@ -1140,7 +1140,7 @@ surface sizes, 20° feature angle, three cells across gaps down to 2 mm cells,
 four prism layers (2 mm first height, growth 1.3), body-relative refinement
 boxes (below) and 10 million maximum cells. These are starting sizes, not an
 accuracy or cell-count guarantee; on the synthetic FSAE car they give about
-4.3 million cells and an estimated 9.1 GB of solver memory
+4.2 million cells and an estimated 8.9 GB of solver memory
 (`estimated_solver_memory`), with every wing slot open. Budget exhaustion
 fails rather than silently coarsening the mesh. (v1 additive change of
 defaults: the minimum surface size was 0.006 m and no boxes were added; that
