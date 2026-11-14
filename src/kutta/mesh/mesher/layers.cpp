@@ -315,15 +315,16 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
       else stalled.push_back(c);
     }
     // A cell moved only by stacks a few points away (through the
-    // displacement's decay band) is left bad above; once nothing else
-    // changes, the stacks within that band go, so collapse always progresses.
+    // displacement's decay band, or a neighbour centroid one hop further) is
+    // left bad above; once nothing else changes, the nearest stacks go, so
+    // collapse always progresses toward the valid unlayered mesh.
     if (!changed && !stalled.empty()) {
       std::vector<char> seen(np);
       std::vector<Index> ring, next;
       for (auto c : stalled)
         for (auto i = adjacency.offsets[c]; i < adjacency.offsets[c + 1]; ++i)
           for (auto p : base.faces[adjacency.faces[i]].nodes) if (!seen[p]) { seen[p] = 1; ring.push_back(p); }
-      for (int hop = 1; hop <= displace_band_depth && !changed; ++hop) {
+      while (!changed && !ring.empty()) {
         next.clear();
         for (auto p : ring) point_neighbours(base, pf, p, [&](Index q) { if (!seen[q]) { seen[q] = 1; next.push_back(q); } });
         std::swap(ring, next);
@@ -331,7 +332,7 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
           for (auto j = pf.offsets[p]; j < pf.offsets[p + 1]; ++j)
             if (extrude[pf.faces[j]]) { extrude[pf.faces[j]] = 0; changed = true; }
       }
-      KUTTA_REQUIRE(changed, "mesh: a cell fails layer quality with no layer near it; refine the surface or report the geometry");
+      KUTTA_REQUIRE(changed, "mesh: a cell fails layer quality with no layer left; refine the surface or report the geometry");
     }
     if (!changed) break;
     if (progress) progress("layers", .8, "Collapsing layers where cell quality would fail");

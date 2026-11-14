@@ -3,7 +3,7 @@
 namespace kutta::mesher::internal {
 using namespace detail;
 namespace {
-constexpr int band_depth = displace_band_depth, smooth_iterations = 12, zero_after = 10;
+constexpr int band_depth = 3, smooth_iterations = 12, zero_after = 10;
 double& at(Vec3d& v, int a) { return a == 0 ? v.x : a == 1 ? v.y : v.z; }
 }  // namespace
 

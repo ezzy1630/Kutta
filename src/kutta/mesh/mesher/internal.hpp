@@ -57,7 +57,6 @@ std::vector<Index> with_neighbours(const Work&, const Adjacency&, const std::vec
 // after a few rounds, drop to zero, so the result is never worse than the
 // starting mesh. Scales are updated in place. Cells still bad with every
 // nearby scale at zero (an invalid starting mesh) are returned as `stuck`.
-constexpr int displace_band_depth = 3;  // point hops the motion decays over
 struct DisplaceResult { int rounds = 0; Index first_bad = 0; std::vector<Index> stuck; };
 DisplaceResult displace(Work&, const Adjacency&, const PointFaces&, const std::vector<Index>& sources,
                         const std::vector<Vec3d>& target, std::vector<double>& scale, double min_quality, const Progress&, std::string_view stage);
