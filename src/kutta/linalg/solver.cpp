@@ -113,8 +113,8 @@ class Krylov final : public LinearSolver {
         dev.reduce_many({Request::dot(b, b, b.size()), Request::dot(x, x, x.size()),
                          Request::dot(r_, r_, r_.size())});
     const double bnorm = std::sqrt(entry[0]);
-    KUTTA_REQUIRE(std::isfinite(bnorm) && std::isfinite(std::sqrt(entry[1])),
-                  "solve: nonfinite input vector");
+    KUTTA_REQUIRE_FINITE(std::isfinite(bnorm) && std::isfinite(std::sqrt(entry[1])),
+                         "solve: nonfinite input vector");
     SolveStats stats;
     if (nullspace_) {
       if (n_ != 0) {

@@ -99,6 +99,7 @@ private slots:
         QVERIFY(stopReasonText("converged", {"report:drag"}, conv).contains("drag changed less than 0.1 %"));
         QCOMPARE(stopReasonText("stopped", {}, conv), QString("Stopped by you; not converged"));
         QCOMPARE(stopReasonText("iteration_limit", {}, conv), QString("Iteration limit; convergence criteria not met"));
+        QVERIFY(stopReasonText("statistically_steady", {}, conv).startsWith("Statistically steady; not converged"));
         conv.enabled = false;
         QCOMPARE(stopReasonText("iteration_limit", {}, conv), QString("Iteration limit; convergence checking was off"));
         QVERIFY(stopReasonText("", {}, conv).isEmpty());  // an older CLI: no reason given

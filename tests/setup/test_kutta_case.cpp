@@ -88,6 +88,10 @@ TEST_CASE("The FSAE starter suggests roles from zone names and lowers to a case 
   apply_boundary_kinds(starter, retagged);
   const auto setup = fluent_setup(lowered, retagged);
   CHECK(setup.approximations.empty());
+  // SIMPLEC with momentum relaxation 0.9 and Fluent's other defaults.
+  CHECK(setup.settings.coupling == fv::PressureVelocityCoupling::Simplec);
+  CHECK(setup.settings.momentum_relaxation == doctest::Approx(0.9));
+  CHECK(setup.settings.pressure_relaxation == doctest::Approx(0.3));
   const auto forces = force_definitions(lowered, retagged);
   REQUIRE(forces.size() == 2);
   for (const auto& f : forces) CHECK(f.patches == std::vector<std::string>{"front_wing"});

@@ -294,6 +294,15 @@ for report in ("drag", "lift", "force"):
     for key, kind, value in [("active", "bool", False), ("stop-criterion", "number", .001), ("previous-values", "integer", 5), ("ignore-before", "integer", 100)]:
         entry = tiny_settings[f"monitors/report/{report}/{key}"]
         assert entry["editable"] and entry["kind"] == kind and entry["value"] == value and entry["group"] == "Monitors", entry
+# The statistically-steady stop (a force-report case): on, with its defaults,
+# and a case with a force report defaults to a 5000-iteration cap.
+for key, kind, value in [("active", "bool", True), ("tolerance", "number", .001), ("range", "number", .1), ("window", "integer", 500)]:
+    entry = tiny_settings[f"monitors/forces-averaged/{key}"]
+    assert entry["editable"] and entry["kind"] == kind and entry["value"] == value and entry["group"] == "Monitors", entry
+assert tiny_settings["run/iterations"]["value"] == 5000, tiny_settings["run/iterations"]
+plain_settings = {s["path"]: s for s in json.loads(command("inspect", root / "no-reports.cas.h5", "--json").stdout)["settings"]}
+assert plain_settings["run/iterations"]["value"] == 1000 and not plain_settings["monitors/forces-averaged/active"]["value"]
+assert not plain_settings["monitors/forces-averaged/active"]["editable"]
 # The generated case saves no residual criteria: checks are off and unknown.
 assert tiny_settings["monitors/residual/continuity/check"]["value"] is False
 assert tiny_settings["monitors/residual/continuity/absolute-criterion"]["value"] is None
@@ -307,6 +316,7 @@ solve_setup({"controls/courant-number": 50}, "courant", case="tiny")
 solve_setup({"controls/courant-number": 0}, "bad-courant", reject=True, case="tiny")
 # The report condition alone (forces settled off): the drag report converges.
 converged_out, events = solve_setup({"run/iterations": 10, "run/monitor-interval": 1, "monitors/check-convergence": True, "monitors/forces-settled/active": False,
+                                     "monitors/forces-averaged/active": False,
                                      "monitors/report/drag/active": True, "monitors/report/drag/stop-criterion": 1e30,
                                      "monitors/report/drag/previous-values": 1, "monitors/report/drag/ignore-before": 0}, "report-converged", case="tiny")
 assert events[0]["convergence"] == {"enabled": True, "condition": "all", "residuals": {},
@@ -323,6 +333,29 @@ assert done["converged"] is True and done["stop_reason"] == "converged" and done
 assert done["convergence"]["met_by"] == ["report:drag"] and done["convergence"]["iteration"] == 2
 summary = json.loads((converged_out / "summary.json").read_text())
 assert summary["converged"] is True and summary["stop_reason"] == "converged" and summary["convergence"] == done["convergence"]
+# The statistically-steady stop (windows of 1: averaging starts at iteration 3
+# and has two windows at 4). Never converged; its mean and range are reported.
+steady_controls = {"run/iterations": 8, "run/monitor-interval": 1, "monitors/forces-settled/window": 1,
+                   "monitors/forces-settled/tolerance": 1e-30, "monitors/forces-averaged/window": 1}
+steady_out, events = solve_setup({**steady_controls, "monitors/forces-averaged/tolerance": 1e30, "monitors/forces-averaged/range": 1e30},
+                                 "statistically-steady", case="tiny")
+assert events[0]["convergence"]["averaging"] == {"tolerance": 1e30, "range": 1e30, "window": 1, "start": 3}, events[0]
+done = events[-1]
+assert done["converged"] is False and done["stop_reason"] == "statistically_steady" and done["iterations"] == 4, done
+averaged = done["convergence"]["averaged"]
+assert averaged["steady"] is True and (averaged["from"], averaged["to"]) == (3, 4) and averaged["window"] == 1, averaged
+samples = [e for e in events if e["event"] == "iteration"]
+drag = [e["reports"]["drag"]["force"] for e in samples if e["iter"] in (3, 4)]
+assert math.isclose(averaged["reports"]["drag"]["mean"], sum(drag) / 2, rel_tol=1e-12), (averaged, drag)
+assert averaged["reports"]["drag"]["min"] == min(drag) and averaged["reports"]["drag"]["max"] == max(drag)
+assert "coefficient" in averaged["reports"]["drag"] and "averaged" in samples[-1]["convergence"]
+summary = json.loads((steady_out / "summary.json").read_text())
+assert summary["stop_reason"] == "statistically_steady" and summary["converged"] is False and summary["convergence"] == done["convergence"]
+# A cycle that is not steady runs to its limit and still reports its last averaging state.
+_, events = solve_setup({**steady_controls, "monitors/forces-averaged/tolerance": 1e-30, "monitors/forces-averaged/range": 0}, "not-steady", case="tiny")
+done = events[-1]
+assert done["stop_reason"] == "iteration_limit" and done["iterations"] == 8, done
+assert done["convergence"]["averaged"]["steady"] is False and done["convergence"]["averaged"]["to"] == 8, done
 # Checking on with nothing to check warns and runs to the limit.
 _, events = solve_setup({"run/iterations": 2, "run/monitor-interval": 1, "monitors/check-convergence": True, "monitors/forces-settled/active": False,
                         "monitors/condition": "any"}, "no-conditions", case="tiny")

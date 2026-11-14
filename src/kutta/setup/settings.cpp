@@ -326,6 +326,11 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     if(it!=c.numerics.pseudo_relaxation.end())b.editable(s,[target=&it->second](const Json& j){*target=std::get<double>(j.value);},positive,1);
     b.consume(c.variables,key);
   }
+  // A car run (a force report) checks convergence by default and stops by
+  // itself; its iteration limit is only a cap, sized for the averaging stop.
+  const bool force_report=std::any_of(c.reports.begin(),c.reports.end(),[](const auto& r) {
+    using Kind=ReportDefinition::Kind;return r.kind==Kind::force || r.kind==Kind::drag || r.kind==Kind::lift || r.kind==Kind::downforce;});
+  if(run.iterations<=0)run.iterations=force_report?RunControls::default_checked_iterations:RunControls::default_iterations;
   for(auto [key,label,target,max]:std::vector<std::tuple<std::string,std::string,int*,double>>{{"iterations","Number of iterations",&run.iterations,1e9},{"monitor-interval","Monitor interval",&run.monitor_interval,100000}}) {
     auto& s=b.add("run/"+key,label,"Run Calculation",*target,"","integer");b.editable(s,[target](const Json& j){*target=int(std::get<double>(j.value));},1,max);
   }
@@ -342,6 +347,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   // its residual criteria and settled forces (docs/app-protocol.md,
   // Convergence criteria). Other cases run to their iteration limit.
   conv.settle.active=std::any_of(conv.reports.begin(),conv.reports.end(),[](const auto& r){return r.force;});
+  conv.average.active=conv.settle.active;
   conv.check=conv.settle.active;
   b.editable(b.add("monitors/check-convergence","Check convergence","Monitors",conv.check),[t=&conv.check](const Json& j){*t=std::get<bool>(j.value);});
   auto& combine=b.add("monitors/condition","Condition","Monitors","all","","enum");
@@ -360,6 +366,11 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     bind(b.add("monitors/forces-settled/active","Forces settled","Monitors",settle.active),[t=&settle.active](const Json& j){*t=std::get<bool>(j.value);},{},{});
     bind(b.add("monitors/forces-settled/tolerance","Forces settled: relative range","Monitors",settle.tolerance,"1","number"),[t=&settle.tolerance](const Json& j){*t=std::get<double>(j.value);},positive,1e30);
     bind(b.add("monitors/forces-settled/window","Forces settled: window","Monitors",settle.window,"","integer"),[t=&settle.window](const Json& j){*t=int(std::get<double>(j.value));},1,1e8);
+    auto& average=conv.average;
+    bind(b.add("monitors/forces-averaged/active","Stop when statistically steady","Monitors",average.active),[t=&average.active](const Json& j){*t=std::get<bool>(j.value);},{},{});
+    bind(b.add("monitors/forces-averaged/tolerance","Statistically steady: mean drift","Monitors",average.tolerance,"1","number"),[t=&average.tolerance](const Json& j){*t=std::get<double>(j.value);},positive,1e30);
+    bind(b.add("monitors/forces-averaged/range","Statistically steady: range change","Monitors",average.range,"1","number"),[t=&average.range](const Json& j){*t=std::get<double>(j.value);},0,1e30);
+    bind(b.add("monitors/forces-averaged/window","Statistically steady: window","Monitors",average.window,"","integer"),[t=&average.window](const Json& j){*t=int(std::get<double>(j.value));},1,1e8);
   }
   for(std::size_t i=0;i<c.reports.size();++i) {
     auto& r=conv.reports[i];const bool force=r.force;

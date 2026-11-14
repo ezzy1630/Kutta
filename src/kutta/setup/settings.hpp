@@ -6,7 +6,11 @@
 
 namespace kutta::setup {
 struct RunControls {
-  int iterations=1000,monitor_interval=20;
+  // 0 selects the default iteration limit: default_iterations, or
+  // default_checked_iterations for a case that checks convergence by default
+  // (a force report), whose limit is a safety cap rather than the stop.
+  int iterations=0,monitor_interval=20;
+  static constexpr int default_iterations=1000,default_checked_iterations=5000;
   // settings_inventory fills this from the case and binds its monitors/ entries.
   ConvergenceControls convergence;
 };

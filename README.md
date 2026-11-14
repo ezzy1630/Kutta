@@ -81,8 +81,13 @@ and `summary.json` (SHA256 inputs, build/device identity and timing). A case
 with a force, drag, lift or downforce report stops on its own once its
 residual criteria are met and every report has stayed within 0.1 % over 300
 iterations (residuals stalled above their criteria are waived once the forces
-have held for 600); `summary.json` records `stop_reason` and what was met.
-Other cases run to `--iterations` (default 1000). The criteria are editable
+have held for 600). If the forces instead settle into a bounded cycle that
+neither drifts, grows nor decays, as the hex Ahmed body's wake does on finer
+meshes at Fluent's momentum relaxation 0.7, the run stops as `statistically_steady`, not converged, and
+reports each force's mean and range ([default convergence on fine meshes](validation/results/default_convergence_fine/REPORT.md)).
+Such cases run to at most `--iterations` (default 5000); `summary.json`
+records `stop_reason` and what was met. Other cases run to `--iterations`
+(default 1000). The criteria are editable
 ([Convergence criteria](docs/app-protocol.md#convergence-criteria-v1-additive)).
 Peak device memory is recorded as `null`; the current VTU writer has no
 boundary-face wall shear output.

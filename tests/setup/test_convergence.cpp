@@ -170,3 +170,83 @@ TEST_CASE("A report near zero is judged against one percent of the largest repor
   CHECK(s.confirm);
   CHECK(std::get<double>(at(at(condition(s,"forces"),"reports"),"lift").value)==doctest::Approx(2e-4/1e-2));
 }
+
+namespace {
+ConvergenceControls averaging(int window=200) {
+  auto c=settling();c.average={true,1e-3,.1,window};
+  return c;
+}
+// Runs a monitor the way kutta solve does: forces recorded at every iteration
+// once wanted, samples on a 20-iteration stride. Returns the stopping sample.
+template<class Forces> std::optional<std::pair<int,ConvergenceSample>> run(ConvergenceMonitor& m,int last,Forces f,double continuity=5e-3) {
+  int confirm_at=-1;
+  for(int it=1;it<=last;++it) {
+    if(it%20 && it!=confirm_at) {if(m.wants_forces(it))m.record(it,f(it));continue;}
+    auto s=m.sample(it,residuals(continuity,1),f(it));
+    if(s.met || s.statistically_steady)return std::pair{it,s};
+    confirm_at=s.confirm?it+1:-1;
+  }
+  return std::nullopt;
+}
+}
+
+TEST_CASE("A bounded force cycle is not converged but stops statistically steady with its means") {
+  const auto c=averaging();
+  CHECK(c.average_stop());CHECK(c.average_start()==201);
+  CHECK(dump_json(Json(c.json()))==R"({"averaging":{"range":0.10000000000000001,"start":201,"tolerance":0.001,"window":200},"condition":"all","enabled":true,"forces":{"reports":["drag","lift"],"tolerance":0.001,"window":100},"reports":[],"residuals":{"continuity":0.001}})");
+  // The hex L2 Ahmed cycle: period 43.7 (no window holds whole cycles), lift
+  // +-15% and drag +-1.2%. Plain window means would differ by ~1% for lift.
+  const auto cycle=[](int it){const double s=std::sin(2*3.141592653589793*it/43.7);return forces(.331*(1+.012*s),.142*(1+.15*s));};
+  ConvergenceMonitor m(c);
+  const auto stop=run(m,2000,cycle);
+  REQUIRE(stop);
+  // The earliest sample with two complete windows after iteration 200.
+  CHECK(stop->first==600);
+  const auto& s=stop->second;
+  CHECK_FALSE(s.met);CHECK(s.met_by.empty());CHECK(s.statistically_steady);REQUIRE(s.averaged);
+  const Json a(*s.averaged);
+  CHECK(at(a,"from")==Json(201));CHECK(at(a,"to")==Json(600));CHECK(at(a,"steady")==Json(true));
+  const auto& lift=at(at(a,"reports"),"lift");
+  CHECK(std::get<double>(at(lift,"mean").value)==doctest::Approx(.142).epsilon(1e-4));
+  CHECK(std::get<double>(at(lift,"max").value)==doctest::Approx(.142*1.15).epsilon(1e-3));
+  CHECK(std::get<double>(at(lift,"min").value)==doctest::Approx(.142*.85).epsilon(1e-3));
+  CHECK(at(Json(s.json),"averaged")==a);
+}
+
+TEST_CASE("Growing or drifting force cycles never stop statistically steady") {
+  {
+    ConvergenceMonitor m(averaging());
+    // The cycle's amplitude doubles every 1000 iterations.
+    const auto growing=[](int it){return forces(.331,.142*(1+.05*std::pow(2.,it/1000.)*std::sin(2*3.141592653589793*it/40.)));};
+    CHECK_FALSE(run(m,3000,growing));
+  }
+  ConvergenceMonitor m(averaging());
+  // Bounded cycle on a mean that drifts 0.1% per 100 iterations.
+  const auto drifting=[](int it){return forces(.331*(1+1e-5*it),.142*(1+.15*std::sin(2*3.141592653589793*it/40.)));};
+  CHECK_FALSE(run(m,3000,drifting));
+}
+
+TEST_CASE("A decaying force cycle is still converging and runs on to convergence") {
+  // Hex L3 at momentum 0.9: the cycle's amplitude halves every 250
+  // iterations. Both windows' means agree long before the forces settle, but
+  // the range shrinks, so the run is converging, not cycling.
+  ConvergenceMonitor m(averaging());
+  const auto decaying=[](int it){return forces(.309,.0854*(1+.15*std::pow(2.,-it/250.)*std::sin(2*3.141592653589793*it/43.7)));};
+  const auto stop=run(m,5000,decaying,1e-4);
+  REQUIRE(stop);
+  // Not at 600, the first sample with two windows, where a rule that let the
+  // range shrink stopped it statistically steady.
+  CHECK(stop->second.met);CHECK_FALSE(stop->second.statistically_steady);CHECK(stop->first==1941);
+}
+
+TEST_CASE("Averaging needs every iteration and leaves settling runs converged") {
+  {
+    // Recording only the stride samples aliases the cycle: no verdict at all.
+    ConvergenceMonitor m(averaging());ConvergenceSample s;
+    for(int it=20;it<=2000;it+=20)s=m.sample(it,residuals(5e-3,1),forces(.331,.142));
+    CHECK_FALSE(s.averaged);CHECK_FALSE(s.statistically_steady);
+  }
+  ConvergenceMonitor m(averaging());
+  const auto stop=run(m,2000,[](int){return forces(.331,.142);},1e-4);
+  REQUIRE(stop);CHECK(stop->second.met);CHECK_FALSE(stop->second.statistically_steady);CHECK(stop->first==121);
+}

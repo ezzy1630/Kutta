@@ -2318,6 +2318,13 @@ KuttaCase fsae_starter(const MeshInfo& mesh, std::filesystem::path mesh_path, co
   // Standard limiter, so its forces never settle; SIMPLEC converges the same
   // discretization (validation/results/car_mesh_convergence/REPORT.md).
   c.methods.coupling = CouplingScheme::simplec;
+  // Momentum relaxation 0.9, not Fluent's 0.7. Finer car meshes resolve a
+  // wake whose steady solution is unstable under small pseudo-time steps:
+  // at 0.7 SIMPLEC settles into a bounded limit cycle (hex Ahmed L2/L3, and
+  // L3 still at 0.8), while the larger effective step of 0.9 damps it and
+  // converges, on the same discrete fixed point
+  // (validation/results/default_convergence_fine).
+  c.controls.relaxation.momentum = 0.9;
   // Fluent turns warped-face gradient correction on for polyhedral meshes;
   // Kutta does not implement it, so the case states that it is off.
   if (mesh.dimension == 3 && mesh.polyhedral) c.methods.warped_face_gradient_correction = false;

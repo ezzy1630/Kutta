@@ -2,6 +2,7 @@
 #include "kutta/case/fluent_case.hpp"
 #include "kutta/core/json_value.hpp"
 #include <array>
+#include <deque>
 #include <span>
 #include <optional>
 #include <string_view>
@@ -41,6 +42,26 @@ struct SettleCriterion {
   double tolerance=1e-3;
   int window=300;
 };
+// Kutta's statistically-steady stop (not a Fluent setting, not convergence).
+// Some steady RANS solutions are unstable: the iteration settles into a
+// bounded limit cycle (the hex Ahmed body's wake on finer meshes under
+// SIMPLEC) and no amount of iterating converges it. Once the forces have failed to settle for twice the
+// forces-settled window, every force report is sampled at every iteration.
+// At a monitor sample n, the samples in (n-2*window, n-window] and
+// (n-window, n] are compared: the run stops, unconverged, when for every
+// report the two Hann-weighted window means differ by at most `tolerance`
+// times the scale used by forces-settled and the second range is within
+// `range` times the first (plus tolerance times the scale), i.e. the cycle is
+// neither drifting, growing nor decaying. A decaying cycle is still
+// converging, so it runs on to convergence or the iteration limit. The verdict reports each force's
+// Hann-weighted mean, min and max over both windows (docs/app-protocol.md,
+// Convergence criteria). Fluent's analogue is a report definition's
+// "Average Over" running mean.
+struct AverageCriterion {
+  bool active=false;
+  double tolerance=1e-3,range=.1;
+  int window=500;
+};
 // Fluent's convergence conditions plus Kutta's forces-settled condition. The
 // settings inventory turns checking and the forces-settled condition on when
 // the case has a force report; a default-constructed ConvergenceControls
@@ -52,8 +73,13 @@ struct ConvergenceControls {
   std::vector<ResidualCriterion> residuals;
   std::vector<ReportCriterion> reports;
   SettleCriterion settle;
+  AverageCriterion average;
   // Forces-settled is a condition only with at least one force report.
   bool settle_condition() const;
+  // The statistically-steady stop needs checking on and a force report.
+  bool average_stop() const;
+  // The first iteration whose forces are sampled for averaging.
+  int average_start() const {return 2*settle.window+1;}
   bool has_conditions() const;
   // The setup-event object: checked residuals and active reports only.
   Json::Object json() const;
@@ -73,6 +99,12 @@ struct ConvergenceSample {
   Json::Object json;
   // Met conditions as "residuals", "report:<name>" or "forces".
   std::vector<std::string> met_by;
+  // Not converged, but the forces cycle about a steady mean (AverageCriterion).
+  bool statistically_steady=false;
+  // The averaging state at this sample, when averaging has started: window,
+  // iteration span and per-report mean/min/max/drift/range_change in the report's
+  // units. Present on every sample once averaging has collected two windows.
+  std::optional<Json::Object> averaged;
 };
 // Evaluates one monitor sample at a time; keeps only the report history the
 // lag residual needs.
@@ -84,6 +116,10 @@ class ConvergenceMonitor {
   // The forces-settled condition reads every force report present in `reports`.
   ConvergenceSample sample(int iteration,const std::map<std::string,double>& residuals,
                            const std::map<std::string,double>& reports);
+  // Whether this iteration's forces are wanted for averaging. The caller then
+  // passes them to record() (or to sample(), which records them itself).
+  bool wants_forces(int iteration) const;
+  void record(int iteration,const std::map<std::string,double>& reports);
  private:
   struct Forces {int iteration;std::vector<double> values;};
   // Each force report's relative range over the last `window` iterations;
@@ -95,6 +131,10 @@ class ConvergenceMonitor {
   std::vector<Forces> forces_;
   int last_iteration_=-1;
   bool last_settled_=false,last_settled_twice_=false;
+  // Per-iteration force samples for averaging, newest last, at most two
+  // windows: (iteration, values in force_reports_ order).
+  std::deque<std::pair<int,std::vector<double>>> averaging_;
+  std::optional<Json::Object> averaged(int iteration,bool& steady) const;
 };
 // Fluent's lag residual over the last previous_values differences, relative to
 // the newest value. Null with too few values or a zero newest value.

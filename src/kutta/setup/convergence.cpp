@@ -6,6 +6,9 @@ namespace kutta::setup {
 bool ConvergenceControls::settle_condition() const {
   return settle.active && std::any_of(reports.begin(),reports.end(),[](const auto& r){return r.force;});
 }
+bool ConvergenceControls::average_stop() const {
+  return check && average.active && std::any_of(reports.begin(),reports.end(),[](const auto& r){return r.force;});
+}
 bool ConvergenceControls::has_conditions() const {
   return std::any_of(residuals.begin(),residuals.end(),[](const auto& r){return r.check;}) ||
          std::any_of(reports.begin(),reports.end(),[](const auto& r){return r.active;}) || settle_condition();
@@ -19,6 +22,7 @@ Json::Object ConvergenceControls::json() const {
     Json::Array watched;for(const auto& r:reports)if(r.force)watched.push_back(r.report);
     out.emplace("forces",Json::Object{{"tolerance",settle.tolerance},{"window",settle.window},{"reports",std::move(watched)}});
   }
+  if(average_stop())out.emplace("averaging",Json::Object{{"tolerance",average.tolerance},{"range",average.range},{"window",average.window},{"start",average_start()}});
   return out;
 }
 std::vector<fluent::SettingIssue> criteria_issues(const ConvergenceControls& c) {
@@ -34,7 +38,55 @@ std::optional<double> lag_residual(std::span<const double> m,int previous_values
   return std::isfinite(value)?std::optional(value):std::nullopt;
 }
 ConvergenceMonitor::ConvergenceMonitor(ConvergenceControls controls):controls_(std::move(controls)),history_(controls_.reports.size()) {
-  if(controls_.settle_condition())for(const auto& r:controls_.reports)if(r.force)force_reports_.push_back(r.report);
+  if(controls_.settle_condition() || controls_.average_stop())for(const auto& r:controls_.reports)if(r.force)force_reports_.push_back(r.report);
+}
+bool ConvergenceMonitor::wants_forces(int iteration) const {
+  return controls_.average_stop() && iteration>=controls_.average_start() && (averaging_.empty() || averaging_.back().first<iteration);
+}
+void ConvergenceMonitor::record(int iteration,const std::map<std::string,double>& reports) {
+  if(!wants_forces(iteration))return;
+  std::vector<double> values;for(const auto& name:force_reports_)values.push_back(reports.at(name));
+  averaging_.emplace_back(iteration,std::move(values));
+  while(averaging_.front().first<=iteration-2*controls_.average.window)averaging_.pop_front();
+}
+std::optional<Json::Object> ConvergenceMonitor::averaged(int iteration,bool& steady) const {
+  steady=false;
+  const auto& a=controls_.average;const auto w=a.window;
+  // Two complete windows of consecutive iterations ending here.
+  if(averaging_.size()!=std::size_t(2*w) || averaging_.back().first!=iteration || averaging_.front().first!=iteration-2*w+1)return std::nullopt;
+  const auto n=force_reports_.size();
+  // Hann-weighted means: a plain mean of a cycle is off by up to about
+  // amplitude * period / (pi * window) from the partial cycle at its ends;
+  // the taper suppresses that by orders of magnitude, so the drift test
+  // measures the mean, not where the window cut the cycle.
+  constexpr double pi=3.141592653589793;
+  const auto hann=[&](std::size_t k,std::size_t length){const auto s=std::sin(pi*(double(k)+.5)/double(length));return 2*s*s/double(length);};
+  std::vector<double> mean_a(n,0),mean_b(n,0),mean(n,0),lo_a(n,INFINITY),hi_a(n,-INFINITY),lo_b(n,INFINITY),hi_b(n,-INFINITY);
+  for(std::size_t k=0;k<averaging_.size();++k) {
+    const bool second=k>=std::size_t(w);
+    const auto in_window=hann(second?k-w:k,w),overall=hann(k,2*w);
+    for(std::size_t i=0;i<n;++i) {
+      const auto v=averaging_[k].second[i];
+      (second?mean_b:mean_a)[i]+=in_window*v;mean[i]+=overall*v;
+      auto& lo=second?lo_b:lo_a;auto& hi=second?hi_b:hi_a;lo[i]=std::min(lo[i],v);hi[i]=std::max(hi[i],v);
+    }
+  }
+  double largest=0;for(std::size_t i=0;i<n;++i)largest=std::max(largest,std::abs(mean[i]));
+  steady=true;Json::Object reports;
+  for(std::size_t i=0;i<n;++i) {
+    const auto scale=std::max(std::abs(mean[i]),.01*largest);
+    const auto range_a=hi_a[i]-lo_a[i],range_b=hi_b[i]-lo_b[i];
+    const auto drift=scale>0?std::abs(mean_b[i]-mean_a[i])/scale:INFINITY;
+    // A stationary cycle keeps its range: a growing one may still diverge and
+    // a decaying one is still converging. The tolerance slack covers a
+    // near-settled report whose range is noise.
+    const auto change=range_a>0?range_b/range_a-1:range_b>0?INFINITY:0.;
+    const bool stationary=std::abs(range_b-range_a)<=a.range*range_a+a.tolerance*scale;
+    const bool ok=std::isfinite(mean[i]) && drift<=a.tolerance && stationary;steady&=ok;
+    reports.emplace(force_reports_[i],Json::Object{{"mean",mean[i]},{"min",std::min(lo_a[i],lo_b[i])},{"max",std::max(hi_a[i],hi_b[i])},
+                                                   {"drift",std::isfinite(drift)?Json(drift):Json(nullptr)},{"range_change",std::isfinite(change)?Json(change):Json(nullptr)},{"met",ok}});
+  }
+  return Json::Object{{"window",w},{"from",iteration-2*w+1},{"to",iteration},{"steady",steady},{"reports",std::move(reports)}};
 }
 std::vector<std::optional<double>> ConvergenceMonitor::ranges(int iteration,int window) const {
   std::vector<std::optional<double>> out(force_reports_.size());
@@ -82,8 +134,9 @@ ConvergenceSample ConvergenceMonitor::sample(int iteration,const std::map<std::s
     conditions.push_back(Json::Object{{"kind","report"},{"report",r.report},{"value",value?Json(*value):Json(nullptr)},{"criterion",r.stop},{"met",ok}});
     states.push_back({ok,"report:"+r.report});
   }
+  record(iteration,reports);
   bool settled=false,settled_twice=false;
-  if(!force_reports_.empty()) {
+  if(controls_.settle_condition()) {
     const auto& s=controls_.settle;
     Forces f{iteration,{}};
     for(const auto& name:force_reports_)f.values.push_back(reports.at(name));
@@ -132,6 +185,11 @@ ConvergenceSample ConvergenceMonitor::sample(int iteration,const std::map<std::s
   if(!out.met){out.met_by.clear();out.residuals_waived=false;out.confirm=out.confirm && !out.met;}
   else out.confirm=false;
   out.json={{"met",out.met},{"conditions",std::move(conditions)}};
+  // Averaging is a stop of its own, evaluated only while unconverged.
+  if(!out.met && controls_.average_stop()) {
+    bool steady=false;out.averaged=averaged(iteration,steady);
+    if(out.averaged){out.statistically_steady=steady;out.json.emplace("averaged",*out.averaged);}
+  }
   return out;
 }
 std::vector<std::string_view> solved_residuals(std::optional<fluent::ViscousModel> model,bool transition,bool planar) {

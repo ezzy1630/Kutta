@@ -35,7 +35,8 @@ struct Options {
   std::filesystem::path input,data,setup_file,live_directory,out="kutta-result";
   std::string backend="auto";
   fv::CoupledEdgeStorage coupled_edge_storage=fv::CoupledEdgeStorage::Cached;
-  int iterations=1000,live_every=app::LiveCadence::default_every;
+  // 0: the case's default limit (setup::RunControls).
+  int iterations=0,live_every=app::LiveCadence::default_every;
   std::vector<setup::Approximation> approximations;
 };
 Options parse(int argc,char** argv) {
@@ -231,17 +232,39 @@ int solve(int argc,char** argv) {
       human<<"       sec/iter\n";
     }
     const auto run_start=Clock::now();
-    bool stopped=false,converged=false;
+    bool stopped=false,converged=false,steady=false;
+    // The averaging verdict that stopped a statistically steady run, or the
+    // last averaging state of a run that stopped unconverged otherwise.
+    std::optional<Json::Object> averaged;
     setup::ConvergenceMonitor monitor(convergence);std::vector<std::string> met_by;bool residuals_waived=false;
     // The forces-settled condition confirms itself with a sample at the next
     // iteration, off the monitor stride.
     int confirm_at=-1;
     auto batch=Clock::now();int batch_count=0;double batch_snapshot_time=0;
+    // The last finite monitored residuals, for the divergence message.
+    int last_residual_iteration=0;std::vector<double> last_residuals;
+    // A non-finite linear system or residual means the iteration diverged.
+    // Say so, with what was last finite and what commonly causes it, instead
+    // of the low-level check that caught it.
+    const auto diverged=[&](int iteration,std::string_view detail) {
+      std::ostringstream m;m.imbue(std::locale::classic());m<<std::setprecision(3);
+      m<<"the solution diverged at iteration "<<iteration<<" ("<<detail<<").";
+      if(last_residual_iteration>0) {
+        m<<" Last finite residuals, iteration "<<last_residual_iteration<<":";
+        for(std::size_t i=0;i<last_residuals.size();++i)m<<' '<<residual_names[i]<<'='<<last_residuals[i];
+        m<<'.';
+      }
+      if(!setup->settings.limit)m<<" Gradient limiting is off (methods/gradient-limiting): unlimited second-order reconstruction is unstable on stretched wall-layer and low-quality cells; turn limiting back on.";
+      m<<" Check the mesh quality ("<<solver.poor_cells()<<" cells at orthogonal quality <= "<<setup->settings.poor_cell_quality<<") and the under-relaxation factors.";
+      return NonfiniteError(m.str());
+    };
     while(solver.report().iteration<o.iterations) {
       if(stop.requested()){stopped=true;if(batch_count==0)break;}
       else {
         // One outer iteration is the cancellation boundary on every backend.
-        solver.iterate(1);++batch_count;stopped=stop.requested();
+        try {solver.iterate(1);}
+        catch(const NonfiniteError& e) {throw diverged(solver.report().iteration+1,e.what());}
+        ++batch_count;stopped=stop.requested();
         if(solver.report().iteration==1)memory::phase("first-iteration");
       }
       const auto iter=solver.report().iteration;
@@ -249,7 +272,10 @@ int solve(int argc,char** argv) {
       // Between monitors the boundary-pressure buffer is pressure-correction
       // scratch. Reuse the solver's scheduled refresh; never export that scratch
       // or add extra monitor work that could change the solve for live view.
-      if(report_due && solver.report().residual_iteration!=iter)solver.monitor();
+      if(report_due && solver.report().residual_iteration!=iter) {
+        try {solver.monitor();}
+        catch(const NonfiniteError& e) {throw diverged(iter,e.what());}
+      }
       if(live && solver.report().residual_iteration==iter && cadence.due(iter,seconds(run_start)-cadence.total_seconds())) {
         const auto snapshot_start=Clock::now();
         const auto snapshot_fields=app::collect_view_fields(*dev,solver,c,reference?&*reference:nullptr,*setup,notice,false);
@@ -273,8 +299,22 @@ int solve(int argc,char** argv) {
       // monitor samples: no force reports and no convergence evaluation.
       const bool sample=iter%setup->settings.monitor_interval==0 || iter==o.iterations || stopped || iter==confirm_at;
       const bool early=!sample && iter<=5 && solver.report().residual_iteration==iter;
+      // The statistically-steady stop averages the forces of every iteration
+      // once it has started (a force evaluation does not change the solve).
+      if(!sample && convergence.check && monitor.wants_forces(iter)) {
+        std::map<std::string,double> values;
+        for(const auto& d:reports) {
+          const auto force=dot(solver.forces(d.patches,c.reference.pressure.value_or(0)).force(),*d.direction);
+          if(!std::isfinite(force))throw diverged(iter,"non-finite "+d.name+" report");
+          values.emplace(d.name,force);
+        }
+        monitor.record(iter,values);
+      }
       if(!sample && !early)continue;
-      const auto r=solver.report().residual_iteration==iter?solver.report():solver.monitor();
+      const auto r=[&] {
+        if(solver.report().residual_iteration==iter)return solver.report();
+        try {return solver.monitor();}catch(const NonfiniteError& e) {throw diverged(iter,e.what());}
+      }();
       dev->synchronize();const auto per_iteration=(seconds(batch)-batch_snapshot_time)/batch_count;
       std::vector<double> values{r.continuity.fluent_scaled,r.u.fluent_scaled,r.v.fluent_scaled};
       if(!planar) values.push_back(r.w.fluent_scaled);
@@ -284,8 +324,9 @@ int solve(int argc,char** argv) {
       KUTTA_REQUIRE(values.size()==residual_names.size(),"residual names do not match the solved equations");
       residuals<<r.iteration;
       if(!jsonl)human<<std::setw(6)<<r.iteration<<std::scientific<<std::setprecision(6);
+      for(std::size_t i=0;i<values.size();++i)if(!std::isfinite(values[i]))throw diverged(r.iteration,"non-finite "+std::string(residual_names[i])+" residual");
+      last_residual_iteration=r.iteration;last_residuals=values;
       for(double v:values) {
-        KUTTA_REQUIRE(std::isfinite(v),"non-finite residual at iteration "+std::to_string(r.iteration));
         residuals<<','<<v;if(!jsonl)human<<std::setw(14)<<v;
       }
       residuals<<','<<per_iteration<<'\n';
@@ -325,6 +366,8 @@ int solve(int argc,char** argv) {
       }
       // Met conditions win over a stop requested during the same sample.
       if(state && state->met){converged=true;met_by=state->met_by;residuals_waived=state->residuals_waived;break;}
+      if(state && state->averaged)averaged=state->averaged;
+      if(state && state->statistically_steady){steady=true;break;}
       confirm_at=state && state->confirm?iter+1:-1;
       if(stopped)break;
       batch=Clock::now();batch_count=0;batch_snapshot_time=0;
@@ -391,7 +434,22 @@ int solve(int argc,char** argv) {
     summary_convergence.emplace("met_by",Json::Array(met_by.begin(),met_by.end()));
     summary_convergence.emplace("iteration",converged?Json(solver.report().iteration):Json(nullptr));
     summary_convergence.emplace("residuals_waived",residuals_waived);
-    const auto stop_reason=converged?"converged":stopped?"stopped":"iteration_limit";
+    // A statistically steady run is not converged: it reports its forces'
+    // mean and range over the averaging windows, with coefficients when the
+    // reference values define them (coefficient = force / (q A)).
+    const bool coefficients=c.reference.density && *c.reference.density>0 && c.reference.velocity && *c.reference.velocity>0 && c.reference.area && *c.reference.area>0;
+    // A converged run's forces are its answer; averaging describes only runs
+    // that did not converge.
+    if(converged)averaged.reset();
+    if(averaged && coefficients) {
+      const double qa=.5**c.reference.density**c.reference.velocity**c.reference.velocity**c.reference.area;
+      for(auto& [name,entry]:std::get<Json::Object>((*averaged)["reports"].value)) {
+        auto& o=std::get<Json::Object>(entry.value);
+        o.emplace("coefficient",Json::Object{{"mean",std::get<double>(o["mean"].value)/qa},{"min",std::get<double>(o["min"].value)/qa},{"max",std::get<double>(o["max"].value)/qa}});
+      }
+    }
+    summary_convergence.emplace("averaged",averaged?Json(*averaged):Json(nullptr));
+    const auto stop_reason=converged?"converged":steady?"statistically_steady":stopped?"stopped":"iteration_limit";
     auto summary=output(o.out/"summary.json");
     summary<<"{\n  \"v\": 1,\n  \"modified\": "<<(changes.empty()?"false":"true")<<",\n  \"overrides\": "<<dump_json(applied)<<",\n  \"run_controls\": "<<dump_json(run_controls)<<",\n  \"approximate\": "<<(setup->approximations.empty()?"false":"true")<<",\n  \"approximation_notice\": "<<json_string(setup::approximation_notice(setup->approximations))
       <<",\n  \"approximations\": [";
@@ -425,8 +483,20 @@ int solve(int argc,char** argv) {
         human<<"Converged at iteration "<<solver.report().iteration<<" (met:";
         for(const auto& m:met_by)human<<' '<<m;
         human<<")"<<(residuals_waived?"; residuals stalled above their criteria while the forces held for twice the window":"")<<".\n";
-      } else if(stopped)human<<"Stopped on request at iteration "<<solver.report().iteration<<".\n";
+      } else if(steady)human<<"Stopped statistically steady at iteration "<<solver.report().iteration<<", not converged: the forces cycle about a steady mean.\n";
+      else if(stopped)human<<"Stopped on request at iteration "<<solver.report().iteration<<".\n";
       else human<<"Reached the iteration limit ("<<solver.report().iteration<<" iterations)"<<(convergence.check && convergence.has_conditions()?" before the convergence conditions were met":"")<<".\n";
+      if(averaged) {
+        const auto& a=*averaged;
+        human<<std::defaultfloat<<std::setprecision(5);
+        human<<"Mean and range over iterations "<<int(std::get<double>(a.at("from").value))<<"-"<<int(std::get<double>(a.at("to").value))
+             <<(steady?"":" (not statistically steady: the mean drifts or the range grows or decays)")<<":\n";
+        for(const auto& [name,entry]:std::get<Json::Object>(a.at("reports").value)) {
+          const auto& o=std::get<Json::Object>(entry.value);
+          const auto& v=coefficients?std::get<Json::Object>(o.at("coefficient").value):o;
+          human<<"  "<<name<<(coefficients?" coefficient ":" force ")<<std::get<double>(v.at("mean").value)<<" (min "<<std::get<double>(v.at("min").value)<<", max "<<std::get<double>(v.at("max").value)<<")\n";
+        }
+      }
       human<<"Wrote "<<o.out.string()<<" ("<<solver.report().iteration<<" iterations, "<<wall_time<<" s solve).\n";
     }
     if(!notice.empty() && !jsonl) human<<notice<<std::endl;
