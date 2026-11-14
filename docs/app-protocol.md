@@ -1206,6 +1206,12 @@ below orthogonal quality 0.15, the motion retreats locally (halved, then
 zero), so the remaining geometric error is reported rather than hidden
 (`snap/point_distance_m`). Slots narrower than about two cells close; see
 `castellation/gaps` for each zone pair's width and minimum fluid cells across.
+When `proximity_cells` is 3 or more (the default), no fluid cell is left with
+the body on two opposite sides (v1 additive): such one-cell notches, where a
+wing slot meets an endplate for example, are removed repeatedly and counted
+in `castellation/thin_gap_cells_removed`. k-ω diverged in them at the default
+FSAE size. With `proximity_cells` 1 or 2 the setup asks for thin slots, so
+nothing is removed (the count is 0).
 
 Prism layers are inserted by pushing the snapped mesh off the selected walls
 (`layers/zones`, default all) along point normals and filling the gap with one

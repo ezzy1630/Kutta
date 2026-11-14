@@ -245,6 +245,32 @@ TEST_CASE("omitted refinement boxes default to body-relative boxes; an explicit 
   CHECK(std::get<double>(memory.at("bytes").value)==doctest::Approx(defaulted.mesh.n_cells*2100.));
   CHECK(std::get<double>(memory.at("coupled_bytes").value)==doctest::Approx(defaulted.mesh.n_cells*2600.));
 }
+TEST_CASE("a slot sized for three cells is never left one cell across; fewer cells keep thin slots") {
+  MeshTemp t;
+  // Uniform 0.1 m cells, no gap refinement; slot widths across one to three cells.
+  const std::string common=R"("base_size":0.4,"tunnel":{"upstream":0.3,"downstream":0.3,"side":0.3,"top":0.3},"layers":{"count":0},"refinement_boxes":[],"max_cells":200000})";
+  const auto three=parse_settings(R"({"v":1,"surface":{"min_size":0.1,"max_size":0.1,"proximity_min_size":0.1},)"+common);
+  const auto two=parse_settings(R"({"v":1,"surface":{"min_size":0.1,"max_size":0.1,"proximity_min_size":0.1,"proximity_cells":2},)"+common);
+  bool closed=false, open=false, thin_kept=false;
+  for(double gap=.1;gap<.36;gap+=.025) {
+    const auto sf=surface(t,cube("front")+shifted_x(cube("rear"),.6+gap));
+    for(const auto* settings:{&three,&two}) {
+      const auto result=generate(sf,*settings);
+      CHECK_NOTHROW(validate(result.mesh));
+      const auto& castellation=std::get<Json::Object>(result.report.at("castellation").value);
+      if(settings==&two) CHECK(std::get<double>(castellation.at("thin_gap_cells_removed").value)==0);
+      for(const auto& g:std::get<Json::Array>(castellation.at("gaps").value)) {
+        const auto& o=std::get<Json::Object>(g.value);
+        if(std::get<Json::Array>(o.at("between").value)[1]!=Json{"rear"}) continue;
+        const auto cells=std::get<double>(o.at("min_cells_across").value);
+        INFO("gap " << gap << " cells across " << cells);
+        if(settings==&three) { CHECK(cells!=1); closed=closed || cells==0; open=open || cells>=2; }
+        else thin_kept=thin_kept || cells==1;
+      }
+    }
+  }
+  CHECK(closed); CHECK(open); CHECK(thin_kept);
+}
 TEST_CASE("incremental displacement matches a fresh displacement of the same target") {
   // A 6x6x6 hex block whose z=0 face is a wall pushed up; the second run
   // changes the target on part of the wall.

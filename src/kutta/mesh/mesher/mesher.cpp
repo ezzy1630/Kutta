@@ -257,7 +257,7 @@ Json::Array gap_report(const Tree& tree, const SurfaceQuery& query, const Surfac
 // connected to the far field. Cells are octree cubes; a side facing a finer
 // neighbour is split into four quads (2:1 hanging faces), and edge midpoints
 // used by any finer cell are inserted into coarser polygons.
-Work castellate(const Tree& tree, const SurfaceQuery& query, const Surface& surface, Json::Object& stats) {
+Work castellate(const Tree& tree, const SurfaceQuery& query, const Surface& surface, bool close_thin, Json::Object& stats) {
   const auto& nodes = tree.nodes;
   std::vector<Leaf> state(nodes.size(), Interior);
   std::vector<int> leaves;
@@ -273,6 +273,29 @@ Work castellate(const Tree& tree, const SurfaceQuery& query, const Surface& surf
     }
     state[leaves[k]] = removed ? Removed : Kept;
   });
+  // With gaps sized to three or more cells (proximity_cells >= 3), a fluid
+  // cell with the body on two opposite sides is a notch one cell thick, not a
+  // slot: at the default FSAE size such a remnant where a wing slot meets an
+  // endplate made k-omega diverge by iteration 30. It closes, repeatedly.
+  // With fewer cells across, this would close the slots the setup asked for
+  // (on the coarse FSAE car that diverges instead), so it is skipped.
+  Index thin = 0;
+  for (bool changed = close_thin; changed;) {
+    std::vector<int> drop;
+    for (auto i : leaves) {
+      if (state[i] != Kept) continue;
+      const auto blocked = [&](int axis, int side) {
+        const auto ids = tree.across(nodes[i], axis, side);
+        return std::any_of(ids.begin(), ids.end(), [&](int id) { return id >= 0 && state[id] == Removed; });
+      };
+      for (int axis = 0; axis < 3; ++axis)
+        if (blocked(axis, 0) && blocked(axis, 1)) { drop.push_back(i); break; }
+    }
+    for (auto i : drop) state[i] = Removed;
+    thin += index(drop.size());
+    changed = !drop.empty();
+  }
+  stats["thin_gap_cells_removed"] = double(thin);
   const auto start = tree.locate({0, 0, 0});
   KUTTA_REQUIRE(start >= 0 && state[start] == Kept, "mesh: tunnel corner is inside the body; enlarge the tunnel");
   std::vector<int> queue{start};
@@ -548,7 +571,7 @@ Result generate(const Surface& surface, const Settings& requested, double speed,
   lap("octree");
   emit("trim", .4, "Castellating: removing cells inside or crossed by the surface");
   Json::Object castellation;
-  auto work = castellate(tree, query, surface, castellation);
+  auto work = castellate(tree, query, surface, settings.proximity_cells >= 3, castellation);
   const auto octree_cells = work.cells;
   lap("castellate");
   emit("trim", .5, "Snapping the wall onto the surface and its feature edges");
