@@ -122,6 +122,19 @@ consistent with the moving ground. In 2D, use +z for +x motion at the bottom.
 The starter requires wheel geometry from the user; names alone do not imply
 centres or radii. Wheels without geometry remain stationary with a note.
 
+The ground is a moving wall at the freestream speed by default (a road, or a
+rolling-road tunnel), the FSAE default. For a fixed-floor wind tunnel, such
+as the Ahmed body's validation data, give it the `stationary-ground` role:
+
+```sh
+kutta new-case ahmed.msh --speed 40 --role ground=stationary-ground --out ahmed.kutta.json
+```
+
+It writes `"ground": {"type": "wall", "motion": "stationary"}`: no slip at
+zero velocity. Like the moving ground, it is never one of the drag and
+downforce report zones. A plain `--role ground=wall` is a car wall and is
+added to the reports (a note says so), which is almost never wanted.
+
 ```json
 "cell_zones": {
   "radiator": {

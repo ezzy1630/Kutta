@@ -122,10 +122,11 @@ int new_case(int argc, char** argv) {
       for (const auto& r : a.options.at("--role")) {
         const auto eq = r.rfind('=');
         const auto role = eq == std::string::npos ? std::nullopt : setup::parse_role(r.substr(eq + 1));
-        if (!role)
-          throw RejectedSettings({{"role", "--role " + r + ": expected ZONE=ROLE with ROLE one of velocity-inlet, pressure-outlet, "
-                                                           "moving-ground, wall, symmetry, interior"}},
-                                 "Invalid options:");
+        if (!role) {
+          std::string names;
+          for (const auto known : setup::zone_roles()) names += (names.empty() ? "" : ", ") + std::string(setup::role_name(known));
+          throw RejectedSettings({{"role", "--role " + r + ": expected ZONE=ROLE with ROLE one of " + names}}, "Invalid options:");
+        }
         options.roles[r.substr(0, eq)] = *role;
       }
     if (a.options.contains("--wheel"))
@@ -169,6 +170,7 @@ int new_case(int argc, char** argv) {
                       "instead of converging; convert them to polyhedra first, as Fluent recommends: kutta polyhedra MESH --out POLY.msh "
                       "(prism layers are kept).");
     bool inlet = false, outlet = false, wheels = false;
+    std::vector<std::string> ground_walls;
     Json::Array zones;
     for (const auto& z : info.zones) {
       if (z.kind == setup::MeshZoneInfo::Kind::cell) continue;
@@ -178,6 +180,8 @@ int new_case(int argc, char** argv) {
       inlet = inlet || role == setup::ZoneRole::velocity_inlet;
       outlet = outlet || role == setup::ZoneRole::pressure_outlet;
       wheels = wheels || (role == setup::ZoneRole::wall && s.group == "Wheels" && !options.wheels.contains(z.name));
+      if (role == setup::ZoneRole::wall && (s.role == setup::ZoneRole::moving_ground || s.role == setup::ZoneRole::stationary_ground))
+        ground_walls.push_back(z.name);
       Json::Object row{{"id", double(z.id)}, {"name", z.name}, {"mesh_type", z.type},
                        {"kind", z.kind == setup::MeshZoneInfo::Kind::interior ? "interior" : "boundary"}, {"faces", double(z.count)},
                        {"role", std::string(setup::role_name(role))}, {"suggested_role", std::string(setup::role_name(s.role))},
@@ -186,11 +190,14 @@ int new_case(int argc, char** argv) {
     }
     if (!inlet) notes.push_back("No zone is a velocity inlet; assign the inflow boundary its role.");
     if (!outlet) notes.push_back("No zone is a pressure outlet; assign the outflow boundary its role.");
+    for (const auto& g : ground_walls)
+      notes.push_back("Zone " + g + " looks like the ground but has the wall role, so it is part of the car's drag and downforce reports; "
+                      "use --role " + g + "=stationary-ground for a wind-tunnel floor at rest, or moving-ground for a road.");
     if (wheels) notes.push_back("Wheels without --wheel geometry remain stationary; pass --wheel ZONE=RADIUS,X,Y,Z,AX,AY,AZ to set angular speed to freestream speed / radius.");
     if (!out.empty()) write_text(out, text);
     if (json) {
       Json::Array roles;
-      for (int r = 0; r <= int(setup::ZoneRole::interior); ++r) roles.push_back(std::string(setup::role_name(setup::ZoneRole(r))));
+      for (const auto r : setup::zone_roles()) roles.push_back(std::string(setup::role_name(r)));
       Json::Array note_list(notes.begin(), notes.end());
       std::cout << dump_json(Json::Object{
                        {"v", 1}, {"template", "fsae-external"}, {"speed", options.speed},

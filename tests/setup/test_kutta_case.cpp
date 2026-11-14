@@ -103,6 +103,27 @@ TEST_CASE("The FSAE starter suggests roles from zone names and lowers to a case 
   auto lowered_wall = lower_kutta_case(as_wall, info);
   const auto inventory = settings_inventory(lowered_wall, run);
   CHECK(std::any_of(inventory.begin(), inventory.end(), [](const auto& s) { return s.path == "boundary/inlet/velocity-magnitude"; }));
+  // A plain wall role puts the ground in the car's reports.
+  for (const auto& f : force_definitions(lowered_wall, retagged)) CHECK(f.patches == std::vector<std::string>{"front_wing", "ground"});
+
+  // A stationary ground (a wind-tunnel floor) is a no-slip wall at rest
+  // and stays out of the force reports.
+  CHECK(parse_role("stationary-ground") == ZoneRole::stationary_ground);
+  CHECK(role_name(ZoneRole::stationary_ground) == "stationary-ground");
+  CHECK(zone_roles().back() == ZoneRole::stationary_ground);
+  auto tunnel = fsae_starter(info, "fsae_box.msh", {.speed = 20, .roles = {{"ground", ZoneRole::stationary_ground}}});
+  const auto& floor = std::get<WallInput>(tunnel.boundaries.at("ground"));
+  CHECK(floor.motion == WallInput::Motion::stationary);
+  CHECK_FALSE(floor.speed);CHECK_FALSE(floor.velocity);CHECK_FALSE(floor.angular_speed);
+  const auto tunnel_text = kutta_case_text(tunnel);
+  CHECK(parse_kutta_case(tunnel_text) == tunnel);
+  for (const auto& [name, report] : tunnel.reports) CHECK(report.zones == std::vector<std::string>{"front_wing"});
+  const auto lowered_tunnel = lower_kutta_case(tunnel, info);
+  auto retagged_tunnel = mesh;
+  apply_boundary_kinds(tunnel, retagged_tunnel);
+  const auto tunnel_setup = fluent_setup(lowered_tunnel, retagged_tunnel);
+  CHECK(tunnel_setup.approximations.empty());
+  for (const auto& f : force_definitions(lowered_tunnel, retagged_tunnel)) CHECK(f.patches == std::vector<std::string>{"front_wing"});
 }
 
 TEST_CASE("Lowering checks a Kutta case against its mesh") {

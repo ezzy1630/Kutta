@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <map>
 #include <optional>
+#include <span>
 #include <string>
 #include <variant>
 #include <vector>
@@ -251,7 +252,12 @@ struct ConvertedCase {
 ConvertedCase kutta_case_from_fluent(const fluent::FluentCase&, const MeshInfo&, std::filesystem::path mesh);
 
 // Starter cases (kutta new-case).
-enum class ZoneRole { velocity_inlet, pressure_outlet, moving_ground, wall, symmetry, interior };
+// stationary_ground (v1 additive, appended so existing roles keep their
+// order): a no-slip wall at rest, as in a wind tunnel without a moving belt,
+// never part of the body force reports.
+enum class ZoneRole { velocity_inlet, pressure_outlet, moving_ground, wall, symmetry, interior, stationary_ground };
+// Every role, in protocol order.
+std::span<const ZoneRole> zone_roles();
 std::string_view role_name(ZoneRole);
 std::optional<ZoneRole> parse_role(std::string_view);
 struct RoleSuggestion {
@@ -270,7 +276,8 @@ struct StarterOptions {
   std::map<std::string, ZoneRole> roles;  // overrides of the suggestions, by zone name
 };
 // The FSAE external-aero template: flow along +x, up +z (+y in 2D), SST, air,
-// velocity inlet, pressure outlet, moving ground, symmetry, stationary car
-// walls (rotating where wheel geometry is given), drag and downforce on every car wall.
+// velocity inlet, pressure outlet, moving ground (or a stationary ground by
+// role), symmetry, stationary car walls (rotating where wheel geometry is
+// given), drag and downforce on every car wall and never on the ground.
 KuttaCase fsae_starter(const MeshInfo&, std::filesystem::path mesh, const StarterOptions&);
 } // namespace kutta::setup

@@ -78,7 +78,7 @@ is the same identity.
            "reason":"name contains \"ground\"; the road moves with the freestream","group":null},
           {"id":10,"name":"front_wing","mesh_type":"wall","kind":"boundary","faces":10,
            "role":"wall","suggested_role":"wall","reason":"a wall of the car","group":"Front wing"}],
- "roles":["velocity-inlet","pressure-outlet","moving-ground","wall","symmetry","interior"],
+ "roles":["velocity-inlet","pressure-outlet","moving-ground","wall","symmetry","interior","stationary-ground"],
  "notes":["Reference area is Fluent's default, 1 m^2; ..."],
  "case":{...the Kutta case...},
  "out":"/abs/car.kutta.json"}
@@ -86,7 +86,13 @@ is the same identity.
 
 `suggested_role` comes from the zone's name (inlet, outlet, ground/road/belt,
 symmetry/top/side/farfield words), else from the mesh's zone type, else wall;
-`role` is the suggestion unless `--role ZONE=ROLE` overrides it. Wall zones
+`role` is the suggestion unless `--role ZONE=ROLE` overrides it. `roles` lists every
+role in this order; `stationary-ground` (v1 additive, appended) is a no-slip
+wall at rest, `{"type":"wall","motion":"stationary"}`, for a fixed-floor wind
+tunnel. A ground/road/belt zone is still suggested `moving-ground`, the FSAE
+default; neither ground role is ever a force-report zone. A zone suggested as
+ground but given the plain `wall` role joins the car's reports, and the notes
+say so. Wall zones
 carry an aero `group` (Front wing, Rear wing, Wing, Undertray / diffuser,
 Wheels, Body), the app's grouping. The `fsae-external` template: flow along
 +x at `--speed` (default 15 m/s), up +z (+y in 2D), k-ω SST, air, velocity
