@@ -37,8 +37,9 @@
 #include <QTemporaryDir>
 #include <QTimer>
 
-#include <cstdio>
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <deque>
 #include <functional>
 
@@ -287,7 +288,11 @@ int main(int argc, char** argv)
     auto showScene = [&w, sc](int panel, const QString& key) {
         return [&w, sc, panel, key](std::function<void()> next) {
             w.graphics()->show(key, panel);
-            sc->waitFor([&w, panel] { return w.graphics()->panel(panel)->scene() != nullptr; }, next, "scene " + key);
+            auto* p = w.graphics()->panel(panel);
+            sc->waitFor([p] { return p->scene() != nullptr || !p->loadError().isEmpty(); }, [sc, p, key, next] {
+                if (!p->scene()) return sc->fail("scene " + key + " not loaded: " + p->loadError());
+                next();
+            }, "scene " + key);
         };
     };
     auto display = [&w](int panel, std::function<void(ViewDisplay&)> fn) {
@@ -819,9 +824,13 @@ int main(int argc, char** argv)
                 if (!p.waitForFinished(60000) || p.exitCode() != 0) return sc->fail("sample-stl: " + QString::fromUtf8(p.readAllStandardError()));
                 files = {QDir(stlDir).filePath("fsae-car.stl"), QDir(stlDir).filePath("rear-wing.stl")};
             }
-            mw->importGeometry(files, QDir(dataRoot).filePath("projects/fsae-car"));
+            mw->importGeometry(files, QDir(dataRoot).filePath(stls.isEmpty() ? QStringLiteral("projects/fsae-car") : "projects/" + QFileInfo(files.first()).completeBaseName()));
             sc->waitFor([mw] { return mw->hasProject() && !mw->loading() && mw->scene(); }, [mw, sc, next] {
                 if (!mw->error().isEmpty()) return sc->fail("import: " + mw->error());
+                // The real path: a kutta mesh setup file and the speed.
+                if (const QString setup = qEnvironmentVariable("KUTTA_SCENARIO_MESH_SETUP"); !setup.isEmpty() && !mw->loadSetupFile(setup))
+                    return sc->fail("mesh setup: " + mw->error());
+                if (const double v = qEnvironmentVariable("KUTTA_SCENARIO_SPEED").toDouble(); v > 0) mw->setSpeed(v);
                 next();
             }, "geometry to import");
         });
@@ -842,10 +851,11 @@ int main(int argc, char** argv)
         if (level == 3) sc->add(go("mesh/sizing"));
         if (level == 4) {
             // Held at the boundary-layer stage so the shot shows a run in progress.
+            // The real mesher is not held: the shot is taken as it reaches the stage.
             sc->add([sc, mw](auto next) {
                 qputenv("KUTTA_FIXTURE_MESH_HOLD", "layers");
                 if (!mw->generate()) return sc->fail("generate refused: " + mw->error());
-                sc->waitFor([mw] { return mw->progress().stage == "layers"; }, next, "mesher to reach the layers stage");
+                sc->waitFor([mw] { return mw->progress().stage == "layers"; }, next, "mesher to reach the layers stage", 600000);
             });
             sc->add(go("mesh/generate"));
         }
@@ -855,7 +865,7 @@ int main(int argc, char** argv)
             sc->waitFor([mw] { return !mw->meshing(); }, [sc, mw, next] {
                 if (mw->outcome() != MeshWorkflow::Outcome::Succeeded) return sc->fail("mesh: " + mw->failure());
                 next();
-            }, "mesh to generate", 180000);
+            }, "mesh to generate", 1800000);
         };
         auto setUpCase = [sc, session, mw](auto next) {
             const bool variant = !mw->project().baseCase.isEmpty();
@@ -881,6 +891,26 @@ int main(int argc, char** argv)
             sc->add(go("new-case"));
         }
         auto confirmAndCreate = [sc, session, mw](auto next) {
+            // KUTTA_SCENARIO_ROLES "zone=role,...", KUTTA_SCENARIO_WHEELS a JSON list of
+            // {zone, radius, center, axis} (tools/mesher/generate_geometry.py's
+            // fsae-wheels.json): the values a user would type on the page.
+            for (const QString& pair : qEnvironmentVariable("KUTTA_SCENARIO_ROLES").split(',', Qt::SkipEmptyParts))
+                session->setNewCaseRole(pair.section('=', 0, 0), pair.section('=', 1));
+            if (const QString wheels = qEnvironmentVariable("KUTTA_SCENARIO_WHEELS"); !wheels.isEmpty()) {
+                QFile f(wheels);
+                if (!f.open(QIODevice::ReadOnly)) return sc->fail("cannot read " + wheels);
+                for (const QJsonValue& v : QJsonDocument::fromJson(f.readAll()).array()) {
+                    const QJsonObject o = v.toObject();
+                    const QJsonArray c = o.value("center").toArray(), a = o.value("axis").toArray();
+                    WheelGeometry g;
+                    g.radius = o.value("radius").toDouble();
+                    g.centre = {c[0].toDouble(), c[1].toDouble(), c[2].toDouble()};
+                    g.axis = {a[0].toDouble(), a[1].toDouble(), a[2].toDouble()};
+                    const QString zone = o.value("zone").toString();
+                    session->enableNewCaseWheel(zone, true);
+                    session->setNewCaseWheel(zone, g);
+                }
+            }
             for (const NewCaseZone* z : session->newCaseDraft()->boundaries())
                 if (z->wheel && !z->wheelConfirmed) session->confirmNewCaseWheel(z->name, true);
             if (const QString e = session->newCaseDraft()->wheelError(); !e.isEmpty()) return sc->fail("wheels: " + e);
@@ -893,20 +923,71 @@ int main(int argc, char** argv)
             }, "case from geometry to open");
         };
         auto vehicle = [session](auto next) {
+            // The fixture's synthetic car, or KUTTA_SCENARIO_VEHICLE "front-axle-x,wheelbase" (m).
+            const QStringList v = qEnvironmentVariable("KUTTA_SCENARIO_VEHICLE").split(',', Qt::SkipEmptyParts);
+            if (!session->cliInfo().fixture && v.size() != 2) return next();
             AeroSpec spec = session->aeroSpec();
-            spec.frontAxle = QVector3D(-0.78f, 0, 0);  // the synthetic car's front tyre contact
-            spec.wheelbase = 1.58;
+            spec.frontAxle = QVector3D(v.size() == 2 ? v[0].toFloat() : -0.78f, 0, 0);  // front tyre contact
+            spec.wheelbase = v.size() == 2 ? v[1].toDouble() : 1.58;
             spec.momentCentre = *spec.frontAxle;
             session->setAeroSpec(spec);
             next();
+        };
+        // The real path: reference values (KUTTA_SCENARIO_REFERENCE "area,length"),
+        // and the mesher qualification's stopping rule (tools/mesher/qualify.py):
+        // residuals 1e-3 and drag and downforce settled to 5e-4 over 50
+        // iterations after 500, so the run says whether it converged.
+        auto realSettings = [session, sc](auto next) {
+            if (session->cliInfo().fixture) return next();
+            const QStringList ref = qEnvironmentVariable("KUTTA_SCENARIO_REFERENCE").split(',', Qt::SkipEmptyParts);
+            QStringList errors;
+            auto set = [&](const QString& path, const QJsonValue& value) {
+                if (const QString e = session->settings()->setValue(path, value); !e.isEmpty()) errors << path + ": " + e;
+            };
+            if (ref.size() >= 1) set("reference/area", ref[0].toDouble());
+            if (ref.size() >= 2) set("reference/length", ref[1].toDouble());
+            set("monitors/check-convergence", true);
+            for (const char* r : {"drag", "downforce"}) {
+                const QString p = QStringLiteral("monitors/report/%1/").arg(r);
+                set(p + "active", true);
+                set(p + "previous-values", 50);
+                set(p + "ignore-before", 500);
+                set(p + "stop-criterion", 5e-4);
+            }
+            if (!errors.isEmpty()) return sc->fail(errors.join("; "));
+            next();
+        };
+        const int iterations = qEnvironmentVariableIntValue("KUTTA_SCENARIO_ITERATIONS");
+        auto runGeometryCase = [session, sc, iterations](auto next) {
+            session->settings()->setValue("run/iterations", iterations > 0 ? iterations : 200);
+            if (session->run().isEmpty()) return sc->fail("run refused");
+            sc->waitFor([session] { return !session->running(); }, next, "run to finish", 7200000);
         };
         if (level >= 7) {
             sc->add(confirmAndCreate);
             sc->add(approveAll);
             sc->add(vehicle);
-            sc->add(runWith(200));
-            sc->add(showScene(0, "run:run-0001"));
-            sc->add(display(0, [&](ViewDisplay& d) { d.field = field("pressure_coefficient"); }));
+            sc->add(realSettings);
+            sc->add(runGeometryCase);
+            // A run whose view the CLI cannot export still has its forces:
+            // the viewport says why, and the scenario goes on to Aerodynamics.
+            sc->add([&w, sc](auto next) {
+                auto* p = w.graphics()->panel(0);
+                w.graphics()->show("run:run-0001", 0);
+                sc->waitFor([p] { return p->scene() != nullptr || !p->loadError().isEmpty(); }, [p, next] {
+                    if (!p->scene()) std::fprintf(stderr, "run view not loaded: %s\n", qPrintable(p->loadError()));
+                    next();
+                }, "scene run:run-0001");
+            });
+            sc->add([&w, field](auto next) {
+                auto* p = w.graphics()->panel(0);
+                if (p->scene()) {
+                    ViewDisplay d = p->display();
+                    d.field = field("pressure_coefficient");
+                    p->setDisplay(d);
+                }
+                next();
+            });
             if (level == 7) {
                 sc->add(go("results/aero"));
                 sc->add([sc, session](auto next) {
@@ -1095,9 +1176,14 @@ int main(int argc, char** argv)
         QCoreApplication::exit(4);
     });
     sc->add(settle(100));
-    // KUTTA_SCENARIO_SCROLL=bottom shows the end of a long inspector page.
+    // KUTTA_SCENARIO_SCROLL=bottom shows the end of a long inspector page, a
+    // number from 0 to 1 that far down it.
     sc->add([&](auto next) {
-        if (qEnvironmentVariable("KUTTA_SCENARIO_SCROLL") == "bottom") w.inspector()->verticalScrollBar()->setValue(w.inspector()->verticalScrollBar()->maximum());
+        const QString scroll = qEnvironmentVariable("KUTTA_SCENARIO_SCROLL");
+        QScrollBar* bar = w.inspector()->verticalScrollBar();
+        bool number = false;
+        const double at = scroll == "bottom" ? 1.0 : scroll.toDouble(&number);
+        if (scroll == "bottom" || number) bar->setValue(int(std::lround(std::clamp(at, 0.0, 1.0) * bar->maximum())));
         next();
     });
     sc->add([&](auto) {

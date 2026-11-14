@@ -1269,7 +1269,7 @@ QWidget* runHistory(const InspectorContext& c)
         add(QObject::tr("Device"), r->device.isEmpty() ? r->backend : r->device);
         if (r->status == RunStatus::Completed || r->status == RunStatus::Stopped) {
             const auto summary = c.session->history().summary(r->id);
-            const QString why = stopReasonText(r->stopReason, r->convergedBy, summary ? summary->convergence : ConvergenceSetup{});
+            const QString why = stopReasonText(r->stopReason, r->convergedBy, summary ? summary->convergence : ConvergenceSetup{}, r->residualsWaived);
             if (!why.isEmpty()) add(QObject::tr("Stopped"), why);
             if (const QString poor = summary ? poorMeshNumericsText(*summary) : QString(); !poor.isEmpty()) add(QObject::tr("Mesh numerics"), poor);
         }

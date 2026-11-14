@@ -725,7 +725,7 @@ QWidget* studies(const InspectorContext& c)
             if (r) {
                 runText = QStringLiteral("Run %1").arg(r->number);
                 if (var.status != VariantStatus::Done) runText += " · " + variantStatusLabel(var.status).toLower();
-                else if (r->converged()) runText += QObject::tr(" · converged");
+                else if (r->converged()) runText += r->residualsWaived ? QObject::tr(" · forces settled, not converged") : QObject::tr(" · converged");
                 QStringList m;
                 if (r->approximate()) m << "APPROXIMATE";
                 if (r->modified()) m << "MODIFIED";

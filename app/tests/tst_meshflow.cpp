@@ -36,6 +36,35 @@ class TestMeshFlow : public QObject {
         mw->importGeometry(files, m_dir.filePath("projects/" + name));
         return QTest::qWaitFor([mw] { return mw->hasProject() && !mw->loading(); }, 30000) && mw->error().isEmpty();
     }
+    // Keys and JSON types of `real` and `other` agree (arrays: their first elements).
+    static void sameShape(const QJsonValue& real, const QJsonValue& other, const QString& path, QStringList& diffs)
+    {
+        if (real.isNull() || other.isNull()) return;  // a reading the mesher may not have
+        if (real.type() != other.type()) {
+            diffs << QStringLiteral("%1: %2 in the real report, %3 in the fixture's").arg(path).arg(int(real.type())).arg(int(other.type()));
+            return;
+        }
+        if (real.isObject()) {
+            const QJsonObject a = real.toObject(), b = other.toObject();
+            for (const QString& k : a.keys())
+                if (!b.contains(k)) diffs << path + "/" + k + ": missing from the fixture's report";
+                else sameShape(a.value(k), b.value(k), path + "/" + k, diffs);
+            for (const QString& k : b.keys())
+                if (!a.contains(k)) diffs << path + "/" + k + ": not in the real report";
+        } else if (real.isArray() && !real.toArray().isEmpty() && !other.toArray().isEmpty()) {
+            sameShape(real.toArray().first(), other.toArray().first(), path + "/0", diffs);
+        }
+    }
+    QString writeSetup()
+    {
+        const QString path = m_dir.filePath("contract-mesh.json");
+        MeshSetup s;
+        s.units = LengthUnit::Millimetre;
+        QFile f(path);
+        f.open(QIODevice::WriteOnly);
+        f.write(QJsonDocument(s.toJson()).toJson());
+        return path;
+    }
     bool generated(MeshWorkflow* mw)
     {
         if (!mw->generate()) return false;
@@ -79,9 +108,17 @@ private slots:
         QCOMPARE(mw->outcome(), MeshWorkflow::Outcome::Succeeded);
         QVERIFY(mw->hasMesh() && !mw->meshStale());
         QVERIFY(QFileInfo::exists(mw->project().dir + "/mesh.json"));
-        QVERIFY(mw->report() && mw->report()->synthetic && mw->report()->cells > 0);
-        QVERIFY(mw->report()->metric("orthogonal_quality"));
+        QVERIFY(mw->report() && mw->meshSynthetic() && mw->report()->cells > 0);
+        QVERIFY(mw->report()->quality && mw->report()->quality->orthogonalMin);
+        QVERIFY(mw->report()->yPlus && mw->report()->layers && mw->report()->gaps);
         QCOMPARE(mw->progress().fraction, 1.0);
+        // mesh.json is in metres for this millimetre geometry, and the speed reaches the mesher.
+        QFile setup(mw->project().dir + "/mesh.json");
+        QVERIFY(setup.open(QIODevice::ReadOnly));
+        const QJsonObject j = QJsonDocument::fromJson(setup.readAll()).object();
+        QCOMPARE(j.value("units").toString(), QString("mm"));
+        QCOMPARE(j.value("base_size").toDouble(), mw->project().setup.baseSize);
+        QCOMPARE(*mw->report()->yPlus->speed, mw->project().speed);
 
         MeshSetup changed = mw->project().setup;
         changed.layers = 8;
@@ -95,6 +132,47 @@ private slots:
         QVERIFY(QTest::qWaitFor([mw] { return mw->hasProject() && !mw->loading(); }, 30000));
         QCOMPARE(mw->project().setup.layers, 8);
         QVERIFY(mw->hasMesh() && mw->meshStale());
+    }
+
+    // The fixture's mesh speaks kutta mesh's contract key for key: its
+    // report and mesh-done event have the shape of a real report (keys and
+    // value types, recursively), so the tests above test the real reading.
+    void fixtureMeshMatchesTheRealContract()
+    {
+        QFile realFile(QStringLiteral(KUTTA_TEST_DATA "/mesh-report-ahmed-coarse.json"));
+        QVERIFY(realFile.open(QIODevice::ReadOnly));
+        const QJsonObject real = QJsonDocument::fromJson(realFile.readAll()).object();
+        const QString out = m_dir.filePath("contract");
+        QProcess p;
+        p.start(QStringLiteral(KUTTA_FIXTURE_CLI), {"mesh", stl("fsae-car.stl"), stl("rear-wing.stl"), "--setup", writeSetup(), "--out", out,
+                                                    "--speed", "18", "--progress", "jsonl", "--force"});
+        QVERIFY(p.waitForFinished(60000));
+        QCOMPARE(p.exitCode(), 0);
+        QJsonObject done;
+        QStringList stages;
+        for (const QByteArray& line : p.readAllStandardOutput().split('\n')) {
+            if (line.trimmed().isEmpty()) continue;
+            auto ev = parseMeshEvent(line);
+            QVERIFY2(ev.ok(), line.constData());
+            if (const auto* pr = std::get_if<MeshProgressEvent>(&ev.value())) stages << pr->stage;
+            if (const auto* d = std::get_if<MeshDoneEvent>(&ev.value())) done = d->summary;
+        }
+        stages.removeDuplicates();
+        QCOMPARE(stages, meshStages());
+        QFile reportFile(meshReportFileIn(out));
+        QVERIFY(reportFile.open(QIODevice::ReadOnly));
+        const QJsonObject fixture = QJsonDocument::fromJson(reportFile.readAll()).object();
+        QStringList diffs;
+        sameShape(real, fixture, "", diffs);
+        QVERIFY2(diffs.isEmpty(), qPrintable(diffs.join('\n')));
+        QJsonObject event = done;
+        QCOMPARE(event.take("event").toString(), QString("mesh-done"));
+        QCOMPARE(event, fixture);
+        QVERIFY(parseMeshReport(fixture).ok());
+        QStringList zones;
+        for (const QJsonValue& z : fixture.value("zones").toArray()) zones << z.toObject().value("name").toString();
+        QCOMPARE(zones.mid(0, 6), (QStringList{"inlet", "outlet", "side-low", "side-high", "ground", "top"}));
+        QCOMPARE(fixture.value("estimated_first_cell_y_plus").toObject().value("speed_m_s").toDouble(), 18.0);
     }
 
     // Cancel stops the mesher and keeps nothing half-written.

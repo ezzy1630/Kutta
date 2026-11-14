@@ -71,7 +71,8 @@ with a role and the speed changed, the created case after a run, and that case
 saved with a changed reference area and reopened. `new-case-car` is the New
 Case page for the fixture's synthetic car mesh (3D, with wheels).
 `KUTTA_SCENARIO_CASE_NAME` names the created case and
-`KUTTA_SCENARIO_SCROLL=bottom` shows the end of the inspector page.
+`KUTTA_SCENARIO_SCROLL=bottom` (or a fraction such as `0.5`) scrolls the
+inspector page that far down.
 
 `geometry-*` go from STL files (the positional arguments, else the fixture's
 synthetic car STLs) through New Case from Geometry: `-import`, `-tunnel`,
@@ -79,7 +80,25 @@ synthetic car STLs) through New Case from Geometry: `-import`, `-tunnel`,
 `KUTTA_FIXTURE_MESH_HOLD=layers`), `-report`, `-case` (the New Case page from
 the generated mesh), `-run` (a run and the Aerodynamics page) and `-variants`
 (a rear-wing variant meshed, run and compared side by side). With the real
-CLI they need `kutta mesh`.
+CLI (`--cli`) they mesh with `kutta mesh` (the meshing shot is taken as the
+mesher reaches the layers stage) and take, for the real path:
+`KUTTA_SCENARIO_MESH_SETUP` (a mesh.json loaded after import),
+`KUTTA_SCENARIO_SPEED`, `KUTTA_SCENARIO_ROLES` (`ground=wall,...`),
+`KUTTA_SCENARIO_WHEELS` (generate_geometry.py's `fsae-wheels.json`),
+`KUTTA_SCENARIO_REFERENCE` (`area,length`), `KUTTA_SCENARIO_VEHICLE`
+(`front-axle-x,wheelbase`) and `KUTTA_SCENARIO_ITERATIONS`; runs stop on the
+mesher qualification's criteria (residuals 1e-3; drag and downforce within
+5e-4 over 50 values after 500 iterations) or the iteration limit. When the
+CLI cannot export the run's view, `geometry-run` prints why and goes on to
+Aerodynamics (other scenarios fail at once with the CLI's error):
+
+```sh
+uv run tools/mesher/generate_geometry.py --out geom
+KUTTA_SCENARIO_MESH_SETUP=geom/fsae-coarse.json KUTTA_SCENARIO_SPEED=20 \
+  KUTTA_SCENARIO_WHEELS=geom/fsae-wheels.json KUTTA_SCENARIO_VEHICLE=-0.78,1.73 \
+  KUTTA_SCENARIO_ITERATIONS=1000 Kutta --cli build/kutta --scenario geometry-run \
+  --screenshot fsae.png geom/fsae.stl
+```
 
 Before its screenshot, every scenario checks the screen and fails (exit 4)
 with each problem on stderr: the inspector page is laid out again at each
@@ -128,16 +147,42 @@ group holds the steps in Fluent Meshing's words:
   edit the file list.
 - **Wind Tunnel**, **Local Refinement Regions**, **Sizing and Layers**:
   mesh.json's fields as numbers, drawn in the viewport as you type (tunnel
-  faces translucent, tunnel and regions as outlines).
+  faces translucent, tunnel and regions as outlines). The tunnel is the one
+  `kutta mesh` builds: flow +x and +z up (the only directions v1 meshes),
+  distances in body x lengths, the ground at z = 0 (geometry below it is
+  refused before meshing), upper limits rounded out to whole base cells.
+  Sizing and Layers also holds the freestream speed (the mesher's y+
+  estimate and the case's starting speed) and **Load mesh.json…**, which
+  takes a kutta mesh setup file's settings (keys it omits get the mesher's
+  defaults).
 - **Generate Mesh**: a cell estimate and the device memory it needs against
   the device the case will run on (a planning figure: surface bands by size,
-  layers, regions and a graded far field at about 1.5 kB per cell), then
+  layers, regions and a graded far field, at about 2.6 kB per cell), then
   `kutta mesh` with its stages in the console, the page and the status bar,
   cancellable. An error shows the mesher's message and advice in place.
-- **Mesh Report**: cells by type, quality statistics with histograms, worst
-  cells, repairs, zones and the y+ estimate from mesh-report.json, and the
-  generated mesh's surfaces in the viewport. Set Up Case runs the New Case
-  from Mesh flow on it with the rotating wheels carried over.
+- **Mesh Report**, from mesh-report.json, each figure "not reported" when the
+  report lacks it:
+  - size, cells by type and the hex share of the core; the solver memory
+    **estimate** (2.6 kB per cell, measured on Metal for kutta mesh meshes)
+    with a warning above about 4.3 million cells, which probably will not
+    fit a 12 GB GPU;
+  - **slots and gaps** (`castellation/gaps`): closed slots (no fluid cells
+    across) in an amber box, the narrowest open ones, and parts that only
+    touch (a tyre on its plinth, width 0) listed apart;
+  - **boundary layers**: generated of requested, prism cells, achieved first
+    height, terminations, and coverage of the layered walls (full, thinned,
+    none) as a bar; "none" when no layers were requested;
+  - **distance from the geometry** (`snap/point_distance_m`): the wall's
+    remaining error, p99 and max;
+  - **first-cell y+ (estimate)**: p50, p05–p95, min–max at the mesher's
+    speed and the wall area below 5, 5–30, 30–300 and above 300;
+  - quality: orthogonal quality (min, mean, cells below 0.15 and 0.05, the
+    report's histogram, the worst cell's position), maximum skewness,
+    minimum volume, negative and nonconvex cells, and the adjacent volume
+    ratio for core and layer faces (p50, p99, p999, max, faces above 20);
+  - repairs, missing solids, the mesher's notes and the zones; the generated
+    mesh's surfaces in the viewport. Set Up Case runs the New Case from Mesh
+    flow on it with the rotating wheels and the speed carried over.
 
 A geometry project is a folder (`geometry.json`, `mesh.json`, `mesh/`, the
 case). **Duplicate as Design Variant** copies it beside itself (`name-v2`)
@@ -148,36 +193,50 @@ each variant's latest run with CL, CD, L/D, front % and their deltas against
 the base, and shows two runs side by side.
 
 Everything `kutta mesh` is, the app reaches through one adapter,
-`app/src/core/MeshCli.cpp` (arguments, event and report names). It codes to
-this contract, pending the mesher's own section in
-[app-protocol.md](app-protocol.md); these points are assumptions:
+`app/src/core/MeshCli.cpp` (arguments, event and report names), coded to the
+mesher's section of [app-protocol.md](app-protocol.md) ("Automatic STL
+meshing"):
 
-- `kutta mesh A.stl [B.stl ...] --setup mesh.json --out DIR --progress jsonl
-  --force`; DIR holds `mesh.msh` and `mesh-report.json`, published only on
-  success. `--case` is not used: the app writes the case with `new-case` (or
-  the variant copy) so wheels are confirmed as for any mesh.
-- mesh.json lengths are in its `units`; tunnel distances are in body lengths
-  along the flow; ground at the car's lowest point.
-- An ASCII solid's name is its wall zone; a binary STL is one solid named
-  after the file. Renamed solids are passed as ASCII copies in
-  `<project>/geometry/`.
+- `kutta mesh A.stl [B.stl ...] --setup mesh.json --out DIR --speed V
+  --progress jsonl --force`; DIR holds `mesh.msh` and `mesh-report.json`.
+- mesh.json lengths are metres; `units` (m or mm) scales the STL coordinates
+  only. Projects saved before this (geometry.json `v` 1) wrote lengths in
+  `units` and are converted when opened.
+- The report is parsed strictly (a key of the wrong type is an error naming
+  its path); `cells`, `faces`, `nodes` and `zones` are required.
+- Tunnel zones: inlet, outlet, side-low, side-high, ground (bottom without
+  ground), top, symmetry for a half car. These and bottom/symmetry are
+  reserved: a solid with one of those names must be renamed first.
+- `--case` is not used. `kutta new-case` on the mesh is the same
+  `fsae_starter` path and writes the same case (checked: only the mesh path
+  differs), and the New Case page adds what the app needs on top: a role per
+  zone (a stationary ground for a wind-tunnel model), the wheels' geometry
+  estimated from the mesh and confirmed before the case is written, and the
+  CLI's notes before Create Case.
+- Progress fractions can step back within a stage (layer retreat rounds); the
+  bar holds its furthest point.
 - Cancel closes stdin, then sends SIGINT after 1.5 s, then kills.
-- Report keys read tolerantly: `cells` as a number or `{total, hex, ...}`
-  (or `cell_types`), `faces`, `nodes`, `zones[{name,type,faces}]`, `quality`
-  as an object or a list with `min/mean/max` and optional
-  `histogram{edges,counts}`, `worst_cells[{metric,value,centroid,zone}]`,
-  `repairs` (strings or objects), `y_plus` (number or `{estimate|mean,
-  speed}`), `wall_seconds`, `peak_memory_bytes`.
-- Tunnel zones are named inlet, outlet, ground, top and sides (symmetry when
-  half a car); `kutta new-case` accepts the mesher's `mesh.msh`.
+
+A run on a mesher mesh says how it ended in the CLI's terms: Converged,
+Iteration limit, Stopped, or **Forces settled; residuals not converged** when
+the CLI stopped it on settled forces with stalled residuals waived
+(`residuals_waived`); Monitors heads such a run "not converged: forces
+settled at iteration N", lists the forces-settled condition (each report's
+range over the window) and marks waived residuals "not met, waived". The
+design-study table says "forces settled, not converged" for it.
 
 Volume-mesh slices are not shown yet (read-only on the Mesh Report page): that
 needs a cut-plane export for a bare mesh from the CLI. The fixture CLI's `mesh`
-meshes nothing; it accepts only its synthetic car's STLs (`kutta-fixture
-sample-stl DIR` writes them, with `rear-wing-v2.stl` for a variant), writes a
-SYNTHETIC report sized by the app's estimate, and its runs follow the parts'
-moves. `app/scripts/make_test_stl.py` writes a small closed car (body, wings,
-wheels; `--split` puts the rear wing in its own file) for the real mesher.
+meshes nothing: it speaks the same contract (arguments, setup rules, events,
+zone names and every report key; `tst_meshflow` checks its report has the
+shape of a real one, `app/tests/data/mesh-report-ahmed-coarse.json`), with
+invented numbers that `geometry_method` says are synthetic, and the app labels
+its meshes SYNTHETIC. It accepts only its synthetic car's STLs (`kutta-fixture
+sample-stl DIR` writes them, standing on z = 0, with `rear-wing-v2.stl` for a
+variant), and its runs follow the parts' moves. `tst_realmesh` meshes a box
+with the real `kutta mesh` when the app is built with the solver (or
+`KUTTA_REAL_CLI` is set). Reproducible car geometry for the real mesher comes
+from `uv run tools/mesher/generate_geometry.py --out DIR`.
 
 ## Case types and convergence
 

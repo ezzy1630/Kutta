@@ -202,7 +202,7 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
     });
 }
 
-void Session::startNewCase(const QString& meshPath)
+void Session::startNewCase(const QString& meshPath, double speed)
 {
     m_draftTarget.clear();
     m_pendingWheels.clear();
@@ -221,7 +221,7 @@ void Session::startNewCase(const QString& meshPath)
     m_draftBusy = true;
     emit newCaseChanged();
     emit consoleLine(ConsoleLevel::Info, tr("Reading mesh %1").arg(QDir::toNativeSeparators(meshPath)));
-    m_cli->newCase({meshPath, 0, {}, {}, {}}, [this, revision, meshPath](Result<NewCaseDraft> r) {
+    m_cli->newCase({meshPath, speed, {}, {}, {}}, [this, revision, meshPath](Result<NewCaseDraft> r) {
         if (revision != m_draftRevision) return;
         if (!r) {
             m_draftBusy = false;
@@ -634,11 +634,12 @@ void Session::onProgress(const ProgressEvent& ev)
             m_current->elapsed = e.elapsed;
             m_current->iterationsDone = e.iterations;
             m_current->convergedBy = e.metBy;
+            m_current->residualsWaived = e.residualsWaived;
             const ConvergenceSetup conv = m_live.setup ? m_live.setup->convergence : ConvergenceSetup{};
-            QString why = stopReasonText(e.stopReason, e.metBy, conv);
+            QString why = stopReasonText(e.stopReason, e.metBy, conv, e.residualsWaived);
             if (why.isEmpty()) why = conv.enabled ? QStringLiteral("Iteration limit; convergence criteria not met")
                                                   : QStringLiteral("Iteration limit; convergence checking was off");
-            emit consoleLine(e.stopReason == "converged" ? ConsoleLevel::Success : ConsoleLevel::Info,
+            emit consoleLine(e.stopReason == "converged" && !e.residualsWaived ? ConsoleLevel::Success : e.residualsWaived ? ConsoleLevel::Warning : ConsoleLevel::Info,
                              QStringLiteral("Done: %1 iterations in %2 s. %3.").arg(e.iterations).arg(e.elapsed, 0, 'f', 1).arg(why));
         } else if constexpr (std::is_same_v<T, ErrorEvent>) {
             m_live.progress.error = e;
@@ -1323,7 +1324,7 @@ void Session::setUpCaseFromMesh()
     QStringList wheels;
     for (const auto& s : p.solids)
         if (s.wheel) wheels << s.name;
-    startNewCase(m_mesh->meshFile());
+    startNewCase(m_mesh->meshFile(), p.speed);
     m_draftTarget = target;
     m_pendingWheels = wheels;
 }

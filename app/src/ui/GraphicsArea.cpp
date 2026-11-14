@@ -190,6 +190,7 @@ void ViewportPanel::setDataset(const QString& key)
 {
     m_pendingKey = key;
     m_probe.reset();
+    m_loadError.clear();
     if (key.isEmpty()) {
         m_key.clear();
         m_view->setScene(nullptr);
@@ -212,6 +213,7 @@ void ViewportPanel::setDataset(const QString& key)
     m_session->loadScene(key, [self, key](const QString&, Result<std::shared_ptr<SceneData>> r) {
         if (!self || self->m_pendingKey != key) return;
         if (!r) {
+            self->m_loadError = r.error();
             OverlayState o = self->m_view->overlayState();
             // An older CLI without export-geometry is not a failure of the case.
             o.emptyText = key.startsWith("mesh:") && r.error().contains("export-geometry")

@@ -83,12 +83,18 @@ QWidget* convergenceStatus(const InspectorContext& c)
         }
         const auto& t = tokens();
         const bool planar = s->hasCase() && s->caseSummary().planar();
-        auto row = [&](int r, const QString& name, const QString& value, const QString& criterion, bool met) {
+        auto row = [&](int r, const QString& name, const QString& value, const QString& criterion, bool met, const QString& state = {}) {
+            // A number keeps its unit and its comparison sign on one line.
+            auto joined = [](QString x) { return x.replace(QLatin1String(" %"), QStringLiteral("\u00a0%")).replace(QStringLiteral("≤ "), QStringLiteral("≤\u00a0")).replace(QLatin1String("< "), QStringLiteral("<\u00a0")); };
             grid->addWidget(label(name), r, 0);
-            auto* val = label(value);
+            auto* val = label(joined(value));
             val->setAlignment(Qt::AlignRight);
             grid->addWidget(val, r, 1);
-            grid->addWidget(label(criterion, "faint"), r, 2);
+            grid->addWidget(label(joined(criterion), "faint"), r, 2);
+            if (!state.isEmpty()) {
+                grid->addWidget(label(state, "warning"), r, 3);
+                return;
+            }
             auto* m = label(met ? QObject::tr("met") : QObject::tr("not met"), met ? QString() : "muted");
             if (met) m->setStyleSheet(QStringLiteral("color: %1").arg((t.dark ? t.accent : t.accent.darker(125)).name()));
             grid->addWidget(m, r, 3);
@@ -102,8 +108,14 @@ QWidget* convergenceStatus(const InspectorContext& c)
                         if (!residualShown(eq, planar)) continue;
                         const auto& e = cs.equations[eq];
                         row(r++, residualLabel(eq), formatScientific(e.value),
-                            QObject::tr("≤ %1").arg(formatScientific(e.criterion)), e.met);
+                            QObject::tr("≤ %1").arg(formatScientific(e.criterion)), e.met, cs.waived && !e.met ? QObject::tr("not met, waived") : QString());
                     }
+                } else if (cs.kind == "forces") {
+                    // Each report's range over the window, as one row per report.
+                    for (auto it = cs.ranges.begin(); it != cs.ranges.end(); ++it)
+                        row(r++, QObject::tr("%1 range, %2 it.").arg(it.key()).arg(cs.window), it.value() ? pct(*it.value()) : QObject::tr("too few values"),
+                            QObject::tr("≤ %1").arg(pct(cs.criterion.value_or(0))), it.value() && *it.value() <= cs.criterion.value_or(0));
+                    row(r++, QObject::tr("forces settled"), cs.settled ? QObject::tr("yes") : QObject::tr("no"), cs.settled && !cs.met ? QObject::tr("confirming") : QString(), cs.met);
                 } else {
                     row(r++, cs.report, cs.value ? pct(*cs.value) : QObject::tr("too few values"),
                         QObject::tr("< %1").arg(pct(cs.criterion.value_or(0))), cs.met);
@@ -119,7 +131,13 @@ QWidget* convergenceStatus(const InspectorContext& c)
                 title->setText(QObject::tr("Running to the iteration limit"));
                 note->setText(QObject::tr("Convergence checking was off when this run started."));
             } else {
-                title->setText(state ? QObject::tr("Iteration %1: %2").arg(live.last->iter).arg(state->met ? QObject::tr("converged") : QObject::tr("not converged yet"))
+                bool waived = false;
+                if (state)
+                    for (const ConditionState& c : state->conditions) waived = waived || c.waived;
+                title->setText(state ? QObject::tr("Iteration %1: %2").arg(live.last->iter).arg(
+                                           !state->met ? QObject::tr("not converged yet")
+                                           : waived    ? QObject::tr("forces settled, residuals not converged")
+                                                       : QObject::tr("converged"))
                                      : QObject::tr("Waiting for the first monitor sample"));
                 note->setText(setup.condition == "any" ? QObject::tr("Stops when any condition is met.") : QObject::tr("Stops when all conditions are met at the same sample."));
             }
@@ -137,7 +155,11 @@ QWidget* convergenceStatus(const InspectorContext& c)
         const RunProgress progress = s->history().progress(last->id);
         const auto summary = s->history().summary(last->id);
         const ConvergenceSetup conv = summary ? summary->convergence : progress.setup ? progress.setup->convergence : ConvergenceSetup{};
-        if (last->converged()) {
+        if (last->converged() && last->residualsWaived) {
+            // The CLI calls this converged; the residuals are not, so neither is the solution.
+            title->setText(QObject::tr("%1 not converged: forces settled at iteration %2").arg(last->title()).arg(last->iterationsDone));
+            note->setText(stopReasonText(last->stopReason, last->convergedBy, conv, true) + '.');
+        } else if (last->converged()) {
             title->setText(QObject::tr("%1 converged at iteration %2").arg(last->title()).arg(last->iterationsDone));
             QStringList met;
             for (const QString& id : last->convergedBy) met << describeCondition(id, conv);
