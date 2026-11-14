@@ -8,7 +8,7 @@
 Ahmed uses the existing rounded 35-degree body surface generator (no reference
 measurement data). FSAE is synthetic, full-scale SI: tapered monocoque and nose,
 sidepods, three-element inverted front/rear wings, endplates, floor/diffuser and
-four open wheels. Each wheel stands on a 10 mm contact plinth (the tyre cut
+four open wheels, every part clear of the tyres. Each wheel stands on a 10 mm contact plinth (the tyre cut
 10 mm above the ground and closed down to it), the usual car-CFD contact
 treatment: a tangent or flattened tyre leaves a thin wedge of cells walled on
 two or three sides in which k-omega diverged. fsae-wheels.json gives each
@@ -119,10 +119,13 @@ def fsae():
     add("monocoque", extrude([(-.65,.14),(.95,.14),(1.18,.4),(.87,.7),(-.25,.63),(-.65,.35)], -.29,.29))
     add("nose", extrude([(-1.25,.2),(-.6,.16),(-.4,.42),(-1.2,.32)], -.13,.13))
     for side in (-1,1):
-        a,b = sorted((side*.3,side*.63))
+        a,b = sorted((side*.3,side*.55))
         add("sidepod-"+("left" if side>0 else "right"), box(-.15,.95,a,b,.16,.48))
-    add("undertray-diffuser", extrude([(-.75,.065),(.72,.065),(1.36,.23),(1.36,.25),(.72,.085),(-.75,.085)],-.7,.7))
-    for which,x,z,chord,span,angle in (("front",-1.5,.12,.32,1.5,7),("rear",.65,.88,.36,1.15,12)):
+    add("undertray-diffuser", extrude([(-.75,.065),(.72,.065),(1.36,.23),(1.36,.25),(.72,.085),(-.75,.085)],-.55,.55))
+    # Wings, floor and sidepods stay clear of the tyres (inner faces at
+    # |y| = 0.615): a stationary wall through a rotating tyre leaves a
+    # velocity jump along the intersection, where k-omega ran away.
+    for which,x,z,chord,span,angle in (("front",-1.5,.12,.32,1.12,7),("rear",.65,.88,.36,1.15,12)):
         # 12 mm slot gaps (about 4% chord), typical of FSAE multi-element wings.
         for i, poly in enumerate(elements(x, z, chord, angle, SLOT)):
             add(f"{which}-wing-element-{i+1}", extrude(poly, -span/2, span/2))

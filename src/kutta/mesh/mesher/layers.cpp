@@ -152,7 +152,9 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
   int rounds = 0;
   bool built = true;  // w holds layer topology (or is not yet the base mesh)
   for (;; ++rounds) {
-    KUTTA_REQUIRE(rounds < 50, "mesh: layer collapse did not terminate");
+    // Every round drops a stack or lifts a point, so this only guards bugs;
+    // a collapse front running along a long edge can take many rounds.
+    KUTTA_REQUIRE(rounds < 1000, "mesh: layer collapse did not terminate");
     settle();
     if (built) w = base;
     else { w.points = base.points; w.planes = base.planes; }
