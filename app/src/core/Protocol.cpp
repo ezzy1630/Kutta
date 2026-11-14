@@ -319,6 +319,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
         d.stopReason = o.value("stop_reason").toString();
         d.metBy = strings(o.value("convergence").toObject().value("met_by"));
         d.residualsWaived = o.value("residuals_waived").toBool() || o.value("convergence").toObject().value("residuals_waived").toBool();
+        d.verdict = parseVerdict(o.value("verdict"), d.stopReason, d.residualsWaived);
         return ProgressEvent{d};
     }
     if (ev == "error") {
@@ -329,6 +330,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
             e.issues.push_back(parseIssue(io));
             if (io.contains("path")) e.paths << io.value("path").toString();
         }
+        e.verdict = o.value("verdict").toString() == QLatin1String("diverged") ? Verdict::Diverged : Verdict::Unknown;
         return ProgressEvent{e};
     }
     if (ev == "snapshot")
@@ -520,12 +522,44 @@ Result<RunSummary> parseRunSummary(const QJsonObject& o)
     s.convergence = parseConvergenceSetup(conv);
     s.metBy = strings(conv.value("met_by"));
     s.residualsWaived = o.value("residuals_waived").toBool() || conv.value("residuals_waived").toBool();
+    s.verdict = parseVerdict(o.value("verdict"), s.stopReason, s.residualsWaived);
     if (conv.value("iteration").isDouble()) s.convergedIteration = conv.value("iteration").toInt();
     s.coupling = o.value("pressure_velocity_coupling").toString();
     return s;
 }
 
 // ---- convergence ------------------------------------------------------------------------
+
+QString verdictKey(Verdict v)
+{
+    switch (v) {
+    case Verdict::Unknown: return {};
+    case Verdict::Converged: return QStringLiteral("converged");
+    case Verdict::ForcesSettledResidualsWaived: return QStringLiteral("forces_settled_residuals_waived");
+    case Verdict::StatisticallySteady: return QStringLiteral("statistically_steady");
+    case Verdict::IterationLimit: return QStringLiteral("iteration_limit");
+    case Verdict::Stopped: return QStringLiteral("stopped");
+    case Verdict::Diverged: return QStringLiteral("diverged");
+    }
+    return {};
+}
+
+Verdict parseVerdict(const QJsonValue& verdict, const QString& stopReason, bool residualsWaived)
+{
+    if (verdict.isString()) {
+        const QString k = verdict.toString();
+        for (Verdict v : {Verdict::Converged, Verdict::ForcesSettledResidualsWaived, Verdict::StatisticallySteady,
+                          Verdict::IterationLimit, Verdict::Stopped, Verdict::Diverged})
+            if (k == verdictKey(v)) return v;
+        return Verdict::Unknown;  // a value this app does not know: never shown as converged
+    }
+    // An older CLI: converged with waived residuals is a forces-settled stop.
+    if (stopReason == QLatin1String("converged")) return residualsWaived ? Verdict::ForcesSettledResidualsWaived : Verdict::Converged;
+    if (stopReason == QLatin1String("statistically_steady")) return Verdict::StatisticallySteady;
+    if (stopReason == QLatin1String("iteration_limit")) return Verdict::IterationLimit;
+    if (stopReason == QLatin1String("stopped")) return Verdict::Stopped;
+    return Verdict::Unknown;
+}
 
 ConvergenceSetup parseConvergenceSetup(const QJsonObject& o)
 {

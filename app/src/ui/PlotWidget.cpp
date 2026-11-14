@@ -214,9 +214,10 @@ void PlotWidget::paintTo(QPainter& p, const QRectF& full, bool forExport) const
     if (!l.title.isEmpty()) p.drawText(l.title, Qt::AlignLeft | Qt::AlignTop, l.titleText);
     p.setFont(badgeFont());
     for (const auto& [br, b] : l.badges) {
-        const bool amber = b.startsWith("APPROX") || b.startsWith("MODIFIED") || b.startsWith("SYNTHETIC") || b.startsWith("FIXTURE");
+        const bool amber = b.startsWith("APPROX") || b.startsWith("MODIFIED") || b.startsWith("SYNTHETIC") || b.startsWith("FIXTURE")
+                           || b.startsWith("RESIDUALS WAIVED");
         const bool live = b.startsWith("LIVE");
-        const bool failed = b.startsWith("FAILED") || b.startsWith("ERROR");
+        const bool failed = b.startsWith("FAILED") || b.startsWith("ERROR") || b.startsWith("DIVERGED");
         QColor fill = Qt::transparent, edge = t.borderStrong, ink = t.muted;
         if (b.startsWith("APPROX")) { fill = t.amber; edge = t.amber; ink = QColor(0x2a1d05); }
         else if (amber) { edge = t.amber; ink = t.dark ? t.amber : t.amberText; }

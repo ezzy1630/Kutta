@@ -204,6 +204,72 @@ private slots:
         QVERIFY(!mw->hasMesh());
     }
 
+    // The Wind Tunnel page's ground motion: moving by default (cars); a
+    // stationary ground (wind-tunnel validation) is passed to new-case as
+    // --role ground=stationary-ground, stays the ground in the geometry view,
+    // persists with the project and is never in the force reports.
+    void stationaryGroundReachesTheCase()
+    {
+        MeshSetup m;
+        auto groundRole = [](const std::vector<TunnelFace>& faces) {
+            for (const auto& f : faces)
+                if (f.name == "ground") return f.role;
+            return QString();
+        };
+        QCOMPARE(groundRole(tunnelFaces(m)), QString("moving-ground"));
+        QCOMPARE(groundRole(tunnelFaces(m, GroundMotion::Stationary)), QString("stationary-ground"));
+        m.tunnel.ground = false;
+        QVERIFY(groundRole(tunnelFaces(m, GroundMotion::Stationary)).isEmpty());  // no ground: a symmetry bottom
+        QVERIFY(isGroundRole("moving-ground") && isGroundRole("stationary-ground") && !isGroundRole("wall"));
+
+        auto s = session();
+        MeshWorkflow* mw = s->meshing();
+        QVERIFY(import(mw, {stl("fsae-car.stl"), stl("rear-wing.stl")}, "tunnel"));
+        QCOMPARE(mw->project().ground, GroundMotion::Moving);
+        QVERIFY(mw->tunnelRoles().isEmpty());  // new-case's own suggestion
+        mw->setGroundMotion(GroundMotion::Stationary);
+        QCOMPARE(mw->tunnelRoles(), (QMap<QString, QString>{{"ground", "stationary-ground"}}));
+        const SceneItem* ground = mw->scene()->item("zone:ground");
+        QVERIFY(ground);
+        QCOMPARE(ground->zoneType, QString("wall"));
+        // geometry.json keeps it; mesh.json does not change (the mesh is the same).
+        const QString dir = mw->project().dir;
+        mw->closeProject();
+        mw->openProject(dir);
+        QVERIFY(QTest::qWaitFor([mw] { return mw->hasProject() && !mw->loading(); }, 30000));
+        QCOMPARE(mw->project().ground, GroundMotion::Stationary);
+        QVERIFY(!QJsonDocument(mw->project().setup.toJson()).toJson().contains("stationary"));
+        QVERIFY(generated(mw));
+        QCOMPARE(mw->outcome(), MeshWorkflow::Outcome::Succeeded);
+
+        QStringList commands;
+        QObject::connect(s.get(), &Session::consoleLine, s.get(), [&](ConsoleLevel l, const QString& t) { if (l == ConsoleLevel::Command) commands << t; });
+        s->setUpCaseFromMesh();
+        QVERIFY(QTest::qWaitFor([&] { return s->newCaseDraft() && !s->newCaseBusy(); }, 30000));
+        const NewCaseZone* z = s->newCaseDraft()->zone("ground");
+        QVERIFY(z);
+        QCOMPARE(z->role, QString("stationary-ground"));
+        QCOMPARE(z->suggestedRole, QString("moving-ground"));
+        for (const NewCaseZone* w : s->newCaseDraft()->boundaries())
+            if (w->wheel && !w->wheelConfirmed) s->confirmNewCaseWheel(w->name, true);
+        const QString target = s->newCaseTarget();
+        s->createNewCase(target);
+        QVERIFY(QTest::qWaitFor([&] { return s->hasCase() && s->casePath() == target; }, 30000));
+        QVERIFY2(std::any_of(commands.begin(), commands.end(), [](const QString& c) { return c.contains("--out") && c.contains("--role ground=stationary-ground"); }),
+                 qPrintable(commands.join('\n')));
+        QFile f(target);
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const QJsonObject kase = QJsonDocument::fromJson(f.readAll()).object();
+        QCOMPARE(kase.value("boundaries").toObject().value("ground").toObject(), (QJsonObject{{"type", "wall"}, {"motion", "stationary"}}));
+        const QJsonObject reports = kase.value("reports").toObject();
+        QVERIFY(!reports.isEmpty());
+        for (const QString& name : reports.keys()) {
+            const QJsonArray zones = reports.value(name).toObject().value("zones").toArray();
+            QVERIFY(!zones.isEmpty());
+            QVERIFY2(!zones.contains("ground"), qPrintable(name));
+        }
+    }
+
     // The mesh becomes a case (wheels flagged from the geometry), and a design
     // variant with a swapped rear wing reuses that case's settings.
     void setsUpTheCaseAndAVariant()

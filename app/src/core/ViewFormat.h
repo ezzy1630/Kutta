@@ -51,6 +51,9 @@ struct ViewPart {
     QVector3D origin, normal;           // slices
     std::vector<FieldDesc> fields;
     QJsonObject meta;     // the whole descriptor (iso value, trace lines, probe csv, ...)
+    // Slices and iso-surfaces (v1 additive): cells left out because they could
+    // not be cut (tangled cells). 0 on a valid mesh and from older CLIs.
+    qint64 skippedCells = 0;
     // Zones: the KUTL file of the zone's polygon edges (no triangle diagonals),
     // indexing the same vertices as the zone file. Absent in older views.
     std::shared_ptr<const ViewPart> edges;
@@ -113,6 +116,9 @@ QByteArray writeMeshBytes(const MeshData& mesh, ViewPart* part);
 
 QJsonObject toJson(const FieldDesc& f, bool withOffset);
 QJsonObject toJson(const ViewPart& p);
+
+// "12 cells could not be drawn"; empty for 0.
+QString skippedCellsText(qint64 cells);
 
 // Range of a field's samples (magnitude for vectors), ignoring non-finite.
 std::optional<std::pair<double, double>> finiteRange(const MeshData::Field& f);

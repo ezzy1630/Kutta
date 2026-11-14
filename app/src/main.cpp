@@ -831,6 +831,8 @@ int main(int argc, char** argv)
                 if (const QString setup = qEnvironmentVariable("KUTTA_SCENARIO_MESH_SETUP"); !setup.isEmpty() && !mw->loadSetupFile(setup))
                     return sc->fail("mesh setup: " + mw->error());
                 if (const double v = qEnvironmentVariable("KUTTA_SCENARIO_SPEED").toDouble(); v > 0) mw->setSpeed(v);
+                // KUTTA_SCENARIO_GROUND=stationary: the Wind Tunnel page's ground motion choice.
+                if (qEnvironmentVariable("KUTTA_SCENARIO_GROUND") == QLatin1String("stationary")) mw->setGroundMotion(GroundMotion::Stationary);
                 next();
             }, "geometry to import");
         });

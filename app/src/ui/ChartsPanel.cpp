@@ -21,7 +21,8 @@ QStringList runBadges(const RunRecord& r)
     if (r.modified()) b << "MODIFIED";
     if (r.synthetic) b << "SYNTHETIC";
     else if (r.fixture) b << "FIXTURE REPLAY";
-    if (r.status == RunStatus::Failed) b << "FAILED";
+    if (r.verdict == Verdict::ForcesSettledResidualsWaived) b << "RESIDUALS WAIVED";
+    if (r.status == RunStatus::Failed) b << (r.verdict == Verdict::Diverged ? "DIVERGED" : "FAILED");
     if (r.status == RunStatus::Running) b << "LIVE";
     return b;
 }
@@ -139,6 +140,7 @@ std::vector<PlotGuide> convergenceGuides(const RunProgress& p, bool planar)
         using K = ConvergenceMark::Kind;
         const QColor c = m.kind == K::Converged ? (t.dark ? t.accent : t.accent.darker(130))
                        : m.kind == K::Stopped   ? (t.dark ? t.amber : t.amberText)
+                       : m.kind == K::Diverged  ? t.red
                                                 : QColor();
         out.push_back({m.kind == K::Criterion ? PlotGuide::Along::Y : PlotGuide::Along::X, m.value, m.label, c});
     }

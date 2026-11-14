@@ -28,6 +28,7 @@ struct OverlayState {
     QPointF probePixel;   // logical pixels
     QString probeText;
     QString emptyText;    // shown when there is nothing to draw
+    QString note;         // a quiet line at the bottom right ("12 cells could not be drawn")
     // Mesh displays: one swatch per shown zone (invalid colour: no swatch).
     std::vector<std::pair<QString, QColor>> zoneKey;
     QMatrix4x4 view;      // for the axis triad

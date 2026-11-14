@@ -179,14 +179,19 @@ Bounds tunnelBounds(const MeshSetup& s, const Bounds& g)
     return t;
 }
 
-std::vector<TunnelFace> tunnelFaces(const MeshSetup& s)
+QString groundMotionKey(GroundMotion g) { return g == GroundMotion::Stationary ? QStringLiteral("stationary") : QStringLiteral("moving"); }
+GroundMotion groundMotionFrom(const QString& key) { return key == QLatin1String("stationary") ? GroundMotion::Stationary : GroundMotion::Moving; }
+bool isGroundRole(const QString& role) { return role == QLatin1String("moving-ground") || role == QLatin1String("stationary-ground"); }
+
+std::vector<TunnelFace> tunnelFaces(const MeshSetup& s, GroundMotion ground)
 {
     const bool half = s.tunnel.symmetry == "y";
+    const QString groundRole = ground == GroundMotion::Stationary ? QStringLiteral("stationary-ground") : QStringLiteral("moving-ground");
     return {{"inlet", "velocity-inlet", 0, false},
             {"outlet", "pressure-outlet", 0, true},
             {half ? "symmetry" : "side-low", "symmetry", 1, false},
             {"side-high", "symmetry", 1, true},
-            {s.tunnel.ground ? "ground" : "bottom", s.tunnel.ground ? "moving-ground" : "symmetry", 2, false},
+            {s.tunnel.ground ? "ground" : "bottom", s.tunnel.ground ? groundRole : QStringLiteral("symmetry"), 2, false},
             {"top", "symmetry", 2, true}};
 }
 

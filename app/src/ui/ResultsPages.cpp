@@ -178,7 +178,9 @@ QListWidget* surfaceList(const InspectorContext& c)
                 list->addItem(h);
                 header = true;
             }
-            auto* li = new QListWidgetItem(it.label + (it.zoneType.isEmpty() || it.kind != ItemKind::Zone ? QString() : "  ·  " + it.zoneType));
+            QString text = it.label + (it.zoneType.isEmpty() || it.kind != ItemKind::Zone ? QString() : "  ·  " + it.zoneType);
+            if (it.skippedCells > 0) text += "  ·  " + skippedCellsText(it.skippedCells);
+            auto* li = new QListWidgetItem(text);
             li->setData(Qt::UserRole, it.id);
             li->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
             li->setCheckState(vis.contains(it.id) ? Qt::Checked : Qt::Unchecked);
@@ -434,10 +436,16 @@ void runPost(const InspectorContext& c, PostForm pf, PostKind kind, const QJsonO
     QPointer<QLabel> err = pf.error, st = pf.status;
     c.session->postProcess(run, kind, op, [go, err, st, onDone](Result<PostOutput> r) {
         if (go) go->setEnabled(true);
-        if (st) st->hide();
         if (!r) {
+            if (st) st->hide();
             if (err) reportError(err, r.error());
             return;
+        }
+        // Drawn without the cells kutta could not cut; said, not an error.
+        const QString skipped = skippedCellsText(r.value().part.skippedCells);
+        if (st) {
+            st->setText(skipped.isEmpty() ? QString() : skipped + QObject::tr(" (tangled mesh cells)."));
+            st->setVisible(!skipped.isEmpty());
         }
         onDone(r.value());
     });
@@ -1190,7 +1198,7 @@ QWidget* runHistory(const InspectorContext& c)
         name->setData(Qt::UserRole, r.id);
         name->setToolTip(QStringLiteral("%1\n%2").arg(QLocale().toString(r.started, QLocale::ShortFormat), QDir::toNativeSeparators(r.dir)));
         table->setItem(i, 0, name);
-        auto* st = new QTableWidgetItem(runStatusText(r) + (r.status == RunStatus::Stopped && r.stopReason == "stopped" ? QObject::tr(" by you") : QString()));
+        auto* st = new QTableWidgetItem(runStatusText(r) + (r.status == RunStatus::Stopped && r.verdict == Verdict::Stopped ? QObject::tr(" by you") : QString()));
         if (r.status == RunStatus::Failed || r.status == RunStatus::Interrupted) st->setForeground(t.red);
         if (r.status == RunStatus::Running) st->setForeground(t.dark ? t.accent : t.accent.darker(115));
         if (!r.error.isEmpty()) st->setToolTip(r.error);
@@ -1269,7 +1277,7 @@ QWidget* runHistory(const InspectorContext& c)
         add(QObject::tr("Device"), r->device.isEmpty() ? r->backend : r->device);
         if (r->status == RunStatus::Completed || r->status == RunStatus::Stopped) {
             const auto summary = c.session->history().summary(r->id);
-            const QString why = stopReasonText(r->stopReason, r->convergedBy, summary ? summary->convergence : ConvergenceSetup{}, r->residualsWaived);
+            const QString why = stopReasonText(r->verdict, r->convergedBy, summary ? summary->convergence : ConvergenceSetup{});
             if (!why.isEmpty()) add(QObject::tr("Stopped"), why);
             if (const QString poor = summary ? poorMeshNumericsText(*summary) : QString(); !poor.isEmpty()) add(QObject::tr("Mesh numerics"), poor);
         }

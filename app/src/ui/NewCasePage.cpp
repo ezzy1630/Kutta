@@ -34,7 +34,8 @@ QString roleLabel(const QString& role)
     static const QHash<QString, QString> labels = {
         {"velocity-inlet", QObject::tr("Velocity inlet")}, {"pressure-outlet", QObject::tr("Pressure outlet")},
         {"moving-ground", QObject::tr("Moving ground")},   {"wall", QObject::tr("Wall")},
-        {"symmetry", QObject::tr("Symmetry")},             {"interior", QObject::tr("Interior")}};
+        {"symmetry", QObject::tr("Symmetry")},             {"interior", QObject::tr("Interior")},
+        {"stationary-ground", QObject::tr("Stationary ground")}};
     return labels.value(role, role);
 }
 

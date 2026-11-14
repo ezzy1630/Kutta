@@ -83,7 +83,8 @@ public:
     // until it is created (kutta new-case); the open case, if any, stays open
     // meanwhile.
     // `speed` (m/s, 0: the template's default) is the freestream to start from.
-    void startNewCase(const QString& meshPath, double speed = 0);
+    // `roles`: zone roles to start from instead of new-case's suggestions.
+    void startNewCase(const QString& meshPath, double speed = 0, const QMap<QString, QString>& roles = {});
     bool newCaseBusy() const { return m_draftBusy; }
     const std::optional<NewCaseDraft>& newCaseDraft() const { return m_draft; }
     QString newCaseError() const { return m_draftError; }

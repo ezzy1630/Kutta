@@ -12,8 +12,16 @@
 //   KUTTA_FIXTURE_SPEED       replay speed multiplier (default 6)
 //   KUTTA_FIXTURE_HOLD_AT     pause after this iteration until stdin closes
 //   KUTTA_FIXTURE_FAIL_AT     fail after this iteration: an error event with
-//                             KUTTA_FIXTURE_FAIL_MESSAGE and exit 1, or, with
+//                             KUTTA_FIXTURE_FAIL_MESSAGE and exit 1 (a message
+//                             beginning "the solution diverged" adds
+//                             verdict "diverged", as the CLI does), or, with
 //                             no message, abort as a crash would
+//   KUTTA_FIXTURE_VERDICT     end a run that would converge with this verdict
+//                             instead (forces_settled_residuals_waived,
+//                             statistically_steady), with the CLI's matching
+//                             converged, stop_reason and residuals_waived;
+//                             "none" leaves verdict out, as older CLIs did
+//   KUTTA_FIXTURE_SKIPPED_CELLS  skipped_cells on every slice and iso-surface (default 0)
 //   KUTTA_FIXTURE_DEVICES     "macos" | "windows" device inventory
 //   KUTTA_FIXTURE_CAR_DETAIL  car tessellation multiplier (1 ~ 0.4M triangles)
 //   KUTTA_FIXTURE_MESH_HOLD   `mesh` pauses at this stage until stdin closes
@@ -608,6 +616,7 @@ void writeCarView(const QString& dir, const CarParams& prm, bool reference, cons
         writeFile(QDir(dir).filePath(part.file), kapp::writeMeshBytes(m, &part));
         QJsonObject sj = kapp::toJson(part);
         sj.remove("name");
+        sj["skipped_cells"] = qEnvironmentVariableIntValue("KUTTA_FIXTURE_SKIPPED_CELLS");
         slicesJson.append(sj);
         collect(part);
     }
@@ -810,7 +819,9 @@ int solve(const Args& a)
         if (failAt > 0 && lastIter >= failAt) {
             const QString msg = qEnvironmentVariable("KUTTA_FIXTURE_FAIL_MESSAGE");
             if (msg.isEmpty()) std::abort();
-            emitJson({{"v", 1}, {"event", "error"}, {"message", msg}, {"issues", QJsonArray{}}});
+            QJsonObject error{{"v", 1}, {"event", "error"}, {"message", msg}, {"issues", QJsonArray{}}};
+            if (msg.startsWith("the solution diverged")) error["verdict"] = "diverged";
+            emitJson(error);
             std::exit(1);
         }
     };
@@ -949,10 +960,21 @@ int solve(const Args& a)
     writeJson(QDir(r.outDir).filePath("fixture-run.json"), runDescriptor(r));
 
     const double elapsed = clock.nsecsElapsed() / 1e9;
-    const QString stopReason = converged ? "converged" : stopped ? "stopped" : "iteration_limit";
+    // The CLI's verdict (docs/app-protocol.md); KUTTA_FIXTURE_VERDICT turns a
+    // converging run into a forces-settled or statistically steady stop.
+    const QString forced = qEnvironmentVariable("KUTTA_FIXTURE_VERDICT");
+    QString verdict = converged ? "converged" : stopped ? "stopped" : "iteration_limit";
+    if (converged && (forced == "forces_settled_residuals_waived" || forced == "statistically_steady")) verdict = forced;
+    if (verdict == "statistically_steady") converged = false;
+    const bool waived = verdict == "forces_settled_residuals_waived";
+    const QString stopReason = verdict == "forces_settled_residuals_waived" ? QStringLiteral("converged") : verdict;
     QJsonObject convergenceOut = conv.toJson();
     convergenceOut["met_by"] = QJsonArray::fromStringList(converged ? convergence.metBy() : QStringList{});
     convergenceOut["iteration"] = converged ? QJsonValue(lastIter) : QJsonValue();
+    if (waived) {
+        convergenceOut["met_by"] = QJsonArray{"forces"};
+        convergenceOut["residuals_waived"] = true;
+    }
     QJsonObject sum;
     if (r.kind == CaseKind::Recorded) sum = recordedSummary(r);
     sum["v"] = 1;
@@ -975,6 +997,7 @@ int solve(const Args& a)
     sum["iterations"] = lastIter;
     sum["stop_reason"] = stopReason;
     sum["converged"] = converged;
+    if (forced != "none") sum["verdict"] = verdict;
     sum["convergence"] = convergenceOut;
     sum["convergence_criteria_available"] = true;
     sum["pressure_velocity_coupling"] = couplingRun(inspected, r.overrides);
@@ -985,8 +1008,11 @@ int solve(const Args& a)
         sum["kutta_version"] = "fixture";
     }
     writeJson(QDir(r.outDir).filePath("summary.json"), sum);
-    emitJson({{"v", 1}, {"event", "done"}, {"converged", converged}, {"iterations", lastIter}, {"elapsed", elapsed},
-              {"out", r.outDir}, {"stop_reason", stopReason}, {"convergence", convergenceOut}});
+    QJsonObject done{{"v", 1}, {"event", "done"}, {"converged", converged}, {"iterations", lastIter}, {"elapsed", elapsed},
+                     {"out", r.outDir}, {"stop_reason", stopReason}, {"convergence", convergenceOut}};
+    if (waived) done["residuals_waived"] = true;
+    if (forced != "none") done["verdict"] = verdict;
+    emitJson(done);
     return 0;
 }
 
@@ -1255,7 +1281,8 @@ int exportView(const Args& a)
             part.kind = kapp::PartKind::IsoSurface;
             part.name = op.value("name").toString();
             part.file = QStringLiteral("iso-%1.bin").arg(n++);
-            part.meta = {{"field", field}, {"value", op.value("value").toDouble()}, {"component", -1}};
+            part.meta = {{"field", field}, {"value", op.value("value").toDouble()}, {"component", -1},
+                         {"skipped_cells", qEnvironmentVariableIntValue("KUTTA_FIXTURE_SKIPPED_CELLS")}};
             writeFile(QDir(staging).filePath(part.file), kapp::writeMeshBytes(m, &part));
             isos.append(kapp::toJson(part));
         }
@@ -1387,6 +1414,7 @@ QJsonObject starterBoundary(const QString& role, double speed)
     if (role == "velocity-inlet") return {{"type", role}, {"speed", speed}, {"direction", x}, {"turbulence", turbulence}};
     if (role == "pressure-outlet") return {{"type", role}, {"gauge_pressure", 0}, {"turbulence", turbulence}};
     if (role == "moving-ground") return {{"type", "wall"}, {"motion", "moving"}, {"speed", speed}, {"direction", x}};
+    if (role == "stationary-ground") return {{"type", "wall"}, {"motion", "stationary"}};
     return {{"type", role}};
 }
 
@@ -1446,7 +1474,7 @@ QJsonObject carNewCaseReply(const QString& meshPath = {})
             {"mesh", QJsonObject{{"dimension", 3}, {"cells", m.value("cells")}, {"faces", m.value("faces").toInteger(faces)},
                                  {"nodes", m.value("nodes")}, {"polyhedral", false}}},
             {"zones", zones},
-            {"roles", QJsonArray{"velocity-inlet", "pressure-outlet", "moving-ground", "wall", "symmetry", "interior"}},
+            {"roles", QJsonArray{"velocity-inlet", "pressure-outlet", "moving-ground", "wall", "symmetry", "interior", "stationary-ground"}},
             {"notes", QJsonArray{"Reference area is Fluent's default, 1 m^2; set your car's frontal area (reference_values/area) for meaningful coefficients."}},
             {"case", kase}};
 }
@@ -1470,6 +1498,11 @@ int newCase(const Args& a)
         if (!ok || !(speed > 0)) fail("speed: --speed must be a positive number of m/s", {}, json);
     }
     QMap<QString, QString> roles;
+    // Replies recorded before the stationary ground (v1 additive, appended).
+    if (QJsonArray r = o.value("roles").toArray(); !r.contains("stationary-ground")) {
+        r.append("stationary-ground");
+        o["roles"] = r;
+    }
     const QJsonArray known = o.value("roles").toArray();
     for (const QString& r : a.opts.value("role")) {
         const qsizetype eq = r.lastIndexOf('=');

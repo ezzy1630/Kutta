@@ -165,7 +165,7 @@ MainWindow::MainWindow(Session* session, const QStringList& samples, QWidget* pa
     connect(session, &Session::runFinished, this, [this](const QString& id) {
         const RunRecord* r = m_session->history().find(id);
         if (!r) return;
-        const QString outcome = r->status == RunStatus::Completed && r->stopReason == QLatin1String("iteration_limit")
+        const QString outcome = r->status == RunStatus::Completed && r->verdict == Verdict::IterationLimit
                                     ? tr("reached the iteration limit") : runStatusText(*r).toLower();
         showStatus(tr("%1 %2").arg(r->title(), outcome), 8000);
         if (r->status == RunStatus::Completed || r->status == RunStatus::Stopped) {
@@ -575,7 +575,7 @@ void MainWindow::refreshToolbar()
         m_stateLabel->setText(withLink(text, "setup/general", tr("Review")));
         m_stateLabel->setToolTip(state);
     } else if (failed) {
-        m_stateLabel->setText(withLink(tr("%1 %2 · Ready to run again").arg(failed->title(), runStatusLabel(failed->status).toLower()), "solution/run", tr("Details")));
+        m_stateLabel->setText(withLink(tr("%1 %2 · Ready to run again").arg(failed->title(), runStatusText(*failed).toLower()), "solution/run", tr("Details")));
         m_stateLabel->setToolTip(failed->error);
     } else {
         m_stateLabel->setText(state.toHtmlEscaped());

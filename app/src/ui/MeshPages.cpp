@@ -412,7 +412,7 @@ QWidget* geometry(const InspectorContext& c)
         grid->addWidget(role, i, 1);
     }
     v->addLayout(grid);
-    v->addWidget(label(QObject::tr("The wind tunnel's zones are named by the mesher: inlet (velocity inlet), outlet (pressure outlet), ground (moving ground), side-low, side-high and top (symmetry). A solid cannot use those names, or bottom or symmetry."), "faint"));
+    v->addWidget(label(QObject::tr("The wind tunnel's zones are named by the mesher: inlet (velocity inlet), outlet (pressure outlet), ground (moving or stationary, chosen on Wind Tunnel), side-low, side-high and top (symmetry). A solid cannot use those names, or bottom or symmetry."), "faint"));
 
     auto* actions = new FlowLayout;
     actions->addWidget(nextButton(c, "mesh/tunnel", QObject::tr("Next: Wind Tunnel")));
@@ -464,11 +464,26 @@ QWidget* tunnel(const InspectorContext& c)
     v->addLayout(ext);
 
     v->addWidget(section(QObject::tr("Ground and symmetry")));
-    auto* ground = new QCheckBox(QObject::tr("Ground: the plane z = 0, moving with the air"));
-    ground->setAccessibleName(QObject::tr("Moving ground"));
+    auto* ground = new QCheckBox(QObject::tr("Ground: the plane z = 0"));
+    ground->setAccessibleName(QObject::tr("Ground plane at z = 0"));
     ground->setChecked(m.tunnel.ground);
     QObject::connect(ground, &QCheckBox::toggled, ground, [s](bool on) { editSetup(s, [&](MeshSetup& m) { m.tunnel.ground = on; }); });
     v->addWidget(ground);
+    auto* motionForm = form();
+    auto* motion = new QComboBox;
+    motion->setAccessibleName(QObject::tr("Ground motion"));
+    motion->addItem(QObject::tr("Moving with the air (cars)"), groundMotionKey(GroundMotion::Moving));
+    motion->addItem(QObject::tr("Stationary (wind-tunnel models)"), groundMotionKey(GroundMotion::Stationary));
+    motion->setCurrentIndex(motion->findData(groundMotionKey(mw->project().ground)));
+    motion->setEnabled(m.tunnel.ground && !mw->meshing());
+    QObject::connect(motion, &QComboBox::activated, motion, [mw, motion](int i) {
+        const GroundMotion g = groundMotionFrom(motion->itemData(i).toString());
+        QTimer::singleShot(0, mw, [mw, g] { mw->setGroundMotion(g); });
+    });
+    QObject::connect(ground, &QCheckBox::toggled, motion, [motion, mw](bool on) { motion->setEnabled(on && !mw->meshing()); });
+    formRow(motionForm, QObject::tr("Ground motion"), motion);
+    v->addLayout(motionForm);
+    v->addWidget(label(QObject::tr("A car on the road sees the ground move with the air; a wind-tunnel model such as the Ahmed body sits on a fixed floor. Either way the ground is not in the forces."), "faint"));
     auto* half = new QCheckBox(QObject::tr("Half car: symmetry plane at y = 0"));
     half->setAccessibleName(QObject::tr("Symmetry plane at y = 0"));
     half->setChecked(m.tunnel.symmetry == "y");

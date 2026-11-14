@@ -37,32 +37,41 @@ QString RunRecord::approximateBadge() const
 
 QString runStatusText(const RunRecord& r)
 {
-    // A completed run either converged or ran out of iterations; older records
-    // without a stop reason stay "Completed".
-    if (r.status == RunStatus::Completed && r.converged()) return r.residualsWaived ? QStringLiteral("Forces settled; residuals not converged") : QStringLiteral("Converged");
-    if (r.status == RunStatus::Completed && r.stopReason == QLatin1String("iteration_limit")) return QStringLiteral("Iteration limit");
-    if (r.status == RunStatus::Completed && r.stopReason == QLatin1String("statistically_steady")) return QStringLiteral("Statistically steady");
+    // Records without a verdict or stop reason (older CLIs) stay "Completed".
+    if (r.status == RunStatus::Completed) switch (r.verdict) {
+    case Verdict::Converged: return QStringLiteral("Converged");
+    case Verdict::ForcesSettledResidualsWaived: return QStringLiteral("Forces settled; residuals not converged");
+    case Verdict::StatisticallySteady: return QStringLiteral("Statistically steady");
+    case Verdict::IterationLimit: return QStringLiteral("Iteration limit");
+    case Verdict::Stopped: return QStringLiteral("Stopped");
+    case Verdict::Diverged:
+    case Verdict::Unknown: break;
+    }
+    if (r.status == RunStatus::Failed && r.verdict == Verdict::Diverged) return QStringLiteral("Diverged");
     return runStatusLabel(r.status);
 }
 
-QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv, bool residualsWaived)
+QString stopReasonText(Verdict verdict, const QStringList& metBy, const ConvergenceSetup& conv)
 {
-    if (stopReason == "converged") {
-        QStringList met;
-        for (const QString& id : metBy) met << describeCondition(id, conv);
-        if (residualsWaived)
-            return QStringLiteral("Stopped on settled forces%1; the residuals stalled above their criteria and were waived, so the solution is not converged")
-                .arg(met.isEmpty() ? QString() : " (" + met.join("; ") + ")");
+    QStringList met;
+    for (const QString& id : metBy) met << describeCondition(id, conv);
+    switch (verdict) {
+    case Verdict::Converged:
         return met.isEmpty() ? QStringLiteral("Converged") : QStringLiteral("Converged: %1").arg(met.join("; "));
-    }
-    if (stopReason == "stopped") return QStringLiteral("Stopped by you; not converged");
+    case Verdict::ForcesSettledResidualsWaived:
+        return QStringLiteral("Stopped on settled forces%1; the residuals stalled above their criteria and were waived, so the solution is not converged")
+            .arg(met.isEmpty() ? QString() : " (" + met.join("; ") + ")");
+    case Verdict::Stopped: return QStringLiteral("Stopped by you; not converged");
     // The forces cycle about a steady mean; summary.json's convergence.averaged
     // has each report's mean and range.
-    if (stopReason == "statistically_steady")
+    case Verdict::StatisticallySteady:
         return QStringLiteral("Statistically steady; not converged: the forces cycle about a steady mean (results are one point in the cycle)");
-    if (stopReason == "iteration_limit")
+    case Verdict::IterationLimit:
         return conv.enabled ? QStringLiteral("Iteration limit; convergence criteria not met")
                             : QStringLiteral("Iteration limit; convergence checking was off");
+    case Verdict::Diverged: return QStringLiteral("Diverged: the iteration went non-finite; not converged");
+    case Verdict::Unknown: break;
+    }
     return {};
 }
 
@@ -167,7 +176,8 @@ QJsonObject RunRecord::toJson() const
             {"error", error},
             {"iterations_done", iterationsDone},
             {"stop_reason", stopReason},
-            {"residuals_waived", residualsWaived},
+            {"verdict", verdictKey(verdict)},
+            {"residuals_waived", verdict == Verdict::ForcesSettledResidualsWaived},  // for older readers
             {"elapsed", elapsed},
             {"fixture", fixture},
             {"synthetic", synthetic},
@@ -203,7 +213,9 @@ std::optional<RunRecord> RunRecord::fromJson(const QJsonObject& o, const QString
     r.error = o.value("error").toString();
     r.iterationsDone = o.value("iterations_done").toInt();
     r.stopReason = o.value("stop_reason").toString();
-    r.residualsWaived = o.value("residuals_waived").toBool();
+    // Records from before verdicts (or with none) derive it as the CLI's own fallback.
+    const QJsonValue verdict = o.value("verdict");
+    r.verdict = parseVerdict(verdict.toString().isEmpty() ? QJsonValue() : verdict, r.stopReason, o.value("residuals_waived").toBool());
     r.elapsed = o.value("elapsed").toDouble();
     r.fixture = o.value("fixture").toBool();
     r.synthetic = o.value("synthetic").toBool();
@@ -255,14 +267,22 @@ std::vector<ConvergenceMark> convergenceMarks(const RunProgress& p, bool planar)
         }
     }
     if (p.done && !p.residuals.iterations.empty()) {
-        const QString why = p.done->stopReason;
-        const int at = p.done->iterations;
-        if (why == "converged" && p.done->residualsWaived)
-            out.push_back({ConvergenceMark::Kind::IterationLimit, double(at), QStringLiteral("Forces settled, residuals waived · %1").arg(at)});
-        else if (why == "converged") out.push_back({ConvergenceMark::Kind::Converged, double(at), QStringLiteral("Converged · %1").arg(at)});
-        else if (why == "stopped") out.push_back({ConvergenceMark::Kind::Stopped, double(at), QStringLiteral("Stopped by you · %1").arg(at)});
-        else if (why == "iteration_limit") out.push_back({ConvergenceMark::Kind::IterationLimit, double(at), QStringLiteral("Iteration limit · %1").arg(at)});
-        else if (why == "statistically_steady") out.push_back({ConvergenceMark::Kind::IterationLimit, double(at), QStringLiteral("Statistically steady · %1").arg(at)});
+        using K = ConvergenceMark::Kind;
+        const double at = p.done->iterations;
+        const QString n = QString::number(p.done->iterations);
+        switch (p.done->verdict) {
+        case Verdict::Converged: out.push_back({K::Converged, at, QStringLiteral("Converged · %1").arg(n)}); break;
+        case Verdict::ForcesSettledResidualsWaived: out.push_back({K::IterationLimit, at, QStringLiteral("Forces settled, residuals waived · %1").arg(n)}); break;
+        case Verdict::Stopped: out.push_back({K::Stopped, at, QStringLiteral("Stopped by you · %1").arg(n)}); break;
+        case Verdict::IterationLimit: out.push_back({K::IterationLimit, at, QStringLiteral("Iteration limit · %1").arg(n)}); break;
+        case Verdict::StatisticallySteady: out.push_back({K::IterationLimit, at, QStringLiteral("Statistically steady · %1").arg(n)}); break;
+        case Verdict::Diverged:
+        case Verdict::Unknown: break;
+        }
+    } else if (p.error && p.error->verdict == Verdict::Diverged && !p.residuals.iterations.empty()) {
+        // No done event: the mark goes at the last iteration the log has.
+        const int at = p.residuals.iterations.back();
+        out.push_back({ConvergenceMark::Kind::Diverged, double(at), QStringLiteral("Diverged · %1").arg(at)});
     }
     return out;
 }
