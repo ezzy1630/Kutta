@@ -4,6 +4,7 @@
 #include "protocol.hpp"
 #include "export.hpp"
 #include "case_commands.hpp"
+#include "mesh_command.hpp"
 #include "kutta/setup/kutta_case.hpp"
 #include <algorithm>
 #include <iostream>
@@ -431,6 +432,7 @@ int main(int argc, char **argv) {
   if(argc>=2 && std::string_view(argv[1])=="export-geometry") return kutta::app::export_geometry(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="aero") return kutta::app::aero(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="devices") return kutta::app::devices(argc,argv);
+  if(argc>=2 && std::string_view(argv[1])=="mesh") return kutta::app::mesh_command(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="new-case") return kutta::app::new_case(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="convert") return kutta::app::convert(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="polyhedra") return kutta::app::polyhedra(argc,argv);
@@ -440,6 +442,7 @@ int main(int argc, char **argv) {
       (argc == 5 && std::string_view(argv[3]) != "--data")) {
     std::cerr << "Usage: kutta solve <file.cas.h5|case.kutta.json> [--data file.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--approximate SETTING[,SETTING...]]\n"
                  "       kutta inspect <file.cas.h5|file.cas|case.kutta.json> [--data file.dat.h5] [--json]\n"
+                 "       kutta mesh GEOM.stl [MORE.stl ...] [--setup mesh.json] --out DIR [--case] [--progress jsonl] [--json] [--force]\n"
                  "       kutta new-case MESH [--template fsae-external] [--speed M/S] [--role ZONE=ROLE]... [--out CASE.kutta.json] [--json]\n"
                  "       kutta convert CASE [--setup overrides.json] --out CASE.kutta.json [--json]\n"
                  "       kutta polyhedra MESH --out OUT.msh [--force] [--json]\n";

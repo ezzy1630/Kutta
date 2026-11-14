@@ -15,6 +15,7 @@ the app only presents it. Every message carries `"v": 1`.
 | `kutta export-view DIR [--slice origin,normal]... [--post spec.json]` | writes `DIR/view/` (below) from a finished run |
 | `kutta export-geometry CASE --out DIR [--json]` | writes `DIR/geometry/` (case surfaces without a run); with `--json` one `geometry` event line |
 | `kutta aero DIR [--aero spec.json] [--json]` | aero coefficients, groups, balance and centre of pressure of a finished run from its `loads.json`; writes `DIR/aero.json`, with `--json` one `aero` event line |
+| `kutta mesh GEOM.stl [MORE.stl ...] [--setup mesh.json] --out DIR [--case] [--progress jsonl] [--json] [--force]` | STL to Fluent mesh and quality report (v1 additive, below) |
 | `kutta new-case MESH [--template fsae-external] [--speed M/S] [--role ZONE=ROLE]... [--wheel ZONE=R,X,Y,Z,AX,AY,AZ]... [--out CASE.kutta.json [--force]] [--json]` | a starter Kutta case for a bare mesh (v1 additive, below); without `--out` the case is printed |
 | `kutta convert CASE [--setup overrides.json] --out CASE.kutta.json [--force] [--json]` | a case's settings, with overrides applied, written as a Kutta case (v1 additive, below) |
 
@@ -1052,3 +1053,136 @@ every key is optional, and `v`, when given, must be 1:
   `"defined"`, `"needs_vehicle"` (no vehicle in the spec; every other balance
   field, including `front_axle` and `wheelbase`, null) or
   `"no_downforce"` (total downforce ≤ 0: loads given, percentage and CoP null).
+
+## Automatic STL meshing (`mesh`, v1 additive)
+
+```sh
+kutta mesh car.stl front-wing.stl --setup mesh.json --out car-mesh --case --progress jsonl
+kutta solve car-mesh/case.kutta.json --backend metal --iterations 2000 --out car-run
+```
+
+`kutta mesh GEOM.stl [MORE.stl ...] [--setup mesh.json] --out DIR [--case]
+[--speed M/S] [--wheel ZONE=R,X,Y,Z,AX,AY,AZ]... [--progress jsonl] [--json]
+[--force]` is additive to v1. Omitting setup uses SI FSAE defaults: +x flow,
++z up, 20 m/s for optional case/y+ estimates, 0.25 m base size, 0.006–0.03 m
+surface sizes, 20° feature angle, three cells across gaps, four prism layers
+(2 mm first height, growth 1.3) and 10 million maximum cells. These are starting sizes, not an accuracy or cell-count
+guarantee. Budget exhaustion fails rather than silently coarsening the mesh.
+
+Setup is strict JSON (1 MiB maximum): unknown keys, duplicate keys, wrong types,
+invalid ranges and unsupported directions fail with qualified paths such as
+`mesh/surface/min_size`. Missing properties use defaults; `v:1` is required.
+All lengths in setup are metres; `units` scales **STL coordinates only**.
+
+```json
+{"v":1,"units":"m","flow":"+x","up":"+z",
+ "tunnel":{"upstream":3,"downstream":6,"side":2,"top":2,"ground":true,"symmetry":null},
+ "base_size":0.25,
+ "surface":{"min_size":0.006,"max_size":0.03,"curvature_degrees":20,"proximity_cells":3,"proximity_min_size":0},
+ "refinement_boxes":[{"name":"wake","min":[1,-1,0],"max":[5,1,1.5],"size":0.03}],
+ "layers":{"count":4,"first_height":0.002,"growth":1.3,"zones":["*"]},
+ "max_cells":10000000}
+```
+
+Tunnel distances are multiples of the body's x length, measured from its bounds.
+The ground is z=0 (geometry below it is rejected). Without ground the lower
+boundary extends `side` body lengths below the body. `symmetry:"y"` keeps y≥0.
+Tunnel upper limits round outward to a whole base cell; lower limits are exact.
+Octree sizes are powers of two below the base size, so the achieved minimum can
+be smaller than `min_size`. Refinement boxes use world coordinates. Face, edge
+and corner neighbours are balanced to at most 2:1. Curvature sizes facets by
+their radius times the feature angle. Gaps (to another facet across the fluid,
+or to the ground) are sized to `proximity_cells` cells across, refining below
+`min_size` down to `proximity_min_size` (0 means `min_size/4`). Next to layered
+walls, cells are at most four last-layer thicknesses, so the layer-to-core
+size jump stays small. Tessellate curved STL surfaces finely enough to describe
+their curvature.
+
+Binary and ASCII STL, including multiple ASCII named solids, are accepted. Binary
+files use the file stem as their wall-zone name; ASCII solids use their names
+(or file stem when unnamed). Repeated names receive `-2`, `-3`, … suffixes.
+Reserved tunnel names (`inlet`, `outlet`, `ground`, `top`, `bottom`, `symmetry`,
+`side-low`, `side-high`) cannot be body-zone names. Normals are reconstructed.
+Welding within 1e-7 of the body diagonal, degenerate/duplicate triangle removal,
+orientation repairs, open/nonmanifold edges and conflicts are reported. Large
+holes are not filled. Independent majority ray queries classify the union of
+connected shells without a flood fill, so a small crack cannot flood the domain.
+Intersecting shells are treated as a solid union; nested shells are not cavities.
+
+The mesh follows snappyHexMesh. Octree cells inside the body or crossed by an
+STL facet are removed (castellation), keeping the fluid connected to the
+tunnel. Wall points then snap onto the STL: each moves to the least-squares
+intersection of the tangent planes at its faces' nearest surface points, which
+captures feature edges and corners without a feature-line input. The motion
+decays over three point layers into the volume. Wherever a cell would fall
+below orthogonal quality 0.15, the motion retreats locally (halved, then
+zero), so the remaining geometric error is reported rather than hidden
+(`snap/point_distance_m`). Slots narrower than about two cells close; see
+`castellation/gaps` for each zone pair's width and minimum fluid cells across.
+
+Prism layers are inserted by pushing the snapped mesh off the selected walls
+(`layers/zones`, default all) along point normals and filling the gap with one
+stack per wall face. A stack collapses where any cell would fall below quality
+0.15 or where retreat thins it below a quarter of its target. Where layers end,
+the termination points split so the unlayered wall stays on the surface; a
+termination whose split fails quality stays lifted instead (a step), and
+`layers/terminations` counts both. `count:0` disables layers. The y+ estimate
+uses a flat-plate friction correlation and actual wall-adjacent centroid
+distances, not solved shear.
+
+Successful output contains `DIR/mesh.msh` (Fluent ASCII polyhedra) and
+`DIR/mesh-report.json`. Report keys include `v`, `cells`, `faces`, `nodes`,
+`cell_types` (`hex`, `hex_without_hanging_nodes`, `poly`, `prism`,
+`hex_fraction_of_core`), `zones` (`name`, `type`, `faces`), `body_bounds`,
+`bounds`, `quality`, `repairs`, `castellation`, `snap`, `layers`,
+`missing_surface_zones`, `estimated_first_cell_y_plus`, `stage_seconds`,
+`wall_seconds`, `peak_memory_bytes`, `warnings`. An octree cube with 2:1
+hanging faces counts as `hex`; Fluent stores every cell as a polyhedron.
+`quality` includes minimum/mean orthogonal quality, `orthogonal_histogram`,
+`cells_below_0_05`/`_0_15`, `worst_cell`, maximum skew, the adjacent volume
+ratio's distribution split into core and layer faces (`max`, `p50`, `p99`,
+`p999`, histogram), minimum volume and nonconvex cells (a count, not an error).
+`snap` reports snapped/partial points, feature points, removed and merged cells
+and the point-to-surface distance (absolute and over the local cell size).
+`layers` reports `requested`, `generated`, `stacks`, `cells`, `coverage`
+(`full`, `thinned`, `none` area fractions of the selected walls),
+`first_height_achieved`, `terminations` and `collapse_rounds`. The y+ estimate
+gives area-weighted percentiles and area fractions below 5, 5–30, 30–300 and
+above 300. Closure, manifold edges, positive volumes and an orthogonal floor
+of 1e-8 are enforced before writing; snapping and layers keep every cell at
+0.15 or above. Peak memory is process footprint, not an estimate of solver GPU
+memory. Unavailable memory readings are null.
+
+`--case` calls the same `fsae_starter` path as `new-case`: inlet, outlet, moving
+ground, symmetry sides/top and named body walls, with the same wheel syntax.
+The resulting `case.kutta.json` explicitly disables warped-face gradient
+correction; the solver can read it directly.
+A separately generated `new-case mesh.msh` retains that command's existing
+polyhedron defaults and needs its documented WFGC setting/approximation choice.
+Reference area remains the starter's 1 m² default; set the actual reference area
+before comparing coefficients. Wheel rotation is never inferred from a name.
+
+Existing named outputs require `--force`; other files in DIR are retained. Work
+is staged before publication. On success, JSONL emits monotonically increasing
+`fraction` progress with `stage` in `read|repair|octree|trim|layers|quality|write`:
+
+```json
+{"v":1,"event":"mesh-progress","stage":"octree","fraction":0.15,"message":"Refining surface, slots and volume boxes"}
+{"v":1,"event":"mesh-done","cells":34178,"faces":305262,"nodes":100051}
+```
+
+The final `mesh-done` includes the full report. `--json` alone prints only that
+final object. Errors exit nonzero and emit
+`{"v":1,"event":"error","message":"...","advice":"..."}` with either JSON
+option; stderr can contain the human diagnostic. `mesh-done` means mesh validity,
+not aerodynamic convergence or force accuracy. Cancellation can terminate the
+process; a staged scratch directory may need removal after a hard kill.
+
+Generate reproducible inputs with
+`uv run tools/mesher/generate_geometry.py --out scratch-geometry`.
+The synthetic FSAE wheels stand on 10 mm contact plinths (a tangent or flattened
+tyre leaves a wedge of cells walled on two or three sides, in which k-omega
+diverged), and every other part clears the tyres by at least 50 mm;
+`fsae-wheels.json` gives each wheel's rolling radius, centre and axis for
+`--wheel`. Generated STLs/meshes are local artifacts, not repository
+fixtures.

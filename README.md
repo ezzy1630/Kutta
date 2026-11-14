@@ -90,6 +90,20 @@ boundary-face wall shear output.
 Windows CI produces `kutta-windows-rtx.zip` with HDF5/zlib DLLs, license notices
 and [Windows requirements and examples](docs/README-windows.txt).
 
+## Experimental STL meshing
+
+```sh
+./build/kutta mesh car.stl --out car-mesh --case --progress jsonl
+./build/kutta solve car-mesh/case.kutta.json --backend metal --out results
+```
+
+The automatic external-aero mesher castellates a balanced octree around binary
+or named-solid ASCII STL, snaps the wall onto the surface and adds prism layers
+(snappyHexMesh-style), keeping every cell at orthogonal quality 0.15 or above.
+Mesh quality does not by itself establish aerodynamic accuracy or convergence.
+See the [mesh setup and CLI contract](docs/app-protocol.md#automatic-stl-meshing-mesh-v1-additive)
+and [measured results](validation/results/mesher/REPORT.md).
+
 ## Run without a Fluent case
 
 A Kutta case is a mesh plus a small JSON setup that states only what differs
