@@ -1135,10 +1135,16 @@ kutta solve car-mesh/case.kutta.json --backend metal --iterations 2000 --out car
 `kutta mesh GEOM.stl [MORE.stl ...] [--setup mesh.json] --out DIR [--case]
 [--speed M/S] [--wheel ZONE=R,X,Y,Z,AX,AY,AZ]... [--progress jsonl] [--json]
 [--force]` is additive to v1. Omitting setup uses SI FSAE defaults: +x flow,
-+z up, 20 m/s for optional case/y+ estimates, 0.25 m base size, 0.006–0.03 m
-surface sizes, 20° feature angle, three cells across gaps, four prism layers
-(2 mm first height, growth 1.3) and 10 million maximum cells. These are starting sizes, not an accuracy or cell-count
-guarantee. Budget exhaustion fails rather than silently coarsening the mesh.
++z up, 20 m/s for optional case/y+ estimates, 0.25 m base size, 0.016–0.03 m
+surface sizes, 20° feature angle, three cells across gaps down to 2 mm cells,
+four prism layers (2 mm first height, growth 1.3), body-relative refinement
+boxes (below) and 10 million maximum cells. These are starting sizes, not an
+accuracy or cell-count guarantee; on the synthetic FSAE car they give about
+4.0 million cells and an estimated 8.4 GB of solver memory
+(`estimated_solver_memory`), with every wing slot open. Budget exhaustion
+fails rather than silently coarsening the mesh. (v1 additive change of
+defaults: the minimum surface size was 0.006 m, the gap floor `min_size/4`,
+and no boxes were added; that gave 4.4 million cells.)
 
 Setup is strict JSON (1 MiB maximum): unknown keys, duplicate keys, wrong types,
 invalid ranges and unsupported directions fail with qualified paths such as
@@ -1149,7 +1155,7 @@ All lengths in setup are metres; `units` scales **STL coordinates only**.
 {"v":1,"units":"m","flow":"+x","up":"+z",
  "tunnel":{"upstream":3,"downstream":6,"side":2,"top":2,"ground":true,"symmetry":null},
  "base_size":0.25,
- "surface":{"min_size":0.006,"max_size":0.03,"curvature_degrees":20,"proximity_cells":3,"proximity_min_size":0},
+ "surface":{"min_size":0.016,"max_size":0.03,"curvature_degrees":20,"proximity_cells":3},
  "refinement_boxes":[{"name":"wake","min":[1,-1,0],"max":[5,1,1.5],"size":0.03}],
  "layers":{"count":4,"first_height":0.002,"growth":1.3,"zones":["*"]},
  "max_cells":10000000}
@@ -1160,11 +1166,21 @@ The ground is z=0 (geometry below it is rejected). Without ground the lower
 boundary extends `side` body lengths below the body. `symmetry:"y"` keeps y≥0.
 Tunnel upper limits round outward to a whole base cell; lower limits are exact.
 Octree sizes are powers of two below the base size, so the achieved minimum can
-be smaller than `min_size`. Refinement boxes use world coordinates. Face, edge
+be smaller than `min_size`. Refinement boxes use world coordinates. **When the
+setup omits `refinement_boxes`** (v1 additive), two body-relative boxes are
+added, because drag depends on the volume cells near the body and in the wake,
+not only on surface sizing: `body`, the body bounds extended 0.1 L upstream,
+sideways and up (0.25 L downstream, down to the ground), at 2 × `max_size`; and
+`wake`, from the body's rear to 1 L behind it, 0.05 L wider than the body and
+0.1 L higher, at 4 × `max_size` (L is the body's x length). An explicit list,
+including `[]`, is used as given. `castellation/refinement_boxes` reports the
+boxes used and the octree cell each achieves. Face, edge
 and corner neighbours are balanced to at most 2:1. Curvature sizes facets by
 their radius times the feature angle. Gaps (to another facet across the fluid,
 or to the ground) are sized to `proximity_cells` cells across, refining below
-`min_size` down to `proximity_min_size` (0 means `min_size/4`). Next to layered
+`min_size` down to `proximity_min_size` (omitted: `min_size/8`, 2 mm at the
+default sizes; an explicit 0 is accepted, a v1 additive fix, and keeps the
+original meaning `min_size/4`). Next to layered
 walls, cells are at most four last-layer thicknesses, so the layer-to-core
 size jump stays small. Tessellate curved STL surfaces finely enough to describe
 their curvature.
@@ -1207,12 +1223,33 @@ Successful output contains `DIR/mesh.msh` (Fluent ASCII polyhedra) and
 `hex_fraction_of_core`), `zones` (`name`, `type`, `faces`), `body_bounds`,
 `bounds`, `quality`, `repairs`, `castellation`, `snap`, `layers`,
 `missing_surface_zones`, `estimated_first_cell_y_plus`, `stage_seconds`,
-`wall_seconds`, `peak_memory_bytes`, `warnings`. An octree cube with 2:1
-hanging faces counts as `hex`; Fluent stores every cell as a polyhedron.
+`wall_seconds`, `peak_memory_bytes`, `estimated_solver_memory` (v1 additive),
+`warnings`. `cell_types` counts cells by how the mesher built them: an octree
+cube, even with 2:1 hanging faces, counts as `hex` and each layer cell as
+`prism`, although a layer cell on a quadrilateral wall face has six
+quadrilateral faces. `cell_types_by_shape` (v1 additive: `tet`, `hex`, `poly`,
+`method`) counts them as `kutta inspect` and `new-case` do, by face shape alone:
+four triangles a tet, six quadrilaterals a hex, anything else (a cube with
+hanging nodes, a merged cell, a layer cell on a triangle) a polyhedron; its
+counts are the ones those commands print. Fluent stores every cell as a
+polyhedron.
 `quality` includes minimum/mean orthogonal quality, `orthogonal_histogram`,
-`cells_below_0_05`/`_0_15`, `worst_cell`, maximum skew, the adjacent volume
+`cells_below_0_05`/`_0_15`, `worst_cell`, skewness, the adjacent volume
 ratio's distribution split into core and layer faces (`max`, `p50`, `p99`,
 `p999`, histogram), minimum volume and nonconvex cells (a count, not an error).
+`skewness_max` is Fluent's equiangle skewness, 0 (ideal) to 1, from each
+face's corner angles against a regular polygon's (`skewness_method`; nodes
+where the face boundary turns by under 30°, hanging nodes, are not corners),
+with `faces_skewness_above_0_95` (v1 additive). Before this fix it held an
+unbounded centroid-offset ratio, which exceeded 1 in thin, slightly sheared
+layer cells; that value is now `face_skewness_max` (v1 additive): the distance
+from a face centroid to where the owner–neighbour link crosses the face plane,
+over the link length (OpenFOAM's face skewness). Each volume-ratio histogram
+bin counts internal faces in `faces` (v1 additive); its `cells` key carries the
+same number and is a deprecated alias. `castellation/gaps` entries add
+`contact` (v1 additive): true where the shells touch (width 0, a tyre on the
+ground), so a contact is not read as a closed slot (a positive width with zero
+cells across).
 `snap` reports snapped/partial points, feature points, removed and merged cells
 and the point-to-surface distance (absolute and over the local cell size).
 `layers` reports `requested`, `generated`, `stacks`, `cells`, `coverage`
@@ -1222,7 +1259,13 @@ gives area-weighted percentiles and area fractions below 5, 5–30, 30–300 and
 above 300. Closure, manifold edges, positive volumes and an orthogonal floor
 of 1e-8 are enforced before writing; snapping and layers keep every cell at
 0.15 or above. Peak memory is process footprint, not an estimate of solver GPU
-memory. Unavailable memory readings are null.
+memory. Unavailable memory readings are null. `estimated_solver_memory`
+(v1 additive) estimates the solve's device memory as cells times bytes per
+cell measured on Metal for this mesher's car meshes: `bytes` and
+`bytes_per_cell` (2,100) for the default steady solve (SIMPLEC, SST),
+`coupled_bytes` and `coupled_bytes_per_cell` (2,600) for Coupled, and
+`warning_above_bytes` (10 GB). It is not measured on CUDA and excludes a CUDA
+context's own memory. Above 10 GB `warnings` says a 12 GB GPU may not fit the mesh.
 
 `--case` calls the same `fsae_starter` path as `new-case`: inlet, outlet, moving
 ground, symmetry sides/top and named body walls, with the same wheel syntax.
@@ -1234,8 +1277,9 @@ Reference area remains the starter's 1 m² default; set the actual reference are
 before comparing coefficients. Wheel rotation is never inferred from a name.
 
 Existing named outputs require `--force`; other files in DIR are retained. Work
-is staged before publication. On success, JSONL emits monotonically increasing
-`fraction` progress with `stage` in `read|repair|octree|trim|layers|quality|write`:
+is staged before publication. On success, JSONL emits monotonically
+nondecreasing `fraction` progress (a later message in a retreat or collapse
+round repeats the fraction reached rather than reporting a lower one) with `stage` in `read|repair|octree|trim|layers|quality|write`:
 
 ```json
 {"v":1,"event":"mesh-progress","stage":"octree","fraction":0.15,"message":"Refining surface, slots and volume boxes"}

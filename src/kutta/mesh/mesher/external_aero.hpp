@@ -17,14 +17,21 @@ struct Settings {
   std::string units = "m";
   double upstream = 3, downstream = 6, side = 2, top = 2;
   bool ground = true, symmetry_y = false;
-  double base_size = 0.25, min_size = 0.006, max_size = 0.03;
+  double base_size = 0.25, min_size = 0.016, max_size = 0.03;
   double curvature_degrees = 20;
   int proximity_cells = 3;
   // Gap (slot, ground clearance) sizing may refine below min_size down to
-  // this floor; 0 means min_size/4.
-  double proximity_min_size = 0;
-  double proximity_floor() const { return proximity_min_size > 0 ? proximity_min_size : min_size / 4; }
+  // this floor (at most min_size); 0 means min_size/4. The 2 mm default keeps
+  // 12 mm wing slots open with 1.95 mm cells.
+  // Omitted (negative): min_size/8, 2 mm at the default sizes. An explicit 0
+  // keeps the original v1 meaning, min_size/4.
+  double proximity_min_size = -1;
+  double proximity_floor() const { return proximity_min_size > 0 ? proximity_min_size : proximity_min_size < 0 ? min_size / 8 : min_size / 4; }
   std::vector<RefinementBox> boxes;
+  // Set when the setup omits refinement_boxes: generate then adds body-relative
+  // near-body and wake boxes (see body_boxes). An explicit list, even empty,
+  // is used as given.
+  bool body_boxes = true;
   // Default stack: first-cell centroid near y+ 50 at 20 m/s (wall-function
   // range of Kutta's y+-insensitive SST wall treatment).
   int layer_count = 4;
@@ -34,6 +41,10 @@ struct Settings {
   Index max_cells = 10000000;
 };
 Settings parse_settings(std::string_view json);
+struct Surface;
+// Default refinement boxes from the body bounds (length L along x): around
+// the body and its underbody, and the near wake to 1 L behind it.
+std::vector<RefinementBox> body_boxes(const Surface&, const Settings&);
 
 // radius: smallest curvature radius estimated across smooth (non-feature)
 // edges, centroid distance over normal angle; infinite on flat regions.

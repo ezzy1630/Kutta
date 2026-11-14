@@ -74,7 +74,7 @@ Settings parse_settings(std::string_view text) {
         if (a=="max_size") s.max_size=number(b,q,1e-7,1e5);
         if (a=="curvature_degrees") s.curvature_degrees=number(b,q,0.1,180);
         if (a=="proximity_cells") s.proximity_cells=integer(b,q,1,20);
-        if (a=="proximity_min_size") s.proximity_min_size=number(b,q,1e-7,1e5);
+        if (a=="proximity_min_size") s.proximity_min_size=number(b,q,0,1e5);  // 0: min_size/4
       }
     }
     if (k == "layers") {
@@ -91,6 +91,7 @@ Settings parse_settings(std::string_view text) {
     }
     if (k == "refinement_boxes") {
       const auto* arr=std::get_if<Json::Array>(&v.value); if(!arr) bad(p,"expected an array");
+      s.body_boxes=false;
       std::set<std::string> names;
       for(std::size_t i=0;i<arr->size();++i) {
         const auto q=p+"/"+std::to_string(i);

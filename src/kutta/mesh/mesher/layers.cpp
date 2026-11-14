@@ -76,7 +76,10 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
     KUTTA_REQUIRE(it != sf.zones.end(), "mesh/layers/zones: unknown STL zone " + name);
     zone_on[std::size_t(it - sf.zones.begin())] = 1;
   }
-  const Work base = w;
+  // The snapped mesh. Its topology stays fixed while Displacement pushes its
+  // points off the walls; each round's layered mesh is built from it into w.
+  Work base = std::move(w);
+  const std::vector<Vec3d> origin = base.points;
   const auto adjacency = cell_faces(base);
   const auto pf = point_faces(base);
   const auto base_geometry = geometry(base, adjacency);
@@ -122,15 +125,43 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
   // thin feature after merges) leaves the termination ambiguous; and a stack
   // ending on all but one side (an island or a peninsula tip) made a
   // near-closed pocket the coupled solver diverged in.
+  // Only faces on an edge whose use count changed can change verdict, so
+  // each pass re-examines those (the same fixed point as rescanning all).
   std::vector<int> uses(ne);
+  std::vector<Index> edge_offsets(ne + 1), edge_faces;
+  for (Index f = 0; f < nf; ++f)
+    if (is_wall(f)) for (std::size_t j = 0; j < base.faces[f].nodes.size(); ++j) ++edge_offsets[edges.ids[edges.start[f] + index(j)] + 1];
+  for (Index e = 0; e < ne; ++e) edge_offsets[e + 1] += edge_offsets[e];
+  edge_faces.resize(std::size_t(edge_offsets[ne]));
+  {
+    auto next = edge_offsets;
+    for (Index f = 0; f < nf; ++f)
+      if (is_wall(f)) for (std::size_t j = 0; j < base.faces[f].nodes.size(); ++j) edge_faces[std::size_t(next[edges.ids[edges.start[f] + index(j)]]++)] = f;
+  }
+  std::vector<char> settled(nf);  // extrude at the end of the previous settle
+  std::vector<std::uint32_t> seen_face(nf);
+  std::uint32_t pass = 0;
   const auto settle = [&] {
-    for (bool dropped = true; dropped;) {
-      std::fill(uses.begin(), uses.end(), 0);
+    std::vector<Index> candidates;
+    const auto release = [&](Index f) {  // f stopped extruding: its edges lose a use
+      for (std::size_t j = 0; j < base.faces[f].nodes.size(); ++j) {
+        const auto e = edges.ids[edges.start[f] + index(j)];
+        --uses[e];
+        for (auto i = edge_offsets[e]; i < edge_offsets[e + 1]; ++i) candidates.push_back(edge_faces[std::size_t(i)]);
+      }
+    };
+    if (pass == 0) {
       for (Index f = 0; f < nf; ++f)
-        if (extrude[f]) for (std::size_t j = 0; j < base.faces[f].nodes.size(); ++j) ++uses[edges.ids[edges.start[f] + index(j)]];
+        if (extrude[f]) { candidates.push_back(f); for (std::size_t j = 0; j < base.faces[f].nodes.size(); ++j) ++uses[edges.ids[edges.start[f] + index(j)]]; }
+    } else {
+      for (Index f = 0; f < nf; ++f) if (settled[f] && !extrude[f]) release(f);
+    }
+    while (!candidates.empty()) {
+      ++pass;
       std::vector<Index> drop;
-      for (Index f = 0; f < nf; ++f) {
-        if (!extrude[f]) continue;
+      for (auto f : candidates) {
+        if (!extrude[f] || seen_face[f] == pass) continue;
+        seen_face[f] = pass;
         const auto& ns = base.faces[f].nodes;
         int ends = 0;
         for (std::size_t j = 0; j < ns.size(); ++j) {
@@ -140,9 +171,11 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
         }
         if (ends >= std::min(max_steps, int(ns.size()) - 1)) drop.push_back(f);
       }
+      candidates.clear();
       for (auto f : drop) extrude[f] = 0;
-      dropped = !drop.empty();
+      for (auto f : drop) release(f);
     }
+    settled = extrude;
   };
 
   std::vector<double> thickness(np);
@@ -150,29 +183,27 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
   std::vector<char> lift(np);      // termination points kept lifted after a split failed quality
   Index split_points = 0, lifted_points = 0;
   int rounds = 0;
-  bool built = true;  // w holds layer topology (or is not yet the base mesh)
+  // Each round re-pushes only near the stacks that changed (Displacement),
+  // so a collapse front running along an edge costs local work per round.
+  Displacement push(base, adjacency, pf, sources, layer_min_quality);
   for (;; ++rounds) {
     // Every round drops a stack or lifts a point, so this only guards bugs;
     // a collapse front running along a long edge can take many rounds.
     KUTTA_REQUIRE(rounds < 1000, "mesh: layer collapse did not terminate");
     settle();
-    if (built) w = base;
-    else { w.points = base.points; w.planes = base.planes; }
-    built = false;
     std::vector<char> pushed(np);
     for (Index f = 0; f < nf; ++f) if (extrude[f]) for (auto p : base.faces[f].nodes) pushed[p] = 1;
     std::vector<Vec3d> target(np);
     for (auto p : sources) if (pushed[p]) target[p] = normal[p] * std::min(total, push_limit * limit[p]);
-    std::vector<double> scale(np, 1.);
-    displace(w, adjacency, pf, sources, target, scale, layer_min_quality, progress, "layers");
-    for (Index p = 0; p < np; ++p) thickness[p] = norm(target[p]) * scale[p];
+    push.run(target, progress, "layers");
+    for (Index p = 0; p < np; ++p) thickness[p] = norm(target[p]) * push.scale[p];
     bool changed = false;
     for (Index f = 0; f < nf; ++f)
       if (extrude[f] && std::any_of(base.faces[f].nodes.begin(), base.faces[f].nodes.end(), [&](Index p) { return thickness[p] < collapse * total; })) { extrude[f] = 0; changed = true; }
     if (changed) continue;
 
     // Topology: point p keeps its index as the stack top; levels 0..N-1 are new.
-    built = true;
+    w = base;
     std::vector<Index> level0(np, -1);
     for (Index f = 0; f < nf; ++f)
       if (extrude[f])
@@ -180,7 +211,7 @@ Json::Object add_layers(Work& w, const Surface& sf, const Settings& st, const Pr
           if (level0[p] < 0) {
             level0[p] = index(w.points.size());
             for (int k = 0; k < layers; ++k) {
-              w.points.push_back(base.points[p] + (w.points[p] - base.points[p]) * fraction[k]);
+              w.points.push_back(origin[p] + (w.points[p] - origin[p]) * fraction[k]);
               w.planes.push_back(base.planes[p]);
             }
           }

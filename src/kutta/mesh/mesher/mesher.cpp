@@ -6,6 +6,7 @@
 #include "kutta/mesh/topology.hpp"
 #include "kutta/core/memory.hpp"
 #include <chrono>
+#include <cstdio>
 #include <map>
 #include <numeric>
 #include <unordered_map>
@@ -244,7 +245,11 @@ Json::Array gap_report(const Tree& tree, const SurfaceQuery& query, const Surfac
     if (it == pairs.end() || gaps[t].cells < it->second.cells || (gaps[t].cells == it->second.cells && gaps[t].width < it->second.width)) pairs[key] = gaps[t];
   }
   Json::Array out;
-  for (const auto& [key, g] : pairs) out.push_back(Json::Object{{"between", Json::Array{key.first, key.second}}, {"min_cells_across", g.cells}, {"width_m", g.width}});
+  // Touching shells (a tyre standing on the ground) have no gap at all,
+  // which a closed slot (a positive width with no cells) is not.
+  const auto touching = 1e-6 * norm(sf.bounds.max - sf.bounds.min);
+  for (const auto& [key, g] : pairs)
+    out.push_back(Json::Object{{"between", Json::Array{key.first, key.second}}, {"min_cells_across", g.cells}, {"width_m", g.width}, {"contact", g.width <= touching}});
   return out;
 }
 
@@ -395,11 +400,15 @@ double percentile(std::vector<double> v, double p) {
   std::nth_element(v.begin(), v.begin() + std::ptrdiff_t(k), v.end());
   return v[k];
 }
-Json::Array histogram(const std::vector<double>& values, const std::vector<double>& edges) {
+// `count` names what is counted. Face histograms also carry `cells`, the
+// key v1 first used for them, as a deprecated alias.
+Json::Array histogram(const std::vector<double>& values, const std::vector<double>& edges, bool faces = false) {
   Json::Array out;
   for (std::size_t i = 0; i + 1 < edges.size(); ++i) {
     const auto n = std::count_if(values.begin(), values.end(), [&](double v) { return v >= edges[i] && (v < edges[i + 1] || (i + 2 == edges.size() && v <= edges[i + 1])); });
-    out.push_back(Json::Object{{"from", edges[i]}, {"to", edges[i + 1]}, {"cells", double(n)}});
+    Json::Object bin{{"from", edges[i]}, {"to", edges[i + 1]}, {"cells", double(n)}};
+    if (faces) bin["faces"] = double(n);
+    out.push_back(std::move(bin));
   }
   return out;
 }
@@ -407,15 +416,44 @@ Json::Array histogram(const std::vector<double>& values, const std::vector<doubl
 Json::Object quality_report(const PolyMesh& mesh, const MeshGeometry& geometry, const std::vector<double>& quality, const std::vector<CellKind>& kind) {
   const auto worst = std::min_element(quality.begin(), quality.end());
   const auto worst_cell = Index(worst - quality.begin());
-  double max_skew = 0;
+  double max_face_skew = 0;
   std::vector<double> ratio_core, ratio_layer;
   for (Index f = 0; f < mesh.n_internal_faces(); ++f) {
     const auto o = mesh.owner[f], n = mesh.neighbour[f];
     const auto link = geometry.cell_centroid[n] - geometry.cell_centroid[o];
     const auto t = dot(geometry.face_centroid[f] - geometry.cell_centroid[o], geometry.face_area[f]) / dot(link, geometry.face_area[f]);
-    max_skew = std::max(max_skew, norm(geometry.face_centroid[f] - (geometry.cell_centroid[o] + link * t)) / std::max(norm(link), 1e-30));
+    // OpenFOAM-style face skewness: the face centroid's distance from where
+    // the owner-neighbour link crosses the face plane, over the link length.
+    // Unbounded: thin layer cells sheared slightly exceed 1.
+    max_face_skew = std::max(max_face_skew, norm(geometry.face_centroid[f] - (geometry.cell_centroid[o] + link * t)) / std::max(norm(link), 1e-30));
     const auto r = std::max(geometry.cell_volume[o] / geometry.cell_volume[n], geometry.cell_volume[n] / geometry.cell_volume[o]);
     (kind[o] == Prism || kind[n] == Prism ? ratio_layer : ratio_core).push_back(r);
+  }
+  // Fluent's equiangle skewness, 0 (ideal) to 1, from each face's corner
+  // angles against the regular polygon's. Nodes where the boundary turns by
+  // less than 30 degrees (hanging nodes of a 2:1 face, bent a little by the
+  // snap) are not corners. The cell value is its worst face.
+  double max_skew = 0;
+  Index skewed = 0;
+  for (Index f = 0; f < mesh.n_faces(); ++f) {
+    const auto ns = nodes(mesh, f);
+    std::vector<Vec3d> corners;
+    for (std::size_t j = 0; j < ns.size(); ++j) {
+      const auto p = mesh.points[ns[j]], a = mesh.points[ns[(j + ns.size() - 1) % ns.size()]], b = mesh.points[ns[(j + 1) % ns.size()]];
+      const auto u = a - p, v = b - p;
+      if (dot(u, v) / std::max(norm(u) * norm(v), 1e-300) > -std::cos(30 * std::acos(-1.) / 180)) corners.push_back(p);
+    }
+    if (corners.size() < 3) continue;
+    const double n = double(corners.size()), ideal = 180 * (n - 2) / n;
+    double lo = 180, hi = 0;
+    for (std::size_t j = 0; j < corners.size(); ++j) {
+      const auto u = corners[(j + corners.size() - 1) % corners.size()] - corners[j], v = corners[(j + 1) % corners.size()] - corners[j];
+      const auto angle = std::acos(std::clamp(dot(u, v) / std::max(norm(u) * norm(v), 1e-300), -1., 1.)) * 180 / std::acos(-1.);
+      lo = std::min(lo, angle); hi = std::max(hi, angle);
+    }
+    const auto skew = std::max((hi - ideal) / (180 - ideal), (ideal - lo) / ideal);
+    max_skew = std::max(max_skew, skew);
+    skewed += skew > .95;
   }
   double wall_ratio = std::numeric_limits<double>::infinity(), area_ratio = std::numeric_limits<double>::infinity();
   for (const auto& p : mesh.patches)
@@ -447,7 +485,7 @@ Json::Object quality_report(const PolyMesh& mesh, const MeshGeometry& geometry, 
   const auto ratios = [&](const std::vector<double>& r) {
     return Json::Object{{"faces", double(r.size())}, {"max", r.empty() ? 1. : *std::max_element(r.begin(), r.end())},
       {"p50", percentile(r, .5)}, {"p99", percentile(r, .99)}, {"p999", percentile(r, .999)},
-      {"histogram", histogram(r, {1, 2, 4, 8, 16, 20, 50, 1e300})}};
+      {"histogram", histogram(r, {1, 2, 4, 8, 16, 20, 50, 1e300}, true)}};
   };
   auto all = ratio_core;
   all.insert(all.end(), ratio_layer.begin(), ratio_layer.end());
@@ -458,7 +496,8 @@ Json::Object quality_report(const PolyMesh& mesh, const MeshGeometry& geometry, 
     {"fraction_below_0_15", below(.15) / double(quality.size())},
     {"orthogonal_histogram", histogram(quality, {0, .05, .1, .15, .2, .3, .5, .7, .9, 1})},
     {"worst_cell", Json::Object{{"index", double(worst_cell)}, {"centroid", vec(geometry.cell_centroid[worst_cell])}, {"volume", geometry.cell_volume[worst_cell]}}},
-    {"skewness_max", max_skew},
+    {"skewness_max", max_skew}, {"skewness_method", "Fluent equiangle skewness of face corner angles, 0 to 1; nodes turning the face boundary by under 30 degrees (hanging nodes) are not corners"},
+    {"faces_skewness_above_0_95", double(skewed)}, {"face_skewness_max", max_face_skew},
     {"adjacent_volume_ratio_max", all.empty() ? 1. : *std::max_element(all.begin(), all.end())},
     {"adjacent_volume_ratio_core", ratios(ratio_core)},
     {"adjacent_volume_ratio_layers", ratios(ratio_layer)},
@@ -468,7 +507,21 @@ Json::Object quality_report(const PolyMesh& mesh, const MeshGeometry& geometry, 
 }
 }  // namespace
 
-Result generate(const Surface& surface, const Settings& settings, double speed, const Progress& progress) {
+std::vector<RefinementBox> body_boxes(const Surface& sf, const Settings& st) {
+  const auto lo = sf.bounds.min, hi = sf.bounds.max;
+  const auto length = hi.x - lo.x;
+  const auto below = [&](double margin) { return st.ground ? 0. : lo.z - margin * length; };
+  // Drag follows the volume cells near the body, not just the surface
+  // sizing (validation/results/tet_poly_accuracy): the near-body box keeps
+  // the core at near_box_size max_size cells out to 0.1 L, under the floor
+  // and over the top; the wake box carries the separated flow 1 L downstream.
+  return {{"body", {{lo.x - .1 * length, lo.y - .1 * length, below(.1)}, {hi.x + .25 * length, hi.y + .1 * length, hi.z + .1 * length}}, near_box_size * st.max_size},
+          {"wake", {{hi.x, lo.y - .05 * length, below(.05)}, {hi.x + length, hi.y + .05 * length, hi.z + .1 * length}}, wake_box_size * st.max_size}};
+}
+
+Result generate(const Surface& surface, const Settings& requested, double speed, const Progress& progress) {
+  auto settings = requested;
+  if (settings.body_boxes) settings.boxes = body_boxes(surface, settings);
   const auto start = std::chrono::steady_clock::now();
   Json::Object timing;
   auto lap = [&, last = start](const char* name) mutable {
@@ -476,13 +529,20 @@ Result generate(const Surface& surface, const Settings& settings, double speed, 
     timing[name] = std::chrono::duration<double>(now - last).count();
     last = now;
   };
-  const auto emit = [&](std::string_view stage, double f, std::string_view m) { if (progress) progress(stage, f, m); };
+  // Stages report their own fractions, and retreat or collapse rounds can
+  // report one below an earlier message; consumers see a nondecreasing value.
+  double reached = 0;
+  const Progress monotone = [&](std::string_view stage, double f, std::string_view m) {
+    reached = std::max(reached, f);
+    if (progress) progress(stage, reached, m);
+  };
+  const auto& emit = monotone;
   KUTTA_REQUIRE(std::isfinite(speed) && speed > 0, "mesh: speed must be positive and finite");
   SurfaceQuery query(surface);
   emit("octree", .15, "Sizing facets by curvature, gaps and features");
   const auto facet = facet_sizes(surface, query, settings);
   Tree tree(surface, settings, query);
-  tree.refine(facet, progress);
+  tree.refine(facet, monotone);
   const auto level_jump = tree.max_level_jump();
   KUTTA_REQUIRE(level_jump <= 1, "mesh: octree 2:1 balance invariant failed");
   lap("octree");
@@ -492,11 +552,11 @@ Result generate(const Surface& surface, const Settings& settings, double speed, 
   const auto octree_cells = work.cells;
   lap("castellate");
   emit("trim", .5, "Snapping the wall onto the surface and its feature edges");
-  auto snap_report = snap(work, surface, query, settings, progress);
+  auto snap_report = snap(work, surface, query, settings, monotone);
   lap("snap");
   emit("layers", .75, settings.layer_count ? "Inserting prism layers" : "No prism layers requested");
   Json::Object layer_report{{"requested", settings.layer_count}, {"generated", 0}, {"status", "no layers requested; wall-function sizing"}};
-  if (settings.layer_count) layer_report = add_layers(work, surface, settings, progress);
+  if (settings.layer_count) layer_report = add_layers(work, surface, settings, monotone);
   KUTTA_REQUIRE(work.cells <= settings.max_cells, "mesh/max_cells: cell budget exceeded after layers; increase sizes or max_cells");
   lap("layers");
   emit("quality", .85, "Checking closure, volumes and orthogonal quality");
@@ -508,10 +568,19 @@ Result generate(const Surface& surface, const Settings& settings, double speed, 
   auto quality_json = quality_report(mesh, geometry, quality, kind);
   const auto min_quality = *std::min_element(quality.begin(), quality.end());
   KUTTA_REQUIRE(min_quality > 1e-8, "mesh: orthogonal quality below hard floor (1e-8); nothing written");
-  Index hexes = 0, pure = 0, prisms = 0;
+  Index hexes = 0, pure = 0, prisms = 0, shape_tet = 0, shape_hex = 0;
   {
     const auto cf = build_cell_faces(mesh);
     for (Index c = 0; c < mesh.n_cells; ++c) {
+      {
+        // The solver's classifier (kutta inspect, new-case): four triangles
+        // or six quadrilaterals, anything else a polyhedron.
+        bool triangles = true, quads = true;
+        for (auto i = cf.offsets[c]; i < cf.offsets[c + 1]; ++i) { const auto n = nodes(mesh, cf.faces[i]).size(); triangles = triangles && n == 3; quads = quads && n == 4; }
+        const auto count = cf.offsets[c + 1] - cf.offsets[c];
+        shape_tet += triangles && count == 4;
+        shape_hex += quads && count == 6;
+      }
       prisms += kind[c] == Prism;
       // An octree cell is a hex (possibly with split hanging faces) unless a
       // snap merge collapsed an edge, leaving fewer faces or a triangle.
@@ -551,9 +620,31 @@ Result generate(const Surface& surface, const Settings& settings, double speed, 
   const auto elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
   const auto usage = memory::usage();
   castellation["octree_cells_kept"] = double(octree_cells);
+  {
+    Json::Array boxes;
+    for (const auto& b : settings.boxes) {
+      // The octree cell a box asks for: the first power-of-two size below it.
+      double cell = settings.base_size;
+      while (cell > b.size * (1 + 1e-12)) cell /= 2;
+      boxes.push_back(Json::Object{{"name", b.name}, {"min", vec(b.bounds.min)}, {"max", vec(b.bounds.max)}, {"size", b.size}, {"cell_size", cell}});
+    }
+    castellation["refinement_boxes"] = std::move(boxes);
+    castellation["refinement_boxes_source"] = settings.body_boxes ? "default body-relative boxes (setup omits refinement_boxes)" : "setup";
+  }
+  const double cells = double(mesh.n_cells), memory = cells * simplec_bytes_per_cell;
+  Json::Array warnings{"Snapping retreats where a cell would fall below orthogonal quality 0.15; see snap/point_distance_m for the remaining geometric error.",
+                       "Slots narrower than about two cells close; see castellation/gaps.",
+                       "Octree cubes with 2:1 hanging faces count as hex; Fluent stores every cell as a polyhedron."};
+  if (memory > memory_warning_bytes) {
+    char text[200];
+    std::snprintf(text, sizeof text, "Estimated solver memory %.1f GB exceeds 10 GB: a 12 GB GPU may not fit this mesh; increase the surface or box sizes.", memory / 1e9);
+    warnings.push_back(std::string(text));
+  }
   Json::Object report{{"v", 1}, {"cells", double(mesh.n_cells)}, {"faces", double(mesh.n_faces())}, {"nodes", double(mesh.n_points())},
     {"cell_types", Json::Object{{"hex", double(hexes)}, {"hex_without_hanging_nodes", double(pure)}, {"poly", double(mesh.n_cells - hexes - prisms)}, {"prism", double(prisms)},
                                 {"hex_fraction_of_core", double(hexes) / double(std::max<Index>(1, mesh.n_cells - prisms))}}},
+    {"cell_types_by_shape", Json::Object{{"tet", double(shape_tet)}, {"hex", double(shape_hex)}, {"poly", double(mesh.n_cells - shape_tet - shape_hex)},
+      {"method", "as kutta inspect and new-case classify cells: four triangular faces (tet), six quadrilateral faces (hex), otherwise poly"}}},
     {"octree_leaves", double(tree.leaves)}, {"max_face_level_difference", level_jump},
     {"bounds", Json::Array{vec(tree.bounds.min), vec(tree.bounds.max)}}, {"body_bounds", Json::Array{vec(surface.bounds.min), vec(surface.bounds.max)}},
     {"zones", std::move(zones)}, {"missing_surface_zones", std::move(missing)}, {"repairs", surface.repairs},
@@ -566,9 +657,10 @@ Result generate(const Surface& surface, const Settings& settings, double speed, 
     {"wall_seconds", elapsed}, {"peak_memory_bytes", usage.peak ? Json(double(usage.peak)) : Json(nullptr)},
     {"geometry_method", "castellated octree (cells inside or crossed by the STL removed), wall snapped to the STL with implicit feature capture"},
     {"geometry_resolution_m", settings.min_size},
-    {"warnings", Json::Array{"Snapping retreats where a cell would fall below orthogonal quality 0.15; see snap/point_distance_m for the remaining geometric error.",
-                             "Slots narrower than about two cells close; see castellation/gaps.",
-                             "Octree cubes with 2:1 hanging faces count as hex; Fluent stores every cell as a polyhedron."}}};
+    {"estimated_solver_memory", Json::Object{{"bytes", memory}, {"bytes_per_cell", simplec_bytes_per_cell},
+      {"coupled_bytes", cells * coupled_bytes_per_cell}, {"coupled_bytes_per_cell", coupled_bytes_per_cell}, {"warning_above_bytes", memory_warning_bytes},
+      {"method", "cells times measured Metal device bytes per cell for the default steady solve (SIMPLEC, SST); coupled_bytes for the Coupled scheme; estimate, not measured on CUDA"}}},
+    {"warnings", std::move(warnings)}};
   return {std::move(mesh), std::move(report)};
 }
 }  // namespace kutta::mesher
