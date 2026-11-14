@@ -247,6 +247,10 @@ mesh read.
 
 The exact view binary layout, field names/units, interpolation and missing-data
 semantics are in [the writer's format specification](../src/kutta/io/VIEW_FORMAT.md).
+Each slice descriptor carries `skipped_cells` (v1 additive): cells left out of
+that slice because their faces do not close or their section cannot be
+triangulated (tangled cells), instead of failing the export. It is 0 on a
+valid mesh; the app may say "N cells could not be sliced" when it is not.
 The app should use manifest descriptors rather than assuming every zone has
 all fields. `--slice` takes **one** argument with six comma-separated finite
 numbers, `ox,oy,oz,nx,ny,nz`. The normal must be nonzero and is normalized.
@@ -611,8 +615,10 @@ Concave faces are ear-clipped in their dominant projection. For warped faces,
 the exporter selects a shared diagonalization that favours positive tetrahedra
 for both neighbouring cells. If necessary, it finds an interior point in the
 triangulated cell kernel instead of using the Fluent face-pyramid centroid.
-A cell without a positive kernel fails explicitly; inverted or overlapping
-tetrahedra are never silently accepted. Vertices
+A cell without a positive kernel, or with an inverted decomposition
+tetrahedron, is left out whole (no overlapping or inverted tetrahedra are
+emitted) and counted in the iso-surface descriptor's `skipped_cells` (v1
+additive); earlier CLIs failed the export on such a cell. Vertices
 are welded by topological edge identity, duplicate triangles are removed, and
 winding points toward increasing iso value. A scalar `field` uses its value;
 a vector uses magnitude by default, or `component:0|1|2` for x/y/z. Requested

@@ -79,6 +79,20 @@ An outside plane produces an empty file with null ranges. Planes are six finite
 comma-separated numbers `ox,oy,oz,nx,ny,nz`; normals are normalized and must be
 nonzero. The tolerance scales with mesh bounds and coordinate roundoff.
 
+Each node is classified once as above the plane (distance > tolerance) or
+not, so a plane through vertices, along edges or among snapped nodes that
+straddle the tolerance (a plane on an octree level of a `kutta mesh` mesh)
+still gives every cell closed polygons. A face of more than three nodes is cut
+as the triangle fan about its node average, the solver's face geometry, so
+warped and concave faces (2:1 hanging faces whose mid-edge node is not
+collinear) are followed rather than chorded across, and neighbouring cells
+neither overlap nor leave gaps. A face lying in the plane keeps the owner rule
+only where it is the whole section of the cell beside it; a face only partly
+within the tolerance is cut like any other. A cell whose faces do not bound a
+closed surface, or whose section cannot be triangulated (a tangled cell), is
+left out rather than failing the export; each slice descriptor counts those
+cells in `skipped_cells` (v1 additive; 0 on a valid mesh).
+
 When `--data` seeded the run, `reference` is true. Available saved fields use
 `<field>@fluent`; `<field>@delta` is **Kutta minus Fluent**, component by
 component for vectors, after the same surface/slice interpolation. Missing

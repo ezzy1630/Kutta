@@ -138,7 +138,11 @@ struct Curves {
 };
 Curves trace(const Volume &, const Trace &,
              std::span<const Volume *const> frames = {});
-view::Geometry isosurface(const Volume &, const Iso &);
+// Cells whose decomposition has no positive kernel or inverted tetrahedra
+// (tangled mesh cells) are left out and counted in *skipped, if given,
+// instead of failing the export.
+view::Geometry isosurface(const Volume &, const Iso &,
+                          std::uint64_t *skipped = nullptr);
 Curves probe(const Volume &, const Probe &);
 Json integrate(const Volume &, const Integral &);
 // Apply post reference overrides to properties and provenance.

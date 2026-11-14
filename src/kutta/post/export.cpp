@@ -179,8 +179,12 @@ Json::Object iso_unit(const Volume &volume, Iso spec, bool lenient,
                       const std::filesystem::path &dir) {
   Json::Array skipped;
   spec.fields = usable(volume, spec.fields, lenient, true, spec.name, skipped);
-  auto d =
-      view::write_geometry(dir / "data.bin", isosurface(volume, spec)).descriptor;
+  std::uint64_t skipped_cells = 0;
+  auto d = view::write_geometry(dir / "data.bin",
+                                isosurface(volume, spec, &skipped_cells))
+               .descriptor;
+  // v1 additive, as for slices.
+  d.emplace("skipped_cells", double(skipped_cells));
   d.emplace("name", spec.name);
   d.emplace("field", spec.field);
   d.emplace("value", spec.value);
