@@ -177,7 +177,7 @@ def main():
     # Coarse qualification meshes. 2 mm first layers put the first-cell
     # centroid near y+ 50 (FSAE, 20 m/s) and 100 (Ahmed, 40 m/s): the
     # wall-function range of Kutta's y+-insensitive SST wall treatment.
-    for name,base,minimum,maximum,floor,proximity,count in (("ahmed",.2,.025,.05,.00625,3,3),("fsae",.5,.04,.1,.003,1,4)):
+    for name,base,minimum,maximum,floor,proximity,count in (("ahmed",.2,.025,.05,.00625,3,3),("fsae",.5,.04,.1,.004,2,4)):
         setup={"v":1,"base_size":base,"surface":{"min_size":minimum,"max_size":maximum,"proximity_min_size":floor,"proximity_cells":proximity},
                "max_cells":3000000,"layers":{"count":count,"first_height":.002,"growth":1.3},"tunnel":{"upstream":3,"downstream":6,"side":2,"top":2,"ground":True}}
         (args.out/f"{name}-coarse.json").write_text(json.dumps(setup,indent=2)+"\n")

@@ -1,7 +1,9 @@
 #include <doctest/doctest.h>
 #include "../io/test_support.hpp"
 #include "kutta/mesh/mesher/external_aero.hpp"
+#include "../../src/kutta/mesh/mesher/internal.hpp"
 #include "kutta/mesh/detail.hpp"
+#include "kutta/mesh/topology.hpp"
 #include "kutta/io/mesh_io.hpp"
 #include "kutta/core/json_value.hpp"
 #include <bit>
@@ -42,6 +44,14 @@ std::string sphere(double r,Vec3d c) {
   }
   return out.str()+"endsolid ball\n";
 }
+std::string shifted_x(std::string text,double dx) {
+  std::string out; std::istringstream in(text); std::string line;
+  while(std::getline(in,line)) {
+    if(line.rfind("vertex",0)==0) { std::istringstream v(line.substr(7)); double x,y,z; v>>x>>y>>z; std::ostringstream o; o<<"vertex "<<x+dx<<' '<<y<<' '<<z; line=o.str(); }
+    out+=line+"\n";
+  }
+  return out;
+}
 Surface surface(MeshTemp& t,std::string text=cube()) {
   mesh_text(t.path("test.stl"),text); const std::array paths{t.path("test.stl")}; return read_stl(paths,{});
 }
@@ -77,7 +87,7 @@ TEST_CASE("mesh setup is strict and path-qualified") {
   CHECK_THROWS(parse_settings(R"({"v":1,"refinement_boxes":[{"name":"wake","min":[0,0,0],"max":[1,0,1],"size":0.1}]})"));
   CHECK_THROWS_WITH_AS(parse_settings(R"({"v":1,"surface":{"min_size":0.01,"proximity_min_size":0.02}})"),"mesh/surface/proximity_min_size: must not exceed min_size",Error);
   const auto defaults=parse_settings(R"({"v":1})");
-  CHECK(defaults.layer_count==4); CHECK(defaults.proximity_floor()==doctest::Approx(defaults.min_size/4));
+  CHECK(defaults.layer_count==4); CHECK(defaults.proximity_floor()==doctest::Approx(.002));
   CHECK(defaults.last_layer()==doctest::Approx(.002*1.3*1.3*1.3));
 }
 TEST_CASE("STL ASCII multi-solid repair and inside classification ignore supplied normals") {
@@ -210,6 +220,122 @@ TEST_CASE("gap sizing resolves a slot between shells and reports cells across it
     if(between[0]==Json{"front"} && between[1]==Json{"rear"}) { found=true; CHECK(std::get<double>(o.at("min_cells_across").value)>=2); CHECK(std::get<double>(o.at("width_m").value)==doctest::Approx(.06).epsilon(1e-6)); }
   }
   CHECK(found);
+}
+TEST_CASE("omitted refinement boxes default to body-relative boxes; an explicit list is used as given") {
+  CHECK(parse_settings(R"({"v":1})").body_boxes);
+  CHECK_FALSE(parse_settings(R"({"v":1,"refinement_boxes":[]})").body_boxes);
+  MeshTemp t; const auto sf=surface(t);
+  const auto boxes=[](const Result& r) { return std::get<Json::Array>(std::get<Json::Object>(r.report.at("castellation").value).at("refinement_boxes").value); };
+  auto settings=tiny();
+  const auto defaulted=generate(sf,settings);
+  const auto list=boxes(defaulted);
+  REQUIRE(list.size()==2);
+  const auto& body=std::get<Json::Object>(list[0].value);
+  CHECK(body.at("name")==Json{"body"});
+  CHECK(std::get<double>(body.at("size").value)==doctest::Approx(2*settings.max_size));
+  // The body box encloses the body with 0.1 L margins (0.25 L downstream).
+  const auto lo=std::get<Json::Array>(body.at("min").value), hi=std::get<Json::Array>(body.at("max").value);
+  CHECK(std::get<double>(lo[0].value)==doctest::Approx(.13-.06)); CHECK(std::get<double>(hi[0].value)==doctest::Approx(.73+.15));
+  CHECK(std::get<double>(lo[2].value)==0);  // ground
+  CHECK(std::get<Json::Object>(list[1].value).at("name")==Json{"wake"});
+  settings.body_boxes=false;
+  CHECK(boxes(generate(sf,settings)).empty());
+  // Memory estimate: cells times the measured bytes per cell.
+  const auto& memory=std::get<Json::Object>(defaulted.report.at("estimated_solver_memory").value);
+  CHECK(std::get<double>(memory.at("bytes").value)==doctest::Approx(defaulted.mesh.n_cells*2100.));
+  CHECK(std::get<double>(memory.at("coupled_bytes").value)==doctest::Approx(defaulted.mesh.n_cells*2600.));
+}
+TEST_CASE("a slot sized for three cells is never left one cell across; fewer cells keep thin slots") {
+  MeshTemp t;
+  // Uniform 0.1 m cells, no gap refinement; slot widths across one to three cells.
+  const std::string common=R"("base_size":0.4,"tunnel":{"upstream":0.3,"downstream":0.3,"side":0.3,"top":0.3},"layers":{"count":0},"refinement_boxes":[],"max_cells":200000})";
+  const auto three=parse_settings(R"({"v":1,"surface":{"min_size":0.1,"max_size":0.1,"proximity_min_size":0.1},)"+common);
+  const auto two=parse_settings(R"({"v":1,"surface":{"min_size":0.1,"max_size":0.1,"proximity_min_size":0.1,"proximity_cells":2},)"+common);
+  bool closed=false, open=false, thin_kept=false;
+  for(double gap=.1;gap<.36;gap+=.025) {
+    const auto sf=surface(t,cube("front")+shifted_x(cube("rear"),.6+gap));
+    for(const auto* settings:{&three,&two}) {
+      const auto result=generate(sf,*settings);
+      CHECK_NOTHROW(validate(result.mesh));
+      const auto& castellation=std::get<Json::Object>(result.report.at("castellation").value);
+      if(settings==&two) CHECK(std::get<double>(castellation.at("thin_gap_cells_removed").value)==0);
+      for(const auto& g:std::get<Json::Array>(castellation.at("gaps").value)) {
+        const auto& o=std::get<Json::Object>(g.value);
+        if(std::get<Json::Array>(o.at("between").value)[1]!=Json{"rear"}) continue;
+        const auto cells=std::get<double>(o.at("min_cells_across").value);
+        INFO("gap " << gap << " cells across " << cells);
+        if(settings==&three) { CHECK(cells!=1); closed=closed || cells==0; open=open || cells>=2; }
+        else thin_kept=thin_kept || cells==1;
+      }
+    }
+  }
+  CHECK(closed); CHECK(open); CHECK(thin_kept);
+}
+TEST_CASE("incremental displacement matches a fresh displacement of the same target") {
+  // A 6x6x6 hex block whose z=0 face is a wall pushed up; the second run
+  // changes the target on part of the wall.
+  const auto m=make_box_hex(6,6,6,{0,0,0},{1,1,1});
+  internal::Work w;
+  w.points=m.points; w.cells=m.n_cells; w.kind.assign(std::size_t(m.n_cells),internal::Hex); w.size.assign(std::size_t(m.n_cells),1./6);
+  w.planes.assign(m.points.size(),0);
+  std::vector<Index> sources;
+  for(Index f=0;f<m.n_faces();++f) {
+    const auto ns=nodes(m,f);
+    internal::Face face{{ns.begin(),ns.end()},m.owner[f],f<m.n_internal_faces()?m.neighbour[f]:-1,-1};
+    if(face.neighbour<0) {
+      bool bottom=true; for(auto n:ns) bottom=bottom && m.points[n].z<1e-12;
+      face.patch=bottom?internal::first_wall:0;
+      if(bottom) for(auto n:ns) sources.push_back(n);
+    }
+    w.faces.push_back(std::move(face));
+  }
+  std::sort(sources.begin(),sources.end()); sources.erase(std::unique(sources.begin(),sources.end()),sources.end());
+  const auto adjacency=internal::cell_faces(w); const auto pf=internal::point_faces(w);
+  std::vector<Vec3d> first(w.points.size()),second(w.points.size());
+  for(auto p:sources) { first[p]={0,0,.02}; second[p]={0,0,w.points[p].x<.5?.03:.02}; }
+  auto incremental=w; internal::Displacement step(incremental,adjacency,pf,sources,.15);
+  step.run(first,{},"test"); step.run(second,{},"test");
+  auto fresh=w; internal::Displacement once(fresh,adjacency,pf,sources,.15);
+  once.run(second,{},"test");
+  double worst=0;
+  for(std::size_t p=0;p<w.points.size();++p) worst=std::max(worst,norm(incremental.points[p]-fresh.points[p]));
+  CHECK(worst<1e-12);
+  CHECK(norm(fresh.points[sources[0]]-w.points[sources[0]])>.019);
+}
+TEST_CASE("mesh report contract: shape counts, skewness range, histogram faces, contacts, progress, zero gap floor") {
+  CHECK(parse_settings(R"({"v":1,"surface":{"proximity_min_size":0}})").proximity_floor()==doctest::Approx(.008/4));
+  CHECK(parse_settings(R"({"v":1})").proximity_floor()==doctest::Approx(.002));
+  CHECK(parse_settings(R"({"v":1,"surface":{"min_size":0.001,"max_size":0.01}})").proximity_floor()==doctest::Approx(.001/4));
+  MeshTemp t;
+  // The cube stands on the ground: a contact, not a closed slot.
+  std::vector<double> fractions;
+  const auto result=generate(surface(t,cube("body",1,false,{0,0,-.1})),tiny(R"({"count":2,"first_height":0.01,"growth":1.2})"),20,
+                             [&](std::string_view,double f,std::string_view) { fractions.push_back(f); });
+  CHECK_NOTHROW(validate(result.mesh));
+  REQUIRE(fractions.size()>2);
+  for(std::size_t i=1;i<fractions.size();++i) CHECK(fractions[i]>=fractions[i-1]);
+  // Shape classes as kutta inspect counts them.
+  Index tet=0,hex=0; const auto cf=build_cell_faces(result.mesh);
+  for(Index c=0;c<result.mesh.n_cells;++c) {
+    bool tri=true,quad=true; for(auto i=cf.offsets[c];i<cf.offsets[c+1];++i) { const auto n=nodes(result.mesh,cf.faces[i]).size(); tri=tri&&n==3; quad=quad&&n==4; }
+    tet+=tri&&cf.offsets[c+1]-cf.offsets[c]==4; hex+=quad&&cf.offsets[c+1]-cf.offsets[c]==6;
+  }
+  CHECK(report(result.report,{"cell_types_by_shape","tet"})==tet);
+  CHECK(report(result.report,{"cell_types_by_shape","hex"})==hex);
+  CHECK(report(result.report,{"cell_types_by_shape","poly"})==result.mesh.n_cells-tet-hex);
+  const auto& quality=std::get<Json::Object>(result.report.at("quality").value);
+  CHECK(report(quality,{"skewness_max"})>=0); CHECK(report(quality,{"skewness_max"})<=1);
+  CHECK(quality.contains("face_skewness_max"));
+  for(const auto& bin:std::get<Json::Array>(std::get<Json::Object>(quality.at("adjacent_volume_ratio_core").value).at("histogram").value)) {
+    const auto& o=std::get<Json::Object>(bin.value); CHECK(o.at("faces")==o.at("cells"));
+  }
+  bool contact=false;
+  for(const auto& g:std::get<Json::Array>(std::get<Json::Object>(result.report.at("castellation").value).at("gaps").value)) {
+    const auto& o=std::get<Json::Object>(g.value);
+    if(std::get<Json::Array>(o.at("between").value)[1]==Json{"ground"}) { contact=std::get<bool>(o.at("contact").value); CHECK(std::get<double>(o.at("width_m").value)==0); }
+    else CHECK_FALSE(std::get<bool>(o.at("contact").value));
+  }
+  CHECK(contact);
 }
 TEST_CASE("kutta mesh writes JSONL and a case that solves through the real CLI") {
   MeshTemp t; (void)surface(t);

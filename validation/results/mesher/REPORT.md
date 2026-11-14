@@ -8,6 +8,205 @@ criteria**: Ahmed stalls on continuity with Cd 0.454, far above experiment;
 FSAE forces are steady (CL 1.46, CD 1.33, 23% front) but k runs away in a few
 stagnant cells. The default FSAE mesh passes the gates; its layer stage took 61 min.
 
+## Round 3 (2026-11-13): convergence, layer time, default size, contract
+
+**Status against the round 3 goal** (default or coarse `kutta mesh` → default
+`kutta solve` converges, fits 12 GB, meshes in minutes): meshing in minutes
+and fitting 12 GB are met; **convergence is not**. Only Ahmed coarse converges
+(as it did before). The default FSAE mesh used to take 53 min and now takes
+under 5 and runs 5,000 iterations in 8.55 GB without diverging (without the
+notch removal it diverged by iteration 31), but both FSAE meshes end at the
+iteration limit with k stalled (residual ~1–3) and forces cycling. The six app
+contract issues are fixed.
+
+Code: commits on `t3/mesh-convergence-memory` from e08ec08 (see `git log`);
+every solve below
+uses main's starter (SIMPLEC, momentum 0.9, statistically-steady stop, 5000
+cap), the solver unchanged. Convergence is reported by the solve's `verdict`.
+Machine and contention as in round 2: another lane's app scenario and up to
+three of these solves shared the GPU, so times are contended.
+
+### Before / after
+
+"Before" is the round 2 mesher (fb44554) on the same STL; its meshes were
+re-solved here with main's starter so only the mesh differs.
+
+| | Ahmed coarse | Ahmed default | FSAE coarse | FSAE default |
+|---|---|---|---|---|
+| cells, before → after | 144,877 → 144,919 | 148,705 → 122,151 | 1,312,313 → 1,391,056 | 4,417,972 → 4,224,992 |
+| mesh time (layer stage), before | 2.0 s | 3.3 s | 64 s (41 s) | 3,197 s (3,097 s) |
+| mesh time (layer stage), after | 1.7 s | 3.8 s | 46 s (21 s) | 286 s (189 s) |
+| mesher max RSS, before → after | 0.16 → 0.20 GB | 0.17 → 0.14 GB | 1.12 → 1.40 GB | 3.65 → 3.59 GB |
+| verdict, before | `converged`, 621 it | `diverged`, iteration 36 | `statistically_steady`, 1,940 it | not solved (5000 iterations on 4.4M cells unaffordable) |
+| verdict, after | `converged`, 621 it | `statistically_steady`, 1,600 it | `iteration_limit`, 5,000 it | `iteration_limit`, 5,000 it (5,028 s) |
+| final residuals continuity / k / ω, before | 8.6e-4 / 2.3e-5 / 1.6e-5 | (diverged) | 6.1e-2 / 2.1 / 0.93 | |
+| final residuals continuity / k / ω, after | 8.6e-4 / 2.5e-5 / 1.6e-5 | 7.5e-3 / 2.9e-4 / 4.5e-5 | 9.2e-2 / 3.3 / 0.50 | 8.4e-2 / 1.0 / 0.50 |
+| forces, before | Cd 0.4535, CL +0.448 | | mean CL 1.413 (0.916–1.477), CD 1.332 | |
+| forces, after | Cd 0.4517, CL +0.447 | mean Cd 0.4469 (0.4466–0.4471), CL +0.056 | mean CL 1.359 (0.649–1.474), CD 1.280 (0.823–1.721) | last CL 1.219, CD 1.219; window mean CL 1.229 (1.090–1.577), CD 1.232 (1.202–1.505) |
+| front-axle share of downforce, before → after | | | 21.5% → 21.8% | 14.6% |
+| device memory (B/cell), after | 0.29 GB (2,031) | 0.25 GB (2,063) | 2.91 GB (2,094) | 8.55 GB (2,025) |
+| estimated solver memory, after | 0.30 GB | 0.26 GB | 2.92 GB | 8.87 GB |
+
+Before/after FSAE coarse use `fsae-coarse.json` from each round's
+`generate_geometry.py` (round 2: 3 mm gap floor, 1 cell across; round 3: 4 mm,
+2 cells, which opens front slot 1–2). Ahmed reference: A = 0.112032 m²,
+L = 1.044 m, 40 m/s, stationary ground (`{"type":"wall","motion":"stationary"}`,
+not a report zone). FSAE: A = 1 m², 20 m/s, moving ground, rotating wheels;
+front-axle share from `kutta aero --aero` with the front contact patch at
+x = −0.78 m and a 1.73 m wheelbase. Ranges are min–max over the
+statistically-steady stop's window. CL for Ahmed is lift (positive up), for
+FSAE downforce.
+
+**The round 2 coarse tuple with this round's code diverges** (iteration 3,082;
+rear slot 1–2 closed, front slot 2–3 one cell across), which is why the coarse
+setup changed.
+
+### Layer collapse: minutes, not an hour
+
+Each collapse round re-ran the whole-mesh displacement smoothing (Laplacian
+over a 3-point band, 12 Jacobi sweeps, quality retreat). The smoothing is
+linear in the source displacements, so a round now smooths only the change:
+an exact delta solution over the 12 band hops reached from the sources that
+changed (`Displacement::run`, `displace.cpp`). Scales reset only within 6 hops
+of a changed source; when a retreat would halve a source outside that set,
+the set grows and the round restarts, otherwise compounding halvings cascade
+(an earlier attempt without the restart left 13.5% of wall unlayered).
+Settle re-examines only faces on edges whose use changed; its fixed point is
+the same (byte-identical mesh in the check run). A unit test checks the
+incremental result against a fresh displacement of the same target
+(< 1e-12 m). Default-size FSAE: layer stage 3,097 s → 189 s, whole mesh
+3,197 s → 286 s (contended); max RSS 3.59 GB against 3.65 GB.
+
+### Default sizing and memory
+
+Omitted `refinement_boxes` now add a `body` box (2 × `max_size`, 0.1 L around
+the body, 0.25 L behind) and a `wake` box (4 × `max_size`, 1 L behind), and
+the report lists both with their achieved octree cell. `min_size` defaults to
+0.008 m (octree 7.8 mm, was 0.006 m) with the gap floor unchanged at
+`min_size/4` (1.95 mm), so every 12–20 mm wing slot keeps two or more cells.
+Synthetic FSAE car: 4,224,992 cells (2.49M core, 1.74M prism), estimated
+8.87 GB for the default solve, under the 10 GB warning.
+
+**A coarser default diverged.** `min_size` 0.016 m with a 2 mm gap floor gave
+4.08M cells (only 3% fewer) and **diverged at iteration 31**: k 5.8e8, ω at
+its 1e-20 floor and μt at its cap in 2 mm cells where front-wing slot 1–2
+(13 mm, 4 cells across) meets the left endplate, around (−1.204, 0.554,
+0.159) m; the worst cell is nearly stagnant (|u| 0.4 m/s). It is not the
+starter: the same mesh at momentum 0.7 diverges at iteration 32. The
+0.008 m mesh (2 mm slot cells next to 7.8 mm, not 15.6 mm, surface cells)
+does not. A 4 mm floor with 0.016 m (2.43M cells) ran 60 iterations but
+closes rear slot 1–2, so it was not adopted. The 2.5–3.5M-cell target is not
+met by a mesh that runs. `estimated_solver_memory` is cells × 2,100 B (SIMPLEC, measured
+2,003–2,232 B per cell on Metal for this mesher's meshes; Coupled 2,600,
+measured 2,528–2,589 in round 2), with a warning above 10 GB. It is not
+measured on CUDA, whose context adds memory.
+
+### The k runaway: what the mesh does and does not explain
+
+- **Where.** On FSAE coarse, k runs to 1e11–1e13 with μt at its cap in a few
+  stagnant prism cells where a closed or one-cell slot remnant meets an
+  endplate (rear slot 1–2 at about (0.996, 0.47–0.56, 0.958) m; front slot 1–2
+  at the endplate). Those cells are walled on three or four sides, with
+  near-zero convective flux. Forces cycle by ±0.5% and continuity stalls near
+  3e-2. On the 4.2M default-like mesh (all slots open, old starter) k still
+  stalled at residual ~1 after 3,000 iterations, with downforce and drag ranges
+  of 4% and 2%.
+- **Experiment 1, close one-cell gaps** (`round3-thin-gap-experiment.patch`):
+  remove every fluid cell with the body on two opposite sides (and, in the
+  second rule, on at least three sides), repeatedly. It removed the slot
+  remnants but **diverged at iteration 37** under main's starter: k 6.8e13,
+  ω down to 1e-20 and μt at its cap in OQ ≈ 0.98 layer cells at front-wing
+  element 1's trailing edge. The same setup without it runs to the 5000
+  limit. **On the coarse car it is not applied** (below).
+- **Experiment 2, gap-limited layers** (cap total layer height at a fraction of
+  the local gap): diverged at about iteration 60. Not adopted.
+- **At the default size the same removal is what lets the solve run.**
+  Without it, the default car diverges by iteration 27–31 with k 3e10 and
+  ω at its floor in 2 mm cells at front-wing slot 1–2 and the left endplate,
+  around (−1.20, 0.554, 0.169) m (only the left side: the octree lattice is
+  not symmetric there). With it (9,318 cells removed, every slot still
+  2–4 cells across) the solve runs on (table). So the removal is applied only
+  when `proximity_cells` ≥ 3 (the default): then a one-cell-thick fluid cell
+  is a notch, not a slot. Below 3 the setup asks for thin slots, and closing
+  them diverges on the coarse car. This rests on these two cars, not a
+  general argument.
+- **Default sizing** keeps every slot open (the round 2 suggestion).
+
+**Candidate solver defect (not changed; the solver belongs to another lane).**
+Reproduction from this commit:
+
+```sh
+git apply validation/results/mesher/round3-thin-gap-experiment.patch   # removal at any proximity_cells
+cmake --build build --target kutta
+uv run tools/mesher/generate_geometry.py --out g
+./build/kutta mesh g/fsae.stl --setup g/fsae-coarse.json --out m --case --force \
+  --speed 20 --wheel wheel-fl=0.23,-0.78,0.72,0.23,0,-1,0 \
+  --wheel wheel-fr=0.23,-0.78,-0.72,0.23,0,-1,0 \
+  --wheel wheel-rl=0.23,0.95,0.72,0.23,0,-1,0 --wheel wheel-rr=0.23,0.95,-0.72,0.23,0,-1,0
+./build/kutta solve m/case.kutta.json --backend metal --iterations 100 --progress jsonl </dev/null
+```
+
+Rerun on this commit with the patch: 1,385,567 cells (2,219 removed as thin),
+0 cells below OQ 0.15, and the solve stops with `verdict: "diverged"` at
+iteration 37 ("nonfinite input vector"; last finite residuals at iteration
+20: continuity 0.979, k 0.122, ω 0.005). The diverging cells pass every mesh gate (OQ ≈ 0.98, positive volume);
+k-ω should not blow up there, so the next step is in the solver's k-ω
+source/limiter treatment, not the mesh.
+
+### Contract fixes for the app (all v1 additive, documented in app-protocol.md)
+
+1. **Cell types vs `kutta inspect`.** `cell_types` counts by origin: octree
+   cubes with 2:1 hanging faces are `hex` (inspect: poly, more than six
+   faces) and layer cells are `prism` (inspect: hex, six quads). It is kept;
+   `cell_types_by_shape` (tet / hex / poly) uses inspect's classifier, six
+   quadrilateral faces hex, four triangular faces tet, otherwise poly. On an
+   FSAE mesh it equals `kutta inspect`'s counts, and a unit test recounts it.
+2. **`proximity_min_size: 0` rejected.** It is now accepted and means
+   `min_size/4`, as the omitted default always did.
+3. **Progress fraction went backwards** (0.80 then 0.78 when layers restarted
+   a stage). Progress is now a running maximum across stages: nondecreasing
+   over all 41 events of an FSAE mesh, and in a unit test.
+4. **Tyre–ground contacts.** Each `castellation/gaps` entry adds
+   `contact: true` when the zones touch (width ≤ 1e-6 of the domain diagonal);
+   FSAE reports 4, one per tyre.
+5. **Histogram key.** Volume-ratio histograms count faces; they add `faces`
+   and keep `cells` as a documented deprecated alias with the same counts.
+6. **`skewness_max` 1.36.** The field reported OpenFOAM-style face skewness:
+   the face centroid's distance from where the owner–neighbour centroid link
+   crosses the face plane, over the link length. That is unbounded; sheared
+   thin layer cells exceed 1. It moves to
+   `face_skewness_max`; `skewness_max` is now Fluent's equiangle skewness,
+   max over faces of max((θmax−90)/90, (90−θmin)/90) on each face's corner
+   angles, in 0..1. Hanging nodes on straight edges are not corners (an
+   interior angle ≥ 150° is skipped), so 2:1 faces are not flagged.
+   `skewness_method` names it and `faces_skewness_above_0_95` counts the
+   worst. FSAE coarse: `skewness_max` 1.0 with 47 faces above 0.95
+   (default: 137), slivers at snapped trailing edges; `face_skewness_max`
+   1.53 (default 2.07).
+
+### Open problems (round 3)
+
+1. **Convergence.** No FSAE mesh converges under the default solve. Coarse
+   cycles, downforce coefficient 0.65–1.47 over the last window (k residual
+   ~3); default 1.09–1.58 (k residual 1.0), with the front-axle share 14.6%
+   against coarse's 21.8%, so the balance is not mesh-independent either. Ahmed default stops statistically steady, not converged.
+   The diverging and stalling cells pass every mesh gate, so the next lever is
+   the k-ω treatment in stagnant junction cells (solver lane), or a mesher
+   change that avoids 2 mm cells meeting 3–4 walls at slot/endplate
+   junctions.
+2. **Candidate solver defect** above (k-ω blow-up in a good layer cell).
+3. **Volume-ratio maxima and snap error** (round 2 item 4): not attempted.
+4. **Found by the post lane** (`validation/results/mesher_post/REPORT.md`, not
+   fixed here): horizontal ledges on the snapped Ahmed body at octree levels
+   (2.1e-4 m² at z = 0.1); a non-manifold fin 8 mm outside the Ahmed side,
+   the source of the 7.84 mm snap-error maximum; and about 100 tangled cells
+   on FSAE coarse that cannot be sliced (inverted fan tetrahedra).
+5. `tools/mesher/qualify.py` still applies round 2's stricter force criterion
+   (5e-4 over 50 samples); its Ahmed ground now uses the stationary-ground
+   form.
+
+The sections below are round 2 (38b1389), kept for reference.
+
 ## Reproduce
 
 ```sh

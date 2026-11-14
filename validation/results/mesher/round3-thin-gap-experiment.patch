@@ -1,0 +1,13 @@
+diff --git a/src/kutta/mesh/mesher/mesher.cpp b/src/kutta/mesh/mesher/mesher.cpp
+index 3e1135f..6076c77 100644
+--- a/src/kutta/mesh/mesher/mesher.cpp
++++ b/src/kutta/mesh/mesher/mesher.cpp
+@@ -571,7 +571,7 @@ Result generate(const Surface& surface, const Settings& requested, double speed,
+   lap("octree");
+   emit("trim", .4, "Castellating: removing cells inside or crossed by the surface");
+   Json::Object castellation;
+-  auto work = castellate(tree, query, surface, settings.proximity_cells >= 3, castellation);
++  auto work = castellate(tree, query, surface, true, castellation);
+   const auto octree_cells = work.cells;
+   lap("castellate");
+   emit("trim", .5, "Snapping the wall onto the surface and its feature edges");
