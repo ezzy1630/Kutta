@@ -318,6 +318,7 @@ Result<ProgressEvent> parseProgressLine(const QByteArray& line)
         d.out = o.value("out").toString();
         d.stopReason = o.value("stop_reason").toString();
         d.metBy = strings(o.value("convergence").toObject().value("met_by"));
+        d.residualsWaived = o.value("residuals_waived").toBool() || o.value("convergence").toObject().value("residuals_waived").toBool();
         return ProgressEvent{d};
     }
     if (ev == "error") {
@@ -518,6 +519,7 @@ Result<RunSummary> parseRunSummary(const QJsonObject& o)
     const QJsonObject conv = o.value("convergence").toObject();
     s.convergence = parseConvergenceSetup(conv);
     s.metBy = strings(conv.value("met_by"));
+    s.residualsWaived = o.value("residuals_waived").toBool() || conv.value("residuals_waived").toBool();
     if (conv.value("iteration").isDouble()) s.convergedIteration = conv.value("iteration").toInt();
     s.coupling = o.value("pressure_velocity_coupling").toString();
     return s;
@@ -538,6 +540,10 @@ ConvergenceSetup parseConvergenceSetup(const QJsonObject& o)
         c.reports.push_back({r.value("report").toString(), r.value("stop_criterion").toDouble(), r.value("previous_values").toInt(),
                              r.value("ignore_before").toInt()});
     }
+    if (o.value("forces").isObject()) {
+        const QJsonObject f = o.value("forces").toObject();
+        c.forces = ConvergenceSetup::Forces{f.value("tolerance").toDouble(), f.value("window").toInt(), strings(f.value("reports"))};
+    }
     return c;
 }
 
@@ -553,6 +559,11 @@ ConvergenceState parseConvergenceState(const QJsonObject& o)
         st.met = c.value("met").toBool();
         st.value = num(c.value("value"));
         st.criterion = num(c.value("criterion"));
+        st.waived = c.value("waived").toBool();
+        st.settled = c.value("settled").toBool();
+        st.window = c.value("window").toInt();
+        const QJsonObject ranges = c.value("reports").toObject();
+        for (auto it = ranges.begin(); it != ranges.end(); ++it) st.ranges[it.key()] = num(it.value());
         const QJsonObject eq = c.value("equations").toObject();
         for (auto it = eq.begin(); it != eq.end(); ++it) {
             const QJsonObject e = it.value().toObject();
@@ -566,6 +577,10 @@ ConvergenceState parseConvergenceState(const QJsonObject& o)
 QString describeCondition(const QString& id, const ConvergenceSetup& setup)
 {
     if (id == "residuals") return QStringLiteral("every checked residual reached its criterion");
+    if (id == "forces" && setup.forces)
+        return QStringLiteral("forces settled: %1 each within %2 % over %3 iterations")
+            .arg(setup.forces->reports.join(", "), QLocale::c().toString(setup.forces->tolerance * 100, 'g', 3)).arg(setup.forces->window);
+    if (id == "forces") return QStringLiteral("forces settled");
     const QString name = id.startsWith("report:") ? id.mid(7) : id;
     for (const auto& r : setup.reports)
         if (r.report == name)

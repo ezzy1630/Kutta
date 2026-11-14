@@ -82,7 +82,8 @@ public:
     // New case from a mesh: a starter Kutta case the New Case page edits
     // until it is created (kutta new-case); the open case, if any, stays open
     // meanwhile.
-    void startNewCase(const QString& meshPath);
+    // `speed` (m/s, 0: the template's default) is the freestream to start from.
+    void startNewCase(const QString& meshPath, double speed = 0);
     bool newCaseBusy() const { return m_draftBusy; }
     const std::optional<NewCaseDraft>& newCaseDraft() const { return m_draft; }
     QString newCaseError() const { return m_draftError; }

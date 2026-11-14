@@ -1,11 +1,14 @@
 #include "core/MeshCli.h"
 
 #include <QDir>
-#include <algorithm>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QObject>
+#include <QVector3D>
+
+#include <algorithm>
+#include <cmath>
 
 #ifdef Q_OS_UNIX
 #include <csignal>
@@ -20,7 +23,9 @@ QStringList meshArguments(const MeshRequest& r)
     QStringList a{"mesh"};
     a << r.geometry;
     if (!r.setupFile.isEmpty()) a << "--setup" << r.setupFile;
-    a << "--out" << r.outDir << "--progress" << "jsonl" << "--force";
+    a << "--out" << r.outDir;
+    if (r.speed > 0) a << "--speed" << QString::number(r.speed, 'g', 10);
+    a << "--progress" << "jsonl" << "--force";
     return a;
 }
 
@@ -57,117 +62,246 @@ Result<MeshEvent> parseMeshEvent(const QByteArray& line)
 
 namespace {
 
-std::optional<double> number(const QJsonObject& o, std::initializer_list<const char*> keys)
-{
-    for (const char* k : keys)
-        if (o.value(k).isDouble()) return o.value(k).toDouble();
-    return std::nullopt;
-}
+// Strict reads with the offending key's path: a present key of the wrong type
+// is an error; absent or null is "not reported".
+struct Reader {
+    QStringList errors;
+    void bad(const QString& path, const char* what) { errors << QStringLiteral("%1: expected %2").arg(path, QString::fromLatin1(what)); }
+    static bool absent(const QJsonValue& v) { return v.isUndefined() || v.isNull(); }
+    std::optional<double> number(const QJsonObject& o, const QString& key, const QString& path)
+    {
+        const QJsonValue v = o.value(key);
+        if (absent(v)) return std::nullopt;
+        if (!v.isDouble()) return bad(path + "/" + key, "a number"), std::nullopt;
+        return v.toDouble();
+    }
+    std::optional<qint64> count(const QJsonObject& o, const QString& key, const QString& path)
+    {
+        const auto d = number(o, key, path);
+        if (!d) return std::nullopt;
+        if (*d < 0 || *d != std::floor(*d)) return bad(path + "/" + key, "a whole number"), std::nullopt;
+        return qint64(*d);
+    }
+    std::optional<QJsonObject> object(const QJsonObject& o, const QString& key, const QString& path)
+    {
+        const QJsonValue v = o.value(key);
+        if (absent(v)) return std::nullopt;
+        if (!v.isObject()) return bad(path + "/" + key, "an object"), std::nullopt;
+        return v.toObject();
+    }
+    std::optional<QJsonArray> array(const QJsonObject& o, const QString& key, const QString& path)
+    {
+        const QJsonValue v = o.value(key);
+        if (absent(v)) return std::nullopt;
+        if (!v.isArray()) return bad(path + "/" + key, "an array"), std::nullopt;
+        return v.toArray();
+    }
+    QString string(const QJsonObject& o, const QString& key, const QString& path)
+    {
+        const QJsonValue v = o.value(key);
+        if (absent(v)) return {};
+        if (!v.isString()) return bad(path + "/" + key, "a string"), QString();
+        return v.toString();
+    }
+    std::optional<QVector3D> point(const QJsonObject& o, const QString& key, const QString& path)
+    {
+        const auto a = array(o, key, path);
+        if (!a) return std::nullopt;
+        if (a->size() != 3 || !(*a)[0].isDouble() || !(*a)[1].isDouble() || !(*a)[2].isDouble()) return bad(path + "/" + key, "[x, y, z]"), std::nullopt;
+        return QVector3D(float((*a)[0].toDouble()), float((*a)[1].toDouble()), float((*a)[2].toDouble()));
+    }
+    // [{"from":a,"to":b,"cells":n}, ...]: the report counts faces under "cells" too.
+    std::vector<MeshBin> bins(const QJsonObject& o, const QString& key, const QString& path)
+    {
+        std::vector<MeshBin> out;
+        const auto a = array(o, key, path);
+        if (!a) return out;
+        for (qsizetype i = 0; i < a->size(); ++i) {
+            const QString p = QStringLiteral("%1/%2/%3").arg(path, key).arg(i);
+            if (!(*a)[i].isObject()) {
+                bad(p, "an object");
+                continue;
+            }
+            const QJsonObject b = (*a)[i].toObject();
+            const auto from = number(b, "from", p), to = number(b, "to", p);
+            const auto n = count(b, "cells", p);
+            if (!from || !to || !n) {
+                bad(p, "from, to and cells");
+                continue;
+            }
+            out.push_back({*from, *to, *n});
+        }
+        return out;
+    }
+};
 
-QString qualityLabel(const QString& key)
+std::optional<MeshDistribution> distribution(Reader& rd, const QJsonObject& q, const QString& key)
 {
-    static const QMap<QString, QString> l{{"orthogonal_quality", QObject::tr("Orthogonal quality")},
-                                          {"skewness", QObject::tr("Skewness")},
-                                          {"volume_ratio", QObject::tr("Volume ratio")},
-                                          {"aspect_ratio", QObject::tr("Aspect ratio")}};
-    return l.value(key, QString(key).replace('_', ' '));
+    const QString path = "quality/" + key;
+    const auto o = rd.object(q, key, "quality");
+    if (!o) return std::nullopt;
+    MeshDistribution d;
+    d.max = rd.number(*o, "max", path);
+    d.p50 = rd.number(*o, "p50", path);
+    d.p99 = rd.number(*o, "p99", path);
+    d.p999 = rd.number(*o, "p999", path);
+    d.faces = rd.count(*o, "faces", path);
+    d.histogram = rd.bins(*o, "histogram", path);
+    return d;
 }
 
 } // namespace
 
-const MeshQuality* MeshReport::metric(const QString& key) const
+std::vector<MeshGap> MeshReport::closedGaps() const
 {
-    for (const auto& q : quality)
-        if (q.key == key) return &q;
-    return nullptr;
+    std::vector<MeshGap> out;
+    if (gaps)
+        for (const auto& g : *gaps)
+            if (g.closed()) out.push_back(g);
+    return out;
 }
 
 Result<MeshReport> parseMeshReport(const QJsonObject& o)
 {
     using R = Result<MeshReport>;
     if (o.isEmpty()) return R::failure(QObject::tr("the mesh report is empty"));
-    if (o.contains("v") && o.value("v").toInt() != 1) return R::failure(QObject::tr("mesh report version %1 is not supported").arg(o.value("v").toInt()));
+    if (o.value("v").toInt() != 1 || !o.value("v").isDouble())
+        return R::failure(o.contains("v") ? QObject::tr("mesh report version %1 is not supported").arg(o.value("v").toVariant().toString())
+                                          : QObject::tr("the mesh report has no version (v)"));
+    Reader rd;
     MeshReport r;
     r.raw = o;
-    const QJsonObject mesh = o.value("mesh").isObject() ? o.value("mesh").toObject() : o;
-    // Cells: a total, with the types beside it or in their own object.
-    const QJsonValue cells = mesh.value("cells");
-    QJsonObject types = mesh.value("cell_types").toObject();
-    if (cells.isObject()) {
-        const QJsonObject c = cells.toObject();
-        r.cells = qint64(c.value("total").toDouble());
-        for (auto it = c.begin(); it != c.end(); ++it)
-            if (it.key() != "total" && it.value().isDouble()) types.insert(it.key(), it.value());
-    } else {
-        r.cells = qint64(cells.toDouble());
-    }
-    for (auto it = types.begin(); it != types.end(); ++it) r.cellTypes[it.key()] = qint64(it.value().toDouble());
-    if (r.cells == 0)
-        for (qint64 n : r.cellTypes) r.cells += n;
-    r.faces = qint64(mesh.value("faces").toDouble());
-    r.nodes = qint64(mesh.value("nodes").toDouble());
-    for (const QJsonValue& v : o.value("zones").toArray()) {
-        const QJsonObject z = v.toObject();
-        r.zones.push_back({z.value("name").toString(), z.value("type").toString(), qint64(z.value("faces").toDouble())});
-    }
-    // Quality: {"orthogonal_quality": {"min":..,"mean":..}, ...} or a list of {"name"/"metric", ...}.
-    auto addQuality = [&](const QString& key, const QJsonObject& q) {
-        MeshQuality m;
-        m.key = key;
-        m.label = qualityLabel(key);
-        m.min = number(q, {"min"});
-        m.mean = number(q, {"mean", "average"});
-        m.max = number(q, {"max"});
-        m.higherIsBetter = key == "orthogonal_quality";
-        const QJsonObject h = q.value("histogram").toObject();
-        for (const QJsonValue& e : h.value("edges").toArray()) m.edges.push_back(e.toDouble());
-        for (const QJsonValue& c : h.value("counts").toArray()) m.counts.push_back(qint64(c.toDouble()));
-        if (m.edges.size() != m.counts.size() + 1) m.edges.clear(), m.counts.clear();
-        r.quality.push_back(std::move(m));
-    };
-    const QJsonValue quality = o.value("quality");
-    if (quality.isObject()) {
-        const QJsonObject q = quality.toObject();
-        for (const char* k : {"orthogonal_quality", "skewness", "volume_ratio", "aspect_ratio"})
-            if (q.value(k).isObject()) addQuality(k, q.value(k).toObject());
-        for (auto it = q.begin(); it != q.end(); ++it)
-            if (it.value().isObject() && !r.metric(it.key())) addQuality(it.key(), it.value().toObject());
-    } else {
-        for (const QJsonValue& v : quality.toArray()) {
-            const QJsonObject q = v.toObject();
-            addQuality(q.value("name").toString(q.value("metric").toString()), q);
+    // Size and zones are required.
+    const auto cells = rd.count(o, "cells", ""), faces = rd.count(o, "faces", ""), nodes = rd.count(o, "nodes", "");
+    if (!cells || !faces || !nodes) rd.errors << QObject::tr("cells, faces and nodes are required");
+    r.cells = cells.value_or(0);
+    r.faces = faces.value_or(0);
+    r.nodes = nodes.value_or(0);
+    if (const auto z = rd.array(o, "zones", "")) {
+        for (qsizetype i = 0; i < z->size(); ++i) {
+            const QString p = QStringLiteral("zones/%1").arg(i);
+            const QJsonObject zo = (*z)[i].toObject();
+            const QString name = rd.string(zo, "name", p);
+            if (name.isEmpty()) rd.bad(p + "/name", "a zone name");
+            r.zones.push_back({name, rd.string(zo, "type", p), rd.count(zo, "faces", p).value_or(0)});
         }
+    } else {
+        rd.errors << QObject::tr("zones is required");
     }
-    for (const QJsonValue& v : o.value("worst_cells").toArray()) {
-        const QJsonObject w = v.toObject();
-        MeshWorstCell c;
-        c.metric = w.value("metric").toString();
-        c.value = w.value("value").toDouble();
-        const QJsonArray p = w.value(w.contains("centroid") ? "centroid" : "position").toArray();
-        if (p.size() == 3) c.position = QVector3D(float(p[0].toDouble()), float(p[1].toDouble()), float(p[2].toDouble()));
-        c.zone = w.value("zone").toString();
-        r.worst.push_back(c);
+    if (const auto t = rd.object(o, "cell_types", "")) {
+        r.cellTypes.hex = rd.count(*t, "hex", "cell_types");
+        r.cellTypes.hexWithoutHangingNodes = rd.count(*t, "hex_without_hanging_nodes", "cell_types");
+        r.cellTypes.poly = rd.count(*t, "poly", "cell_types");
+        r.cellTypes.prism = rd.count(*t, "prism", "cell_types");
+        r.cellTypes.hexFractionOfCore = rd.number(*t, "hex_fraction_of_core", "cell_types");
     }
-    for (const QJsonValue& v : o.value("repairs").toArray()) {
-        if (v.isString()) r.repairs << v.toString();
-        else {
-            const QJsonObject x = v.toObject();
-            QString text = x.value("message").toString(x.value("description").toString(x.value("kind").toString()));
-            if (x.value("count").isDouble()) text = QObject::tr("%1 (%2)").arg(text).arg(qint64(x.value("count").toDouble()));
-            if (!x.value("solid").toString().isEmpty()) text = x.value("solid").toString() + ": " + text;
-            r.repairs << text;
+    if (const auto q = rd.object(o, "quality", "")) {
+        MeshQualityReport m;
+        m.orthogonalMin = rd.number(*q, "orthogonal_min", "quality");
+        m.orthogonalMean = rd.number(*q, "orthogonal_mean", "quality");
+        m.skewnessMax = rd.number(*q, "skewness_max", "quality");
+        m.volumeMin = rd.number(*q, "volume_min", "quality");
+        m.orthogonalHistogram = rd.bins(*q, "orthogonal_histogram", "quality");
+        m.cellsBelow005 = rd.count(*q, "cells_below_0_05", "quality");
+        m.cellsBelow015 = rd.count(*q, "cells_below_0_15", "quality");
+        m.negativeCells = rd.count(*q, "negative_cells", "quality");
+        m.nonconvexCells = rd.count(*q, "nonconvex_cells", "quality");
+        if (const auto w = rd.object(*q, "worst_cell", "quality")) m.worstCell = rd.point(*w, "centroid", "quality/worst_cell");
+        m.volumeRatioCore = distribution(rd, *q, "adjacent_volume_ratio_core");
+        m.volumeRatioLayers = distribution(rd, *q, "adjacent_volume_ratio_layers");
+        r.quality = m;
+    }
+    if (const auto c = rd.object(o, "castellation", ""))
+        if (const auto g = rd.array(*c, "gaps", "castellation")) {
+            std::vector<MeshGap> gaps;
+            for (qsizetype i = 0; i < g->size(); ++i) {
+                const QString p = QStringLiteral("castellation/gaps/%1").arg(i);
+                const QJsonObject go = (*g)[i].toObject();
+                const auto between = rd.array(go, "between", p);
+                const auto across = rd.count(go, "min_cells_across", p);
+                const auto width = rd.number(go, "width_m", p);
+                if (!between || between->size() != 2 || !across || !width) {
+                    rd.bad(p, "between [zone, zone], min_cells_across and width_m");
+                    continue;
+                }
+                gaps.push_back({(*between)[0].toString(), (*between)[1].toString(), *across, *width});
+            }
+            r.gaps = gaps;
         }
+    if (const auto l = rd.object(o, "layers", "")) {
+        MeshLayers m;
+        m.requested = rd.count(*l, "requested", "layers");
+        m.generated = rd.count(*l, "generated", "layers");
+        m.cells = rd.count(*l, "cells", "layers");
+        m.stacks = rd.count(*l, "stacks", "layers");
+        m.collapseRounds = rd.count(*l, "collapse_rounds", "layers");
+        if (const auto c = rd.object(*l, "coverage", "layers")) {
+            m.coverageFull = rd.number(*c, "full", "layers/coverage");
+            m.coverageThinned = rd.number(*c, "thinned", "layers/coverage");
+            m.coverageNone = rd.number(*c, "none", "layers/coverage");
+            m.wallArea = rd.number(*c, "wall_area_m2", "layers/coverage");
+        }
+        if (const auto f = rd.object(*l, "first_height_achieved", "layers")) {
+            m.firstHeightMean = rd.number(*f, "mean", "layers/first_height_achieved");
+            m.firstHeightMin = rd.number(*f, "min", "layers/first_height_achieved");
+        }
+        if (const auto t = rd.object(*l, "terminations", "layers")) {
+            m.splitPoints = rd.count(*t, "split_points", "layers/terminations");
+            m.liftedPoints = rd.count(*t, "lifted_points", "layers/terminations");
+        }
+        r.layers = m;
     }
-    const QJsonValue yp = o.value("y_plus");
-    if (yp.isDouble()) r.yPlus = yp.toDouble();
-    else if (yp.isObject()) {
-        r.yPlus = number(yp.toObject(), {"estimate", "mean", "typical"});
-        r.yPlusSpeed = number(yp.toObject(), {"speed"});
-    } else r.yPlus = number(o, {"first_cell_y_plus", "y_plus_estimate"});
-    r.wallSeconds = number(o, {"wall_seconds", "wall_time_s", "seconds"});
-    if (auto m = number(o, {"peak_memory_bytes", "peak_memory"})) r.peakMemoryBytes = qint64(*m);
-    r.synthetic = o.value("synthetic").toBool();
-    r.provenance = o.value("provenance").toString();
+    if (const auto sn = rd.object(o, "snap", "")) {
+        MeshSnap m;
+        if (const auto d = rd.object(*sn, "point_distance_m", "snap")) {
+            m.distanceMax = rd.number(*d, "max", "snap/point_distance_m");
+            m.distanceMean = rd.number(*d, "mean", "snap/point_distance_m");
+            m.distanceP95 = rd.number(*d, "p95", "snap/point_distance_m");
+            m.distanceP99 = rd.number(*d, "p99", "snap/point_distance_m");
+        }
+        if (const auto d = rd.object(*sn, "point_distance_over_cell_size", "snap")) {
+            m.relativeMax = rd.number(*d, "max", "snap/point_distance_over_cell_size");
+            m.relativeP99 = rd.number(*d, "p99", "snap/point_distance_over_cell_size");
+        }
+        m.wallPoints = rd.count(*sn, "wall_points", "snap");
+        m.partiallySnapped = rd.count(*sn, "partially_snapped", "snap");
+        m.unsnapped = rd.count(*sn, "unsnapped", "snap");
+        m.featurePoints = rd.count(*sn, "feature_points", "snap");
+        r.snap = m;
+    }
+    if (const auto y = rd.object(o, "estimated_first_cell_y_plus", "")) {
+        const QString p = "estimated_first_cell_y_plus";
+        MeshYPlus m;
+        m.min = rd.number(*y, "min", p);
+        m.p05 = rd.number(*y, "p05", p);
+        m.p50 = rd.number(*y, "p50", p);
+        m.p95 = rd.number(*y, "p95", p);
+        m.max = rd.number(*y, "max", p);
+        m.speed = rd.number(*y, "speed_m_s", p);
+        m.below5 = rd.number(*y, "area_fraction_below_5", p);
+        m.from5to30 = rd.number(*y, "area_fraction_5_to_30", p);
+        m.from30to300 = rd.number(*y, "area_fraction_30_to_300", p);
+        m.above300 = rd.number(*y, "area_fraction_above_300", p);
+        m.method = rd.string(*y, "method", p);
+        r.yPlus = m;
+    }
+    if (const auto rep = rd.object(o, "repairs", ""))
+        for (auto it = rep->begin(); it != rep->end(); ++it)
+            if (it.value().isDouble() && it.value().toDouble() == std::floor(it.value().toDouble())) r.repairs[it.key()] = qint64(it.value().toDouble());
+    if (const auto m = rd.array(o, "missing_surface_zones", "")) {
+        QStringList names;
+        for (const QJsonValue& v : *m) names << v.toString();
+        r.missingSurfaceZones = names;
+    }
+    if (const auto w = rd.array(o, "warnings", ""))
+        for (const QJsonValue& v : *w) r.warnings << v.toString();
+    r.wallSeconds = rd.number(o, "wall_seconds", "");
+    r.peakMemoryBytes = rd.count(o, "peak_memory_bytes", "");
+    r.kuttaCommit = rd.string(o, "kutta_commit", "");
+    if (!rd.errors.isEmpty()) {
+        for (QString& e : rd.errors) if (e.startsWith('/')) e.remove(0, 1);
+        return R::failure(QObject::tr("the mesh report does not match kutta mesh v1: %1").arg(rd.errors.join("; ")));
+    }
     return r;
 }
 

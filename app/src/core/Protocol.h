@@ -181,14 +181,22 @@ struct ConvergenceSetup {
     QString condition = "all";              // "all" | "any"
     QMap<QString, double> residuals;        // checked equations and their absolute criteria
     std::vector<ReportCriterion> reports;
-    bool hasConditions() const { return !residuals.isEmpty() || !reports.empty(); }
+    // Kutta's forces-settled condition (v1 additive): every force report's
+    // range over `window` iterations within `tolerance` of its mean.
+    struct Forces { double tolerance = 0; int window = 0; QStringList reports; };
+    std::optional<Forces> forces;
+    bool hasConditions() const { return !residuals.isEmpty() || !reports.empty() || forces.has_value(); }
 };
 // One condition's state at a monitor sample.
 struct ConditionState {
-    QString kind;                           // "residuals" | "report"
+    QString kind;                           // "residuals" | "report" | "forces"
     QString report;                         // for reports
     bool met = false;
-    std::optional<double> value, criterion; // reports: lag residual and stop criterion
+    bool waived = false;                    // residuals: stalled, counted as met because the forces settled
+    bool settled = false;                   // forces: the window test alone (met adds the confirmation)
+    int window = 0;                         // forces: iterations
+    QMap<QString, std::optional<double>> ranges;  // forces: each report's relative range over the window
+    std::optional<double> value, criterion; // reports: lag residual and stop criterion; forces: criterion
     struct Equation { double value = 0, criterion = 0; bool met = false; };
     QMap<QString, Equation> equations;      // residuals
     QString id() const { return kind == "report" ? "report:" + report : kind; }
@@ -222,7 +230,8 @@ struct DoneEvent {
     int iterations = 0;
     double elapsed = 0;
     QString out, stopReason;
-    QStringList metBy;  // conditions met at the stopping sample ("residuals", "report:<name>")
+    QStringList metBy;  // conditions met at the stopping sample ("residuals", "report:<name>", "forces")
+    bool residualsWaived = false;  // converged on settled forces with residuals stalled above their criteria
 };
 struct ErrorEvent { QString message; std::vector<SupportIssue> issues; QStringList paths; };
 // Proposed: a field snapshot written during the solve (docs/app-protocol-requests.md).
@@ -288,6 +297,7 @@ struct RunSummary {
     bool synthetic = false;
     ConvergenceSetup convergence;
     QStringList metBy;
+    bool residualsWaived = false;
     std::optional<int> convergedIteration;
     QString coupling;  // pressure_velocity_coupling that ran
 };

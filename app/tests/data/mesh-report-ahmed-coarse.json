@@ -1,0 +1,358 @@
+{
+ "body_bounds": [
+  [
+   -1.044,
+   -0.1945,
+   0.05
+  ],
+  [
+   4.16333634234e-17,
+   0.1945,
+   0.338
+  ]
+ ],
+ "bounds": [
+  [
+   -4.176,
+   -2.2825,
+   0
+  ],
+  [
+   6.424000000000001,
+   2.3175000000000003,
+   2.6
+  ]
+ ],
+ "case_written": false,
+ "castellation": {
+  "gaps": [
+   {
+    "between": [
+     "body",
+     "ground"
+    ],
+    "min_cells_across": 3,
+    "width_m": 0.06482458566028669
+   }
+  ],
+  "isolated_cells_removed": 0,
+  "octree_cells_kept": 93790,
+  "removed_cells": 67356
+ },
+ "cell_types": {
+  "hex": 93313,
+  "hex_fraction_of_core": 0.9949459946474458,
+  "hex_without_hanging_nodes": 85202,
+  "poly": 474,
+  "prism": 51090
+ },
+ "cells": 144877,
+ "estimated_first_cell_y_plus": {
+  "area_fraction_30_to_300": 0.9564136250048363,
+  "area_fraction_5_to_30": 8.092321560703693e-05,
+  "area_fraction_above_300": 0.04350545177981695,
+  "area_fraction_below_5": 0,
+  "max": 747.8573214432463,
+  "method": "flat-plate Cf=0.026/Re_L^(1/7) at the reference speed; owner-centroid distance on STL walls, area-weighted; estimate, not solved y+",
+  "min": 22.059803389365662,
+  "p05": 56.4768727232605,
+  "p50": 56.725208715511585,
+  "p95": 271.6511354601203,
+  "speed_m_s": 20
+ },
+ "faces": 459815,
+ "geometry_method": "castellated octree (cells inside or crossed by the STL removed), wall snapped to the STL with implicit feature capture",
+ "geometry_resolution_m": 0.025,
+ "inputs": [
+  {
+   "file": "ahmed.stl",
+   "sha256": "4d51de9fc8928a6e25bfe25531e54dcad894c4dc9edacdb3076e957731c49319"
+  }
+ ],
+ "kutta_commit": "fb44554368261e7649bef09ac70341110a9c1d76",
+ "layers": {
+  "cells": 51090,
+  "collapse_rounds": 5,
+  "coverage": {
+   "full": 0.9491007656941128,
+   "none": 0.03541223524053905,
+   "thinned": 0.015486999065348174,
+   "wall_area_m2": 1.516966836273578
+  },
+  "first_height": 0.002,
+  "first_height_achieved": {
+   "mean": 0.001996318618997392,
+   "min": 0.0005
+  },
+  "generated": 3,
+  "growth": 1.3,
+  "min_quality": 0.15,
+  "requested": 3,
+  "stacks": 17030,
+  "status": "prism layers by pushing the snapped mesh; terminations split so unlayered walls stay on the surface, kept lifted (a step) where a split fails quality; collapsed locally where quality fails",
+  "terminations": {
+   "lifted_points": 844,
+   "split_points": 30
+  },
+  "total_thickness": 0.00798
+ },
+ "max_face_level_difference": 1,
+ "missing_surface_zones": [],
+ "nodes": 170183,
+ "octree_leaves": 161146,
+ "out": "ahmed-mesh",
+ "peak_memory_bytes": 109347320,
+ "quality": {
+  "adjacent_volume_ratio_core": {
+   "faces": 279523,
+   "histogram": [
+    {
+     "cells": 248123,
+     "from": 1,
+     "to": 2
+    },
+    {
+     "cells": 1627,
+     "from": 2,
+     "to": 4
+    },
+    {
+     "cells": 12007,
+     "from": 4,
+     "to": 8
+    },
+    {
+     "cells": 17765,
+     "from": 8,
+     "to": 16
+    },
+    {
+     "cells": 0,
+     "from": 16,
+     "to": 20
+    },
+    {
+     "cells": 1,
+     "from": 20,
+     "to": 50
+    },
+    {
+     "cells": 0,
+     "from": 50,
+     "to": 1e+300
+    }
+   ],
+   "max": 22.965685201270077,
+   "p50": 1.0000071520355733,
+   "p99": 9.555959880805695,
+   "p999": 9.555959880806713
+  },
+  "adjacent_volume_ratio_layers": {
+   "faces": 152103,
+   "histogram": [
+    {
+     "cells": 142401,
+     "from": 1,
+     "to": 2
+    },
+    {
+     "cells": 6478,
+     "from": 2,
+     "to": 4
+    },
+    {
+     "cells": 3139,
+     "from": 4,
+     "to": 8
+    },
+    {
+     "cells": 64,
+     "from": 8,
+     "to": 16
+    },
+    {
+     "cells": 8,
+     "from": 16,
+     "to": 20
+    },
+    {
+     "cells": 12,
+     "from": 20,
+     "to": 50
+    },
+    {
+     "cells": 1,
+     "from": 50,
+     "to": 1e+300
+    }
+   ],
+   "max": 51.416315524504796,
+   "p50": 1.0000000000001243,
+   "p99": 4.083544350294214,
+   "p999": 6.6580779181245004
+  },
+  "adjacent_volume_ratio_max": 51.416315524504796,
+  "cells_below_0_05": 0,
+  "cells_below_0_15": 0,
+  "face_area_over_cell_area_min": 0.00025357560289022307,
+  "fraction_below_0_15": 0,
+  "negative_cells": 0,
+  "nonconvex_cells": 22724,
+  "nonconvex_tolerance": "1e-3 of cell size",
+  "orthogonal_histogram": [
+   {
+    "cells": 0,
+    "from": 0,
+    "to": 0.05
+   },
+   {
+    "cells": 0,
+    "from": 0.05,
+    "to": 0.1
+   },
+   {
+    "cells": 0,
+    "from": 0.1,
+    "to": 0.15
+   },
+   {
+    "cells": 7,
+    "from": 0.15,
+    "to": 0.2
+   },
+   {
+    "cells": 70,
+    "from": 0.2,
+    "to": 0.3
+   },
+   {
+    "cells": 651,
+    "from": 0.3,
+    "to": 0.5
+   },
+   {
+    "cells": 1441,
+    "from": 0.5,
+    "to": 0.7
+   },
+   {
+    "cells": 23822,
+    "from": 0.7,
+    "to": 0.9
+   },
+   {
+    "cells": 118886,
+    "from": 0.9,
+    "to": 1
+   }
+  ],
+  "orthogonal_mean": 0.9611781826953165,
+  "orthogonal_min": 0.15446037796017706,
+  "skewness_max": 0.9835321130573389,
+  "volume_min": 1.3763542942581824e-08,
+  "wall_distance_over_cell_size_min": 0.1058890176722281,
+  "worst_cell": {
+   "centroid": [
+    -0.000796952731737536,
+    0.1081158807015066,
+    0.044732223906936666
+   ],
+   "index": 84047,
+   "volume": 5.344613689640434e-08
+  }
+ },
+ "repairs": {
+  "components": 1,
+  "hole_filling": false,
+  "input_triangles": 6672,
+  "inside_method": "union of connected shells; majority of three ray parities (no flood fill)",
+  "nonmanifold_edges": 0,
+  "open_edges": 0,
+  "orientation_conflicts": 0,
+  "removed_degenerate_triangles": 0,
+  "removed_duplicate_triangles": 0,
+  "reoriented_triangles": 0,
+  "triangles": 6672,
+  "weld_tolerance_m": 1.1507393275629369e-07,
+  "welded_vertex_occurrences": 16678
+ },
+ "snap": {
+  "cells_below_quality_before_recovery": 2,
+  "crushed_cells_removed": 3,
+  "disconnected_cells_removed": 0,
+  "feature_points": 660,
+  "fully_snapped": 17871,
+  "merge_retries": 0,
+  "merged_points": 440,
+  "min_quality": 0.15,
+  "partially_snapped": 18,
+  "point_distance_m": {
+   "max": 0.007843474799283276,
+   "mean": 7.709953807200464e-06,
+   "p95": 2.0913587703266103e-05,
+   "p99": 0.00012016568382867303
+  },
+  "point_distance_over_cell_size": {
+   "max": 1.0001139558714767,
+   "mean": 0.0008027067912280802,
+   "p95": 0.0021365635675327783,
+   "p99": 0.010545738707466727
+  },
+  "recovery_rounds": 2,
+  "removal_passes": 8,
+  "stuck_cells_removed": 0,
+  "unsnapped": 0,
+  "wall_points": 17889
+ },
+ "stage_seconds": {
+  "castellate": 0.417634709,
+  "layers": 1.691044916,
+  "octree": 0.252982708,
+  "quality": 0.173615,
+  "snap": 1.02007875
+ },
+ "v": 1,
+ "wall_seconds": 4.206369375,
+ "warnings": [
+  "Snapping retreats where a cell would fall below orthogonal quality 0.15; see snap/point_distance_m for the remaining geometric error.",
+  "Slots narrower than about two cells close; see castellation/gaps.",
+  "Octree cubes with 2:1 hanging faces count as hex; Fluent stores every cell as a polyhedron."
+ ],
+ "zones": [
+  {
+   "faces": 299,
+   "name": "inlet",
+   "type": "velocity-inlet"
+  },
+  {
+   "faces": 299,
+   "name": "outlet",
+   "type": "pressure-outlet"
+  },
+  {
+   "faces": 689,
+   "name": "side-low",
+   "type": "symmetry"
+  },
+  {
+   "faces": 689,
+   "name": "side-high",
+   "type": "symmetry"
+  },
+  {
+   "faces": 4594,
+   "name": "ground",
+   "type": "wall"
+  },
+  {
+   "faces": 1219,
+   "name": "top",
+   "type": "symmetry"
+  },
+  {
+   "faces": 20400,
+   "name": "body",
+   "type": "wall"
+  }
+ ]
+}

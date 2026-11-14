@@ -17,7 +17,9 @@
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QLocale>
+#include <QFileDialog>
 #include <QPainter>
+#include <QPainterPath>
 #include <QTableWidget>
 #include <QTimer>
 
@@ -198,40 +200,95 @@ private:
     double m_value = 0;
 };
 
-// A quality metric's distribution as bars; the worse end is tinted.
+// A reported distribution as bars, one per bin (the bins need not be equal),
+// on a log scale; bins on the poor side are tinted.
 class Histogram : public QWidget {
 public:
-    Histogram(const MeshQuality& q, QWidget* parent = nullptr) : QWidget(parent), m_q(q)
+    Histogram(const QString& name, std::vector<MeshBin> bins, std::function<bool(const MeshBin&)> poor, QWidget* parent = nullptr)
+        : QWidget(parent), m_bins(std::move(bins)), m_poor(std::move(poor))
     {
         setMinimumHeight(56);
-        setAccessibleName(QObject::tr("%1 histogram").arg(q.label));
+        setAccessibleName(QObject::tr("%1 histogram").arg(name));
+        QStringList tip;
+        for (const auto& b : m_bins) tip << QObject::tr("%1 to %2: %3").arg(edge(b.from), edge(b.to), QLocale().toString(b.count));
+        setToolTip(tip.join("\n"));
     }
     QSize sizeHint() const override { return {240, 56}; }
+    static QString edge(double x) { return x >= 1e100 ? QStringLiteral("∞") : QLocale().toString(x, 'g', 3); }
 
 protected:
     void paintEvent(QPaintEvent*) override
     {
         QPainter p(this);
         const auto& t = tokens();
-        const int n = int(m_q.counts.size());
+        const int n = int(m_bins.size());
         if (n == 0) return;
         qint64 peak = 1;
-        for (qint64 c : m_q.counts) peak = std::max(peak, c);
+        for (const auto& b : m_bins) peak = std::max(peak, b.count);
         const double w = double(width()) / n;
         for (int i = 0; i < n; ++i) {
-            // Log scale: the few poor cells matter more than the many good ones.
-            const double f = m_q.counts[std::size_t(i)] > 0 ? std::log10(1.0 + double(m_q.counts[std::size_t(i)])) / std::log10(1.0 + double(peak)) : 0;
+            const auto& b = m_bins[std::size_t(i)];
+            const double f = b.count > 0 ? std::log10(1.0 + double(b.count)) / std::log10(1.0 + double(peak)) : 0;
             const double h = std::max(f > 0 ? 2.0 : 0.0, f * (height() - 2));
-            const bool poor = m_q.higherIsBetter ? i < n / 5 : i >= n - n / 4;
-            p.fillRect(QRectF(i * w + 1, height() - h, w - 2, h), poor ? t.amber : t.accent);
+            p.fillRect(QRectF(i * w + 1, height() - h, w - 2, h), m_poor(b) ? t.amber : t.accent);
         }
         p.setPen(t.border);
         p.drawLine(0, height() - 1, width(), height() - 1);
     }
 
 private:
-    MeshQuality m_q;
+    std::vector<MeshBin> m_bins;
+    std::function<bool(const MeshBin&)> m_poor;
 };
+
+// Shares of a whole as one bar (layer coverage, y+ bands), each with its tone.
+class ShareBar : public QWidget {
+public:
+    struct Part { double share; QColor color; };
+    ShareBar(const QString& name, std::vector<Part> parts, QWidget* parent = nullptr) : QWidget(parent), m_parts(std::move(parts))
+    {
+        setFixedHeight(10);
+        setAccessibleName(name);
+    }
+    QSize sizeHint() const override { return {240, 10}; }
+
+protected:
+    void paintEvent(QPaintEvent*) override
+    {
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing);
+        QPainterPath clip;
+        clip.addRoundedRect(QRectF(rect()), 3, 3);
+        p.setClipPath(clip);
+        p.fillRect(rect(), tokens().border);
+        double x = 0;
+        for (const auto& part : m_parts) {
+            const double w = std::clamp(part.share, 0.0, 1.0) * width();
+            p.fillRect(QRectF(x, 0, w, height()), part.color);
+            x += w;
+        }
+    }
+
+private:
+    std::vector<Part> m_parts;
+};
+
+QString percent(const std::optional<double>& f)
+{
+    if (!f) return QObject::tr("not reported");
+    const double x = *f * 100;
+    return QObject::tr("%1 %").arg(QLocale().toString(x, 'f', x > 0 && x < 0.1 ? 2 : 1));
+}
+
+QString millimetres(const std::optional<double>& m)
+{
+    if (!m) return QObject::tr("not reported");
+    const double x = *m * 1000;
+    return QObject::tr("%1 mm").arg(QLocale().toString(x, 'f', x < 0.1 ? 3 : x < 10 ? 2 : 1));
+}
+
+QString number3(const std::optional<double>& x) { return x ? QLocale().toString(*x, 'g', 3) : QObject::tr("not reported"); }
+QString whole(const std::optional<qint64>& n) { return n ? QLocale().toString(*n) : QObject::tr("not reported"); }
 
 std::optional<Device> selectedDevice(const Session* s)
 {
@@ -355,7 +412,7 @@ QWidget* geometry(const InspectorContext& c)
         grid->addWidget(role, i, 1);
     }
     v->addLayout(grid);
-    v->addWidget(label(QObject::tr("The wind tunnel's zones are named by the mesher: inlet (velocity inlet), outlet (pressure outlet), ground (moving ground), sides and top (symmetry)."), "faint"));
+    v->addWidget(label(QObject::tr("The wind tunnel's zones are named by the mesher: inlet (velocity inlet), outlet (pressure outlet), ground (moving ground), side-low, side-high and top (symmetry). A solid cannot use those names, or bottom or symmetry."), "faint"));
 
     auto* actions = new FlowLayout;
     actions->addWidget(nextButton(c, "mesh/tunnel", QObject::tr("Next: Wind Tunnel")));
@@ -386,38 +443,28 @@ QWidget* tunnel(const InspectorContext& c)
 
     v->addWidget(section(QObject::tr("Directions")));
     auto* dirs = form();
-    auto axisBox = [&](const QString& value, const QString& accessible, bool flow) {
-        auto* b = new QComboBox;
-        b->setAccessibleName(accessible);
-        for (const char* a : {"+x", "-x", "+y", "-y", "+z", "-z"}) b->addItem(a, a);
-        b->setCurrentIndex(b->findData(value));
-        QObject::connect(b, &QComboBox::activated, b, [s, b, flow](int i) {
-            const QString a = b->itemData(i).toString();
-            QTimer::singleShot(0, s, [s, a, flow] { editSetup(s, [&](MeshSetup& x) { (flow ? x.flow : x.up) = a; }); });
-        });
-        return b;
-    };
-    formRow(dirs, QObject::tr("Flow direction"), axisBox(m.flow, QObject::tr("Flow direction"), true));
-    formRow(dirs, QObject::tr("Up"), axisBox(m.up, QObject::tr("Up direction"), false));
+    formRow(dirs, QObject::tr("Flow direction"), label(m.flow));
+    formRow(dirs, QObject::tr("Up"), label(m.up));
     v->addLayout(dirs);
+    v->addWidget(label(QObject::tr("kutta mesh meshes with the flow along +x and +z up: export the car from CAD in those axes."), "faint"));
 
     v->addWidget(section(QObject::tr("Extent (car lengths)")));
     auto* ext = form();
     auto lengths = [&](const QString& what, double value, double TunnelSetup::* member) {
         formRow(ext, what, numberField(QLocale().toString(value, 'g', 4), QObject::tr("L"), what, [s, member](double x) {
-            if (!(x > 0) || x > 100) return false;
+            if (!(x >= 0.01) || x > 100) return false;
             editSetup(s, [&](MeshSetup& m) { m.tunnel.*member = x; });
             return true;
         }));
     };
     lengths(QObject::tr("Upstream of the nose"), m.tunnel.upstream, &TunnelSetup::upstream);
     lengths(QObject::tr("Downstream of the tail"), m.tunnel.downstream, &TunnelSetup::downstream);
-    lengths(QObject::tr("Each side"), m.tunnel.side, &TunnelSetup::side);
+    lengths(QObject::tr("Each side (and below, without ground)"), m.tunnel.side, &TunnelSetup::side);
     lengths(QObject::tr("Above the car"), m.tunnel.top, &TunnelSetup::top);
     v->addLayout(ext);
 
     v->addWidget(section(QObject::tr("Ground and symmetry")));
-    auto* ground = new QCheckBox(QObject::tr("Moving ground at the car's lowest point"));
+    auto* ground = new QCheckBox(QObject::tr("Ground: the plane z = 0, moving with the air"));
     ground->setAccessibleName(QObject::tr("Moving ground"));
     ground->setChecked(m.tunnel.ground);
     QObject::connect(ground, &QCheckBox::toggled, ground, [s](bool on) { editSetup(s, [&](MeshSetup& m) { m.tunnel.ground = on; }); });
@@ -427,7 +474,7 @@ QWidget* tunnel(const InspectorContext& c)
     half->setChecked(m.tunnel.symmetry == "y");
     QObject::connect(half, &QCheckBox::toggled, half, [s](bool on) { editSetup(s, [&](MeshSetup& m) { m.tunnel.symmetry = on ? "y" : QString(); }); });
     v->addWidget(half);
-    v->addWidget(label(QObject::tr("Half a car halves the cells; forces are then for half the car."), "faint"));
+    v->addWidget(label(QObject::tr("The tyres stand on z = 0; geometry below it is refused. Half a car halves the cells; forces are then for half the car. Upper limits round out to whole base cells."), "faint"));
     auto* tb = label({}, "faint");
     auto update = [mw, tb] {
         if (!mw->hasProject()) return;
@@ -575,31 +622,41 @@ QWidget* sizing(const InspectorContext& c)
     length(sf, QObject::tr("Minimum size"), m.minSize, [](MeshSetup& m, double x) { m.minSize = x; });
     length(sf, QObject::tr("Maximum size"), m.maxSize, [](MeshSetup& m, double x) { m.maxSize = x; });
     formRow(sf, QObject::tr("Curvature normal angle"), numberField(QLocale().toString(m.curvatureDegrees, 'g', 4), QObject::tr("°"), QObject::tr("Curvature normal angle"), [s](double x) {
-        if (!(x > 0 && x < 90)) return false;
+        if (!(x >= 0.1 && x <= 180)) return false;
         editSetup(s, [&](MeshSetup& m) { m.curvatureDegrees = x; });
         return true;
     }));
     formRow(sf, QObject::tr("Cells per gap"), numberField(QString::number(m.proximityCells), {}, QObject::tr("Cells per gap"), [s](double x) {
-        if (x < 0 || x > 20 || x != std::floor(x)) return false;
+        if (x < 1 || x > 20 || x != std::floor(x)) return false;
         editSetup(s, [&](MeshSetup& m) { m.proximityCells = int(x); });
         return true;
     }));
+    formRow(sf, QObject::tr("Smallest gap cell"), numberField(m.proximityMinSize > 0 ? lengthText(m.proximityMinSize, u) : QString(), un, QObject::tr("Smallest gap cell (%1)").arg(un), [s, u](double x) {
+        if (x < 0) return false;
+        editSetup(s, [&](MeshSetup& m) { m.proximityMinSize = x * unitScale(u); });
+        return true;
+    }), QObject::tr("Gaps may refine below the minimum size down to this; empty or 0: a quarter of the minimum size."));
     v->addLayout(sf);
     v->addWidget(label(QObject::tr("Surface cells shrink from the maximum towards the minimum size where the surface curves more than the normal angle per cell, and to fit the cells per gap between close surfaces (wing slots, wheel and floor)."), "faint"));
 
     v->addWidget(section(QObject::tr("Boundary layers")));
     auto* bl = form();
     formRow(bl, QObject::tr("Number of layers"), numberField(QString::number(m.layers), {}, QObject::tr("Number of layers"), [s](double x) {
-        if (x < 0 || x > 60 || x != std::floor(x)) return false;
+        if (x < 0 || x > 100 || x != std::floor(x)) return false;
         editSetup(s, [&](MeshSetup& m) { m.layers = int(x); });
         return true;
     }));
     length(bl, QObject::tr("First layer height"), m.firstHeight, [](MeshSetup& m, double x) { m.firstHeight = x; });
     formRow(bl, QObject::tr("Growth rate"), numberField(QLocale().toString(m.growth, 'g', 4), {}, QObject::tr("Growth rate"), [s](double x) {
-        if (!(x >= 1 && x <= 3)) return false;
+        if (!(x > 1 && x <= 3)) return false;
         editSetup(s, [&](MeshSetup& m) { m.growth = x; });
         return true;
     }));
+    formRow(bl, QObject::tr("Freestream speed"), numberField(QLocale().toString(mw->project().speed, 'g', 4), QObject::tr("m/s"), QObject::tr("Freestream speed (m/s)"), [mw](double x) {
+        if (!(x > 0) || x > 400) return false;
+        QTimer::singleShot(0, mw, [mw, x] { mw->setSpeed(x); });
+        return true;
+    }), QObject::tr("For the mesher's y+ estimate, and the case's starting speed."));
     v->addLayout(bl);
     auto* yp = label({}, "faint");
     auto updateYPlus = [mw, yp] {
@@ -608,15 +665,29 @@ QWidget* sizing(const InspectorContext& c)
         const double L = g.valid ? double(g.max.x() - g.min.x()) : 1.0;
         const auto& m = mw->project().setup;
         const double total = m.layers > 0 ? m.firstHeight * (std::abs(m.growth - 1) < 1e-9 ? m.layers : (std::pow(m.growth, m.layers) - 1) / (m.growth - 1)) : 0;
-        yp->setText(QObject::tr("First-cell y+ ≈ %1 at 20 m/s over the car length (flat-plate estimate). Layers %2 %3 thick on every wall.")
-                        .arg(QLocale().toString(yPlusForFirstHeight(m.firstHeight, 20, L), 'f', 0))
-                        .arg(lengthText(total, m.units), unitName(m.units)));
+        // At the first cell's centroid, half the first height, as kutta mesh estimates it.
+        const QString layers = m.layers > 0 ? QObject::tr("Layers %1 thick in all.").arg(millimetres(total)) : QObject::tr("No boundary layers.");
+        yp->setText(QObject::tr("First-cell y+ ≈ %1 at %2 m/s over the car length (flat-plate estimate at the cell centre). %3")
+                        .arg(QLocale().toString(yPlusForFirstHeight(m.firstHeight / 2, mw->project().speed, L), 'f', 0))
+                        .arg(QLocale().toString(mw->project().speed, 'g', 4))
+                        .arg(layers));
     };
     QObject::connect(mw, &MeshWorkflow::setupChanged, yp, updateYPlus);
     updateYPlus();
     v->addWidget(yp);
     v->addWidget(label(QObject::tr("Kutta's SST walls work across y+ (wall functions above about 30, resolved below 1). Layers grow on every solid (zones \"*\")."), "faint"));
-    v->addWidget(nextButton(c, "mesh/generate", QObject::tr("Next: Generate the Volume Mesh")), 0, Qt::AlignLeft);
+    auto* actions = new FlowLayout;
+    actions->addWidget(nextButton(c, "mesh/generate", QObject::tr("Next: Generate the Volume Mesh")));
+    auto* load = button(QObject::tr("Load mesh.json…"), "file-input");
+    load->setProperty("flat", true);
+    load->setToolTip(QObject::tr("Take the settings of a kutta mesh setup file (lengths in metres); the geometry's units stay."));
+    load->setEnabled(!mw->meshing());
+    QObject::connect(load, &QPushButton::clicked, load, [mw, load] {
+        const QString file = QFileDialog::getOpenFileName(load->window(), QObject::tr("Load Mesh Settings"), QFileInfo(mw->project().dir).absolutePath(), QObject::tr("Mesh settings (*.json)"));
+        if (!file.isEmpty()) QTimer::singleShot(0, mw, [mw, file] { mw->loadSetupFile(file); });
+    });
+    actions->addWidget(load);
+    v->addLayout(actions);
     return page;
 }
 
@@ -664,7 +735,12 @@ QWidget* generateMesh(const InspectorContext& c)
         } else if (dev && e.solverBytes() > 0.85 * double(dev->memoryBytes)) {
             text += QObject::tr(" That is more than this device holds comfortably: coarsen the sizes or use a half car.");
             role = "warning";
+        } else if (e.solverBytes() > kTwelveGbUsableBytes) {
+            text += QObject::tr(" Probably too much for a 12 GB GPU.");
+            role = "warning";
         }
+        if (mw->hasMesh() && mw->report())
+            text += QObject::tr(" The last mesh had %1 cells.").arg(QLocale().toString(mw->report()->cells));
         mem->setText(text);
         mem->setProperty("role", role);
         repolish(mem);
@@ -675,8 +751,8 @@ QWidget* generateMesh(const InspectorContext& c)
     updateEstimate();
     v->addWidget(est);
     v->addWidget(mem);
-    v->addWidget(label(QObject::tr("A planning figure (±50 %) from the surface area and sizes, at %1 kB of device memory per cell. The mesh report gives the real count.")
-                           .arg(QLocale().toString(kPlanningBytesPerCell / 1000, 'f', 1)),
+    v->addWidget(label(QObject::tr("A planning figure (±50 %) from the surface area and sizes, at about %1 kB of device memory per cell (measured on Metal). The mesh report gives the real count.")
+                           .arg(QLocale().toString(kSolverBytesPerCell / 1000, 'f', 1)),
                        "faint"));
 
     const QStringList problems = mw->problems();
@@ -757,8 +833,11 @@ QWidget* generateMesh(const InspectorContext& c)
             outcomeText->setText(QObject::tr("Nothing was written; the previous mesh, if any, is unchanged."));
         } else if (const auto& r = mw->report()) {
             outcome->setProperty("callout", "neutral");
-            outcomeTitle->setText(r->synthetic ? QObject::tr("Mesh ready (SYNTHETIC)") : QObject::tr("Mesh ready"));
-            outcomeText->setText(QObject::tr("%1 cells, %2 faces. Read the report, then set up the case.").arg(count(double(r->cells)), count(double(r->faces))));
+            outcomeTitle->setText(mw->meshSynthetic() ? QObject::tr("Mesh ready (SYNTHETIC)") : QObject::tr("Mesh ready"));
+            QString text = QObject::tr("%1 cells, %2 faces. Read the report, then set up the case.").arg(count(double(r->cells)), count(double(r->faces)));
+            if (const auto closed = r->closedGaps(); std::any_of(closed.begin(), closed.end(), [](const MeshGap& g) { return g.width > 0; }))
+                text += QObject::tr(" A slot closed: see Slots and gaps.");
+            outcomeText->setText(text);
         }
         repolish(outcome);
     };
@@ -783,73 +862,219 @@ QWidget* meshReport(const InspectorContext& c)
         v->addWidget(nextButton(c, "mesh/generate", QObject::tr("Generate the Volume Mesh")), 0, Qt::AlignLeft);
         return page;
     }
-    if (r->synthetic) {
+    if (mw->meshSynthetic()) {
         auto* row = new FlowLayout;
         row->addWidget(badge("SYNTHETIC", "modified"));
         v->addLayout(row);
-        v->addWidget(label(r->provenance.isEmpty() ? QObject::tr("Fixture data, not a mesh.") : r->provenance, "warning"));
+        v->addWidget(label(QObject::tr("The fixture CLI made this report for app development: no mesh was generated and every figure is invented."), "warning"));
     }
     if (mw->meshStale()) v->addWidget(label(QObject::tr("The geometry or settings changed since this mesh was generated."), "warning"));
+    const QString notReported = QObject::tr("not reported");
 
+    // ---- Size and what it costs to solve
     v->addWidget(section(QObject::tr("Size")));
     auto* f = form();
     formRow(f, QObject::tr("Cells"), label(QLocale().toString(r->cells)));
     formRow(f, QObject::tr("Faces"), label(QLocale().toString(r->faces)));
     formRow(f, QObject::tr("Nodes"), label(QLocale().toString(r->nodes)));
-    if (r->wallSeconds) formRow(f, QObject::tr("Time"), label(QObject::tr("%1 s").arg(QLocale().toString(*r->wallSeconds, 'f', 1))));
-    if (r->peakMemoryBytes) formRow(f, QObject::tr("Peak memory"), label(bytes(double(*r->peakMemoryBytes))));
-    if (r->yPlus)
-        formRow(f, QObject::tr("First-cell y+"), label(r->yPlusSpeed ? QObject::tr("≈ %1 at %2 m/s").arg(QLocale().toString(*r->yPlus, 'f', 1), QLocale().toString(*r->yPlusSpeed, 'g', 4))
-                                                                   : QObject::tr("≈ %1").arg(QLocale().toString(*r->yPlus, 'f', 1))));
+    formRow(f, QObject::tr("Mesh time"), label(r->wallSeconds ? QObject::tr("%1 s").arg(QLocale().toString(*r->wallSeconds, 'f', 1)) : notReported));
+    formRow(f, QObject::tr("Mesher peak memory"), label(r->peakMemoryBytes ? bytes(double(*r->peakMemoryBytes)) : notReported));
     v->addLayout(f);
-    if (!r->cellTypes.isEmpty()) {
+    {
+        const auto& t = r->cellTypes;
         QStringList types;
-        for (auto it = r->cellTypes.begin(); it != r->cellTypes.end(); ++it)
-            if (it.value() > 0) types << QObject::tr("%1 %2 (%3 %)").arg(count(double(it.value())), it.key())
-                                             .arg(QLocale().toString(r->cells ? 100.0 * double(it.value()) / double(r->cells) : 0, 'f', 1));
-        v->addWidget(label(QObject::tr("Cells by type: %1").arg(types.join(", ")), "muted"));
+        auto add = [&](const std::optional<qint64>& n, const QString& what) {
+            if (n) types << QObject::tr("%1 %2").arg(QLocale().toString(*n), what);
+        };
+        add(t.hex, QObject::tr("hex"));
+        add(t.prism, QObject::tr("prism"));
+        add(t.poly, QObject::tr("polyhedra"));
+        QString text = types.isEmpty() ? QObject::tr("Cells by type: not reported.") : QObject::tr("Cells by type: %1.").arg(types.join(", "));
+        if (t.hexFractionOfCore) text += QObject::tr(" Hex share of the core (cells outside the layers): %1.").arg(percent(t.hexFractionOfCore));
+        if (t.hexWithoutHangingNodes && t.hex) text += QObject::tr(" Hex counts octree cubes with 2:1 hanging faces; %1 have none.").arg(QLocale().toString(*t.hexWithoutHangingNodes));
+        v->addWidget(label(text, "muted"));
+    }
+    {
+        const double need = solverBytesEstimate(r->cells);
+        auto* box = callout(need > kTwelveGbUsableBytes ? "amber" : "neutral");
+        box->layout()->addWidget(label(QObject::tr("Solver memory ≈ %1 (estimate)").arg(bytes(need)), "title"));
+        box->layout()->addWidget(label(QObject::tr("At about %1 kB per cell, measured on Metal for steady SST on kutta mesh meshes; not a measurement of this mesh.")
+                                           .arg(QLocale().toString(kSolverBytesPerCell / 1000, 'f', 1)), "muted"));
+        if (need > kTwelveGbUsableBytes)
+            box->layout()->addWidget(label(QObject::tr("Probably will not fit a 12 GB GPU: about %1 cells is the limit at this rate once the CUDA context is allowed for. Coarsen the sizes, use fewer layers or a half car.")
+                                               .arg(count(kTwelveGbUsableBytes / kSolverBytesPerCell)), "warning"));
+        else
+            box->layout()->addWidget(label(QObject::tr("Fits a 12 GB GPU at this rate (up to about %1 cells).").arg(count(kTwelveGbUsableBytes / kSolverBytesPerCell)), "muted"));
+        if (const auto dev = selectedDevice(c.session); dev && dev->memoryBytes > 0) {
+            const bool fits = need < 0.85 * double(dev->memoryBytes);
+            box->layout()->addWidget(label(fits ? QObject::tr("%1 (%2): fits.").arg(dev->name, bytes(double(dev->memoryBytes)))
+                                                : QObject::tr("%1 (%2): more than it holds comfortably.").arg(dev->name, bytes(double(dev->memoryBytes))),
+                                           fits ? "muted" : "warning"));
+        }
+        v->addWidget(box);
     }
 
+    // ---- Slots and gaps the octree resolved, or closed
+    v->addWidget(section(QObject::tr("Slots and gaps")));
+    if (!r->gaps) {
+        v->addWidget(label(QObject::tr("Gaps: not reported."), "muted"));
+    } else {
+        std::vector<MeshGap> closed, contact, open;
+        for (const auto& g : *r->gaps) (g.closed() ? (g.width > 0 ? closed : contact) : open).push_back(g);
+        auto pair = [](const MeshGap& g) { return QObject::tr("%1 – %2").arg(g.a, g.b); };
+        if (!closed.empty()) {
+            auto* box = callout("amber");
+            box->layout()->addWidget(label(closed.size() == 1 ? QObject::tr("A slot closed: no fluid cells across") : QObject::tr("%1 slots closed: no fluid cells across").arg(closed.size()), "title"));
+            QStringList lines;
+            for (const auto& g : closed) lines << QObject::tr("%1, %2 wide").arg(pair(g), millimetres(g.width));
+            box->layout()->addWidget(label(lines.join("\n")));
+            box->layout()->addWidget(label(QObject::tr("No air flows through a closed slot, so the parts act as one surface. Raise Cells per gap or lower the minimum size on Sizing and Boundary Layers, then generate again."), "muted"));
+            v->addWidget(box);
+        } else {
+            v->addWidget(label(r->gaps->empty() ? QObject::tr("No narrow gaps between parts.") : QObject::tr("No slot closed."), "muted"));
+        }
+        std::sort(open.begin(), open.end(), [](const MeshGap& x, const MeshGap& y) { return x.cellsAcross != y.cellsAcross ? x.cellsAcross < y.cellsAcross : x.width < y.width; });
+        if (!open.empty()) {
+            QStringList lines;
+            for (std::size_t i = 0; i < std::min<std::size_t>(open.size(), 5); ++i)
+                lines << (open[i].cellsAcross == 1 ? QObject::tr("%1: 1 cell across %2").arg(pair(open[i]), millimetres(open[i].width))
+                                                   : QObject::tr("%1: %2 cells across %3").arg(pair(open[i])).arg(open[i].cellsAcross).arg(millimetres(open[i].width)));
+            v->addWidget(label(QObject::tr("Narrowest open gaps (of %1):\n%2").arg(open.size()).arg(lines.join("\n")), open.front().cellsAcross < 2 ? "warning" : "muted"));
+        }
+        if (!contact.empty()) {
+            QStringList names;
+            for (const auto& g : contact) names << pair(g);
+            v->addWidget(label(QObject::tr("Touching, no gap to resolve: %1.").arg(names.join(", ")), "faint"));
+        }
+    }
+
+    // ---- Prism layers
+    v->addWidget(section(QObject::tr("Boundary layers")));
+    if (!r->layers) {
+        v->addWidget(label(QObject::tr("Layers: not reported."), "muted"));
+    } else if (r->layers->requested && *r->layers->requested == 0) {
+        v->addWidget(label(QObject::tr("None: no layers were requested (count 0)."), "muted"));
+    } else {
+        const auto& l = *r->layers;
+        auto* lf = form();
+        formRow(lf, QObject::tr("Layers"), label(QObject::tr("%1 generated of %2 requested").arg(whole(l.generated), whole(l.requested))));
+        formRow(lf, QObject::tr("Prism cells"), label(whole(l.cells)));
+        formRow(lf, QObject::tr("First height achieved"), label(l.firstHeightMean ? QObject::tr("mean %1, min %2").arg(millimetres(l.firstHeightMean), millimetres(l.firstHeightMin)) : notReported));
+        formRow(lf, QObject::tr("Terminations"), label(l.splitPoints || l.liftedPoints ? QObject::tr("%1 split, %2 lifted (a step)").arg(whole(l.splitPoints), whole(l.liftedPoints)) : notReported));
+        v->addLayout(lf);
+        if (l.coverageFull || l.coverageThinned || l.coverageNone) {
+            const auto& t = tokens();
+            v->addWidget(new ShareBar(QObject::tr("Layer coverage"), {{l.coverageFull.value_or(0), t.accent}, {l.coverageThinned.value_or(0), t.amber}, {l.coverageNone.value_or(0), t.red}}));
+            v->addWidget(label(QObject::tr("Coverage of the layered walls%1: full %2, thinned %3, none %4.")
+                                   .arg(l.wallArea ? QObject::tr(" (%1 m²)").arg(QLocale().toString(*l.wallArea, 'f', 2)) : QString(),
+                                        percent(l.coverageFull), percent(l.coverageThinned), percent(l.coverageNone)),
+                               l.coverageNone.value_or(0) > 0.1 ? "warning" : "muted"));
+            if (l.coverageNone.value_or(0) > 0)
+                v->addWidget(label(QObject::tr("Where a stack would fall below orthogonal quality 0.15 it collapses: those walls have no layers, and their first cell is a core cell."), "faint"));
+        } else {
+            v->addWidget(label(QObject::tr("Coverage: not reported."), "muted"));
+        }
+    }
+
+    // ---- Snap: how far the wall stays from the STL
+    v->addWidget(section(QObject::tr("Distance from the geometry")));
+    if (!r->snap || !r->snap->distanceMax) {
+        v->addWidget(label(QObject::tr("Snap error: not reported."), "muted"));
+    } else {
+        const auto& sn = *r->snap;
+        auto* sf = form();
+        formRow(sf, QObject::tr("Wall points to the STL"), label(QObject::tr("p99 %1, max %2").arg(millimetres(sn.distanceP99), millimetres(sn.distanceMax))));
+        formRow(sf, QObject::tr("Mean"), label(millimetres(sn.distanceMean)));
+        if (sn.relativeMax) formRow(sf, QObject::tr("Largest, of the local cell size"), label(percent(sn.relativeMax)));
+        v->addLayout(sf);
+        v->addWidget(label(QObject::tr("Where snapping fully would push a cell below orthogonal quality 0.15, the point stays off the surface: this is the geometric error left, at sharp trailing edges and concave junctions."), "faint"));
+    }
+
+    // ---- y+
+    v->addWidget(section(QObject::tr("First-cell y+ (estimate)")));
+    if (!r->yPlus) {
+        v->addWidget(label(QObject::tr("y+: not reported."), "muted"));
+    } else {
+        const auto& y = *r->yPlus;
+        auto* yf = form();
+        formRow(yf, QObject::tr("Median (p50)"), label(y.speed ? QObject::tr("%1 at %2 m/s").arg(number3(y.p50), QLocale().toString(*y.speed, 'g', 4)) : number3(y.p50)));
+        formRow(yf, QObject::tr("p05 to p95"), label(QObject::tr("%1 to %2").arg(number3(y.p05), number3(y.p95))));
+        formRow(yf, QObject::tr("Min to max"), label(QObject::tr("%1 to %2").arg(number3(y.min), number3(y.max))));
+        v->addLayout(yf);
+        if (y.below5 || y.from5to30 || y.from30to300 || y.above300) {
+            const auto& t = tokens();
+            v->addWidget(new ShareBar(QObject::tr("y+ bands"), {{y.below5.value_or(0), t.link}, {y.from5to30.value_or(0), t.amber}, {y.from30to300.value_or(0), t.accent}, {y.above300.value_or(0), t.red}}));
+            v->addWidget(label(QObject::tr("Wall area: below 5: %1 · 5–30: %2 · 30–300: %3 · above 300: %4")
+                                   .arg(percent(y.below5), percent(y.from5to30), percent(y.from30to300), percent(y.above300)), "muted"));
+        } else {
+            v->addWidget(label(QObject::tr("y+ bands: not reported."), "muted"));
+        }
+        v->addWidget(label(QObject::tr("A flat-plate estimate from the first cells' distances, not solved y+. 5–30 is the buffer layer, where neither wall-resolved nor wall-function modelling is accurate; Kutta's SST walls blend across it."), "faint"));
+    }
+
+    // ---- Quality
     v->addWidget(section(QObject::tr("Quality")));
-    if (r->quality.empty()) v->addWidget(label(QObject::tr("The report has no quality figures."), "muted"));
-    for (const auto& q : r->quality) {
-        auto fmt = [](const std::optional<double>& x) { return x ? QLocale().toString(*x, 'g', 3) : QStringLiteral("—"); };
-        const QString worst = q.higherIsBetter ? QObject::tr("min %1").arg(fmt(q.min)) : QObject::tr("max %1").arg(fmt(q.max));
-        auto* head = label(QObject::tr("%1 · %2 · mean %3").arg(q.label, worst, fmt(q.mean)));
-        v->addWidget(head);
-        if (!q.counts.empty()) {
-            v->addWidget(new Histogram(q));
-            v->addWidget(label(QObject::tr("%1 to %2, log scale; %3").arg(QLocale().toString(q.edges.front(), 'g', 3), QLocale().toString(q.edges.back(), 'g', 3),
-                                                                          q.higherIsBetter ? QObject::tr("low is poor") : QObject::tr("high is poor")),
-                               "faint"));
+    if (!r->quality) {
+        v->addWidget(label(QObject::tr("Quality: not reported."), "muted"));
+    } else {
+        const auto& q = *r->quality;
+        auto* qf = form();
+        formRow(qf, QObject::tr("Orthogonal quality"), label(QObject::tr("min %1, mean %2").arg(number3(q.orthogonalMin), number3(q.orthogonalMean))));
+        formRow(qf, QObject::tr("Cells below 0.15 / 0.05"), label(QObject::tr("%1 / %2").arg(whole(q.cellsBelow015), whole(q.cellsBelow005))));
+        formRow(qf, QObject::tr("Worst cell at"), label(q.worstCell ? QStringLiteral("%1, %2, %3 m").arg(QLocale().toString(q.worstCell->x(), 'f', 3), QLocale().toString(q.worstCell->y(), 'f', 3),
+                                                                                                         QLocale().toString(q.worstCell->z(), 'f', 3))
+                                                                   : notReported));
+        formRow(qf, QObject::tr("Maximum skewness"), label(number3(q.skewnessMax)));
+        formRow(qf, QObject::tr("Minimum cell volume"), label(q.volumeMin ? QObject::tr("%1 m³").arg(QLocale().toString(*q.volumeMin, 'g', 3)) : notReported));
+        formRow(qf, QObject::tr("Negative volumes"), label(whole(q.negativeCells)));
+        formRow(qf, QObject::tr("Nonconvex cells"), label(whole(q.nonconvexCells)));
+        v->addLayout(qf);
+        if (!q.orthogonalHistogram.empty()) {
+            v->addWidget(new Histogram(QObject::tr("Orthogonal quality"), q.orthogonalHistogram, [](const MeshBin& b) { return b.to <= 0.2 + 1e-9; }));
+            v->addWidget(label(QObject::tr("Orthogonal quality, %1 to %2 by the report's bins, log scale; below 0.2 tinted.")
+                                   .arg(Histogram::edge(q.orthogonalHistogram.front().from), Histogram::edge(q.orthogonalHistogram.back().to)), "faint"));
         }
+        if (q.orthogonalMin && *q.orthogonalMin < 0.1)
+            v->addWidget(label(QObject::tr("Minimum orthogonal quality is below 0.1; Fluent's guidance is to keep it above 0.1. Kutta treats such cells with low-order face pressures."), "warning"));
+        auto ratio = [&](const std::optional<MeshDistribution>& d, const QString& where) {
+            if (!d) return v->addWidget(label(QObject::tr("Volume ratio, %1: not reported.").arg(where), "muted"));
+            qint64 over20 = 0;
+            for (const auto& b : d->histogram) if (b.from >= 20) over20 += b.count;
+            v->addWidget(label(QObject::tr("Adjacent volume ratio, %1%2: p50 %3, p99 %4, p999 %5, max %6%7")
+                                   .arg(where, d->faces ? QObject::tr(" (%1 faces)").arg(QLocale().toString(*d->faces)) : QString(),
+                                        number3(d->p50), number3(d->p99), number3(d->p999), number3(d->max),
+                                        d->histogram.empty() ? QString() : QObject::tr("; %1 above 20").arg(QLocale().toString(over20)))));
+            if (!d->histogram.empty()) v->addWidget(new Histogram(QObject::tr("Volume ratio, %1").arg(where), d->histogram, [](const MeshBin& b) { return b.from >= 20; }));
+        };
+        ratio(q.volumeRatioCore, QObject::tr("core"));
+        ratio(q.volumeRatioLayers, QObject::tr("layers"));
+        v->addWidget(label(QObject::tr("Ratio of neighbouring cells' volumes across each face; above 20 tinted. The largest sit beside 2:1 octree steps where snapping squeezed a fine cell."), "faint"));
     }
-    if (const auto* oq = r->metric("orthogonal_quality"); oq && oq->min && *oq->min < 0.1)
-        v->addWidget(label(QObject::tr("Minimum orthogonal quality is below 0.1; Fluent's guidance is to keep it above 0.1. Kutta treats such cells with low-order face pressures."), "warning"));
 
-    if (!r->worst.empty()) {
-        v->addWidget(section(QObject::tr("Worst cells")));
-        auto* t = new QTableWidget(int(r->worst.size()), 3);
-        t->setHorizontalHeaderLabels({QObject::tr("Metric"), QObject::tr("Value"), QObject::tr("Near (m)")});
-        t->verticalHeader()->hide();
-        t->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        t->setShowGrid(false);
-        t->setAccessibleName(QObject::tr("Worst cells"));
-        for (int i = 0; i < int(r->worst.size()); ++i) {
-            const auto& w = r->worst[std::size_t(i)];
-            t->setItem(i, 0, new QTableWidgetItem(QObject::tr("%1%2").arg(QString(w.metric).replace('_', ' '), w.zone.isEmpty() ? QString() : " · " + w.zone)));
-            t->setItem(i, 1, new QTableWidgetItem(QLocale().toString(w.value, 'g', 3)));
-            t->setItem(i, 2, new QTableWidgetItem(w.position ? QStringLiteral("%1, %2, %3").arg(QLocale().toString(w.position->x(), 'f', 2), QLocale().toString(w.position->y(), 'f', 2),
-                                                                                                QLocale().toString(w.position->z(), 'f', 2))
-                                                             : QStringLiteral("—")));
-        }
-        t->resizeColumnsToContents();
-        t->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-        t->setMaximumHeight(t->horizontalHeader()->height() + 4 + t->rowHeight(0) * int(r->worst.size()));
-        v->addWidget(t);
-    }
+    // ---- Surface repairs, missing parts, the mesher's own warnings
     v->addWidget(section(QObject::tr("Repairs")));
-    v->addWidget(label(r->repairs.isEmpty() ? QObject::tr("None needed.") : r->repairs.join("\n"), r->repairs.isEmpty() ? "muted" : QString()));
+    {
+        static const QList<std::pair<const char*, const char*>> known{
+            {"open_edges", QT_TR_NOOP("open edges")}, {"nonmanifold_edges", QT_TR_NOOP("non-manifold edges")},
+            {"orientation_conflicts", QT_TR_NOOP("orientation conflicts")}, {"reoriented_triangles", QT_TR_NOOP("triangles reoriented")},
+            {"removed_degenerate_triangles", QT_TR_NOOP("degenerate triangles removed")}, {"removed_duplicate_triangles", QT_TR_NOOP("duplicate triangles removed")},
+            {"welded_vertex_occurrences", QT_TR_NOOP("vertices welded")}};
+        QStringList done;
+        for (const auto& [key, what] : known)
+            if (r->repairs.value(key) > 0) done << QObject::tr("%1 %2").arg(QLocale().toString(r->repairs.value(key)), QObject::tr(what));
+        QString text = r->repairs.isEmpty() ? QObject::tr("Repairs: not reported.") : done.isEmpty() ? QObject::tr("None needed.") : done.join(", ") + ".";
+        if (r->repairs.contains("components")) text += (r->repairs.value("components") == 1 ? QObject::tr(" 1 closed shell.") : QObject::tr(" %1 closed shells.").arg(r->repairs.value("components")));
+        const bool open = r->repairs.value("open_edges") > 0 || r->repairs.value("nonmanifold_edges") > 0;
+        v->addWidget(label(text, open ? "warning" : "muted"));
+        if (open) v->addWidget(label(QObject::tr("Open or non-manifold edges mean the STL is not closed; kutta mesh does not fill holes. Close the surfaces in CAD."), "warning"));
+    }
+    if (!r->missingSurfaceZones) v->addWidget(label(QObject::tr("Missing solids: not reported."), "muted"));
+    else if (!r->missingSurfaceZones->isEmpty())
+        v->addWidget(label(QObject::tr("These solids have no faces in the mesh, too small for its sizes: %1. Lower the minimum size or add a refinement region.").arg(r->missingSurfaceZones->join(", ")), "warning"));
+    if (!r->warnings.isEmpty()) {
+        v->addWidget(section(QObject::tr("Mesher notes")));
+        v->addWidget(label(r->warnings.join("\n"), "muted"));
+    }
 
     if (!r->zones.empty()) {
         v->addWidget(section(QObject::tr("Zones")));

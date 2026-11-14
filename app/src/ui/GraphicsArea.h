@@ -27,6 +27,8 @@ public:
     QString datasetKey() const { return m_key; }
     void setDataset(const QString& key);
     std::shared_ptr<const SceneData> scene() const { return m_view->scene(); }
+    // Why the current dataset could not be loaded; empty while it loads or once shown.
+    QString loadError() const { return m_loadError; }
 
     const ViewDisplay& display() const { return m_view->display(); }
     void setDisplay(const ViewDisplay& d);
@@ -52,7 +54,7 @@ private:
 
     Session* m_session;
     int m_index;
-    QString m_key, m_pendingKey;
+    QString m_key, m_pendingKey, m_loadError;
     SceneView* m_view;
     QComboBox* m_dataset;
     QComboBox* m_field;

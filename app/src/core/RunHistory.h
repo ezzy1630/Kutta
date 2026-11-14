@@ -19,8 +19,9 @@ enum class RunStatus { Running, Completed, Stopped, Failed, Interrupted };
 QString runStatusLabel(RunStatus s);
 struct RunRecord;
 // The status as the user reads it: a completed run says "Converged" when it
-// met its convergence criteria and "Iteration limit" when it ran out of
-// iterations first.
+// met its convergence criteria, "Forces settled" when the CLI stopped it on
+// settled forces with its residuals stalled above their criteria (waived),
+// and "Iteration limit" when it ran out of iterations first.
 QString runStatusText(const RunRecord& r);
 
 struct RunRecord {
@@ -34,6 +35,7 @@ struct RunRecord {
     QStringList approximations;
     QStringList approximationLabels;  // badge words per approximation ("WFGC off"), parallel
     QStringList convergedBy;   // conditions met when it stopped converged
+    bool residualsWaived = false;  // converged on settled forces; residuals stalled above their criteria
     QString studyId;
     QString backend, device;
     QString coupling;      // pressure-velocity coupling that ran ("simplec"); empty from older CLIs
@@ -62,7 +64,7 @@ struct RunRecord {
 // Why a finished run stopped, in a sentence: the conditions it converged on,
 // a stop by the user, or the iteration limit (with checking on or off).
 // `stopReason` is the CLI's; `conv` the run's convergence setup.
-QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv);
+QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv, bool residualsWaived = false);
 
 // The run's poor-mesh-numerics cells in a sentence; empty when there were
 // none (or the CLI predates the count).

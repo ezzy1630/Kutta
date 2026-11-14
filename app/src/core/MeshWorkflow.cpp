@@ -34,8 +34,9 @@ QJsonObject GeometryProject::toJson() const
     for (const QString& p : files) f.append(QJsonObject{{"path", rel(p)}});
     for (const auto& x : solids)
         s.append(QJsonObject{{"file", rel(x.file)}, {"source", x.source}, {"name", x.name}, {"wheel", x.wheel}});
-    return {{"v", 1}, {"kind", "kutta-geometry"}, {"family", family}, {"variant_of", rel(variantOf)}, {"base_case", rel(baseCase)},
-            {"files", f}, {"solids", s}, {"mesh", setup.toJson()}, {"case", rel(caseFile)}};
+    // v2: "mesh" lengths in metres, as mesh.json (v1 wrote them in "units").
+    return {{"v", 2}, {"kind", "kutta-geometry"}, {"family", family}, {"variant_of", rel(variantOf)}, {"base_case", rel(baseCase)},
+            {"files", f}, {"solids", s}, {"mesh", setup.toJson()}, {"speed", speed}, {"case", rel(caseFile)}};
 }
 
 GeometryProject GeometryProject::fromJson(const QJsonObject& o, const QString& dir)
@@ -52,7 +53,8 @@ GeometryProject GeometryProject::fromJson(const QJsonObject& o, const QString& d
         const QJsonObject x = v.toObject();
         p.solids.push_back({abs(x.value("file").toString()), x.value("source").toString(), x.value("name").toString(), x.value("wheel").toBool()});
     }
-    p.setup = MeshSetup::fromJson(o.value("mesh").toObject());
+    p.setup = MeshSetup::fromJson(o.value("mesh").toObject(), o.value("v").toInt(1) < 2);
+    p.speed = o.value("speed").toDouble(p.speed);
     p.caseFile = abs(o.value("case").toString());
     return p;
 }
@@ -399,6 +401,32 @@ void MeshWorkflow::resetSetup()
     setSetup(defaultMeshSetup(geometryBounds(), m_project->setup.units));
 }
 
+void MeshWorkflow::setSpeed(double v)
+{
+    if (!m_project || meshing() || !(v > 0) || !std::isfinite(v) || v == m_project->speed) return;
+    m_project->speed = v;
+    save();
+    emit setupChanged();
+}
+
+bool MeshWorkflow::loadSetupFile(const QString& path)
+{
+    if (!m_project || meshing()) return false;
+    QFile f(path);
+    QJsonParseError pe;
+    const QJsonDocument doc = f.open(QIODevice::ReadOnly) ? QJsonDocument::fromJson(f.readAll(), &pe) : QJsonDocument();
+    if (!doc.isObject() || doc.object().value("v").toInt() != 1) {
+        fail(tr("%1 is not a kutta mesh setup (mesh.json, \"v\": 1).").arg(QDir::toNativeSeparators(path)));
+        return false;
+    }
+    MeshSetup s = MeshSetup::fromJson(doc.object());
+    s.units = m_project->setup.units;  // the file's lengths are metres; the unit is the STL's
+    m_error.clear();
+    emit consoleLine(ConsoleLevel::Info, tr("Mesh settings from %1").arg(QDir::toNativeSeparators(path)));
+    setSetup(s);
+    return true;
+}
+
 Bounds MeshWorkflow::geometryBounds() const
 {
     Bounds b;
@@ -433,9 +461,15 @@ QStringList MeshWorkflow::problems() const
     if (loading()) p << tr("The geometry is still being read.");
     if (m_project->solids.empty()) p << tr("There is no geometry to mesh.");
     p += m_project->setup.problems();
-    static const QSet<QString> reserved{"inlet", "outlet", "ground", "bottom", "top", "sides", "symmetry", "tunnel"};
     for (const auto& s : m_project->solids)
-        if (reserved.contains(s.name.toLower())) p << tr("The solid %1 has the name of a tunnel boundary; rename it.").arg(s.name);
+        if (reservedZoneNames().contains(s.name.toLower())) p << tr("The solid %1 has the name of a tunnel boundary; rename it.").arg(s.name);
+    const Bounds g = geometryBounds();
+    // kutta mesh puts the ground at z = 0 and rejects geometry below it.
+    if (g.valid && m_project->setup.tunnel.ground && g.min.z() < -1e-7f * std::max(1e-3f, g.max.x() - g.min.x()))
+        p << tr("The ground is the plane z = 0 and the geometry goes %1 m below it: move the car up in CAD so the tyres stand on z = 0, or turn off the ground.")
+                 .arg(QLocale().toString(-double(g.min.z()), 'g', 3));
+    if (g.valid && m_project->setup.tunnel.symmetry == "y" && !(g.max.y() > 0))
+        p << tr("A half car keeps y ≥ 0, but the geometry is entirely below y = 0.");
     return p;
 }
 
@@ -576,12 +610,20 @@ QString MeshWorkflow::inputsHash() const
     if (!m_project) return {};
     QCryptographicHash h(QCryptographicHash::Sha256);
     h.addData(QJsonDocument(m_project->setup.toJson()).toJson(QJsonDocument::Compact));
+    h.addData(QByteArray::number(m_project->speed, 'g', 10));
     for (const QString& f : m_project->files) {
         const QFileInfo fi(f);
         h.addData(QStringLiteral("%1|%2|%3").arg(fi.absoluteFilePath()).arg(fi.size()).arg(fi.lastModified().toMSecsSinceEpoch()).toUtf8());
     }
     for (const auto& s : m_project->solids) h.addData(QStringLiteral("%1|%2|%3").arg(s.file, s.source, s.name).toUtf8());
     return QString::fromLatin1(h.result().toHex());
+}
+
+bool MeshWorkflow::meshSynthetic() const
+{
+    if (!hasMesh()) return false;
+    QFile f(QDir(m_project->meshDir()).filePath("app-mesh.json"));
+    return f.open(QIODevice::ReadOnly) && QJsonDocument::fromJson(f.readAll()).object().value("fixture").toBool();
 }
 
 bool MeshWorkflow::meshStale() const
@@ -660,7 +702,8 @@ bool MeshWorkflow::generate()
         return false;
     }
     QDir().mkpath(m_project->meshDir());
-    MeshRequest req{inputs, QDir(m_project->dir).filePath("mesh.json"), m_project->meshDir()};
+    MeshRequest req{inputs, QDir(m_project->dir).filePath("mesh.json"), m_project->meshDir(), m_project->speed};
+    m_meshFromFixture = m_cli->info().fixture;
     m_proc = new MeshProcess(m_cli->info(), req, this);
     m_progress = {};
     m_outcome = Outcome::None;
@@ -672,7 +715,9 @@ bool MeshWorkflow::generate()
     emit m_cli->commandStarted(shellQuote(QStringList{QFileInfo(m_cli->info().program).fileName()} + m_proc->arguments()));
     connect(m_proc, &MeshProcess::meshEvent, this, [this](const MeshEvent& e) {
         if (const auto* p = std::get_if<MeshProgressEvent>(&e)) {
-            m_progress = {p->stage, p->fraction, p->message, m_proc ? m_proc->elapsedSeconds() : 0};
+            // The mesher's fraction can step back within a stage (layer
+            // retreat rounds); the bar only moves forward.
+            m_progress = {p->stage, std::max(m_progress.fraction, p->fraction), p->message, m_proc ? m_proc->elapsedSeconds() : 0};
             if (p->stage != m_lastStage) {
                 m_lastStage = p->stage;
                 const QString line = tr("%1%2").arg(meshStageLabel(p->stage), p->message.isEmpty() ? QString() : ": " + p->message);
@@ -737,13 +782,13 @@ void MeshWorkflow::finishMesh(int code, bool cancelled)
             m_outcome = Outcome::Succeeded;
             QSaveFile f(QDir(m_project->meshDir()).filePath("app-mesh.json"));
             if (f.open(QIODevice::WriteOnly)) {
-                f.write(QJsonDocument(QJsonObject{{"inputs", inputsHash()}, {"seconds", seconds}}).toJson());
+                f.write(QJsonDocument(QJsonObject{{"inputs", inputsHash()}, {"seconds", seconds}, {"fixture", m_meshFromFixture}}).toJson());
                 f.commit();
             }
             emit consoleLine(ConsoleLevel::Success, tr("Mesh: %1 cells, %2 faces in %3 s%4")
                                                         .arg(QLocale().toString(m_report->cells), QLocale().toString(m_report->faces))
                                                         .arg(m_report->wallSeconds.value_or(seconds), 0, 'f', 1)
-                                                        .arg(m_report->synthetic ? tr(" (SYNTHETIC fixture mesh)") : QString()));
+                                                        .arg(meshSynthetic() ? tr(" (SYNTHETIC fixture mesh)") : QString()));
         }
     }
     emit meshStateChanged();

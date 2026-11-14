@@ -5,6 +5,8 @@
 
 #include <QJsonDocument>
 #include <QTemporaryDir>
+
+#include <algorithm>
 #include <QtTest>
 
 using namespace kapp;
@@ -155,6 +157,36 @@ private slots:
         QCOMPARE(int(marks.size()), 3);
         QCOMPARE(marks[0].label, QString("criterion 1e-5 · continuity, x-velocity, y-velocity"));
         QCOMPARE(marks[1].label, QString("criterion 1e-3 · z-velocity"));
+    }
+
+    // The CLI stops a run whose forces settled while its residuals stalled
+    // (residuals waived) with converged:true. The app must not call that
+    // converged: it says the forces settled and the residuals did not.
+    void forcesSettledWithWaivedResidualsIsNotConverged()
+    {
+        const QByteArray log =
+            R"({"v":1,"event":"setup","cells":10,"backend":"metal","device":"gpu","approximations":[],"convergence":{"enabled":true,"condition":"all","residuals":{"continuity":0.001},"reports":[],"forces":{"tolerance":0.001,"window":300,"reports":["drag","downforce"]}}})" "\n"
+            R"({"v":1,"event":"iteration","iter":1200,"residuals":{"continuity":0.017},"convergence":{"met":true,"conditions":[{"kind":"residuals","met":false,"waived":true,"equations":{"continuity":{"value":0.017,"criterion":0.001,"met":false}}},{"kind":"forces","met":true,"settled":true,"criterion":0.001,"window":300,"reports":{"drag":0.0004,"downforce":null}}]}})" "\n"
+            R"({"v":1,"event":"done","converged":true,"iterations":1200,"elapsed":1,"out":"x","stop_reason":"converged","residuals_waived":true,"convergence":{"met_by":["forces"]}})" "\n";
+        const RunProgress p = parseProgressLog(log);
+        QVERIFY(p.setup->convergence.forces && p.setup->convergence.forces->window == 300);
+        QVERIFY(p.done && p.done->residualsWaived);
+        const auto& conditions = p.convergence->conditions;
+        QVERIFY(conditions[0].waived && !conditions[0].met);
+        QCOMPARE(conditions[1].kind, QString("forces"));
+        QVERIFY(conditions[1].settled && conditions[1].ranges.value("drag") && !conditions[1].ranges.value("downforce"));
+        const auto marks = convergenceMarks(p, false);
+        QVERIFY(std::none_of(marks.begin(), marks.end(), [](const ConvergenceMark& m) { return m.kind == ConvergenceMark::Kind::Converged; }));
+        RunRecord r;
+        r.id = "run-0001";
+        r.status = RunStatus::Completed;
+        r.stopReason = "converged";
+        r.residualsWaived = true;
+        QVERIFY(!runStatusText(r).startsWith("Converged"));
+        const auto back = RunRecord::fromJson(r.toJson(), "/x");
+        QVERIFY(back && back->residualsWaived);
+        const QString why = stopReasonText(r.stopReason, p.done->metBy, p.setup->convergence, true);
+        QVERIFY2(why.contains("not converged") && why.contains("drag, downforce"), qPrintable(why));
     }
 
     void couplingPersistsWithTheRun()

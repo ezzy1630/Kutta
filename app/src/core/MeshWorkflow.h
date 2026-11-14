@@ -40,6 +40,7 @@ struct GeometryProject {
     QStringList files;  // absolute STL paths
     std::vector<GeometrySolid> solids;
     MeshSetup setup;
+    double speed = 20;  // m/s: the y+ estimate's speed, and the case's freestream
     QString caseFile;   // absolute; empty until a case is set up
     QString name() const;
     QString projectFile() const;
@@ -73,6 +74,10 @@ public:
     void setSolidWheel(int index, bool wheel);
     void setSetup(const MeshSetup& s);
     void resetSetup();
+    void setSpeed(double metresPerSecond);
+    // Takes a mesh.json's settings (lengths in metres; keys it omits get
+    // kutta mesh's defaults); the project keeps its geometry units.
+    bool loadSetupFile(const QString& path);
 
     // The geometry as read (metres).
     struct FileInfo { QString path; bool binary = false; QString error; std::size_t triangles = 0; double area = 0; Bounds bounds; };
@@ -101,6 +106,8 @@ public:
     bool meshStale() const;
     const std::optional<MeshReport>& report() const { return m_report; }
     QString reportError() const { return m_reportError; }
+    // The mesh came from the fixture CLI (app development), not kutta mesh.
+    bool meshSynthetic() const;
 
     // Records the case written for this project's mesh.
     void setCaseFile(const QString& path);
@@ -157,6 +164,7 @@ private:
     QString m_reportError;
     QString m_lastStage;
     bool m_sawDone = false;
+    bool m_meshFromFixture = false;
 };
 
 } // namespace kapp

@@ -39,16 +39,19 @@ QString runStatusText(const RunRecord& r)
 {
     // A completed run either converged or ran out of iterations; older records
     // without a stop reason stay "Completed".
-    if (r.status == RunStatus::Completed && r.converged()) return QStringLiteral("Converged");
+    if (r.status == RunStatus::Completed && r.converged()) return r.residualsWaived ? QStringLiteral("Forces settled; residuals not converged") : QStringLiteral("Converged");
     if (r.status == RunStatus::Completed && r.stopReason == QLatin1String("iteration_limit")) return QStringLiteral("Iteration limit");
     return runStatusLabel(r.status);
 }
 
-QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv)
+QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv, bool residualsWaived)
 {
     if (stopReason == "converged") {
         QStringList met;
         for (const QString& id : metBy) met << describeCondition(id, conv);
+        if (residualsWaived)
+            return QStringLiteral("Stopped on settled forces%1; the residuals stalled above their criteria and were waived, so the solution is not converged")
+                .arg(met.isEmpty() ? QString() : " (" + met.join("; ") + ")");
         return met.isEmpty() ? QStringLiteral("Converged") : QStringLiteral("Converged: %1").arg(met.join("; "));
     }
     if (stopReason == "stopped") return QStringLiteral("Stopped by you; not converged");
@@ -159,6 +162,7 @@ QJsonObject RunRecord::toJson() const
             {"error", error},
             {"iterations_done", iterationsDone},
             {"stop_reason", stopReason},
+            {"residuals_waived", residualsWaived},
             {"elapsed", elapsed},
             {"fixture", fixture},
             {"synthetic", synthetic},
@@ -194,6 +198,7 @@ std::optional<RunRecord> RunRecord::fromJson(const QJsonObject& o, const QString
     r.error = o.value("error").toString();
     r.iterationsDone = o.value("iterations_done").toInt();
     r.stopReason = o.value("stop_reason").toString();
+    r.residualsWaived = o.value("residuals_waived").toBool();
     r.elapsed = o.value("elapsed").toDouble();
     r.fixture = o.value("fixture").toBool();
     r.synthetic = o.value("synthetic").toBool();
@@ -247,7 +252,9 @@ std::vector<ConvergenceMark> convergenceMarks(const RunProgress& p, bool planar)
     if (p.done && !p.residuals.iterations.empty()) {
         const QString why = p.done->stopReason;
         const int at = p.done->iterations;
-        if (why == "converged") out.push_back({ConvergenceMark::Kind::Converged, double(at), QStringLiteral("Converged · %1").arg(at)});
+        if (why == "converged" && p.done->residualsWaived)
+            out.push_back({ConvergenceMark::Kind::IterationLimit, double(at), QStringLiteral("Forces settled, residuals waived · %1").arg(at)});
+        else if (why == "converged") out.push_back({ConvergenceMark::Kind::Converged, double(at), QStringLiteral("Converged · %1").arg(at)});
         else if (why == "stopped") out.push_back({ConvergenceMark::Kind::Stopped, double(at), QStringLiteral("Stopped by you · %1").arg(at)});
         else if (why == "iteration_limit") out.push_back({ConvergenceMark::Kind::IterationLimit, double(at), QStringLiteral("Iteration limit · %1").arg(at)});
     }
