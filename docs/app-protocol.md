@@ -349,9 +349,12 @@ Directions are used as saved, without changing their sign or magnitude.
 Cancellation is checked between **outer iterations**, including inside a monitor
 interval. The final partial interval emits an iteration event when at least one
 iteration ran. A request during setup completes initialization before writing
-a zero-iteration run. `done` and `summary.json` add `stop_reason: "stopped"`, `"iteration_limit"`
-or `"converged"`; `converged` is true only for the last, when convergence
-checking is on (see Convergence criteria below). JSONL mode watches stdin EOF only when stdin is a pipe
+a zero-iteration run. `done` and `summary.json` add `stop_reason: "stopped"`, `"iteration_limit"`,
+`"converged"` or (v1 additive) `"statistically_steady"`; `converged` is true
+only for `"converged"`, when convergence checking is on (see Convergence
+criteria below). A run whose iteration diverges (a non-finite linear system,
+residual or force) ends with an `error` event whose message begins "the
+solution diverged at iteration N" and names its last finite residuals. JSONL mode watches stdin EOF only when stdin is a pipe
 at startup; the app keeps the child process's stdin pipe open while it runs. Any received
 bytes are ignored. A file, `/dev/null`, a terminal or absent stdin never stops a run. Human mode retains
 normal redirected-stdin behavior and responds to SIGINT / CTRL_BREAK. Neither
@@ -823,7 +826,8 @@ settings-inventory entry in group `Monitors`, editable through `solve --setup`.
 They are run controls like `run/iterations`: they say when to stop, not what
 case is solved, so they never mark a result MODIFIED and are echoed under
 `run_controls`. (`setup::run_control` covers the `run/` and `monitors/`
-prefixes.)
+prefixes.) Without `--iterations`, `run/iterations` defaults to 5000 for a case
+with a force report (a cap: such runs stop by themselves) and 1000 otherwise.
 
 | Path | Kind | Default | Meaning |
 | --- | --- | --- | --- |
@@ -838,6 +842,10 @@ prefixes.)
 | `monitors/forces-settled/active` | bool | `true` with a force report | Kutta's forces-settled condition (not a Fluent setting) |
 | `monitors/forces-settled/tolerance` | number > 0 | `0.001` | Largest relative range of each force report over the window |
 | `monitors/forces-settled/window` | integer ≥ 1 | `300` | Window, in iterations |
+| `monitors/forces-averaged/active` | bool | `true` with a force report | Kutta's statistically-steady stop (not a Fluent setting, not convergence) |
+| `monitors/forces-averaged/tolerance` | number > 0 | `0.001` | Largest relative change of each force report's mean between two consecutive windows |
+| `monitors/forces-averaged/range` | number ≥ 0 | `0.1` | Largest relative change (growth or decay) of each report's range from the first window to the second |
+| `monitors/forces-averaged/window` | integer ≥ 1 | `500` | Averaging window, in iterations |
 
 `<equation>` is each residual name the solver reports (`continuity`,
 `x-velocity`, `y-velocity`, `z-velocity` except for planar 2D cases, then `k`
@@ -898,7 +906,26 @@ iteration 1-5 events):
   way), the residual condition counts as met; its object then carries
   `"waived": true` (its `met` stays false), `met_by` omits `"residuals"`, and
   `done`/`summary.json` report `"residuals_waived": true`. Forces that still
-  drift or oscillate beyond the tolerance never stop a run.
+  drift or oscillate beyond the tolerance never stop a run as converged.
+- **Statistically steady** (v1 additive; not a convergence condition). Some
+  steady RANS solutions are unstable: the iteration settles into a bounded
+  cycle that no amount of iterating converges (the hex Ahmed body's wake on
+  finer meshes under SIMPLEC, validation/results/default_convergence_fine/REPORT.md). From
+  iteration 2 × `forces-settled/window` + 1 on, every force report is
+  evaluated at every iteration (this does not change the solve). At a monitor
+  sample n, the samples of iterations n−2·window+1 … n−window and
+  n−window+1 … n are compared for each report: the change of its
+  Hann-weighted mean (w = sin²(π(k+½)/window), which suppresses the error a
+  partial cycle at the window ends puts in a plain mean) must be
+  at most `tolerance` × scale (scale as for forces settled), and the second
+  window's max − min within `range` × the first's of it, plus
+  `tolerance` × scale. When every report passes and the convergence
+  conditions are not met, the run stops with `"stop_reason":
+  "statistically_steady"` and `"converged": false`. A cycle that drifts or
+  grows never stops this way; the run then ends at its iteration limit. A
+  decaying cycle is still converging and does not stop this way either. This is
+  Kutta's automation of what Fluent users do with a report definition's
+  "Average Over" running mean.
 
 When met, the run stops after that iteration and writes its outputs normally.
 `done` and `summary.json` then carry `"converged": true` and
@@ -936,7 +963,21 @@ condition's `reports` give each report's relative range over the window
 `summary.json` add `convergence`: the setup object plus `met_by` (the met
 conditions at the stopping sample, as `"residuals"` or `"report:<name>"`, empty
 unless converged), `iteration` (the stopping iteration, null unless
-converged) and, v1 additive, `residuals_waived`. `summary.json` sets
+converged) and, v1 additive, `residuals_waived` and `averaged`. `averaged`
+is null for a converged run and for a run that stopped before averaging had
+two complete windows. Otherwise it is the averaging state at the stopping
+sample (`"steady": true` when that is why the run stopped, `false` for a run
+that reached its iteration limit or was stopped while its mean drifted or its
+range grew or decayed):
+`{"window","from","to","steady":true,"reports":{"<report>":{"mean","min","max",
+"drift","range_change","met","coefficient":{"mean","min","max"}}}}`, forces in N over
+iterations `from`…`to` (both windows), with `coefficient` when the reference
+values define one; `mean` is Hann-weighted over both windows and
+`range_change` is the second window's range over the first's, minus 1
+(negative when the cycle decays). While averaging has two complete windows, each `iteration`
+event's `convergence` object also carries that `averaged` state (without
+`coefficient`). The setup object adds, v1 additive, `"averaging":{"tolerance",
+"range","window","start"}` while the stop is active. `summary.json` sets
 `convergence_criteria_available: true`.
 Without checking, the warning reads "Convergence checking is off
 (monitors/check-convergence); stopping at the requested iteration limit."

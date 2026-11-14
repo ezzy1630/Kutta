@@ -41,6 +41,7 @@ QString runStatusText(const RunRecord& r)
     // without a stop reason stay "Completed".
     if (r.status == RunStatus::Completed && r.converged()) return QStringLiteral("Converged");
     if (r.status == RunStatus::Completed && r.stopReason == QLatin1String("iteration_limit")) return QStringLiteral("Iteration limit");
+    if (r.status == RunStatus::Completed && r.stopReason == QLatin1String("statistically_steady")) return QStringLiteral("Statistically steady");
     return runStatusLabel(r.status);
 }
 
@@ -52,6 +53,10 @@ QString stopReasonText(const QString& stopReason, const QStringList& metBy, cons
         return met.isEmpty() ? QStringLiteral("Converged") : QStringLiteral("Converged: %1").arg(met.join("; "));
     }
     if (stopReason == "stopped") return QStringLiteral("Stopped by you; not converged");
+    // The forces cycle about a steady mean; summary.json's convergence.averaged
+    // has each report's mean and range.
+    if (stopReason == "statistically_steady")
+        return QStringLiteral("Statistically steady; not converged: the forces cycle about a steady mean (results are one point in the cycle)");
     if (stopReason == "iteration_limit")
         return conv.enabled ? QStringLiteral("Iteration limit; convergence criteria not met")
                             : QStringLiteral("Iteration limit; convergence checking was off");
@@ -250,6 +255,7 @@ std::vector<ConvergenceMark> convergenceMarks(const RunProgress& p, bool planar)
         if (why == "converged") out.push_back({ConvergenceMark::Kind::Converged, double(at), QStringLiteral("Converged · %1").arg(at)});
         else if (why == "stopped") out.push_back({ConvergenceMark::Kind::Stopped, double(at), QStringLiteral("Stopped by you · %1").arg(at)});
         else if (why == "iteration_limit") out.push_back({ConvergenceMark::Kind::IterationLimit, double(at), QStringLiteral("Iteration limit · %1").arg(at)});
+        else if (why == "statistically_steady") out.push_back({ConvergenceMark::Kind::IterationLimit, double(at), QStringLiteral("Statistically steady · %1").arg(at)});
     }
     return out;
 }
