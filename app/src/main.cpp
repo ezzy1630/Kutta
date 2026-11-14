@@ -831,6 +831,8 @@ int main(int argc, char** argv)
                 if (const QString setup = qEnvironmentVariable("KUTTA_SCENARIO_MESH_SETUP"); !setup.isEmpty() && !mw->loadSetupFile(setup))
                     return sc->fail("mesh setup: " + mw->error());
                 if (const double v = qEnvironmentVariable("KUTTA_SCENARIO_SPEED").toDouble(); v > 0) mw->setSpeed(v);
+                // KUTTA_SCENARIO_GROUND=stationary: the Wind Tunnel page's ground motion choice.
+                if (qEnvironmentVariable("KUTTA_SCENARIO_GROUND") == QLatin1String("stationary")) mw->setGroundMotion(GroundMotion::Stationary);
                 next();
             }, "geometry to import");
         });
@@ -1031,6 +1033,46 @@ int main(int argc, char** argv)
                 }, next, "variant coefficients");
             });
         }
+        // The real path's other shots of the same run: KUTTA_SCENARIO_VIEW=slice
+        // shows its default y = 0 plane coloured by velocity, framed on the body
+        // and its wake, on the Contours page.
+        if (level == 7 && qEnvironmentVariable("KUTTA_SCENARIO_VIEW") == QLatin1String("slice")) {
+            sc->add([&w, sc, field](auto next) {
+                auto* p = w.graphics()->panel(0);
+                if (!p->scene()) return sc->fail("no run view to slice: " + p->loadError());
+                const SceneData& scene = *p->scene();
+                ViewDisplay d = p->display();
+                d.visible.clear();
+                Bounds body;
+                for (const auto& it : scene.items) {
+                    if (it.kind == ItemKind::Slice) d.visible << it.id;
+                    if (it.kind == ItemKind::Zone && it.zoneType == "wall" && !isEnclosingWall(it, scene)) {
+                        d.visible << it.id;
+                        body.expand(it.mesh->bounds());
+                    }
+                }
+                if (!body.valid || d.visible.filter("slice:").isEmpty()) return sc->fail("the run view has no slice or no body");
+                d.visibleInitialized = true;
+                d.field = field("velocity_magnitude");
+                d.contours = true;
+                p->setDisplay(d);
+                p->view()->applyPreset(Camera::Preset::Left);
+                // From the ground up, with the frame's shape the viewport's so it fills it.
+                const float L = body.max.x() - body.min.x();
+                const float aspect = float(p->view()->width()) / float(std::max(1, p->view()->height()));
+                const float wide = 3.4f * L;  // half a length ahead, about two of wake
+                Bounds frame;
+                frame.expand(QVector3D(body.min.x() - 0.5f * L, body.center().y(), 0));
+                frame.expand(QVector3D(body.min.x() - 0.5f * L + wide, body.center().y(), std::max(body.max.z() + 0.2f * L, wide / aspect)));
+                Camera cam = p->display().camera;
+                cam.fit(frame, aspect);
+                p->view()->setCamera(cam);
+                next();
+            });
+            sc->add(go("results/contours"));
+        }
+        // Another page of the same state, e.g. KUTTA_SCENARIO_PAGE=solution/monitors.
+        if (const QString page = qEnvironmentVariable("KUTTA_SCENARIO_PAGE"); !page.isEmpty()) sc->add(go(page));
     } else if (scenario.startsWith("car-mesh")) {
         if (scenario.endsWith("context")) {
             sc->add(open(elbow));

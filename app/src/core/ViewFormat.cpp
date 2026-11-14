@@ -4,6 +4,7 @@
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QLocale>
 #include <QtEndian>
 
 #include <algorithm>
@@ -66,6 +67,8 @@ Result<ViewPart> parsePart(const QJsonObject& o, PartKind kind, int index)
     p.indices = quint32(o.value("indices").toDouble(o.value("index_count").toDouble()));
     p.lineCount = quint32(o.value("line_count").toDouble());
     p.meta = o;
+    // A count, never a reason to refuse the part.
+    if (const double n = o.value("skipped_cells").toDouble(); std::isfinite(n) && n > 0) p.skippedCells = qint64(n);
     if (p.file.isEmpty() || p.file.contains('/') || p.file.contains('\\') || p.file.startsWith('.'))
         return Result<ViewPart>::failure(QStringLiteral("unsafe or missing file name '%1'").arg(p.file));
     if (kind == PartKind::Slice) {
@@ -405,6 +408,13 @@ QJsonObject toJson(const ViewPart& p)
     for (const auto& f : p.fields) fields.append(toJson(f, true));
     o["fields"] = fields;
     return o;
+}
+
+QString skippedCellsText(qint64 cells)
+{
+    if (cells <= 0) return {};
+    return cells == 1 ? QStringLiteral("1 cell could not be drawn")
+                      : QStringLiteral("%1 cells could not be drawn").arg(QLocale().toString(cells));
 }
 
 std::optional<std::pair<double, double>> finiteRange(const MeshData::Field& f)

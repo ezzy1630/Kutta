@@ -13,7 +13,9 @@ contract but meshes nothing (SYNTHETIC report and mesh). The `mesher-*`
 screens are the same path on the real `kutta mesh`: the mesher's synthetic
 Ahmed body and FSAE car from `tools/mesher/generate_geometry.py`, meshed with
 its coarse setups, solved and post-processed in the app (dark only; numbers in
-`validation/results/app_geometry_flow/REPORT.md`). The
+`validation/results/app_geometry_flow/REPORT.md`; the
+`mesher-ahmed-stationary-*` and `mesher-ahmed-slice` screens are a later
+round on a stationary ground, numbers in `docs/app.md`). The
 `wing-*` screens are a real Kutta run of the 2D ground-effect wing from
 `tools/fsae_aero/naca_ground_case.py`, `cylinder-run` the Ansys adjoint
 cylinder tutorial. Window 1500×940, downscaled to 1500 px wide and reduced to
@@ -55,3 +57,6 @@ folder; the app refuses to save a shot whose visible text contains it.
 | Mesh Report | `geometry-report` | Cells by type, the solver memory estimate with the 12 GB warning, slots and gaps (narrowest open, touching parts apart), layer coverage, snap error, y+ bands, quality; the generated mesh's surfaces in the geometry's colours (SYNTHETIC) |
 | Case from the mesh | `geometry-case` | New Case from Mesh on the generated mesh, the case file chosen for the project, tyres already rotating with the estimated axle to check |
 | Design variants | `geometry-variants` | A rear-wing variant meshed and run: CL, CD, L/D, front % and ΔCL, ΔCD, Δ front % against the base, the two runs side by side |
+| Stationary ground | `mesher-ahmed-stationary-tunnel` | The Wind Tunnel page's ground motion set to Stationary for the Ahmed body (a wind-tunnel model; cars keep Moving), with the one-line reason (real `kutta mesh`) |
+| Converged on its verdict | `mesher-ahmed-stationary-monitors` | That Ahmed run (stationary ground, 144,877 cells, SIMPLEC, Metal) converged at iteration 1521 by the CLI's `verdict`: residuals, both report conditions and settled forces met; Cd 0.4535, CL +0.448 |
+| Contour slice | `mesher-ahmed-slice` | Velocity magnitude on the run's y = 0 plane with the body, framed on its wake, on the Contours page (0 cells skipped, so no note) |

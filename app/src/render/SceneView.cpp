@@ -605,6 +605,16 @@ void paintOverlay(QPainter& p, const QRect& r, const OverlayState& s, QColor acc
             p.drawText(QRectF(box.left() + 8, box.top() + 4 + 16 * i, w + 4, 16), Qt::AlignLeft | Qt::AlignVCenter, lines[i]);
     }
 
+    if (!s.note.isEmpty()) {
+        p.setFont(small);
+        const QFontMetrics fm = p.fontMetrics();
+        const QString text = fm.elidedText(s.note, Qt::ElideRight, std::max(40, r.width() - 2 * pad - 80));
+        const int w = fm.horizontalAdvance(text);
+        const QRect nr(r.right() - pad - w, r.bottom() - pad - 16, w, 16);
+        plate(p, QRectF(nr).adjusted(-7, -3, 7, 3), s);
+        haloText(p, nr, Qt::AlignRight | Qt::AlignVCenter, text, muted, s.dark);
+    }
+
     if (!s.emptyText.isEmpty()) {
         p.setFont(base);
         p.setPen(muted);

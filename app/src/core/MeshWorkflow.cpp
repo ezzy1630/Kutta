@@ -36,7 +36,8 @@ QJsonObject GeometryProject::toJson() const
         s.append(QJsonObject{{"file", rel(x.file)}, {"source", x.source}, {"name", x.name}, {"wheel", x.wheel}});
     // v2: "mesh" lengths in metres, as mesh.json (v1 wrote them in "units").
     return {{"v", 2}, {"kind", "kutta-geometry"}, {"family", family}, {"variant_of", rel(variantOf)}, {"base_case", rel(baseCase)},
-            {"files", f}, {"solids", s}, {"mesh", setup.toJson()}, {"speed", speed}, {"case", rel(caseFile)}};
+            {"files", f}, {"solids", s}, {"mesh", setup.toJson()}, {"speed", speed},
+            {"ground_motion", groundMotionKey(ground)}, {"case", rel(caseFile)}};
 }
 
 GeometryProject GeometryProject::fromJson(const QJsonObject& o, const QString& dir)
@@ -55,6 +56,7 @@ GeometryProject GeometryProject::fromJson(const QJsonObject& o, const QString& d
     }
     p.setup = MeshSetup::fromJson(o.value("mesh").toObject(), o.value("v").toInt(1) < 2);
     p.speed = o.value("speed").toDouble(p.speed);
+    p.ground = groundMotionFrom(o.value("ground_motion").toString());
     p.caseFile = abs(o.value("case").toString());
     return p;
 }
@@ -409,6 +411,23 @@ void MeshWorkflow::setSpeed(double v)
     emit setupChanged();
 }
 
+void MeshWorkflow::setGroundMotion(GroundMotion g)
+{
+    if (!m_project || meshing() || g == m_project->ground) return;
+    m_project->ground = g;
+    save();
+    emit setupChanged();
+}
+
+QMap<QString, QString> MeshWorkflow::tunnelRoles() const
+{
+    QMap<QString, QString> roles;
+    if (!m_project) return roles;
+    for (const auto& f : tunnelFaces(m_project->setup, m_project->ground))
+        if (f.role == "stationary-ground") roles[f.name] = f.role;
+    return roles;
+}
+
 bool MeshWorkflow::loadSetupFile(const QString& path)
 {
     if (!m_project || meshing()) return false;
@@ -564,13 +583,13 @@ void MeshWorkflow::rebuildScene()
         const Bounds t = tunnelBounds(setup, g);
         s->bounds.expand(t);
         QSet<QString> seen;
-        for (const auto& f : tunnelFaces(setup)) {
+        for (const auto& f : tunnelFaces(setup, m_project->ground)) {
             SceneItem it;
             it.id = QStringLiteral("tunnel:%1:%2:%3").arg(f.name).arg(f.axis).arg(f.atMax);
             it.label = f.name;
             it.kind = ItemKind::Zone;
-            it.zoneType = f.role == "moving-ground" ? "wall" : f.role;
-            if (f.role == "moving-ground") it.id = "zone:ground";
+            it.zoneType = isGroundRole(f.role) ? "wall" : f.role;
+            if (isGroundRole(f.role)) it.id = "zone:ground";
             it.mesh = std::make_shared<const PreparedMesh>(quad(t, f.axis, f.atMax));
             if (seen.contains(it.id)) continue;
             seen.insert(it.id);

@@ -1157,7 +1157,7 @@ QWidget* run(const InspectorContext& c)
             const bool failed = last->status == RunStatus::Failed || last->status == RunStatus::Interrupted;
             outcome->setProperty("callout", failed ? "red" : "neutral");
             repolish(outcome);
-            outcomeTitle->setText(failed ? QObject::tr("%1 %2 at iteration %3").arg(last->title(), runStatusLabel(last->status).toLower()).arg(last->iterationsDone)
+            outcomeTitle->setText(failed ? QObject::tr("%1 %2 at iteration %3").arg(last->title(), runStatusText(*last).toLower()).arg(last->iterationsDone)
                                          : QObject::tr("%1 stopped").arg(last->title()));
             outcomeError->setText(last->error);
             outcomeError->setVisible(failed && !last->error.isEmpty());

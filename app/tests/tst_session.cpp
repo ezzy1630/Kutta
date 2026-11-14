@@ -226,6 +226,7 @@ private slots:
         const RunRecord* r = s->history().find(id);
         QCOMPARE(r->status, RunStatus::Stopped);
         QCOMPARE(r->stopReason, QString("stopped"));
+        QCOMPARE(r->verdict, Verdict::Stopped);
         QVERIFY(r->iterationsDone >= 60 && r->iterationsDone < 600);
         QVERIFY(runOutcomeAdvice(*r).contains("Stopped by you"));
     }
@@ -251,6 +252,117 @@ private slots:
         QCOMPARE(p.convergenceIter, r->iterationsDone);
         const auto marks = convergenceMarks(p, false);
         QVERIFY(std::any_of(marks.begin(), marks.end(), [](const ConvergenceMark& m) { return m.kind == ConvergenceMark::Kind::Converged; }));
+    }
+
+    // The run's verdict, through the process boundary, for each way a run
+    // ends: only "converged" reads as converged. "none" is a CLI from before
+    // verdicts, whose converged run is still converged.
+    void runVerdictDecidesTheStatus_data()
+    {
+        QTest::addColumn<QString>("forced");
+        QTest::addColumn<bool>("checking");
+        QTest::addColumn<int>("verdict");
+        QTest::addColumn<QString>("status");
+        QTest::newRow("converged") << QString() << true << int(Verdict::Converged) << "Converged";
+        QTest::newRow("waived") << "forces_settled_residuals_waived" << true << int(Verdict::ForcesSettledResidualsWaived)
+                                << "Forces settled; residuals not converged";
+        QTest::newRow("steady") << "statistically_steady" << true << int(Verdict::StatisticallySteady) << "Statistically steady";
+        QTest::newRow("limit") << QString() << false << int(Verdict::IterationLimit) << "Iteration limit";
+        QTest::newRow("older CLI") << "none" << true << int(Verdict::Converged) << "Converged";
+    }
+    void runVerdictDecidesTheStatus()
+    {
+        QFETCH(QString, forced);
+        QFETCH(bool, checking);
+        QFETCH(int, verdict);
+        QFETCH(QString, status);
+        auto s = open();
+        QVERIFY(s);
+        s->setApproximationApproved("wfgc", true);
+        QCOMPARE(s->settings()->setValue("monitors/check-convergence", checking), QString());
+        QCOMPARE(s->settings()->setValue("run/iterations", checking ? 1000 : 60), QString());
+        if (!forced.isEmpty()) qputenv("KUTTA_FIXTURE_VERDICT", forced.toUtf8());
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString id = s->run();
+        QVERIFY(finished.wait(60000));
+        qunsetenv("KUTTA_FIXTURE_VERDICT");
+        const RunRecord* r = s->history().find(id);
+        QVERIFY(r);
+        QCOMPARE(int(r->verdict), verdict);
+        QCOMPARE(runStatusText(*r), status);
+        QCOMPARE(r->converged(), Verdict(verdict) == Verdict::Converged);
+        // The verdict survives a reload of the history, and summary.json agrees.
+        s->history().reload();
+        QCOMPARE(int(s->history().find(id)->verdict), verdict);
+        const auto summary = s->history().summary(id);
+        QVERIFY(summary);
+        QCOMPARE(int(summary->verdict), verdict);
+        const auto marks = convergenceMarks(s->history().progress(id), false);
+        const bool markedConverged = std::any_of(marks.begin(), marks.end(), [](const ConvergenceMark& m) { return m.kind == ConvergenceMark::Kind::Converged; });
+        QCOMPARE(markedConverged, Verdict(verdict) == Verdict::Converged);
+    }
+
+    // A diverged run fails with the CLI's verdict, and says it diverged.
+    void divergedRunSaysSo()
+    {
+        auto s = open();
+        QVERIFY(s);
+        s->setApproximationApproved("wfgc", true);
+        qputenv("KUTTA_FIXTURE_FAIL_AT", "30");
+        qputenv("KUTTA_FIXTURE_FAIL_MESSAGE", "the solution diverged at iteration 31; last finite residuals: continuity 4.1e+02");
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString id = s->run();
+        QVERIFY(finished.wait(30000));
+        qunsetenv("KUTTA_FIXTURE_FAIL_MESSAGE");
+        qunsetenv("KUTTA_FIXTURE_FAIL_AT");
+        const RunRecord* r = s->history().find(id);
+        QCOMPARE(r->status, RunStatus::Failed);
+        QCOMPARE(r->verdict, Verdict::Diverged);
+        QCOMPARE(runStatusText(*r), QString("Diverged"));
+        QVERIFY(!r->converged());
+        const auto marks = convergenceMarks(s->history().progress(id), false);
+        QVERIFY(std::any_of(marks.begin(), marks.end(), [](const ConvergenceMark& m) { return m.kind == ConvergenceMark::Kind::Diverged; }));
+    }
+
+    // Cells the CLI could not slice are counted on the slice and said in
+    // the scene; the slice still loads and draws.
+    void skippedCellsAreCountedNotBlocking()
+    {
+        QFile car(m_dir.filePath("fsae_car.cas.h5"));
+        QVERIFY(car.open(QIODevice::WriteOnly));
+        car.close();
+        auto s = open(car.fileName());
+        QVERIFY(s);
+        for (const QString& a : s->caseSummary().approximations()) s->setApproximationApproved(a, true);
+        QCOMPARE(s->settings()->setValue("run/iterations", 20), QString());
+        QSignalSpy finished(s.get(), &Session::runFinished);
+        const QString id = s->run();
+        QVERIFY(finished.wait(60000));
+        qputenv("KUTTA_FIXTURE_SKIPPED_CELLS", "7");
+        std::optional<Result<std::shared_ptr<SceneData>>> scene;
+        s->loadScene("run:" + id, [&](const QString&, Result<std::shared_ptr<SceneData>> r) { scene = r; });
+        QTRY_VERIFY_WITH_TIMEOUT(scene.has_value(), 20000);
+        QVERIFY2(scene->ok(), qPrintable(*scene ? QString() : scene->error()));
+        std::optional<Result<PostOutput>> iso;
+        s->postProcess(id, PostKind::IsoSurface, {{"name", "Cp0"}, {"field", "total_pressure_coefficient"}, {"value", 0}},
+                       [&](Result<PostOutput> r) { iso = r; });
+        QTRY_VERIFY_WITH_TIMEOUT(iso.has_value(), 20000);
+        qunsetenv("KUTTA_FIXTURE_SKIPPED_CELLS");
+        QVERIFY2(iso->ok(), qPrintable(*iso ? QString() : iso->error()));
+        QCOMPARE(iso->value().part.skippedCells, qint64(7));
+        const auto& sc = *iso->value().scene;
+        QStringList slices;
+        for (const auto& it : sc.items)
+            if (it.kind == ItemKind::Slice) {
+                QCOMPARE(it.skippedCells, qint64(7));
+                QVERIFY(it.mesh->triangleCount() > 0);
+                slices << it.id;
+            }
+        QVERIFY(!slices.isEmpty());
+        QCOMPARE(sc.skippedCells(slices), qint64(7) * slices.size());
+        QCOMPARE(sc.skippedCells(slices + QStringList{"post:Cp0"}), qint64(7) * (slices.size() + 1));
+        QCOMPARE(sc.skippedCells({}), qint64(0));
+        QCOMPARE(skippedCellsText(sc.skippedCells(slices + QStringList{"post:Cp0"})), QStringLiteral("%1 cells could not be drawn").arg(7 * (slices.size() + 1)));
     }
 
     // Recorded k-epsilon, laminar 2D and transition cases replay with their

@@ -200,6 +200,14 @@ std::vector<FieldRef> SceneData::availableFields() const
     return out;
 }
 
+qint64 SceneData::skippedCells(const QStringList& visibleIds) const
+{
+    qint64 n = 0;
+    for (const auto& it : items)
+        if (visibleIds.contains(it.id)) n += it.skippedCells;
+    return n;
+}
+
 std::optional<std::pair<double, double>> SceneData::range(const FieldRef& f, const QStringList& visibleIds) const
 {
     double lo = INFINITY, hi = -INFINITY;
@@ -283,6 +291,7 @@ Result<std::shared_ptr<SceneData>> loadScene(const ViewManifest& m, const QStrin
         it.id = QStringLiteral("slice:%1").arg(n++);
         it.label = itemLabelForSlice(s);
         it.kind = ItemKind::Slice;
+        it.skippedCells = s.skippedCells;
         it.mesh = std::make_shared<PreparedMesh>(std::move(mesh).value(), true, s.normal);
         scene->items.push_back(std::move(it));
     }
@@ -294,6 +303,7 @@ Result<std::shared_ptr<SceneData>> loadScene(const ViewManifest& m, const QStrin
             it.id = "post:" + p.name;
             it.label = p.name;
             it.kind = kind;
+            it.skippedCells = p.skippedCells;
             it.mesh = std::make_shared<PreparedMesh>(std::move(mesh).value());
             scene->items.push_back(std::move(it));
         }

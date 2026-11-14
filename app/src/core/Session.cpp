@@ -202,7 +202,7 @@ void Session::openCase(const QString& casePath, const QString& dataPath)
     });
 }
 
-void Session::startNewCase(const QString& meshPath, double speed)
+void Session::startNewCase(const QString& meshPath, double speed, const QMap<QString, QString>& roles)
 {
     m_draftTarget.clear();
     m_pendingWheels.clear();
@@ -221,7 +221,7 @@ void Session::startNewCase(const QString& meshPath, double speed)
     m_draftBusy = true;
     emit newCaseChanged();
     emit consoleLine(ConsoleLevel::Info, tr("Reading mesh %1").arg(QDir::toNativeSeparators(meshPath)));
-    m_cli->newCase({meshPath, speed, {}, {}, {}}, [this, revision, meshPath](Result<NewCaseDraft> r) {
+    m_cli->newCase({meshPath, speed, roles, {}, {}}, [this, revision, meshPath](Result<NewCaseDraft> r) {
         if (revision != m_draftRevision) return;
         if (!r) {
             m_draftBusy = false;
@@ -634,16 +634,19 @@ void Session::onProgress(const ProgressEvent& ev)
             m_current->elapsed = e.elapsed;
             m_current->iterationsDone = e.iterations;
             m_current->convergedBy = e.metBy;
-            m_current->residualsWaived = e.residualsWaived;
+            m_current->verdict = e.verdict;
             const ConvergenceSetup conv = m_live.setup ? m_live.setup->convergence : ConvergenceSetup{};
-            QString why = stopReasonText(e.stopReason, e.metBy, conv, e.residualsWaived);
+            QString why = stopReasonText(e.verdict, e.metBy, conv);
+            // CLIs before stop_reason ran to the iteration limit or nothing.
             if (why.isEmpty()) why = conv.enabled ? QStringLiteral("Iteration limit; convergence criteria not met")
                                                   : QStringLiteral("Iteration limit; convergence checking was off");
-            emit consoleLine(e.stopReason == "converged" && !e.residualsWaived ? ConsoleLevel::Success : e.residualsWaived ? ConsoleLevel::Warning : ConsoleLevel::Info,
+            emit consoleLine(e.verdict == Verdict::Converged ? ConsoleLevel::Success
+                             : e.verdict == Verdict::ForcesSettledResidualsWaived ? ConsoleLevel::Warning : ConsoleLevel::Info,
                              QStringLiteral("Done: %1 iterations in %2 s. %3.").arg(e.iterations).arg(e.elapsed, 0, 'f', 1).arg(why));
         } else if constexpr (std::is_same_v<T, ErrorEvent>) {
             m_live.progress.error = e;
             m_current->error = e.message;
+            if (e.verdict == Verdict::Diverged) m_current->verdict = Verdict::Diverged;
             emit consoleLine(ConsoleLevel::Error, e.message.trimmed());
             for (const auto& i : e.issues)
                 if (i.cls != IssueClass::Informational)
@@ -683,7 +686,7 @@ void Session::finishRun(int exitCode, bool crashed)
         r.status = RunStatus::Failed;
         if (r.error.isEmpty()) r.error = QStringLiteral("kutta exited with code %1").arg(exitCode);
     } else {
-        r.status = r.stopReason == "stopped" ? RunStatus::Stopped : RunStatus::Completed;
+        r.status = r.verdict == Verdict::Stopped ? RunStatus::Stopped : RunStatus::Completed;
     }
     m_history.save(r);
     if (r.status != RunStatus::Failed)
@@ -1034,6 +1037,16 @@ void Session::exportNow(const QString& runId, const std::vector<Plane>& planes, 
         if (!m) return done(key, Result<std::shared_ptr<SceneData>>::failure(m.error()));
         if (!m.value().unavailableFields.isEmpty())
             emit consoleLine(ConsoleLevel::Info, tr("Not available for this run: %1.").arg(m.value().unavailableFields.join(", ")));
+        {
+            // Tangled cells the CLI left out of slices and iso-surfaces: drawn without them.
+            QStringList skipped;
+            for (const auto* parts : {&m.value().slices, &m.value().isosurfaces})
+                for (const ViewPart& p : *parts)
+                    if (p.skippedCells > 0)
+                        skipped << QStringLiteral("%1 (%2)").arg(p.kind == PartKind::Slice ? itemLabelForSlice(p) : p.name, QLocale().toString(p.skippedCells));
+            if (!skipped.isEmpty())
+                emit consoleLine(ConsoleLevel::Info, tr("Cells kutta could not cut (tangled mesh cells) are left out of %1.").arg(skipped.join(", ")));
+        }
         if (const QJsonObject pc = m.value().postCache; pc.contains("reused") && pc.value("reused").toInt() > 0)
             emit consoleLine(ConsoleLevel::Info, tr("Post-processing reused %1 earlier result(s) and computed %2 in %3 s.")
                                                      .arg(pc.value("reused").toInt()).arg(pc.value("computed").toInt())
@@ -1324,7 +1337,7 @@ void Session::setUpCaseFromMesh()
     QStringList wheels;
     for (const auto& s : p.solids)
         if (s.wheel) wheels << s.name;
-    startNewCase(m_mesh->meshFile(), p.speed);
+    startNewCase(m_mesh->meshFile(), p.speed, m_mesh->tunnelRoles());
     m_draftTarget = target;
     m_pendingWheels = wheels;
 }

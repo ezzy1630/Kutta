@@ -90,21 +90,129 @@ private slots:
         QVERIFY(diffRuns(a, b, {s}).empty());
     }
 
-    // Why a run stopped, in words, for each of the CLI's stop reasons.
+    // Why a run stopped, in words, for each verdict.
     void stopReasonsInWords()
     {
         ConvergenceSetup conv;
         conv.enabled = true;
         conv.residuals = {{"continuity", 1e-3}};
         conv.reports.push_back({"drag", 1e-3, 5, 100});
-        QCOMPARE(stopReasonText("converged", {"residuals"}, conv), QString("Converged: every checked residual reached its criterion"));
-        QVERIFY(stopReasonText("converged", {"report:drag"}, conv).contains("drag changed less than 0.1 %"));
-        QCOMPARE(stopReasonText("stopped", {}, conv), QString("Stopped by you; not converged"));
-        QCOMPARE(stopReasonText("iteration_limit", {}, conv), QString("Iteration limit; convergence criteria not met"));
-        QVERIFY(stopReasonText("statistically_steady", {}, conv).startsWith("Statistically steady; not converged"));
+        QCOMPARE(stopReasonText(Verdict::Converged, {"residuals"}, conv), QString("Converged: every checked residual reached its criterion"));
+        QVERIFY(stopReasonText(Verdict::Converged, {"report:drag"}, conv).contains("drag changed less than 0.1 %"));
+        const QString waived = stopReasonText(Verdict::ForcesSettledResidualsWaived, {"forces"}, conv);
+        QVERIFY2(waived.startsWith("Stopped on settled forces") && waived.contains("not converged"), qPrintable(waived));
+        QCOMPARE(stopReasonText(Verdict::Stopped, {}, conv), QString("Stopped by you; not converged"));
+        QCOMPARE(stopReasonText(Verdict::IterationLimit, {}, conv), QString("Iteration limit; convergence criteria not met"));
+        QVERIFY(stopReasonText(Verdict::StatisticallySteady, {}, conv).startsWith("Statistically steady; not converged"));
+        QVERIFY(stopReasonText(Verdict::Diverged, {}, conv).startsWith("Diverged"));
         conv.enabled = false;
-        QCOMPARE(stopReasonText("iteration_limit", {}, conv), QString("Iteration limit; convergence checking was off"));
-        QVERIFY(stopReasonText("", {}, conv).isEmpty());  // an older CLI: no reason given
+        QCOMPARE(stopReasonText(Verdict::IterationLimit, {}, conv), QString("Iteration limit; convergence checking was off"));
+        QVERIFY(stopReasonText(Verdict::Unknown, {}, conv).isEmpty());  // an older CLI: no reason given
+    }
+
+    // Every verdict the CLI sends, read from done, summary.json and a
+    // diverged run's error event. The verdict wins over converged and
+    // stop_reason: a waived run is converged:true, stop_reason "converged".
+    void verdictReadFromEveryEvent_data()
+    {
+        QTest::addColumn<QString>("key");
+        QTest::addColumn<bool>("converged");
+        QTest::addColumn<QString>("stopReason");
+        QTest::addColumn<int>("verdict");
+        QTest::newRow("converged") << "converged" << true << "converged" << int(Verdict::Converged);
+        QTest::newRow("waived") << "forces_settled_residuals_waived" << true << "converged" << int(Verdict::ForcesSettledResidualsWaived);
+        QTest::newRow("steady") << "statistically_steady" << false << "statistically_steady" << int(Verdict::StatisticallySteady);
+        QTest::newRow("limit") << "iteration_limit" << false << "iteration_limit" << int(Verdict::IterationLimit);
+        QTest::newRow("stopped") << "stopped" << false << "stopped" << int(Verdict::Stopped);
+    }
+    void verdictReadFromEveryEvent()
+    {
+        QFETCH(QString, key);
+        QFETCH(bool, converged);
+        QFETCH(QString, stopReason);
+        QFETCH(int, verdict);
+        // residuals_waived left out: the verdict alone must say a waived run is not converged.
+        const QString done = QStringLiteral(R"({"v":1,"event":"done","converged":%1,"iterations":40,"elapsed":1,"out":"x","stop_reason":"%2","verdict":"%3"})")
+                                 .arg(converged ? "true" : "false", stopReason, key);
+        auto ev = parseProgressLine(done.toUtf8());
+        QVERIFY(ev);
+        QCOMPARE(int(std::get<DoneEvent>(ev.value()).verdict), verdict);
+        QCOMPARE(verdictKey(Verdict(verdict)), key);
+        const QString summary = QStringLiteral(R"({"v":1,"cells":10,"converged":%1,"stop_reason":"%2","verdict":"%3"})")
+                                    .arg(converged ? "true" : "false", stopReason, key);
+        QCOMPARE(int(parseRunSummary(QJsonDocument::fromJson(summary.toUtf8()).object()).value().verdict), verdict);
+        // The record keeps it, and only "converged" is converged.
+        RunRecord r;
+        r.id = "run-0001";
+        r.status = Verdict(verdict) == Verdict::Stopped ? RunStatus::Stopped : RunStatus::Completed;
+        r.stopReason = stopReason;
+        r.verdict = Verdict(verdict);
+        const auto back = RunRecord::fromJson(r.toJson(), "/x");
+        QVERIFY(back);
+        QCOMPARE(int(back->verdict), verdict);
+        QCOMPARE(back->converged(), Verdict(verdict) == Verdict::Converged);
+        QCOMPARE(runStatusText(*back) == QLatin1String("Converged"), Verdict(verdict) == Verdict::Converged);
+    }
+
+    // A diverged run's error event carries verdict "diverged"; other errors have none.
+    void divergedErrorIsAVerdict()
+    {
+        auto ev = parseProgressLine(R"({"v":1,"event":"error","message":"the solution diverged at iteration 37: continuity 3.2e+02","verdict":"diverged"})");
+        QVERIFY(ev);
+        QCOMPARE(std::get<ErrorEvent>(ev.value()).verdict, Verdict::Diverged);
+        ev = parseProgressLine(R"({"v":1,"event":"error","message":"out of memory"})");
+        QCOMPARE(std::get<ErrorEvent>(ev.value()).verdict, Verdict::Unknown);
+        const QByteArray log =
+            R"({"v":1,"event":"setup","cells":10,"backend":"cpu","device":"cpu","approximations":[],"convergence":{"enabled":false}})" "\n"
+            R"({"v":1,"event":"iteration","iter":36,"residuals":{"continuity":1e2}})" "\n"
+            R"({"v":1,"event":"error","message":"the solution diverged at iteration 37","verdict":"diverged"})" "\n";
+        const auto marks = convergenceMarks(parseProgressLog(log), false);
+        QCOMPARE(int(marks.size()), 1);
+        QCOMPARE(marks[0].kind, ConvergenceMark::Kind::Diverged);
+        QCOMPARE(marks[0].value, 36.0);
+        RunRecord r;
+        r.id = "run-0001";
+        r.status = RunStatus::Failed;
+        r.verdict = Verdict::Diverged;
+        QCOMPARE(runStatusText(r), QString("Diverged"));
+        QCOMPARE(RunRecord::fromJson(r.toJson(), "/x")->verdict, Verdict::Diverged);
+        r.verdict = Verdict::Unknown;
+        QCOMPARE(runStatusText(r), QString("Failed"));
+    }
+
+    // Older CLIs send no verdict: it comes from stop_reason and residuals_waived
+    // as before, in events, summaries and the app's own older records.
+    void verdictFallbackWithoutOne()
+    {
+        auto done = [](const char* json) { return std::get<DoneEvent>(parseProgressLine(json).value()).verdict; };
+        QCOMPARE(done(R"({"v":1,"event":"done","converged":true,"iterations":9,"elapsed":1,"out":"x","stop_reason":"converged"})"), Verdict::Converged);
+        QCOMPARE(done(R"({"v":1,"event":"done","converged":true,"iterations":9,"elapsed":1,"out":"x","stop_reason":"converged","residuals_waived":true})"),
+                 Verdict::ForcesSettledResidualsWaived);
+        QCOMPARE(done(R"({"v":1,"event":"done","converged":true,"iterations":9,"elapsed":1,"out":"x","stop_reason":"converged","convergence":{"residuals_waived":true}})"),
+                 Verdict::ForcesSettledResidualsWaived);
+        QCOMPARE(done(R"({"v":1,"event":"done","converged":false,"iterations":9,"elapsed":1,"out":"x","stop_reason":"statistically_steady"})"), Verdict::StatisticallySteady);
+        QCOMPARE(done(R"({"v":1,"event":"done","converged":false,"iterations":9,"elapsed":1,"out":"x","stop_reason":"iteration_limit"})"), Verdict::IterationLimit);
+        QCOMPARE(done(R"({"v":1,"event":"done","converged":false,"iterations":9,"elapsed":1,"out":"x","stop_reason":"stopped"})"), Verdict::Stopped);
+        QCOMPARE(done(R"({"v":1,"event":"done","converged":true,"iterations":9,"elapsed":1,"out":"x"})"), Verdict::Unknown);  // before stop_reason
+        // A verdict this app does not know is never taken as converged, whatever converged says.
+        QCOMPARE(done(R"({"v":1,"event":"done","converged":true,"iterations":9,"elapsed":1,"out":"x","stop_reason":"converged","verdict":"something_new"})"), Verdict::Unknown);
+        auto summary = [](const char* json) { return parseRunSummary(QJsonDocument::fromJson(json).object()).value().verdict; };
+        QCOMPARE(summary(R"({"v":1,"cells":1,"converged":true,"stop_reason":"converged","convergence":{"residuals_waived":true}})"), Verdict::ForcesSettledResidualsWaived);
+        QCOMPARE(summary(R"({"v":1,"cells":1,"converged":true,"stop_reason":"converged"})"), Verdict::Converged);
+        // An app-run.json from before verdicts.
+        auto record = [](const char* json) { return RunRecord::fromJson(QJsonDocument::fromJson(json).object(), "/x")->verdict; };
+        QCOMPARE(record(R"({"v":1,"id":"run-0001","status":"completed","stop_reason":"converged","residuals_waived":true})"), Verdict::ForcesSettledResidualsWaived);
+        QCOMPARE(record(R"({"v":1,"id":"run-0001","status":"completed","stop_reason":"converged"})"), Verdict::Converged);
+        QCOMPARE(record(R"({"v":1,"id":"run-0001","status":"completed","stop_reason":"iteration_limit"})"), Verdict::IterationLimit);
+        QCOMPARE(record(R"({"v":1,"id":"run-0001","status":"completed"})"), Verdict::Unknown);
+        // The chart marks follow the verdict: a waived run is not marked converged.
+        const QByteArray log =
+            R"({"v":1,"event":"iteration","iter":9,"residuals":{"continuity":1e-2}})" "\n"
+            R"({"v":1,"event":"done","converged":true,"iterations":9,"elapsed":1,"out":"x","stop_reason":"converged","verdict":"forces_settled_residuals_waived"})" "\n";
+        const auto marks = convergenceMarks(parseProgressLog(log), false);
+        QCOMPARE(int(marks.size()), 1);
+        QVERIFY(marks[0].kind != ConvergenceMark::Kind::Converged);
+        QVERIFY(marks[0].label.startsWith("Forces settled"));
     }
 
     // Poor mesh numerics is named only when it touched cells, and an older
@@ -119,20 +227,27 @@ private slots:
         QVERIFY(poorMeshNumericsText(parse(R"({"v":1,"cells":10,"poor_quality_cells":1})")).startsWith("1 poor-quality cell used"));
     }
 
-    // Run History's Status column names how a completed run ended.
+    // Run History's Status column names how a run ended, from its verdict.
     void statusSaysHowARunEnded()
     {
         RunRecord r;
         r.status = RunStatus::Completed;
-        r.stopReason = "iteration_limit";
+        r.verdict = Verdict::IterationLimit;
         QCOMPARE(runStatusText(r), QString("Iteration limit"));
-        r.stopReason = "converged";
+        r.verdict = Verdict::Converged;
         QCOMPARE(runStatusText(r), QString("Converged"));
-        r.stopReason.clear();  // a record from an older CLI
+        r.verdict = Verdict::ForcesSettledResidualsWaived;
+        QCOMPARE(runStatusText(r), QString("Forces settled; residuals not converged"));
+        r.verdict = Verdict::StatisticallySteady;
+        QCOMPARE(runStatusText(r), QString("Statistically steady"));
+        r.verdict = Verdict::Unknown;  // a record from an older CLI
         QCOMPARE(runStatusText(r), QString("Completed"));
         r.status = RunStatus::Stopped;
-        r.stopReason = "stopped";
+        r.verdict = Verdict::Stopped;
         QCOMPARE(runStatusText(r), QString("Stopped"));
+        r.status = RunStatus::Failed;
+        r.verdict = Verdict::Diverged;
+        QCOMPARE(runStatusText(r), QString("Diverged"));
     }
 
     // The residual chart's marks come from the run's own events: equal
@@ -182,11 +297,13 @@ private slots:
         r.id = "run-0001";
         r.status = RunStatus::Completed;
         r.stopReason = "converged";
-        r.residualsWaived = true;
+        r.verdict = p.done->verdict;  // no verdict in this older log: from residuals_waived
+        QCOMPARE(r.verdict, Verdict::ForcesSettledResidualsWaived);
         QVERIFY(!runStatusText(r).startsWith("Converged"));
+        QVERIFY(!r.converged());
         const auto back = RunRecord::fromJson(r.toJson(), "/x");
-        QVERIFY(back && back->residualsWaived);
-        const QString why = stopReasonText(r.stopReason, p.done->metBy, p.setup->convergence, true);
+        QVERIFY(back && back->verdict == Verdict::ForcesSettledResidualsWaived);
+        const QString why = stopReasonText(r.verdict, p.done->metBy, p.setup->convergence);
         QVERIFY2(why.contains("not converged") && why.contains("drag, downforce"), qPrintable(why));
     }
 

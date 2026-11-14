@@ -18,10 +18,12 @@ namespace kapp {
 enum class RunStatus { Running, Completed, Stopped, Failed, Interrupted };
 QString runStatusLabel(RunStatus s);
 struct RunRecord;
-// The status as the user reads it: a completed run says "Converged" when it
-// met its convergence criteria, "Forces settled" when the CLI stopped it on
-// settled forces with its residuals stalled above their criteria (waived),
-// and "Iteration limit" when it ran out of iterations first.
+// The status as the user reads it, from the run's verdict: "Converged" only
+// when it met every convergence condition, residuals included; "Forces
+// settled; residuals not converged" when the CLI stopped it on settled forces
+// with its residuals stalled above their criteria (waived); "Iteration limit",
+// "Statistically steady", "Stopped", and "Diverged" for a failed run whose
+// iteration went non-finite.
 QString runStatusText(const RunRecord& r);
 
 struct RunRecord {
@@ -35,7 +37,9 @@ struct RunRecord {
     QStringList approximations;
     QStringList approximationLabels;  // badge words per approximation ("WFGC off"), parallel
     QStringList convergedBy;   // conditions met when it stopped converged
-    bool residualsWaived = false;  // converged on settled forces; residuals stalled above their criteria
+    // How it ended (the CLI's verdict, or from stop_reason and residuals_waived
+    // for older CLIs and records). Only Verdict::Converged is converged.
+    Verdict verdict = Verdict::Unknown;
     QString studyId;
     QString backend, device;
     QString coupling;      // pressure-velocity coupling that ran ("simplec"); empty from older CLIs
@@ -56,15 +60,16 @@ struct RunRecord {
     // "APPROXIMATE · WFGC off": which approximations, in the CLI's words.
     QString approximateBadge() const;
     bool modified() const { return !overrides.isEmpty(); }
-    bool converged() const { return stopReason == QLatin1String("converged"); }
+    bool converged() const { return verdict == Verdict::Converged; }
     QJsonObject toJson() const;
     static std::optional<RunRecord> fromJson(const QJsonObject& o, const QString& dir);
 };
 
 // Why a finished run stopped, in a sentence: the conditions it converged on,
-// a stop by the user, or the iteration limit (with checking on or off).
-// `stopReason` is the CLI's; `conv` the run's convergence setup.
-QString stopReasonText(const QString& stopReason, const QStringList& metBy, const ConvergenceSetup& conv, bool residualsWaived = false);
+// settled forces with waived residuals, a stop by the user, or the iteration
+// limit (with checking on or off); empty for Unknown. `conv` is the run's
+// convergence setup.
+QString stopReasonText(Verdict verdict, const QStringList& metBy, const ConvergenceSetup& conv);
 
 // The run's poor-mesh-numerics cells in a sentence; empty when there were
 // none (or the CLI predates the count).
@@ -94,7 +99,7 @@ void appendIteration(RunProgress& p, const IterationEvent& e);
 // convergence checking was on; equal criteria share one line) and the
 // iteration it stopped at, with why. 2D cases omit z-velocity.
 struct ConvergenceMark {
-    enum class Kind { Criterion, Converged, Stopped, IterationLimit };
+    enum class Kind { Criterion, Converged, Stopped, IterationLimit, Diverged };
     Kind kind = Kind::Criterion;
     double value = 0;  // criterion, or the stopping iteration
     QString label;

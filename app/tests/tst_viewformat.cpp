@@ -275,6 +275,32 @@ private slots:
         QVERIFY(!parseViewManifest({{"v", 1}, {"zones", QJsonArray{unsafe}}}, "/tmp"));
     }
 
+    // Slices and iso-surfaces carry skipped_cells (v1 additive): a count of
+    // tangled cells left out, read but never a reason to refuse the view.
+    void skippedCellsAreRead()
+    {
+        auto slice = [](const QJsonValue& skipped) {
+            QJsonObject o{{"file", "slice-0.bin"}, {"vertices", 3}, {"indices", 3}, {"origin", QJsonArray{0, 0, 0}},
+                          {"normal", QJsonArray{0, 0, 1}}, {"fields", QJsonArray{}}};
+            if (!skipped.isUndefined()) o["skipped_cells"] = skipped;
+            return o;
+        };
+        QJsonObject iso{{"name", "Cp0"}, {"file", "iso-0.bin"}, {"vertices", 3}, {"indices", 3}, {"field", "pressure"},
+                        {"value", 0}, {"skipped_cells", 104}, {"fields", QJsonArray{}}};
+        auto m = parseViewManifest({{"v", 1}, {"zones", QJsonArray{}},
+                                    {"slices", QJsonArray{slice(11), slice(0), slice(QJsonValue::Undefined), slice("x")}},
+                                    {"isosurfaces", QJsonArray{iso}}}, "/tmp");
+        QVERIFY2(m.ok(), qPrintable(m ? QString() : m.error()));
+        QCOMPARE(m.value().slices[0].skippedCells, qint64(11));
+        QCOMPARE(m.value().slices[1].skippedCells, qint64(0));
+        QCOMPARE(m.value().slices[2].skippedCells, qint64(0));  // an older CLI
+        QCOMPARE(m.value().slices[3].skippedCells, qint64(0));  // not a count: ignored
+        QCOMPARE(m.value().isosurfaces[0].skippedCells, qint64(104));
+        QVERIFY(skippedCellsText(0).isEmpty());
+        QCOMPARE(skippedCellsText(1), QString("1 cell could not be drawn"));
+        QCOMPARE(skippedCellsText(11), QString("11 cells could not be drawn"));
+    }
+
     void polylinesRoundTrip()
     {
         MeshData m;

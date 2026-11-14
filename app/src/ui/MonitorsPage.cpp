@@ -155,10 +155,10 @@ QWidget* convergenceStatus(const InspectorContext& c)
         const RunProgress progress = s->history().progress(last->id);
         const auto summary = s->history().summary(last->id);
         const ConvergenceSetup conv = summary ? summary->convergence : progress.setup ? progress.setup->convergence : ConvergenceSetup{};
-        if (last->converged() && last->residualsWaived) {
-            // The CLI calls this converged; the residuals are not, so neither is the solution.
+        if (last->verdict == Verdict::ForcesSettledResidualsWaived) {
+            // Older CLIs call this converged; the residuals are not, so neither is the solution.
             title->setText(QObject::tr("%1 not converged: forces settled at iteration %2").arg(last->title()).arg(last->iterationsDone));
-            note->setText(stopReasonText(last->stopReason, last->convergedBy, conv, true) + '.');
+            note->setText(stopReasonText(last->verdict, last->convergedBy, conv) + '.');
         } else if (last->converged()) {
             title->setText(QObject::tr("%1 converged at iteration %2").arg(last->title()).arg(last->iterationsDone));
             QStringList met;
@@ -171,7 +171,10 @@ QWidget* convergenceStatus(const InspectorContext& c)
                 if (!lastEq.isEmpty()) text += ' ' + QObject::tr("Last to reach its criterion: %1.").arg(lastEq.join(", "));
             }
             note->setText(text);
-        } else if (last->status == RunStatus::Completed) {
+        } else if (last->status == RunStatus::Completed && last->verdict == Verdict::StatisticallySteady) {
+            title->setText(QObject::tr("%1 statistically steady at iteration %2, not converged").arg(last->title()).arg(last->iterationsDone));
+            note->setText(stopReasonText(last->verdict, last->convergedBy, conv) + '.');
+        } else if (last->status == RunStatus::Completed && last->verdict == Verdict::IterationLimit) {
             title->setText(QObject::tr("%1 reached the iteration limit (%2) without converging").arg(last->title()).arg(last->iterationsDone));
             note->setText(conv.enabled ? QObject::tr("Not every condition was met at the last sample; check the residual and report plots before trusting the numbers.")
                                        : QObject::tr("Convergence checking was off for that run, so it ran to the iteration limit."));
@@ -179,6 +182,9 @@ QWidget* convergenceStatus(const InspectorContext& c)
             title->setText(QObject::tr("%1 stopped by you at iteration %2").arg(last->title()).arg(last->iterationsDone));
             note->setText(conv.enabled ? QObject::tr("Not converged: you stopped it before its conditions were met. The results so far are kept and can be post-processed.")
                                        : QObject::tr("Not converged (checking was off). The results so far are kept and can be post-processed."));
+        } else if (last->verdict == Verdict::Diverged) {
+            title->setText(QObject::tr("%1 diverged at iteration %2").arg(last->title()).arg(last->iterationsDone));
+            note->setText(QObject::tr("Not converged: the iteration went non-finite. The console has kutta's message with the last finite residuals."));
         } else {
             title->setText(QObject::tr("%1 %2 at iteration %3").arg(last->title(), runStatusText(*last).toLower()).arg(last->iterationsDone));
             note->setText(QObject::tr("Not converged."));

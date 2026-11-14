@@ -468,6 +468,8 @@ void ViewportPanel::updateOverlay()
         o.probePixel = m_view->projectToLogical(m_probe->world);
         o.probeText = probeText(*m_probe);
     }
+    // Tangled cells the CLI could not slice or iso-surface: said, never in the way.
+    o.note = skippedCellsText(s->skippedCells(d.visible));
     bool anyVisible = false;
     for (const auto& it : s->items) anyVisible |= d.visible.contains(it.id);
     if (!anyVisible) o.emptyText = tr("Nothing is shown. Choose surfaces in Results ▸ Graphics.");

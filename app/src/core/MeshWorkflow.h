@@ -41,6 +41,7 @@ struct GeometryProject {
     std::vector<GeometrySolid> solids;
     MeshSetup setup;
     double speed = 20;  // m/s: the y+ estimate's speed, and the case's freestream
+    GroundMotion ground = GroundMotion::Moving;  // the case's ground: moving (cars) or stationary (wind-tunnel models)
     QString caseFile;   // absolute; empty until a case is set up
     QString name() const;
     QString projectFile() const;
@@ -75,6 +76,10 @@ public:
     void setSetup(const MeshSetup& s);
     void resetSetup();
     void setSpeed(double metresPerSecond);
+    void setGroundMotion(GroundMotion g);
+    // Roles the case's new-case call gives the tunnel's faces where they
+    // differ from new-case's suggestion (a stationary ground).
+    QMap<QString, QString> tunnelRoles() const;
     // Takes a mesh.json's settings (lengths in metres; keys it omits get
     // kutta mesh's defaults); the project keeps its geometry units.
     bool loadSetupFile(const QString& path);

@@ -65,6 +65,7 @@ struct SceneItem {
     std::shared_ptr<const PreparedMesh> mesh;
     bool defaultVisible = true;
     QColor color;       // zones: a distinct colour for "colour by zone" displays
+    qint64 skippedCells = 0;  // slices, iso-surfaces: cells the CLI could not cut (ViewPart::skippedCells)
 };
 
 // One dataset: a run's exported view (+ post-processing), or a derived comparison.
@@ -88,6 +89,8 @@ struct SceneData {
     // Fields offered for colouring, Fluent order, per role available.
     std::vector<FieldRef> availableFields() const;
     std::optional<std::pair<double, double>> range(const FieldRef& f, const QStringList& visibleIds) const;
+    // Cells left out of the shown slices and iso-surfaces.
+    qint64 skippedCells(const QStringList& visibleIds) const;
     QString unitOf(const QString& quantity) const;
 };
 

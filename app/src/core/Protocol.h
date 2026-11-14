@@ -207,6 +207,16 @@ ConvergenceState parseConvergenceState(const QJsonObject& o);
 // "drag changed less than 0.1 % over 5 values"; "every checked residual reached its criterion".
 QString describeCondition(const QString& id, const ConvergenceSetup& setup);
 
+// How a run ended: the CLI's `verdict` (v1 additive, in `done`, summary.json
+// and a diverged run's `error` event). Only Converged is converged; a
+// forces-settled stop with waived residuals is not. Unknown: no verdict the
+// app knows (an error that is not a divergence, or a newer value).
+enum class Verdict { Unknown, Converged, ForcesSettledResidualsWaived, StatisticallySteady, IterationLimit, Stopped, Diverged };
+QString verdictKey(Verdict v);  // "forces_settled_residuals_waived"; empty for Unknown
+// The verdict an object gives. Older CLIs have no `verdict`: then it comes
+// from `stop_reason` and `residuals_waived` as before.
+Verdict parseVerdict(const QJsonValue& verdict, const QString& stopReason, bool residualsWaived);
+
 struct SetupEvent {
     qint64 cells = 0;
     QString backend, device, init;
@@ -232,8 +242,14 @@ struct DoneEvent {
     QString out, stopReason;
     QStringList metBy;  // conditions met at the stopping sample ("residuals", "report:<name>", "forces")
     bool residualsWaived = false;  // converged on settled forces with residuals stalled above their criteria
+    Verdict verdict = Verdict::Unknown;
 };
-struct ErrorEvent { QString message; std::vector<SupportIssue> issues; QStringList paths; };
+struct ErrorEvent {
+    QString message;
+    std::vector<SupportIssue> issues;
+    QStringList paths;
+    Verdict verdict = Verdict::Unknown;  // Diverged for a diverged iteration; Unknown for other errors
+};
 // Proposed: a field snapshot written during the solve (docs/app-protocol-requests.md).
 // A live surface view was published; `manifest` is an absolute path.
 struct SnapshotEvent { int iter = 0; QString manifest; QString runId; int sequence = 0; };
@@ -298,6 +314,7 @@ struct RunSummary {
     ConvergenceSetup convergence;
     QStringList metBy;
     bool residualsWaived = false;
+    Verdict verdict = Verdict::Unknown;
     std::optional<int> convergedIteration;
     QString coupling;  // pressure_velocity_coupling that ran
 };

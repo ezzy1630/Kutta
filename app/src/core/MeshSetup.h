@@ -67,10 +67,20 @@ std::pair<int, int> parseAxis(const QString& axis);
 // (else `side` lengths below the body), upper limits rounded out to whole
 // base cells.
 Bounds tunnelBounds(const MeshSetup& s, const Bounds& geometry);
+// How the ground (the floor at z = 0) moves in the case: with the air, as a
+// car on the road sees it (new-case's default, moving-ground), or not at all,
+// the fixed floor of a wind tunnel such as the Ahmed body's (stationary-ground).
+// Neither is in the force reports. Not part of mesh.json: the mesh is the same.
+enum class GroundMotion { Moving, Stationary };
+QString groundMotionKey(GroundMotion g);         // "moving", "stationary"
+GroundMotion groundMotionFrom(const QString& key);  // anything else: Moving
 // Names of the tunnel's faces as `kutta mesh` names them (inlet, outlet,
-// ground or bottom, top, side-low or symmetry, side-high), with their roles.
+// ground or bottom, top, side-low or symmetry, side-high), with their
+// new-case roles; the ground's follows `ground`.
 struct TunnelFace { QString name, role; int axis = 0; bool atMax = false; };
-std::vector<TunnelFace> tunnelFaces(const MeshSetup& s);
+std::vector<TunnelFace> tunnelFaces(const MeshSetup& s, GroundMotion ground = GroundMotion::Moving);
+// Whether a new-case role is one of the ground roles.
+bool isGroundRole(const QString& role);
 // Names kutta mesh reserves for the tunnel; a body zone cannot use them.
 const QStringList& reservedZoneNames();
 
