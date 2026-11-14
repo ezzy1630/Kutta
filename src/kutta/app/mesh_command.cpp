@@ -1,5 +1,6 @@
 #include "mesh_command.hpp"
 #include "kutta/mesh/mesher/external_aero.hpp"
+#include "kutta/io/mesh_io.hpp"
 #include "kutta/core/memory.hpp"
 #include "kutta/core/parse.hpp"
 #include "kutta/core/path.hpp"
@@ -84,7 +85,7 @@ int mesh_command(int argc,char** argv) {
     std::filesystem::create_directories(out);
     Scratch scratch{out/(".kutta-mesh-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()))};
     KUTTA_REQUIRE(std::filesystem::create_directory(scratch.path),"mesh: cannot create staging directory");
-    write_msh(scratch.path/"mesh.msh",result.mesh);
+    write_fluent_msh(scratch.path/"mesh.msh",result.mesh,"Kutta external aero mesher v1");
     if(!case_text.empty()) write_text(scratch.path/"case.kutta.json",case_text);
     result.report["wall_seconds"]=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     result.report["peak_memory_bytes"]=memory::usage().peak?Json(double(memory::usage().peak)):Json(nullptr);

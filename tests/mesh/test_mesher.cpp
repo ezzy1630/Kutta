@@ -153,7 +153,7 @@ TEST_CASE("castellated snapped mesh conserves the body, captures corners and rou
   CHECK(report(r,{"orthogonal_min"})>=.15); CHECK(report(r,{"cells_below_0_15"})==0);
   // Corner merges leave a few polyhedra; the rest of the core is hex.
   CHECK(report(result.report,{"cell_types","hex_fraction_of_core"})>.9);
-  write_msh(t.path("test.msh"),result.mesh);
+  write_fluent_msh(t.path("test.msh"),result.mesh);
   const auto read=read_mesh(t.path("test.msh")); CHECK_NOTHROW(validate(read));
   CHECK(read.n_cells==result.mesh.n_cells); CHECK(read.n_faces()==result.mesh.n_faces()); CHECK(read.n_points()==result.mesh.n_points());
   REQUIRE(read.patches.size()==result.mesh.patches.size());

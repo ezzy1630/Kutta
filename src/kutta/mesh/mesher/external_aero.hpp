@@ -73,6 +73,5 @@ class SurfaceQuery {
 using Progress = std::function<void(std::string_view stage, double fraction, std::string_view message)>;
 struct Result { PolyMesh mesh; Json::Object report; };
 Result generate(const Surface&, const Settings&, double speed = 20, const Progress& = {});
-// Fluent ASCII, mixed polyhedral cell zone and outward owner winding.
-void write_msh(const std::filesystem::path&, const PolyMesh&);
+// Write the result with kutta::write_fluent_msh (kutta/io/mesh_io.hpp).
 }  // namespace kutta::mesher

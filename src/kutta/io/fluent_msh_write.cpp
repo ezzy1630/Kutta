@@ -25,6 +25,24 @@ int boundary_code(const Patch& patch) {
   throw Error("write_fluent_msh: patch '" + patch.name + "' has no Fluent boundary type");
 }
 
+// Zone names are bare Scheme atoms unless they need quoting (STL solid names
+// may contain spaces, parentheses or quotes); the reader accepts both.
+std::string zone_name(const std::string& name) {
+  KUTTA_REQUIRE(!name.empty(), "write_fluent_msh: empty zone name");
+  bool bare = true;
+  for (const char c : name) {
+    KUTTA_REQUIRE(static_cast<unsigned char>(c) >= 32, "write_fluent_msh: control character in zone name");
+    bare = bare && c != ' ' && c != '(' && c != ')' && c != '"' && c != '\\';
+  }
+  if (bare) return name;
+  std::string quoted = "\"";
+  for (const char c : name) {
+    if (c == '"' || c == '\\') quoted += '\\';
+    quoted += c;
+  }
+  return quoted + '"';
+}
+
 // Fluent's element types: 2 tet, 4 hex, 5 pyramid, 6 wedge, 7 polyhedron.
 int element_type(const PolyMesh& mesh, const CellFaces& cells, Index cell) {
   Index triangles = 0, quads = 0;
@@ -106,11 +124,11 @@ void write_fluent_msh(const std::filesystem::path& path, const PolyMesh& mesh, s
     if (!mesh.cell_zones.empty() && mesh.cell_zones[z].cells.empty()) continue;
     const auto name = mesh.cell_zones.empty() ? std::string("fluid") : mesh.cell_zones[z].name;
     const auto type = mesh.cell_zones.empty() || mesh.cell_zones[z].source_type.empty() ? std::string("fluid") : mesh.cell_zones[z].source_type;
-    file << "(45 (" << cell_zone_ids[z] << ' ' << type << ' ' << name << ")())\n";
+    file << "(45 (" << cell_zone_ids[z] << ' ' << type << ' ' << zone_name(name) << ")())\n";
   }
   file << "(45 (" << interior_id << " interior interior)())\n";
   for (std::size_t i = 0; i < mesh.patches.size(); ++i)
-    if (mesh.patches[i].size) file << "(45 (" << patch_ids[i] << ' ' << detail::fluent_type(boundary_code(mesh.patches[i])) << ' ' << mesh.patches[i].name << ")())\n";
+    if (mesh.patches[i].size) file << "(45 (" << patch_ids[i] << ' ' << detail::fluent_type(boundary_code(mesh.patches[i])) << ' ' << zone_name(mesh.patches[i].name) << ")())\n";
   file.close();
   KUTTA_REQUIRE(bool(file), "write_fluent_msh: write failed for " + path.string());
 }
