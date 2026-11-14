@@ -92,9 +92,10 @@ and [Windows requirements and examples](docs/README-windows.txt).
 ./build/kutta solve car-mesh/case.kutta.json --backend metal --out results
 ```
 
-The automatic external-aero mesher builds a balanced octree and convex cut cells
-from binary or named-solid ASCII STL. This first version has no prism layers;
-mesh validity does not establish aerodynamic accuracy or solve convergence.
+The automatic external-aero mesher castellates a balanced octree around binary
+or named-solid ASCII STL, snaps the wall onto the surface and adds prism layers
+(snappyHexMesh-style), keeping every cell at orthogonal quality 0.15 or above.
+Mesh quality does not by itself establish aerodynamic accuracy or convergence.
 See the [mesh setup and CLI contract](docs/app-protocol.md#automatic-stl-meshing-mesh-v1-additive)
 and [measured results](validation/results/mesher/REPORT.md).
 

@@ -1,139 +1,158 @@
-# External-aero mesher: partial implementation, qualification failed
+# External-aero mesher: castellate, snap and prism layers
 
-The STL → mesh → case → solver path exists. Both generated geometries mesh with
-zero invalid cells, and a tiny generated case solves for three CPU iterations
-in the quick tier. **The requested aerodynamic acceptance is not achieved:**
-Ahmed and FSAE Metal runs diverge; there are no accepted Cd, CL or balance values.
-Prism layers, solver-quality cut-cell conditioning and the 12 GB target remain.
+A snappyHexMesh-style pipeline replaces the cut-cell mesher (minimum
+orthogonal quality 0.003, diverging solves). Every mesh below has zero invalid
+cells and orthogonal quality (OQ) ≥ 0.15, and both coarse cases run 5000 Metal
+iterations without diverging. **Neither solve meets the qualification
+criteria**: Ahmed stalls on continuity with Cd 0.454, far above experiment;
+FSAE forces are steady (CL 1.46, CD 1.33, 23% front) but k runs away in a few
+stagnant cells. The default FSAE mesh passes the gates; its layer stage took 61 min.
 
 ## Reproduce
 
 ```sh
-cmake -S . -B build -G Ninja
-cmake --build build
+cmake -S . -B build -G Ninja && cmake --build build
 uv run tools/mesher/generate_geometry.py --out scratch-geometry
 KUTTA_MEMORY_PHASES=1 uv run tools/mesher/qualify.py --kutta build/kutta \
   --geometry scratch-geometry --out scratch-qualification --iterations 5000
-./build/kutta mesh scratch-geometry/fsae.stl --out scratch-default --case --progress jsonl
+./build/kutta mesh scratch-geometry/fsae.stl --out scratch-default --case --json
 ```
 
-The qualification script deliberately exits **1** when the solve fails or does
-not converge. It calls `mesh`, the separate `new-case` command and `solve`, and
-keeps failure receipts. It sets Ahmed to 40 m/s, area 0.112032 m², length 1.044 m
-and stationary ground; FSAE uses 20 m/s, moving ground and reference area 1 m².
-Qualification wheels remain stationary. Both explicitly disable WFGC because generated faces are planar. Otherwise they
-keep starter SST, Coupled and second-order transport defaults. Criteria are all
-scaled residuals ≤1e-3 and drag/downforce relative changes <5e-4, over 50 monitor
-samples after iteration 500 (20 iterations per sample), with a 5000-iteration cap.
+`qualify.py` runs `mesh`, `new-case` (FSAE wheels rotating, from
+`fsae-wheels.json`) and `solve` (Coupled, SST, second order; WFGC off, as it is
+not implemented) and exits 1 unless the solve converges: scaled residuals
+≤ 1e-3 and drag and downforce changing < 5e-4 over 50 samples after iteration
+500, cap 5000. Ahmed: 40 m/s, A = 0.112032 m², stationary ground; FSAE: 20 m/s,
+A = 1 m², moving ground. Apple M4 Pro (24 GB), Release/Metal, configured with
+`-DCMAKE_OSX_SYSROOT=$(xcrun --sdk macosx26.5 --show-sdk-path)` (not committed).
+GPU and CPU were shared, so **all times are contended**; no CUDA machine was
+available. Hashes, settings and results: [receipt.json](receipt.json).
 
-Measured on Apple M4 Pro, 24 GB unified memory, macOS 27.2.1, AppleClang 21,
-Release/Metal. The current machine's default SDK/linker combination failed even
-the CMake C probe; local configuration used
-`-DCMAKE_OSX_SYSROOT=$(xcrun --sdk macosx26.5 --show-sdk-path)`.
-No machine-specific setting was committed. Exact executable/input hashes,
-source commits, settings and results are in [receipt.json](receipt.json).
-GPU/CPU were shared with other lanes; all times below are contended wall times,
-**not performance claims**. No CUDA/RTX or Windows/Linux runtime was available.
+## Method
 
-## What works
+**Castellate** removes octree leaves inside or crossed by the STL (2:1 hanging
+faces). **Snap** moves wall points to the least-squares intersection of their
+faces' tangent planes (implicit feature capture), decaying over three point
+layers, and retreats wherever a cell would fall below OQ 0.15, so geometric
+error is reported, not hidden. **Layers** push the snapped mesh off the walls
+and fill the gap with stacks that collapse locally where quality fails;
+terminations split so unlayered walls stay on the surface, or stay lifted.
 
-- Binary/ASCII STL, multiple files/named solids, SI/mm coordinates, named walls.
-  Vertex welding (1e-7 body diagonal), duplicate/degenerate facet removal and
-  winding repair are counted. Open/nonmanifold edges are diagnosed, not hidden.
-- Three-ray majority classification of connected-shell unions, without flood
-  fill. A small-leak regression stays inside; normals supplied by STL are ignored.
-- Tunnel, z=0 contact, y symmetry, refinement boxes, sharp-edge and separate-shell
-  proximity sizing, and enforced face/edge/corner 2:1 octree balance.
-- Shared piecewise-linear distance-field clipping, convex local agglomeration,
-  and bounded 1% isosurface snapping. Uncut neighbours retain planar polygons.
-- Closure, directed manifold edges, positive volume, owner orientation, convexity
-  and an orthogonal-quality validity floor of 1e-8 are enforced before output.
-- Fluent ASCII writer round-trips through the existing reader. `--case` shares
-  `fsae_starter`; wheel syntax, moving ground and exact body roles are supported.
-- Strict path-qualified mesh JSON, JSONL stages/errors/done, input SHA256,
-  process memory, timing, quality statistics, y+ estimates, overwrite protection.
-- Reproducible rounded 35° Ahmed geometry reuses the existing surface generator.
-  Synthetic FSAE includes three-element wings, endplates, floor/diffuser,
-  monocoque, nose, sidepods and four wheels flattened 3 mm onto the ground.
+## Mesh quality
 
-## Measured mesh results
+| | Ahmed coarse | Ahmed default | FSAE coarse | FSAE default |
+|---|---|---|---|---|
+| cells | 144,877 | 148,705 | 1,312,313 | 4,417,972 |
+| hex / poly / prism | 93,313 / 474 / 51,090 | 91,061 / 3,312 / 54,332 | 524,228 / 6,069 / 782,016 | 2,407,850 / 31,750 / 1,978,372 |
+| hex share of core | 99.5% | 96.5% | 98.9% | 98.7% |
+| invalid cells; OQ min | 0; 0.154 | 0; 0.161 | 0; 0.150 | 0; 0.150 |
+| cells below OQ 0.15 / 0.2 | 0 / 7 | 0 / 37 | 0 / 93 | 0 / 689 |
+| core volume ratio p99 / p999 / max | 9.6 / 9.6 / 23 | 10.1 / 36.6 / 151 | 9.5 / 19.5 / 124 | 9.6 / 19.2 / 159 |
+| core faces with ratio > 20 | 1 of 279,523 | 380 of 288,662 | 1,226 of 1.53M | 6,679 of 7.21M |
+| layer-face ratio p999 / max | 6.7 / 51 | 17.1 / 295 | 22.1 / 378 | 18.9 / 383 |
+| snap error p99 / max | 0.1 / 7.8 mm | 5.3 / 12.3 mm | 2.8 / 13.5 mm | 2.7 / 15.4 mm |
+| mesh time; peak RSS | 2.0 s; 108 MB | 6.6 s; 173 MB | 90 s; 1.0 GB | 3,768 s; 3.1 GB |
 
-| | Ahmed coarse | FSAE coarse | FSAE default diagnostic |
-|---|---:|---:|---:|
-| Cells | 24,353 | 208,815 | 3,319,824 |
-| Faces | 91,365 | 1,013,514 | 19,946,816 |
-| Nodes | 33,449 | 347,873 | 7,169,281 |
-| Geometric hexes | 20,058 | 81,745 | 1,224,945 |
-| Negative / nonconvex cells | 0 / 0 | 0 / 0 | 0 / 0 |
-| Missing body zones | 0 | 0 | 0 |
-| Minimum orthogonal quality | 0.00876 | 0.00379 | 0.00292 |
-| Maximum face-centre skew / centre distance | 38.28 | 44.75 | 88.39 |
-| Maximum adjacent volume ratio | 125,394 | 296,296 | 728,853 |
-| Mesh seconds | 0.70 | 12.07 | 427.25 |
-| Mesh peak footprint | 17.7 MB | 176 MB | 3.80 GB |
+OQ histogram (0.15–0.2 / –0.3 / –0.5 / –0.7 / –0.9 / –1; none below 0.15): Ahmed
+coarse 7 / 70 / 651 / 1,441 / 23,822 / 118,886; FSAE coarse 93 / 1,240 /
+11,545 / 31,796 / 163,783 / 1,103,856. All four are in the receipt.
 
-The default diagnostic predates the final distance-query optimization and
-additional report fields; its geometry algorithm is the same. It is **not** a
-5–15M-cell or GPU-fit qualification. Only 37% of default FSAE cells are geometric
-hexes; a hex-dominant result by cell count is not established. All are stored as
-Fluent polyhedra, including geometric cubes with subdivided planar faces.
+- **Volume ratio** outside layers is within ~20 at p999 except Ahmed default
+  (36.6); the maxima (23–159) are not, where snapping squeezes a fine cell
+  beside a 2:1 coarser one. A snap-time neighbour-size check cut the Ahmed
+  default maximum to 37 but broke exact cube-corner capture, so it was dropped.
+- **Feature edges**: cube corners on and off the lattice are exact to 1e-9 m; on
+  the cars the tolerance is the snap error (p99 ≤ 5.3 mm, max 15.4 mm), at sharp
+  trailing edges and concave junctions where full snapping would break OQ 0.15.
+- **Slots** (12–20 mm): FSAE default has 3–4 cells across each; the coarse setup
+  asks for 1, and its **rear-wing slot 1–2 (12.8 mm) closes**.
 
-## Solve results and failure boundary
+## Prism layers
 
-The recorded coarse qualification fails on both cases with
-`solver.cpp:117: solve: nonfinite input vector`. Ahmed's last completed monitor
-is iteration 160; FSAE's is iteration 5. The solve-process wall times were 3.6 s
-and 10.7 s, respectively, including setup. These are failed runs, not solve times
-to a converged result. Cd, CL, balance and settled-force timings are **missing**.
+`layers` takes `count`, `first_height`, `growth` and `zones` (default 4 layers,
+2 mm, 1.3: 12.4 mm). Coverage is a fraction of the selected wall area.
 
-For context, the existing body-fitted Ahmed report records Cd 0.3137 on 1.33M
-cells against experiment 0.26 (itself a failed drag gate). The present mesher has
-no converged Cd to compare to either. Domain, wall resolution and initialization
-also differ; this is not a same-mesh solver comparison.
+| | full / thinned / none | first height mean (min) | split / lifted points |
+|---|---|---|---|
+| Ahmed coarse (3 layers) | 94.9 / 1.5 / 3.5% | 2.0 mm (0.5) | 30 / 844 |
+| Ahmed default | 75.7 / 12.6 / 11.7% | 1.7 mm (0.5) | 364 / 2,476 |
+| FSAE coarse | 76.2 / 16.9 / 6.9% | 1.25 mm (0.5) | 4,587 / 11,340 |
+| FSAE default | 58.0 / 24.0 / 18.0% | 1.0 mm (0.5) | 21,817 / 37,119 |
 
-The meshes are topologically valid but contain very poor cut-cell shapes and
-extreme adjacent volume ratios. Snapping/agglomeration removed the first
-FSAE version's ~1e-17 m³ slivers and ~5.9e9 volume ratio, but did not recover
-convergence. SIMPLEC, standard-pressure and reduced-Courant controls also failed.
-With Courant 1, time-scale factor 0.1 and 0.2 flow relaxation, FSAE's omega
-residual reached 85 at monitor 20 before failure. These controls do **not** prove
-a solver defect. The relative contributions of cell geometry, reconstruction
-and SST stiffness remain unresolved; no solver numerics or gates were changed.
-A synchronizing field diagnostic also found a distinct startup failure:
-`initialize_hybrid` → potential gradient → `fv_hybrid_velocity` produces
-|w|=321,588 m/s **before iteration 1**, at (-0.993678,-0.661715,0.312276) m,
-volume 1.3993e-10 m³ and orthogonal quality 0.6603. This is not a failed SST
-iteration or simply the minimum-orthogonal cell. Standard freestream
-initialization avoids that starting field but still diverges after monitor 20.
-The receipt preserves both observations; neither is a converged solution.
+**FSAE y+ regime: wall functions, y+ ≈ 50.** A 2 mm first layer gives an
+estimated y+ p50 of 52 at 20 m/s, 83–84% of wall area in 30–300 and none below
+5 (flat-plate estimate), for Kutta's y+-insensitive SST wall treatment. y+ ≈ 1
+needs 20–40 µm first cells and ~25 layers: over twice the cells, past 12 GB.
 
-Observed device allocations at phase marks were 65.4 MB / 2,685 bytes per cell
-for Ahmed and 694 MB / 3,324 bytes per cell for FSAE (Metal, Coupled cached).
-Observed process peaks were 198 MB and 912 MB. Phase marks are lower bounds on
-true peak memory. Extrapolating the FSAE observation gives ~16.6 GB at 5M cells,
-before host/setup headroom; this is an inference, not a CUDA measurement or a
-12 GB fit claim. No settled FSAE solve on the M4 Pro is established either.
+## Solves (Metal, coarse meshes)
 
-## Verification and remaining work
+| | Ahmed coarse | FSAE coarse |
+|---|---|---|
+| converged | no: continuity 1.7e-2 (others ≤ 6e-4) | no: k 0.94, continuity 3.6e-2, ω 0.13 |
+| iterations; solve time | 5000; 974 s | 5000; 4,106 s |
+| final coefficients | Cd 0.454 (pressure 0.412, friction 0.042), CL +0.451 | CL 1.460, CD 1.330, front axle 23.3% |
+| range, last 1000 iterations | Cd 0.4531–0.4544 | CL 1.445–1.465, CD 1.325–1.334 |
+| device memory | 366 MB, 2,528 B/cell | 3.40 GB, 2,589 B/cell |
 
-Build and portability lint pass locally. Full quick tier passes with fixtures:
-323 cases / 7,996,603 assertions on the final source; the focused selection
-passes 7 cases / 93 assertions (including one existing AMG case). Focused mesher tests
-cover parsing/repair/leaks, inside queries, refinement and balance, convex cuts,
-writer round-trip, JSON errors/overwrite protection and CLI mesh+solve.
+**Ahmed**: Cd 0.454 is 75% above experiment (0.26) and above Kutta's
+body-fitted study (0.353 / 0.332 / 0.314 on 0.40M / 0.69M / 1.33M cells, y+ ≈ 3);
+with ~13 mm wall cells and y+ ≈ 108 this is a pipeline check, not accuracy.
 
-1. Condition cut cells beyond a validity floor: remove extreme skew/volume
-   ratios while preserving convexity, zones and geometric error. Local convex
-   merging alone is insufficient. Isolate the first unstable stencil/field
-   before attributing a solver-side cause.
-2. Resolve close surfaces in the same connected shell, validate slot/thin-sheet
-   preservation quantitatively, and qualify arbitrary defective CAD exports.
-   Current proximity refinement uses separate connected shells; larger cracks
-   remain unrepaired and sub-grid features can disappear.
-3. Add real boundary layers with collision/contact collapse. Nonzero layer
-   requests currently fail explicitly; no prism-layer mesh is claimed.
-4. Repeat Ahmed/FSAE convergence and force acceptance, refinement studies and
-   CUDA memory measurements. Default cell-count/hex dominance and 12 GB targets
-   are unmet. Run the portability CI matrix; lint is not MSVC/GCC build proof.
+**FSAE**: forces settle within ±0.7% but the run is unconverged, so not
+accepted. A = 1 m²; balance is the front-axle share of downforce from the
+pitching moment about the rear contact patch (axles at x = −0.78, 0.95 m). The
+first unstable field is **k**: 1.7e11, with μt at its 1.79 Pa·s cap, in stagnant
+prism cells (|u| < 1 m/s) at (0.93, 0.545, 0.95) m, where the closed rear-wing
+slot 1–2 meets the left endplate. Before the tyre fix it sat where the front
+wing entered a tyre (CD spiked to 16.6). Velocity, pressure and forces stay
+bounded: a local turbulence stall, not a divergence. The solver is unchanged.
 
-Large generated meshes/STLs/runs are removed after recording the small receipt.
+## Default FSAE mesh and memory
+
+Defaults give 4,417,972 cells (2.44M core, 1.98M prism). Octree, castellate and
+snap take 92 s; **layer collapse took 229 rounds and 3,660 s**: a collapse
+front moving along long edges re-runs the whole-mesh displacement each round.
+A 10-iteration Metal solve used **11.42 GB of device memory, 2,584 B per cell**
+(13.8 GB footprint; phase marks, not a guaranteed peak); the coarse meshes used
+2,528–2,589 B per cell and the default without layers 2,656.
+
+**12 GB RTX: probably not.** 11.4 GB leaves no room for a CUDA context; at this
+cost about 4.3M cells is the limit (estimated from Metal, not measured on
+CUDA). The default without layers fits (2.44M cells, 6.5 GB measured).
+
+**Polyhedra and hanging faces cost little**: storage is face-based, so memory
+follows faces and cells, not cell type. FSAE coarse has 3.17 faces per cell
+(about 3.0 conformal, +6%), 97.3% quad faces (4.03 nodes per face) and 95.7%
+six-faced cells; the ~3% with 9 or more are coarse cells with hanging sides.
+
+## Fixes and root causes in this lane
+
+The mesher is f51b228. Later commits stop layer collapse spinning when only
+distant stacks move a cell, raise its round guard from 50 to 1000, and stop
+counting merge-collapsed cells as hexes (aa02e5f, 20c4fb3, 38b1389). FSAE
+divergences fixed: layer "chimney" stacks walled on 3–4 sides; the tangent
+wheel–ground wedge (10 mm plinths, rotating wheels); disconnected pockets; and
+(20c4fb3) a synthetic car whose wing, floor and sidepods passed through the tyres.
+
+## Open problems
+
+1. **FSAE k runaway** in stagnant layer cells at closed slots and junctions.
+   Next: the default mesh with open slots (5000 iterations on 4.4M cells were
+   not affordable here) and k-ω source linearization at tiny convective flux.
+2. **Ahmed** continuity stall; Cd needs a mesh study on this mesher.
+3. **Layer-collapse time** (61 min): recompute the displacement only near
+   dropped stacks, or taper terminations so retreat stops advancing per round.
+4. **Volume-ratio maxima** beside 2:1 transitions (a fix must keep exact
+   corner capture); snap error up to 15 mm where retreat protects quality.
+5. **Coarse FSAE closes rear-wing slot 1–2**: use `proximity_cells` ≥ 2.
+6. The app on main expects a tunnel zone `sides`; the mesher writes
+   `side-low` and `side-high` (app unchanged).
+
+## Verification
+
+Quick tier (`ctest -LE slow`, fixtures linked locally) passed at 38b1389: 326
+cases, 7,996,651 assertions, and the portability lint. Focused mesher tests
+cover castellation on and off the lattice, corner capture, layer volume,
+gap sizing, curved-body snap and the CLI. FSAE runs and default meshes used the
+38b1389 binary; the Ahmed solve used one built from the aa02e5f tree, whose
+mesh is byte-identical at 38b1389 (solver sources unchanged in this lane).

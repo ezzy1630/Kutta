@@ -74,8 +74,9 @@ int mesh_command(int argc,char** argv) {
       }
       const auto info=setup::mesh_info(result.mesh);
       auto c=setup::fsae_starter(info,"mesh.msh",starter);
-      // Faces are planar by construction. State the supported scheme rather
-      // than inheriting Fluent's warped-face default for polyhedral imports.
+      // Snapped faces can be warped, and Kutta does not implement Fluent's
+      // warped-face gradient correction: state the scheme it runs rather
+      // than inheriting Fluent's default for polyhedral imports.
       c.methods.warped_face_gradient_correction=false;
       (void)setup::lower_kutta_case(c,info); case_text=setup::kutta_case_text(c);
     }

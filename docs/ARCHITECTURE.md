@@ -88,8 +88,11 @@ Tests run every backend that is compiled in and present on the machine (`KUTTA_F
 ### Experimental external-aero mesher
 
 `mesh/mesher/` is a CPU C++20 geometry stage behind `kutta mesh`. It reads and
-repairs STL, builds a balanced octree, clips a shared linear distance field,
-merges convex pieces, validates `PolyMesh` and writes Fluent ASCII. The solver
-and device contracts are unchanged. Mesh validity is separate from CFD
-qualification; `validation/results/mesher/REPORT.md` records the failed force
-and convergence gates and missing prism layers.
+repairs STL, builds a balanced 2:1 octree sized by curvature and gaps,
+castellates it (`mesher.cpp`), snaps the wall onto the STL (`snap.cpp`), pushes
+the mesh off the wall to insert prism layers (`layers.cpp`), validates
+`PolyMesh` and writes Fluent ASCII. Snap and layers share one motion helper
+(`displace.cpp`) that retreats wherever a cell would fall below orthogonal
+quality 0.15. The solver and device contracts are unchanged. Mesh quality is
+separate from CFD qualification; `validation/results/mesher/REPORT.md` records
+the solve gates.

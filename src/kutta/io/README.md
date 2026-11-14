@@ -236,7 +236,9 @@ global boundary area closure. No large validation files are copied.
 
 `kutta mesh` reads STL and writes Fluent ASCII polyhedra through
 `mesh/mesher/writer.cpp`. It reverses Kutta outward owner winding for Fluent
-c0, preserves named boundary zones, and uses polyhedral element type 7. The
-quick tier reads the output through `read_mesh`, validates oriented manifold
-edges and positive geometry, and solves a tiny generated case. The complete
+c0, preserves named boundary zones, and uses polyhedral element type 7 (hexes
+with 2:1 hanging faces, prisms and the cells beside layer terminations are all
+written as polyhedra). The quick tier reads the output through `read_mesh`,
+validates oriented manifold edges and positive geometry, and solves a tiny
+generated case with prism layers. The complete
 setup and report contract is in `docs/app-protocol.md`.

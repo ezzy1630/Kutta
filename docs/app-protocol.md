@@ -995,8 +995,8 @@ kutta solve car-mesh/case.kutta.json --backend metal --iterations 2000 --out car
 [--speed M/S] [--wheel ZONE=R,X,Y,Z,AX,AY,AZ]... [--progress jsonl] [--json]
 [--force]` is additive to v1. Omitting setup uses SI FSAE defaults: +x flow,
 +z up, 20 m/s for optional case/y+ estimates, 0.25 m base size, 0.006–0.03 m
-surface sizes, 20° feature angle, three cells across nearby components and
-10 million maximum cells. These are starting sizes, not an accuracy or cell-count
+surface sizes, 20° feature angle, three cells across gaps, four prism layers
+(2 mm first height, growth 1.3) and 10 million maximum cells. These are starting sizes, not an accuracy or cell-count
 guarantee. Budget exhaustion fails rather than silently coarsening the mesh.
 
 Setup is strict JSON (1 MiB maximum): unknown keys, duplicate keys, wrong types,
@@ -1008,9 +1008,9 @@ All lengths in setup are metres; `units` scales **STL coordinates only**.
 {"v":1,"units":"m","flow":"+x","up":"+z",
  "tunnel":{"upstream":3,"downstream":6,"side":2,"top":2,"ground":true,"symmetry":null},
  "base_size":0.25,
- "surface":{"min_size":0.006,"max_size":0.03,"curvature_degrees":20,"proximity_cells":3},
+ "surface":{"min_size":0.006,"max_size":0.03,"curvature_degrees":20,"proximity_cells":3,"proximity_min_size":0},
  "refinement_boxes":[{"name":"wake","min":[1,-1,0],"max":[5,1,1.5],"size":0.03}],
- "layers":{"count":0,"first_height":0.00005,"growth":1.3,"zones":["*"]},
+ "layers":{"count":4,"first_height":0.002,"growth":1.3,"zones":["*"]},
  "max_cells":10000000}
 ```
 
@@ -1020,9 +1020,13 @@ boundary extends `side` body lengths below the body. `symmetry:"y"` keeps y≥0.
 Tunnel upper limits round outward to a whole base cell; lower limits are exact.
 Octree sizes are powers of two below the base size, so the achieved minimum can
 be smaller than `min_size`. Refinement boxes use world coordinates. Face, edge
-and corner neighbours are balanced to at most 2:1. Curvature flags come from
-adjacent STL facet angles; proximity uses distance to a different connected
-shell. Tessellate curved STL surfaces finely enough to describe their curvature.
+and corner neighbours are balanced to at most 2:1. Curvature sizes facets by
+their radius times the feature angle. Gaps (to another facet across the fluid,
+or to the ground) are sized to `proximity_cells` cells across, refining below
+`min_size` down to `proximity_min_size` (0 means `min_size/4`). Next to layered
+walls, cells are at most four last-layer thicknesses, so the layer-to-core
+size jump stays small. Tessellate curved STL surfaces finely enough to describe
+their curvature.
 
 Binary and ASCII STL, including multiple ASCII named solids, are accepted. Binary
 files use the file stem as their wall-zone name; ASCII solids use their names
@@ -1035,36 +1039,54 @@ holes are not filled. Independent majority ray queries classify the union of
 connected shells without a flood fill, so a small crack cannot flood the domain.
 Intersecting shells are treated as a solid union; nested shells are not cavities.
 
-The wall is the zero contour of a shared piecewise-linear signed-distance field,
-not an exact boolean intersection with every STL triangle. Whole octree cubes
-remain single cells; near the wall a conforming subdivision is clipped into
-convex polyhedra and merged only where the union is convex. Snapping to an
-existing grid vertex is bounded to 1% of its finest incident leaf size to prevent
-vanishing cut cells. Sub-grid sheets/slots can disappear: inspect surface zones
-and refine to resolve the geometry. All exported faces are planar. Prism layers
-are **unavailable in v1**: nonzero `layers/count` fails before writing. No request
-for layers is silently ignored. `first_height`, `growth`, `zones` reserve the
-future layer contract when count is zero. The y+ estimate uses a flat-plate
-friction correlation and actual wall-adjacent centroid distances, not solved shear.
+The mesh follows snappyHexMesh. Octree cells inside the body or crossed by an
+STL facet are removed (castellation), keeping the fluid connected to the
+tunnel. Wall points then snap onto the STL: each moves to the least-squares
+intersection of the tangent planes at its faces' nearest surface points, which
+captures feature edges and corners without a feature-line input. The motion
+decays over three point layers into the volume. Wherever a cell would fall
+below orthogonal quality 0.15, the motion retreats locally (halved, then
+zero), so the remaining geometric error is reported rather than hidden
+(`snap/point_distance_m`). Slots narrower than about two cells close; see
+`castellation/gaps` for each zone pair's width and minimum fluid cells across.
+
+Prism layers are inserted by pushing the snapped mesh off the selected walls
+(`layers/zones`, default all) along point normals and filling the gap with one
+stack per wall face. A stack collapses where any cell would fall below quality
+0.15 or where retreat thins it below a quarter of its target. Where layers end,
+the termination points split so the unlayered wall stays on the surface; a
+termination whose split fails quality stays lifted instead (a step), and
+`layers/terminations` counts both. `count:0` disables layers. The y+ estimate
+uses a flat-plate friction correlation and actual wall-adjacent centroid
+distances, not solved shear.
 
 Successful output contains `DIR/mesh.msh` (Fluent ASCII polyhedra) and
 `DIR/mesh-report.json`. Report keys include `v`, `cells`, `faces`, `nodes`,
-`cell_types` (`hex`, `poly`, `prism`), `zones` (`name`, `type`, `faces`),
-`body_bounds`, `bounds`, `quality`, `repairs`, `layers`, `missing_surface_zones`,
-`estimated_first_cell_y_plus`, `wall_seconds`, `peak_memory_bytes`, `warnings`.
-A geometrical octree cube with triangulated faces counts as `hex`; Fluent stores
-it as a polyhedron. `quality` includes minimum/mean orthogonal quality, maximum
-face-centre skew divided by centre distance, maximum adjacent volume ratio,
-minimum volume and zero negative/nonconvex cell counts. Closure, manifold edges,
-positive volumes, convexity and an orthogonal floor of 1e-8 are enforced before
-writing. This is a validity floor, not a convergence-quality guarantee; large
-skew/volume ratios still need improvement. Peak memory is process footprint,
-not an estimate of solver GPU memory. Unavailable memory readings are null.
+`cell_types` (`hex`, `hex_without_hanging_nodes`, `poly`, `prism`,
+`hex_fraction_of_core`), `zones` (`name`, `type`, `faces`), `body_bounds`,
+`bounds`, `quality`, `repairs`, `castellation`, `snap`, `layers`,
+`missing_surface_zones`, `estimated_first_cell_y_plus`, `stage_seconds`,
+`wall_seconds`, `peak_memory_bytes`, `warnings`. An octree cube with 2:1
+hanging faces counts as `hex`; Fluent stores every cell as a polyhedron.
+`quality` includes minimum/mean orthogonal quality, `orthogonal_histogram`,
+`cells_below_0_05`/`_0_15`, `worst_cell`, maximum skew, the adjacent volume
+ratio's distribution split into core and layer faces (`max`, `p50`, `p99`,
+`p999`, histogram), minimum volume and nonconvex cells (a count, not an error).
+`snap` reports snapped/partial points, feature points, removed and merged cells
+and the point-to-surface distance (absolute and over the local cell size).
+`layers` reports `requested`, `generated`, `stacks`, `cells`, `coverage`
+(`full`, `thinned`, `none` area fractions of the selected walls),
+`first_height_achieved`, `terminations` and `collapse_rounds`. The y+ estimate
+gives area-weighted percentiles and area fractions below 5, 5–30, 30–300 and
+above 300. Closure, manifold edges, positive volumes and an orthogonal floor
+of 1e-8 are enforced before writing; snapping and layers keep every cell at
+0.15 or above. Peak memory is process footprint, not an estimate of solver GPU
+memory. Unavailable memory readings are null.
 
 `--case` calls the same `fsae_starter` path as `new-case`: inlet, outlet, moving
 ground, symmetry sides/top and named body walls, with the same wheel syntax.
 The resulting `case.kutta.json` explicitly disables warped-face gradient
-correction because generated faces are planar; the solver can read it directly.
+correction; the solver can read it directly.
 A separately generated `new-case mesh.msh` retains that command's existing
 polyhedron defaults and needs its documented WFGC setting/approximation choice.
 Reference area remains the starter's 1 m² default; set the actual reference area
@@ -1088,5 +1110,9 @@ process; a staged scratch directory may need removal after a hard kill.
 
 Generate reproducible inputs with
 `uv run tools/mesher/generate_geometry.py --out scratch-geometry`.
-The synthetic FSAE wheels have a 3 mm flattened contact patch at z=0. Generated
-STLs/meshes are local artifacts, not repository fixtures.
+The synthetic FSAE wheels stand on 10 mm contact plinths (a tangent or flattened
+tyre leaves a wedge of cells walled on two or three sides, in which k-omega
+diverged), and every other part clears the tyres by at least 50 mm;
+`fsae-wheels.json` gives each wheel's rolling radius, centre and axis for
+`--wheel`. Generated STLs/meshes are local artifacts, not repository
+fixtures.

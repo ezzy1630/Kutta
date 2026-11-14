@@ -54,7 +54,7 @@ def qualify(args, name):
     if receipt['new_case']['exit']:
         return receipt
     c=json.loads(case.read_text())
-    c['methods']['warped_face_gradient_correction']=False  # all mesh faces planar
+    c['methods']['warped_face_gradient_correction']=False  # not implemented in Kutta; snapped faces can be warped
     if name=='ahmed':
         c['reference_values'].update(area=.112032,length=1.044)
         c['boundaries']['ground']={'type':'wall'}
