@@ -1042,7 +1042,8 @@ void Session::exportNow(const QString& runId, const std::vector<Plane>& planes, 
             QStringList skipped;
             for (const auto* parts : {&m.value().slices, &m.value().isosurfaces})
                 for (const ViewPart& p : *parts)
-                    if (p.skippedCells > 0) skipped << QStringLiteral("%1 (%2)").arg(p.name, QLocale().toString(p.skippedCells));
+                    if (p.skippedCells > 0)
+                        skipped << QStringLiteral("%1 (%2)").arg(p.kind == PartKind::Slice ? itemLabelForSlice(p) : p.name, QLocale().toString(p.skippedCells));
             if (!skipped.isEmpty())
                 emit consoleLine(ConsoleLevel::Info, tr("Cells kutta could not cut (tangled mesh cells) are left out of %1.").arg(skipped.join(", ")));
         }

@@ -472,8 +472,8 @@ QWidget* tunnel(const InspectorContext& c)
     auto* motionForm = form();
     auto* motion = new QComboBox;
     motion->setAccessibleName(QObject::tr("Ground motion"));
-    motion->addItem(QObject::tr("Moving with the air (cars)"), groundMotionKey(GroundMotion::Moving));
-    motion->addItem(QObject::tr("Stationary (wind-tunnel models)"), groundMotionKey(GroundMotion::Stationary));
+    motion->addItem(QObject::tr("Moving (cars)"), groundMotionKey(GroundMotion::Moving));
+    motion->addItem(QObject::tr("Stationary (tunnel)"), groundMotionKey(GroundMotion::Stationary));
     motion->setCurrentIndex(motion->findData(groundMotionKey(mw->project().ground)));
     motion->setEnabled(m.tunnel.ground && !mw->meshing());
     QObject::connect(motion, &QComboBox::activated, motion, [mw, motion](int i) {

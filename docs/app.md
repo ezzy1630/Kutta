@@ -63,7 +63,12 @@ and drag settle) open the fixture's recorded samples, or the case given as
 the positional argument. Scenarios use the fixture
 unless `--cli` or `KUTTA_CLI` names a solver. The fixture can fail a run on
 request (`KUTTA_FIXTURE_FAIL_AT=N`, with `KUTTA_FIXTURE_FAIL_MESSAGE` for an
-error event, or none for a crash); `car-failed` uses it.
+error event, or none for a crash; a message beginning "the solution diverged"
+carries `verdict: "diverged"`); `car-failed` uses it. `KUTTA_FIXTURE_VERDICT`
+ends a converging run as `forces_settled_residuals_waived` or
+`statistically_steady` instead (`none` leaves the verdict out, as older CLIs
+did), and `KUTTA_FIXTURE_SKIPPED_CELLS=N` puts `skipped_cells` on every slice
+and iso-surface.
 
 `new-case`, `new-case-run` and `new-case-save` start from a bare mesh (the
 positional argument, else the fixture's NACA wing mesh): the New Case page
@@ -83,14 +88,19 @@ the generated mesh), `-run` (a run and the Aerodynamics page) and `-variants`
 CLI (`--cli`) they mesh with `kutta mesh` (the meshing shot is taken as the
 mesher reaches the layers stage) and take, for the real path:
 `KUTTA_SCENARIO_MESH_SETUP` (a mesh.json loaded after import),
-`KUTTA_SCENARIO_SPEED`, `KUTTA_SCENARIO_ROLES` (`ground=wall,...`),
+`KUTTA_SCENARIO_SPEED`, `KUTTA_SCENARIO_GROUND=stationary` (the Wind Tunnel
+page's ground motion), `KUTTA_SCENARIO_ROLES` (`ground=wall,...`),
 `KUTTA_SCENARIO_WHEELS` (generate_geometry.py's `fsae-wheels.json`),
 `KUTTA_SCENARIO_REFERENCE` (`area,length`), `KUTTA_SCENARIO_VEHICLE`
 (`front-axle-x,wheelbase`) and `KUTTA_SCENARIO_ITERATIONS`; runs stop on the
 mesher qualification's criteria (residuals 1e-3; drag and downforce within
 5e-4 over 50 values after 500 iterations) or the iteration limit. When the
 CLI cannot export the run's view, `geometry-run` prints why and goes on to
-Aerodynamics (other scenarios fail at once with the CLI's error):
+Aerodynamics (other scenarios fail at once with the CLI's error).
+`KUTTA_SCENARIO_VIEW=slice` ends `geometry-run` on the run's y = 0 plane
+coloured by velocity on the Contours page, and `KUTTA_SCENARIO_PAGE` on
+another page (`solution/monitors`). The Ahmed body is a wind-tunnel model,
+so it runs on a stationary ground:
 
 ```sh
 uv run tools/mesher/generate_geometry.py --out geom
@@ -98,7 +108,19 @@ KUTTA_SCENARIO_MESH_SETUP=geom/fsae-coarse.json KUTTA_SCENARIO_SPEED=20 \
   KUTTA_SCENARIO_WHEELS=geom/fsae-wheels.json KUTTA_SCENARIO_VEHICLE=-0.78,1.73 \
   KUTTA_SCENARIO_ITERATIONS=1000 Kutta --cli build/kutta --scenario geometry-run \
   --screenshot fsae.png geom/fsae.stl
+KUTTA_SCENARIO_MESH_SETUP=geom/ahmed-coarse.json KUTTA_SCENARIO_SPEED=40 \
+  KUTTA_SCENARIO_GROUND=stationary KUTTA_SCENARIO_REFERENCE=0.112032,1.044 \
+  KUTTA_SCENARIO_ITERATIONS=1500 KUTTA_SCENARIO_VIEW=slice Kutta --cli build/kutta \
+  --scenario geometry-run --screenshot ahmed-slice.png geom/ahmed.stl
 ```
+
+On the coarse Ahmed setup (144,877 cells, Metal, M4 Pro) that run converges at
+iteration 1521 by the CLI's verdict, every residual, both report conditions
+and the settled forces met, with Cd 0.4535 and CL +0.448: the CLI's own
+stationary-ground result (Cd 0.4535 in
+`validation/results/mesher_post/REPORT.md`). The report conditions need 50
+samples after iteration 500, about 1,520 iterations at the monitor interval of
+20, so a 1,500-iteration limit stops it short ("Iteration limit").
 
 Before its screenshot, every scenario checks the screen and fails (exit 4)
 with each problem on stderr: the inspector page is laid out again at each
@@ -118,7 +140,9 @@ File ▸ New Case from Mesh reads a mesh (`.msh`, `.msh.h5`, or the mesh of a
 `.cas`) with `kutta new-case --json` and shows its boundary zones, each with
 the role the CLI suggests from its name (inlet, outlet, ground, symmetry
 words, else the mesh's zone type, else a car wall with its aero group) and why.
-Pick a role per zone and the freestream speed. The template is stated, not
+Pick a role per zone and the freestream speed. A ground is a Moving ground (a
+road at the freestream speed, the suggestion) or a Stationary ground (a
+wind tunnel's fixed floor); neither is in the force reports. The template is stated, not
 picked (FSAE external aero is the only one). The CLI's notes are in a "Before
 you run" box above Create Case; a wheel that stays a wall is marked
 "Stationary wall" in its row, since the template's walls do not move and the
@@ -151,7 +175,14 @@ group holds the steps in Fluent Meshing's words:
   `kutta mesh` builds: flow +x and +z up (the only directions v1 meshes),
   distances in body x lengths, the ground at z = 0 (geometry below it is
   refused before meshing), upper limits rounded out to whole base cells.
-  Sizing and Layers also holds the freestream speed (the mesher's y+
+  **Ground motion** (with a ground) is the case's, not the mesh's: Moving
+  (cars, the default, `moving-ground`) or Stationary (wind-tunnel models
+  such as the Ahmed body, which sit on a fixed floor). It is kept in
+  geometry.json (`ground_motion`), and a stationary ground is passed to
+  `kutta new-case` as `--role ground=stationary-ground`, so the New Case page
+  opens with the ground a Stationary ground. Neither ground role is ever in
+  the force reports; a ground given the plain Wall role is (the CLI's note
+  says so). Sizing and Layers also holds the freestream speed (the mesher's y+
   estimate and the case's starting speed) and **Load mesh.json…**, which
   takes a kutta mesh setup file's settings (keys it omits get the mesher's
   defaults).
@@ -217,13 +248,20 @@ meshing"):
   bar holds its furthest point.
 - Cancel closes stdin, then sends SIGINT after 1.5 s, then kills.
 
-A run on a mesher mesh says how it ended in the CLI's terms: Converged,
-Iteration limit, Stopped, or **Forces settled; residuals not converged** when
-the CLI stopped it on settled forces with stalled residuals waived
-(`residuals_waived`); Monitors heads such a run "not converged: forces
-settled at iteration N", lists the forces-settled condition (each report's
-range over the window) and marks waived residuals "not met, waived". The
-design-study table says "forces settled, not converged" for it.
+A run on a mesher mesh says how it ended from the CLI's `verdict` (see Case
+types and convergence): **Forces settled; residuals not converged** when the
+CLI stopped it on settled forces with stalled residuals waived; Monitors heads
+such a run "not converged: forces settled at iteration N", lists the
+forces-settled condition (each report's range over the window) and marks
+waived residuals "not met, waived". The design-study table says "forces
+settled, not converged" for it and the charts badge it RESIDUALS WAIVED.
+
+A slice or iso-surface of a mesher mesh can leave out cells the CLI cannot
+cut (tangled cells, its `skipped_cells`). The view still draws; when the count
+is not zero the viewport says "N cells could not be drawn" at its bottom
+right, the surfaces list names it beside the slice or iso-surface, the
+iso-surface page says it after computing, and the console lists each. Nothing
+is said when it is 0.
 
 Volume-mesh slices are not shown yet (read-only on the Mesh Report page): that
 needs a cut-plane export for a bare mesh from the CLI. The fixture CLI's `mesh`
@@ -268,8 +306,16 @@ The app follows the case's model and dimension as the CLI reports them:
   for the reference depth.
 - **Approximate runs** carry badges naming each approximation in a few
   words ("APPROXIMATE · WFGC off") from the CLI's `short` labels.
-- **Run status** says how a run ended: Converged, Iteration limit, Stopped,
-  Failed.
+- **Run status** says how a run ended, from the CLI's `verdict` in `done`,
+  summary.json and a diverged run's `error` event: Converged, Forces settled;
+  residuals not converged, Statistically steady, Iteration limit, Stopped,
+  Diverged, Failed. Only `converged` shows as converged: status, Monitors
+  headline, Run History, Run Calculation, the top bar, design-study rows and
+  the residual chart's stop mark (Diverged in red; DIVERGED and RESIDUALS
+  WAIVED chart badges) all follow it. Runs from CLIs without `verdict` (and
+  older app-run.json records) get it from `stop_reason` and
+  `residuals_waived` as before; a verdict this app does not know is never
+  taken as converged.
 - **Approximations** show the CLI's explanation, its measured effect and
   evidence separately, each with its own opt-in.
 - **Convergence**: the residual chart draws the run's criteria and marks the
