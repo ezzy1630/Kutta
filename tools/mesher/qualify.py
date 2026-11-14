@@ -57,7 +57,7 @@ def qualify(args, name):
     c['methods']['warped_face_gradient_correction']=False  # not implemented in Kutta; snapped faces can be warped
     if name=='ahmed':
         c['reference_values'].update(area=.112032,length=1.044)
-        c['boundaries']['ground']={'type':'wall'}
+        c['boundaries']['ground']={'type':'wall','motion':'stationary'}  # fixed-floor tunnel; not a report zone
     case.write_text(json.dumps(c,indent=2)+'\n')
     receipt['case_settings']=c
     controls={'monitors/check-convergence':True,'monitors/condition':'all'}

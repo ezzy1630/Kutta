@@ -55,7 +55,7 @@ std::string shifted_x(std::string text,double dx) {
 Surface surface(MeshTemp& t,std::string text=cube()) {
   mesh_text(t.path("test.stl"),text); const std::array paths{t.path("test.stl")}; return read_stl(paths,{});
 }
-Settings tiny(std::string layers=R"({"count":0})") { return parse_settings(R"({"v":1,"base_size":0.4,"surface":{"min_size":0.1,"max_size":0.1,"proximity_min_size":0},"tunnel":{"upstream":0.3,"downstream":0.3,"side":0.3,"top":0.3},"layers":)"+layers+R"(,"max_cells":200000})"); }
+Settings tiny(std::string layers=R"({"count":0})") { return parse_settings(R"({"v":1,"base_size":0.4,"surface":{"min_size":0.1,"max_size":0.1},"tunnel":{"upstream":0.3,"downstream":0.3,"side":0.3,"top":0.3},"layers":)"+layers+R"(,"max_cells":200000})"); }
 double report(const Json::Object& r,std::initializer_list<std::string_view> path) {
   const Json* j=nullptr; const Json::Object* o=&r;
   for(auto key:path) { j=&o->at(std::string(key)); if(const auto* next=std::get_if<Json::Object>(&j->value)) o=next; }
@@ -277,9 +277,9 @@ TEST_CASE("incremental displacement matches a fresh displacement of the same tar
   CHECK(norm(fresh.points[sources[0]]-w.points[sources[0]])>.019);
 }
 TEST_CASE("mesh report contract: shape counts, skewness range, histogram faces, contacts, progress, zero gap floor") {
-  CHECK(parse_settings(R"({"v":1,"surface":{"proximity_min_size":0}})").proximity_floor()==doctest::Approx(.016/4));
+  CHECK(parse_settings(R"({"v":1,"surface":{"proximity_min_size":0}})").proximity_floor()==doctest::Approx(.008/4));
   CHECK(parse_settings(R"({"v":1})").proximity_floor()==doctest::Approx(.002));
-  CHECK(parse_settings(R"({"v":1,"surface":{"min_size":0.001,"max_size":0.01}})").proximity_floor()==doctest::Approx(.001/8));
+  CHECK(parse_settings(R"({"v":1,"surface":{"min_size":0.001,"max_size":0.01}})").proximity_floor()==doctest::Approx(.001/4));
   MeshTemp t;
   // The cube stands on the ground: a contact, not a closed slot.
   std::vector<double> fractions;
@@ -313,7 +313,7 @@ TEST_CASE("mesh report contract: shape counts, skewness range, histogram faces, 
 }
 TEST_CASE("kutta mesh writes JSONL and a case that solves through the real CLI") {
   MeshTemp t; (void)surface(t);
-  mesh_text(t.path("mesh.json"),R"({"v":1,"base_size":0.4,"surface":{"min_size":0.1,"max_size":0.1,"proximity_min_size":0},"tunnel":{"upstream":0.3,"downstream":0.3,"side":0.3,"top":0.3},"layers":{"count":2,"first_height":0.005,"growth":1.2},"max_cells":200000})");
+  mesh_text(t.path("mesh.json"),R"({"v":1,"base_size":0.4,"surface":{"min_size":0.1,"max_size":0.1},"tunnel":{"upstream":0.3,"downstream":0.3,"side":0.3,"top":0.3},"layers":{"count":2,"first_height":0.005,"growth":1.2},"max_cells":200000})");
   const auto args="mesh "+quote(t.path("test.stl"))+" --setup "+quote(t.path("mesh.json"))+" --out "+quote(t.path("out"))+" --case --progress jsonl";
   REQUIRE_MESSAGE(cli(args,t.path("mesh.log"))==0,mesh_text(t.path("mesh.log")));
   CHECK(std::filesystem::exists(t.path("out/mesh-report.json")));

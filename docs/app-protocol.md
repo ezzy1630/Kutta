@@ -1135,16 +1135,16 @@ kutta solve car-mesh/case.kutta.json --backend metal --iterations 2000 --out car
 `kutta mesh GEOM.stl [MORE.stl ...] [--setup mesh.json] --out DIR [--case]
 [--speed M/S] [--wheel ZONE=R,X,Y,Z,AX,AY,AZ]... [--progress jsonl] [--json]
 [--force]` is additive to v1. Omitting setup uses SI FSAE defaults: +x flow,
-+z up, 20 m/s for optional case/y+ estimates, 0.25 m base size, 0.016–0.03 m
++z up, 20 m/s for optional case/y+ estimates, 0.25 m base size, 0.008–0.03 m
 surface sizes, 20° feature angle, three cells across gaps down to 2 mm cells,
 four prism layers (2 mm first height, growth 1.3), body-relative refinement
 boxes (below) and 10 million maximum cells. These are starting sizes, not an
 accuracy or cell-count guarantee; on the synthetic FSAE car they give about
-4.0 million cells and an estimated 8.4 GB of solver memory
+4.3 million cells and an estimated 9.1 GB of solver memory
 (`estimated_solver_memory`), with every wing slot open. Budget exhaustion
 fails rather than silently coarsening the mesh. (v1 additive change of
-defaults: the minimum surface size was 0.006 m, the gap floor `min_size/4`,
-and no boxes were added; that gave 4.4 million cells.)
+defaults: the minimum surface size was 0.006 m and no boxes were added; that
+gave 4.4 million cells.)
 
 Setup is strict JSON (1 MiB maximum): unknown keys, duplicate keys, wrong types,
 invalid ranges and unsupported directions fail with qualified paths such as
@@ -1155,7 +1155,7 @@ All lengths in setup are metres; `units` scales **STL coordinates only**.
 {"v":1,"units":"m","flow":"+x","up":"+z",
  "tunnel":{"upstream":3,"downstream":6,"side":2,"top":2,"ground":true,"symmetry":null},
  "base_size":0.25,
- "surface":{"min_size":0.016,"max_size":0.03,"curvature_degrees":20,"proximity_cells":3},
+ "surface":{"min_size":0.008,"max_size":0.03,"curvature_degrees":20,"proximity_cells":3,"proximity_min_size":0},
  "refinement_boxes":[{"name":"wake","min":[1,-1,0],"max":[5,1,1.5],"size":0.03}],
  "layers":{"count":4,"first_height":0.002,"growth":1.3,"zones":["*"]},
  "max_cells":10000000}
@@ -1178,9 +1178,9 @@ boxes used and the octree cell each achieves. Face, edge
 and corner neighbours are balanced to at most 2:1. Curvature sizes facets by
 their radius times the feature angle. Gaps (to another facet across the fluid,
 or to the ground) are sized to `proximity_cells` cells across, refining below
-`min_size` down to `proximity_min_size` (omitted: `min_size/8`, 2 mm at the
-default sizes; an explicit 0 is accepted, a v1 additive fix, and keeps the
-original meaning `min_size/4`). Next to layered
+`min_size` down to `proximity_min_size` (0, the default, means `min_size/4`,
+2 mm at the default sizes; an explicit 0 is accepted, a v1 additive fix).
+Next to layered
 walls, cells are at most four last-layer thicknesses, so the layer-to-core
 size jump stays small. Tessellate curved STL surfaces finely enough to describe
 their curvature.
