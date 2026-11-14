@@ -118,8 +118,10 @@ void write_issues(std::ostream& s,std::span<const Issue> issues) {
   }
   s<<']';
 }
-void error_event(std::string_view message,std::span<const Issue> issues) {
-  std::cout<<"{\"v\":1,\"event\":\"error\",\"message\":"<<json_string(message)<<",\"issues\":";write_issues(std::cout,issues);std::cout<<'}'<<std::endl;
+void error_event(std::string_view message,std::span<const Issue> issues,std::string_view verdict) {
+  std::cout<<"{\"v\":1,\"event\":\"error\",\"message\":"<<json_string(message)<<",\"issues\":";write_issues(std::cout,issues);
+  if(!verdict.empty())std::cout<<",\"verdict\":"<<json_string(verdict);
+  std::cout<<'}'<<std::endl;
 }
 int devices(int argc,char** argv) {
   if(argc!=2 && !(argc==3 && std::string_view(argv[2])=="--json")) {std::cerr<<"Usage: kutta devices [--json]\n";return 2;}

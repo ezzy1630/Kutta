@@ -124,7 +124,7 @@ for name, data, approximate in [("tiny", False, False), ("tiny", True, False), (
         assert set(e["reports"]) == {"drag", "downforce" if name == "downforce" else "lift", "force"}
         for r in e["reports"].values():
             assert math.isclose(r["coefficient"], r["force"] / 6, abs_tol=1e-12)
-    assert events[-1]["iterations"] == 21 and events[-1]["stop_reason"] == "iteration_limit"
+    assert events[-1]["iterations"] == 21 and events[-1]["stop_reason"] == "iteration_limit" and events[-1]["verdict"] == "iteration_limit"
     assert (out / "view-input.bin").is_file()
     command("export-view", out, "--slice", "0.5,0,0,1,0,0")
     manifest = json.loads((out / "view/manifest.json").read_text())
@@ -166,6 +166,7 @@ for stop in (["eof", "sigint"] if os.name != "nt" else ["eof"]):
         assert [e for e in events if e["event"] == "iteration"][-1]["iter"] == events[-1]["iterations"]
     summary = json.loads((out / "summary.json").read_text())
     assert summary["stop_reason"] == "stopped" and summary["iterations"] == events[-1]["iterations"]
+    assert summary["verdict"] == events[-1]["verdict"] == "stopped"
     for file in ["result.vtu", "forces.csv", "residuals.csv", "view-input.bin"]:
         assert (out / file).is_file(), file
     command("export-view", out)
@@ -333,6 +334,7 @@ assert done["converged"] is True and done["stop_reason"] == "converged" and done
 assert done["convergence"]["met_by"] == ["report:drag"] and done["convergence"]["iteration"] == 2
 summary = json.loads((converged_out / "summary.json").read_text())
 assert summary["converged"] is True and summary["stop_reason"] == "converged" and summary["convergence"] == done["convergence"]
+assert summary["verdict"] == done["verdict"] == "converged"
 # The statistically-steady stop (windows of 1: averaging starts at iteration 3
 # and has two windows at 4). Never converged; its mean and range are reported.
 steady_controls = {"run/iterations": 8, "run/monitor-interval": 1, "monitors/forces-settled/window": 1,
@@ -351,10 +353,41 @@ assert averaged["reports"]["drag"]["min"] == min(drag) and averaged["reports"]["
 assert "coefficient" in averaged["reports"]["drag"] and "averaged" in samples[-1]["convergence"]
 summary = json.loads((steady_out / "summary.json").read_text())
 assert summary["stop_reason"] == "statistically_steady" and summary["converged"] is False and summary["convergence"] == done["convergence"]
+assert summary["verdict"] == done["verdict"] == "statistically_steady"
+# Settled forces with a residual criterion that cannot be met: converged by
+# the forces-settled condition with the residuals waived. `converged` stays
+# true (unchanged meaning); `verdict` says the residuals were not met.
+waived_out, events = solve_setup({"run/iterations": 20, "run/monitor-interval": 1, "monitors/forces-settled/window": 1,
+                                  "monitors/forces-settled/tolerance": 1e30, "monitors/forces-averaged/active": False,
+                                  "monitors/residual/continuity/check": True, "monitors/residual/continuity/absolute-criterion": 1e-30},
+                                 "residuals-waived", case="tiny")
+done = events[-1]
+assert done["converged"] is True and done["stop_reason"] == "converged" and done["convergence"]["residuals_waived"] is True, done
+assert done["verdict"] == "forces_settled_residuals_waived" and "residuals" not in done["convergence"]["met_by"], done
+summary = json.loads((waived_out / "summary.json").read_text())
+assert summary["verdict"] == "forces_settled_residuals_waived" and summary["converged"] is True
+# A diverging iteration writes no summary; its error event carries
+# verdict "diverged" (v1 additive). An absurd inlet speed overflows the
+# momentum residual within a few iterations; try several so the check does
+# not depend on one platform's rounding.
+diverged = []
+for speed in (1e8, 1e9, 1e10):
+    (root / "setup-diverge.json").write_text(json.dumps({"v": 1, "overrides": {"boundary/inlet/velocity-magnitude": speed, "run/iterations": 30, "run/monitor-interval": 1}}))
+    r = subprocess.run([cli, "solve", str(root / "inlet.cas.h5"), "--backend", "cpu", "--setup", str(root / "setup-diverge.json"),
+                        "--out", str(root / ("diverge-%g" % speed)), "--progress", "jsonl"], stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=60)
+    last = json.loads(r.stdout.splitlines()[-1])
+    if last["event"] == "error":
+        assert r.returncode == 1 and last["message"].startswith("the solution diverged at iteration ") and last["verdict"] == "diverged", last
+        diverged.append(speed)
+    else:
+        assert last["event"] == "done" and last["verdict"] == "iteration_limit", last
+assert diverged, "no inlet speed diverged"
+# Other errors carry no verdict.
+assert "verdict" not in json.loads(command("solve", root / "missing.cas.h5", "--progress", "jsonl", code=1).stdout.splitlines()[-1])
 # A cycle that is not steady runs to its limit and still reports its last averaging state.
 _, events = solve_setup({**steady_controls, "monitors/forces-averaged/tolerance": 1e-30, "monitors/forces-averaged/range": 0}, "not-steady", case="tiny")
 done = events[-1]
-assert done["stop_reason"] == "iteration_limit" and done["iterations"] == 8, done
+assert done["stop_reason"] == "iteration_limit" and done["verdict"] == "iteration_limit" and done["iterations"] == 8, done
 assert done["convergence"]["averaged"]["steady"] is False and done["convergence"]["averaged"]["to"] == 8, done
 # Checking on with nothing to check warns and runs to the limit.
 _, events = solve_setup({"run/iterations": 2, "run/monitor-interval": 1, "monitors/check-convergence": True, "monitors/forces-settled/active": False,

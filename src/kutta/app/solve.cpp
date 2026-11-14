@@ -123,6 +123,8 @@ int solve(int argc,char** argv) {
   try {o=parse(argc,argv);}catch(const std::exception& e){if(jsonl)app::error_event(e.what());std::cerr<<e.what()<<'\n';return 2;}
   app::StopRequest stop(jsonl);
   std::vector<app::Issue> issues;
+  // Set when the iteration itself went non-finite, for the error event's verdict.
+  bool solution_diverged=false;
   try {
     const auto start=Clock::now();
     memory::phase("start");
@@ -247,6 +249,7 @@ int solve(int argc,char** argv) {
     // Say so, with what was last finite and what commonly causes it, instead
     // of the low-level check that caught it.
     const auto diverged=[&](int iteration,std::string_view detail) {
+      solution_diverged=true;
       std::ostringstream m;m.imbue(std::locale::classic());m<<std::setprecision(3);
       m<<"the solution diverged at iteration "<<iteration<<" ("<<detail<<").";
       if(last_residual_iteration>0) {
@@ -450,6 +453,10 @@ int solve(int argc,char** argv) {
     }
     summary_convergence.emplace("averaged",averaged?Json(*averaged):Json(nullptr));
     const auto stop_reason=converged?"converged":steady?"statistically_steady":stopped?"stopped":"iteration_limit";
+    // One unambiguous outcome (v1 additive). `converged` stays true for a run
+    // stopped on settled forces with stalled residuals waived; `verdict`
+    // separates that from a run that met its residual criteria.
+    const auto verdict=converged?(residuals_waived?"forces_settled_residuals_waived":"converged"):stop_reason;
     auto summary=output(o.out/"summary.json");
     summary<<"{\n  \"v\": 1,\n  \"modified\": "<<(changes.empty()?"false":"true")<<",\n  \"overrides\": "<<dump_json(applied)<<",\n  \"run_controls\": "<<dump_json(run_controls)<<",\n  \"approximate\": "<<(setup->approximations.empty()?"false":"true")<<",\n  \"approximation_notice\": "<<json_string(setup::approximation_notice(setup->approximations))
       <<",\n  \"approximations\": [";
@@ -472,11 +479,11 @@ int solve(int argc,char** argv) {
       <<",\n  \"iterations\": "<<solver.report().iteration
       <<",\n  \"wall_time_seconds\": "<<wall_time<<",\n  \"setup_time_seconds\": "<<setup_time;
     if(live)summary<<",\n  \"live_view\": "<<dump_json(live_statistics(wall_time));
-    summary<<",\n  \"peak_device_memory_bytes\": null,\n  \"converged\": "<<(converged?"true":"false")<<",\n  \"stop_reason\": "<<json_string(stop_reason)
+    summary<<",\n  \"peak_device_memory_bytes\": null,\n  \"converged\": "<<(converged?"true":"false")<<",\n  \"stop_reason\": "<<json_string(stop_reason)<<",\n  \"verdict\": "<<json_string(verdict)
       <<",\n  \"convergence\": "<<dump_json(summary_convergence)<<",\n  \"convergence_criteria_available\": true,\n  \"boundary_wall_shear_available\": true\n}\n";
     summary.close();
     memory::phase("loads-summary");
-    if(jsonl)std::cout<<"{\"v\":1,\"event\":\"done\",\"converged\":"<<(converged?"true":"false")<<",\"iterations\":"<<solver.report().iteration<<",\"elapsed\":"<<wall_time<<",\"out\":"<<json_string(utf8_path(o.out))<<",\"stop_reason\":"<<json_string(stop_reason)<<",\"convergence\":"<<dump_json(summary_convergence);
+    if(jsonl)std::cout<<"{\"v\":1,\"event\":\"done\",\"converged\":"<<(converged?"true":"false")<<",\"iterations\":"<<solver.report().iteration<<",\"elapsed\":"<<wall_time<<",\"out\":"<<json_string(utf8_path(o.out))<<",\"stop_reason\":"<<json_string(stop_reason)<<",\"verdict\":"<<json_string(verdict)<<",\"convergence\":"<<dump_json(summary_convergence);
     if(jsonl){if(live)std::cout<<",\"live_view\":"<<dump_json(live_statistics(wall_time));std::cout<<'}'<<std::endl;}
     else {
       if(converged) {
@@ -506,7 +513,7 @@ int solve(int argc,char** argv) {
     if(jsonl)app::error_event(e.what(),issues);
     std::cerr<<"kutta solve: "<<e.what()<<'\n';return 1;
   } catch(const std::exception& e) {
-    if(jsonl)app::error_event(e.what(),issues);
+    if(jsonl)app::error_event(e.what(),issues,solution_diverged?"diverged":"");
     std::cerr<<"kutta solve: "<<e.what()<<'\n';
     if(!notice.empty()) std::cerr<<notice<<'\n';
     return 1;

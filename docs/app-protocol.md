@@ -359,7 +359,25 @@ a zero-iteration run. `done` and `summary.json` add `stop_reason: "stopped"`, `"
 only for `"converged"`, when convergence checking is on (see Convergence
 criteria below). A run whose iteration diverges (a non-finite linear system,
 residual or force) ends with an `error` event whose message begins "the
-solution diverged at iteration N" and names its last finite residuals. JSONL mode watches stdin EOF only when stdin is a pipe
+solution diverged at iteration N" and names its last finite residuals. That
+`error` event adds `"verdict":"diverged"` (v1 additive); other errors carry no
+`verdict`.
+
+`done` and `summary.json` add `verdict` (v1 additive), the run's outcome in one
+field, which readers should prefer to `converged` and `stop_reason`:
+
+| `verdict` | `converged` | `stop_reason` | meaning |
+| --- | --- | --- | --- |
+| `converged` | true | `converged` | every convergence condition met, residual criteria included |
+| `forces_settled_residuals_waived` | true | `converged` | the forces settled over twice the window while residuals stalled above their criteria (`residuals_waived: true`); not converged by residuals |
+| `statistically_steady` | false | `statistically_steady` | forces cycle about a steady mean |
+| `iteration_limit` | false | `iteration_limit` | the iteration limit came first |
+| `stopped` | false | `stopped` | stopped on request |
+| `diverged` (error event only) | | | the iteration went non-finite; no `done` or `summary.json` |
+
+`converged` and `stop_reason` keep their meaning: a forces-settled stop with
+waived residuals is still `converged: true`, so a reader of `converged` alone
+cannot tell it from residual convergence. JSONL mode watches stdin EOF only when stdin is a pipe
 at startup; the app keeps the child process's stdin pipe open while it runs. Any received
 bytes are ignored. A file, `/dev/null`, a terminal or absent stdin never stops a run. Human mode retains
 normal redirected-stdin behavior and responds to SIGINT / CTRL_BREAK. Neither

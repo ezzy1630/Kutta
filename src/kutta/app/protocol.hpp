@@ -12,5 +12,6 @@ std::vector<Issue> support_issues(const fluent::FluentCase&, const PolyMesh&, bo
 void write_issues(std::ostream&, std::span<const Issue>);
 int inspect_json(int argc, char** argv);
 int devices(int argc, char** argv);
-void error_event(std::string_view message, std::span<const Issue> issues = {});
+// A nonempty verdict (v1 additive, solve's "diverged") is added as `verdict`.
+void error_event(std::string_view message, std::span<const Issue> issues = {}, std::string_view verdict = {});
 } // namespace kutta::app
