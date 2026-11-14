@@ -29,7 +29,7 @@ def check_outputs(directory, data=False, iterations=21, case_name="tiny.cas.h5",
     assert summary["cells"] == 4 and summary["iterations"] == iterations
     assert summary["poor_quality_cells"] == 0 and summary["poor_cell_quality"] == 0.05
     assert summary["wall_time_seconds"] > 0 and summary["setup_time_seconds"] > 0
-    assert summary["converged"] is False and summary["stop_reason"] == "iteration_limit"
+    assert summary["converged"] is False and summary["stop_reason"] == "iteration_limit" and summary["verdict"] == "iteration_limit"
     assert summary["convergence_criteria_available"] is True
     # A case with force reports checks convergence by default: its residual
     # criteria and settled forces, neither reachable in a few iterations.

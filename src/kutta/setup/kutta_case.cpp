@@ -2169,13 +2169,18 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
 }
 
 // ---- starter cases -------------------------------------------------------------------------
+std::span<const ZoneRole> zone_roles() {
+  static constexpr ZoneRole all[] = {ZoneRole::velocity_inlet, ZoneRole::pressure_outlet, ZoneRole::moving_ground, ZoneRole::wall,
+                                     ZoneRole::symmetry,       ZoneRole::interior,        ZoneRole::stationary_ground};
+  return all;
+}
 std::string_view role_name(ZoneRole r) {
-  constexpr std::string_view names[] = {"velocity-inlet", "pressure-outlet", "moving-ground", "wall", "symmetry", "interior"};
+  constexpr std::string_view names[] = {"velocity-inlet", "pressure-outlet", "moving-ground", "wall", "symmetry", "interior", "stationary-ground"};
   return names[int(r)];
 }
 std::optional<ZoneRole> parse_role(std::string_view s) {
-  for (int i = 0; i <= int(ZoneRole::interior); ++i)
-    if (role_name(ZoneRole(i)) == s) return ZoneRole(i);
+  for (const auto r : zone_roles())
+    if (role_name(r) == s) return r;
   return {};
 }
 
@@ -2286,6 +2291,14 @@ KuttaCase fsae_starter(const MeshInfo& mesh, std::filesystem::path mesh_path, co
         w.motion = WallInput::Motion::moving;
         w.speed = o.speed;
         w.direction = flow;
+        c.boundaries.emplace(z.name, w);
+        break;
+      }
+      case ZoneRole::stationary_ground: {
+        // A wind-tunnel floor: no slip, at rest, and not part of the car, so
+        // it never enters the force reports (a plain wall role would).
+        WallInput w;
+        w.motion = WallInput::Motion::stationary;
         c.boundaries.emplace(z.name, w);
         break;
       }

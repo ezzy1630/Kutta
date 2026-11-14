@@ -12,6 +12,7 @@
 #include <limits>
 #include <map>
 #include <numeric>
+#include <optional>
 
 namespace kutta::view {
 namespace {
@@ -56,17 +57,111 @@ Geometry surface(const PolyMesh& m,const Fields& s,const Patch& patch,std::vecto
   for(auto n:vertices)local[n]=-1;
   append_deltas(g.fields);return g;
 }
-void append_polygon(Geometry& g,std::vector<Vec3d> ring,const Plane& plane,Index cell,std::span<const Field> fields) {
-  if(ring.size()<3 || norm(polygon_area(ring))==0)return;
+// Triangulates before touching g, so a ring that cannot be triangulated
+// leaves the geometry unchanged and returns false.
+bool append_polygon(Geometry& g,std::vector<Vec3d> ring,const Plane& plane,Index cell,std::span<const Field> fields) {
+  if(ring.size()<3 || norm(polygon_area(ring))==0)return true;
   if(dot(polygon_area(ring),plane.normal)<0)std::reverse(ring.begin(),ring.end());
   const auto base=std::uint32_t(g.positions.size()/3);
   KUTTA_REQUIRE(std::uint64_t(base)+ring.size()<=UINT32_MAX,"view exceeds uint32 vertices");
-  for(auto i:triangulate(ring))g.indices.push_back(base+i);
+  std::vector<std::uint32_t> triangles;
+  try {triangles=triangulate(ring);}catch(const Error&){return false;}
+  for(auto i:triangles)g.indices.push_back(base+i);
   for(auto p:ring)g.positions.insert(g.positions.end(),{float(p.x),float(p.y),float(p.z)});
   for(std::size_t i=0;i<fields.size();++i){const auto& f=fields[i];for(std::size_t v=0;v<ring.size();++v)for(std::uint32_t c=0;c<f.components;++c)g.fields[i].values.push_back(f.values[std::size_t(cell)*f.components+c]);}
+  return true;
 }
-Geometry slice(const Snapshot& s,const Plane& plane,const kutta::CellFaces& cf,double eps) {
-  const auto& m=s.mesh;Geometry g;
+// Section of one cell by the plane as closed rings, or nullopt when the cell's
+// faces do not bound a closed surface (an edge not shared by exactly two of its
+// faces). Each node is strictly above the plane (distance > eps) or not; a
+// node within eps counts as below. A face of more than three nodes is cut as
+// the triangle fan about its node average, the solver's face geometry, so the
+// cut follows warped and concave faces (2:1 hanging faces whose mid-edge node
+// is not collinear) instead of chording across them, and both cells sharing a
+// face cut the same surface. Crossings lie only where a fan triangle's edge
+// joins an above and a below point and are identified by that edge (mesh edge
+// by node pair, spoke by face and node), so on a closed cell surface every
+// crossing has exactly two segments and the rings always close, whatever the
+// plane does at vertices, on edges or near the faces themselves.
+std::optional<std::vector<std::vector<Vec3d>>> section(const PolyMesh& m,const kutta::CellFaces& cf,Index cell,std::span<const double> distance,double eps) {
+  std::vector<std::uint64_t> keys;std::vector<Vec3d> points;std::vector<std::array<std::uint32_t,2>> link;
+  const auto crossing=[&](std::uint64_t key,Vec3d pa,double da,Vec3d pb,double db) {
+    for(std::size_t i=0;i<keys.size();++i)if(keys[i]==key)return std::uint32_t(i);
+    const auto t=std::clamp(da/(da-db),0.,1.);
+    keys.push_back(key);points.push_back(pa+(pb-pa)*t);link.push_back({UINT32_MAX,UINT32_MAX});
+    return std::uint32_t(points.size()-1);
+  };
+  const auto edge=[&](Index a,Index b){if(a>b)std::swap(a,b);return crossing(std::uint64_t(a)<<32|std::uint64_t(b),m.points[a],distance[a],m.points[b],distance[b]);};
+  bool closed=true;
+  const auto connect=[&](std::uint32_t a,std::uint32_t b) {
+    for(auto [from,to]:{std::pair{a,b},std::pair{b,a}}) {
+      auto& l=link[from];if(l[0]==UINT32_MAX)l[0]=to;else if(l[1]==UINT32_MAX)l[1]=to;else closed=false;
+    }
+  };
+  for(auto i=cf.offsets[cell];i<cf.offsets[cell+1];++i) {
+    const auto f=cf.faces[i];const auto ns=nodes(m,f);
+    bool any_above=false,any_below=false;for(auto n:ns){any_above |= distance[n]>eps;any_below |= distance[n]<=eps;}
+    if(!any_above || !any_below)continue;
+    if(ns.size()==3) {
+      std::uint32_t hit[2];int count=0;
+      for(std::size_t j=0;j<3;++j){const auto a=ns[j],b=ns[(j+1)%3];if((distance[a]>eps)!=(distance[b]>eps))hit[count++]=edge(a,b);}
+      connect(hit[0],hit[1]);continue;
+    }
+    // The fan centre's distance is the mean of its nodes', exactly as the
+    // centre is their mean, so it never leaves their range.
+    Vec3d centre;double dc=0;for(auto n:ns){centre=centre+m.points[n];dc+=distance[n];}
+    centre=centre*(1./double(ns.size()));dc/=double(ns.size());const bool above_c=dc>eps;
+    const auto spoke=[&](Index n){return crossing(std::uint64_t(1)<<63|std::uint64_t(f)<<32|std::uint64_t(n),centre,dc,m.points[n],distance[n]);};
+    for(std::size_t j=0;j<ns.size();++j) {
+      const auto a=ns[j],b=ns[(j+1)%ns.size()];const bool above_a=distance[a]>eps,above_b=distance[b]>eps;
+      if(above_a==above_b && above_a==above_c)continue;
+      std::uint32_t hit[2];int count=0;
+      if(above_a!=above_b)hit[count++]=edge(a,b);
+      if(above_b!=above_c)hit[count++]=spoke(b);
+      if(above_c!=above_a)hit[count++]=spoke(a);
+      connect(hit[0],hit[1]);
+    }
+  }
+  if(!closed)return std::nullopt;
+  for(const auto& l:link)if(l[1]==UINT32_MAX)return std::nullopt;
+  std::vector<std::vector<Vec3d>> rings;std::vector<bool> used(points.size());
+  for(std::uint32_t start=0;start<points.size();++start)if(!used[start]) {
+    std::vector<Vec3d> ring;std::uint32_t previous=UINT32_MAX,current=start;
+    do {
+      used[current]=true;
+      // Crossings at t=0 or 1 on edges sharing a node coincide; keep one.
+      if(ring.empty() || norm(ring.back()-points[current])>eps)ring.push_back(points[current]);
+      const auto next=link[current][0]==previous?link[current][1]:link[current][0];
+      previous=current;current=next;
+    }while(current!=start && !used[current]);
+    if(current!=start)return std::nullopt;
+    while(ring.size()>1 && norm(ring.back()-ring.front())<=eps)ring.pop_back();
+    // A ring through the same point twice (the fan centre of a face lying
+    // almost in the plane, between two above-plane parts of that face)
+    // splits there into simple rings.
+    std::vector<std::vector<Vec3d>> pending{std::move(ring)};
+    while(!pending.empty()) {
+      auto r=std::move(pending.back());pending.pop_back();bool split=false;
+      for(std::size_t a=0;a<r.size() && !split;++a)for(std::size_t b=a+1;b<r.size();++b)if(norm(r[a]-r[b])<=eps) {
+        std::vector<Vec3d> inner(r.begin()+std::ptrdiff_t(a),r.begin()+std::ptrdiff_t(b)),outer(r.begin()+std::ptrdiff_t(b),r.end());
+        outer.insert(outer.end(),r.begin(),r.begin()+std::ptrdiff_t(a));
+        pending.push_back(std::move(inner));pending.push_back(std::move(outer));split=true;break;
+      }
+      if(split)continue;
+      // Spoke crossings on a planar face lie on the chord between its edge
+      // crossings; drop such collinear points so slices stay as small as
+      // before (this also removes zero-width spikes).
+      for(std::size_t j=0;r.size()>=3 && j<r.size();) {
+        const auto& p0=r[(j+r.size()-1)%r.size()];const auto& p1=r[j];const auto& p2=r[(j+1)%r.size()];
+        if(norm(cross(p1-p0,p2-p1))<=1e-9*norm(p1-p0)*norm(p2-p1)){r.erase(r.begin()+std::ptrdiff_t(j));j=0;}else ++j;
+      }
+      if(r.size()>=3)rings.push_back(std::move(r));
+    }
+  }
+  return rings;
+}
+Geometry slice(const Snapshot& s,const Plane& plane,const kutta::CellFaces& cf,double eps,std::uint64_t& skipped) {
+  const auto& m=s.mesh;Geometry g;skipped=0;
   for(const auto& f:s.cells)g.fields.push_back({f.name,f.unit,f.components,{}});
   std::vector<double> distance;distance.reserve(m.points.size());for(auto p:m.points)distance.push_back(dot(p-plane.origin,plane.normal));
   std::vector<bool> candidate(m.n_cells);
@@ -75,47 +170,44 @@ Geometry slice(const Snapshot& s,const Plane& plane,const kutta::CellFaces& cf,d
     for(auto n:nodes(m,f)){lo=std::min(lo,distance[n]);hi=std::max(hi,distance[n]);}
     if(lo<=eps && hi>=-eps){candidate[m.owner[f]]=true;if(f<m.n_internal_faces())candidate[m.neighbour[f]]=true;}
   }
+  std::vector<Index> coplanar;
   for(Index cell=0;cell<m.n_cells;++cell)if(candidate[cell]) {
-    bool coplanar=false;
-    // A plane coincident with an existing face is emitted once, using its
-    // owner cell's values. Neighbour copies would z-fight in the viewer.
+    // Faces lying in the plane (every node within eps).
+    coplanar.clear();
     for(auto i=cf.offsets[cell];i<cf.offsets[cell+1];++i) {
-      const auto f=cf.faces[i];const auto ns=nodes(m,f);
-      if(std::all_of(ns.begin(),ns.end(),[&](Index n){return std::abs(distance[n])<=eps;})) {
-        coplanar=true;if(m.owner[f]==cell){std::vector<Vec3d> p;for(auto n:ns)p.push_back(m.points[n]);append_polygon(g,std::move(p),plane,cell,s.cells);}
-      }
+      const auto ns=nodes(m,cf.faces[i]);
+      if(std::all_of(ns.begin(),ns.end(),[&](Index n){return std::abs(distance[n])<=eps;}))coplanar.push_back(cf.faces[i]);
     }
-    if(coplanar)continue;
-    bool positive=false,negative=false;
-    for(auto i=cf.offsets[cell];i<cf.offsets[cell+1];++i)for(auto n:nodes(m,cf.faces[i])){positive |= distance[n]>eps;negative |= distance[n]<-eps;}
-    if(!positive || !negative)continue; // tangent point/edge, zero section area
-    std::vector<Vec3d> points;std::vector<std::array<std::uint32_t,2>> edges;
-    const auto point=[&](Vec3d p){for(std::size_t i=0;i<points.size();++i)if(norm(points[i]-p)<=eps)return std::uint32_t(i);points.push_back(p);return std::uint32_t(points.size()-1);};
-    for(auto i=cf.offsets[cell];i<cf.offsets[cell+1];++i) {
-      const auto ns=nodes(m,cf.faces[i]);std::vector<Vec3d> p;for(auto n:ns)p.push_back(m.points[n]);
-      const auto triangles=triangulate(p);
-      for(std::size_t t=0;t<triangles.size();t+=3) {
-        std::vector<std::uint32_t> hits;
-        const auto hit=[&](Vec3d v){const auto id=point(v);if(std::find(hits.begin(),hits.end(),id)==hits.end())hits.push_back(id);};
-        for(int j=0;j<3;++j) {
-          const auto a=triangles[t+j],b=triangles[t+(j+1)%3];const auto da=distance[ns[a]],db=distance[ns[b]];
-          if(std::abs(da)<=eps)hit(p[a]);
-          if((da>eps && db<-eps) || (da<-eps && db>eps))hit(p[a]+(p[b]-p[a])*(da/(da-db)));
-        }
-        if(hits.size()==2){std::array edge{std::min(hits[0],hits[1]),std::max(hits[0],hits[1])};if(std::find(edges.begin(),edges.end(),edge)==edges.end())edges.push_back(edge);}
-      }
+    const auto face_polygon=[&](Index f){std::vector<Vec3d> p;for(auto n:nodes(m,f))p.push_back(m.points[n]);return p;};
+    bool above=false,below=false,ok=true;
+    for(auto i=cf.offsets[cell];i<cf.offsets[cell+1];++i)for(auto n:nodes(m,cf.faces[i])){above |= distance[n]>eps;below |= distance[n]<=eps;}
+    if(!above) {
+      // Wholly on or below the plane: only a boundary face lying in the
+      // plane has no cell above it to emit it.
+      for(auto f:coplanar)if(f>=m.n_internal_faces())ok &= append_polygon(g,face_polygon(f),plane,cell,s.cells);
+      skipped+=!ok;continue;
     }
-    std::vector<bool> used(edges.size());
-    for(std::size_t first=0;first<edges.size();++first)if(!used[first]) {
-      std::vector<Vec3d> ring;auto start=edges[first][0],current=start;std::size_t edge=first;
-      do {
-        ring.push_back(points[current]);used[edge]=true;current=edges[edge][0]==current?edges[edge][1]:edges[edge][0];
-        if(current==start)break;
-        edge=0;for(;edge<edges.size();++edge)if(!used[edge] && (edges[edge][0]==current || edges[edge][1]==current))break;
-        KUTTA_REQUIRE(edge<edges.size(),"slice intersection is not a closed polygon");
-      }while(ring.size()<=edges.size());
-      KUTTA_REQUIRE(current==start,"slice polygon did not close");append_polygon(g,std::move(ring),plane,cell,s.cells);
+    if(!below)continue;
+    const auto rings=section(m,cf,cell,distance,eps);
+    if(!rings){++skipped;continue;}
+    std::vector<const std::vector<Vec3d>*> kept;double section_area=0;
+    for(const auto& ring:*rings) {
+      // A cell touching the plane only along a vertex or an edge (within eps)
+      // yields a ring of zero width: no section area, nothing to draw.
+      double diameter=0;for(const auto& p:ring)diameter=std::max(diameter,norm(p-ring.front()));
+      const auto area=norm(polygon_area(ring));
+      if(area>eps*diameter){kept.push_back(&ring);section_area+=area;}
     }
+    // When the section is exactly this cell's faces lying in the plane, emit
+    // those faces with their owner's values, once: a plane coincident with an
+    // existing face keeps its owner's values, as before, and neighbour copies
+    // would z-fight in the viewer. Otherwise (a face only partly within eps,
+    // as snapped meshes have) the cell's own section is the consistent cut.
+    double face_area=0;for(auto f:coplanar)face_area+=norm(polygon_area(face_polygon(f)));
+    if(!coplanar.empty() && std::abs(face_area-section_area)<=1e-6*std::max(face_area,section_area))
+      for(auto f:coplanar)ok &= append_polygon(g,face_polygon(f),plane,m.owner[f],s.cells);
+    else for(const auto* ring:kept)ok &= append_polygon(g,*ring,plane,cell,s.cells);
+    skipped+=!ok;
   }
   std::erase_if(g.fields,[](const auto& f){return !f.values.empty() && std::none_of(f.values.begin(),f.values.end(),[](float v){return std::isfinite(v);});});
   append_deltas(g.fields);return g;
@@ -181,7 +273,10 @@ double slice_tolerance(const PolyMesh& mesh) {
   return std::max(norm(hi-lo)*1e-10,std::max(norm(lo),norm(hi))*8*std::numeric_limits<double>::epsilon());
 }
 Json::Object write_slice(const std::filesystem::path& file,const Snapshot& s,const Plane& p,const kutta::CellFaces& cf,double eps) {
-  auto descriptor=write_geometry(file,slice(s,p,cf,eps)).descriptor;
+  std::uint64_t skipped=0;auto descriptor=write_geometry(file,slice(s,p,cf,eps,skipped)).descriptor;
+  // Cells whose faces do not close, or whose section cannot be triangulated,
+  // are left out instead of failing the whole export (v1 additive).
+  descriptor.emplace("skipped_cells",double(skipped));
   descriptor.emplace("origin",Json::Array{p.origin.x,p.origin.y,p.origin.z});descriptor.emplace("normal",Json::Array{p.normal.x,p.normal.y,p.normal.z});
   return descriptor;
 }

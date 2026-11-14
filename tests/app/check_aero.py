@@ -43,6 +43,7 @@ assert done["event"] == "done" and done["converged"] is True and done["stop_reas
 assert done["convergence"]["met_by"] == ["residuals"] and done["convergence"]["iteration"] == 2
 summary = json.loads((run / "summary.json").read_text())
 assert summary["converged"] is True and summary["stop_reason"] == "converged" and summary["convergence"] == done["convergence"]
+assert summary["verdict"] == done["verdict"] == "converged"
 assert summary["convergence_criteria_available"] is True and summary["iterations"] == 2
 
 # Per-zone loads equal the solver's wall force rows up to float summation.

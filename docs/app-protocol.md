@@ -78,7 +78,7 @@ is the same identity.
            "reason":"name contains \"ground\"; the road moves with the freestream","group":null},
           {"id":10,"name":"front_wing","mesh_type":"wall","kind":"boundary","faces":10,
            "role":"wall","suggested_role":"wall","reason":"a wall of the car","group":"Front wing"}],
- "roles":["velocity-inlet","pressure-outlet","moving-ground","wall","symmetry","interior"],
+ "roles":["velocity-inlet","pressure-outlet","moving-ground","wall","symmetry","interior","stationary-ground"],
  "notes":["Reference area is Fluent's default, 1 m^2; ..."],
  "case":{...the Kutta case...},
  "out":"/abs/car.kutta.json"}
@@ -86,7 +86,13 @@ is the same identity.
 
 `suggested_role` comes from the zone's name (inlet, outlet, ground/road/belt,
 symmetry/top/side/farfield words), else from the mesh's zone type, else wall;
-`role` is the suggestion unless `--role ZONE=ROLE` overrides it. Wall zones
+`role` is the suggestion unless `--role ZONE=ROLE` overrides it. `roles` lists every
+role in this order; `stationary-ground` (v1 additive, appended) is a no-slip
+wall at rest, `{"type":"wall","motion":"stationary"}`, for a fixed-floor wind
+tunnel. A ground/road/belt zone is still suggested `moving-ground`, the FSAE
+default; neither ground role is ever a force-report zone. A zone suggested as
+ground but given the plain `wall` role joins the car's reports, and the notes
+say so. Wall zones
 carry an aero `group` (Front wing, Rear wing, Wing, Undertray / diffuser,
 Wheels, Body), the app's grouping. The `fsae-external` template: flow along
 +x at `--speed` (default 15 m/s), up +z (+y in 2D), k-ω SST, air, velocity
@@ -247,6 +253,10 @@ mesh read.
 
 The exact view binary layout, field names/units, interpolation and missing-data
 semantics are in [the writer's format specification](../src/kutta/io/VIEW_FORMAT.md).
+Each slice descriptor carries `skipped_cells` (v1 additive): cells left out of
+that slice because their faces do not close or their section cannot be
+triangulated (tangled cells), instead of failing the export. It is 0 on a
+valid mesh; the app may say "N cells could not be sliced" when it is not.
 The app should use manifest descriptors rather than assuming every zone has
 all fields. `--slice` takes **one** argument with six comma-separated finite
 numbers, `ox,oy,oz,nx,ny,nz`. The normal must be nonzero and is normalized.
@@ -355,7 +365,25 @@ a zero-iteration run. `done` and `summary.json` add `stop_reason: "stopped"`, `"
 only for `"converged"`, when convergence checking is on (see Convergence
 criteria below). A run whose iteration diverges (a non-finite linear system,
 residual or force) ends with an `error` event whose message begins "the
-solution diverged at iteration N" and names its last finite residuals. JSONL mode watches stdin EOF only when stdin is a pipe
+solution diverged at iteration N" and names its last finite residuals. That
+`error` event adds `"verdict":"diverged"` (v1 additive); other errors carry no
+`verdict`.
+
+`done` and `summary.json` add `verdict` (v1 additive), the run's outcome in one
+field, which readers should prefer to `converged` and `stop_reason`:
+
+| `verdict` | `converged` | `stop_reason` | meaning |
+| --- | --- | --- | --- |
+| `converged` | true | `converged` | every convergence condition met, residual criteria included |
+| `forces_settled_residuals_waived` | true | `converged` | the forces settled over twice the window while residuals stalled above their criteria (`residuals_waived: true`); not converged by residuals |
+| `statistically_steady` | false | `statistically_steady` | forces cycle about a steady mean |
+| `iteration_limit` | false | `iteration_limit` | the iteration limit came first |
+| `stopped` | false | `stopped` | stopped on request |
+| `diverged` (error event only) | | | the iteration went non-finite; no `done` or `summary.json` |
+
+`converged` and `stop_reason` keep their meaning: a forces-settled stop with
+waived residuals is still `converged: true`, so a reader of `converged` alone
+cannot tell it from residual convergence. JSONL mode watches stdin EOF only when stdin is a pipe
 at startup; the app keeps the child process's stdin pipe open while it runs. Any received
 bytes are ignored. A file, `/dev/null`, a terminal or absent stdin never stops a run. Human mode retains
 normal redirected-stdin behavior and responds to SIGINT / CTRL_BREAK. Neither
@@ -611,8 +639,10 @@ Concave faces are ear-clipped in their dominant projection. For warped faces,
 the exporter selects a shared diagonalization that favours positive tetrahedra
 for both neighbouring cells. If necessary, it finds an interior point in the
 triangulated cell kernel instead of using the Fluent face-pyramid centroid.
-A cell without a positive kernel fails explicitly; inverted or overlapping
-tetrahedra are never silently accepted. Vertices
+A cell without a positive kernel, or with an inverted decomposition
+tetrahedron, is left out whole (no overlapping or inverted tetrahedra are
+emitted) and counted in the iso-surface descriptor's `skipped_cells` (v1
+additive); earlier CLIs failed the export on such a cell. Vertices
 are welded by topological edge identity, duplicate triangles are removed, and
 winding points toward increasing iso value. A scalar `field` uses its value;
 a vector uses magnitude by default, or `component:0|1|2` for x/y/z. Requested

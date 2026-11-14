@@ -186,6 +186,39 @@ TEST_CASE("kutta new-case writes a starter case for a bare mesh that solves") {
   CHECK(kutta_cli("solve " + quote(t.path("box.kutta.json")) + " --data " + quote(t.path("box.msh")) + " --iterations 1 --out " +
                       quote(t.path("bad")),
                   t.path("bad.log")) != 0);
+
+  // A stationary ground (v1 additive role): a no-slip floor at rest that the
+  // force reports leave out, unlike a plain wall role, which the notes flag.
+  REQUIRE(kutta_cli("new-case " + quote(t.path("box.msh")) + " --speed 20 --role ground=stationary-ground --out " +
+                        quote(t.path("tunnel.kutta.json")) + " --json",
+                    t.path("tunnel.json")) == 0);
+  const auto tunnel = std::get<Json::Object>(parse_json(mesh_text(t.path("tunnel.json"))).value);
+  CHECK(std::get<Json::Array>(tunnel.at("roles").value).back() == Json{std::string("stationary-ground")});
+  for (const auto& zone : std::get<Json::Array>(tunnel.at("zones").value)) {
+    const auto& z = std::get<Json::Object>(zone.value);
+    if (z.at("name") == Json{std::string("ground")}) {
+      CHECK(z.at("role") == Json{std::string("stationary-ground")});
+      CHECK(z.at("suggested_role") == Json{std::string("moving-ground")});
+    }
+  }
+  const auto& case_json = std::get<Json::Object>(tunnel.at("case").value);
+  const auto& ground = std::get<Json::Object>(std::get<Json::Object>(case_json.at("boundaries").value).at("ground").value);
+  CHECK(ground.at("type") == Json{std::string("wall")});
+  CHECK(ground.at("motion") == Json{std::string("stationary")});
+  CHECK_FALSE(ground.contains("speed"));
+  for (const auto& [name, r] : std::get<Json::Object>(case_json.at("reports").value))
+    CHECK(std::get<Json::Object>(r.value).at("zones") == Json{Json::Array{Json{std::string("front_wing")}}});
+  REQUIRE_MESSAGE(kutta_cli("solve " + quote(t.path("tunnel.kutta.json")) + " --iterations 2 --backend cpu --out " + quote(t.path("tunnel-run")),
+                            t.path("tunnel-solve.log")) == 0,
+                  mesh_text(t.path("tunnel-solve.log")));
+  REQUIRE(kutta_cli("new-case " + quote(t.path("box.msh")) + " --role ground=wall --json", t.path("plain.json")) == 0);
+  const auto plain = std::get<Json::Object>(parse_json(mesh_text(t.path("plain.json"))).value);
+  bool flagged = false;
+  for (const auto& n : std::get<Json::Array>(plain.at("notes").value))
+    flagged = flagged || std::get<std::string>(n.value).find("--role ground=stationary-ground") != std::string::npos;
+  CHECK(flagged);
+  CHECK(kutta_cli("new-case " + quote(t.path("box.msh")) + " --role ground=floor --json", t.path("badrole.json")) != 0);
+  CHECK(mesh_text(t.path("badrole.json")).find("stationary-ground") != std::string::npos);
 }
 
 namespace {

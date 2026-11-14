@@ -132,3 +132,37 @@ TEST_CASE("Coarse line probes locate distant samples without exhausting a cell "
   CHECK(result.geometry.fields[0].values[1] ==
         doctest::Approx(.9999).epsilon(1e-5));
 }
+TEST_CASE("A cell with no positive decomposition kernel is skipped and counted, "
+          "not fatal") {
+  // A C-shaped prism: its two arms' inner faces face each other, so no point
+  // sees every face from inside (tangled cells of snapped meshes look like
+  // this to the decomposition).
+  view::Snapshot s;
+  const std::vector<Vec3d> base{{0, 0, 0}, {3, 0, 0}, {3, 1, 0}, {1, 1, 0},
+                                {1, 2, 0}, {3, 2, 0}, {3, 3, 0}, {0, 3, 0}};
+  auto points = base;
+  for (auto p : base)
+    points.push_back({p.x, p.y, 1});
+  std::vector<kutta::detail::Face> faces;
+  faces.push_back({{7, 6, 5, 4, 3, 2, 1, 0}, 0, -1, 0});
+  faces.push_back({{8, 9, 10, 11, 12, 13, 14, 15}, 0, -1, 0});
+  for (Index i = 0; i < 8; ++i) {
+    const auto next = (i + 1) % 8;
+    faces.push_back({{i, next, next + 8, i + 8}, 0, -1, 0});
+  }
+  s.mesh = pack(points, 1, faces, {{"shell", PatchKind::Wall, "wall", 1}});
+  const auto geometry = compute_geometry(s.mesh);
+  s.cells = {{"phi", "m", 1, {.5f}}};
+  view::Field boundary{"phi", "m", 1, {}};
+  for (auto p : geometry.face_centroid)
+    boundary.values.push_back(float(p.z));
+  s.boundary.push_back(boundary);
+  post::Volume volume(s);
+  CHECK_THROWS_WITH(volume.decomposition_center(0),
+                    doctest::Contains("no positive cell kernel"));
+  std::uint64_t skipped = 99;
+  const auto result =
+      post::isosurface(volume, {"section", "phi", .5, -1, {"phi"}}, &skipped);
+  CHECK(skipped == 1);
+  CHECK(result.indices.empty());
+}

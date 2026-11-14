@@ -22,7 +22,10 @@ double scalar(const Sample &s, int component) {
                        : s.value[component];
 }
 } // namespace
-view::Geometry isosurface(const Volume &volume, const Iso &spec) {
+view::Geometry isosurface(const Volume &volume, const Iso &spec,
+                          std::uint64_t *skipped) {
+  if (skipped)
+    *skipped = 0;
   const auto description = volume.info(spec.field);
   KUTTA_REQUIRE(!description.boundary_only,
                 "iso field is boundary-only: " + spec.field);
@@ -108,31 +111,62 @@ view::Geometry isosurface(const Volume &volume, const Iso &spec) {
   };
   constexpr int edge_pairs[6][2] = {{0, 1}, {0, 2}, {0, 3},
                                     {1, 2}, {1, 3}, {2, 3}};
+  struct Tet {
+    Vertex v[4];
+    Vec3d a, b, c;
+    double determinant;
+  };
+  std::vector<Tet> tets;
   for (Index cell = 0; cell < m.n_cells; ++cell) {
-    Vertex center{volume.decomposition_center(cell),
-                  std::uint64_t(m.points.size()) + std::uint64_t(cell), 0};
+    // A tangled cell (no point sees every face triangle from inside, or a
+    // face triangle inverted about that point) cannot be decomposed into
+    // positive tetrahedra. It is skipped whole, before any of its triangles
+    // are emitted, rather than failing the export or emitting overlaps.
+    tets.clear();
+    Vertex center{};
+    bool degenerate = false;
+    try {
+      center = {volume.decomposition_center(cell),
+                std::uint64_t(m.points.size()) + std::uint64_t(cell), 0};
+      for (Index j = volume.cell_faces().offsets[cell];
+           j < volume.cell_faces().offsets[cell + 1] && !degenerate; ++j) {
+        const auto face = volume.cell_faces().faces[j];
+        const auto ns = nodes(m, face);
+        const auto face_triangles = volume.face_triangles(face);
+        for (std::size_t t = 0; t < face_triangles.size(); t += 3) {
+          Tet tet{{center, node(ns[face_triangles[t]]),
+                   node(ns[face_triangles[t + 1]]),
+                   node(ns[face_triangles[t + 2]])},
+                  {}, {}, {}, 0};
+          tet.a = tet.v[1].point - tet.v[0].point;
+          tet.b = tet.v[2].point - tet.v[0].point;
+          tet.c = tet.v[3].point - tet.v[0].point;
+          tet.determinant = dot(tet.a, cross(tet.b, tet.c));
+          if (tet.determinant * volume.cell_faces().signs[j] <
+              -1e-12 * norm(tet.a) * norm(tet.b) * norm(tet.c)) {
+            degenerate = true;
+            break;
+          }
+          tets.push_back(tet);
+        }
+      }
+    } catch (const Error &) {
+      degenerate = true;
+    }
+    if (degenerate) {
+      if (skipped)
+        ++*skipped;
+      continue;
+    }
     for (std::size_t f = 0; f < names.size(); ++f)
       center_values[f] = volume.sample(names[f], cell, center.point);
     center.scalar = scalar(center_values[iso_column], spec.component);
-    for (Index j = volume.cell_faces().offsets[cell];
-         j < volume.cell_faces().offsets[cell + 1]; ++j) {
-      const auto face = volume.cell_faces().faces[j];
-      const auto ns = nodes(m, face);
-      const auto face_triangles = volume.face_triangles(face);
-      for (std::size_t t = 0; t < face_triangles.size(); t += 3) {
-        Vertex v[4] = {center, node(ns[face_triangles[t]]),
-                       node(ns[face_triangles[t + 1]]),
-                       node(ns[face_triangles[t + 2]])};
-        const auto a = v[1].point - v[0].point, b = v[2].point - v[0].point,
-                   c = v[3].point - v[0].point;
-        const double determinant = dot(a, cross(b, c));
-        KUTTA_REQUIRE(
-            determinant * volume.cell_faces().signs[j] >=
-                -1e-12 * norm(a) * norm(b) * norm(c),
-            "iso decomposition is inverted at cell " + std::to_string(cell) +
-                ", face " + std::to_string(face) + ", relative determinant " +
-                std::to_string(determinant * volume.cell_faces().signs[j] /
-                               (norm(a) * norm(b) * norm(c))));
+    for (auto &tet : tets) {
+      tet.v[0].scalar = center.scalar;
+      {
+        auto &v = tet.v;
+        const auto &a = tet.a, &b = tet.b, &c = tet.c;
+        const double determinant = tet.determinant;
         if (std::abs(determinant) <= 1e-18 * norm(a) * norm(b) * norm(c))
           continue;
         bool finite = true;
