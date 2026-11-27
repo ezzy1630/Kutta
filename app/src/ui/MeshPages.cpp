@@ -11,7 +11,10 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDesktopServices>
 #include <QDir>
+#include <QJsonArray>
+#include <QUrl>
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QHeaderView>
@@ -865,6 +868,171 @@ QWidget* generateMesh(const InspectorContext& c)
 
 // ---- Mesh Report -------------------------------------------------------------------------
 
+namespace {
+class GapSection : public QWidget {
+public:
+    explicit GapSection(QWidget* parent) : QWidget(parent)
+    {
+        setMinimumHeight(184);
+        setAccessibleName(tr("Fluid mesh cross-section through the gap"));
+    }
+
+    void setSection(const QJsonObject& data)
+    {
+        m_radius = data.value("radius_m").toDouble();
+        m_width = data.value("width_m").toDouble();
+        m_cells.clear();
+        for (const auto& entry : data.value("polygons").toArray()) {
+            QPolygonF polygon;
+            for (const auto& pair : entry.toArray()) {
+                const auto point = pair.toArray();
+                if (point.size() == 2) polygon << QPointF(point[0].toDouble(), point[1].toDouble());
+            }
+            if (polygon.size() >= 3) m_cells.push_back(polygon);
+        }
+        update();
+    }
+
+protected:
+    void paintEvent(QPaintEvent*) override
+    {
+        if (m_radius <= 0 || m_width <= 0) return;
+        const auto& color = tokens();
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing);
+        const QRectF area = QRectF(rect()).adjusted(1, 1, -1, -26);
+        const double span = std::min(area.width(), area.height());
+        const QRectF plot(area.center() - QPointF(span / 2, span / 2), QSizeF(span, span));
+        painter.fillRect(plot, color.viewport);
+        painter.save();
+        painter.setClipRect(plot);
+        const double scale = span / (2 * m_radius);
+        QTransform toPixel;
+        toPixel.translate(plot.center().x(), plot.center().y());
+        toPixel.scale(scale, -scale);
+        painter.setPen(QPen(color.borderStrong, 1));
+        painter.setBrush(color.accentSoft);
+        for (const QPolygonF& cell : m_cells) painter.drawPolygon(toPixel.map(cell));
+
+        painter.setPen(QPen(color.amber, 2, Qt::DashLine));
+        const auto a = toPixel.map(QPointF(0, -m_width / 2));
+        const auto b = toPixel.map(QPointF(0, m_width / 2));
+        painter.drawLine(a, b);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(color.amber);
+        painter.drawEllipse(a, 3, 3);
+        painter.drawEllipse(b, 3, 3);
+        painter.restore();
+        painter.setPen(color.borderStrong);
+        painter.setBrush(Qt::NoBrush);
+        painter.drawRect(plot);
+        painter.setPen(color.amberText);
+        painter.drawText(QRectF(0, plot.bottom() + 3, width(), 22), Qt::AlignCenter,
+                         tr("Sampled gap · %1 mm").arg(QLocale().toString(m_width * 1000, 'g', 4)));
+    }
+
+private:
+    double m_radius = 0, m_width = 0;
+    std::vector<QPolygonF> m_cells;
+};
+
+void gapInspector(const InspectorContext& c, QVBoxLayout* layout, const std::vector<MeshGap>& gaps)
+{
+    auto* mw = c.session->meshing();
+    std::vector<MeshGap> candidates;
+    for (const auto& gap : gaps)
+        if (!gap.contact && gap.cellsAcross < 3 && gap.width > 0 && gap.sample)
+            candidates.push_back(gap);
+    std::sort(candidates.begin(), candidates.end(), [](const MeshGap& a, const MeshGap& b) {
+        return a.cellsAcross != b.cellsAcross ? a.cellsAcross < b.cellsAcross : a.width < b.width;
+    });
+    if (candidates.empty()) {
+        if (std::any_of(gaps.begin(), gaps.end(), [](const MeshGap& gap) { return !gap.contact && gap.cellsAcross < 3; }))
+            layout->addWidget(label(QObject::tr("Regenerate the mesh to record gap locations for inspection."), "muted"));
+        return;
+    }
+
+    auto* gapList = new QComboBox;
+    gapList->setAccessibleName(QObject::tr("Under-resolved gap"));
+    gapList->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    gapList->setMinimumContentsLength(12);
+    for (const auto& gap : candidates)
+        gapList->addItem(gap.cellsAcross == 1 ? QObject::tr("%1 / %2 · 1 cell").arg(gap.a, gap.b)
+                                            : QObject::tr("%1 / %2 · %3 cells").arg(gap.a, gap.b).arg(gap.cellsAcross));
+    layout->addWidget(gapList);
+    auto* actions = new FlowLayout;
+    auto* inspect = button(QObject::tr("Inspect cross-section"), "scan-line");
+    auto* refine = button(QObject::tr("Add local refinement"), "plus");
+    refine->setEnabled(!mw->meshing() && mw->meshGeometryCurrent());
+    refine->setToolTip(QObject::tr("Add an editable box around the sampled gap, with a target of four cells across its width."));
+    actions->addWidget(inspect);
+    actions->addWidget(refine);
+    layout->addLayout(actions);
+    auto* sectionPlot = new GapSection(gapList->parentWidget());
+    auto* status = label({}, "muted");
+    sectionPlot->hide();
+    layout->addWidget(sectionPlot);
+    layout->addWidget(status);
+    status->hide();
+    const auto refresh = [sectionPlot, status, inspect] {
+        sectionPlot->hide();
+        status->hide();
+        inspect->setEnabled(true);
+    };
+    QObject::connect(gapList, &QComboBox::currentIndexChanged, sectionPlot, refresh);
+    QObject::connect(gapList, &QComboBox::activated, inspect, &QPushButton::click);
+    QObject::connect(inspect, &QPushButton::clicked, sectionPlot, [=] {
+        const int selected = gapList->currentIndex();
+        const auto& gap = candidates.at(std::size_t(selected));
+        sectionPlot->hide();
+        status->setText(QObject::tr("Cutting the volume mesh…"));
+        status->show();
+        inspect->setEnabled(false);
+        gapList->setEnabled(false);
+        QPointer<GapSection> guard(sectionPlot);
+        c.session->cli()->meshSection(mw->meshFile(), gap.sample->first, gap.sample->second,
+            [=](Result<QJsonObject> result) {
+                if (!guard) return;
+                gapList->setEnabled(true);
+                inspect->setEnabled(true);
+                if (!result) {
+                    status->setText(result.error());
+                    return;
+                }
+                sectionPlot->setSection(result.value());
+                sectionPlot->show();
+                const int skipped = result->value("skipped_cells").toInt();
+                status->setText(skipped ? QObject::tr("Fluid-cell outlines. %n invalid cell cut(s) omitted.", nullptr, skipped)
+                                        : QObject::tr("Fluid-cell outlines from the generated mesh."));
+            });
+    });
+    QObject::connect(refine, &QPushButton::clicked, refine, [=] {
+        if (mw->meshing() || !mw->meshGeometryCurrent()) return;
+        const auto& gap = candidates.at(std::size_t(gapList->currentIndex()));
+        auto setup = mw->project().setup;
+        const auto [a, b] = *gap.sample;
+        const float pad = float(2 * gap.width);
+        QVector3D lo, hi;
+        for (int axis = 0; axis < 3; ++axis) {
+            lo[axis] = std::min(a[axis], b[axis]) - pad;
+            hi[axis] = std::max(a[axis], b[axis]) + pad;
+        }
+        if (setup.tunnel.ground) lo.setZ(std::max(0.0f, lo.z()));
+        if (setup.tunnel.symmetry == "y") lo.setY(std::max(0.0f, lo.y()));
+        const QString base = QObject::tr("Gap %1 / %2").arg(gap.a, gap.b);
+        QString name = base;
+        for (int n = 2; std::any_of(setup.boxes.begin(), setup.boxes.end(),
+                    [&](const RefinementBox& box) { return box.name == name; }); ++n)
+            name = QStringLiteral("%1 (%2)").arg(base).arg(n);
+        const double size = std::max(1e-7, gap.width / 4);
+        setup.boxes.push_back({name, lo, hi, std::min(size, setup.baseSize)});
+        mw->setSetup(setup);
+        c.graphics->show("geometry", 0);
+        c.navigate("mesh/refinement");
+    });
+}
+} // namespace
+
 QWidget* meshReport(const InspectorContext& c)
 {
     MeshWorkflow* mw = c.session->meshing();
@@ -947,7 +1115,7 @@ QWidget* meshReport(const InspectorContext& c)
             QStringList lines;
             for (const auto& g : closed) lines << QObject::tr("%1, %2 wide").arg(pair(g), millimetres(g.width));
             box->layout()->addWidget(label(lines.join("\n")));
-            box->layout()->addWidget(label(QObject::tr("The mesh has zero fluid cells across the narrowest sampled section. Refine the slot on Sizing and Boundary Layers and check the regenerated mesh."), "muted"));
+            box->layout()->addWidget(label(QObject::tr("The mesh has zero fluid cells across the narrowest sampled section. Inspect the sampled location and refine the gap before comparing loads."), "muted"));
             v->addWidget(box);
         } else {
             v->addWidget(label(r->gaps->empty() ? QObject::tr("No narrow gaps between parts.") : QObject::tr("Every sampled open gap contains fluid cells."), "muted"));
@@ -960,6 +1128,7 @@ QWidget* meshReport(const InspectorContext& c)
                                                    : QObject::tr("%1: %2 cells across %3").arg(pair(open[i])).arg(open[i].cellsAcross).arg(millimetres(open[i].width)));
             v->addWidget(label(QObject::tr("Narrowest open gaps (of %1):\n%2").arg(open.size()).arg(lines.join("\n")), open.front().cellsAcross < 2 ? "warning" : "muted"));
         }
+        if (!mw->meshSynthetic()) gapInspector(c, v, *r->gaps);
         if (!contact.empty()) {
             QStringList names;
             for (const auto& g : contact) names << pair(g);
@@ -1116,7 +1285,7 @@ QWidget* meshReport(const InspectorContext& c)
     QObject::connect(geo, &QPushButton::clicked, geo, [c] { c.graphics->show("geometry", 0); });
     show->addWidget(geo);
     v->addLayout(show);
-    v->addWidget(label(QObject::tr("Slices through the volume mesh need a section export of the mesh from the CLI (export-geometry draws boundary zones only); once the case has run, Results ▸ Planes cuts the solution."), "faint"));
+    v->addWidget(nextButton(c, "mesh/sensitivity", QObject::tr("Mesh Sensitivity")), 0, Qt::AlignLeft);
 
     v->addWidget(section(QObject::tr("Next")));
     const bool variant = !mw->project().baseCase.isEmpty();
@@ -1135,6 +1304,110 @@ QWidget* meshReport(const InspectorContext& c)
         const QString path = mw->project().caseFile;
         QObject::connect(open, &QPushButton::clicked, open, [c, path] { if (c.openPath) c.openPath(path); });
         v->addWidget(open, 0, Qt::AlignLeft);
+    }
+    return page;
+}
+
+QWidget* meshSensitivity(const InspectorContext& c)
+{
+    Session* session = c.session;
+    auto* mw = session->meshing();
+    if (!mw->hasProject()) return noProject(c, QObject::tr("Mesh Sensitivity"));
+    QVBoxLayout* v;
+    QWidget* page = makePage(QObject::tr("Mesh Sensitivity"), &v);
+    auto* study = mw->sensitivity();
+    const auto result = study->latest(mw->project().dir);
+    const auto grids = result.value("grids").toArray();
+    const QString state = result.value("state").toString();
+    if (!result.isEmpty()) {
+        v->addWidget(label(result.value("message").toString(), state == "failed" ? "error" : "muted"));
+        auto* table = new QGridLayout;
+        table->setHorizontalSpacing(8);
+        table->setVerticalSpacing(5);
+        const QStringList headings{QObject::tr("Coarse"), QObject::tr("Medium"), QObject::tr("Fine")};
+        const QList<std::pair<QString, QString>> metrics{
+            {QObject::tr("Cells"), "cells"}, {QObject::tr("Drag (N)"), "drag_n"},
+            {QObject::tr("Downforce (N)"), "downforce_n"}, {QObject::tr("Front (%)"), "front_percent"},
+            {QObject::tr("Gaps <3 cells"), "under_resolved_gaps"},
+            {QObject::tr("Outcome"), "verdict"}};
+        for (int i = 0; i < headings.size(); ++i) {
+            table->addWidget(label(headings[i], "muted"), 0, i + 1);
+            table->setColumnStretch(i + 1, 1);
+        }
+        const auto verdictText = [](const QString& key) {
+            if (key == "converged") return QObject::tr("Converged");
+            if (key == "statistically_steady") return QObject::tr("Cycling");
+            if (key == "forces_settled_residuals_waived") return QObject::tr("Residuals waived");
+            if (key == "iteration_limit") return QObject::tr("Iteration limit");
+            return QStringLiteral("—");
+        };
+        for (int row = 0; row < metrics.size(); ++row) {
+            const auto& [name, key] = metrics[row];
+            table->addWidget(label(name, "muted"), row + 1, 0);
+            for (int i = 0; i < headings.size(); ++i) {
+                const auto entry = i < grids.size() ? grids[i].toObject() : QJsonObject{};
+                const auto value = entry.value(key);
+                QString text = QStringLiteral("—");
+                if (key == "verdict") text = verdictText(value.toString());
+                else if (value.isDouble())
+                    text = key == "cells" ? QLocale().toString(value.toInteger()) : QLocale().toString(value.toDouble(), 'g', 5);
+                table->addWidget(label(text), row + 1, i + 1);
+            }
+        }
+        v->addLayout(table);
+        if (state == "complete" && grids.size() == 3) {
+            const auto medium = grids[1].toObject(), fine = grids[2].toObject();
+            const auto change = [&](const QString& key) {
+                const auto a = medium.value(key), b = fine.value(key);
+                return a.isDouble() && b.isDouble() ? QLocale().toString(b.toDouble() - a.toDouble(), 'g', 4) : QStringLiteral("—");
+            };
+            v->addWidget(label(QObject::tr("Final loads, fine − medium: %1 N drag, %2 N downforce, %3 points front balance.")
+                                   .arg(change("drag_n"), change("downforce_n"), change("front_percent")), "muted"));
+            QStringList limitations;
+            for (const auto& item : grids) {
+                const auto grid = item.toObject();
+                if (grid.value("verdict") != QStringLiteral("converged")) limitations << QObject::tr("some grids stopped without converging");
+                if (grid.value("under_resolved_gaps").toInt() > 0) limitations << QObject::tr("some sampled gaps have fewer than three cells");
+                if (grid.value("approximate").toBool()) limitations << QObject::tr("the solver used approved approximations");
+            }
+            limitations.removeDuplicates();
+            if (!limitations.isEmpty()) v->addWidget(label(QObject::tr("Diagnostic comparison: %1.").arg(limitations.join(" · ")), "warning"));
+            v->addWidget(label(QObject::tr("A numerical uncertainty interval needs verified asymptotic refinement and a bound on iterative load error. This study reports the observed grid changes."), "muted"));
+            if (fine.value("front_percent").isNull())
+                v->addWidget(label(QObject::tr("Front balance needs a vehicle reference and positive net downforce."), "muted"));
+        }
+        const QString directory = result.value("directory").toString();
+        if (!directory.isEmpty()) {
+            auto* open = button(QObject::tr("Open study folder"), "folder-open");
+            QObject::connect(open, &QPushButton::clicked, page, [directory] { QDesktopServices::openUrl(QUrl::fromLocalFile(directory)); });
+            v->addWidget(open, 0, Qt::AlignLeft);
+        }
+    }
+
+    v->addWidget(section(QObject::tr("Grid setup")));
+    v->addWidget(label(QObject::tr("The project sizing defines the coarse grid. Medium and fine halve the cell sizes and first-layer height in turn. "
+                                  "All three share the same geometry, fixed tunnel, case setup and stopping criteria."), "muted"));
+    v->addWidget(label(QObject::tr("The fine grid can require much more memory and disk space. Each grid keeps the project’s cell limit."), "muted"));
+    if (mw->hasMesh() && mw->meshStale())
+        v->addWidget(label(QObject::tr("The study uses your current geometry and sizing, including edits made since the project mesh was generated."), "muted"));
+
+    auto* error = label({}, "error");
+    error->hide();
+    v->addWidget(error);
+    if (study->running()) {
+        auto* stop = button(QObject::tr("Stop study"), "circle-stop", "danger");
+        QObject::connect(stop, &QPushButton::clicked, study, &MeshSensitivity::stop);
+        v->addWidget(stop, 0, Qt::AlignLeft);
+    } else {
+        auto* run = button(QObject::tr("Generate and solve three grids"), "play", "primary");
+        QObject::connect(run, &QPushButton::clicked, page, [session, error] {
+            QString why;
+            if (!session->startMeshSensitivity(&why)) {
+                error->setText(why);
+                error->show();
+            }
+        });
+        v->addWidget(run, 0, Qt::AlignLeft);
     }
     return page;
 }

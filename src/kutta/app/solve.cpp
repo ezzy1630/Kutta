@@ -2,6 +2,7 @@
 #include "protocol.hpp"
 #include "export.hpp"
 #include "stop.hpp"
+#include "restart.hpp"
 #include "live.hpp"
 #include "kutta/io/live_view.hpp"
 #include "kutta/setup/settings.hpp"
@@ -32,21 +33,25 @@ using namespace kutta;
 using namespace kutta::detail;
 using Clock=std::chrono::steady_clock;
 struct Options {
-  std::filesystem::path input,data,setup_file,live_directory,out="kutta-result";
+  std::filesystem::path input,data,setup_file,live_directory,restart,out="kutta-result";
   std::string backend="auto";
+  bool write_restart=false;
   fv::CoupledEdgeStorage coupled_edge_storage=fv::CoupledEdgeStorage::Cached;
   // 0: the case's default limit (setup::RunControls).
   int iterations=0,live_every=app::LiveCadence::default_every;
   std::vector<setup::Approximation> approximations;
 };
 Options parse(int argc,char** argv) {
-  KUTTA_REQUIRE(argc>=3,"Usage: kutta solve <case.cas.h5|case.kutta.json> [--data init.dat.h5] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--live-view DIR] [--live-every N] [--approximate SETTING[,SETTING...]]");
+  KUTTA_REQUIRE(argc>=3,"Usage: kutta solve <case.cas.h5|case.kutta.json> [--data init.dat.h5] [--restart FILE] [--write-restart] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--live-view DIR] [--live-every N] [--approximate SETTING[,SETTING...]]");
   Options o;o.input=argv[2];std::set<std::string> seen;
-  for(int i=3;i<argc;i+=2) {
-    const std::string key=argv[i];
-    KUTTA_REQUIRE(i+1<argc && seen.insert(key).second,"missing value or duplicate option: "+key);
-    const std::string v=argv[i+1];
+  for(int i=3;i<argc;) {
+    const std::string key=argv[i++];
+    KUTTA_REQUIRE(seen.insert(key).second,"duplicate option: "+key);
+    if(key=="--write-restart") {o.write_restart=true;continue;}
+    KUTTA_REQUIRE(i<argc,"missing value for option: "+key);
+    const std::string v=argv[i++];
     if(key=="--data") o.data=v;
+    else if(key=="--restart") {KUTTA_REQUIRE(!v.empty(),"--restart requires a file");o.restart=v;}
     else if(key=="--setup") o.setup_file=v;
     else if(key=="--out") o.out=v;
     else if(key=="--live-view") {KUTTA_REQUIRE(!v.empty(),"--live-view requires a directory");o.live_directory=v;}
@@ -133,6 +138,11 @@ int solve(int argc,char** argv) {
     // would give; its mesh is read once, here.
     const bool kutta_case=setup::is_kutta_case(o.input);
     KUTTA_REQUIRE(!kutta_case || o.data.empty(),"--data seeds from a Fluent data file, which belongs to a Fluent case; a Kutta case initializes from its own setup");
+    KUTTA_REQUIRE(kutta_case || (o.restart.empty() && !o.write_restart),"native restart requires a Kutta case");
+    const auto restart_path=o.out/"restart.bin";
+    if(!o.restart.empty() && std::filesystem::exists(restart_path))
+      KUTTA_REQUIRE(!std::filesystem::equivalent(o.restart,restart_path),"restart input and run output must use different directories");
+    const auto restart_hash=o.restart.empty()?std::string{}:sha256_file(o.restart);
     std::optional<PolyMesh> preloaded;std::filesystem::path mesh_file;
     auto c=kutta_case?[&]{auto k=setup::load_kutta_case(o.input);preloaded=std::move(k.mesh);mesh_file=k.mesh_path;return std::move(k.settings);}():fluent::read_case(o.input);
     const auto mesh_hash=kutta_case?sha256_file(mesh_file):std::string{};
@@ -155,7 +165,14 @@ int solve(int argc,char** argv) {
     std::vector<setup::ForceDefinition> reports;std::string errors;std::optional<fluent::FluentData> reference;
     const auto check=[&](auto fn) {try {fn();} catch(const std::exception& e) {errors+=std::string(e.what())+'\n';}};
     check([&]{setup=setup::fluent_setup(c,mesh,o.approximations);});
-    check([&]{if(!o.data.empty())reference=fluent::read_data(o.data,c);fields=reference?setup::Initialization{setup::fluent_fields(c,*reference,mesh)}:setup::initial_fields(c,mesh);});
+    check([&] {
+      if(!o.restart.empty()) {
+        if(setup) fields=app::read_restart(o.restart,mesh_hash,mesh.n_cells,setup->settings);
+        return;
+      }
+      if(!o.data.empty()) reference=fluent::read_data(o.data,c);
+      fields=reference?setup::Initialization{setup::fluent_fields(c,*reference,mesh)}:setup::initial_fields(c,mesh);
+    });
     check([&]{reports=setup::force_definitions(c,mesh);});
     if(!errors.empty()) {
       issues=app::support_issues(c,mesh,!o.data.empty());
@@ -184,8 +201,12 @@ int solve(int argc,char** argv) {
     auto dev=device(o.backend);
     memory::phase("device");
     fv::SteadySolver solver(*dev,std::move(mesh),setup->boundaries,setup->settings);
+    const bool hybrid=std::holds_alternative<fv::HybridInitialization>(*fields);
+    const auto init=!o.restart.empty()?"native-restart":!o.data.empty()?"fluent-data":hybrid?"hybrid":"standard";
     setup::initialize(solver,*fields);
-    if(std::holds_alternative<fv::HybridInitialization>(*fields))
+    fields.reset();
+    if(!o.restart.empty()) human<<"Initialization: native restart from "<<utf8_path(o.restart)<<".\n";
+    if(hybrid)
       human<<"Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).\n";
     dev->synchronize();
     memory::phase("initialize");
@@ -200,7 +221,6 @@ int solve(int argc,char** argv) {
       std::cout<<"{\"v\":1,\"event\":\"setup\",\"cells\":"<<solver.mesh().n_cells<<",\"backend\":"<<json_string(backend_name(dev->backend()))
         <<",\"device\":"<<json_string(dev->name())<<",\"approximations\":[";
       for(std::size_t i=0;i<setup->approximations.size();++i){if(i)std::cout<<',';std::cout<<json_string(setup::approximation_info(setup->approximations[i]).name);}
-      const auto init=!o.data.empty()?"fluent-data":std::holds_alternative<fv::HybridInitialization>(*fields)?"hybrid":"standard";
       std::cout<<"],\"init\":"<<json_string(init)<<",\"overrides\":"<<dump_json(applied)<<",\"run_controls\":"<<dump_json(run_controls)<<",\"modified\":"<<(changes.empty()?"false":"true")
         <<",\"pressure_velocity_coupling\":"<<json_string(coupling)<<",\"convergence\":"<<dump_json(convergence.json());
       if(live)std::cout<<",\"live_view\":"<<dump_json(live_configuration());
@@ -213,6 +233,7 @@ int solve(int argc,char** argv) {
     // A failed replacement run must not leave a previous success summary next
     // to partially replaced outputs. The summary is the completion marker.
     std::filesystem::remove(o.out/"summary.json");
+    std::filesystem::remove(restart_path);
     // Loads and aero results derived from a previous run would describe a
     // different solution.
     std::filesystem::remove(o.out/"loads.json");std::filesystem::remove(o.out/"aero.json");
@@ -484,6 +505,10 @@ int solve(int argc,char** argv) {
     // stopped on settled forces with stalled residuals waived; `verdict`
     // separates that from a run that met its residual criteria.
     const auto verdict=converged?(residuals_waived?"forces_settled_residuals_waived":"converged"):stop_reason;
+    if(o.write_restart && !stopped) {
+      app::write_restart(restart_path,mesh_hash,*dev,solver,setup->settings);
+      memory::phase("write-restart");
+    }
     auto summary=output(o.out/"summary.json");
     summary<<"{\n  \"v\": 1,\n  \"modified\": "<<(changes.empty()?"false":"true")<<",\n  \"overrides\": "<<dump_json(applied)<<",\n  \"run_controls\": "<<dump_json(run_controls)<<",\n  \"approximate\": "<<(setup->approximations.empty()?"false":"true")<<",\n  \"approximation_notice\": "<<json_string(setup::approximation_notice(setup->approximations))
       <<",\n  \"approximations\": [";
@@ -499,6 +524,10 @@ int solve(int argc,char** argv) {
       <<",\n  \"case_format\": "<<(kutta_case?"\"kutta\"":"\"fluent\"")<<",\n  \"setup_sha256\": "<<(kutta_case?json_string(case_hash):"null")
       <<",\n  \"mesh_file\": "<<(kutta_case?json_string(mesh_file.string()):"null")<<",\n  \"mesh_sha256\": "<<(kutta_case?json_string(mesh_hash):"null")
       <<",\n  \"data_file\": "<<(o.data.empty()?"null":json_string(o.data.string()))<<",\n  \"data_sha256\": "<<(o.data.empty()?"null":json_string(data_hash))
+      <<",\n  \"initialization\": "<<json_string(init)
+      <<",\n  \"restart_source\": "<<(o.restart.empty()?"null":json_string(utf8_path(o.restart)))
+      <<",\n  \"restart_source_sha256\": "<<(o.restart.empty()?"null":json_string(restart_hash))
+      <<",\n  \"restart_written\": "<<(o.write_restart && !stopped?"true":"false")
       <<",\n  \"kutta_version\": "<<json_string(KUTTA_VERSION)<<",\n  \"kutta_commit\": "<<json_string(KUTTA_COMMIT)
       <<",\n  \"backend\": "<<json_string(backend_name(dev->backend()))<<",\n  \"device\": "<<json_string(dev->name())
       <<",\n  \"cells\": "<<solver.mesh().n_cells<<",\n  \"poor_quality_cells\": "<<solver.poor_cells()<<",\n  \"poor_cell_quality\": "<<setup->settings.poor_cell_quality<<",\n  \"pressure_velocity_coupling\": "<<json_string(coupling)

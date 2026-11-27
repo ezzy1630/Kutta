@@ -15,6 +15,7 @@
 #include "core/Console.h"
 #include "core/MeshCli.h"
 #include "core/MeshSetup.h"
+#include "core/MeshSensitivity.h"
 #include "core/SceneData.h"
 
 #include <QObject>
@@ -98,6 +99,9 @@ public:
     enum class Outcome { None, Succeeded, Failed, Cancelled };
     bool meshing() const { return m_proc != nullptr; }
     bool generate();
+    MeshSensitivity* sensitivity() const { return m_sensitivity; }
+    bool startSensitivity(const QString& casePath, const QJsonObject& overrides, const QJsonObject& aero,
+                          const QString& backend, int iterations, const QStringList& approvals, QString* error);
     void cancel();
     struct Progress { QString stage; double fraction = 0; QString message; double seconds = 0; };
     const Progress& progress() const { return m_progress; }
@@ -109,6 +113,7 @@ public:
     QString meshFile() const;
     // The geometry or settings changed since the mesh was generated.
     bool meshStale() const;
+    bool meshGeometryCurrent() const;
     const std::optional<MeshReport>& report() const { return m_report; }
     QString reportError() const { return m_reportError; }
     // The mesh came from the fixture CLI (app development), not kutta mesh.
@@ -148,11 +153,13 @@ private:
     void save();
     void fail(const QString& message);
     QString inputsHash() const;
+    QString geometryHash() const;
     void loadReport();
     QStringList meshInputs(QString* error);
     void finishMesh(int code, bool cancelled);
 
     CliClient* m_cli;
+    MeshSensitivity* m_sensitivity;
     std::optional<GeometryProject> m_project;
     std::vector<Loaded> m_loaded;  // parallel to project files
     std::vector<FileInfo> m_files;

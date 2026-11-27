@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <limits>
 #include <span>
 
@@ -17,6 +18,7 @@ struct Settings {
   std::string units = "m";
   double upstream = 3, downstream = 6, side = 2, top = 2;
   bool ground = true, symmetry_y = false;
+  std::optional<Box> tunnel_bounds;
   double base_size = 0.25, min_size = 0.008, max_size = 0.03;
   double curvature_degrees = 20;
   int proximity_cells = 3;

@@ -36,6 +36,7 @@ struct Study {
     QJsonObject base;          // case overrides every variant shares (the settings when it was made)
     QJsonObject runControls;   // iterations and convergence criteria, the same for every variant
     QStringList approximations;
+    bool warmStart = false;
     std::vector<StudyVariant> variants;
     QDateTime created;
 

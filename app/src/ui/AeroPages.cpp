@@ -599,6 +599,9 @@ QWidget* studies(const InspectorContext& c)
     auto* values = new QLineEdit;
     values->setAccessibleName(QObject::tr("Values"));
     values->setPlaceholderText(QObject::tr("16, 20, 24   or   12 to 28 step 4"));
+    auto* warm = new QCheckBox(QObject::tr("Reuse previous converged solution"));
+    warm->setVisible(s->caseSummary().format == "kutta" && !s->cliInfo().fixture);
+    warm->setToolTip(QObject::tr("Start the first point cold. Later points can reuse the previous converged solution on the same mesh."));
     auto* name = new QLineEdit;
     name->setAccessibleName(QObject::tr("Study name"));
     name->setPlaceholderText(QObject::tr("optional, e.g. Speed sweep"));
@@ -612,6 +615,7 @@ QWidget* studies(const InspectorContext& c)
     f->addWidget(follow, 3, 1);
     f->addWidget(label(QObject::tr("Name")), 4, 0);
     f->addWidget(name, 4, 1);
+    f->addWidget(warm, 5, 0, 1, 2);
     f->setColumnStretch(1, 1);
     v->addLayout(f);
     auto* createError = label({}, "error");
@@ -862,7 +866,7 @@ QWidget* studies(const InspectorContext& c)
     QObject::connect(s, &Session::studiesChanged, page, [c] { QTimer::singleShot(0, c.session, [c] { if (c.current && c.current() == "runs/studies") c.refresh(); }); });
     QObject::connect(s, &Session::aeroSpecChanged, page, [build] { (*build)(); });
 
-    QObject::connect(create, &QPushButton::clicked, page, [s, m, param, values, name, follow, createError, c] {
+    QObject::connect(create, &QPushButton::clicked, page, [s, m, param, values, name, follow, warm, createError, c] {
         QString error;
         const auto vals = parseSweepValues(values->text(), &error);
         if (vals.empty()) {
@@ -879,6 +883,7 @@ QWidget* studies(const InspectorContext& c)
             return;
         }
         study->name = name->text().trimmed();
+        study->warmStart = warm->isChecked();
         const QString id = s->addStudy(study.value(), &error);
         if (id.isEmpty()) {
             createError->setText(error);

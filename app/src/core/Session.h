@@ -103,6 +103,7 @@ public:
     // become the case's own settings.
     void saveCase(const QString& outPath);
     bool saving() const { return m_saving; }
+    bool startMeshSensitivity(QString* error);
 
     // New Case from Geometry (core/MeshWorkflow.h): STL import, meshing and
     // design variants. The open case, if any, stays open meanwhile.
@@ -220,7 +221,7 @@ private:
     void draftEdited(bool rebuild = true);
     void refreshDraftNotes();
     QString start(const QJsonObject& caseOverrides, const QJsonObject& runControls, const QStringList& approximations,
-                  const QString& studyId);
+                  const QString& studyId, const QString& restartPath = {}, bool writeRestart = false);
     void startNextVariant();
     void saveStudy(const Study& s);
     void failOpen(const QString& casePath, const QString& message);

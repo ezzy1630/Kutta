@@ -79,6 +79,7 @@ const QHash<QString, QString>& titles()
         {"mesh/sizing", "Sizing and Boundary Layers"},
         {"mesh/generate", "Generate the Volume Mesh"},
         {"mesh/report", "Mesh Report"},
+        {"mesh/sensitivity", "Mesh Sensitivity"},
         {"runs/variants", "Design Variants"},
         {"setup", "Setup"},
         {"setup/general", "General"},
@@ -191,6 +192,7 @@ void Outline::rebuild()
     add(meshing, "mesh/sizing", tr("Sizing and Layers"));
     add(meshing, "mesh/generate", tr("Generate Mesh"));
     add(meshing, "mesh/report", tr("Mesh Report"));
+    add(meshing, "mesh/sensitivity", tr("Mesh Sensitivity"));
     auto* setup = add(nullptr, "setup", tr("Setup"), "sliders-horizontal");
     add(setup, "setup/general", tr("General"));
     add(setup, "setup/models", tr("Models"));

@@ -462,11 +462,24 @@ int Session::requestedIterations() const
     return v.isDouble() ? v.toInt() : 1000;
 }
 
+bool Session::startMeshSensitivity(QString* error)
+{
+    if (!canRun(error)) return false;
+    if (!m_mesh->hasProject() || m_case->format != "kutta" ||
+        QFileInfo(m_case->meshFile).canonicalFilePath() != QFileInfo(m_mesh->meshFile()).canonicalFilePath() ||
+        !m_mesh->hasMesh()) {
+        if (error) *error = tr("Open the native case made from this project's mesh.");
+        return false;
+    }
+    return m_mesh->startSensitivity(m_casePath, m_settings.setupJson(), m_aeroSpec.toJson(), m_backend, requestedIterations(), m_approved, error);
+}
+
 bool Session::canRun(QString* reason) const
 {
     auto no = [&](const QString& r) { if (reason) *reason = r; return false; };
     if (!m_case) return no("Open a case first.");
-    if (running()) return no("A calculation is already running.");
+    if (running() || !m_activeStudy.isEmpty()) return no("A calculation or design study is already running.");
+    if (m_mesh->sensitivity()->running()) return no("A mesh sensitivity study is already running.");
     const auto blocking = m_case->blocking(m_approved);
     if (!blocking.empty()) {
         QStringList names;
@@ -490,7 +503,7 @@ QString Session::run()
 }
 
 QString Session::start(const QJsonObject& caseOverrides, const QJsonObject& runControls, const QStringList& approximations,
-                       const QString& studyId)
+                       const QString& studyId, const QString& restartPath, bool writeRestart)
 {
     RunRecord rec = m_history.create();
     rec.casePath = m_casePath;
@@ -527,6 +540,8 @@ QString Session::start(const QJsonObject& caseOverrides, const QJsonObject& runC
     SolveRequest req;
     req.casePath = m_casePath;
     req.dataPath = m_dataPath;
+    req.restartPath = restartPath;
+    req.writeRestart = writeRestart;
     req.approximations = approximations;
     req.backend = m_backend;
     req.outDir = rec.dir;
@@ -757,8 +772,11 @@ bool Session::startStudy(const QString& id, QString* why)
     auto no = [&](const QString& r) { if (why) *why = r; return false; };
     auto it = std::find_if(m_studies.begin(), m_studies.end(), [&](const Study& s) { return s.id == id; });
     if (it == m_studies.end()) return no(tr("No such study."));
-    if (running()) return no(tr("A calculation is already running."));
+    if (running() || !m_activeStudy.isEmpty()) return no(tr("A calculation or design study is already running."));
     if (!m_case) return no(tr("Open a case first."));
+    if (m_mesh->sensitivity()->running()) return no(tr("A mesh sensitivity study is already running."));
+    if (it->warmStart && (m_case->format != "kutta" || cliInfo().fixture))
+        return no(tr("Warm starts need a native Kutta case and the real solver."));
     const auto blocking = m_case->blocking(it->approximations);
     if (!blocking.empty()) return no(tr("This study's runs need approvals the case requires: %1.").arg(blocking.front()->label));
     requeue(*it);
@@ -785,7 +803,17 @@ void Session::startNextVariant()
     const StudyVariant& v = it->variants[std::size_t(next)];
     emit consoleLine(ConsoleLevel::Info, tr("%1: %2 = %3 (%4 of %5)").arg(it->title(), it->parameterLabel, QLocale().toString(v.value, 'g', 8))
                                              .arg(next + 1).arg(it->variants.size()));
-    const QString runId = start(it->overridesFor(v), it->runControls, it->approximations, it->id);
+    QString restart;
+    if (it->warmStart && next > 0) {
+        const auto& previous = it->variants[std::size_t(next - 1)];
+        if (const auto* record = m_history.find(previous.runId); record && record->converged()) {
+            const QString path = QDir(record->dir).filePath("restart.bin");
+            if (QFileInfo(path).isFile()) restart = path;
+        }
+        if (restart.isEmpty())
+            emit consoleLine(ConsoleLevel::Info, tr("No converged restart from the previous point. Starting cold."));
+    }
+    const QString runId = start(it->overridesFor(v), it->runControls, it->approximations, it->id, restart, it->warmStart);
     if (runId.isEmpty()) {
         cancelQueued(*it);
         m_activeStudy.clear();

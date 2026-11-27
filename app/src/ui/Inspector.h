@@ -105,6 +105,7 @@ QWidget* refinement(const InspectorContext& c);
 QWidget* sizing(const InspectorContext& c);
 QWidget* generateMesh(const InspectorContext& c);
 QWidget* meshReport(const InspectorContext& c);
+QWidget* meshSensitivity(const InspectorContext& c);
 QWidget* variants(const InspectorContext& c);
 // File ▸ New Case from Mesh (NewCasePage.cpp).
 QWidget* newCase(const InspectorContext& c);

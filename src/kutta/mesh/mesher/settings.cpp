@@ -57,12 +57,17 @@ Settings parse_settings(std::string_view text) {
     if (k == "base_size") s.base_size = number(v,p,1e-7,1e5);
     if (k == "max_cells") s.max_cells = integer(v,p,1,100000000);
     if (k == "tunnel") {
-      for (const auto& [a,b] : object(v,p,{"upstream","downstream","side","top","ground","symmetry"})) {
+      for (const auto& [a,b] : object(v,p,{"upstream","downstream","side","top","ground","symmetry","fixed_bounds"})) {
         const auto q=p+"/"+a;
         if (a=="upstream") s.upstream=number(b,q,0.01,100);
         if (a=="downstream") s.downstream=number(b,q,0.01,100);
         if (a=="side") s.side=number(b,q,0.01,100);
         if (a=="top") s.top=number(b,q,0.01,100);
+        if (a=="fixed_bounds") {
+          const auto* corners=std::get_if<Json::Array>(&b.value);
+          if(!corners || corners->size()!=2) bad(q,"expected [min,max] corners");
+          s.tunnel_bounds=Box{vector((*corners)[0],q+"/0"),vector((*corners)[1],q+"/1")};
+        }
         if (a=="ground") s.ground=boolean(b,q);
         if (a=="symmetry" && !std::holds_alternative<std::nullptr_t>(b.value)) { if(string(b,q)!="y") bad(q,"expected null or y"); s.symmetry_y=true; }
       }

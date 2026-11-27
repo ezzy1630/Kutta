@@ -39,6 +39,34 @@ A Kutta case's identity (`inspect`'s `file.sha256`, `summary.json`'s
 `case_sha256`, the app's history) is the SHA-256 of the setup file's and the
 mesh file's SHA-256 digests, so changing either is a different case.
 
+## Native restart
+
+Run the source and destination in different output directories. The second
+case can change the operating point or reference values while retaining the
+exact mesh and turbulence field layout.
+
+```sh
+kutta solve point-a.kutta.json --backend cpu --write-restart --out run-a
+kutta solve point-b.kutta.json --backend cpu --restart run-a/restart.bin --write-restart --out run-b
+```
+
+The checkpoint contains cell velocity, gauge pressure and the transported
+turbulence and transition fields supported by the native case, in the input
+mesh's original cell order. The CLI verifies the mesh file's SHA-256, cell
+count and active field layout before it applies the seed. It rebuilds fluxes
+from the seeded fields and the destination boundary conditions, and starts
+iteration counts, residual normalization and stop monitors afresh. The stored
+fields use float32. A completed iteration-limit or statistically steady run
+can be used explicitly at the CLI. Review its verdict before reusing it.
+Stopped and failed runs do not publish a checkpoint for the interrupted
+calculation.
+
+The [five-point cold, forward and reverse CPU sweep](../validation/cases/native_restart_sweep.py)
+can be repeated with `python3 validation/cases/native_restart_sweep.py build/kutta OUT`
+using a fresh output directory. It records wall time and process footprint
+per solve plus changes in shaft and housing torques. See the
+[measured CPU run](../validation/results/native_restart_sweep/REPORT.md).
+
 ## Format
 
 ```json

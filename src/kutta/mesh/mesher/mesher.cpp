@@ -73,14 +73,34 @@ struct Tree {
     KUTTA_REQUIRE(depth <= 16, "mesh: requested size range exceeds 16 octree levels");
     root_size = 1 << (depth + 1);
     unit = st.base_size / root_size;  // extra bit for leaf centres
+    if(st.tunnel_bounds) {
+      bounds=*st.tunnel_bounds;
+      const double tolerance=length*1e-10;
+      KUTTA_REQUIRE((!st.ground || bounds.min.z==0) && (!st.symmetry_y || bounds.min.y==0),
+                    "mesh: fixed tunnel bounds must keep the ground and symmetry planes");
+      KUTTA_REQUIRE(bounds.min.x<sf.bounds.min.x && bounds.max.x>sf.bounds.max.x &&
+                    (st.symmetry_y || bounds.min.y<sf.bounds.min.y) && bounds.max.y>sf.bounds.max.y &&
+                    bounds.min.z<=sf.bounds.min.z+tolerance && bounds.max.z>sf.bounds.max.z,
+                    "mesh: fixed tunnel bounds must enclose the geometry");
+    }
     const auto extent = (bounds.max - bounds.min) / st.base_size;
     KUTTA_REQUIRE(extent.x > 0 && extent.y > 0 && extent.z > 0 && extent.x < 100000 && extent.y < 100000 && extent.z < 100000, "mesh: invalid tunnel dimensions");
-    counts = {int(std::ceil(extent.x)), int(std::ceil(extent.y)), int(std::ceil(extent.z))};
+    if(st.tunnel_bounds) {
+      const auto roots=[](double n) {
+        const double count=std::round(n);
+        KUTTA_REQUIRE(count>=1 && std::abs(count-n)<1e-8,
+                      "mesh: fixed tunnel bounds must span whole base cells");
+        return int(count);
+      };
+      counts={roots(extent.x),roots(extent.y),roots(extent.z)};
+    } else {
+      counts={int(std::ceil(extent.x)),int(std::ceil(extent.y)),int(std::ceil(extent.z))};
+    }
     for (int a = 0; a < 3; ++a)
       KUTTA_REQUIRE(std::int64_t(counts[a]) * root_size < std::numeric_limits<int>::max() - 1, "mesh: requested tunnel/size range exceeds integer lattice capacity");
     const auto roots = std::int64_t(counts[0]) * counts[1] * counts[2];
     KUTTA_REQUIRE(roots <= st.max_cells, "mesh/max_cells: tunnel base grid alone exceeds the cell budget; increase base_size");
-    bounds.max = bounds.min + Vec3d{double(counts[0]), double(counts[1]), double(counts[2])} * st.base_size;
+    if(!st.tunnel_bounds) bounds.max = bounds.min + Vec3d{double(counts[0]), double(counts[1]), double(counts[2])} * st.base_size;
     nodes.reserve(std::size_t(roots));
     for (int k = 0; k < counts[2]; ++k)
       for (int j = 0; j < counts[1]; ++j)
@@ -209,7 +229,7 @@ enum Leaf : std::int8_t { Interior = -1, Removed = 0, Kept = 1, Fluid = 2 };
 Json::Array gap_report(const Tree& tree, const SurfaceQuery& query, const Surface& sf, const std::vector<Leaf>& state) {
   const auto& st = tree.settings;
   const auto limit = 4 * st.max_size;
-  struct Gap { int cells; double width; Index other; };  // other: zone, or -1 ground
+  struct Gap { int cells; double width; Index other; Vec3d start{}, end{}; };  // other: zone, or -1 ground
   std::vector<Gap> gaps(sf.triangles.size(), {-1, 0, -2});
   const auto scale = 1e-6 * norm(sf.bounds.max - sf.bounds.min);
   parallel_for(index(sf.triangles.size()), [&](Index t) {
@@ -234,7 +254,7 @@ Json::Array gap_report(const Tree& tree, const SurfaceQuery& query, const Surfac
       if (id >= 0 && id != last && state[id] == Fluid) ++cells;
       if (id >= 0) last = id;
     }
-    gaps[t] = {cells, width, other};
+    gaps[t] = {cells, width, other, centroid, centroid + n * width};
   });
   std::map<std::pair<std::string, std::string>, Gap> pairs;
   for (std::size_t t = 0; t < gaps.size(); ++t) {
@@ -249,7 +269,8 @@ Json::Array gap_report(const Tree& tree, const SurfaceQuery& query, const Surfac
   // which a closed slot (a positive width with no cells) is not.
   const auto touching = 1e-6 * norm(sf.bounds.max - sf.bounds.min);
   for (const auto& [key, g] : pairs)
-    out.push_back(Json::Object{{"between", Json::Array{key.first, key.second}}, {"min_cells_across", g.cells}, {"width_m", g.width}, {"contact", g.width <= touching}});
+    out.push_back(Json::Object{{"between", Json::Array{key.first, key.second}}, {"min_cells_across", g.cells}, {"width_m", g.width}, {"contact", g.width <= touching},
+      {"sample_m", Json::Array{Json::Array{g.start.x, g.start.y, g.start.z}, Json::Array{g.end.x, g.end.y, g.end.z}}}});
   return out;
 }
 

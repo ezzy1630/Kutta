@@ -53,6 +53,9 @@ Inspector::Inspector(Session* session, GraphicsArea* graphics, ChartsPanel* char
         if (busy != m_meshBusy && (m_id == "mesh/generate" || m_id == "mesh/report")) refresh();
         m_meshBusy = busy;
     });
+    connect(session->meshing()->sensitivity(), &MeshSensitivity::changed, this, [this] {
+        if (m_id == "mesh/sensitivity") refresh();
+    }, Qt::QueuedConnection);
     connect(session, &Session::newCaseChanged, this, [this] {
         if (m_id == "new-case") refresh();
     });
@@ -147,6 +150,7 @@ QWidget* Inspector::build(const QString& id)
     if (id == "mesh/sizing") return pages::sizing(c);
     if (id == "mesh/generate") return pages::generateMesh(c);
     if (id == "mesh/report") return pages::meshReport(c);
+    if (id == "mesh/sensitivity") return pages::meshSensitivity(c);
     if (id == "runs/variants") return pages::variants(c);
     const bool needsCase = id.startsWith("setup/") || id.startsWith("solution/");
     if (needsCase && !c.session->hasCase()) return pages::noCase(c, Outline::titleOf(id));

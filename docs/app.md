@@ -199,7 +199,14 @@ group holds the steps in Fluent Meshing's words:
     fit a 12 GB GPU;
   - **slots and gaps** (`castellation/gaps`): closed slots (no fluid cells
     across) in an amber box, the narrowest open ones, and parts that only
-    touch (a tyre on its plinth, width 0) listed apart;
+    touch (a tyre on its plinth, width 0) listed apart. Select a sampled
+    wing gap or floor clearance with fewer than three cells and click
+    **Inspect cross-section**. The plot shows the actual fluid cells cut by
+    a plane through the two sampled STL endpoints. **Add local refinement**
+    puts an editable box around the sample and opens Local Refinement Regions.
+    The box targets a cell size of one quarter of the gap width. Extend it
+    along the span if the whole passage needs refinement, then regenerate
+    and check the gap again. Older reports need regeneration to show locations;
   - **boundary layers**: generated of requested, prism cells, achieved first
     height, terminations, and coverage of the layered walls (full, thinned,
     none) as a bar; "none" when no layers were requested;
@@ -263,8 +270,7 @@ right, the surfaces list names it beside the slice or iso-surface, the
 iso-surface page says it after computing, and the console lists each. Nothing
 is said when it is 0.
 
-Volume-mesh slices are not shown yet (read-only on the Mesh Report page): that
-needs a cut-plane export for a bare mesh from the CLI. The fixture CLI's `mesh`
+The fixture CLI's `mesh`
 meshes nothing: it speaks the same contract (arguments, setup rules, events,
 zone names and every report key; `tst_meshflow` checks its report has the
 shape of a real one, `app/tests/data/mesh-report-ahmed-coarse.json`), with
@@ -275,6 +281,37 @@ variant), and its runs follow the parts' moves. `tst_realmesh` meshes a box
 with the real `kutta mesh` when the app is built with the solver (or
 `KUTTA_REAL_CLI` is set). Reproducible car geometry for the real mesher comes
 from `uv run tools/mesher/generate_geometry.py --out DIR`.
+
+## Mesh sensitivity and warm starts
+
+Open the native case made from the geometry project's mesh, then choose
+**Meshing ▸ Mesh Sensitivity**. Kutta makes three independent grids and solves
+them in order. It snapshots the STL inputs, the case, its active overrides and
+run controls, and the aero axes, load surfaces and vehicle reference in
+`mesh-sensitivity/study-*/` in the project. The project sizes define the coarse
+grid. Medium and fine halve the base, surface, gap floor, refinement box and
+first-layer sizes in turn. The realized coarse tunnel bounds are fixed for all
+three grids. Each grid has the same configured cell budget. Each result keeps
+its own mesh, summary and loads, and the existing project mesh and run history
+stay available.
+
+The table reports final drag and downforce in newtons, front downforce share
+when defined, sampled thin gaps, the solver verdict, and fine-minus-medium
+load changes. Iteration-limited and cycling runs show endpoint loads and carry
+their verdict. Independent snapping, changing layer coverage and residual
+stops alone cannot establish asymptotic convergence or bound iterative load
+error. The study therefore reports sensitivity without a discretization
+uncertainty interval. A quantitative Grid Convergence Index requires separate
+evidence for the grid sequence and monitored quantities.
+[Grid convergence guidance](https://www.grc.nasa.gov/www/wind/valid/tutorial/spatconv.html)
+
+For an operating sweep on one native mesh, choose **Reuse previous converged
+solution** when creating a Design Study. The first point starts cold. A later
+point uses the previous point's native restart if its verdict is converged and
+the restart file is present. Without a converged checkpoint the
+next point starts cold. Enter the points in descending order to run a reverse
+sweep. See the [native restart case documentation](kutta-case.md#native-restart)
+for standalone runs and the measured sweep.
 
 ## Case types and convergence
 

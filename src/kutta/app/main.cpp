@@ -14,6 +14,8 @@
 #include <unistd.h>
 #endif
 
+namespace kutta::app { int mesh_section(int argc,char** argv); }
+
 using namespace kutta::fluent;
 namespace {
 template <class T> void value(const std::optional<T> &v) {
@@ -432,6 +434,7 @@ int main(int argc, char **argv) {
   if(argc>=2 && std::string_view(argv[1])=="export-geometry") return kutta::app::export_geometry(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="aero") return kutta::app::aero(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="devices") return kutta::app::devices(argc,argv);
+  if(argc>=2 && std::string_view(argv[1])=="mesh-section") return kutta::app::mesh_section(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="mesh") return kutta::app::mesh_command(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="new-case") return kutta::app::new_case(argc,argv);
   if(argc>=2 && std::string_view(argv[1])=="convert") return kutta::app::convert(argc,argv);

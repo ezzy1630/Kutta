@@ -11,11 +11,12 @@ the app only presents it. Every message carries `"v": 1`.
 | --- | --- |
 | `kutta devices --json` | one JSON object: `{"v":1,"devices":[{"backend":"cuda","name":"NVIDIA GeForce RTX 4070","memory_bytes":12884901888,"default":true}, ...]}` |
 | `kutta inspect <case> [--data <dat>] --json` | one JSON object: case summary (below) |
-| `kutta solve <case> [--data <dat>] [--approximate a,b] [--backend b] [--iterations n] [--live-view DIR] [--live-every N] --out DIR --progress jsonl` | JSON lines on stdout while running; files in DIR |
+| `kutta solve <case> [--data <dat>] [--restart FILE] [--write-restart] [--approximate a,b] [--backend b] [--iterations n] [--live-view DIR] [--live-every N] --out DIR --progress jsonl` | JSON lines on stdout while running; files in DIR |
 | `kutta export-view DIR [--slice origin,normal]... [--post spec.json]` | writes `DIR/view/` (below) from a finished run |
 | `kutta export-geometry CASE --out DIR [--json]` | writes `DIR/geometry/` (case surfaces without a run); with `--json` one `geometry` event line |
 | `kutta aero DIR [--aero spec.json] [--json]` | aero coefficients, groups, balance and centre of pressure of a finished run from its `loads.json`; writes `DIR/aero.json`, with `--json` one `aero` event line |
 | `kutta mesh GEOM.stl [MORE.stl ...] [--setup mesh.json] --out DIR [--case] [--progress jsonl] [--json] [--force]` | STL to Fluent mesh and quality report (v1 additive, below) |
+| `kutta mesh-section MESH --sample x0,y0,z0,x1,y1,z1` | one JSON object with the fluid-cell cross-section around a sampled gap |
 | `kutta new-case MESH [--template fsae-external] [--speed M/S] [--role ZONE=ROLE]... [--wheel ZONE=R,X,Y,Z,AX,AY,AZ]... [--out CASE.kutta.json [--force]] [--json]` | a starter Kutta case for a bare mesh (v1 additive, below); without `--out` the case is printed |
 | `kutta convert CASE [--setup overrides.json] --out CASE.kutta.json [--force] [--json]` | a case's settings, with overrides applied, written as a Kutta case (v1 additive, below) |
 
@@ -200,6 +201,15 @@ optional per event. stderr carries human-readable diagnostics only. Exit
 codes: 0 success, 1 rejected case or solver failure, 2 usage error. The app
 stops a run by closing stdin or sending SIGINT / CTRL_BREAK; the CLI then
 finishes the current iteration, writes outputs and emits `done`.
+
+Native starts add `init:"native-restart"` to the existing setup event values.
+The run summary adds `initialization`, `restart_source`,
+`restart_source_sha256` and `restart_written`. The two source keys are null
+for unseeded runs. `--write-restart` publishes `restart.bin` into the output
+directory after a successful, uninterrupted solve. The file is private,
+versioned and little-endian. It contains the mesh digest and field layout
+followed by cell fields in input ordering. It is independent of view exports
+and Fluent data.
 
 ## View data (`export-view`)
 
@@ -1166,7 +1176,11 @@ All lengths in setup are metres; `units` scales **STL coordinates only**.
 Tunnel distances are multiples of the body's x length, measured from its bounds.
 The ground is z=0 (geometry below it is rejected). Without ground the lower
 boundary extends `side` body lengths below the body. `symmetry:"y"` keeps y≥0.
-Tunnel upper limits round outward to a whole base cell; lower limits are exact.
+Tunnel upper limits round outward to a whole base cell and lower limits are exact.
+`tunnel.fixed_bounds` optionally takes `[[xmin,ymin,zmin],[xmax,ymax,zmax]]`
+in metres, encloses the retained geometry and preserves any ground and symmetry
+planes. Every extent must span an integer number of base cells. Mesh
+sensitivity uses this to reuse the reported coarse bounds on subsequent grids.
 Octree sizes are powers of two below the base size, so the achieved minimum can
 be smaller than `min_size`. Refinement boxes use world coordinates. **When the
 setup omits `refinement_boxes`** (v1 additive), two body-relative boxes are
@@ -1309,3 +1323,16 @@ diverged), and every other part clears the tyres by at least 50 mm;
 `fsae-wheels.json` gives each wheel's rolling radius, centre and axis for
 `--wheel`. Generated STLs/meshes are local artifacts, not repository
 fixtures.
+
+
+### Gap cross-sections
+
+Each `castellation/gaps` entry can include `sample_m` with two STL-space
+endpoints in metres. The sampled ray is the one that gave the reported
+castellation cell count. The GUI passes those endpoints to
+`kutta mesh-section MESH --sample x0,y0,z0,x1,y1,z1`, which cuts the final
+volume mesh. A successful response has event `mesh-section`, the view
+`radius_m`, the sampled `width_m`, `polygons` (fluid-cell outlines in metres
+in the local two-dimensional plane), and `skipped_cells` for invalid
+cell cuts in the plane. The line through the sampled geometry is centered at
+`x=0` and runs from `-width_m/2` to `width_m/2` vertically.

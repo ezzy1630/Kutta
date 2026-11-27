@@ -107,8 +107,10 @@ SolveProcess::SolveProcess(const CliInfo& cli, const SolveRequest& req, QObject*
         emit finished(code, st == QProcess::CrashExit);
     });
     connect(&m_proc, &QProcess::errorOccurred, this, [this](QProcess::ProcessError e) {
-        if (e == QProcess::FailedToStart)
+        if (e == QProcess::FailedToStart) {
             emit protocolError(QStringLiteral("Could not start %1: %2").arg(m_cli.program, m_proc.errorString()));
+            emit finished(-1, true);
+        }
     });
     // A CLI that ignores stdin EOF gets an interrupt, then is killed. Only the
     // first path writes outputs; the console says which one happened.
@@ -138,6 +140,8 @@ QStringList SolveProcess::arguments() const
 {
     QStringList a{"solve", m_req.casePath};
     if (!m_req.dataPath.isEmpty()) a << "--data" << m_req.dataPath;
+    if (!m_req.restartPath.isEmpty()) a << "--restart" << m_req.restartPath;
+    if (m_req.writeRestart) a << "--write-restart";
     if (!m_req.approximations.isEmpty()) a << "--approximate" << m_req.approximations.join(',');
     if (!m_req.backend.isEmpty()) a << "--backend" << m_req.backend;
     if (m_req.iterations > 0) a << "--iterations" << QString::number(m_req.iterations);
@@ -269,6 +273,23 @@ void CliClient::exportGeometry(const QString& casePath, const QString& outDir, s
         if (code != 0) return done(Result<ViewManifest>::failure(failureText(code, out, err)));
         done(loadViewManifest(QDir(outDir).filePath("geometry/manifest.json")));
     });
+}
+
+void CliClient::meshSection(const QString& meshPath, QVector3D start, QVector3D end,
+                            std::function<void(Result<QJsonObject>)> done)
+{
+    QStringList coordinates;
+    for (const auto& p : {start, end})
+        for (const float coordinate : {p.x(), p.y(), p.z()})
+            coordinates << QString::number(coordinate, 'g', 9);
+    run({"mesh-section", meshPath, "--sample", coordinates.join(',')},
+        [done](int code, const QByteArray& out, const QByteArray& err) {
+            if (code != 0) return done(Result<QJsonObject>::failure(failureText(code, out, err)));
+            const auto section = QJsonDocument::fromJson(out).object();
+            if (section.value("event") != QStringLiteral("mesh-section") || !section.value("polygons").isArray())
+                return done(Result<QJsonObject>::failure("kutta printed no mesh section"));
+            done(section);
+        });
 }
 
 void CliClient::aero(const QString& runDir, const QString& specFile, std::function<void(Result<AeroResult>)> done)

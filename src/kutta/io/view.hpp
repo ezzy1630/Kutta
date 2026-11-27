@@ -46,6 +46,7 @@ Json::Object manifest_header(bool reference,const std::string& provenance,std::s
 // manifest zone entry.
 Json::Object write_zone(const std::filesystem::path& dir,std::size_t ordinal,const PolyMesh&,const Fields&,std::vector<Index>& local,bool edges);
 double slice_tolerance(const PolyMesh&);
+Json::Object mesh_gap_section(const PolyMesh&,Vec3d start,Vec3d end);
 // Writes one slice file; returns its descriptor including origin/normal.
 Json::Object write_slice(const std::filesystem::path& file,const Snapshot&,const Plane&,const kutta::CellFaces&,double eps);
 // Adds the top-level "fields" catalog, combined from every geometry

@@ -229,8 +229,18 @@ Result<MeshReport> parseMeshReport(const QJsonObject& o)
                     rd.bad(p + "/contact", "a boolean");
                     continue;
                 }
-                gaps.push_back({(*between)[0].toString(), (*between)[1].toString(), *across, *width,
-                                contact.toBool(*width == 0)});
+                MeshGap gap{(*between)[0].toString(), (*between)[1].toString(), *across, *width,
+                            contact.toBool(*width == 0), std::nullopt};
+                if (const auto sample = rd.array(go, "sample_m", p)) {
+                    if (sample->size() != 2) rd.bad(p + "/sample_m", "two endpoints");
+                    else {
+                        const QJsonObject points{{"start", (*sample)[0]}, {"end", (*sample)[1]}};
+                        const auto a = rd.point(points, "start", p + "/sample_m");
+                        const auto b = rd.point(points, "end", p + "/sample_m");
+                        if (a && b) gap.sample = std::pair{*a, *b};
+                    }
+                }
+                gaps.push_back(std::move(gap));
             }
             r.gaps = gaps;
         }

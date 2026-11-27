@@ -78,6 +78,7 @@ QJsonObject Study::toJson() const
             {"base", base},
             {"run_controls", runControls},
             {"approximations", QJsonArray::fromStringList(approximations)},
+            {"warm_start", warmStart},
             {"variants", vs},
             {"created", created.toString(Qt::ISODateWithMs)}};
 }
@@ -95,6 +96,7 @@ std::optional<Study> Study::fromJson(const QJsonObject& o)
     for (const QJsonValue& f : o.value("followers").toArray()) s.followers << f.toString();
     s.base = o.value("base").toObject();
     s.runControls = o.value("run_controls").toObject();
+    s.warmStart = o.value("warm_start").toBool();
     for (const QJsonValue& a : o.value("approximations").toArray()) s.approximations << a.toString();
     for (const QJsonValue& vv : o.value("variants").toArray()) {
         const QJsonObject v = vv.toObject();

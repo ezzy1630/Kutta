@@ -440,3 +440,41 @@ TEST_CASE("Native Fluent FSAE boundary topology codes must match thread types") 
     CHECK(std::any_of(invalid.issues.begin(), invalid.issues.end(), [&](const auto& i) { return i.path == issue_path; }));
   }
 }
+
+TEST_CASE("A native restart accepts changed inlet conditions and rejects a different or truncated mesh state") {
+  MeshTemp t;
+  const auto mesh=t.path("box.msh");
+  std::filesystem::copy_file(KUTTA_SOURCE_DIR "/tests/data/meshes/fsae_box.msh",mesh);
+  for(const auto* speed:{"20","21"}) {
+    REQUIRE(kutta_cli("new-case "+quote(mesh)+" --speed "+speed+" --out "+quote(t.path(std::string(speed)+".kutta.json")),
+                      t.path("new.log"))==0);
+  }
+  const auto command=[&](std::string_view name) {
+    return "solve "+quote(t.path(std::string(name)+".kutta.json"))+" --backend cpu --iterations 2 --progress jsonl";
+  };
+  const auto file=t.path("first/restart.bin");
+  REQUIRE_MESSAGE(kutta_cli(command("20")+" --out "+quote(t.path("first"))+" --write-restart",t.path("first.log"))==0,
+                  mesh_text(t.path("first.log")));
+  REQUIRE(std::filesystem::is_regular_file(file));
+  const auto warm=command("21")+" --restart "+quote(file);
+  REQUIRE_MESSAGE(kutta_cli(warm+" --out "+quote(t.path("warm")),t.path("warm.log"))==0,mesh_text(t.path("warm.log")));
+  const auto result=std::get<Json::Object>(parse_json(mesh_text(t.path("warm/summary.json"))).value);
+  CHECK(result.at("initialization")==Json{std::string("native-restart")});
+  CHECK(result.at("iterations")==Json{2.0});
+  CHECK(result.at("restart_source_sha256")==Json{sha256_file(file)});
+  CHECK_FALSE(std::filesystem::exists(t.path("warm/restart.bin")));
+  const auto before=sha256_file(file);
+  CHECK(kutta_cli(warm+" --out "+quote(t.path("first")),t.path("alias.log"))!=0);
+  CHECK(sha256_file(file)==before);
+
+  auto bytes=mesh_text(file);
+  bytes.pop_back();
+  mesh_text(t.path("truncated.bin"),bytes);
+  CHECK(kutta_cli(command("21")+" --restart "+quote(t.path("truncated.bin"))+" --out "+quote(t.path("bad")),t.path("bad.log"))!=0);
+  CHECK_FALSE(std::filesystem::exists(t.path("bad/summary.json")));
+
+  mesh_text(mesh,mesh_text(mesh)+"\n");
+  CHECK(kutta_cli(warm+" --out "+quote(t.path("mismatch")),t.path("mismatch.log"))!=0);
+  CHECK(mesh_text(t.path("mismatch.log")).find("SHA-256 mismatch")!=std::string::npos);
+  CHECK_FALSE(std::filesystem::exists(t.path("mismatch/summary.json")));
+}

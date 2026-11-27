@@ -68,6 +68,7 @@ struct MeshGap {               // castellation/gaps: a slot between two zones (o
     qint64 cellsAcross = 0;    // fluid cells across at its narrowest; 0: the slot closed
     double width = 0;          // m
     bool contact = false;
+    std::optional<std::pair<QVector3D, QVector3D>> sample;
     bool closed() const { return cellsAcross == 0 && !contact; }
 };
 struct MeshLayers {

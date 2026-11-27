@@ -160,15 +160,18 @@ std::optional<std::vector<std::vector<Vec3d>>> section(const PolyMesh& m,const k
   }
   return rings;
 }
-Geometry slice(const Snapshot& s,const Plane& plane,const kutta::CellFaces& cf,double eps,std::uint64_t& skipped) {
-  const auto& m=s.mesh;Geometry g;skipped=0;
-  for(const auto& f:s.cells)g.fields.push_back({f.name,f.unit,f.components,{}});
+template<class Append>
+std::uint64_t slice_polygons(const PolyMesh& m,const Plane& plane,const kutta::CellFaces& cf,double eps,
+                             Append append) {
+  std::uint64_t skipped=0;
   std::vector<double> distance;distance.reserve(m.points.size());for(auto p:m.points)distance.push_back(dot(p-plane.origin,plane.normal));
   std::vector<bool> candidate(m.n_cells);
   for(Index f=0;f<m.n_faces();++f) {
     double lo=std::numeric_limits<double>::infinity(),hi=-lo;
     for(auto n:nodes(m,f)){lo=std::min(lo,distance[n]);hi=std::max(hi,distance[n]);}
-    if(lo<=eps && hi>=-eps){candidate[m.owner[f]]=true;if(f<m.n_internal_faces())candidate[m.neighbour[f]]=true;}
+    if(lo>eps || hi<-eps) continue;
+    candidate[m.owner[f]]=true;
+    if(f<m.n_internal_faces())candidate[m.neighbour[f]]=true;
   }
   std::vector<Index> coplanar;
   for(Index cell=0;cell<m.n_cells;++cell)if(candidate[cell]) {
@@ -184,7 +187,7 @@ Geometry slice(const Snapshot& s,const Plane& plane,const kutta::CellFaces& cf,d
     if(!above) {
       // Wholly on or below the plane: only a boundary face lying in the
       // plane has no cell above it to emit it.
-      for(auto f:coplanar)if(f>=m.n_internal_faces())ok &= append_polygon(g,face_polygon(f),plane,cell,s.cells);
+      for(auto f:coplanar)if(f>=m.n_internal_faces())ok &= append(face_polygon(f),cell);
       skipped+=!ok;continue;
     }
     if(!below)continue;
@@ -205,10 +208,18 @@ Geometry slice(const Snapshot& s,const Plane& plane,const kutta::CellFaces& cf,d
     // as snapped meshes have) the cell's own section is the consistent cut.
     double face_area=0;for(auto f:coplanar)face_area+=norm(polygon_area(face_polygon(f)));
     if(!coplanar.empty() && std::abs(face_area-section_area)<=1e-6*std::max(face_area,section_area))
-      for(auto f:coplanar)ok &= append_polygon(g,face_polygon(f),plane,m.owner[f],s.cells);
-    else for(const auto* ring:kept)ok &= append_polygon(g,*ring,plane,cell,s.cells);
+      for(auto f:coplanar)ok &= append(face_polygon(f),m.owner[f]);
+    else for(const auto* ring:kept)ok &= append(*ring,cell);
     skipped+=!ok;
   }
+  return skipped;
+}
+Geometry slice(const Snapshot& s,const Plane& plane,const kutta::CellFaces& cf,double eps,std::uint64_t& skipped) {
+  Geometry g;
+  for(const auto& f:s.cells)g.fields.push_back({f.name,f.unit,f.components,{}});
+  skipped=slice_polygons(s.mesh,plane,cf,eps,[&](const auto& ring,Index cell) {
+    return append_polygon(g,ring,plane,cell,s.cells);
+  });
   std::erase_if(g.fields,[](const auto& f){return !f.values.empty() && std::none_of(f.values.begin(),f.values.end(),[](float v){return std::isfinite(v);});});
   append_deltas(g.fields);return g;
 }
@@ -279,6 +290,47 @@ Json::Object write_slice(const std::filesystem::path& file,const Snapshot& s,con
   descriptor.emplace("skipped_cells",double(skipped));
   descriptor.emplace("origin",Json::Array{p.origin.x,p.origin.y,p.origin.z});descriptor.emplace("normal",Json::Array{p.normal.x,p.normal.y,p.normal.z});
   return descriptor;
+}
+Json::Object mesh_gap_section(const PolyMesh& mesh,Vec3d start,Vec3d end) {
+  const auto gap=end-start;
+  const auto width=norm(gap);
+  KUTTA_REQUIRE(width>0 && std::isfinite(width),"mesh section requires distinct endpoints");
+  auto vertical=gap/width;
+  if(vertical.z<0)vertical=vertical*(-1);
+  auto normal=cross(vertical,Vec3d{1,0,0});
+  if(norm(normal)<0.1)normal=cross(vertical,Vec3d{0,1,0});
+  normal=normal/norm(normal);
+  const auto horizontal=cross(normal,vertical);
+  const Plane plane{start+gap*.5,normal};
+  const double radius=width*4;
+  Json::Array polygons;
+  std::size_t points=0;
+  const auto skipped=slice_polygons(mesh,plane,build_cell_faces(mesh),slice_tolerance(mesh),
+    [&](const auto& ring,Index) {
+      const auto project=[&](Vec3d point) {
+        const auto local=point-plane.origin;
+        return std::pair{dot(local,horizontal),dot(local,vertical)};
+      };
+      auto [min_x,min_y]=project(ring.front());
+      auto max_x=min_x,max_y=min_y;
+      for(const auto p:ring) {
+        const auto [x,y]=project(p);
+        min_x=std::min(min_x,x);max_x=std::max(max_x,x);
+        min_y=std::min(min_y,y);max_y=std::max(max_y,y);
+      }
+      if(min_x>radius || max_x<-radius || min_y>radius || max_y<-radius) return true;
+      points+=ring.size();
+      KUTTA_REQUIRE(points<=80'000,"section contains too many vertices to display");
+      Json::Array polygon;
+      for(const auto p:ring) {
+        const auto [x,y]=project(p);
+        polygon.emplace_back(Json::Array{x,y});
+      }
+      polygons.emplace_back(std::move(polygon));
+      return true;
+    });
+  return {{"v",1},{"event","mesh-section"},{"radius_m",radius},{"width_m",width},
+          {"polygons",std::move(polygons)},{"skipped_cells",double(skipped)}};
 }
 void write_manifest(const std::filesystem::path& path,Json::Object manifest) {
   // Ranges combine every geometry descriptor's own field ranges, so cached

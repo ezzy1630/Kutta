@@ -38,6 +38,8 @@ struct SolveRequest {
     int iterations = 0;          // 0: leave to the case/setup file
     QString outDir;
     QString setupFile;           // written by the app from the overrides
+    QString restartPath;
+    bool writeRestart = false;
     int liveViewInterval = 0;    // --live-view OUT --live-every N; 0 disables
 };
 
@@ -85,6 +87,8 @@ public:
 
     // The case's boundary zones without a run (export-geometry), published
     // atomically under outDir/geometry/.
+    void meshSection(const QString& meshPath, QVector3D start, QVector3D end,
+                     std::function<void(Result<QJsonObject>)> done);
     void exportGeometry(const QString& casePath, const QString& outDir, std::function<void(Result<ViewManifest>)> done);
 
     // Aero coefficients, breakdown and balance of a finished run (kutta aero);

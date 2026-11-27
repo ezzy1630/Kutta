@@ -1,0 +1,214 @@
+{
+  "host": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "backend": "cpu",
+  "solver_sha256": "8810838f9af32688de746e71500170c9b2d2f4ddfca901784d87277d8817ef10",
+  "mesh_sha256": "ac12fe046b1d53e0c7e4cce8d74e5e87a82bc458a8adb9ec07563ba4374defd0",
+  "termination": {
+    "check_convergence": true,
+    "residuals": {
+      "continuity": {
+        "absolute_criterion": 0.0001
+      },
+      "x-velocity": {
+        "absolute_criterion": 1e-07
+      },
+      "y-velocity": {
+        "absolute_criterion": 1e-07
+      }
+    }
+  },
+  "iteration_cap": 4000,
+  "runs": {
+    "cold": [
+      {
+        "omega": 8,
+        "iterations": 300,
+        "elapsed_s": 0.9266352909617126,
+        "solver_s": 0.86851125,
+        "peak_process_bytes": 5669344,
+        "shaft_torque_nm": -0.01296353092352351,
+        "housing_torque_nm": 0.013596063568082307,
+        "restart_source_sha256": null,
+        "verdict": "converged"
+      },
+      {
+        "omega": 9,
+        "iterations": 320,
+        "elapsed_s": 1.0222113750642166,
+        "solver_s": 0.963846542,
+        "peak_process_bytes": 5554656,
+        "shaft_torque_nm": -0.014584244786594617,
+        "housing_torque_nm": 0.015295998602430288,
+        "restart_source_sha256": null,
+        "verdict": "converged"
+      },
+      {
+        "omega": 10,
+        "iterations": 320,
+        "elapsed_s": 1.0110009170603007,
+        "solver_s": 0.950774375,
+        "peak_process_bytes": 5521864,
+        "shaft_torque_nm": -0.016205229688726383,
+        "housing_torque_nm": 0.01699559392769928,
+        "restart_source_sha256": null,
+        "verdict": "converged"
+      },
+      {
+        "omega": 11,
+        "iterations": 320,
+        "elapsed_s": 1.0119053330272436,
+        "solver_s": 0.955147458,
+        "peak_process_bytes": 5505480,
+        "shaft_torque_nm": -0.01782637880405835,
+        "housing_torque_nm": 0.01869519164785196,
+        "restart_source_sha256": null,
+        "verdict": "converged"
+      },
+      {
+        "omega": 12,
+        "iterations": 320,
+        "elapsed_s": 1.0511636250885203,
+        "solver_s": 0.986678,
+        "peak_process_bytes": 5620192,
+        "shaft_torque_nm": -0.019447690859904623,
+        "housing_torque_nm": 0.020394806060257308,
+        "restart_source_sha256": null,
+        "verdict": "converged"
+      }
+    ],
+    "forward": [
+      {
+        "omega": 8,
+        "iterations": 300,
+        "elapsed_s": 0.9595790000166744,
+        "solver_s": 0.894172958,
+        "peak_process_bytes": 5587400,
+        "shaft_torque_nm": -0.01296353092352351,
+        "housing_torque_nm": 0.013596063568082307,
+        "restart_source_sha256": null,
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 0.0,
+        "housing_torque_nm_delta_vs_cold": 0.0
+      },
+      {
+        "omega": 9,
+        "iterations": 360,
+        "elapsed_s": 1.1480084171053022,
+        "solver_s": 1.087764334,
+        "peak_process_bytes": 5620168,
+        "shaft_torque_nm": -0.014584102558389966,
+        "housing_torque_nm": 0.015296385835680385,
+        "restart_source_sha256": "8dcde5032b5c1b9f97a7f6164f0d8cce70be3a7bef0047a459f0272f5363576e",
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 1.422282046512069e-07,
+        "housing_torque_nm_delta_vs_cold": 3.8723325009731857e-07
+      },
+      {
+        "omega": 10,
+        "iterations": 340,
+        "elapsed_s": 1.0606713329907507,
+        "solver_s": 0.999095417,
+        "peak_process_bytes": 5505480,
+        "shaft_torque_nm": -0.016205071122118813,
+        "housing_torque_nm": 0.016996034792444426,
+        "restart_source_sha256": "2b9e1136e25cfa3dc061efd0be3183d19d3ff178edd1872c8e30d6bd55f1eabd",
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 1.585666075699932e-07,
+        "housing_torque_nm_delta_vs_cold": 4.408647451478731e-07
+      },
+      {
+        "omega": 11,
+        "iterations": 360,
+        "elapsed_s": 1.18082654196769,
+        "solver_s": 1.114705542,
+        "peak_process_bytes": 5603808,
+        "shaft_torque_nm": -0.017826181303538798,
+        "housing_torque_nm": 0.018695710107817197,
+        "restart_source_sha256": "76078fdb5ed5cc2b0493c90a80c8b8581020009c153dd42be32dc0dd13ff19a8",
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 1.9750051955327863e-07,
+        "housing_torque_nm_delta_vs_cold": 5.184599652374722e-07
+      },
+      {
+        "omega": 12,
+        "iterations": 360,
+        "elapsed_s": 1.1324772499501705,
+        "solver_s": 1.073203792,
+        "peak_process_bytes": 5554656,
+        "shaft_torque_nm": -0.019447475845246025,
+        "housing_torque_nm": 0.02039540038178294,
+        "restart_source_sha256": "5249283639140c97b8c5d866adbebdfdfaf8d25b07d72ac4c00d092fc497c336",
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 2.1501465859857793e-07,
+        "housing_torque_nm_delta_vs_cold": 5.943215256321022e-07
+      }
+    ],
+    "reverse": [
+      {
+        "omega": 12,
+        "iterations": 320,
+        "elapsed_s": 1.019378750002943,
+        "solver_s": 0.958825625,
+        "peak_process_bytes": 5407176,
+        "shaft_torque_nm": -0.019447690859904623,
+        "housing_torque_nm": 0.020394806060257308,
+        "restart_source_sha256": null,
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 0.0,
+        "housing_torque_nm_delta_vs_cold": 0.0
+      },
+      {
+        "omega": 11,
+        "iterations": 340,
+        "elapsed_s": 1.0583509999560192,
+        "solver_s": 0.998543292,
+        "peak_process_bytes": 5439944,
+        "shaft_torque_nm": -0.01782611487587895,
+        "housing_torque_nm": 0.018695912506692187,
+        "restart_source_sha256": "e0adaac9d02e62590fe7e8be96b03ae0de1e7a6f89f26672902912233e24715e",
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 2.6392817940174007e-07,
+        "housing_torque_nm_delta_vs_cold": 7.208588402272953e-07
+      },
+      {
+        "omega": 10,
+        "iterations": 340,
+        "elapsed_s": 1.043778916937299,
+        "solver_s": 0.984156875,
+        "peak_process_bytes": 5587400,
+        "shaft_torque_nm": -0.016205011336295795,
+        "housing_torque_nm": 0.016996213123067646,
+        "restart_source_sha256": "5abfaf46601157be5ef0beb1cb9627afde29de013bc2830ce4a164926314e4c6",
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 2.183524305879314e-07,
+        "housing_torque_nm_delta_vs_cold": 6.19195368367631e-07
+      },
+      {
+        "omega": 9,
+        "iterations": 360,
+        "elapsed_s": 1.1666811250615865,
+        "solver_s": 1.100176667,
+        "peak_process_bytes": 5669344,
+        "shaft_torque_nm": -0.014584063144191773,
+        "housing_torque_nm": 0.015296529165400611,
+        "restart_source_sha256": "d44a28b8e4d85a9d1a78dfe3f09c19f1fbfbce1e5e00d4f2f22a46cae7452222",
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 1.8164240284460065e-07,
+        "housing_torque_nm_delta_vs_cold": 5.305629703234588e-07
+      },
+      {
+        "omega": 8,
+        "iterations": 360,
+        "elapsed_s": 1.0874859159812331,
+        "solver_s": 1.028281792,
+        "peak_process_bytes": 5538248,
+        "shaft_torque_nm": -0.01296325365339697,
+        "housing_torque_nm": 0.013596868933676991,
+        "restart_source_sha256": "53dd7b142aedd6c36fb1d190ac0df171250fc8bf5d408197819b557c2da42a9c",
+        "verdict": "converged",
+        "shaft_torque_nm_delta_vs_cold": 2.772701265408434e-07,
+        "housing_torque_nm_delta_vs_cold": 8.053655946842903e-07
+      }
+    ]
+  }
+}

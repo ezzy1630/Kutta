@@ -63,7 +63,8 @@ GeometryProject GeometryProject::fromJson(const QJsonObject& o, const QString& d
 
 // ---- Workflow ---------------------------------------------------------------------
 
-MeshWorkflow::MeshWorkflow(CliClient* cli, QObject* parent) : QObject(parent), m_cli(cli) {}
+MeshWorkflow::MeshWorkflow(CliClient* cli, QObject* parent)
+    : QObject(parent), m_cli(cli), m_sensitivity(new MeshSensitivity(cli, this)) {}
 
 MeshWorkflow::~MeshWorkflow()
 {
@@ -624,17 +625,34 @@ void MeshWorkflow::rebuildScene()
 QString MeshWorkflow::meshFile() const { return m_project ? meshFileIn(m_project->meshDir()) : QString(); }
 bool MeshWorkflow::hasMesh() const { return m_project && QFileInfo::exists(meshFile()) && m_report.has_value(); }
 
+namespace {
+void addGeometryIdentity(QCryptographicHash& hash, const GeometryProject& project)
+{
+    for (const QString& f : project.files) {
+        const QFileInfo fi(f);
+        hash.addData(QStringLiteral("%1|%2|%3").arg(fi.absoluteFilePath()).arg(fi.size()).arg(fi.lastModified().toMSecsSinceEpoch()).toUtf8());
+    }
+    for (const auto& s : project.solids)
+        hash.addData(QStringLiteral("%1|%2|%3").arg(s.file, s.source, s.name).toUtf8());
+}
+} // namespace
+
 QString MeshWorkflow::inputsHash() const
 {
     if (!m_project) return {};
     QCryptographicHash h(QCryptographicHash::Sha256);
     h.addData(QJsonDocument(m_project->setup.toJson()).toJson(QJsonDocument::Compact));
     h.addData(QByteArray::number(m_project->speed, 'g', 10));
-    for (const QString& f : m_project->files) {
-        const QFileInfo fi(f);
-        h.addData(QStringLiteral("%1|%2|%3").arg(fi.absoluteFilePath()).arg(fi.size()).arg(fi.lastModified().toMSecsSinceEpoch()).toUtf8());
-    }
-    for (const auto& s : m_project->solids) h.addData(QStringLiteral("%1|%2|%3").arg(s.file, s.source, s.name).toUtf8());
+    addGeometryIdentity(h, *m_project);
+    return QString::fromLatin1(h.result().toHex());
+}
+
+QString MeshWorkflow::geometryHash() const
+{
+    if (!m_project) return {};
+    QCryptographicHash h(QCryptographicHash::Sha256);
+    h.addData(unitName(m_project->setup.units).toUtf8());
+    addGeometryIdentity(h, *m_project);
     return QString::fromLatin1(h.result().toHex());
 }
 
@@ -651,6 +669,16 @@ bool MeshWorkflow::meshStale() const
     QFile f(QDir(m_project->meshDir()).filePath("app-mesh.json"));
     if (!f.open(QIODevice::ReadOnly)) return true;
     return QJsonDocument::fromJson(f.readAll()).object().value("inputs").toString() != inputsHash();
+}
+
+bool MeshWorkflow::meshGeometryCurrent() const
+{
+    if (!hasMesh()) return false;
+    QFile f(QDir(m_project->meshDir()).filePath("app-mesh.json"));
+    if (!f.open(QIODevice::ReadOnly)) return false;
+    const auto record = QJsonDocument::fromJson(f.readAll()).object();
+    const auto hash = record.value("geometry_inputs").toString();
+    return hash.isEmpty() ? record.value("inputs").toString() == inputsHash() : hash == geometryHash();
 }
 
 void MeshWorkflow::loadReport()
@@ -700,7 +728,7 @@ QStringList MeshWorkflow::meshInputs(QString* error)
 
 bool MeshWorkflow::generate()
 {
-    if (!m_project || meshing()) return false;
+    if (!m_project || meshing() || m_sensitivity->running()) return false;
     const QStringList problems = this->problems();
     if (!problems.isEmpty()) {
         m_error = problems.join("\n");
@@ -767,6 +795,24 @@ bool MeshWorkflow::generate()
     return true;
 }
 
+bool MeshWorkflow::startSensitivity(const QString& casePath, const QJsonObject& overrides, const QJsonObject& aero,
+                                    const QString& backend, int iterations, const QStringList& approvals, QString* error)
+{
+    if (!m_project || meshing() || m_sensitivity->running() || loading() || m_cli->info().fixture) {
+        if (error) *error = tr("Mesh sensitivity requires a ready geometry project and the real solver.");
+        return false;
+    }
+    const QStringList issues = problems();
+    if (!issues.isEmpty()) {
+        if (error) *error = issues.join("\n");
+        return false;
+    }
+    const auto inputs = meshInputs(error);
+    if (inputs.isEmpty()) return false;
+    return m_sensitivity->start(m_project->dir, inputs, m_project->setup, m_project->speed, casePath,
+                                overrides, aero, backend, iterations, approvals, error);
+}
+
 void MeshWorkflow::cancel()
 {
     if (!m_proc) return;
@@ -801,7 +847,7 @@ void MeshWorkflow::finishMesh(int code, bool cancelled)
             m_outcome = Outcome::Succeeded;
             QSaveFile f(QDir(m_project->meshDir()).filePath("app-mesh.json"));
             if (f.open(QIODevice::WriteOnly)) {
-                f.write(QJsonDocument(QJsonObject{{"inputs", inputsHash()}, {"seconds", seconds}, {"fixture", m_meshFromFixture}}).toJson());
+                f.write(QJsonDocument(QJsonObject{{"inputs", inputsHash()}, {"geometry_inputs", geometryHash()}, {"seconds", seconds}, {"fixture", m_meshFromFixture}}).toJson());
                 f.commit();
             }
             emit consoleLine(ConsoleLevel::Success, tr("Mesh: %1 cells, %2 faces in %3 s%4")

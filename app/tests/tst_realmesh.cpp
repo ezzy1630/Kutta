@@ -100,6 +100,16 @@ private slots:
         QVERIFY(r.yPlus && r.yPlus->p50 && r.yPlus->from30to300);
         QCOMPARE(*r.yPlus->speed, 30.0);  // the project's speed reached the mesher
         QVERIFY(r.gaps);
+        const auto gap = std::find_if(r.gaps->begin(), r.gaps->end(),
+                                     [](const MeshGap& gap) { return gap.b == "ground" && !gap.contact; });
+        QVERIFY(gap != r.gaps->end() && gap->sample);
+        QVERIFY(std::abs((gap->sample->second - gap->sample->first).length() - gap->width) < 1e-6);
+        std::optional<Result<QJsonObject>> cut;
+        s.cli()->meshSection(mw->meshFile(), gap->sample->first, gap->sample->second,
+                             [&cut](Result<QJsonObject> result) { cut = std::move(result); });
+        QVERIFY(QTest::qWaitFor([&] { return cut.has_value(); }, 30000));
+        QVERIFY2(cut->ok(), qPrintable(cut->error()));
+        QVERIFY(!cut->value().value("polygons").toArray().isEmpty());
         QVERIFY(r.missingSurfaceZones && r.missingSurfaceZones->isEmpty());
         // Lengths in metres: the tunnel the app drew is the one the mesher built.
         const Bounds t = tunnelBounds(m, mw->geometryBounds());
