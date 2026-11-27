@@ -29,7 +29,7 @@ A two-dimensional moving-ground test used the Tyrrell 026 section at Re=462,000 
 
 The sustaining terms kept the upstream freestream near 0.200% at x/c=−1 and y/c=3. The freely decaying cases delivered about 0.06–0.07% there. The change in load is modest despite the change in local turbulence. Sustaining terms remain an explicit fully turbulent SST setting. [SST sustaining-source equations](https://tmbwg.github.io/turbmodels/sst.html)
 
-Two additional S1223 Reynolds numbers were withheld from the earlier 200k/300k study. The as-tested geometry stays at 4.76°. Measurements below are interpolated between bracketing clean-polar points at the same Reynolds number. The freestream intensity is 0.1% and the assumed viscosity ratio is one. [UIUC Low-Speed Airfoil Tests](https://m-selig.ae.illinois.edu/uiuc_lsat.html) · [Data provenance and use terms](../../data/uiuc_lsat_s1223/SOURCE.md)
+Two additional S1223 Reynolds numbers were withheld from the earlier 200k/300k study. The as-tested geometry stays at 4.76°. Measurements below are interpolated between bracketing clean-polar points at the same Reynolds number. The freestream intensity is 0.1% and the assumed viscosity ratio is one. [UIUC Low-Speed Airfoil Tests](https://m-selig.ae.illinois.edu/uiuc_lsat.html) · [Volume 1 data and use terms](https://m-selig.ae.illinois.edu/pd/pub/lsat/volume01.zip)
 
 | Re | Measured Cl / Cd | SST Cl / Cd | Intermittency Cl / Cd | Sustained SST Cl / Cd |
 |---:|---:|---:|---:|---:|
