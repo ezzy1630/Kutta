@@ -39,7 +39,11 @@ struct SstIntermittency {
   float csep = 1.0f;  // C_SEP in P_k^lim; Fluent rpvar trans-one-eqn-csep
 };
 
+struct SstAmbient {
+  float k, omega;
+};
 struct SstOptions {
+  std::optional<SstAmbient> ambient;
   bool production_limiter = true;
   float production_clip = 10.0f;  // C_lim
   bool limit_omega_production = true;  // documented inference; data does not settle this

@@ -194,16 +194,16 @@ Json::Object iso_unit(const Volume &volume, Iso spec, bool lenient,
 Json::Object probe_unit(const Volume &volume, Probe spec, bool lenient,
                         const std::filesystem::path &dir) {
   Json::Array skipped;
-  const bool line = std::holds_alternative<LineProbe>(spec);
+  const bool section = std::holds_alternative<SectionProbe>(spec);
   std::visit(
       [&](auto &p) {
-        p.fields = usable(volume, p.fields, lenient, line, p.name, skipped);
+        p.fields = usable(volume, p.fields, lenient, !section, p.name, skipped);
       },
       spec);
   const auto result = probe(volume, spec);
   auto d = view::write_geometry(dir / "data.bin", result.geometry).descriptor;
   d.emplace("name", std::visit([](const auto &s) { return s.name; }, spec));
-  d.emplace("type", line ? "line" : "section");
+  d.emplace("type", section ? "section" : (std::holds_alternative<LineProbe>(spec) ? "line" : "points"));
   d.emplace("lines", result.lines);
   probe_csv(dir / "data.csv", result.geometry);
   d.emplace("csv", "data.csv");

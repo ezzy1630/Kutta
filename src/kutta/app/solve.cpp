@@ -1,4 +1,6 @@
 #include "solve.hpp"
+#include "transient.hpp"
+#include "force_sampling.hpp"
 #include "protocol.hpp"
 #include "export.hpp"
 #include "stop.hpp"
@@ -38,19 +40,31 @@ struct Options {
   bool write_restart=false;
   fv::CoupledEdgeStorage coupled_edge_storage=fv::CoupledEdgeStorage::Cached;
   // 0: the case's default limit (setup::RunControls).
+  std::optional<app::PhysicalRun> physical;
   int iterations=0,live_every=app::LiveCadence::default_every;
   std::vector<setup::Approximation> approximations;
 };
 Options parse(int argc,char** argv) {
   KUTTA_REQUIRE(argc>=3,"Usage: kutta solve <case.cas.h5|case.kutta.json> [--data init.dat.h5] [--restart FILE] [--write-restart] [--backend cuda|metal|cpu|auto] [--iterations N] [--out DIR] [--live-view DIR] [--live-every N] [--approximate SETTING[,SETTING...]]");
-  Options o;o.input=argv[2];std::set<std::string> seen;
+  Options o;o.input=argv[2];
+  if (std::string_view(argv[1])=="transient") { o.physical.emplace(); o.out="kutta-transient"; }
+  std::set<std::string> seen;
   for(int i=3;i<argc;) {
     const std::string key=argv[i++];
     KUTTA_REQUIRE(seen.insert(key).second,"duplicate option: "+key);
     if(key=="--write-restart") {o.write_restart=true;continue;}
     KUTTA_REQUIRE(i<argc,"missing value for option: "+key);
     const std::string v=argv[i++];
-    if(key=="--data") o.data=v;
+    if(o.physical && (key=="--dt" || key=="--tolerance")) {
+      auto& value=key=="--dt"?o.physical->dt:o.physical->tolerance;
+      const auto [end,ec]=std::from_chars(v.data(),v.data()+v.size(),value);
+      KUTTA_REQUIRE(ec==std::errc{} && end==v.data()+v.size() && std::isfinite(value) && value>0,
+                    key+" requires a positive finite number");
+    } else if(o.physical && (key=="--steps" || key=="--correctors" || key=="--mean-from" || key=="--mean-every")) {
+      auto& value=key=="--steps"?o.physical->steps:key=="--correctors"?o.physical->max_correctors:key=="--mean-from"?o.physical->mean_from:o.physical->mean_every;
+      const auto [end,ec]=std::from_chars(v.data(),v.data()+v.size(),value);
+      KUTTA_REQUIRE(ec==std::errc{} && end==v.data()+v.size() && value>0,key+" requires a positive integer");
+    } else if(key=="--data") o.data=v;
     else if(key=="--restart") {KUTTA_REQUIRE(!v.empty(),"--restart requires a file");o.restart=v;}
     else if(key=="--setup") o.setup_file=v;
     else if(key=="--out") o.out=v;
@@ -67,6 +81,16 @@ Options parse(int argc,char** argv) {
       const auto [end,ec]=std::from_chars(v.data(),v.data()+v.size(),value);
       KUTTA_REQUIRE(ec==std::errc{} && end==v.data()+v.size() && value>0,key+" must be a positive integer");
     } else throw Error("unknown solve option: "+key);
+  }
+  if(o.physical) {
+    KUTTA_REQUIRE(!o.write_restart,"physical-time history cannot be continued from a steady checkpoint");
+    const auto& p=*o.physical;
+    KUTTA_REQUIRE(!seen.contains("--mean-every") || p.mean_from,"--mean-every requires --mean-from");
+    KUTTA_REQUIRE(p.steps>0 && p.dt>0 && std::isfinite(p.dt*p.steps) && p.mean_from<=p.steps &&
+      p.steps<=(std::numeric_limits<int>::max()-1)/p.max_correctors,
+      "transient requires --dt and --steps, with any --mean-from inside the run");
+    KUTTA_REQUIRE(!o.iterations && o.live_directory.empty() && !seen.contains("--progress") && o.setup_file.empty(),
+      "transient uses physical step controls and physical-time.csv");
   }
   KUTTA_REQUIRE(!seen.contains("--live-every") || !o.live_directory.empty(),"--live-every requires --live-view");
   KUTTA_REQUIRE(o.backend=="auto" || o.backend=="cpu" || o.backend=="cuda" || o.backend=="metal","unknown backend: "+o.backend);
@@ -192,7 +216,7 @@ int solve(int argc,char** argv) {
     }
     if(!notice.empty() && !jsonl) human<<notice<<std::endl;
     if(!jsonl)for(const auto& note:setup->convergence_notes) human<<"Setup: "<<note<<'\n';
-    if(!jsonl && !convergence_warning.empty())human<<convergence_warning<<'\n';
+    if(!o.physical && !jsonl && !convergence_warning.empty())human<<convergence_warning<<'\n';
     using Coupling=fv::PressureVelocityCoupling;const auto scheme=setup->settings.coupling;
     const auto coupling=scheme==Coupling::Coupled?"coupled":scheme==Coupling::Simple?"simple":"simplec";
     const auto coupling_label=scheme==Coupling::Coupled?"Coupled":scheme==Coupling::Simple?"SIMPLE":"SIMPLEC";
@@ -200,6 +224,11 @@ int solve(int argc,char** argv) {
     memory::phase("case-setup");
     auto dev=device(o.backend);
     memory::phase("device");
+    if (o.physical) {
+      KUTTA_REQUIRE(!setup->settings.pseudo_transient && !setup->settings.compensated_momentum &&
+        setup->approximations.empty(), "physical time requires a segregated setup without pseudo time or approximations");
+      setup->settings.paired_state=false;
+    }
     fv::SteadySolver solver(*dev,std::move(mesh),setup->boundaries,setup->settings);
     const bool hybrid=std::holds_alternative<fv::HybridInitialization>(*fields);
     const auto init=!o.restart.empty()?"native-restart":!o.data.empty()?"fluent-data":hybrid?"hybrid":"standard";
@@ -210,6 +239,12 @@ int solve(int argc,char** argv) {
       human<<"Initialization: hybrid (stored scalar controls; Kutta AMG replaces Fluent hybrid AMG cycles/methods).\n";
     dev->synchronize();
     memory::phase("initialize");
+    if (o.physical) {
+      app::run_transient(*dev,solver,c,*setup,reports,*o.physical,o.out,
+        {{"mesh_sha256",mesh_hash},{"setup_sha256",case_hash},{"case_file",o.input.string()},
+         {"data_sha256",data_hash},{"initialization",init},{"restart_sha256",restart_hash},{"arithmetic","float32"}},stop);
+      return 0;
+    }
     std::optional<view::LiveView> live;
     if(!o.live_directory.empty())live.emplace(o.live_directory);
     app::LiveCadence cadence(o.live_every);
@@ -243,19 +278,7 @@ int solve(int argc,char** argv) {
     if(!notice.empty())force_history<<"# "<<notice<<'\n';
     force_history<<"iteration,report,force_N,coefficient\n";
 
-    // Different axes of the same body use a single surface integration.
-    std::map<std::vector<std::string>,std::size_t> patch_groups;
-    std::vector<std::size_t> report_group;
-    for(const auto& report:reports) {
-      auto patches=report.patches;
-      std::sort(patches.begin(),patches.end());
-      report_group.push_back(patch_groups.try_emplace(std::move(patches),patch_groups.size()).first->second);
-    }
-    std::vector<fv::ForceReport> group_forces(patch_groups.size());
-    const auto collect_forces=[&] {
-      for(const auto& [patches,group]:patch_groups)
-        group_forces[group]=solver.forces(patches,c.reference.pressure.value_or(0));
-    };
+    app::ForceSampling sampled_forces(reports);
     const auto& ref=c.reference;
     std::optional<fv::ReferenceValues> force_reference;
     if(ref.density && *ref.density>0 && ref.velocity && *ref.velocity>0 && ref.area && *ref.area>0)
@@ -347,10 +370,10 @@ int solve(int argc,char** argv) {
       // once it has started (a force evaluation does not change the solve).
       if(!sample && convergence.check && monitor.wants_forces(iter)) {
         std::map<std::string,double> values;
-        collect_forces();
+        sampled_forces.collect(solver,c.reference.pressure.value_or(0));
         for(std::size_t i=0;i<reports.size();++i) {
           const auto& d=reports[i];
-          const auto force=dot(group_forces[report_group[i]].force(),*d.direction);
+          const auto force=dot(sampled_forces[i].force(),*d.direction);
           if(!std::isfinite(force))throw diverged(iter,"non-finite "+d.name+" report");
           values.emplace(d.name,force);
         }
@@ -379,10 +402,10 @@ int solve(int argc,char** argv) {
       std::map<std::string,double> report_values;
       Json::Object event_reports;
       if(sample) {
-        collect_forces();
+        sampled_forces.collect(solver,c.reference.pressure.value_or(0));
         for(std::size_t i=0;i<reports.size();++i) {
           const auto& d=reports[i];
-          const auto& f=group_forces[report_group[i]];
+          const auto& f=sampled_forces[i];
           const auto force=dot(f.force(),*d.direction);
           if(!std::isfinite(force))throw diverged(iter,"non-finite "+d.name+" report");
           report_values.emplace(d.name,force);

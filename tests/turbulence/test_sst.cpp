@@ -485,3 +485,26 @@ TEST_CASE("SST implicit wall shear, reconstruction omega and structural zero k f
     }
   }
 }
+
+TEST_CASE("Ambient SST sources preserve a homogeneous freestream at both blending limits") {
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto mesh=box(*dev);
+    State s(*dev,mesh);
+    dev->fill(s.k,.04f);
+    dev->fill(s.omega,3);
+    dev->fill(s.rho,1.2f);
+    SstOptions options;
+    options.wall_production=false;
+    options.ambient=SstAmbient{.04f,3.f};
+    SstModel model(*dev,mesh,options);
+    for (float distance:{1e-4f,1e4f}) {
+      dev->fill(mesh.wall_distance,distance);
+      model.update(s.inputs());
+      const auto& f=model.fields();
+      CHECK(first(*dev,f.k_source)==doctest::Approx(.04*first(*dev,f.k_sink)).epsilon(1e-6));
+      CHECK(first(*dev,f.omega_source)==doctest::Approx(3*first(*dev,f.omega_sink)).epsilon(1e-6));
+    }
+    options.ambient=SstAmbient{-1.f,3.f};
+    CHECK_THROWS(SstModel(*dev,mesh,options));
+  }
+}

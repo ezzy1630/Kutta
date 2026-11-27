@@ -31,7 +31,7 @@ void append(view::Geometry &g, const Point &p, double arc, bool valid) {
   g.fields[g.fields.size() - 2].values.push_back(float(arc));
   g.fields.back().values.push_back(valid ? 1 : 0);
 }
-Curves line_probe(const Volume &volume, const LineProbe &spec) {
+template <typename Spec> Curves sample_probe(const Volume &volume, const Spec &spec) {
   Curves out;
   auto &g = out.geometry;
   fields(g, volume, spec.fields);
@@ -41,10 +41,20 @@ Curves line_probe(const Volume &volume, const LineProbe &spec) {
   g.line_offsets.push_back(0);
   bool active = false;
   Index hint = -1;
-  for (int i = 0; i < spec.line.count; ++i) {
-    const double t =
-        spec.line.count == 1 ? .5 : double(i) / (spec.line.count - 1);
-    const auto p = spec.line.start + (spec.line.end - spec.line.start) * t;
+  constexpr bool line = std::is_same_v<Spec, LineProbe>;
+  std::size_t count;
+  if constexpr (line) count = spec.line.count;
+  else count = spec.points.size();
+  for (std::size_t i = 0; i < count; ++i) {
+    Vec3d p;
+    double arc = 0;
+    if constexpr (line) {
+      const double t = count == 1 ? .5 : double(i) / double(count - 1);
+      p = spec.line.start + (spec.line.end - spec.line.start) * t;
+      arc = norm(p - spec.line.start);
+    } else {
+      p = spec.points[i];
+    }
     // Probe locations are independent samples, not an integrated trajectory.
     // A coarse probe may span millions of cells between adjacent samples.
     const Index cell =
@@ -58,7 +68,9 @@ Curves line_probe(const Volume &volume, const LineProbe &spec) {
         sample = volume.sample(name, cell, p);
       point.fields.push_back(sample);
     }
-    append(g, point, norm(p - spec.line.start), cell >= 0);
+    append(g, point, arc, cell >= 0);
+    hint = cell;
+    if constexpr (!line) continue;
     if (cell >= 0) {
       g.indices.push_back(std::uint32_t(i));
       active = true;
@@ -66,7 +78,6 @@ Curves line_probe(const Volume &volume, const LineProbe &spec) {
       g.line_offsets.push_back(std::uint32_t(g.indices.size()));
       active = false;
     }
-    hint = cell;
   }
   if (active)
     g.line_offsets.push_back(std::uint32_t(g.indices.size()));
@@ -283,10 +294,10 @@ Curves section_probe(const Volume &volume, const SectionProbe &spec) {
 Curves probe(const Volume &volume, const Probe &spec) {
   return std::visit(
       [&](const auto &p) -> Curves {
-        if constexpr (std::is_same_v<std::decay_t<decltype(p)>, LineProbe>)
-          return line_probe(volume, p);
-        else
+        if constexpr (std::is_same_v<std::decay_t<decltype(p)>, SectionProbe>)
           return section_probe(volume, p);
+        else
+          return sample_probe(volume, p);
       },
       spec);
 }

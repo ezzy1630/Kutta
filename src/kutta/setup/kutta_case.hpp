@@ -135,6 +135,7 @@ struct KuttaCase {
     ViscousModel viscous = ViscousModel::k_omega_sst;  // required in the file
     std::optional<bool> intermittency_transition;       // "transition": "none" | "intermittency"
     struct KOmegaSst {
+      std::optional<fluent::AmbientTurbulence> ambient;
       std::optional<bool> production_limiter, low_re_corrections, curvature_correction, compressibility_effects,
           kato_launder, vorticity_based_production;
       std::optional<double> production_limiter_clip_factor, cross_diffusion_clip;

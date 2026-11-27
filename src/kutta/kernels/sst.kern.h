@@ -251,3 +251,9 @@ KUTTA_KERNEL void sst_face_diffusion(int i,
     face_w[i] = wall[i-n_internal] ? mu[c] : gamma_w[c];
   }
 }
+
+KUTTA_KERNEL void sst_sustain(int i, KIn(float) rho, KIn(float) f1,
+    KOut(float) k_source, KOut(float) omega_source, float ambient_k, float ambient_omega) {
+  k_source[i] += 0.09f * rho[i] * ambient_omega * ambient_k;
+  omega_source[i] += sst_beta(f1[i]) * rho[i] * ambient_omega * ambient_omega;
+}

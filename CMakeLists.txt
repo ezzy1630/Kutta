@@ -174,6 +174,8 @@ if(KUTTA_BUILD_TESTS)
   set_tests_properties(kutta-tests-slow PROPERTIES LABELS slow)
   add_test(NAME rotating-shaft-reference COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_SOURCE_DIR}/validation/cases/check_rotating_shaft.py $<TARGET_FILE:kutta-cli>)
+  add_test(NAME transient-sst-decay COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_SOURCE_DIR}/validation/cases/transient_sst_decay.py $<TARGET_FILE:kutta-cli>)
   add_test(NAME lint-portability COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/lint_portability.py)
 endif()
 

@@ -256,8 +256,18 @@ Request read_request(const std::filesystem::path &path, bool streamlines_only) {
         keys(o, {"type", "name", "start", "end", "count", "fields"});
         out.probes.emplace_back(
             LineProbe{name, line(o), fields, identity(o, name)});
+      } else if (type == "points") {
+        keys(o, {"type", "name", "points", "fields"});
+        const auto &coordinates = array(required(o, "points"));
+        KUTTA_REQUIRE(!coordinates.empty() && coordinates.size() <= 1000000,
+                      "point probe requires 1 to 1000000 coordinates");
+        PointsProbe probe{name, {}, fields, identity(o, name)};
+        probe.points.reserve(coordinates.size());
+        for (const auto &point : coordinates)
+          probe.points.push_back(vector(point));
+        out.probes.emplace_back(std::move(probe));
       } else {
-        KUTTA_REQUIRE(type == "section", "probe type must be line or section");
+        KUTTA_REQUIRE(type == "section", "probe type must be line, points or section");
         keys(o, {"type", "name", "zones", "origin", "normal", "fields"});
         SectionProbe p{
             name,
@@ -275,7 +285,7 @@ Request read_request(const std::filesystem::path &path, bool streamlines_only) {
     for (const auto &j : array(*integrals)) {
       const auto &o = object(j, "integral");
       keys(o, {"name", "zones", "fields", "origin", "drag", "lift", "side",
-               "pressure_plane"});
+               "pressure_plane", "normal_range"});
       Integral r;
       r.name = string(o, "name",
                       "integrals-" + std::to_string(out.integrals.size()));
@@ -295,6 +305,17 @@ Request read_request(const std::filesystem::path &path, bool streamlines_only) {
                       "pressure-plane normal must be nonzero");
         r.pressure_plane->normal = detail::operator/(
             r.pressure_plane->normal, detail::norm(r.pressure_plane->normal));
+      }
+      if (const auto *range = get(o, "normal_range")) {
+        const auto &filter = object(*range, "normal_range");
+        keys(filter, {"axis", "min", "max"});
+        NormalRange n{vector(required(filter, "axis")), number(required(filter, "min")),
+                      number(required(filter, "max"))};
+        const auto length = detail::norm(n.axis);
+        KUTTA_REQUIRE(length > 0 && n.minimum >= -1 && n.maximum <= 1 && n.minimum < n.maximum,
+                      "normal_range requires a nonzero axis and -1 <= min < max <= 1");
+        n.axis = detail::operator/(n.axis, length);
+        r.normal_range = n;
       }
       for (auto *d : {&r.drag, &r.lift, &r.side}) {
         KUTTA_REQUIRE(detail::norm(*d) > 0, "report direction must be nonzero");

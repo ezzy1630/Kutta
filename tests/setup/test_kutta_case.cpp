@@ -372,3 +372,24 @@ TEST_CASE("Named fluid materials retain cell assignments and require uniform sol
   CHECK(mentions(rejection(R"({"kutta_case":1,"mesh":"m.msh","models":{"viscous":"laminar"},"boundaries":{},
     "cell_zones":{"fluid":{"porous":{}}}})"), "cell_zones/fluid/porous/viscous_resistance: required"));
 }
+
+TEST_CASE("SST ambient terms survive case conversion and reject incompatible closures") {
+  auto mesh=read_mesh(box_mesh);
+  const auto info=mesh_info(mesh);
+  auto c=fsae_starter(info,"box.msh",{});
+  c.models.k_omega_sst.ambient=fluent::AmbientTurbulence{6e-6,2.772};
+  CHECK(parse_kutta_case(kutta_case_text(c))==c);
+  apply_boundary_kinds(c,mesh);
+  const auto lowered=lower_kutta_case(c,info);
+  const auto converted=kutta_case_from_fluent(lowered,info,c.mesh);
+  CHECK(converted.kutta.models.k_omega_sst.ambient==c.models.k_omega_sst.ambient);
+  const auto setup=fluent_setup(lowered,mesh);
+  REQUIRE(setup.settings.sst);
+  REQUIRE(setup.settings.sst->model.ambient);
+  CHECK(setup.settings.sst->model.ambient->k==doctest::Approx(6e-6));
+  c.models.k_omega_sst.low_re_corrections=true;
+  CHECK(mentions(rejection(kutta_case_text(c)),"sustaining terms require fully turbulent SST"));
+  c.models.k_omega_sst.low_re_corrections=false;
+  c.models.intermittency_transition=true;
+  CHECK(mentions(rejection(kutta_case_text(c)),"sustaining terms require fully turbulent SST"));
+}

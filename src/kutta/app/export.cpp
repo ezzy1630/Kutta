@@ -46,9 +46,8 @@ view::Fields collect_view_fields(Device& dev,const fv::SteadySolver& solver,
   const auto& m=solver.mesh();const auto nb=m.n_faces()-m.n_internal_faces();
   // Turbulence fields and y+ exist only for the active closure.
   const bool sst=setup.settings.sst.has_value(),epsilon=setup.settings.realizable_ke.has_value();
-  auto cell_velocity=vector_field(dev,"velocity","m/s",solver.velocity());
   if(volume) {
-    s.cells.push_back(std::move(cell_velocity));
+    s.cells.push_back(vector_field(dev,"velocity","m/s",solver.velocity()));
     s.cells.push_back({"pressure","Pa",1,dev.download(solver.pressure())});
     if(sst || epsilon) s.cells.push_back({"k","m^2/s^2",1,dev.download(solver.kinetic_energy())});
     if(sst) s.cells.push_back({"omega","1/s",1,dev.download(solver.specific_dissipation())});
@@ -64,20 +63,7 @@ view::Fields collect_view_fields(Device& dev,const fv::SteadySolver& solver,
   // k-epsilon wall functions report y*, Fluent's wall-function coordinate.
   if(sst) s.boundary.push_back({"y_plus","1",1,dev.download(solver.turbulence().wall_y_plus)});
   if(epsilon) s.boundary.push_back({"y_star","1",1,dev.download(solver.realizable_turbulence().wall_y_star)});
-  Field velocity{"velocity","m/s",3,std::vector<float>(std::size_t(nb)*3)};
-  for(const auto& p:m.patches) {
-    auto bc=std::find_if(setup.boundaries.begin(),setup.boundaries.end(),[&](const auto& b){return b.patch==p.name;});
-    KUTTA_REQUIRE(bc!=setup.boundaries.end(),"missing export boundary condition");
-    for(Index f=p.start;f<p.start+p.size;++f) {
-      const auto cell=std::size_t(m.owner[f])*3;const auto& u=volume?s.cells.front().values:cell_velocity.values;
-      Vec3d v{u[cell],u[cell+1],u[cell+2]};
-      if(const auto* inlet=std::get_if<fv::VelocityInlet>(&bc->condition))v=std::get<Vec3d>(inlet->velocity);
-      else if(std::holds_alternative<fv::Symmetry>(bc->condition)){const auto n=solver.geometry().face_area[f]/norm(solver.geometry().face_area[f]);v=v-n*dot(v,n);}
-      else if(const auto* wall=std::get_if<fv::Wall>(&bc->condition))v=wall->velocity;
-      const auto i=std::size_t(f-m.n_internal_faces())*3;velocity.values[i]=float(v.x);velocity.values[i+1]=float(v.y);velocity.values[i+2]=float(v.z);
-    }
-  }
-  s.boundary.push_back(std::move(velocity));
+  s.boundary.push_back(vector_field(dev,"velocity","m/s",solver.boundary_velocity()));
   if(volume) {
     const auto mass_flux=dev.download(solver.mass_flux());
     s.boundary.push_back({"mass_flux","kg/s",1,std::vector<float>(mass_flux.begin()+m.n_internal_faces(),mass_flux.end())});

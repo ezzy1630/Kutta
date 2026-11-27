@@ -665,6 +665,7 @@ No crossing also produces an empty geometry, with null field ranges.
 Line probes sample exactly `count` positions along the line, including endpoints.
 They reconstruct fields within each located volume cell. Outside points retain
 their positions, `valid:0`, and NaN values; valid segments remain separate curves.
+A points probe such as `{"type":"points","points":[[0.1,0.2,0],[0.5,0.3,0]],"fields":["velocity_x"]}` reconstructs the same fields at an ordered list of independent coordinates. Its CSV preserves every requested point, including outside samples with an empty field and `valid:0`. Split large measurement planes into batches that fit the request size limit.
 Section probes intersect the selected boundary zones with a plane and interpolate
 the zone's face-area-weighted vertex values onto the intersection. Segments are
 connected into ordered curves; closed curves include their closing point and
@@ -719,6 +720,8 @@ lift/drag/side coefficients, vector moment coefficients and centre of pressure.
 Directions are normalized; defaults are drag x, lift y, side z. The actual axes
 and moment origin are echoed. Undefined zero-flow averages and coefficients with
 missing references are JSON null. NaN reference samples carry explicit coverage.
+
+An integral can select faces by orientation with `"normal_range":{"axis":[0,0,1],"min":0.5,"max":1}`. Kutta normalizes the axis and selects by its dot product with the unit normal pointing out of the fluid. The lower bound is inclusive. The upper bound is exclusive except at +1. Adjacent intervals therefore sum back to the original zone.
 
 New snapshots use the solver's saved mass flux. Old snapshots may instead use
 `rho U_boundary dot S_face`, and reports identify that source. Pressure force on

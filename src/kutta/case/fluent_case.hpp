@@ -89,7 +89,12 @@ struct ScalarValue {
   bool operator==(const ScalarValue &) const = default;
 };
 using ScalarVector = std::array<std::optional<ScalarValue>, 3>;
+struct AmbientTurbulence {
+  double k=0, omega=0;
+  bool operator==(const AmbientTurbulence&) const = default;
+};
 struct Turbulence {
+  std::optional<AmbientTurbulence> ambient;
   std::optional<ViscousModel> model;
   std::optional<bool> production_limiter, low_re, curvature_correction, sst_strain, kato_launder,
       vorticity_production, compressibility, shear_modification;

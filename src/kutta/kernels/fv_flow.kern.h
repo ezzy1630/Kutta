@@ -262,3 +262,38 @@ KUTTA_KERNEL void fv_fluent_momentum_scale(int i,KIn(float) ax,KIn(float) ay,KIn
   float time=dt>0.0f?rho*volume[i]/dt:0.0f;
   x[i]=2.0f*(ax[i]+time)*speed[i];y[i]=2.0f*(ay[i]+time)*speed[i];z[i]=2.0f*(az[i]+time)*speed[i];
 }
+
+KUTTA_KERNEL void fv_physical_time_terms(int i, KIn(float) volume, KIn(float) old1,
+    KIn(float) old2, KOut(float) diagonal, KOut(float) rhs, float rho_dt,
+    float a0, float a1, float a2, int add) {
+  float scale = rho_dt * volume[i];
+  float d = add ? diagonal[i] : 0.0f;
+  float b = add ? rhs[i] : 0.0f;
+  diagonal[i] = d + scale * a0;
+  rhs[i] = b + scale * (a1 * old1[i] + a2 * old2[i]);
+}
+
+KUTTA_KERNEL void fv_face_time_defect(int i, KIn(float) mass, KIn(float) sx, KIn(float) sy,
+    KIn(float) sz, KIn(float) ux, KIn(float) uy, KIn(float) uz, KOut(float) defect, float rho) {
+  defect[i] = mass[i] - rho * (sx[i]*ux[i] + sy[i]*uy[i] + sz[i]*uz[i]);
+}
+
+KUTTA_KERNEL void fv_face_time_flux(int i, KIn(int) owner, KIn(int) neighbour, KIn(int) kind,
+    KIn(float) volume, KIn(float) diagonal, KIn(float) defect1, KIn(float) defect2,
+    KOut(float) mass, int internal, float rho_dt, float a1, float a2) {
+  int p = owner[i];
+  float d = volume[p] / kmax(diagonal[p], 1.0e-20f);
+  if (i < internal) {
+    int n = neighbour[i];
+    d = 0.5f * (d + volume[n] / kmax(diagonal[n], 1.0e-20f));
+  } else {
+    int b = kind[i-internal];
+    if (b == 0 || b == 1 || b == 3) return;
+  }
+  mass[i] += rho_dt * d * (a1 * defect1[i] + a2 * defect2[i]);
+}
+
+KUTTA_KERNEL void fv_cell_mass_error(int i, KIn(float) imbalance, KIn(float) volume,
+    KOut(float) error, float dt_over_rho) {
+  error[i] = dt_over_rho * kabs(imbalance[i]) / volume[i];
+}

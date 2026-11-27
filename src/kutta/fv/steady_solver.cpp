@@ -147,6 +147,16 @@ struct SteadySolver::Impl {
   bool limiter_pending=true;
   std::vector<Buffer<float>> limiter_scratch;
   std::unique_ptr<TransportEquation> momentum[3];
+  struct TimeHistory {
+    double dt = 0;
+    int steps = 0;
+    std::vector<Buffer<float>> old1, old2;
+    Buffer<float> defect1, defect2;
+    float a0() const { return steps == 1 ? 1.f : 1.5f; }
+    float a1() const { return steps == 1 ? 1.f : 2.f; }
+    float a2() const { return steps == 1 ? 0.f : -.5f; }
+  };
+  std::optional<TimeHistory> physical_time;
   std::shared_ptr<const ProjectedFaceReconstruction> diffusion_reconstruction;
   std::shared_ptr<const WalkFaceReconstruction> turbulent_faces;
   std::shared_ptr<const FaceReconstruction> velocity_faces;
@@ -713,6 +723,45 @@ struct SteadySolver::Impl {
     kern::fv_stress_source(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,mesh.cell_face_sign,
       mesh.volume,transpose_stress.x,transpose_stress.y,transpose_stress.z,source.x,source.y,source.z);
   }
+  void start_time_step(double dt) {
+    KUTTA_REQUIRE(std::isfinite(dt) && dt > 0 && std::isfinite(float(settings.density / dt)) &&
+      float(settings.density / dt) > 0, "physical step must be positive and representable");
+    KUTTA_REQUIRE(!coupled && !paired && !sa && !rke && !transition && !settings.pseudo_transient &&
+      settings.cell_zone_physics.empty() && settings.interior_conditions.empty(),
+      "physical time requires segregated laminar or SST, float state and a stationary mesh without interior jumps");
+    std::vector<const Buffer<float>*> fields{&velocity.x, &velocity.y, &velocity.z};
+    if (sst) { fields.push_back(&kinetic); fields.push_back(&omega); }
+    if (!physical_time) {
+      if (sst) {
+        k_equation->set_steady_tolerance(0);
+        omega_equation->set_steady_tolerance(0);
+      }
+      physical_time.emplace();
+      auto& h = *physical_time;
+      h.dt = dt;
+      for (std::size_t k = 0; k < fields.size(); ++k) {
+        h.old1.push_back(dev.alloc<float>(mesh.n_cells));
+        h.old2.push_back(dev.alloc<float>(mesh.n_cells));
+        dev.fill(h.old1.back(), 0);
+      }
+      h.defect1 = dev.alloc<float>(mesh.n_faces);
+      h.defect2 = dev.alloc<float>(mesh.n_faces);
+      dev.fill(h.defect1, 0);
+    }
+    auto& h = *physical_time;
+    KUTTA_REQUIRE(dt == h.dt, "BDF2 requires a fixed physical step");
+    ++h.steps;
+    h.old1.swap(h.old2);
+    for (std::size_t k = 0; k < fields.size(); ++k) dev.copy(h.old1[k], *fields[k]);
+    std::swap(h.defect1, h.defect2);
+    update_boundaries();
+    update_flux(true);
+  }
+  void time_terms(int field, bool add) {
+    const auto& h = *physical_time;
+    kern::fv_physical_time_terms(dev, mesh.n_cells, mesh.volume, h.old1[field], h.old2[field],
+      wall_diagonal, wall_rhs, float(settings.density/h.dt), h.a0(), h.a1(), h.a2(), add);
+  }
   TransportTerms wall_terms(int component) {
     kern::fv_boundary_momentum(dev,mesh.n_cells,mesh.cell_face_offsets,mesh.cell_faces,boundary_kind,
       mesh.area.x,mesh.area.y,mesh.area.z,sst?sst->fields().wall_shear_coefficient:(rke?rke->fields().wall_coefficient:prescribed_pressure),
@@ -722,6 +771,7 @@ struct SteadySolver::Impl {
     // BEGIN FSAE physics: same implicit terms in iteration and residual assembly.
     zone_physics->momentum(component,velocity,mesh.volume,wall_diagonal,wall_rhs);
     // END FSAE physics
+    if (physical_time) time_terms(component, true);
     return {nullptr,&wall_diagonal,&wall_rhs};
   }
   void assemble_turbulence(bool is_omega) {
@@ -731,9 +781,15 @@ struct SteadySolver::Impl {
     t.limit_diffusion_correction=opt.limit_diffusion_correction;
     t.convection=is_omega?opt.omega_convection:opt.k_convection;
     t.relaxation=float(is_omega?opt.omega_relaxation:opt.k_relaxation);
+    TransportTerms terms{is_omega?&f.omega_sink:&f.k_sink};
+    if (physical_time) {
+      time_terms(is_omega ? 4 : 3, false);
+      terms.diagonal = &wall_diagonal;
+      terms.rhs = &wall_rhs;
+    }
     eq.assemble_reconstructed(is_omega?omega:kinetic,is_omega?boundary_omega:boundary_k,
       turbulence_kind,model_mass(),is_omega?f.face_diffusivity_omega:f.face_diffusivity_k,
-      is_omega?f.omega_source:f.k_source,t,{is_omega?&f.omega_sink:&f.k_sink});
+      is_omega?f.omega_source:f.k_source,t,terms);
     if(is_omega) kern::fv_fixed_rows(dev,mesh.n_cells,eq.matrix.row_ptr,eq.matrix.diag,f.fixed_omega_mask,
       f.fixed_omega,eq.matrix.val,eq.rhs);
   }
@@ -919,6 +975,11 @@ struct SteadySolver::Impl {
   }
   // Every initialization writes hi alone, and needs fresh limiter thresholds.
   void reset_paired() {
+    if (physical_time && sst) {
+      k_equation->set_steady_tolerance(settings.sst->steady_tolerance);
+      omega_equation->set_steady_tolerance(settings.sst->steady_tolerance);
+    }
+    physical_time.reset();
     limiter_pending=true;
     if(!paired) return;
     for(auto* b:{&velocity_lo.x,&velocity_lo.y,&velocity_lo.z,&pressure_gradient_lo.x,&pressure_gradient_lo.y,
@@ -1075,7 +1136,7 @@ struct SteadySolver::Impl {
     }
     if(bounded) set_limiter_thresholds(range);else refresh_limiter_thresholds();
   }
-  void update_flux() {
+  void update_flux(bool capture_time_defect = false) {
     if(paired) dev.copy(previous_mass,mass);
     if(limiter_pending && !limiter_scratch.empty()) refresh_limiter_thresholds();
     reconstruct_velocity();
@@ -1127,12 +1188,23 @@ struct SteadySolver::Impl {
           *q[k],g.x,g.y,g.z,face_velocity_weights(),physical_diagonal,convective_outflow,*face[k]);
       }
     }
+    if (capture_time_defect) {
+      kern::fv_face_time_defect(dev, mesh.n_faces, mass, mesh.area.x, mesh.area.y, mesh.area.z,
+        face_velocity.x, face_velocity.y, face_velocity.z, physical_time->defect1, float(settings.density));
+      return;
+    }
     kern::fv_rhie_chow(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.area.x,mesh.area.y,mesh.area.z,stencil.diffusion,mesh.volume,
       physical_diagonal,consistent_inverse,face_velocity.x,face_velocity.y,face_velocity.z,
       pressure_jump,
       mass,coefficient,mesh.n_internal_faces,float(settings.density));
     // BEGIN FSAE physics
+    if (physical_time) {
+      const auto& h = *physical_time;
+      kern::fv_face_time_flux(dev, mesh.n_faces, mesh.owner, mesh.neighbour, boundary_kind, mesh.volume,
+        physical_diagonal, h.defect1, h.defect2, mass, mesh.n_internal_faces,
+        float(settings.density/h.dt), h.a1(), h.a2());
+    }
     zone_physics->relative_flux(boundary_kind,mesh.n_internal_faces, mass);
     interior_jumps->flux(mesh,stencil,physical_diagonal,mass,coefficient);
     // END FSAE physics
@@ -1373,6 +1445,14 @@ struct SteadySolver::Impl {
     const double denominator=dev.sum(scale,mesh.n_cells);
     const double raw=dev.sum(provisional_continuity,mesh.n_cells);
     report.corrected_mass_imbalance=dev.sum(continuity,mesh.n_cells);
+    if (physical_time) {
+      kern::fv_cell_mass_error(dev,mesh.n_cells,provisional_continuity,mesh.volume,scale,
+        float(physical_time->dt/settings.density));
+      report.physical_predictor_continuity=dev.max_abs(scale,mesh.n_cells);
+      kern::fv_cell_mass_error(dev,mesh.n_cells,continuity,mesh.volume,scale,
+        float(physical_time->dt/settings.density));
+      report.physical_corrected_continuity=dev.max_abs(scale,mesh.n_cells);
+    }
     if(report.iteration>0 && report.iteration<=5) first_five_continuity[report.iteration-1]=raw;
     continuity_scale=*std::max_element(std::begin(first_five_continuity),std::end(first_five_continuity));
     const auto scaled=[](double r,double d) {return d>0?r/d:(r==0?0:std::numeric_limits<double>::infinity());};
@@ -1611,6 +1691,21 @@ void SteadySolver::initialize_ke_fields(std::span<const Vec3d> velocity,std::spa
   auto& s=*impl_;KUTTA_REQUIRE(s.rke,"FV: realizable k-epsilon disabled");
   s.rke->initialize(k,epsilon,s.permutation);initialize_fields(velocity,pressure);
 }
+void SteadySolver::begin_physical_step(double dt) { impl_->start_time_step(dt); }
+SteadySolver::TimeStepDefect SteadySolver::worst_time_step_defect() const {
+  auto& s=*impl_;
+  KUTTA_REQUIRE(s.physical_time, "no active physical-time step");
+  const auto raw=s.dev.download(s.provisional_continuity);
+  const auto corrected=s.dev.download(s.continuity);
+  TimeStepDefect worst{};
+  for(Index i=0; i<s.mesh.n_cells; ++i) {
+    const auto volume=s.geom.cell_volume[i];
+    const auto scale=s.physical_time->dt/(s.settings.density*volume);
+    if(i==0 || std::max(raw[i],corrected[i])*scale>std::max(worst.predictor_mass_fraction,worst.corrected_mass_fraction))
+      worst={i,s.geom.cell_centroid[i],volume,raw[i]*scale,corrected[i]*scale};
+  }
+  return worst;
+}
 void SteadySolver::iterate(int count) {KUTTA_REQUIRE(count>=0,"FV negative iteration count");while(count-->0) impl_->step();}
 IterationReport SteadySolver::monitor() {return impl_->monitor();}
 ForceReport SteadySolver::forces(std::span<const std::string> patches,double reference_pressure) {
@@ -1673,6 +1768,10 @@ const RealizableKeFields& SteadySolver::realizable_turbulence() const {KUTTA_REQ
 const Buffer<float>& SteadySolver::dissipation() const {KUTTA_REQUIRE(impl_->rke,"FV realizable k-epsilon disabled");return impl_->rke->epsilon();}
 const Buffer<float>& SteadySolver::modified_viscosity() const {KUTTA_REQUIRE(impl_->sa,"FV SA disabled");return impl_->sa->modified_viscosity();}
 const MeshPermutation& SteadySolver::permutation() const {return impl_->permutation;}
+const DeviceVec3& SteadySolver::boundary_velocity() const {
+  impl_->update_boundaries();
+  return impl_->boundary_velocity;
+}
 const Buffer<float>& SteadySolver::boundary_pressure() const {return impl_->boundary_pressure;}
 const IterationReport& SteadySolver::report() const {return impl_->report;}
 Index SteadySolver::poor_cells() const {return impl_->poor_count;}

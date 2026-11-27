@@ -63,13 +63,24 @@ struct SectionProbe {
   std::vector<std::string> fields;
   std::string identity; // canonical JSON; see Trace::identity
 };
-using Probe = std::variant<LineProbe, SectionProbe>;
+struct PointsProbe {
+  std::string name;
+  std::vector<Vec3d> points;
+  std::vector<std::string> fields;
+  std::string identity;
+};
+using Probe = std::variant<LineProbe, SectionProbe, PointsProbe>;
+struct NormalRange {
+  Vec3d axis;
+  double minimum, maximum;
+};
 struct Integral {
   std::string name = "surface-integrals";
   std::vector<std::string> zones, fields{"pressure"};
   Vec3d origin{}, drag{1, 0, 0}, lift{0, 1, 0}, side{0, 0, 1};
   std::optional<view::Plane> pressure_plane;
   std::string identity; // canonical JSON; see Trace::identity
+  std::optional<NormalRange> normal_range;
 };
 struct Request {
   std::vector<Trace> traces;

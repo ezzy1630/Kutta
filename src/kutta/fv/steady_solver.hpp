@@ -278,7 +278,7 @@ struct IterationReport {
   int iteration=0;
   std::optional<int> residual_iteration;
   ResidualValue u,v,w,continuity,k,omega,nu_tilde,epsilon,intermittency;
-  double corrected_mass_imbalance=0;
+  double corrected_mass_imbalance=0, physical_predictor_continuity=0, physical_corrected_continuity=0;
   double maximum_velocity=0, pseudo_time_step=0;
   SolveStats momentum[3],pressure,turbulence[2],transition;
 };
@@ -314,6 +314,13 @@ class SteadySolver {
                            std::span<const double> k,std::span<const double> epsilon);
   // Force per unit volume, not acceleration. Called once at case setup.
   void set_source(const std::function<Vec3d(Vec3d)>& source);
+  struct TimeStepDefect {
+    Index cell;
+    Vec3d position;
+    double volume, predictor_mass_fraction, corrected_mass_fraction;
+  };
+  void begin_physical_step(double dt);
+  TimeStepDefect worst_time_step_defect() const;
   void iterate(int count);
   IterationReport monitor();
   ForceReport forces(std::span<const std::string> wall_patches,
@@ -339,6 +346,7 @@ class SteadySolver {
   const Buffer<float>& dissipation() const;
   const Buffer<float>& modified_viscosity() const;
   const MeshPermutation& permutation() const;
+  const DeviceVec3& boundary_velocity() const;
   const Buffer<float>& boundary_pressure() const;
   const IterationReport& report() const;
   // Cells whose second-order pressure faces are low order (poor_cell_quality).

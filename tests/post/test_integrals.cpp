@@ -82,3 +82,19 @@ TEST_CASE("Surface reports return null for undefined zero-flow averages and "
             .at("mass_flow_weighted_average") == Json(nullptr));
   CHECK(object(total.at("centre_of_pressure")).at("point") == Json(nullptr));
 }
+
+TEST_CASE("Normal ranges partition faces including both poles and the shared boundary") {
+  auto s=uniform(3);
+  post::Volume volume(s);
+  post::Integral spec;
+  double area=0;
+  const std::array<std::pair<double,double>,3> intervals{{{-1,0},{0,.5},{.5,1}}};
+  for(const auto& [low,high]:intervals) {
+    spec.normal_range=post::NormalRange{{0,0,1},low,high};
+    const auto r=post::integrate(volume,spec);
+    const auto a=number(object(object(r).at("total")).at("area"));
+    CHECK(a==doctest::Approx(low==0?4:1));
+    area+=a;
+  }
+  CHECK(area==doctest::Approx(6));
+}

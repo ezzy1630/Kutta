@@ -135,6 +135,10 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
     s.options={"none","gamma-transport-eqn","gamma-algebraic","transition-sst"};
     s.option_labels={"None","Intermittency Transition Model","Algebraic Transition Model","Transition SST"};label_value(s);
   }
+  if(c.viscous.ambient) {
+    b.add("models/sst/ambient-k","Ambient turbulent kinetic energy","Models",c.viscous.ambient->k,"m²/s²");
+    b.add("models/sst/ambient-omega","Ambient specific dissipation rate","Models",c.viscous.ambient->omega,"1/s");
+  }
   const bool transition=c.viscous.transition==TransitionModel::intermittency;
   b.consume(c.variables,"case-config");b.raw(c.config,"general/case-config/");
   b.consume(c.variables,"materials");

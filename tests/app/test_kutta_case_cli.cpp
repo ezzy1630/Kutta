@@ -478,3 +478,21 @@ TEST_CASE("A native restart accepts changed inlet conditions and rejects a diffe
   CHECK(mesh_text(t.path("mismatch.log")).find("SHA-256 mismatch")!=std::string::npos);
   CHECK_FALSE(std::filesystem::exists(t.path("mismatch/summary.json")));
 }
+
+TEST_CASE("A rejected physical step preserves earlier outputs and cannot publish final or mean fields") {
+  MeshTemp files;
+  const auto example=quote(KUTTA_SOURCE_DIR "/app/resources/examples/rotating-shaft.kutta.json");
+  const auto prefix="transient "+example+" --backend cpu --dt .01 --steps 2 --mean-from 1 --out "+quote(files.path("result"));
+  CHECK(kutta_cli(prefix+" --correctors 1 --tolerance 1e-12", files.path("run.log"))!=0);
+  REQUIRE(std::filesystem::is_regular_file(files.path("result/failed-step.json")));
+  const auto failure=std::get<Json::Object>(parse_json(mesh_text(files.path("result/failed-step.json"))).value);
+  CHECK(failure.at("step")==Json{1.0});
+  const auto history=mesh_text(files.path("result/physical-time.csv"));
+  CHECK(std::count(history.begin(),history.end(),'\n')==1);
+  CHECK_FALSE(std::filesystem::exists(files.path("result/summary.json")));
+  CHECK_FALSE(std::filesystem::exists(files.path("result/mean/view-input.bin")));
+  const auto hash=sha256_file(files.path("result/failed-step.json"));
+  CHECK(kutta_cli(prefix,files.path("again.log"))!=0);
+  CHECK(sha256_file(files.path("result/failed-step.json"))==hash);
+  CHECK(mesh_text(files.path("again.log")).find("must be empty")!=std::string::npos);
+}

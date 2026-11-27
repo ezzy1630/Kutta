@@ -67,6 +67,25 @@ using a fresh output directory. It records wall time and process footprint
 per solve plus changes in shaft and housing torques. See the
 [measured CPU run](../validation/results/native_restart_sweep/REPORT.md).
 
+## Physical time
+
+The CLI advances incompressible flow on a fixed mesh with SIMPLE or SIMPLEC and constant fluid properties. It supports laminar flow and fully turbulent SST, including prescribed moving-wall velocities. Use a fixed time step in seconds. The first step uses backward Euler. Subsequent steps use the second-order backward differentiation formula on velocity, and on both transported scalars for SST. Face mass fluxes carry their interpolation correction from prior physical steps. The desktop Run button runs the steady solver.
+
+```sh
+kutta transient app/resources/examples/rotating-shaft.kutta.json --backend cpu \
+  --dt 0.00125 --steps 32 --correctors 160 --tolerance 0.000003 --mean-from 17 --out shaft-startup
+```
+
+The output directory must be empty. Each accepted row of `physical-time.csv` records physical time, inner iterations, normalized equation residuals, local mass errors and each requested directional force in newtons. The mass check uses the maximum over cells of `dt × |sum(outward face mass flux)| / (density × cell volume)`. Both predicted and pressure-corrected fluxes must pass at every step. If the correction limit is reached, `failed-step.json` records the residuals and the worst cell. Earlier accepted rows are retained. The calculated time span, time-step sensitivity and settling of the loads determine whether a mean represents a developed flow.
+
+The final `view-input.bin` is instantaneous. With `--mean-from N`, `mean/view-input.bin` averages the stored fields at equal intervals, starting at accepted step N inclusive. Use `--mean-every M` to sample every Mth step starting at N and reduce the cost of copying full volume fields. The time history still records every accepted step. The mean summary gives each directional load in newtons, including its mean, RMS fluctuation and extrema over the same samples. Both directories support `kutta export-view`. Derived operations on a mean snapshot act on the averaged fields. Use `--restart RUN/restart.bin` to start a new physical-time integration from a steady same-mesh checkpoint. It sets time to zero and uses a first-order startup. The checkpoint has one time level.
+
+### Sustained SST freestream
+
+For a tunnel with known ambient turbulence, specify `models.k_omega_sst.ambient` as an object with positive `k` (m²/s²) and `omega` (s⁻¹). Use values consistent with the inlet and the freestream measurements. Kutta then adds the per-volume sources `ρ β* k_amb ω_amb` and `ρ β(F1) ω_amb²` to the respective equations. Omitting this setting gives the usual freely decaying SST closure. The sustaining terms currently require fully turbulent SST with low-Re corrections off. [Model definition](https://tmbwg.github.io/turbmodels/sst.html)
+
+The [public benchmark results](../validation/results/aero_physics/REPORT.md) quantify physical-time convergence and how the ambient option changes wing loads.
+
 ## Format
 
 ```json
@@ -98,7 +117,7 @@ are SI. Vectors are `[x, y, z]`; on a 2D mesh the z component must be 0.
 | --- | --- |
 | `models.viscous` | `laminar`, `k-omega-sst`, `k-epsilon-standard` |
 | `models.transition` | `none`, `intermittency` (SST only) |
-| `models.k_omega_sst` | `production_limiter`, `production_limiter_clip_factor`, `low_re_corrections`, `curvature_correction`, `compressibility_effects`, `kato_launder`, `vorticity_based_production`, `cross_diffusion_clip` |
+| `models.k_omega_sst` | `production_limiter`, `production_limiter_clip_factor`, `low_re_corrections`, `curvature_correction`, `compressibility_effects`, `kato_launder`, `vorticity_based_production`, `cross_diffusion_clip`, `ambient` |
 | `models.k_epsilon_standard` | `compressibility_effects`, `source_modification`, `time_marching` |
 | `models.intermittency` | configurable transition constants: `ctu1`, `ctu2`, `ctu3`, `cpg1`, `cpg2`, `cpg3`, `cpg1_limit`, `cpg2_limit`, `csep`, `tke_term_coefficient`, `sigma`, `minimum`, `maximum` (requires `transition:"intermittency"`) |
 | `material` | default fluid: `name`, `density` (kg/m³), `viscosity` (Pa s) |

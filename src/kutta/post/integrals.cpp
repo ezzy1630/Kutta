@@ -165,6 +165,12 @@ Json integrate(const Volume &volume, const Integral &spec) {
       const auto area_vector = volume.geometry().face_area[face],
                  center = volume.geometry().face_centroid[face];
       const double area = norm(area_vector);
+      if (spec.normal_range) {
+        const auto &range = *spec.normal_range;
+        const auto cosine = std::clamp(dot(area_vector, range.axis) / area, -1., 1.);
+        if (cosine < range.minimum || (range.maximum < 1 && cosine >= range.maximum))
+          continue;
+      }
       r.area += area;
       const auto velocity = vec(volume.boundary("velocity", face, center));
       const double mass = solver_flux
@@ -248,7 +254,7 @@ Json integrate(const Volume &volume, const Integral &spec) {
       }
     }
   }
-  return Json::Object{{"name", spec.name},
+  Json::Object result{{"name", spec.name},
                       {"origin", vector(spec.origin)},
                       {"directions", Json::Object{{"drag", vector(spec.drag)},
                                                   {"lift", vector(spec.lift)},
@@ -261,5 +267,10 @@ Json integrate(const Volume &volume, const Integral &spec) {
                       {"zones", std::move(reports)},
                       {"total", report(total, spec, reference, "selected-zones",
                                        -1, volume.scale(), solver_flux)}};
+  if (spec.normal_range) {
+    const auto& range=*spec.normal_range;
+    result.emplace("normal_range",Json::Object{{"axis",vector(range.axis)},{"min",range.minimum},{"max",range.maximum}});
+  }
+  return result;
 }
 } // namespace kutta::post

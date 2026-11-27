@@ -59,7 +59,7 @@ def sweep(cli, root):
                 args.extend(["--restart", root / f"{mode}-{runs[-1]['omega']}" / "restart.bin"])
             with (root / f"{out.name}.jsonl").open("w") as log:
                 before = time.perf_counter()
-                result = subprocess.run(args, stdout=log, stderr=subprocess.PIPE, text=True,
+                result = subprocess.run(args, check=False, stdout=log, stderr=subprocess.PIPE, text=True,
                                         env={**os.environ, "KUTTA_MEMORY_PHASES": "1"}, timeout=120)
                 elapsed = time.perf_counter() - before
             (root / f"{out.name}.stderr").write_text(result.stderr)
@@ -70,7 +70,7 @@ def sweep(cli, root):
             initialization = summary["initialization"]
             if initialization != ("native-restart" if restart else "standard"):
                 raise RuntimeError(f"{out.name}: unexpected initialization {initialization}")
-            peaks = [int(n) for n in re.findall(r"^kutta-memory .*? peak=(\d+)", result.stderr, re.M)]
+            peaks = [int(n) for n in re.findall(r"^kutta-memory .*? peak=(\d+)", result.stderr, re.MULTILINE)]
             if not peaks or not max(peaks):
                 raise RuntimeError(f"{out.name}: missing process peak memory")
             loads = read_json(out / "loads.json")["zones"]

@@ -166,3 +166,16 @@ TEST_CASE("A cell with no positive decomposition kernel is skipped and counted, 
   CHECK(skipped == 1);
   CHECK(result.indices.empty());
 }
+
+TEST_CASE("Measurement point probes preserve row order and missing coverage") {
+  auto s=snapshot(4,4,4,{0,0,0},{1,1,1},[](Vec3d p){return p;},[](Vec3d p){return p.x;});
+  post::Volume volume(s);
+  post::PointsProbe points{"tunnel",{{.8,.5,.5},{2,.5,.5},{.2,.5,.5}},{"pressure"},{}};
+  const auto result=post::probe(volume,points);
+  const auto& sampled=result.geometry.fields.front().values;
+  REQUIRE(sampled.size()==3);
+  CHECK(sampled[0]==doctest::Approx(.8));
+  CHECK(std::isnan(sampled[1]));
+  CHECK(sampled[2]==doctest::Approx(.2));
+  CHECK(result.geometry.fields.back().values==std::vector<float>{1,0,1});
+}

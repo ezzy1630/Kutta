@@ -292,6 +292,7 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   require(n.wall_distance_quad_correction==true,"wall-distance/quad-correction?","requires quadrilateral wall-distance correction");
   require(relax("turb-viscosity")==1,"turb-viscosity/relax");
   s.sst=SstSettings{};auto& opt=*s.sst;auto& model=opt.model;
+  if (t.ambient) model.ambient=SstAmbient{float(t.ambient->k),float(t.ambient->omega)};
   opt.limit_diffusion_correction=n.limit_sst_diffusion;
   opt.k_convection=convection(n.k,"k/scheme");opt.omega_convection=convection(n.omega,"omega/scheme");
   opt.k_relaxation=relax("k");opt.omega_relaxation=relax("omega");
@@ -311,6 +312,11 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
     {"kw-alpha-inf",.52},{"kw-sig-k",2},{"kw-sig-w",2}};
   for(const auto& [key,value]:t.coefficients) {const auto it=coefficients.find(key);require(it!=coefficients.end() && std::abs(value-it->second)<1e-10,key);}
   model.omega_floor=float(required(t.omega_floor,"omega/min-limit"));model.k_floor=float(number(c.variables,"k/min-limit"));
+  if (model.ambient) {
+    const auto [k,omega]=*model.ambient;
+    require(k>=model.k_floor && omega>=model.omega_floor && std::isfinite(k*omega) && std::isfinite(omega*omega),
+      "models/k_omega_sst/ambient","ambient values must meet the transport floors and give finite float source terms");
+  }
   model.max_viscosity_ratio=float(number(c.variables,"turb-viscosity/max-limit"));
   model.cross_diffusion_clip=float(number(c.variables,"sst-limit-cross-diff-to-n-times-w-destruct"));
   for(const auto& [key,value]:std::map<std::string,float>{

@@ -450,6 +450,15 @@ KuttaCase parse_kutta_case(std::string_view text) {
       o.low_re_corrections = s.boolean("low_re_corrections");
       o.curvature_correction = s.boolean("curvature_correction");
       o.compressibility_effects = s.boolean("compressibility_effects");
+      if (const auto* value=s.raw("ambient")) {
+        Reader ambient(*value,"models/k_omega_sst/ambient",errors);
+        const auto k=ambient.positive("k"), omega=ambient.positive("omega");
+        if (!k || !omega) errors.add("models/k_omega_sst/ambient","both positive k and omega are required");
+        else o.ambient=fluent::AmbientTurbulence{*k,*omega};
+        ambient.finish();
+        if (c.models.intermittency_transition.value_or(false) || o.low_re_corrections.value_or(false))
+          errors.add("models/k_omega_sst/ambient","sustaining terms require fully turbulent SST without low-Re corrections");
+      }
       o.kato_launder = s.boolean("kato_launder");
       o.vorticity_based_production = s.boolean("vorticity_based_production");
       s.finish();
@@ -824,6 +833,11 @@ std::string kutta_case_text(const KuttaCase& c) {
     sst.opt("production_limiter", s.production_limiter);
     sst.opt("production_limiter_clip_factor", s.production_limiter_clip_factor);
     sst.opt("cross_diffusion_clip", s.cross_diffusion_clip);
+    if (s.ambient) {
+      auto& ambient=sst.add("ambient",Out::object());
+      ambient.add("k",Out::num(s.ambient->k));
+      ambient.add("omega",Out::num(s.ambient->omega));
+    }
     sst.opt("low_re_corrections", s.low_re_corrections);
     sst.opt("curvature_correction", s.curvature_correction);
     sst.opt("compressibility_effects", s.compressibility_effects);
@@ -1615,6 +1629,7 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
   // No Fluent writer produced these settings; its version is not a gap.
   std::erase_if(out.issues, [](const auto& i) { return i.path == "solver-version"; });
   out.check_convergence = c.check_convergence;
+  out.viscous.ambient = c.models.k_omega_sst.ambient;
   out.numerics.limit_sst_diffusion = c.methods.limit_sst_diffusion.value_or(false);
   out.mesh.dimension = mesh.dimension;
   out.dimension = mesh.dimension;
@@ -1758,6 +1773,7 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
   }
   if (sst) {
     auto& o = k.models.k_omega_sst;
+    o.ambient=t.ambient;
     set_flag(o.production_limiter, t.production_limiter, defaults::production_limiter);
     set(o.production_limiter_clip_factor, t.production_factor, defaults::production_limiter_clip);
     set_flag(o.low_re_corrections, t.low_re, defaults::low_re);

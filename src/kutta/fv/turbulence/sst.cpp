@@ -13,6 +13,11 @@ void validate(const SstOptions& o) {
   positive(o.production_clip, "production clip factor");
   KUTTA_REQUIRE(std::isfinite(o.omega_production_molecular_ratio) && o.omega_production_molecular_ratio >= 0,
                 "SST: invalid omega production molecular ratio");
+  if (o.ambient) {
+    const auto [k,omega]=*o.ambient;
+    KUTTA_REQUIRE(k>=o.k_floor && omega>=o.omega_floor && std::isfinite(k*omega) && std::isfinite(omega*omega)
+      && !o.low_re && !o.intermittency, "invalid ambient SST k/omega or incompatible closure");
+  }
   positive(o.cross_diffusion_clip, "cross diffusion clip factor");
   positive(o.cdkw_floor, "CDkw floor");
   positive(o.omega_floor, "omega floor");
@@ -141,6 +146,8 @@ void SstModel::update(const SstInputs& in, const std::function<void()>& reconstr
       o.production_limiter, o.limit_omega_production, o.wall_production,
       o.production_clip, o.limit_cross_diffusion, o.cross_diffusion_clip, o.k_floor, o.omega_floor,
       o.omega_production_molecular_ratio);
+  if (o.ambient)
+    kern::sst_sustain(d,nc,in.density,f.f1,f.k_source,f.omega_source,o.ambient->k,o.ambient->omega);
   if (o.intermittency)
     kern::sst_transition_k(d, nc, *in.intermittency, in.density, in.viscosity, mesh_.wall_distance,
         f.strain, f.vorticity, f.mu_t, f.k_source, f.k_sink, f.production_limit,
