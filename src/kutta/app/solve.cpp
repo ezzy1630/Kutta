@@ -12,6 +12,7 @@
 #include "kutta/core/json.hpp"
 #include "kutta/core/memory.hpp"
 #include "kutta/core/path.hpp"
+#include "kutta/core/parse.hpp"
 #include "kutta/core/sha256.hpp"
 #include "kutta/io/mesh_io.hpp"
 #include "kutta/mesh/detail.hpp"
@@ -57,9 +58,9 @@ Options parse(int argc,char** argv) {
     const std::string v=argv[i++];
     if(o.physical && (key=="--dt" || key=="--tolerance")) {
       auto& value=key=="--dt"?o.physical->dt:o.physical->tolerance;
-      const auto [end,ec]=std::from_chars(v.data(),v.data()+v.size(),value);
-      KUTTA_REQUIRE(ec==std::errc{} && end==v.data()+v.size() && std::isfinite(value) && value>0,
-                    key+" requires a positive finite number");
+      const auto parsed=parse_double(v);
+      KUTTA_REQUIRE(parsed && std::isfinite(*parsed) && *parsed>0,key+" requires a positive finite number");
+      value=*parsed;
     } else if(o.physical && (key=="--steps" || key=="--correctors" || key=="--mean-from" || key=="--mean-every")) {
       auto& value=key=="--steps"?o.physical->steps:key=="--correctors"?o.physical->max_correctors:key=="--mean-from"?o.physical->mean_from:o.physical->mean_every;
       const auto [end,ec]=std::from_chars(v.data(),v.data()+v.size(),value);
@@ -164,8 +165,12 @@ int solve(int argc,char** argv) {
     KUTTA_REQUIRE(!kutta_case || o.data.empty(),"--data seeds from a Fluent data file, which belongs to a Fluent case; a Kutta case initializes from its own setup");
     KUTTA_REQUIRE(kutta_case || (o.restart.empty() && !o.write_restart),"native restart requires a Kutta case");
     const auto restart_path=o.out/"restart.bin";
-    if(!o.restart.empty() && std::filesystem::exists(restart_path))
-      KUTTA_REQUIRE(!std::filesystem::equivalent(o.restart,restart_path),"restart input and run output must use different directories");
+    if(!o.restart.empty() && std::filesystem::is_directory(o.out)) {
+      for(const auto& entry:std::filesystem::directory_iterator(o.out)) {
+        if(entry.is_regular_file())
+          KUTTA_REQUIRE(!std::filesystem::equivalent(o.restart,entry.path()),"restart input and run output must use different directories");
+      }
+    }
     const auto restart_hash=o.restart.empty()?std::string{}:sha256_file(o.restart);
     std::optional<PolyMesh> preloaded;std::filesystem::path mesh_file;
     auto c=kutta_case?[&]{auto k=setup::load_kutta_case(o.input);preloaded=std::move(k.mesh);mesh_file=k.mesh_path;return std::move(k.settings);}():fluent::read_case(o.input);

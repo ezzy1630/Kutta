@@ -467,6 +467,11 @@ TEST_CASE("A native restart accepts changed inlet conditions and rejects a diffe
   CHECK(kutta_cli(warm+" --out "+quote(t.path("first")),t.path("alias.log"))!=0);
   CHECK(sha256_file(file)==before);
 
+  const auto renamed=t.path("warm/result.vtu");
+  std::filesystem::copy_file(file,renamed,std::filesystem::copy_options::overwrite_existing);
+  CHECK(kutta_cli(command("21")+" --restart "+quote(renamed)+" --out "+quote(t.path("warm")),t.path("renamed.log"))!=0);
+  CHECK(sha256_file(renamed)==before);
+
   auto bytes=mesh_text(file);
   bytes.pop_back();
   mesh_text(t.path("truncated.bin"),bytes);
