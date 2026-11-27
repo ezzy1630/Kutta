@@ -297,6 +297,7 @@ TEST_CASE("Native FSAE Fluent physics convert and solve to byte-identical Kutta 
     if (std::string_view(feature) == "ke-options") {
       input.models.viscous = setup::ViscousModel::k_epsilon_standard;
       input.methods.specific_dissipation_rate.reset();
+      input.methods.limit_sst_diffusion.reset();
       input.methods.turbulent_dissipation_rate = setup::Upwind::second_order;
     }
     auto native = setup::lower_kutta_case(input, info);
