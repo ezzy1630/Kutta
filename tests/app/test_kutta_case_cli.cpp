@@ -183,7 +183,9 @@ TEST_CASE("kutta new-case writes a starter case for a bare mesh that solves") {
   CHECK(forces.find("report,\"drag\"") != std::string::npos);
   CHECK(forces.find("report,\"downforce\"") != std::string::npos);
   const auto history = mesh_text(t.path("run/force-history.csv"));
-  CHECK(history.starts_with("iteration,report,force_N,coefficient\n"));
+  const auto header_end=history.find_first_of("\r\n");
+  REQUIRE(header_end!=std::string::npos);
+  CHECK(history.substr(0,header_end)=="iteration,report,force_N,coefficient");
   CHECK(history.find("\n3,\"drag\",") != std::string::npos);
   CHECK(history.find("\n3,\"downforce\",") != std::string::npos);
   // A Kutta case reads no Fluent data file.
