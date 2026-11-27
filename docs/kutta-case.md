@@ -81,10 +81,11 @@ are SI. Vectors are `[x, y, z]`; on a 2D mesh the z component must be 0.
 | `relative_frame_origins_absolute` | boolean, case-wide interpretation of child-frame origins; default `false` |
 | `boundaries.<zone>` | `{"type": ...}` with the type's properties below |
 | `reference_values` | `area`, `length`, `density`, `velocity`, `pressure`, `viscosity`, `depth` |
-| `methods` | `pressure_velocity_coupling` (`simple`, `simplec`, `coupled`), `pseudo_transient`, `gradient` (`least-squares-cell-based`, `green-gauss-cell-based`), `pressure` (`standard`, `second-order`), `momentum` / `turbulent_kinetic_energy` / `specific_dissipation_rate` / `turbulent_dissipation_rate` / `intermittency` (`first-order-upwind`, `second-order-upwind`), `flux_type` (`auto`, `rhie-chow-momentum`, `rhie-chow-distance`), `gradient_limiter` (`standard`, `differentiable`, `none`), `warped_face_gradient_correction`, `high_order_term_relaxation` |
+| `methods` | `pressure_velocity_coupling` (`simple`, `simplec`, `coupled`), `pseudo_transient`, `gradient` (`least-squares-cell-based`, `green-gauss-cell-based`), `pressure` (`standard`, `second-order`), `momentum` / `turbulent_kinetic_energy` / `specific_dissipation_rate` / `turbulent_dissipation_rate` / `intermittency` (`first-order-upwind`, `second-order-upwind`), `flux_type` (`auto`, `rhie-chow-momentum`, `rhie-chow-distance`), `gradient_limiter` (`standard`, `differentiable`, `none`), `warped_face_gradient_correction`, `high_order_term_relaxation`, `limit_sst_diffusion` (boolean, SST only) |
 | `controls` | `flow_courant_number`, `pseudo_time_scale_factor`, `pseudo_time_step` (number or `"automatic"`), `pseudo_relaxation`, `relaxation`, `explicit_relaxation` (each by equation: `pressure`, `momentum`, `density`, `body_force`, `k`, `omega`, `epsilon`, `turbulent_viscosity`, `intermittency`), `limits` (`min_turbulent_kinetic_energy`, `min_specific_dissipation_rate`, `min_turbulent_dissipation_rate`, `max_turbulent_viscosity_ratio`) |
 | `initialization` | `method` (`hybrid`, `standard`), `hybrid_iterations`, `velocity`, `gauge_pressure`, `k`, `omega`, `epsilon`, `intermittency` |
 | `reports.<name>` | `type` (`force`, `drag`, `lift`), `zones`, `direction`, `coefficient` |
+| `monitors.check_convergence` | Check convergence and stop when the active criteria are met. Defaults to enabled for cases with force reports. |
 | `monitors.residuals.<residual>` | `check`, `absolute_criterion` |
 
 Boundary types:
@@ -105,6 +106,8 @@ default; `intensity`, `viscosity_ratio`), `intensity-length-scale`,
 `intensity-hydraulic-diameter`, `k-omega` (`k`, `omega`) or `k-epsilon`
 (`k`, `epsilon`). The method may be omitted when the values name it.
 
+New FSAE starters set `methods.limit_sst_diffusion` to true. This bounds the explicit non-orthogonal diffusive flux of k and omega by the magnitude of the implicit orthogonal flux on interior and fixed-value boundary faces. Imported Fluent cases and native cases without the option retain their original discretization. The workbench exposes this choice under **Solution → Methods**.
+
 ### Wheels, ground and fluid zones
 
 ```sh
@@ -122,7 +125,7 @@ consistent with the moving ground. In 2D, use +z for +x motion at the bottom.
 The starter requires wheel geometry from the user; names alone do not imply
 centres or radii. Wheels without geometry remain stationary with a note.
 
-The ground is a moving wall at the freestream speed by default (a road, or a
+The starter preserves explicit symmetry, velocity-inlet and pressure-outlet zones in the mesh. For wall zones named ground, it creates a moving wall at the freestream speed by default (a road, or a
 rolling-road tunnel), the FSAE default. For a fixed-floor wind tunnel, such
 as the Ahmed body's validation data, give it the `stationary-ground` role:
 

@@ -169,6 +169,7 @@ struct KuttaCase {
   } reference;
   struct Methods {
     std::optional<CouplingScheme> coupling;
+    std::optional<bool> limit_sst_diffusion;
     std::optional<bool> pseudo_transient, warped_face_gradient_correction, high_order_term_relaxation;
     std::optional<GradientMethod> gradient;
     std::optional<PressureInterpolation> pressure;
@@ -193,6 +194,7 @@ struct KuttaCase {
     bool operator==(const Initialization&) const = default;
   } initialization;
   std::map<std::string, ForceReportInput> reports;
+  std::optional<bool> check_convergence;
   std::map<std::string, ResidualInput> residuals;  // by residual name ("continuity", "x-velocity", ...)
   bool operator==(const KuttaCase&) const = default;
 };

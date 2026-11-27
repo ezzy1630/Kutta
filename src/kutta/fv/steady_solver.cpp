@@ -640,11 +640,6 @@ struct SteadySolver::Impl {
       kinetic,omega,sst->fields().wall_face_omega,boundary_k,boundary_omega,turbulence_kind,
       mesh.n_internal_faces,float(settings.density),float(settings.viscosity));
   }
-  void evaluate_turbulence() {
-    sst->update({model_velocity(),{strain_gradient[0],strain_gradient[1],strain_gradient[2]},rho_cell,mu_cell,
-      kinetic,omega,k_equation->grad,omega_equation->grad,model_boundary_velocity(),
-      transition?&transition->gamma():nullptr});
-  }
   void reconstruct_strain() {
     if(compensated_state()) {
       const Buffer<float>* q[]{&velocity.x,&velocity.y,&velocity.z};
@@ -694,11 +689,13 @@ struct SteadySolver::Impl {
     }
     if(!sst) return;
     if(velocity_changed) reconstruct_strain();
-    evaluate_turbulence(); // bootstrap gradient-independent wall-face omega
-    turbulence_boundaries();
-    gradient(dev,mesh,stencil,k_lsq,kinetic,boundary_k,k_equation->grad);
-    gradient(dev,mesh,stencil,omega_lsq,omega,boundary_omega,omega_equation->grad);
-    evaluate_turbulence();
+    sst->update({model_velocity(),{strain_gradient[0],strain_gradient[1],strain_gradient[2]},rho_cell,mu_cell,
+      kinetic,omega,k_equation->grad,omega_equation->grad,model_boundary_velocity(),
+      transition?&transition->gamma():nullptr},[&] {
+        turbulence_boundaries();
+        gradient(dev,mesh,stencil,k_lsq,kinetic,boundary_k,k_equation->grad);
+        gradient(dev,mesh,stencil,omega_lsq,omega,boundary_omega,omega_equation->grad);
+      });
     if(transition) transition->update(sst->fields(),rho_cell,mu_cell,kinetic,omega,strain_gradient,boundary_kind,model_mass());
     kern::fv_effective_viscosity(dev,mesh.n_faces,mesh.owner,mesh.neighbour,boundary_kind,
       mesh.weight,sst->fields().mu_t,viscosity,mesh.n_internal_faces,float(settings.viscosity));
@@ -731,6 +728,7 @@ struct SteadySolver::Impl {
     const auto& opt=*settings.sst;const auto& f=sst->fields();
     auto& eq=is_omega?*omega_equation:*k_equation;
     TransportSettings t;t.density=float(settings.density);t.pseudo_time_step=opt.pseudo_transient?time_step:0;t.limit=settings.limit;
+    t.limit_diffusion_correction=opt.limit_diffusion_correction;
     t.convection=is_omega?opt.omega_convection:opt.k_convection;
     t.relaxation=float(is_omega?opt.omega_relaxation:opt.k_relaxation);
     eq.assemble_reconstructed(is_omega?omega:kinetic,is_omega?boundary_omega:boundary_k,
@@ -1008,13 +1006,13 @@ struct SteadySolver::Impl {
         stencil.nonorthogonal.x,stencil.nonorthogonal.y,stencil.nonorthogonal.z,
         low_gradient.x,low_gradient.y,low_gradient.z,eq.limiter,mass,viscosity,scalar_kind_lo,
         velocity_faces->mask(),paired_diffusion_work,eq.face_correction,mesh.n_internal_faces,
-        settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
+        settings.convection==ConvectionScheme::SecondOrderUpwind?1:0,0);
     } else kern::fv_transport_faces(dev,mesh.n_faces,mesh.owner,mesh.neighbour,mesh.weight,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,
       stencil.nonorthogonal.x,stencil.nonorthogonal.y,stencil.nonorthogonal.z,
       low_gradient.x,low_gradient.y,low_gradient.z,eq.limiter,mass,viscosity,scalar_kind_lo,
-      eq.face_correction,mesh.n_internal_faces,settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
+      eq.face_correction,mesh.n_internal_faces,settings.convection==ConvectionScheme::SecondOrderUpwind?1:0,0);
     kern::fv_paired_advection(dev,mesh.n_faces,mesh.owner,mesh.neighbour,scalar_kind,
       mesh.owner_to_face.x,mesh.owner_to_face.y,mesh.owner_to_face.z,
       mesh.neighbour_to_face.x,mesh.neighbour_to_face.y,mesh.neighbour_to_face.z,

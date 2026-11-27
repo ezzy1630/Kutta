@@ -108,6 +108,7 @@ struct Turbulence {
   bool operator==(const Turbulence &) const = default;
 };
 struct Numerics {
+  bool limit_sst_diffusion = false;  // Kutta discretization option, never inferred from Fluent rpvars.
   std::optional<Scheme> pressure, momentum, k, omega, epsilon,modified_viscosity,intermittency;
   std::optional<Gradient> gradient;
   std::optional<Limiter> limiter;
@@ -227,6 +228,7 @@ struct FluentCase {
   std::map<std::int64_t, RawSettings> domains;
   std::map<std::string, std::vector<SExpr>> raw_sections;
   std::vector<SettingIssue> issues;
+  std::optional<bool> check_convergence;  // Explicit native-case run preference.
 };
 // Parse already-isolated sections (37 rpvars; 38 Cortex; 64 domains; 39 threads).
 FluentCase extract_case(std::map<std::string, std::vector<SExpr>> sections,

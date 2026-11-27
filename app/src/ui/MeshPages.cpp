@@ -850,8 +850,8 @@ QWidget* generateMesh(const InspectorContext& c)
             outcome->setProperty("callout", "neutral");
             outcomeTitle->setText(mw->meshSynthetic() ? QObject::tr("Mesh ready (SYNTHETIC)") : QObject::tr("Mesh ready"));
             QString text = QObject::tr("%1 cells, %2 faces. Read the report, then set up the case.").arg(count(double(r->cells)), count(double(r->faces)));
-            if (const auto closed = r->closedGaps(); std::any_of(closed.begin(), closed.end(), [](const MeshGap& g) { return g.width > 0; }))
-                text += QObject::tr(" A slot closed: see Slots and gaps.");
+            if (!r->closedGaps().empty())
+                text += QObject::tr(" A slot has an unresolved section. See Slots and gaps.");
             outcomeText->setText(text);
         }
         repolish(outcome);
@@ -935,18 +935,22 @@ QWidget* meshReport(const InspectorContext& c)
         v->addWidget(label(QObject::tr("Gaps: not reported."), "muted"));
     } else {
         std::vector<MeshGap> closed, contact, open;
-        for (const auto& g : *r->gaps) (g.closed() ? (g.width > 0 ? closed : contact) : open).push_back(g);
+        for (const auto& g : *r->gaps) {
+            if (g.contact) contact.push_back(g);
+            else if (g.closed()) closed.push_back(g);
+            else open.push_back(g);
+        }
         auto pair = [](const MeshGap& g) { return QObject::tr("%1 – %2").arg(g.a, g.b); };
         if (!closed.empty()) {
             auto* box = callout("amber");
-            box->layout()->addWidget(label(closed.size() == 1 ? QObject::tr("A slot closed: no fluid cells across") : QObject::tr("%1 slots closed: no fluid cells across").arg(closed.size()), "title"));
+            box->layout()->addWidget(label(closed.size() == 1 ? QObject::tr("One slot has an unresolved section") : QObject::tr("%1 slots have unresolved sections").arg(closed.size()), "title"));
             QStringList lines;
             for (const auto& g : closed) lines << QObject::tr("%1, %2 wide").arg(pair(g), millimetres(g.width));
             box->layout()->addWidget(label(lines.join("\n")));
-            box->layout()->addWidget(label(QObject::tr("No air flows through a closed slot, so the parts act as one surface. Raise Cells per gap or lower the minimum size on Sizing and Boundary Layers, then generate again."), "muted"));
+            box->layout()->addWidget(label(QObject::tr("The mesh has zero fluid cells across the narrowest sampled section. Refine the slot on Sizing and Boundary Layers and check the regenerated mesh."), "muted"));
             v->addWidget(box);
         } else {
-            v->addWidget(label(r->gaps->empty() ? QObject::tr("No narrow gaps between parts.") : QObject::tr("No slot closed."), "muted"));
+            v->addWidget(label(r->gaps->empty() ? QObject::tr("No narrow gaps between parts.") : QObject::tr("Every sampled open gap contains fluid cells."), "muted"));
         }
         std::sort(open.begin(), open.end(), [](const MeshGap& x, const MeshGap& y) { return x.cellsAcross != y.cellsAcross ? x.cellsAcross < y.cellsAcross : x.width < y.width; });
         if (!open.empty()) {

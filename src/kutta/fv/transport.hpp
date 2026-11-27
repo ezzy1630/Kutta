@@ -25,6 +25,7 @@ struct TransportSettings {
   // (SolverSettings::limiter); negative is Barth-Jespersen.
   float limiter_epsilon2=-1;
   SolveControl linear{1e-4,1e-12,200};
+  bool limit_diffusion_correction=false;
 };
 
 struct TransportTerms {

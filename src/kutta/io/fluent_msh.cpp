@@ -148,7 +148,7 @@ class Parser {
     }
     expect(')');
   }
-  void byte_order(int flag) { little_ = flag == 60; }
+  void byte_order(int flag, bool ansa_mesh) { little_ = flag == 60 || (flag == 0 && ansa_mesh); }
 
  private:
   std::string bytes_;
@@ -163,11 +163,17 @@ detail::FluentRaw parse(std::string bytes) {
   std::map<int, int> cell_types;
   Index declared_nodes = 0, declared_cells = 0, declared_faces = 0;
   bool dimension_seen = false;
+  bool ansa_mesh = false;
   while (!p.end()) {
     p.expect('(');
     int section = p.integer(10);
     bool binary = section >= 2000;
     int code = binary ? section % 1000 : section;
+    if (section == 0) {
+      if (p.next('"') && p.token().starts_with("ANSA_VERSION;")) ansa_mesh = true;
+      p.rest();
+      continue;
+    }
     if (code == 2) {
       auto dimension = p.integer(10);
       KUTTA_REQUIRE(!dimension_seen || raw.dimension == dimension,
@@ -182,7 +188,7 @@ detail::FluentRaw parse(std::string bytes) {
     if (code == 4) {
       auto h = p.header();
       KUTTA_REQUIRE(!h.empty(), "Fluent: empty machine configuration");
-      p.byte_order(Parser::integer(h[0], 10));
+      p.byte_order(Parser::integer(h[0], 10), ansa_mesh);
       p.rest();
       continue;
     }

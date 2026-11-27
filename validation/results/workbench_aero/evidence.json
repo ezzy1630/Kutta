@@ -1,0 +1,874 @@
+{
+  "base_commit": "562e3e31ea60188183005599a63652d0cd4370a1",
+  "machine": "Apple M4 Pro, 24 GB unified memory, macOS 27.2.1 arm64",
+  "before_cli_sha256": "1cca304c462e47840090dc858b9acd9ffa1ce2b036615be85f6015e37d0bc3bd",
+  "local_cli_sha256": "ad3ae2e7dae6aee2b7901874e3b8d64617e5bbfc3c5d2996502d2c1db3df2991",
+  "macos_zip_sha256": "336b38afe7eef95b628253e251a5a86b8de4d1d93b8c0a6caed376b39b239b38",
+  "build_flags": "-O3 -DNDEBUG, Apple Clang, Metal and serial CPU",
+  "shaft": {
+    "cpu": {
+      "backend": "cpu",
+      "device": "CPU reference (serial)",
+      "mesh_sha256": "2fb899f167b92a5e384578a9a95a2b2cdef5a2540d6c31a6afa8d08f2f168b94",
+      "setup_sha256": "9d6e6d05ffb408e156b7081267c6a4dfa357fdcb991d4e22a36c9167b912af6c",
+      "cells": 4608,
+      "iterations": 1540,
+      "verdict": "converged",
+      "convergence": {
+        "averaged": null,
+        "condition": "all",
+        "enabled": true,
+        "iteration": 1540,
+        "met_by": [
+          "residuals"
+        ],
+        "reports": [],
+        "residuals": {
+          "continuity": 0.0001,
+          "x-velocity": 1e-07,
+          "y-velocity": 1e-07
+        },
+        "residuals_waived": false
+      },
+      "last_residuals": {
+        "iteration": 1540.0,
+        "continuity": 9.782051013408487e-05,
+        "x-velocity": 2.557604720528753e-09,
+        "y-velocity": 2.334996021168427e-09
+      },
+      "relative_velocity_l2": 0.0012037547566264854,
+      "shaft_torque": -0.0164862130324362,
+      "shaft_relative_error": 0.016051638633157617,
+      "housing_torque": 0.016880604027242518,
+      "housing_relative_error": 0.007486839992225658,
+      "relative_pressure_l2": 0.0017733873506755695
+    },
+    "metal": {
+      "backend": "metal",
+      "device": "Apple M4 Pro",
+      "mesh_sha256": "2fb899f167b92a5e384578a9a95a2b2cdef5a2540d6c31a6afa8d08f2f168b94",
+      "setup_sha256": "9d6e6d05ffb408e156b7081267c6a4dfa357fdcb991d4e22a36c9167b912af6c",
+      "cells": 4608,
+      "iterations": 1540,
+      "verdict": "converged",
+      "convergence": {
+        "averaged": null,
+        "condition": "all",
+        "enabled": true,
+        "iteration": 1540,
+        "met_by": [
+          "residuals"
+        ],
+        "reports": [],
+        "residuals": {
+          "continuity": 0.0001,
+          "x-velocity": 1e-07,
+          "y-velocity": 1e-07
+        },
+        "residuals_waived": false
+      },
+      "last_residuals": {
+        "iteration": 1540.0,
+        "continuity": 9.782051013408487e-05,
+        "x-velocity": 2.557604720528753e-09,
+        "y-velocity": 2.334996021168427e-09
+      },
+      "relative_velocity_l2": 0.0012037547566264854,
+      "shaft_torque": -0.0164862130324362,
+      "shaft_relative_error": 0.016051638633157617,
+      "housing_torque": 0.016880604027242518,
+      "housing_relative_error": 0.007486839992225658,
+      "relative_pressure_l2": 0.0017733873506755695
+    },
+    "packaged_app": {
+      "relative_velocity_l2": 0.0012037547566264854,
+      "relative_pressure_l2": 0.0017733873506755695,
+      "shaft_torque": -0.0164862130324362,
+      "shaft_relative_error": 0.016051638633157617,
+      "housing_torque": 0.016880604027242518,
+      "housing_relative_error": 0.007486839992225658,
+      "backend": "metal",
+      "verdict": "converged",
+      "iterations": 1540
+    },
+    "systematic_cpu_refinement": [
+      {
+        "radial": 8,
+        "angular": 36,
+        "sha256": "1d5fbfb6f8970c22d1902de2f19790fb65b88e35a88104157917d671694d40c1",
+        "verdict": "converged",
+        "iterations": 100,
+        "relative_velocity_l2": 0.019731367367192332,
+        "relative_pressure_l2": 0.02638830952689503,
+        "shaft_torque": -0.01563210180703228,
+        "shaft_relative_error": 0.06702764743564882,
+        "housing_torque": 0.017183954700312812,
+        "housing_relative_error": 0.025591749658247398
+      },
+      {
+        "radial": 16,
+        "angular": 72,
+        "sha256": "ac12fe046b1d53e0c7e4cce8d74e5e87a82bc458a8adb9ec07563ba4374defd0",
+        "verdict": "converged",
+        "iterations": 320,
+        "relative_velocity_l2": 0.004815379939201633,
+        "relative_pressure_l2": 0.006926388950570631,
+        "shaft_torque": -0.016205229688726383,
+        "shaft_relative_error": 0.0328215966623725,
+        "housing_torque": 0.01699559392769928,
+        "housing_relative_error": 0.01434979414097759
+      },
+      {
+        "radial": 32,
+        "angular": 144,
+        "sha256": "2fb899f167b92a5e384578a9a95a2b2cdef5a2540d6c31a6afa8d08f2f168b94",
+        "verdict": "converged",
+        "iterations": 1540,
+        "relative_velocity_l2": 0.0012037547566264854,
+        "relative_pressure_l2": 0.0017733873506755695,
+        "shaft_torque": -0.0164862130324362,
+        "shaft_relative_error": 0.016051638633157617,
+        "housing_torque": 0.016880604027242518,
+        "housing_relative_error": 0.007486839992225658
+      },
+      {
+        "radial": 64,
+        "angular": 288,
+        "sha256": "280828a7e12677547cf463e2eb88552460c0614eefe05e58bc5b9dc112f6c696",
+        "verdict": "iteration_limit",
+        "iterations": 16000,
+        "relative_velocity_l2": 0.00032921518200198537,
+        "relative_pressure_l2": 0.0005050663925283436,
+        "shaft_torque": -0.016623333764492886,
+        "shaft_relative_error": 0.007867847767957237,
+        "housing_torque": 0.016818064813245694,
+        "housing_relative_error": 0.0037543056004720743
+      }
+    ]
+  },
+  "s1223": {
+    "backend": "metal",
+    "device": "Apple M4 Pro",
+    "mesh_sha256": "d762ed53700668caf659dc8cd785705af42182b0b838e77456b06328c613e034",
+    "setup_sha256": "16e15294e5fb5cf85707118d7c1c2e7a57f7e6bfd4f322f5d7ca49e97cd9ca07",
+    "cells": 184470,
+    "iterations": 1881,
+    "verdict": "converged",
+    "convergence": {
+      "averaged": null,
+      "averaging": {
+        "range": 0.1,
+        "start": 601,
+        "tolerance": 0.001,
+        "window": 500
+      },
+      "condition": "all",
+      "enabled": true,
+      "forces": {
+        "reports": [
+          "drag",
+          "lift"
+        ],
+        "tolerance": 0.001,
+        "window": 300
+      },
+      "iteration": 1881,
+      "met_by": [
+        "residuals",
+        "forces"
+      ],
+      "reports": [],
+      "residuals": {
+        "continuity": 0.001,
+        "k": 0.001,
+        "omega": 0.001,
+        "x-velocity": 0.001,
+        "y-velocity": 0.001
+      },
+      "residuals_waived": false
+    },
+    "last_residuals": {
+      "iteration": 1881.0,
+      "continuity": 2.699202930484473e-05,
+      "x-velocity": 5.446662876354796e-08,
+      "y-velocity": 2.017215264591353e-08,
+      "k": 2.5807952908904688e-06,
+      "omega": 5.505848450864281e-07
+    },
+    "coefficients": {
+      "drag": 0.03007298332467645,
+      "lift": 1.5848579674145942
+    }
+  },
+  "fsae": {
+    "before": {
+      "backend": "metal",
+      "device": "Apple M4 Pro",
+      "mesh_sha256": "1593e9527bea2ca39b472cab87ad6701844b88033979746f50f1e3c437c7f035",
+      "setup_sha256": "3a3ad04a2652003376c10a998c8a877a3782ae8e3f79e4aa1f1348e58840afda",
+      "cells": 1391056,
+      "iterations": 120,
+      "verdict": "iteration_limit",
+      "convergence": {
+        "averaged": null,
+        "averaging": {
+          "range": 0.1,
+          "start": 601,
+          "tolerance": 0.001,
+          "window": 500
+        },
+        "condition": "all",
+        "enabled": true,
+        "forces": {
+          "reports": [
+            "downforce",
+            "drag"
+          ],
+          "tolerance": 0.001,
+          "window": 300
+        },
+        "iteration": null,
+        "met_by": [],
+        "reports": [],
+        "residuals": {
+          "continuity": 0.001,
+          "k": 0.001,
+          "omega": 0.001,
+          "x-velocity": 0.001,
+          "y-velocity": 0.001,
+          "z-velocity": 0.001
+        },
+        "residuals_waived": false
+      },
+      "last_residuals": {
+        "iteration": 120.0,
+        "continuity": 0.15816008682594765,
+        "x-velocity": 2.6537310012490244e-05,
+        "y-velocity": 2.006919710103801e-05,
+        "z-velocity": 2.1641694219086407e-05,
+        "k": 1.4368029747080933,
+        "omega": 0.00492021813353408
+      },
+      "fields": {
+        "k": {
+          "minimum": 9.9999998245167e-15,
+          "maximum": 111563128832.0
+        },
+        "omega": {
+          "minimum": 9.999999682655225e-21,
+          "maximum": 706457856.0,
+          "cells_near_floor_1e-20": 15
+        },
+        "mu_t": {
+          "minimum": 2.1429182453831703e-23,
+          "maximum": 1.7894001007080078
+        }
+      }
+    },
+    "native-120": {
+      "backend": "metal",
+      "device": "Apple M4 Pro",
+      "mesh_sha256": "1593e9527bea2ca39b472cab87ad6701844b88033979746f50f1e3c437c7f035",
+      "setup_sha256": "1d506c0c956e044e0eb79ae1e7884c7b335e202a58348794d1f8ba7b6b4495a2",
+      "cells": 1391056,
+      "iterations": 120,
+      "verdict": "iteration_limit",
+      "convergence": {
+        "averaged": null,
+        "averaging": {
+          "range": 0.1,
+          "start": 601,
+          "tolerance": 0.001,
+          "window": 500
+        },
+        "condition": "all",
+        "enabled": true,
+        "forces": {
+          "reports": [
+            "downforce",
+            "drag"
+          ],
+          "tolerance": 0.001,
+          "window": 300
+        },
+        "iteration": null,
+        "met_by": [],
+        "reports": [],
+        "residuals": {
+          "continuity": 0.001,
+          "k": 0.001,
+          "omega": 0.001,
+          "x-velocity": 0.001,
+          "y-velocity": 0.001,
+          "z-velocity": 0.001
+        },
+        "residuals_waived": false
+      },
+      "last_residuals": {
+        "iteration": 120.0,
+        "continuity": 0.12433966230938497,
+        "x-velocity": 1.9193367126561123e-05,
+        "y-velocity": 1.574729980612178e-05,
+        "z-velocity": 1.6006415646787858e-05,
+        "k": 0.0030235222476872855,
+        "omega": 0.0006151623912404331
+      },
+      "fields": {
+        "k": {
+          "minimum": 9.9999998245167e-15,
+          "maximum": 2453.8125
+        },
+        "omega": {
+          "minimum": 9.999999682655225e-21,
+          "maximum": 133719.109375,
+          "cells_near_floor_1e-20": 24
+        },
+        "mu_t": {
+          "minimum": 1.8383611003596984e-17,
+          "maximum": 0.25531789660453796
+        }
+      }
+    },
+    "full": {
+      "backend": "metal",
+      "device": "Apple M4 Pro",
+      "mesh_sha256": "1593e9527bea2ca39b472cab87ad6701844b88033979746f50f1e3c437c7f035",
+      "setup_sha256": "3a3ad04a2652003376c10a998c8a877a3782ae8e3f79e4aa1f1348e58840afda",
+      "cells": 1391056,
+      "iterations": 1600,
+      "verdict": "statistically_steady",
+      "convergence": {
+        "averaged": {
+          "from": 601,
+          "reports": {
+            "downforce": {
+              "coefficient": {
+                "max": 1.4222838741625723,
+                "mean": 1.4144603421514323,
+                "min": 1.4060377485190185
+              },
+              "drift": 0.0002102653054393372,
+              "max": 348.4595491698302,
+              "mean": 346.54278382710095,
+              "met": true,
+              "min": 344.47924838715954,
+              "range_change": -0.0311596428411135
+            },
+            "drag": {
+              "coefficient": {
+                "max": 1.292530831977051,
+                "mean": 1.2899355290044023,
+                "min": 1.2867845988520294
+              },
+              "drift": 5.9081031584190117e-05,
+              "max": 316.6700538343775,
+              "mean": 316.03420460607856,
+              "met": true,
+              "min": 315.26222671874723,
+              "range_change": -0.03202532670041669
+            }
+          },
+          "steady": true,
+          "to": 1600,
+          "window": 500
+        },
+        "averaging": {
+          "range": 0.1,
+          "start": 601,
+          "tolerance": 0.001,
+          "window": 500
+        },
+        "condition": "all",
+        "enabled": true,
+        "forces": {
+          "reports": [
+            "downforce",
+            "drag"
+          ],
+          "tolerance": 0.001,
+          "window": 300
+        },
+        "iteration": null,
+        "met_by": [],
+        "reports": [],
+        "residuals": {
+          "continuity": 0.001,
+          "k": 0.001,
+          "omega": 0.001,
+          "x-velocity": 0.001,
+          "y-velocity": 0.001,
+          "z-velocity": 0.001
+        },
+        "residuals_waived": false
+      },
+      "last_residuals": {
+        "iteration": 1600.0,
+        "continuity": 0.03393757842367323,
+        "x-velocity": 5.86046371748039e-06,
+        "y-velocity": 4.963864964652519e-06,
+        "z-velocity": 4.528869964301723e-06,
+        "k": 0.0011195587606982898,
+        "omega": 0.00024972134048870424
+      }
+    },
+    "relaxed": {
+      "backend": "metal",
+      "device": "Apple M4 Pro",
+      "mesh_sha256": "1593e9527bea2ca39b472cab87ad6701844b88033979746f50f1e3c437c7f035",
+      "setup_sha256": "1d506c0c956e044e0eb79ae1e7884c7b335e202a58348794d1f8ba7b6b4495a2",
+      "cells": 1391056,
+      "iterations": 2640,
+      "verdict": "statistically_steady",
+      "convergence": {
+        "averaged": {
+          "from": 1641,
+          "reports": {
+            "downforce": {
+              "coefficient": {
+                "max": 1.420527282528054,
+                "mean": 1.4079875587176465,
+                "min": 1.397747641352089
+              },
+              "drift": 0.0005883912427824306,
+              "max": 348.02918421937324,
+              "mean": 344.9569518858234,
+              "met": true,
+              "min": 342.4481721312618,
+              "range_change": -0.019097255497153687
+            },
+            "drag": {
+              "coefficient": {
+                "max": 1.2945138109318877,
+                "mean": 1.292318776202916,
+                "min": 1.2898107126746152
+              },
+              "drift": 0.0003081560165348358,
+              "max": 317.1558836783125,
+              "mean": 316.6181001697144,
+              "met": true,
+              "min": 316.0036246052807,
+              "range_change": 0.2722463423916517
+            }
+          },
+          "steady": true,
+          "to": 2640,
+          "window": 500
+        },
+        "averaging": {
+          "range": 0.1,
+          "start": 601,
+          "tolerance": 0.001,
+          "window": 500
+        },
+        "condition": "all",
+        "enabled": true,
+        "forces": {
+          "reports": [
+            "downforce",
+            "drag"
+          ],
+          "tolerance": 0.001,
+          "window": 300
+        },
+        "iteration": null,
+        "met_by": [],
+        "reports": [],
+        "residuals": {
+          "continuity": 0.001,
+          "k": 0.001,
+          "omega": 0.001,
+          "x-velocity": 0.001,
+          "y-velocity": 0.001,
+          "z-velocity": 0.001
+        },
+        "residuals_waived": false
+      },
+      "last_residuals": {
+        "iteration": 2640.0,
+        "continuity": 0.015107413869146115,
+        "x-velocity": 5.921396497125644e-06,
+        "y-velocity": 4.264172063313268e-06,
+        "z-velocity": 3.6295948212826677e-06,
+        "k": 0.00048755304650154697,
+        "omega": 6.778944237194009e-05
+      }
+    },
+    "default_momentum_relaxation": 0.9,
+    "relaxed_momentum_relaxation": 0.5,
+    "wing_slot_mesh": {
+      "cells": 1807600,
+      "orthogonal_min": 0.15043892208732165,
+      "full_wall_layer_coverage": 0.7076328871111923,
+      "gaps": [
+        {
+          "between": [
+            "front-wing-element-1",
+            "front-wing-element-2"
+          ],
+          "contact": false,
+          "min_cells_across": 2,
+          "width_m": 0.012212181546310881
+        },
+        {
+          "between": [
+            "front-wing-element-2",
+            "front-wing-element-3"
+          ],
+          "contact": false,
+          "min_cells_across": 2,
+          "width_m": 0.012889185422178978
+        },
+        {
+          "between": [
+            "rear-wing-element-1",
+            "rear-wing-element-2"
+          ],
+          "contact": false,
+          "min_cells_across": 2,
+          "width_m": 0.012272780564223235
+        },
+        {
+          "between": [
+            "rear-wing-element-2",
+            "rear-wing-element-3"
+          ],
+          "contact": false,
+          "min_cells_across": 3,
+          "width_m": 0.012999313095798801
+        }
+      ]
+    },
+    "slot_solver": {
+      "backend": "metal",
+      "device": "Apple M4 Pro",
+      "setup_sha256": "198a3acaf5b693db6653b243778dd9193190d7b1e7870d0e59f6e5fe13718f5b",
+      "mesh_sha256": "fe88a5faac90457cbc3594b2ae18c416a5a1881a907b100d231e9548a58330c3",
+      "cells": 1807600,
+      "poor_quality_cells": 0,
+      "verdict": "statistically_steady",
+      "iterations": 1600,
+      "convergence": {
+        "averaged": {
+          "from": 601,
+          "reports": {
+            "downforce": {
+              "coefficient": {
+                "max": 1.2641652316123593,
+                "mean": 1.2606863205933918,
+                "min": 1.2569693013202967
+              },
+              "drift": 0.00010501205008410992,
+              "max": 309.720481745028,
+              "mean": 308.868148545381,
+              "met": true,
+              "min": 307.9574788234727,
+              "range_change": -0.06451604408668599
+            },
+            "drag": {
+              "coefficient": {
+                "max": 1.2698848129944666,
+                "mean": 1.2689434304970624,
+                "min": 1.2678904056024087
+              },
+              "drift": 5.533436675103501e-05,
+              "max": 311.1217791836443,
+              "mean": 310.89114047178026,
+              "met": true,
+              "min": 310.63314937259014,
+              "range_change": 0.08347788655744415
+            }
+          },
+          "steady": true,
+          "to": 1600,
+          "window": 500
+        },
+        "averaging": {
+          "range": 0.1,
+          "start": 601,
+          "tolerance": 0.001,
+          "window": 500
+        },
+        "condition": "all",
+        "enabled": true,
+        "forces": {
+          "reports": [
+            "downforce",
+            "drag"
+          ],
+          "tolerance": 0.001,
+          "window": 300
+        },
+        "iteration": null,
+        "met_by": [],
+        "reports": [],
+        "residuals": {
+          "continuity": 0.001,
+          "k": 0.001,
+          "omega": 0.001,
+          "x-velocity": 0.001,
+          "y-velocity": 0.001,
+          "z-velocity": 0.001
+        },
+        "residuals_waived": false
+      },
+      "wall_time_seconds": 1065.086008584,
+      "setup_time_seconds": 32.11588775,
+      "last_residuals": {
+        "iteration": 1600.0,
+        "continuity": 0.01751020168970602,
+        "x-velocity": 3.1108075016912834e-06,
+        "y-velocity": 2.4087482369355767e-06,
+        "z-velocity": 2.398132760056639e-06,
+        "k": 0.0007653029468248757,
+        "omega": 0.0002315803803268136
+      },
+      "final_report_forces_N": {
+        "downforce": 309.22594176001473,
+        "drag": 311.0067838022712
+      },
+      "net_outward_mass_flow_kg_s": -0.00016641616821289062,
+      "net_mass_flow_relative_to_inflow": 6.245973941839667e-08,
+      "max_observed_process_footprint_bytes": 4852797040,
+      "max_observed_device_bytes": 3816268676,
+      "force_history_rows": 160
+    },
+    "coarse_solver": {
+      "backend": "metal",
+      "device": "Apple M4 Pro",
+      "setup_sha256": "1d506c0c956e044e0eb79ae1e7884c7b335e202a58348794d1f8ba7b6b4495a2",
+      "mesh_sha256": "1593e9527bea2ca39b472cab87ad6701844b88033979746f50f1e3c437c7f035",
+      "cells": 1391056,
+      "poor_quality_cells": 0,
+      "verdict": "statistically_steady",
+      "iterations": 1600,
+      "convergence": {
+        "averaged": {
+          "from": 601,
+          "reports": {
+            "downforce": {
+              "coefficient": {
+                "max": 1.4222838741625723,
+                "mean": 1.4144603421514323,
+                "min": 1.4060377485190185
+              },
+              "drift": 0.0002102653054393372,
+              "max": 348.4595491698302,
+              "mean": 346.54278382710095,
+              "met": true,
+              "min": 344.47924838715954,
+              "range_change": -0.0311596428411135
+            },
+            "drag": {
+              "coefficient": {
+                "max": 1.292530831977051,
+                "mean": 1.2899355290044023,
+                "min": 1.2867845988520294
+              },
+              "drift": 5.9081031584190117e-05,
+              "max": 316.6700538343775,
+              "mean": 316.03420460607856,
+              "met": true,
+              "min": 315.26222671874723,
+              "range_change": -0.03202532670041669
+            }
+          },
+          "steady": true,
+          "to": 1600,
+          "window": 500
+        },
+        "averaging": {
+          "range": 0.1,
+          "start": 601,
+          "tolerance": 0.001,
+          "window": 500
+        },
+        "condition": "all",
+        "enabled": true,
+        "forces": {
+          "reports": [
+            "downforce",
+            "drag"
+          ],
+          "tolerance": 0.001,
+          "window": 300
+        },
+        "iteration": null,
+        "met_by": [],
+        "reports": [],
+        "residuals": {
+          "continuity": 0.001,
+          "k": 0.001,
+          "omega": 0.001,
+          "x-velocity": 0.001,
+          "y-velocity": 0.001,
+          "z-velocity": 0.001
+        },
+        "residuals_waived": false
+      },
+      "wall_time_seconds": 970.198881333,
+      "setup_time_seconds": 37.458240791,
+      "last_residuals": {
+        "iteration": 1600.0,
+        "continuity": 0.03393757842367323,
+        "x-velocity": 5.86046371748039e-06,
+        "y-velocity": 4.963864964652519e-06,
+        "z-velocity": 4.528869964301723e-06,
+        "k": 0.0011195587606982898,
+        "omega": 0.00024972134048870424
+      },
+      "final_report_forces_N": {
+        "downforce": 348.32684483141946,
+        "drag": 316.2512997925121
+      },
+      "net_outward_mass_flow_kg_s": -0.0004138946533203125,
+      "net_mass_flow_relative_to_inflow": 1.5534399373973726e-07,
+      "max_observed_process_footprint_bytes": 3743747144,
+      "max_observed_device_bytes": 2913100160,
+      "force_history_rows": 160
+    }
+  },
+  "mixing_elbow_cpu_seconds": {
+    "before": [
+      8.403994,
+      8.186731625,
+      8.181391083
+    ],
+    "after": [
+      8.003461417,
+      7.927154,
+      7.891483834
+    ]
+  },
+  "mixing_elbow_vtu_sha256": "620515b878c8917e9306c2f99030357615ecf3cf1e649ce99285ad3edc442ef4",
+  "windsor_solve_cli_sha256": "e0e315e5a06ad9b45a249b837cb62986063ee0ee74f1944f0202036367e19deb",
+  "final_mixing_elbow_cpu_seconds": {
+    "before": [
+      8.105662125,
+      7.792303625,
+      7.942944541
+    ],
+    "after": [
+      7.607514125,
+      7.608610042,
+      7.626597792
+    ]
+  },
+  "verification": {
+    "non_slow_core_cases_passed": 348,
+    "slow_cases_excluded": 37,
+    "workbench_tests_passed": 15,
+    "final_packaged_shaft_sample_colours": 444,
+    "packaged_saved_windsor_colours": 447,
+    "packaged_refined_fsae_solution_colours": 570,
+    "isolated_fsae_project_archive_opens": true
+  },
+  "windsor": {
+    "backend": "metal",
+    "device": "Apple M4 Pro",
+    "setup_sha256": "1abd0b57588e18cbc537991bf2d5683d46b5b351b5f6cebf414db84ff3d64efd",
+    "mesh_sha256": "c8c33dc8c6d07af42de1843e56095ec7710613cce6fc345ced5421839ebb6058",
+    "cells": 6307136,
+    "poor_quality_cells": 7,
+    "verdict": "converged",
+    "iterations": 1421,
+    "convergence": {
+      "averaged": null,
+      "averaging": {
+        "range": 0.1,
+        "start": 601,
+        "tolerance": 0.001,
+        "window": 500
+      },
+      "condition": "all",
+      "enabled": true,
+      "forces": {
+        "reports": [
+          "body-drag",
+          "body-side",
+          "lift"
+        ],
+        "tolerance": 0.001,
+        "window": 300
+      },
+      "iteration": 1421,
+      "met_by": [
+        "residuals",
+        "forces"
+      ],
+      "reports": [],
+      "residuals": {
+        "continuity": 0.001,
+        "k": 0.001,
+        "omega": 0.001,
+        "x-velocity": 0.001,
+        "y-velocity": 0.001,
+        "z-velocity": 0.001
+      },
+      "residuals_waived": false
+    },
+    "wall_time_seconds": 2574.130284541,
+    "setup_time_seconds": 49.084844,
+    "last_residuals": {
+      "iteration": 1421.0,
+      "continuity": 5.909025733683807e-05,
+      "x-velocity": 2.522884884880093e-07,
+      "y-velocity": 1.240949319552392e-07,
+      "z-velocity": 1.8277118608460134e-07,
+      "k": 5.924272603623162e-06,
+      "omega": 1.8705953007999576e-06
+    },
+    "final_report_forces_N": {
+      "body-drag": 30.412530423702915,
+      "body-side": 15.572782796748921,
+      "lift": -15.613908949445829
+    },
+    "net_outward_mass_flow_kg_s": 1.8891878426074982e-06,
+    "net_mass_flow_relative_to_inflow": 1.4790042636349942e-08,
+    "max_observed_process_footprint_bytes": 14947409768,
+    "max_observed_device_bytes": 11468304476,
+    "probe_speed_m_s": 40.1700706,
+    "probe_pressure_Pa": 29.4638672,
+    "final_iterate_coefficients": {
+      "drag": 0.2671091675699501,
+      "lift": -0.13705867155148826,
+      "side": 0.13677365870173394,
+      "pitch": -0.10442487177023971
+    },
+    "base_pressure_drag_coefficient": 0.2510804392776417,
+    "measured_coefficients": {
+      "drag": 0.3298,
+      "lift": -0.0382,
+      "side": 0.1509,
+      "pitch": -0.0259
+    },
+    "prediction_minus_measurement": {
+      "drag": -0.06269083243004986,
+      "lift": -0.09885867155148827,
+      "side": -0.014126341298266065,
+      "pitch": -0.0785248717702397
+    },
+    "pressure_groups": {
+      "1": {
+        "samples": 18,
+        "rms_error_Cp": 0.0766262397546182,
+        "max_projection_distance_m": 0.0001884085743076449
+      },
+      "2": {
+        "samples": 21,
+        "rms_error_Cp": 0.038262290827022066,
+        "max_projection_distance_m": 0.0005000040829533583
+      },
+      "3": {
+        "samples": 11,
+        "rms_error_Cp": 0.12320727243070127,
+        "max_projection_distance_m": 0.0007217121853788319
+      },
+      "4": {
+        "samples": 56,
+        "rms_error_Cp": 0.07223546930660076,
+        "max_projection_distance_m": 2.3217436165001937e-08
+      }
+    }
+  },
+  "fsae_case_zip_sha256": "67ccab8e4786aea6a2dba05ae99d2fe97bb8a11d9e74bbbc88b010114ce7ba94"
+}

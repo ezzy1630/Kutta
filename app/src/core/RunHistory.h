@@ -80,7 +80,6 @@ QString poorMeshNumericsText(const RunSummary& s);
 QString runOutcomeAdvice(const RunRecord& r);
 
 // Final values of each report in a run's progress log.
-struct ReportSeries { QString name; std::vector<int> iter; std::vector<double> force, coefficient; };
 struct RunProgress {
     ResidualHistory residuals;
     std::vector<ReportSeries> reports;
@@ -92,6 +91,7 @@ struct RunProgress {
     std::optional<ConvergenceState> convergence;
     int convergenceIter = 0;
 };
+RunProgress readSavedProgress(const QString& directory, const RunSummary& summary);
 RunProgress parseProgressLog(const QByteArray& jsonl);
 void appendIteration(RunProgress& p, const IterationEvent& e);
 

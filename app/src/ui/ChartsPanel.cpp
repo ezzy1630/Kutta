@@ -3,6 +3,9 @@
 #include "ui/Theme.h"
 
 #include <QComboBox>
+#include <QDir>
+#include <QFile>
+#include <QJsonDocument>
 #include <QJsonArray>
 
 #include <cmath>
@@ -84,13 +87,14 @@ ChartsPanel::ChartsPanel(Session* session, QWidget* parent) : QWidget(parent), m
     connect(&m_liveTimer, &QTimer::timeout, this, &ChartsPanel::rebuild);
     connect(session, &Session::iteration, this, &ChartsPanel::scheduleLive);
     connect(session, &Session::runStarted, this, [this] {
+        m_saved.reset();
         m_runs.clear();
         m_residuals->resetView();
         m_reports->resetView();
         rebuild();
     });
     connect(session, &Session::runFinished, this, &ChartsPanel::rebuild);
-    connect(session, &Session::caseOpened, this, [this] { m_runs.clear(); rebuild(); });
+    connect(session, &Session::caseOpened, this, [this] { m_saved.reset(); m_runs.clear(); rebuild(); });
     connect(&Theme::instance(), &Theme::changed, this, &ChartsPanel::rebuild);
 }
 
@@ -98,7 +102,25 @@ void ChartsPanel::showTab(Tab t) { m_tabs->setCurrentIndex(int(t)); }
 
 void ChartsPanel::showRuns(const QStringList& runIds)
 {
+    m_saved.reset();
     m_runs = runIds;
+    m_residuals->resetView();
+    m_reports->resetView();
+    rebuild();
+}
+
+void ChartsPanel::showSavedResult(const QString& directory, const QString& title)
+{
+    QFile file(QDir(directory).filePath("summary.json"));
+    if (!file.open(QIODevice::ReadOnly)) return;
+    const auto summary = parseRunSummary(QJsonDocument::fromJson(file.readAll()).object());
+    if (!summary) return;
+    m_runs.clear();
+    QStringList badges;
+    if (summary->approximate) badges << tr("APPROXIMATE");
+    if (summary->modified) badges << tr("MODIFIED");
+    if (summary->synthetic) badges << tr("SYNTHETIC");
+    m_saved = Source{title, readSavedProgress(directory, summary.value()), badges, summary->approximationNotice};
     m_residuals->resetView();
     m_reports->resetView();
     rebuild();
@@ -111,6 +133,7 @@ void ChartsPanel::scheduleLive()
 
 std::vector<ChartsPanel::Source> ChartsPanel::sources() const
 {
+    if (m_saved) return {*m_saved};
     std::vector<Source> out;
     const auto& h = m_session->history();
     if (m_session->running() && m_runs.isEmpty()) {
@@ -164,7 +187,7 @@ void ChartsPanel::rebuild()
             if (!badges.contains(b)) badges << b;
         if (!s.provenance.isEmpty()) provenance << (multi ? s.title + ": " : QString()) + s.provenance;
         const auto& r = s.progress.residuals;
-        const bool planar = m_session->hasCase() && m_session->caseSummary().planar();
+        const bool planar = m_saved ? !r.names.contains("z-velocity") : m_session->hasCase() && m_session->caseSummary().planar();
         QStringList order;
         for (const QString& name : residualOrder(r.names))
             if (residualShown(name, planar)) order << name;
@@ -208,7 +231,7 @@ void ChartsPanel::rebuild()
     m_reports->setAxisLabels(tr("Iteration"), m_reportQuantity->currentData().toString() == "coefficient" ? tr("Coefficient") : tr("Force [N]"));
     // One run: its residual criteria and where (and why) it stopped.
     std::vector<PlotGuide> guides;
-    if (src.size() == 1) guides = convergenceGuides(src.front().progress, m_session->hasCase() && m_session->caseSummary().planar());
+    if (src.size() == 1) guides = convergenceGuides(src.front().progress, m_saved ? !src.front().progress.residuals.names.contains("z-velocity") : m_session->hasCase() && m_session->caseSummary().planar());
     m_residuals->setGuides(std::move(guides));
     m_residuals->setSeries(std::move(res));
     m_reports->setSeries(std::move(rep));

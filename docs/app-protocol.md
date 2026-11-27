@@ -174,6 +174,8 @@ One JSON object per line, in order:
 {"v":1,"event":"error","message":"…","issues":[...]}
 ```
 
+A solve also writes `force-history.csv` with one row per configured force report at each force-monitor sample. The columns are `iteration,report,force_N,coefficient`. The coefficient is empty when the reference density, speed or area is unavailable. Each sampled row matches the corresponding iteration event, including the final confirmation sample. A case with no force reports produces a header with no rows.
+
 `iteration` events are emitted at the monitor interval (the monitor samples),
 v1 additive at iterations 1 to 5, and v1 additive at the forces-settled
 condition's confirming sample, one iteration after a monitor sample (see

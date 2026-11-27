@@ -73,15 +73,11 @@ herr_t partial_chunk_error(unsigned, const H5E_error2_t* error, void* found) {
     *static_cast<bool*>(found) = true;
   return 0;
 }
-// HDF5 2.2 rejects older Fluent writers' unpadded final chunks (#6691).
+// HDF5 2.2 and 2.3 reject older Fluent writers' unpadded final chunks (#6691).
 // Only that diagnostic permits raw reads; every stream must still contain
 // exactly its full chunk or valid final rows. Never pad missing mesh data.
 template <class T>
 void read_legacy_chunks(hid_t d, hid_t memory_type, std::vector<T>& out) {
-  unsigned major = 0, minor = 0, release = 0;
-  check(H5get_libversion(&major, &minor, &release), "library version");
-  KUTTA_REQUIRE(major == 2 && minor == 2,
-                "CFF: legacy chunk fallback requires HDF5 2.2");
   H5 space(H5Dget_space(d), H5Sclose, "legacy chunk space");
   auto rank = H5Sget_simple_extent_ndims(space);
   KUTTA_REQUIRE(rank == 1 || rank == 2, "CFF: unsupported legacy chunk rank");

@@ -21,8 +21,15 @@ and the gates in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 FSAE wall motion, porous resistance, absolute-velocity MRF and additional flow
 boundaries now have [dedicated implementation and analytic gates](docs/research/fsae-physics.md).
-Native rotating-wall and fan polynomial import remain held by failing V7.2/V12
-gates. These tests do not establish Fluent same-mesh agreement.
+Native rotating walls pass the V7.2 analytical gate on CPU and Metal. The V12 fan polynomial import gate remains open.
+
+## Try a case
+
+Open **Rotating shaft** under **Samples** in the desktop workbench, then run the case. The rotating inner wall drives the fluid around a stationary housing. At a radius of 0.15 m the analytical tangential speed is 0.389 m/s. The [verification script](validation/cases/check_rotating_shaft.py) checks the velocity and pressure fields and both wall torques.
+
+For external aero, the [S1223 native case](validation/cases/s1223-uiuc.kutta.json) opens the generated 4.76° wing mesh under `runs/fsae_aero/mesh`. The [Formula Student full-car setup](validation/cases/fsae-slots.kutta.json) includes a rolling road and rotating wheels. The [Windsor squareback setup](validation/cases/autocfd5-windsor-g1.kutta.json) runs the public 6.31-million-cell AutoCFD5 coarse grid. The [validation report](validation/results/workbench_aero/REPORT.md) compares forces and surface pressures with tunnel measurements and documents the full-car mesh study.
+
+To inspect a finished CLI run, choose **File → Open Saved Result** in the workbench and select the run’s `summary.json`. Kutta opens the saved fields for contouring and plots the residual and force histories available in the result directory. With an existing `view-input.bin`, the original case and mesh can be on another machine.
 
 ## Build
 
@@ -76,7 +83,8 @@ case JSON inputs; it is recorded in `summary.json`.
 
 The CLI prints Fluent-scaled residuals and average seconds per iteration at the
 solver's monitor interval. It writes `result.vtu` (`u`, `p`, `k`, `omega`, `mu_t`),
-`forces.csv` (wall zones and resolved force/drag/lift reports), `residuals.csv`,
+`forces.csv` (final wall and report forces), `force-history.csv` (iteration,
+report, projected force in newtons and coefficient at each monitor sample), `residuals.csv`,
 and `summary.json` (SHA256 inputs, build/device identity and timing). A case
 with a force, drag, lift or downforce report stops on its own once its
 residual criteria are met and every report has stayed within 0.1 % over 300

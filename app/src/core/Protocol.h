@@ -291,6 +291,8 @@ struct ResidualHistory {
     std::vector<std::vector<double>> values;  // per name, per sample
     std::vector<double> secPerIter;
 };
+struct ReportSeries { QString name; std::vector<int> iter; std::vector<double> force, coefficient; };
+Result<std::vector<ReportSeries>> parseForceHistoryCsv(const QByteArray& csv);
 Result<ResidualHistory> parseResidualsCsv(const QByteArray& csv);
 
 struct FluxRow { QString name; int zoneId = -1; double massFlow = 0; };

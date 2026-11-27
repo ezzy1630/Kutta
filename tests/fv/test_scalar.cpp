@@ -94,6 +94,34 @@ TEST_CASE("FV transport kernels preserve an affine solution on skew tetrahedra")
   }
 }
 
+TEST_CASE("Limited scalar diffusion keeps a shared skew face from transporting up the cell jump") {
+  auto mesh=make_box_hex(2,1,1,{0,0,0},{2,1,1});
+  for(auto& point:mesh.points) point.y+=point.x;
+  const auto geom=compute_geometry(mesh);
+  KUTTA_FOR_EACH_BACKEND(dev) {
+    auto m=upload_mesh(*dev,mesh,geom);
+    auto stencil=fv::make_stencil(*dev,mesh,geom);
+    fv::TransportEquation eq(*dev,m,stencil,mesh,geom);
+    const auto q=dev->upload<float>(std::vector<float>{1,2});
+    auto bc=dev->alloc<float>(m.n_boundary_faces()),mu=dev->alloc<float>(m.n_faces);
+    auto mass=dev->alloc<float>(m.n_faces),src=dev->alloc<float>(m.n_cells);
+    auto kind=dev->alloc<Index>(m.n_boundary_faces());
+    dev->fill(bc,0);dev->fill(kind,1);dev->fill(mu,1);dev->fill(mass,0);dev->fill(src,0);
+    dev->fill(eq.grad.x,0);dev->fill(eq.grad.y,4);dev->fill(eq.grad.z,0);
+    fv::TransportSettings options;
+    options.limit=false;
+    for(bool limited:{false,true}) {
+      options.limit_diffusion_correction=limited;
+      eq.assemble_reconstructed(q,bc,kind,mass,mu,src,options);
+      const auto correction=dev->download(eq.face_correction);
+      REQUIRE(m.n_internal_faces==1);
+      const auto sign=mesh.owner[0]==0 ? 1.f : -1.f;
+      CHECK(sign*correction[0]==doctest::Approx(limited?-1.f:-4.f));
+      for(Index face=m.n_internal_faces;face<m.n_faces;++face) CHECK(correction[face]==0.f);
+    }
+  }
+}
+
 TEST_CASE("FV equations share one uploaded CSR pattern and value workspace") {
   auto mesh=make_box_hex(2,2,2,{0,0,0},{1,1,1});auto g=compute_geometry(mesh);
   KUTTA_FOR_EACH_BACKEND(dev) {

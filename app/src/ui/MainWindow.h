@@ -71,6 +71,7 @@ private:
 
     Session* m_session;
     QStringList m_samples;
+    QString m_pendingSavedResult;
     ads::CDockManager* m_docks = nullptr;
     GraphicsArea* m_graphics = nullptr;
     ChartsPanel* m_charts = nullptr;

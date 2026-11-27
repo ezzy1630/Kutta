@@ -93,8 +93,8 @@ void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const 
     KUTTA_REQUIRE(!term || term->size()==field.size(),"FV transport term size mismatch");
   if(settings.limit) limit_gradient(dev,m,s,field,bc,grad,limiter,settings.limiter_low,&kind,
     settings.limiter_epsilon2,settings.limiter_paired_gradient); else dev.fill(limiter,1);
-  // Keep the legacy dispatch (including its shader signature) for models
-  // that have not enabled the projected reconstruction.
+  if(settings.limit_diffusion_correction)
+    kern::fv_diffusion_correction_bound(dev,m.n_faces,m.owner,m.neighbour,kind,field,bc,s.diffusion,face_correction,m.n_internal_faces);
   if(diffusion_reconstruction_) {
     diffusion_reconstruction_->diffusion_correction(field,bc,diffusion_correction_);
     kern::fv_projected_transport_faces(dev,m.n_faces,m.owner,m.neighbour,m.weight,
@@ -103,14 +103,14 @@ void TransportEquation::assemble_reconstructed(const Buffer<float>& field,const 
       s.nonorthogonal.x,s.nonorthogonal.y,s.nonorthogonal.z,
       grad.x,grad.y,grad.z,limiter,flux,mu,kind,
       diffusion_reconstruction_->mask(),diffusion_correction_,face_correction,m.n_internal_faces,
-      settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
+      settings.convection==ConvectionScheme::SecondOrderUpwind?1:0,settings.limit_diffusion_correction);
   } else {
     kern::fv_transport_faces(dev,m.n_faces,m.owner,m.neighbour,m.weight,
       m.owner_to_face.x,m.owner_to_face.y,m.owner_to_face.z,
       m.neighbour_to_face.x,m.neighbour_to_face.y,m.neighbour_to_face.z,
       s.nonorthogonal.x,s.nonorthogonal.y,s.nonorthogonal.z,
       grad.x,grad.y,grad.z,limiter,flux,mu,kind,face_correction,m.n_internal_faces,
-      settings.convection==ConvectionScheme::SecondOrderUpwind?1:0);
+      settings.convection==ConvectionScheme::SecondOrderUpwind?1:0,settings.limit_diffusion_correction);
   }
   kern::fv_transport_assemble(dev,m.n_cells,m.cell_face_offsets,m.cell_faces,m.cell_face_sign,
     s.adjacent,s.matrix_entry,matrix.row_ptr,matrix.diag,s.diffusion,flux,mu,kind,bc,face_correction,

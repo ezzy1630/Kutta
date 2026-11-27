@@ -113,6 +113,7 @@ struct SstSettings {
   // Zero uses only the linear solver's requested termination.
   double steady_tolerance=1e-6;
   bool compensated_transport=true; // Delta solve from the carried assembly defect.
+  bool limit_diffusion_correction=false;
   bool pseudo_transient=false;       // False omits time damping from scalar transport.
 };
 struct SaSettings {

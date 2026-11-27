@@ -1,0 +1,85 @@
+{
+  "kutta_case": 1,
+  "mesh": "../../runs/fsae-workbench/wing-slots/mesh.msh",
+  "models": {"viscous": "k-omega-sst"},
+  "material": {"name": "air", "density": 1.225, "viscosity": 1.7894e-05},
+  "boundaries": {
+    "front-wing-element-1": {"type": "wall"},
+    "front-wing-element-2": {"type": "wall"},
+    "front-wing-element-3": {"type": "wall"},
+    "front-wing-endplate-left": {"type": "wall"},
+    "front-wing-endplate-right": {"type": "wall"},
+    "ground": {"type": "wall", "motion": "moving", "speed": 20, "direction": [1, 0, 0]},
+    "inlet": {
+      "type": "velocity-inlet",
+      "speed": 20,
+      "direction": [1, 0, 0],
+      "turbulence": {"intensity": 0.01, "viscosity_ratio": 10}
+    },
+    "monocoque": {"type": "wall"},
+    "nose": {"type": "wall"},
+    "outlet": {
+      "type": "pressure-outlet",
+      "gauge_pressure": 0,
+      "turbulence": {"intensity": 0.01, "viscosity_ratio": 10}
+    },
+    "rear-wing-element-1": {"type": "wall"},
+    "rear-wing-element-2": {"type": "wall"},
+    "rear-wing-element-3": {"type": "wall"},
+    "rear-wing-endplate-left": {"type": "wall"},
+    "rear-wing-endplate-right": {"type": "wall"},
+    "side-high": {"type": "symmetry"},
+    "side-low": {"type": "symmetry"},
+    "sidepod-left": {"type": "wall"},
+    "sidepod-right": {"type": "wall"},
+    "top": {"type": "symmetry"},
+    "undertray-diffuser": {"type": "wall"},
+    "wheel-fl": {
+      "type": "wall",
+      "motion": "rotating",
+      "relative": false,
+      "angular_speed": 86.95652173913044,
+      "axis_origin": [-0.78, 0.72, 0.23],
+      "axis_direction": [0, -1, 0]
+    },
+    "wheel-fr": {
+      "type": "wall",
+      "motion": "rotating",
+      "relative": false,
+      "angular_speed": 86.95652173913044,
+      "axis_origin": [-0.78, -0.72, 0.23],
+      "axis_direction": [0, -1, 0]
+    },
+    "wheel-rl": {
+      "type": "wall",
+      "motion": "rotating",
+      "relative": false,
+      "angular_speed": 86.95652173913044,
+      "axis_origin": [0.95, 0.72, 0.23],
+      "axis_direction": [0, -1, 0]
+    },
+    "wheel-rr": {
+      "type": "wall",
+      "motion": "rotating",
+      "relative": false,
+      "angular_speed": 86.95652173913044,
+      "axis_origin": [0.95, -0.72, 0.23],
+      "axis_direction": [0, -1, 0]
+    }
+  },
+  "reference_values": {"area": 1, "length": 1, "density": 1.225, "velocity": 20},
+  "methods": {
+    "pressure_velocity_coupling": "simplec",
+    "turbulent_kinetic_energy": "second-order-upwind",
+    "specific_dissipation_rate": "second-order-upwind",
+    "limit_sst_diffusion": true,
+    "warped_face_gradient_correction": false
+  },
+  "controls": {
+    "relaxation": {"momentum": 0.9}
+  },
+  "reports": {
+    "downforce": {"type": "lift", "zones": ["monocoque", "nose", "sidepod-right", "sidepod-left", "undertray-diffuser", "front-wing-element-1", "front-wing-element-2", "front-wing-element-3", "front-wing-endplate-right", "front-wing-endplate-left", "rear-wing-element-1", "rear-wing-element-2", "rear-wing-element-3", "rear-wing-endplate-right", "rear-wing-endplate-left", "wheel-fl", "wheel-fr", "wheel-rl", "wheel-rr"], "direction": [0, 0, -1], "coefficient": true},
+    "drag": {"type": "drag", "zones": ["monocoque", "nose", "sidepod-right", "sidepod-left", "undertray-diffuser", "front-wing-element-1", "front-wing-element-2", "front-wing-element-3", "front-wing-endplate-right", "front-wing-endplate-left", "rear-wing-element-1", "rear-wing-element-2", "rear-wing-element-3", "rear-wing-endplate-right", "rear-wing-endplate-left", "wheel-fl", "wheel-fr", "wheel-rl", "wheel-rr"], "direction": [1, 0, 0], "coefficient": true}
+  }
+}

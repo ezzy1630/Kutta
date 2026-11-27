@@ -1,6 +1,7 @@
 """Exercise the CLI child-process boundary; keep stdin open until explicitly stopping."""
 import hashlib
 import concurrent.futures
+import csv
 import json
 import math
 import os
@@ -124,6 +125,14 @@ for name, data, approximate in [("tiny", False, False), ("tiny", True, False), (
         assert set(e["reports"]) == {"drag", "downforce" if name == "downforce" else "lift", "force"}
         for r in e["reports"].values():
             assert math.isclose(r["coefficient"], r["force"] / 6, abs_tol=1e-12)
+    with (out / "force-history.csv").open(newline="") as f:
+        history = list(csv.DictReader(line for line in f if not line.startswith("#")))
+    expected = {(e["iter"], key): value for e in iterations for key, value in e["reports"].items()}
+    assert len(history) == len(expected)
+    for row in history:
+        sample = expected.pop((int(row["iteration"]), row["report"]))
+        assert float(row["force_N"]) == sample["force"]
+        assert float(row["coefficient"]) == sample["coefficient"]
     assert events[-1]["iterations"] == 21 and events[-1]["stop_reason"] == "iteration_limit" and events[-1]["verdict"] == "iteration_limit"
     assert (out / "view-input.bin").is_file()
     command("export-view", out, "--slice", "0.5,0,0,1,0,0")

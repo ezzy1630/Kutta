@@ -1064,6 +1064,13 @@ void Session::exportNow(const QString& runId, const std::vector<Plane>& planes, 
     });
 }
 
+QString Session::prepareSavedResult(const QString& summaryPath)
+{
+    const QString key = "ext:" + QFileInfo(summaryPath).absolutePath();
+    m_scenes.remove(key);
+    return key;
+}
+
 void Session::loadScene(const QString& key, SceneCallback done)
 {
     if (auto s = m_scenes.value(key)) return done(key, s);
@@ -1164,8 +1171,20 @@ void Session::loadSceneNow(const QString& key, SceneCallback done)
         const QString runDir = key.mid(4);
         QFile rec(QDir(runDir).filePath("app-run.json"));
         auto record = rec.open(QIODevice::ReadOnly) ? RunRecord::fromJson(QJsonDocument::fromJson(rec.readAll()).object(), runDir) : std::nullopt;
-        if (!record) return done(key, Result<std::shared_ptr<SceneData>>::failure(tr("no run in %1").arg(QDir::toNativeSeparators(runDir))));
-        const QString title = QStringLiteral("%1 · %2").arg(QFileInfo(QFileInfo(record->casePath).absolutePath()).fileName(), record->title());
+        const QFileInfo summary(QDir(runDir).filePath("summary.json"));
+        QString title;
+        if (record) {
+            title = QStringLiteral("%1 · %2").arg(QFileInfo(QFileInfo(record->casePath).absolutePath()).fileName(), record->title());
+        } else {
+            QFile file(summary.filePath());
+            if (!file.open(QIODevice::ReadOnly))
+                return done(key, Result<std::shared_ptr<SceneData>>::failure(file.errorString()));
+            auto parsed = parseRunSummary(QJsonDocument::fromJson(file.readAll()).object());
+            if (!parsed || parsed.value().cells <= 0)
+                return done(key, Result<std::shared_ptr<SceneData>>::failure(tr("Invalid Kutta run summary")));
+            const auto& result = parsed.value();
+            title = tr("%1 · %2 iterations").arg(RunHistory::caseKey(result.caseFile)).arg(result.iterations);
+        }
         auto finish = [this, key, title, done](Result<ViewManifest> m) {
             if (!m) return done(key, Result<std::shared_ptr<SceneData>>::failure(m.error()));
             auto scene = kapp::loadScene(m.value(), title);
@@ -1173,8 +1192,11 @@ void Session::loadSceneNow(const QString& key, SceneCallback done)
             done(key, scene);
         };
         const QString manifest = QDir(runDir).filePath("view/manifest.json");
-        if (QFileInfo::exists(manifest)) return finish(loadViewManifest(manifest));
-        m_cli->exportView(runDir, defaultSlices(), {}, finish);
+        const QFileInfo savedView(manifest);
+        const QFileInfo snapshot(QDir(runDir).filePath("view-input.bin"));
+        if (savedView.isFile() && savedView.lastModified() >= summary.lastModified() && savedView.lastModified() >= snapshot.lastModified())
+            if (auto loaded = loadViewManifest(manifest); loaded) return finish(std::move(loaded));
+        m_cli->exportView(runDir, record ? defaultSlices() : std::vector<Plane>{}, {}, finish);
         return;
     }
     if (key.startsWith("diff:")) {

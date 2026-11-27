@@ -64,9 +64,10 @@ if(APPLE)
     get_filename_component(name "${FIXTURE}" NAME)
     set(extra "-executable=${app}/Contents/Helpers/${name}")
   endif()
-  execute_process(COMMAND "${DEPLOYQT}" "${app}" -always-overwrite ${extra} COMMAND_ERROR_IS_FATAL ANY)
+  execute_process(COMMAND "${DEPLOYQT}" "${app}" -always-overwrite -no-codesign ${extra} COMMAND_ERROR_IS_FATAL ANY)
   # Rewritten load commands invalidate signatures; Apple silicon needs one (ad hoc).
   execute_process(COMMAND codesign --force --deep --sign - "${app}" COMMAND_ERROR_IS_FATAL ANY)
+  execute_process(COMMAND codesign --verify --deep --strict "${app}" COMMAND_ERROR_IS_FATAL ANY)
   execute_process(COMMAND ditto -c -k --keepParent "${app}" "${OUT}/Kutta-${VERSION}-macos.zip"
                   COMMAND_ERROR_IS_FATAL ANY)
 elseif(WIN32)

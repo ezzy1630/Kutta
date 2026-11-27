@@ -93,7 +93,7 @@ SstModel::SstModel(Device& dev, const DeviceMesh& mesh, SstOptions options)
   if (options_.intermittency) f.production_limit = cell();
 }
 
-void SstModel::update(const SstInputs& in) {
+void SstModel::update(const SstInputs& in, const std::function<void()>& reconstruct_scalar_gradients) {
   const auto nc = mesh_.n_cells, nf = mesh_.n_faces, nb = mesh_.n_boundary_faces();
   size(in.velocity, nc, "velocity");
   const auto& g = in.velocity_gradient;
@@ -106,18 +106,6 @@ void SstModel::update(const SstInputs& in) {
                 "SST: intermittency input must be supplied exactly when the coupling is enabled");
   if (in.intermittency) size(*in.intermittency, nc, "intermittency");
   auto& d = device_; auto& f = fields_; const auto& o = options_;
-  kern::sst_rates(d, nc, g.u.x, g.u.y, g.u.z, g.v.x, g.v.y, g.v.z, g.w.x, g.w.y, g.w.z,
-                  f.strain, f.vorticity);
-  kern::sst_blending_viscosity(d, nc, in.density, in.viscosity, in.k, in.omega, mesh_.wall_distance,
-      in.k_gradient.x, in.k_gradient.y, in.k_gradient.z,
-      in.omega_gradient.x, in.omega_gradient.y, in.omega_gradient.z,
-      f.strain, f.vorticity, f.f1, f.f2, f.cdkw, f.mu_t, f.diffusivity_k, f.diffusivity_omega,
-      o.cdkw_floor, o.k_floor, o.omega_floor,
-      o.low_re, o.viscosity_limiter == SstViscosityLimiter::Vorticity,
-      o.max_viscosity_ratio);
-  if (o.intermittency)
-    kern::sst_transition_f1(d, nc, in.density, in.viscosity, in.k, mesh_.wall_distance, f.mu_t,
-        f.f1, f.diffusivity_k, f.diffusivity_omega, o.k_floor);
   kern::sst_wall(d, nb, mesh_.owner, wall_mask_, mesh_.n_internal_faces,
       mesh_.area.x, mesh_.area.y, mesh_.area.z,
       in.velocity.x, in.velocity.y, in.velocity.z,
@@ -132,6 +120,19 @@ void SstModel::update(const SstInputs& in) {
   kern::sst_wall_cells(d, nc, mesh_.cell_face_offsets, mesh_.cell_faces, wall_mask_,
       mesh_.wall_normal_distance, wall_cell_omega_, face_production_, mesh_.n_internal_faces,
       f.fixed_omega_mask, f.selected_wall_face, f.fixed_omega, f.wall_production);
+  if (reconstruct_scalar_gradients) reconstruct_scalar_gradients();
+  kern::sst_rates(d, nc, g.u.x, g.u.y, g.u.z, g.v.x, g.v.y, g.v.z, g.w.x, g.w.y, g.w.z,
+                  f.strain, f.vorticity);
+  kern::sst_blending_viscosity(d, nc, in.density, in.viscosity, in.k, in.omega, mesh_.wall_distance,
+      in.k_gradient.x, in.k_gradient.y, in.k_gradient.z,
+      in.omega_gradient.x, in.omega_gradient.y, in.omega_gradient.z,
+      f.strain, f.vorticity, f.f1, f.f2, f.cdkw, f.mu_t, f.diffusivity_k, f.diffusivity_omega,
+      o.cdkw_floor, o.k_floor, o.omega_floor,
+      o.low_re, o.viscosity_limiter == SstViscosityLimiter::Vorticity,
+      o.max_viscosity_ratio);
+  if (o.intermittency)
+    kern::sst_transition_f1(d, nc, in.density, in.viscosity, in.k, mesh_.wall_distance, f.mu_t,
+        f.f1, f.diffusivity_k, f.diffusivity_omega, o.k_floor);
   const int production_mode = o.kato_launder ? 1 : (o.vorticity_production ? 2 : 0);
   kern::sst_sources(d, nc, in.density, in.viscosity, in.k, in.omega,
       f.strain, f.vorticity, f.f1, f.cdkw, f.mu_t, f.fixed_omega_mask, f.wall_production,

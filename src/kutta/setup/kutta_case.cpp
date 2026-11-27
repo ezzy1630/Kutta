@@ -589,6 +589,7 @@ KuttaCase parse_kutta_case(std::string_view text) {
     v.gradient_limiter = s.choice<GradientLimiter>("gradient_limiter", {{"standard", GradientLimiter::standard},
                                                                          {"differentiable", GradientLimiter::differentiable},
                                                                          {"none", GradientLimiter::none}});
+    v.limit_sst_diffusion = s.boolean("limit_sst_diffusion");
     v.warped_face_gradient_correction = s.boolean("warped_face_gradient_correction");
     v.high_order_term_relaxation = s.boolean("high_order_term_relaxation");
     s.finish();
@@ -669,6 +670,7 @@ KuttaCase parse_kutta_case(std::string_view text) {
   }
   if (const auto* m = r.raw("monitors")) {
     Reader s(*m, "monitors", errors);
+    c.check_convergence = s.boolean("check_convergence");
     if (const auto* res = s.raw("residuals")) {
       if (const auto* rows = std::get_if<Object>(&res->value))
         for (const auto& [name, value] : *rows) {
@@ -975,6 +977,7 @@ std::string kutta_case_text(const KuttaCase& c) {
       constexpr std::string_view names[] = {"standard", "differentiable", "none"};
       m.add("gradient_limiter", Out::str(names[int(*v.gradient_limiter)]));
     }
+    m.opt("limit_sst_diffusion", v.limit_sst_diffusion);
     m.opt("warped_face_gradient_correction", v.warped_face_gradient_correction);
     m.opt("high_order_term_relaxation", v.high_order_term_relaxation);
     if (!m.empty()) root.add("methods", std::move(m));
@@ -1023,15 +1026,17 @@ std::string kutta_case_text(const KuttaCase& c) {
       m.add(name, std::move(o));
     }
   }
-  if (!c.residuals.empty()) {
+  if (c.check_convergence || !c.residuals.empty()) {
     auto& m = root.add("monitors", Out::object());
-    auto& rows = m.add("residuals", Out::object());
+    m.opt("check_convergence", c.check_convergence);
+    auto rows = Out::object();
     for (const auto& [name, r] : c.residuals) {
       auto o = Out::object();
       o.opt("check", r.check);
       o.opt("absolute_criterion", r.absolute_criterion);
       rows.add(name, std::move(o));
     }
+    if (!c.residuals.empty()) m.add("residuals", std::move(rows));
   }
   std::ostringstream s;
   root.write(s, 0);
@@ -1324,6 +1329,7 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
   if (ke) rp.integer("epsilon/scheme", upwind(c.methods.turbulent_dissipation_rate, Upwind::first_order));
   if (transition) rp.integer("intermit/scheme", upwind(c.methods.intermittency, Upwind::first_order));
   if (laminar && c.methods.turbulent_kinetic_energy) errors.add("methods/turbulent_kinetic_energy", "laminar flow solves no turbulence equation");
+  if (!sst && c.methods.limit_sst_diffusion) errors.add("methods/limit_sst_diffusion", "applies only to k-omega-sst");
   if (!sst && c.methods.specific_dissipation_rate) errors.add("methods/specific_dissipation_rate", "applies only to k-omega-sst");
   if (!ke && c.methods.turbulent_dissipation_rate) errors.add("methods/turbulent_dissipation_rate", "applies only to k-epsilon-standard");
   if (!transition && c.methods.intermittency) errors.add("methods/intermittency", "applies only with the intermittency transition model");
@@ -1608,6 +1614,8 @@ fluent::FluentCase lower_kutta_case(const KuttaCase& c, const MeshInfo& mesh) {
   auto out = fluent::extract_case(std::move(sections), std::nullopt, "Kutta case v" + std::to_string(kutta_case_version));
   // No Fluent writer produced these settings; its version is not a gap.
   std::erase_if(out.issues, [](const auto& i) { return i.path == "solver-version"; });
+  out.check_convergence = c.check_convergence;
+  out.numerics.limit_sst_diffusion = c.methods.limit_sst_diffusion.value_or(false);
   out.mesh.dimension = mesh.dimension;
   out.dimension = mesh.dimension;
   out.mesh.cells = mesh.cells;
@@ -2006,6 +2014,7 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
 
   // Methods.
   const auto& n = c.numerics;
+  if (n.limit_sst_diffusion) k.methods.limit_sst_diffusion = true;
   if (const auto scheme = n.run_coupling ? n.run_coupling : n.coupling) {
     if (*scheme == Coupling::piso) omit("rp/flow/scheme", "PISO is not expressible");
     else if (*scheme != Coupling::coupled) k.methods.coupling = *scheme == Coupling::simple ? CouplingScheme::simple : CouplingScheme::simplec;
@@ -2135,6 +2144,7 @@ ConvertedCase kutta_case_from_fluent(const fluent::FluentCase& c, const MeshInfo
   expect_flag(raw_flag(c.variables, "fmg-init/enable?"), false, "rp/fmg-init/enable?");
 
   // Reports and residual monitors.
+  k.check_convergence = c.check_convergence;
   for (const auto& r : c.reports) {
     using RK = ReportDefinition::Kind;
     if (r.kind == RK::moment || r.kind == RK::other) {
@@ -2212,6 +2222,9 @@ std::string aero_group(std::string_view name) {
 
 RoleSuggestion suggest_role(const MeshZoneInfo& z) {
   if (z.kind == MeshZoneInfo::Kind::interior) return {ZoneRole::interior, "interior face zone of the mesh", {}};
+  if (z.type == "symmetry") return {ZoneRole::symmetry, "mesh zone type symmetry", {}};
+  if (z.type == "velocity-inlet") return {ZoneRole::velocity_inlet, "mesh zone type velocity-inlet", {}};
+  if (z.type == "pressure-outlet") return {ZoneRole::pressure_outlet, "mesh zone type pressure-outlet", {}};
   const auto words = tokens(z.name);
   const auto has = [&](std::initializer_list<std::string_view> list) -> std::optional<std::string> {
     for (const auto& w : words)
@@ -2222,13 +2235,15 @@ RoleSuggestion suggest_role(const MeshZoneInfo& z) {
   if (const auto w = has({"inlet", "inflow", "upstream", "intake"})) return {ZoneRole::velocity_inlet, "name contains \"" + *w + "\"", {}};
   if (const auto w = has({"outlet", "outflow", "downstream", "exit"})) return {ZoneRole::pressure_outlet, "name contains \"" + *w + "\"", {}};
   if (const auto w = has({"ground", "road", "belt"})) return {ZoneRole::moving_ground, "name contains \"" + *w + "\"; the road moves with the freestream", {}};
+  if (has({"floor"}) && has({"tunnel", "windtunnel", "cfdwt"}))
+    return {ZoneRole::stationary_ground, "wind-tunnel floor; stationary and excluded from vehicle forces", {}};
   if (const auto w = has({"symmetry", "sym", "symm", "mirror", "midplane", "centreplane", "centerplane", "top", "ceiling", "bottom",
                           "side", "sides", "lateral", "farfield", "far"}))
     return {ZoneRole::symmetry, "name contains \"" + *w + "\"; domain boundaries are slip planes", {}};
-  if (z.type == "velocity-inlet" || z.type == "pressure-inlet" || z.type == "mass-flow-inlet")
+  if (z.type == "pressure-inlet" || z.type == "mass-flow-inlet")
     return {ZoneRole::velocity_inlet, "mesh zone type " + z.type, {}};
-  if (z.type == "pressure-outlet" || z.type == "outflow") return {ZoneRole::pressure_outlet, "mesh zone type " + z.type, {}};
-  if (z.type == "symmetry" || z.type == "pressure-far-field") return {ZoneRole::symmetry, "mesh zone type " + z.type, {}};
+  if (z.type == "outflow") return {ZoneRole::pressure_outlet, "mesh zone type " + z.type, {}};
+  if (z.type == "pressure-far-field") return {ZoneRole::symmetry, "mesh zone type " + z.type, {}};
   return {ZoneRole::wall, "a wall of the car", aero_group(z.name)};
 }
 
@@ -2327,6 +2342,7 @@ KuttaCase fsae_starter(const MeshInfo& mesh, std::filesystem::path mesh_path, co
   // Second-order turbulence transport, the usual external-aero choice.
   c.methods.turbulent_kinetic_energy = Upwind::second_order;
   c.methods.specific_dissipation_rate = Upwind::second_order;
+  c.methods.limit_sst_diffusion = true;
   // SIMPLEC: Kutta's Coupled solver limit-cycles on external aero with the
   // Standard limiter, so its forces never settle; SIMPLEC converges the same
   // discretization (validation/results/car_mesh_convergence/REPORT.md).

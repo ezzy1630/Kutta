@@ -50,21 +50,24 @@ TEST_CASE("FV SST coupled transport and wall force agree with CPU oracle") {
   }
 }
 
-TEST_CASE("FV total-pressure outlet backflow uses adjacent-cell dynamic pressure") {
-  auto mesh=make_box_hex(3,2,2,{0,0,0},{1,1,1});std::vector<PatchCondition> bc;
-  for(const auto& p:mesh.patches) {
-    if(p.name=="xmin") bc.push_back({p.name,VelocityInlet{Vec3d{-2,0,0}}});
-    else if(p.name=="xmax") bc.push_back({p.name,PressureOutlet{7,NormalBackflow{},BackflowPressure::Total}});
-    else bc.push_back({p.name,Symmetry{}});
-  }
-  KUTTA_FOR_EACH_BACKEND(dev) {
-    SolverSettings settings;settings.density=3;
-    SteadySolver solver(*dev,mesh,bc,settings);
-    solver.initialize([](Vec3d){return Vec3d{-2,0,0};},[](Vec3d){return 1.;});
-    solver.monitor();const auto pressure=dev->download(solver.boundary_pressure());
-    for(const auto& patch:solver.mesh().patches) if(patch.name=="xmax")
-      for(Index f=patch.start;f<patch.start+patch.size;++f)
-        CHECK(pressure[f-solver.mesh().n_internal_faces()]==doctest::Approx(1));
+TEST_CASE("FV outlet backflow applies static or total pressure as specified") {
+  const auto mesh=make_box_hex(3,2,2,{0,0,0},{1,1,1});
+  for(const auto mode:{BackflowPressure::Static,BackflowPressure::Total}) {
+    std::vector<PatchCondition> bc;
+    for(const auto& p:mesh.patches) {
+      if(p.name=="xmin") bc.push_back({p.name,VelocityInlet{Vec3d{-2,0,0}}});
+      else if(p.name=="xmax") bc.push_back({p.name,PressureOutlet{7,NormalBackflow{},mode}});
+      else bc.push_back({p.name,Symmetry{}});
+    }
+    KUTTA_FOR_EACH_BACKEND(dev) {
+      SolverSettings settings;settings.density=3;
+      SteadySolver solver(*dev,mesh,bc,settings);
+      solver.initialize([](Vec3d){return Vec3d{-2,0,0};},[](Vec3d){return 1.;});
+      solver.monitor();const auto pressure=dev->download(solver.boundary_pressure());
+      for(const auto& patch:solver.mesh().patches) if(patch.name=="xmax")
+        for(Index f=patch.start;f<patch.start+patch.size;++f)
+          CHECK(pressure[f-solver.mesh().n_internal_faces()]==doctest::Approx(mode==BackflowPressure::Static?7.:1.));
+    }
   }
 }
 

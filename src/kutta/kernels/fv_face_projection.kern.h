@@ -106,7 +106,7 @@ KUTTA_KERNEL void fv_projected_transport_faces(int i, KIn(int) owner, KIn(int) n
     KIn(float) gx, KIn(float) gy, KIn(float) gz, KIn(float) limiter,
     KIn(float) flux, KIn(float) mu, KIn(int) kind,KIn(int) reconstructed_mask,
     KIn(float) reconstructed_correction,KOut(float) correction,
-    int internal, int second_order) {
+    int internal, int second_order, int limited_diffusion) {
   int p=owner[i];
   float x=gx[p],y=gy[p],z=gz[p];
   float conv=0.0f;
@@ -123,6 +123,7 @@ KUTTA_KERNEL void fv_projected_transport_faces(int i, KIn(int) owner, KIn(int) n
   // Like the legacy kernel, only Dirichlet boundary faces carry diffusion.
   int dirichlet=i<internal || kind[i-internal]==0;
   float diffusion=reconstructed_mask[i]!=0 && dirichlet!=0?reconstructed_correction[i]:x*tx[i]+y*ty[i]+z*tz[i];
+  if(limited_diffusion) diffusion=kmax(-correction[i],kmin(correction[i],diffusion));
   correction[i]=mu[i]*diffusion-(second_order!=0?conv:0.0f);
 }
 

@@ -825,7 +825,7 @@ void zone_support(FluentCase &c, RawSettings &raw, ZoneType type, std::int64_t i
     }
   }
   if (type == ZoneType::pressure_outlet)
-    for (auto key : {"gen-nrbc-spec", "p-backflow-spec", "p-backflow-spec-gen", "press-spec-gen"})
+    for (auto key : {"gen-nrbc-spec", "p-backflow-spec-gen", "press-spec-gen"})
       selector(key);
   for (const auto &key : raw.unparsed_names()) {
     const auto *v = raw.value(key);
@@ -1009,6 +1009,8 @@ void thread(FluentCase &c, const SExpr &e) {
       z.intermittency = x.scalar("intermit");
     if (outlet) {
       z.backflow_pressure_spec = x.code("p-backflow-spec");
+      if (z.backflow_pressure_spec && *z.backflow_pressure_spec != 0 && *z.backflow_pressure_spec != 1)
+        c.issues.push_back({"zone/" + std::to_string(z.id) + "/p-backflow-spec", "unsupported backflow pressure selector"});
       z.prevent_reverse_flow = x.flag("prevent-reverse-flow?", false);
     }
   }

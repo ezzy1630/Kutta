@@ -106,6 +106,25 @@ private slots:
         const double through = report->value().report.value("total").toObject().value("absolute_mass_flow").toDouble();
         QVERIFY(through > 0 && std::abs(net) < 1e-3 * through);
         QVERIFY(!s->availableFields(id).empty());
+
+        QTemporaryDir detached;
+        QVERIFY(detached.isValid());
+        for (const auto& file : {"summary.json", "view-input.bin", "residuals.csv", "force-history.csv"})
+            QVERIFY(QFile::copy(QDir(r->dir).filePath(file), detached.filePath(file)));
+        const QString key = s->prepareSavedResult(detached.filePath("summary.json"));
+        std::optional<Result<std::shared_ptr<SceneData>>> opened;
+        s->loadScene(key, [&](const QString&, Result<std::shared_ptr<SceneData>> result) { opened = std::move(result); });
+        QTRY_VERIFY_WITH_TIMEOUT(opened.has_value(), 60000);
+        QVERIFY2(opened->ok(), qPrintable(*opened ? QString() : opened->error()));
+        QVERIFY(opened->value()->item("zone:wall-elbow"));
+        QVERIFY(!opened->value()->geometryOnly);
+        QVERIFY(opened->value()->label.contains("60 iterations"));
+        const auto summary = s->history().summary(id);
+        QVERIFY(summary);
+        const auto progress = readSavedProgress(detached.path(), *summary);
+        QVERIFY(!progress.residuals.iterations.empty());
+        QCOMPARE(progress.residuals.iterations.back(), 60);
+        QCOMPARE(progress.done->verdict, summary->verdict);
     }
 
     // With checking on, the seeded elbow stops on the case's own residual

@@ -428,6 +428,32 @@ void RunHistory::setNote(const QString& id, const QString& note)
         }
 }
 
+RunProgress readSavedProgress(const QString& directory, const RunSummary& summary)
+{
+    const QDir dir(directory);
+    auto progress = parseProgressLog(readAll(dir.filePath("progress.jsonl")));
+    if (progress.residuals.iterations.empty()) {
+        if (auto res = parseResidualsCsv(readAll(dir.filePath("residuals.csv"))); res)
+            progress.residuals = std::move(res).value();
+    }
+    if (progress.reports.empty() && dir.exists("force-history.csv")) {
+        auto forces = parseForceHistoryCsv(readAll(dir.filePath("force-history.csv")));
+        if (forces) progress.reports = std::move(forces).value();
+        else progress.warnings << forces.error();
+    }
+    if (!progress.setup) {
+        progress.setup.emplace();
+        progress.setup->convergence = summary.convergence;
+    }
+    if (!progress.done) {
+        progress.done.emplace();
+        progress.done->iterations = summary.iterations;
+        progress.done->verdict = summary.verdict;
+        progress.done->metBy = summary.metBy;
+    }
+    return progress;
+}
+
 RunProgress RunHistory::progress(const QString& id) const
 {
     const RunRecord* r = find(id);

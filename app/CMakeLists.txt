@@ -127,4 +127,10 @@ add_test(NAME app-screenshot-smoke
           -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/screenshot_smoke.cmake)
 set_tests_properties(app-screenshot-smoke PROPERTIES LABELS "app;gui")
 
+if(TARGET kutta-cli)
+  add_test(NAME app-rotating-shaft COMMAND $<TARGET_FILE:kutta-app> --cli $<TARGET_FILE:kutta-cli>
+    --scenario rotating-shaft --screenshot ${CMAKE_CURRENT_BINARY_DIR}/rotating-shaft.png)
+  set_tests_properties(app-rotating-shaft PROPERTIES LABELS "app;gui")
+endif()
+
 include(cmake/deploy.cmake)

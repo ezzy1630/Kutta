@@ -176,6 +176,7 @@ public:
     QString meshSceneKey() const;
     using SceneCallback = std::function<void(const QString& key, Result<std::shared_ptr<SceneData>>)>;
     std::shared_ptr<SceneData> sceneIfLoaded(const QString& key) const { return m_scenes.value(key); }
+    QString prepareSavedResult(const QString& summaryPath);
     void loadScene(const QString& key, SceneCallback done);
     QString latestSceneKey() const;
     std::vector<Plane> slices(const QString& runId) const;

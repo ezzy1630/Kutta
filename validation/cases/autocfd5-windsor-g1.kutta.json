@@ -1,0 +1,130 @@
+{
+  "kutta_case": 1,
+  "mesh": "../../runs/autocfd5-windsor/c1g1.msh",
+  "models": {
+    "viscous": "k-omega-sst"
+  },
+  "material": {
+    "name": "air",
+    "density": 1.26,
+    "viscosity": 1.8148344827586207e-05
+  },
+  "boundaries": {
+    "Flow.CFDWT.Floor": {
+      "type": "wall"
+    },
+    "Flow.CFDWT.In": {
+      "type": "velocity-inlet",
+      "speed": 40,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "turbulence": {
+        "intensity": 0.01,
+        "viscosity_ratio": 10
+      }
+    },
+    "Flow.CFDWT.Left": {
+      "type": "symmetry"
+    },
+    "Flow.CFDWT.Out": {
+      "type": "pressure-outlet",
+      "gauge_pressure": 0,
+      "turbulence": {
+        "intensity": 0.01,
+        "viscosity_ratio": 10
+      }
+    },
+    "Flow.CFDWT.Right": {
+      "type": "symmetry"
+    },
+    "Flow.CFDWT.Roof": {
+      "type": "symmetry"
+    },
+    "Flow.Windsor_Pins.Surface": {
+      "type": "wall"
+    },
+    "Flow.Windsor_Square_nW.Base": {
+      "type": "wall"
+    },
+    "Flow.Windsor_Square_nW.Body": {
+      "type": "wall"
+    }
+  },
+  "reference_values": {
+    "area": 0.112,
+    "length": 0.6375,
+    "density": 1.26,
+    "velocity": 40,
+    "viscosity": 1.8148344827586207e-05
+  },
+  "methods": {
+    "pressure_velocity_coupling": "simplec",
+    "turbulent_kinetic_energy": "second-order-upwind",
+    "specific_dissipation_rate": "second-order-upwind",
+    "limit_sst_diffusion": true,
+    "warped_face_gradient_correction": false
+  },
+  "controls": {
+    "relaxation": {
+      "momentum": 0.9
+    }
+  },
+  "reports": {
+    "body-drag": {
+      "type": "force",
+      "zones": [
+        "Flow.Windsor_Pins.Surface",
+        "Flow.Windsor_Square_nW.Base",
+        "Flow.Windsor_Square_nW.Body"
+      ],
+      "direction": [
+        0.9990482215818578,
+        -0.043619387365336,
+        0
+      ],
+      "coefficient": false
+    },
+    "body-side": {
+      "type": "force",
+      "zones": [
+        "Flow.Windsor_Pins.Surface",
+        "Flow.Windsor_Square_nW.Base",
+        "Flow.Windsor_Square_nW.Body"
+      ],
+      "direction": [
+        0.043619387365336,
+        0.9990482215818578,
+        0
+      ],
+      "coefficient": false
+    },
+    "lift": {
+      "type": "force",
+      "zones": [
+        "Flow.Windsor_Pins.Surface",
+        "Flow.Windsor_Square_nW.Base",
+        "Flow.Windsor_Square_nW.Body"
+      ],
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "coefficient": false
+    }
+  },
+  "initialization": {
+    "method": "standard",
+    "velocity": [
+      40,
+      0,
+      0
+    ],
+    "gauge_pressure": 0,
+    "k": 0.24000000000000005,
+    "omega": 1666.267656212593
+  }
+}

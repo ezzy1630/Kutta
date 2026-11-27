@@ -1,0 +1,20 @@
+{
+  "kutta_case": 1,
+  "mesh": "rotating-shaft.msh",
+  "models": {"viscous": "laminar"},
+  "material": {"name": "fluid", "density": 1, "viscosity": 0.01},
+  "boundaries": {
+    "shaft": {"type": "wall", "motion": "rotating", "angular_speed": 10,
+              "axis_origin": [0, 0, 0], "axis_direction": [0, 0, 1]},
+    "housing": {"type": "wall", "motion": "stationary"}
+  },
+  "pressure_reference_point": [0.15, 0, 0],
+  "reference_values": {"density": 1, "velocity": 1, "length": 0.1, "viscosity": 0.01},
+  "monitors": {"check_convergence": true, "residuals": {
+    "continuity": {"absolute_criterion": 0.0001},
+    "x-velocity": {"absolute_criterion": 1e-7},
+    "y-velocity": {"absolute_criterion": 1e-7}
+  }},
+  "methods": {"pressure_velocity_coupling": "simplec"},
+  "initialization": {"method": "standard", "velocity": [0, 0, 0], "gauge_pressure": 0}
+}

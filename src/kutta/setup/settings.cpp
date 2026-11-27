@@ -244,6 +244,10 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
       *target=std::get<std::string>(j.value)=="standard"?Scheme::standard_pressure:Scheme::second_pressure;});
     b.consume(c.variables,"pressure/scheme");
   }
+  if(c.viscous.model==ViscousModel::kw_sst) {
+    auto& setting=b.add("methods/limit-sst-diffusion","Limit SST non-orthogonal diffusion","Methods",c.numerics.limit_sst_diffusion,"","bool");
+    b.editable(setting,[&c](const Json& j){c.numerics.limit_sst_diffusion=std::get<bool>(j.value);});
+  }
   if(transition) {
     auto& target=c.numerics.intermittency;
     auto& s=b.add("methods/intermittency-scheme","Intermittency","Methods",target?Json(*target==Scheme::first_upwind?"first-order-upwind":*target==Scheme::second_upwind?"second-order-upwind":std::string(name(*target))):Json(nullptr),"","enum");
@@ -330,7 +334,8 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   // itself; its iteration limit is only a cap, sized for the averaging stop.
   const bool force_report=std::any_of(c.reports.begin(),c.reports.end(),[](const auto& r) {
     using Kind=ReportDefinition::Kind;return r.kind==Kind::force || r.kind==Kind::drag || r.kind==Kind::lift || r.kind==Kind::downforce;});
-  if(run.iterations<=0)run.iterations=force_report?RunControls::default_checked_iterations:RunControls::default_iterations;
+  const bool check_convergence=c.check_convergence.value_or(force_report);
+  if(run.iterations<=0)run.iterations=check_convergence?RunControls::default_checked_iterations:RunControls::default_iterations;
   for(auto [key,label,target,max]:std::vector<std::tuple<std::string,std::string,int*,double>>{{"iterations","Number of iterations",&run.iterations,1e9},{"monitor-interval","Monitor interval",&run.monitor_interval,100000}}) {
     auto& s=b.add("run/"+key,label,"Run Calculation",*target,"","integer");b.editable(s,[target](const Json& j){*target=int(std::get<double>(j.value));},1,max);
   }
@@ -348,7 +353,7 @@ std::vector<Setting> settings_inventory(FluentCase& c,RunControls& run,bool seed
   // Convergence criteria). Other cases run to their iteration limit.
   conv.settle.active=std::any_of(conv.reports.begin(),conv.reports.end(),[](const auto& r){return r.force;});
   conv.average.active=conv.settle.active;
-  conv.check=conv.settle.active;
+  conv.check=check_convergence;
   b.editable(b.add("monitors/check-convergence","Check convergence","Monitors",conv.check),[t=&conv.check](const Json& j){*t=std::get<bool>(j.value);});
   auto& combine=b.add("monitors/condition","Condition","Monitors","all","","enum");
   combine.options={"all","any"};combine.option_labels={"All Conditions are Met","Any Condition is Met"};label_value(combine);

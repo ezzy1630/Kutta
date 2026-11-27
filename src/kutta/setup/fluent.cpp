@@ -292,6 +292,7 @@ FluentSetup SetupValidation::build(const FluentCase& c,const PolyMesh& mesh,std:
   require(n.wall_distance_quad_correction==true,"wall-distance/quad-correction?","requires quadrilateral wall-distance correction");
   require(relax("turb-viscosity")==1,"turb-viscosity/relax");
   s.sst=SstSettings{};auto& opt=*s.sst;auto& model=opt.model;
+  opt.limit_diffusion_correction=n.limit_sst_diffusion;
   opt.k_convection=convection(n.k,"k/scheme");opt.omega_convection=convection(n.omega,"omega/scheme");
   opt.k_relaxation=relax("k");opt.omega_relaxation=relax("omega");
   model.production_limiter=required(t.production_limiter,"kw-not-trans-sst-production-limiter?");

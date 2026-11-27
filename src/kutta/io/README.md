@@ -98,7 +98,7 @@ The predicate receives the area-weighted face centroid.
 
 ASCII sections 10/12/13/18 and binary 2010/3010, 2012/3012, 2013/3013,
 2018/3018 are supported, along with zone names/types in 39/45. The section-4
-machine flag selects byte order (60 little endian; other flags big endian).
+machine flag selects byte order. Flag 60 is little endian, as is flag 0 in meshes marked with an ANSA version header. Other flags retain the big-endian interpretation.
 Binary payload lengths come from headers, never parenthesis scanning inside
 raw bytes. Uniform binary cell sections may omit the payload and still carry
 the binary trailer. Node flags (2041/3041) are skipped as one 32-bit word per
@@ -156,8 +156,8 @@ Layout and convention references (read for documentation; code is original):
 - [PyFluent case/mesh reader documentation](https://fluent.docs.pyansys.com/version/0.38/api/filereader/case_file.html)
 
 Older Fluent writers can deflate only the valid rows of the final HDF5 chunk.
-HDF5 2.2 rejects this layout ([upstream issue 6691](https://github.com/HDFGroup/hdf5/issues/6691)).
-Only an ordinary numeric read failing with HDF5 2.2's specific
+HDF5 2.2 and 2.3 reject this layout ([upstream issue 6691](https://github.com/HDFGroup/hdf5/issues/6691)).
+Only an ordinary numeric read failing with the specific
 "chunk size is incorrect after being unfiltered" diagnostic permits the raw-chunk
 fallback. It requires rank 1/2, complete rows, a single deflate filter, and a
 partial final chunk. Each complete stream must expand to exactly a full chunk

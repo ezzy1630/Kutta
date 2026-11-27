@@ -148,7 +148,6 @@ int solve(int argc,char** argv) {
     std::string convergence_warning;
     if(!convergence.check)convergence_warning="Convergence checking is off (monitors/check-convergence); stopping at the requested iteration limit.";
     else if(!convergence.has_conditions())convergence_warning="Convergence checking is on but no residual is checked and no report condition is active; stopping at the requested iteration limit.";
-    const bool report_conditions=convergence.check && (convergence.settle_condition() || std::any_of(convergence.reports.begin(),convergence.reports.end(),[](const auto& r){return r.active;}));
     o.iterations=controls.iterations;
     auto mesh=preloaded?std::move(*preloaded):read_mesh(o.input);
     memory::phase("read-mesh");
@@ -219,6 +218,27 @@ int solve(int argc,char** argv) {
     std::filesystem::remove(o.out/"loads.json");std::filesystem::remove(o.out/"aero.json");
     auto residuals=output(o.out/"residuals.csv");
     if(!notice.empty()) residuals<<"# "<<notice<<'\n';
+    auto force_history=output(o.out/"force-history.csv");
+    if(!notice.empty())force_history<<"# "<<notice<<'\n';
+    force_history<<"iteration,report,force_N,coefficient\n";
+
+    // Different axes of the same body use a single surface integration.
+    std::map<std::vector<std::string>,std::size_t> patch_groups;
+    std::vector<std::size_t> report_group;
+    for(const auto& report:reports) {
+      auto patches=report.patches;
+      std::sort(patches.begin(),patches.end());
+      report_group.push_back(patch_groups.try_emplace(std::move(patches),patch_groups.size()).first->second);
+    }
+    std::vector<fv::ForceReport> group_forces(patch_groups.size());
+    const auto collect_forces=[&] {
+      for(const auto& [patches,group]:patch_groups)
+        group_forces[group]=solver.forces(patches,c.reference.pressure.value_or(0));
+    };
+    const auto& ref=c.reference;
+    std::optional<fv::ReferenceValues> force_reference;
+    if(ref.density && *ref.density>0 && ref.velocity && *ref.velocity>0 && ref.area && *ref.area>0)
+      force_reference=fv::ReferenceValues{*ref.density,*ref.velocity,*ref.area,ref.pressure.value_or(0)};
     const bool transition=setup->settings.sst && setup->settings.sst->transition;
     const bool planar=c.dimension==2;
     const auto residual_names=setup::solved_residuals(c.viscous.model,transition,planar);
@@ -306,8 +326,10 @@ int solve(int argc,char** argv) {
       // once it has started (a force evaluation does not change the solve).
       if(!sample && convergence.check && monitor.wants_forces(iter)) {
         std::map<std::string,double> values;
-        for(const auto& d:reports) {
-          const auto force=dot(solver.forces(d.patches,c.reference.pressure.value_or(0)).force(),*d.direction);
+        collect_forces();
+        for(std::size_t i=0;i<reports.size();++i) {
+          const auto& d=reports[i];
+          const auto force=dot(group_forces[report_group[i]].force(),*d.direction);
           if(!std::isfinite(force))throw diverged(iter,"non-finite "+d.name+" report");
           values.emplace(d.name,force);
         }
@@ -333,15 +355,33 @@ int solve(int argc,char** argv) {
         residuals<<','<<v;if(!jsonl)human<<std::setw(14)<<v;
       }
       residuals<<','<<per_iteration<<'\n';
-      // One force evaluation per report and sample serves the event and the
-      // convergence conditions.
-      std::vector<fv::ForceReport> report_forces;
-      if(sample && (jsonl || report_conditions))for(const auto& d:reports)report_forces.push_back(solver.forces(d.patches,c.reference.pressure.value_or(0)));
+      std::map<std::string,double> report_values;
+      Json::Object event_reports;
+      if(sample) {
+        collect_forces();
+        for(std::size_t i=0;i<reports.size();++i) {
+          const auto& d=reports[i];
+          const auto& f=group_forces[report_group[i]];
+          const auto force=dot(f.force(),*d.direction);
+          if(!std::isfinite(force))throw diverged(iter,"non-finite "+d.name+" report");
+          report_values.emplace(d.name,force);
+          Json::Object entry{{"force",force}};
+          force_history<<iter<<','<<csv(d.name)<<','<<force<<',';
+          if(force_reference) {
+            const auto coefficient=f.coefficient(*d.direction,*force_reference);
+            if(!std::isfinite(coefficient))throw diverged(iter,"non-finite "+d.name+" coefficient");
+            force_history<<coefficient;
+            entry.emplace("coefficient",coefficient);
+          }
+          force_history<<'\n';
+          if(jsonl)event_reports.emplace(d.name,std::move(entry));
+        }
+        force_history.flush();
+      }
       std::optional<setup::ConvergenceSample> state;
       if(sample && convergence.check) {
-        std::map<std::string,double> residual_values,report_values;
+        std::map<std::string,double> residual_values;
         for(std::size_t i=0;i<std::size(values);++i)residual_values.emplace(residual_names[i],values[i]);
-        for(std::size_t i=0;i<report_forces.size();++i)report_values.emplace(reports[i].name,dot(report_forces[i].force(),*reports[i].direction));
         state=monitor.sample(r.iteration,residual_values,report_values);
       }
       if(!jsonl)human<<std::setw(15)<<per_iteration<<std::endl;
@@ -349,20 +389,7 @@ int solve(int argc,char** argv) {
         std::ostringstream event;event.imbue(std::locale::classic());event<<std::setprecision(17);
         event<<"{\"v\":1,\"event\":\"iteration\",\"iter\":"<<r.iteration<<",\"residuals\":{";
         for(std::size_t i=0;i<std::size(values);++i){if(i)event<<',';event<<json_string(residual_names[i])<<':'<<values[i];}
-        event<<"},\"reports\":{";
-        for(std::size_t i=0;i<report_forces.size();++i) {
-          const auto& d=reports[i];if(i)event<<',';
-          const auto& f=report_forces[i];
-          const auto force=dot(f.force(),*d.direction);KUTTA_REQUIRE(std::isfinite(force),"non-finite report: "+d.name);
-          event<<json_string(d.name)<<":{\"force\":"<<force;
-          if(c.reference.density && *c.reference.density>0 && c.reference.velocity && *c.reference.velocity>0 && c.reference.area && *c.reference.area>0) {
-            const auto coefficient=f.coefficient(*d.direction,{*c.reference.density,*c.reference.velocity,*c.reference.area,c.reference.pressure.value_or(0)});
-            KUTTA_REQUIRE(std::isfinite(coefficient),"non-finite report coefficient: "+d.name);
-            event<<",\"coefficient\":"<<coefficient;
-          }
-          event<<'}';
-        }
-        event<<"},\"sec_per_iter\":"<<per_iteration<<",\"elapsed\":"<<seconds(run_start);
+        event<<"},\"reports\":"<<dump_json(event_reports)<<",\"sec_per_iter\":"<<per_iteration<<",\"elapsed\":"<<seconds(run_start);
         if(state)event<<",\"convergence\":"<<dump_json(state->json);
         event<<'}';
         std::cout<<event.str()<<std::endl;
@@ -375,7 +402,7 @@ int solve(int argc,char** argv) {
       if(stopped)break;
       batch=Clock::now();batch_count=0;batch_snapshot_time=0;
     }
-    const auto wall_time=seconds(run_start);residuals.close();
+    const auto wall_time=seconds(run_start);residuals.close();force_history.close();
     memory::phase("iterations");
     write_fields(*dev,solver,setup->settings,o.out/"result.vtu",notice);
     memory::phase("write-vtu");
@@ -475,6 +502,7 @@ int solve(int argc,char** argv) {
       <<",\n  \"kutta_version\": "<<json_string(KUTTA_VERSION)<<",\n  \"kutta_commit\": "<<json_string(KUTTA_COMMIT)
       <<",\n  \"backend\": "<<json_string(backend_name(dev->backend()))<<",\n  \"device\": "<<json_string(dev->name())
       <<",\n  \"cells\": "<<solver.mesh().n_cells<<",\n  \"poor_quality_cells\": "<<solver.poor_cells()<<",\n  \"poor_cell_quality\": "<<setup->settings.poor_cell_quality<<",\n  \"pressure_velocity_coupling\": "<<json_string(coupling)
+      <<",\n  \"sst_diffusion_correction\": "<<(setup->settings.sst?json_string(setup->settings.sst->limit_diffusion_correction?"limited":"full"):"null")
       <<",\n  \"coupled_edge_storage\": "<<json_string(o.coupled_edge_storage==fv::CoupledEdgeStorage::Cached?"cached":"recompute")
       <<",\n  \"iterations\": "<<solver.report().iteration
       <<",\n  \"wall_time_seconds\": "<<wall_time<<",\n  \"setup_time_seconds\": "<<setup_time;

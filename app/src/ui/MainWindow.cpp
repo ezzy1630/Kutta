@@ -354,6 +354,10 @@ void MainWindow::buildMenus()
 
     QMenu* file = mb->addMenu(tr("&File"));
     add(file, tr("Open Case…"), "folder-open", QKeySequence::Open, [this] { openCaseDialog(); });
+    add(file, tr("Open Saved Result…"), "folder-open", QKeySequence(), [this] {
+        const QString path = QFileDialog::getOpenFileName(this, tr("Open saved solver result"), {}, tr("Kutta run (summary.json)"));
+        if (!path.isEmpty()) openCase(path);
+    });
     add(file, tr("Open Case with Data…"), "file-input", QKeySequence(), [this] {
         const QString cas = QFileDialog::getOpenFileName(this, tr("Fluent case"), {}, tr("Fluent case (*.cas.h5 *.cas)"));
         if (cas.isEmpty()) return;
@@ -698,6 +702,31 @@ void MainWindow::saveCaseAsDialog()
 
 void MainWindow::openCase(const QString& path, const QString& data)
 {
+    m_pendingSavedResult.clear();
+    if (QFileInfo(path).fileName() == "summary.json" && data.isEmpty()) {
+        const QString key = m_session->prepareSavedResult(path);
+        m_pendingSavedResult = key;
+        showStatus(tr("Reading the saved result…"));
+        m_session->loadScene(key, [this](const QString& ready, Result<std::shared_ptr<SceneData>> result) {
+            if (ready != m_pendingSavedResult) return;
+            m_pendingSavedResult.clear();
+            if (!result) {
+                showStatus(tr("Could not open the result: %1").arg(result.error()), 10000);
+                return;
+            }
+            m_graphics->addDataset(ready, result.value()->label);
+            m_graphics->show(ready);
+            m_charts->showSavedResult(ready.mid(4), result.value()->label);
+            if (!m_session->hasCase()) {
+                m_caseLabel->setText(tr("Saved result"));
+                setWindowTitle(tr("%1 — Kutta").arg(result.value()->label));
+            }
+            if (m_inspector->current() == "results/contours") m_inspector->refresh();
+            else navigate("results/contours");
+            showStatus(tr("Opened %1").arg(result.value()->label), 5000);
+        });
+        return;
+    }
     QString dataPath = data;
     if (dataPath.isEmpty()) {
         // Pair case.cas.h5 with case.dat.h5 when it sits beside it, as Fluent does.

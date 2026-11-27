@@ -19,6 +19,7 @@
 //
 // Fields remain on device; update allocates nothing and never downloads data.
 
+#include <functional>
 #include <optional>
 
 #include "kutta/fv/device_mesh.hpp"
@@ -126,7 +127,8 @@ class SstModel {
   // positive; non-wall wall_normal_distance entries are zero. PatchKind::Wall
   // means a smooth no-slip wall. Rough/zero-shear walls need a different BC.
   SstModel(Device& device, const DeviceMesh& mesh, SstOptions options = {});
-  void update(const SstInputs& inputs);
+  // Reconstruct scalar gradients from the new wall-face omega before evaluating F1 and cross diffusion.
+  void update(const SstInputs& inputs, const std::function<void()>& reconstruct_scalar_gradients = {});
   const SstFields& fields() const { return fields_; }
   const SstOptions& options() const { return options_; }
 

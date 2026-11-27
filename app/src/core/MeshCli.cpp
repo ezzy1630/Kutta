@@ -224,7 +224,13 @@ Result<MeshReport> parseMeshReport(const QJsonObject& o)
                     rd.bad(p, "between [zone, zone], min_cells_across and width_m");
                     continue;
                 }
-                gaps.push_back({(*between)[0].toString(), (*between)[1].toString(), *across, *width});
+                const auto contact = go.value("contact");
+                if (!Reader::absent(contact) && !contact.isBool()) {
+                    rd.bad(p + "/contact", "a boolean");
+                    continue;
+                }
+                gaps.push_back({(*between)[0].toString(), (*between)[1].toString(), *across, *width,
+                                contact.toBool(*width == 0)});
             }
             r.gaps = gaps;
         }

@@ -121,6 +121,17 @@ TEST_CASE("legacy binary floats/doubles and both byte orders") {
       CHECK(m.n_faces() == 6);
       CHECK(compute_geometry(m).cell_volume[0] == doctest::Approx(1));
     }
+  auto ansa = binary_cube(true, true);
+  ansa.replace(ansa.find("(4 (60))"), 8, "(0 \"ANSA_VERSION;22.1.0;\")\n(4 (0 0 0 1 2 4 4 4 8 4 4))");
+  const auto ansa_path = temp.path("ansa.msh");
+  mesh_text(ansa_path, ansa);
+  const auto ansa_mesh = read_mesh(ansa_path);
+  CHECK(compute_geometry(ansa_mesh).cell_volume.at(0) == doctest::Approx(1));
+  auto neutral_big = binary_cube(true, false);
+  neutral_big.replace(neutral_big.find("(4 (61))"), 8, "(4 (0 0 0 1 2 4 4 4 8 4 4))");
+  const auto big_path = temp.path("neutral-big.msh");
+  mesh_text(big_path, neutral_big);
+  CHECK(compute_geometry(read_mesh(big_path)).cell_volume.at(0) == doctest::Approx(1));
   auto truncated = binary_cube(true, true);
   truncated.resize(80);
   auto path = temp.path("short.msh");

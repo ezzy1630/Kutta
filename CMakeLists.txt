@@ -172,6 +172,8 @@ if(KUTTA_BUILD_TESTS)
   add_test(NAME kutta-tests COMMAND kutta-tests --test-suite-exclude=slow)
   add_test(NAME kutta-tests-slow COMMAND kutta-tests --test-suite=slow)
   set_tests_properties(kutta-tests-slow PROPERTIES LABELS slow)
+  add_test(NAME rotating-shaft-reference COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_SOURCE_DIR}/validation/cases/check_rotating_shaft.py $<TARGET_FILE:kutta-cli>)
   add_test(NAME lint-portability COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/lint_portability.py)
 endif()
 

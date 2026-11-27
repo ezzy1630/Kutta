@@ -34,6 +34,8 @@ TEST_CASE("Kutta case files reject unknown properties, wrong types and missing r
   const auto c = parse_kutta_case(minimal);
   CHECK(c.models.viscous == ViscousModel::laminar);
   CHECK(c.mesh == "box.msh");
+  CHECK_FALSE(c.check_convergence.has_value());
+  CHECK_FALSE(c.methods.limit_sst_diffusion.has_value());
   CHECK(std::holds_alternative<WallInput>(c.boundaries.at("shell")));
 
   auto issues = rejection(R"({"kutta_case": 1, "mesh": "box.msh", "models": {"viscous": "laminar", "viscus": 1},
@@ -88,6 +90,8 @@ TEST_CASE("The FSAE starter suggests roles from zone names and lowers to a case 
   apply_boundary_kinds(starter, retagged);
   const auto setup = fluent_setup(lowered, retagged);
   CHECK(setup.approximations.empty());
+  REQUIRE(setup.settings.sst);
+  CHECK(setup.settings.sst->limit_diffusion_correction);
   // SIMPLEC with momentum relaxation 0.9 and Fluent's other defaults.
   CHECK(setup.settings.coupling == fv::PressureVelocityCoupling::Simplec);
   CHECK(setup.settings.momentum_relaxation == doctest::Approx(0.9));
@@ -124,6 +128,39 @@ TEST_CASE("The FSAE starter suggests roles from zone names and lowers to a case 
   const auto tunnel_setup = fluent_setup(lowered_tunnel, retagged_tunnel);
   CHECK(tunnel_setup.approximations.empty());
   for (const auto& f : force_definitions(lowered_tunnel, retagged_tunnel)) CHECK(f.patches == std::vector<std::string>{"front_wing"});
+}
+
+TEST_CASE("Native cases preserve explicit convergence checking independently of force reports") {
+  const auto info = mesh_info(read_mesh(box_mesh));
+  auto native = fsae_starter(info, "fsae_box.msh", {});
+  native.methods.limit_sst_diffusion = false;
+  for (bool enabled : {false, true}) {
+    native.check_convergence = enabled;
+    auto lowered = lower_kutta_case(parse_kutta_case(kutta_case_text(native)), info);
+    CHECK_FALSE(lowered.numerics.limit_sst_diffusion);
+    RunControls run;
+    (void)settings_inventory(lowered, run);
+    CHECK(run.convergence.check == enabled);
+    CHECK(run.iterations == (enabled ? RunControls::default_checked_iterations : RunControls::default_iterations));
+  }
+}
+
+TEST_CASE("The tunnel floor stays out of vehicle loads while the car floor stays in") {
+  auto info = mesh_info(read_mesh(box_mesh));
+  for (auto& z : info.zones) {
+    if (z.name == "ground") z.name = "Flow.CFDWT.Floor";
+    if (z.name == "front_wing") z.name = "car-floor";
+  }
+  const auto c = fsae_starter(info, "mesh.msh", {});
+  CHECK(std::get<WallInput>(c.boundaries.at("Flow.CFDWT.Floor")).motion == WallInput::Motion::stationary);
+  for (const auto& [name, report] : c.reports) CHECK(report.zones == std::vector<std::string>{"car-floor"});
+}
+
+TEST_CASE("A symmetry patch named ground stays a slip plane in a starter case") {
+  auto info = mesh_info(read_mesh(box_mesh));
+  for (auto& z : info.zones) if (z.name == "ground") z.type = "symmetry";
+  const auto c = fsae_starter(info, "mesh.msh", {});
+  CHECK(std::holds_alternative<SymmetryInput>(c.boundaries.at("ground")));
 }
 
 TEST_CASE("Lowering checks a Kutta case against its mesh") {

@@ -25,6 +25,7 @@ public:
 
     enum class Tab { Residuals, Reports, XY };
     void showTab(Tab t);
+    void showSavedResult(const QString& directory, const QString& title);
     void showRuns(const QStringList& runIds);  // empty: latest run
     QStringList shownRuns() const { return m_runs; }
     void setXY(const QString& title, const QString& xLabel, const QString& yLabel, std::vector<PlotSeries> series,
@@ -41,6 +42,7 @@ private:
     void scheduleLive();
     struct Source { QString title; RunProgress progress; QStringList badges; QString provenance; };
     std::vector<Source> sources() const;
+    std::optional<Source> m_saved;
 
     Session* m_session;
     QTabWidget* m_tabs;

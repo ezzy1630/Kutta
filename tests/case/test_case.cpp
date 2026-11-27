@@ -385,7 +385,7 @@ TEST_CASE("Zone switches reject nonneutral cell inlet and outlet behavior") {
     CHECK(issue_at(c, "zone/2/" + std::string(key)));
   }
   for (auto [key, val] : {std::pair{"avg-press-spec?", "#t"}, {"targeted-mf-boundary?", "#t"},
-      {"radial?", "#t"}, {"gen-nrbc-spec", "1"}, {"p-backflow-spec", "1"}}) {
+      {"radial?", "#t"}, {"gen-nrbc-spec", "1"}, {"p-backflow-spec", "2"}}) {
     auto c = synthetic(config(false, false, true), "(39 (5 pressure-outlet out 1) ((" + std::string(key) + " . " + val + ")))");
     CHECK(issue_at(c, "zone/5/" + std::string(key)));
   }

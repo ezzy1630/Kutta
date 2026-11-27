@@ -1,0 +1,100 @@
+{
+  "kutta_case": 1,
+  "mesh": "../../runs/fsae_aero/mesh/s1223_a4.76_L2.msh",
+  "models": {
+    "viscous": "k-omega-sst"
+  },
+  "material": {
+    "name": "air",
+    "density": 1.0,
+    "viscosity": 5e-06
+  },
+  "boundaries": {
+    "ground": {
+      "type": "symmetry"
+    },
+    "inlet": {
+      "type": "velocity-inlet",
+      "speed": 1,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "turbulence": {
+        "intensity": 0.001,
+        "viscosity_ratio": 1
+      }
+    },
+    "outlet": {
+      "type": "pressure-outlet",
+      "gauge_pressure": 0,
+      "turbulence": {
+        "intensity": 0.001,
+        "viscosity_ratio": 1
+      },
+      "backflow_pressure": "static"
+    },
+    "top": {
+      "type": "symmetry"
+    },
+    "wing": {
+      "type": "wall"
+    }
+  },
+  "reference_values": {
+    "area": 1,
+    "length": 1,
+    "density": 1.0,
+    "velocity": 1,
+    "viscosity": 5e-06
+  },
+  "methods": {
+    "pressure_velocity_coupling": "simplec",
+    "turbulent_kinetic_energy": "second-order-upwind",
+    "specific_dissipation_rate": "second-order-upwind",
+    "limit_sst_diffusion": true
+  },
+  "controls": {
+    "relaxation": {
+      "momentum": 0.7,
+      "pressure": 1
+    }
+  },
+  "reports": {
+    "drag": {
+      "type": "drag",
+      "zones": [
+        "wing"
+      ],
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "coefficient": true
+    },
+    "lift": {
+      "type": "lift",
+      "zones": [
+        "wing"
+      ],
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "coefficient": true
+    }
+  },
+  "initialization": {
+    "method": "standard",
+    "velocity": [
+      1,
+      0,
+      0
+    ],
+    "k": 1.5e-06,
+    "omega": 0.3
+  }
+}

@@ -28,6 +28,7 @@
 #include <QListWidget>
 #include <QProcess>
 #include <QKeyEvent>
+#include <QSaveFile>
 #include <QScrollBar>
 #include <QSet>
 #include <QSettings>
@@ -103,14 +104,24 @@ QSize parseSize(const QString& s, QSize fallback)
     return {p[0].toInt(), p[1].toInt()};
 }
 
-// Placeholder case files for the fixture CLI's samples: it identifies cases by
-// file name and never reads them. A real CLI needs real files.
 QStringList makeSamples(const QString& root, bool fixture)
 {
-    if (!fixture) return {};
+    if (!fixture) {
+        const QDir dir(QDir(root).filePath("rotating-shaft-v1"));
+        if (!dir.mkpath(".")) return {};
+        for (const auto& name : {QStringLiteral("rotating-shaft.msh"), QStringLiteral("rotating-shaft.kutta.json")}) {
+            if (QFileInfo::exists(dir.filePath(name))) continue;
+            QFile source(":/examples/" + name);
+            QSaveFile output(dir.filePath(name));
+            if (!source.open(QIODevice::ReadOnly) || !output.open(QIODevice::WriteOnly)) return {};
+            const QByteArray bytes = source.readAll();
+            if (source.error() != QFile::NoError || output.write(bytes) != bytes.size() || !output.commit()) return {};
+        }
+        return {dir.filePath("rotating-shaft.kutta.json")};
+    }
     QDir().mkpath(root);
     QStringList out;
-    // Scenarios address the first two by position (elbow, car).
+    // The fixture replays these by file name. Scenarios address elbow and car by position.
     for (const char* name : {"mixing_elbow.cas.h5", "mixing_elbow.dat.h5", "fsae_car.cas.h5", "fsae_car.dat.h5",
                              "naca4412_ground.cas", "elbow_param.cas.h5", "cylinder_tutorial.cas", "naca4412_ground.msh", "fsae_car.msh"}) {
         const QString p = QDir(root).filePath(name);
@@ -183,7 +194,7 @@ int main(int argc, char** argv)
     // new-case-car is the New Case page for the fixture's synthetic car mesh
     // (3D, with wheels). KUTTA_SCENARIO_CASE_NAME names the created case
     // (default: the mesh's name), e.g. to try a long one.
-    const QStringList scenarios = {"start", "open-failed", "elbow-open", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
+    const QStringList scenarios = {"start", "saved-result", "rotating-shaft", "open-failed", "elbow-open", "elbow-setup", "palette", "settings", "elbow-live", "elbow-run", "elbow-fluent",
                                    "elbow-post", "elbow-xy", "elbow-integrals", "elbow-history", "elbow-compare", "elbow-monitors",
                                    "car-results", "car-xy", "car-compare", "car-failed", "car-aero", "car-monitors", "car-study", "param-run", "cylinder-run",
                                    "wing-models", "wing-aero", "wing-monitors", "bench",
@@ -237,7 +248,7 @@ int main(int argc, char** argv)
     const QString devReal;
 #endif
     // Scenarios are reproducible: they use the fixture unless --cli or KUTTA_CLI says otherwise.
-    const bool fixtureScenario = scripted && !cli.isSet(cliOpt) && qEnvironmentVariableIsEmpty("KUTTA_CLI") && QFileInfo(devFixture).isExecutable();
+    const bool fixtureScenario = scripted && scenario != "rotating-shaft" && scenario != "saved-result" && !cli.isSet(cliOpt) && qEnvironmentVariableIsEmpty("KUTTA_CLI") && QFileInfo(devFixture).isExecutable();
     const CliInfo info = fixtureScenario ? locateCli(devFixture) : locateCli(cli.value(cliOpt), devReal, devFixture);
     if (info.program.isEmpty()) {
         std::fprintf(stderr, "kutta CLI not found; pass --cli or set KUTTA_CLI\n");
@@ -340,6 +351,31 @@ int main(int argc, char** argv)
     };
     if (scenario == "start") {
         sc->add(go("setup/general"));
+    } else if (scenario == "saved-result") {
+        sc->add([&w, sc, caseArg](auto next) {
+            w.openCase(caseArg);
+            auto* p = w.graphics()->panel(0);
+            sc->waitFor([p] { return p->scene() || !p->loadError().isEmpty(); }, [p, sc, next] {
+                if (!p->scene() || p->scene()->geometryOnly) return sc->fail("Saved result unavailable: " + p->loadError());
+                next();
+            }, "saved solver result");
+        });
+    } else if (scenario == "rotating-shaft") {
+        sc->add(go("setup/general"));
+        sc->add([inspectorButton, session, sc](auto next) {
+            auto* button = inspectorButton(QObject::tr("Rotating shaft"));
+            if (!button) return sc->fail("rotating-shaft sample missing");
+            button->click();
+            sc->waitFor([session] { return session->hasCase(); }, next, "rotating-shaft case to open");
+        });
+        sc->add(runToEnd);
+        sc->add([session, sc](auto next) {
+            const auto* result = session->history().find("run-0001");
+            if (!result || result->verdict != Verdict::Converged) return sc->fail("rotating-shaft run missed convergence");
+            next();
+        });
+        sc->add(showScene(0, "run:run-0001"));
+        sc->add(display(0, [&](ViewDisplay& d) { d.field = field("velocity_magnitude"); }));
     } else if (scenario == "open-failed") {
         // A file that is not a readable case: the reason shows in place.
         sc->add([session, sc, dataRoot](auto next) {

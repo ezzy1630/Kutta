@@ -594,8 +594,12 @@ void GraphicsArea::setActive(ViewportPanel* p)
 
 void GraphicsArea::addDataset(const QString& key, const QString& label)
 {
-    for (const auto& e : m_extra)
-        if (e.first == key) return;
+    for (auto& entry : m_extra) {
+        if (entry.first != key) continue;
+        entry.second = label;
+        refreshDatasets();
+        return;
+    }
     m_extra.append({key, label});
     refreshDatasets();
 }

@@ -84,7 +84,9 @@ def qualify(args, name):
     iterations=[e for e in events if e.get('event')=='iteration']
     receipt['last_monitor']=iterations[-1] if iterations else None
     receipt['terminal_event']=next((e for e in reversed(events) if e.get('event') in ('done','error')),None)
-    receipt['accepted']=bool(receipt['solve']['exit']==0 and receipt['terminal_event'] and receipt['terminal_event'].get('converged'))
+    terminal = receipt['terminal_event'] or {}
+    receipt['accepted'] = (receipt['solve']['exit'] == 0 and terminal.get('event') == 'done'
+                           and terminal.get('verdict') == 'converged')
     if (out/'run'/'summary.json').exists():
         summary=json.loads((out/'run'/'summary.json').read_text())
         receipt['summary']={k:v for k,v in summary.items() if k not in ('case_file','mesh_file','data_file')}

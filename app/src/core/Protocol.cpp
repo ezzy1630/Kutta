@@ -453,6 +453,31 @@ Result<ForcesTable> parseForcesCsv(const QByteArray& bytes)
     return t;
 }
 
+Result<std::vector<ReportSeries>> parseForceHistoryCsv(const QByteArray& bytes)
+{
+    auto csv = readCsv(bytes);
+    if (!csv || csv->header != QStringList{"iteration", "report", "force_N", "coefficient"})
+        return Result<std::vector<ReportSeries>>::failure("force-history.csv: invalid header");
+    std::vector<ReportSeries> reports;
+    for (const auto& row : csv->rows) {
+        bool ok = false;
+        const int iteration = row.value(0).toInt(&ok);
+        const auto force = cell(row, csv->header, "force_N");
+        const auto coefficient = cell(row, csv->header, "coefficient");
+        if (row.size() != 4 || !ok || iteration < 1 || row[1].isEmpty() || !force || (!row[3].isEmpty() && !coefficient))
+            return Result<std::vector<ReportSeries>>::failure("force-history.csv: invalid force sample");
+        auto it = std::find_if(reports.begin(), reports.end(), [&](const ReportSeries& r) { return r.name == row[1]; });
+        if (it == reports.end()) {
+            reports.push_back({row[1], {}, {}, {}});
+            it = reports.end() - 1;
+        }
+        it->iter.push_back(iteration);
+        it->force.push_back(*force);
+        it->coefficient.push_back(coefficient.value_or(std::nan("")));
+    }
+    return reports;
+}
+
 Result<ResidualHistory> parseResidualsCsv(const QByteArray& bytes)
 {
     auto csv = readCsv(bytes);

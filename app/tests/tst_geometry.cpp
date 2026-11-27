@@ -365,12 +365,13 @@ private slots:
         auto gaps = parseMeshReport(QJsonDocument::fromJson(R"({"v":1,"cells":10,"faces":40,"nodes":20,"zones":[],
             "castellation":{"gaps":[{"between":["rear-wing-element-1","rear-wing-element-2"],"min_cells_across":0,"width_m":0.0128},
                                     {"between":["wheel-fl","ground"],"min_cells_across":0,"width_m":0},
+                                    {"between":["wheel-fr","ground"],"min_cells_across":0,"width_m":1e-8,"contact":true},
                                     {"between":["front-wing-element-2","front-wing-element-3"],"min_cells_across":1,"width_m":0.02}]},
             "layers":{"requested":0,"generated":0,"cells":0}})").object());
         QVERIFY(gaps.ok());
         const auto closed = gaps->closedGaps();
-        QCOMPARE(int(closed.size()), 2);
-        QCOMPARE(int(std::count_if(closed.begin(), closed.end(), [](const MeshGap& g) { return g.width > 0; })), 1);
+        QCOMPARE(int(closed.size()), 1);
+        QCOMPARE(closed[0].a, QString("rear-wing-element-1"));
         QCOMPARE(*gaps->layers->requested, qint64(0));
         QVERIFY(!gaps->layers->coverageNone);
     }

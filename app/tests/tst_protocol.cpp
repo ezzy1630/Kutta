@@ -153,6 +153,19 @@ private slots:
         QVERIFY(std::any_of(e.issues.begin(), e.issues.end(), [](const SupportIssue& i) { return i.cls == IssueClass::Approximable; }));
     }
 
+    void forceHistoryUsesReportNamesAndOptionalCoefficients()
+    {
+        auto history = parseForceHistoryCsv("iteration,report,force_N,coefficient\n"
+                                            "20,\"wing, lift\",3.7,0.12\n20,drag,2.1,\n40,\"wing, lift\",3.9,0.13\n");
+        QVERIFY(history);
+        QCOMPARE(history->size(), std::size_t(2));
+        QCOMPARE(history->front().name, QString("wing, lift"));
+        QCOMPARE(history->front().iter.back(), 40);
+        QCOMPARE(history->front().coefficient.back(), 0.13);
+        QVERIFY(std::isnan(history->back().coefficient.front()));
+        QVERIFY(!parseForceHistoryCsv("iteration,report,force_N,coefficient\n20,drag,invalid,0.4\n"));
+    }
+
     void forcesCsvKeepsNotice()
     {
         auto f = parseForcesCsv(fixtureBytes("cases/mixing_elbow/run-cold/forces.csv"));

@@ -1,12 +1,21 @@
 #include "kutta/kernels/prelude.h"
 
+KUTTA_KERNEL void fv_diffusion_correction_bound(int i, KIn(int) owner, KIn(int) neighbour,
+    KIn(int) kind, KIn(float) field, KIn(float) boundary, KIn(float) diffusion,
+    KOut(float) bound, int internal) {
+  float value=field[owner[i]];
+  float other=i<internal ? field[neighbour[i]] :
+      (kind[i-internal]==0 ? boundary[i-internal] : value);
+  bound[i]=diffusion[i]*kabs(other-value);
+}
+
 KUTTA_KERNEL void fv_transport_faces(int i, KIn(int) owner, KIn(int) neighbour,
     KIn(float) weight, KIn(float) px, KIn(float) py, KIn(float) pz,
     KIn(float) nx, KIn(float) ny, KIn(float) nz,
     KIn(float) tx, KIn(float) ty, KIn(float) tz,
     KIn(float) gx, KIn(float) gy, KIn(float) gz, KIn(float) limiter,
     KIn(float) flux, KIn(float) mu, KIn(int) kind, KOut(float) correction,
-    int internal, int second_order) {
+    int internal, int second_order, int limited_diffusion) {
   int p=owner[i];
   float x=gx[p],y=gy[p],z=gz[p];
   float conv=0.0f;
@@ -20,7 +29,9 @@ KUTTA_KERNEL void fv_transport_faces(int i, KIn(int) owner, KIn(int) neighbour,
     if(kind[i-internal]!=0) x=y=z=0.0f;
     if(flux[i]>0.0f && kind[i-internal]!=2) conv=limiter[p]*(gx[p]*px[i]+gy[p]*py[i]+gz[p]*pz[i])*flux[i];
   }
-  correction[i]=mu[i]*(x*tx[i]+y*ty[i]+z*tz[i])-(second_order!=0?conv:0.0f);
+  float diffusion=x*tx[i]+y*ty[i]+z*tz[i];
+  if(limited_diffusion) diffusion=kmax(-correction[i],kmin(correction[i],diffusion));
+  correction[i]=mu[i]*diffusion-(second_order!=0?conv:0.0f);
 }
 
 KUTTA_KERNEL void fv_transport_assemble(int i, KIn(int) offsets, KIn(int) faces,

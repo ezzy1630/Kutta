@@ -374,7 +374,7 @@ QWidget* gettingStarted(const InspectorContext& c, bool hideable)
 
     // 1. Open
     if (!s->hasCase()) {
-        step(Mark::Current, QObject::tr("Open your Fluent case"), QObject::tr("The .cas.h5; add its .dat.h5 to compare with Fluent."),
+        step(Mark::Current, QObject::tr("Open your case"), QObject::tr("Choose a .kutta.json, .cas or .cas.h5 file."),
              primary(QObject::tr("Open Case…"), "folder-open", [c] { if (c.openDialog) c.openDialog(); }));
         step(Mark::Later, QObject::tr("Review what Kutta needs from you"), {});
         step(Mark::Later, QObject::tr("Run the calculation"), {});
@@ -456,7 +456,7 @@ QWidget* noCase(const InspectorContext& c, const QString& title)
     // Welcome: what Kutta does, and the ways to start.
     QWidget* page = makePage(QObject::tr("Open a case"), {}, &v);
     if (QWidget* e = openErrorCallout(c)) v->addWidget(e);
-    v->addWidget(label(QObject::tr("Kutta reads a Fluent case (.cas.h5), solves it on this computer's GPU and shows the results next to Fluent's. Open a case, or drop one on the window."), "muted"));
+    v->addWidget(label(QObject::tr("Open a Kutta or Fluent case to solve it locally and inspect the velocity, pressure and forces. You can also drop a case on this window."), "muted"));
     v->addWidget(gettingStarted(c, false));
     // No Fluent case: start from the mesh alone.
     auto* fromMesh = new QHBoxLayout;
@@ -484,12 +484,14 @@ QWidget* noCase(const InspectorContext& c, const QString& title)
         for (const QString& p : c.samples) {
             const QString name = QFileInfo(p).fileName();
             const bool aero = name.startsWith("fsae_car") || name.startsWith("naca");
-            auto* b = button(name, aero ? "wind" : "waves");
+            const bool shaft = name == "rotating-shaft.kutta.json";
+            auto* b = button(shaft ? QObject::tr("Rotating shaft") : name, aero ? "wind" : "waves");
             b->setProperty("flat", true);
             QObject::connect(b, &QPushButton::clicked, b, [c, p] { c.openPath(p); });
             grid->addWidget(b, row, 0, Qt::AlignLeft | Qt::AlignTop);
             const QString replays = QObject::tr("Replays a recorded Kutta run.");
-            const QString about = name.startsWith("fsae_car")     ? QObject::tr("Synthetic FSAE car for trying the workbench. Not a CFD result.")
+            const QString about = shaft ? QObject::tr("Laminar flow between two cylinders. At a radius of 0.15 m, the analytical speed is 0.389 m/s.")
+                                  : name.startsWith("fsae_car")     ? QObject::tr("Synthetic FSAE car for trying the workbench. Not a CFD result.")
                                   : name.startsWith("naca")       ? QObject::tr("2D ground-effect wing: SST with intermittency transition, moving ground. %1").arg(replays)
                                   : name.startsWith("elbow_param") ? QObject::tr("Ansys elbow: standard k-epsilon, SIMPLE. %1").arg(replays)
                                   : name.startsWith("cylinder")   ? QObject::tr("Ansys cylinder: laminar, 2D. %1").arg(replays)
@@ -951,6 +953,7 @@ QWidget* methods(const InspectorContext& c)
     add("momentum-scheme");
     add("k-scheme");
     add("omega-scheme");
+    add("limit-sst-diffusion");
     add("epsilon-scheme");
     add("intermittency-scheme");
     add("gradient-limiting");
