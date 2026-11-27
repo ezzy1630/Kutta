@@ -451,7 +451,7 @@ TEST_CASE("A native restart accepts changed inlet conditions and rejects a diffe
                       t.path("new.log"))==0);
   }
   const auto command=[&](std::string_view name) {
-    return "solve "+quote(t.path(std::string(name)+".kutta.json"))+" --backend cpu --iterations 2 --progress jsonl";
+    return "solve "+quote(t.path(std::string(name)+".kutta.json"))+" --backend cpu --iterations 2";
   };
   const auto file=t.path("first/restart.bin");
   REQUIRE_MESSAGE(kutta_cli(command("20")+" --out "+quote(t.path("first"))+" --write-restart",t.path("first.log"))==0,
