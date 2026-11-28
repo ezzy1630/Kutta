@@ -1,4 +1,8 @@
 <RCC>
+  <qresource prefix="/branding">
+    <file alias="window-icon.png">kutta-window-icon.png</file>
+    <file alias="splash.png">../../branding/kutta-splash.png</file>
+  </qresource>
   <qresource prefix="/icons">
     <file alias="activity.svg">icons/activity.svg</file>
     <file alias="arrow-right-left.svg">icons/arrow-right-left.svg</file>

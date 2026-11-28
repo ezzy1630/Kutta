@@ -1,3 +1,5 @@
+![Kutta](branding/kutta-splash.png)
+
 # Kutta
 
 A local, GPU-native CFD solver for car aerodynamics. Its first goal is to reproduce Ansys Fluent's steady incompressible k-ω SST results on the same mesh, within 1–2% on downforce and drag, much faster on one consumer GPU. The first targets are an NVIDIA RTX GPU on Windows and Apple Silicon on macOS.

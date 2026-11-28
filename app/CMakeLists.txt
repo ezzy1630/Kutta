@@ -63,12 +63,19 @@ target_compile_definitions(kutta-fixture PRIVATE
 # ---- The app ----------------------------------------------------------------------
 file(GLOB KUTTA_APP_UI_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/render/*.cpp)
-qt_add_executable(kutta-app ${KUTTA_APP_UI_SOURCES} src/main.cpp resources/app.qrc)
+set(KUTTA_APP_ICON_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/resources/Kutta.icns)
+set_source_files_properties(${KUTTA_APP_ICON_MACOS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+qt_add_executable(kutta-app ${KUTTA_APP_UI_SOURCES} src/main.cpp resources/app.qrc ${KUTTA_APP_ICON_MACOS})
+if(WIN32)
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/kutta.rc "IDI_ICON1 ICON \"${CMAKE_CURRENT_SOURCE_DIR}/resources/kutta.ico\"\n")
+  target_sources(kutta-app PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/kutta.rc)
+endif()
 set_target_properties(kutta-app PROPERTIES
   MACOSX_BUNDLE ON
   WIN32_EXECUTABLE ON
   OUTPUT_NAME Kutta
   MACOSX_BUNDLE_BUNDLE_NAME Kutta
+  MACOSX_BUNDLE_ICON_FILE Kutta.icns
   MACOSX_BUNDLE_GUI_IDENTIFIER org.kutta.app
   MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
   MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}

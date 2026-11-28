@@ -21,6 +21,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QFileInfo>
+#include <QIcon>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -32,6 +33,7 @@
 #include <QScrollBar>
 #include <QSet>
 #include <QSettings>
+#include <QSplashScreen>
 #include <QStandardPaths>
 #include <QStyleHints>
 #include <QTableWidget>
@@ -155,6 +157,9 @@ int main(int argc, char** argv)
     QApplication::setOrganizationName("Kutta");
     QApplication::setOrganizationDomain("kutta.app");
     QApplication::setApplicationVersion(KUTTA_APP_VERSION);
+#ifndef Q_OS_MACOS
+    QApplication::setWindowIcon(QIcon(":/branding/window-icon.png"));
+#endif
 
     QCommandLineParser cli;
     cli.setApplicationDescription("Kutta: GPU solver workbench for Fluent cases");
@@ -237,6 +242,18 @@ int main(int argc, char** argv)
     if (cli.isSet(themeOpt)) dark = cli.value(themeOpt) != "light";
     Theme::instance().apply(app, dark);
 
+    std::unique_ptr<QSplashScreen> splash;
+    QElapsedTimer splashShown;
+    if (!scripted) {
+        const qreal dpr = app.devicePixelRatio();
+        QPixmap art = QPixmap(":/branding/splash.png").scaled(QSize(800, 450) * dpr, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        art.setDevicePixelRatio(dpr);
+        splash = std::make_unique<QSplashScreen>(art);
+        splash->show();
+        app.processEvents();
+        splashShown.start();
+    }
+
 #ifdef KUTTA_DEV_FIXTURE_CLI
     const QString devFixture = QStringLiteral(KUTTA_DEV_FIXTURE_CLI);
 #else
@@ -260,8 +277,11 @@ int main(int argc, char** argv)
     session->refreshDevices();
 
     if (!scripted) {
-        w.show();
-        if (!cli.positionalArguments().isEmpty()) w.openCase(cli.positionalArguments().first(), cli.value(caseOpt));
+        QTimer::singleShot(std::max<qint64>(0, 1000 - splashShown.elapsed()), &w, [&] {
+            w.show();
+            splash->finish(&w);
+            if (!cli.positionalArguments().isEmpty()) w.openCase(cli.positionalArguments().first(), cli.value(caseOpt));
+        });
         return app.exec();
     }
 
